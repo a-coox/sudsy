@@ -35,8 +35,8 @@ pub fn generate() -> Result<Vec<(PathBuf, String)>> {
             codegen::rust_module(&yaml, "grammars/yaml.grammar", "core_syntax")?,
         ),
         (
-            "crates/core-syntax/src/generated/csharp.rs".into(),
-            codegen::rust_module(&csharp, "grammars/csharp.grammar", "crate")?,
+            "crates/lang-csharp/src/generated.rs".into(),
+            codegen::rust_module(&csharp, "grammars/csharp.grammar", "core_syntax")?,
         ),
         (
             "workers/csharp/Sudsy.Worker/Generated/CsharpGrammar.g.cs".into(),

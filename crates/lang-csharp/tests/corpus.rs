@@ -34,7 +34,7 @@ fn corpus_round_trips_losslessly() {
     collect(&root, &mut files);
     files.sort();
 
-    let provider = provider_api::csharp::provider(&common::worker_dll());
+    let provider = lang_csharp::provider(&common::worker_dll());
     let (mut bytes, mut with_errors, mut elements) = (0usize, 0usize, 0usize);
     let started = Instant::now();
     for path in &files {

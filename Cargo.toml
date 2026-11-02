@@ -31,6 +31,7 @@ core-config = { path = "crates/core-config" }
 core-incremental = { path = "crates/core-incremental" }
 core-format = { path = "crates/core-format" }
 core-workspace = { path = "crates/core-workspace" }
+lang-csharp = { path = "crates/lang-csharp" }
 lang-json = { path = "crates/lang-json" }
 lang-yaml = { path = "crates/lang-yaml" }
 core-syntax = { path = "crates/core-syntax" }

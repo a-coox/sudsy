@@ -1,7 +1,6 @@
 //! The language provider interface and the out-of-process proxy that implements it for languages
 //! parsed by a worker process (C#).
 
-pub mod csharp;
 pub mod format;
 pub mod out_of_process;
 pub mod protocol;
