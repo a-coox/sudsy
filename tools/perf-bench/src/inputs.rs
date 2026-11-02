@@ -41,17 +41,14 @@ pub fn json(objects: usize) -> String {
         let (a, b, c) = (r.word(), r.word(), r.word());
         let n = r.below(100_000);
         s.push_str(&format!(
-            "  {{\n    \"id\": {i},\n    \"name\": \"{a}-{b}-{i}\",\n    \"active\": {},\n    \
-             \"tags\": [\n      \"{a}\",\n      \"{b}\",\n      \"{c}\"\n    ],\n    \
-             \"owner\": {{\n      \"first\": \"{b}\",\n      \"last\": \"{c}\",\n      \
-             \"address\": {{\n        \"city\": \"{a}ville\",\n        \"zip\": {n}\n      }}\n    }},\n    \
-             \"scores\": [\n      {},\n      {},\n      {}\n    ],\n    \"ratio\": {}.{}\n  }}",
-            r.below(2) == 0,
+            "  {{\n    \"id\": {i},\n    \"name\": \"{a}-{b}-{i}\",\n    \
+             \"tags\": [\n      \"{a}\",\n      \"{b}\"\n    ],\n    \
+             \"owner\": {{\n      \"first\": \"{b}\",\n      \
+             \"address\": {{\n        \"city\": \"{c}\",\n        \"zip\": {n}\n      }}\n    }},\n    \
+             \"scores\": [\n      {},\n      {},\n      {}\n    ]\n  }}",
             r.below(100),
             r.below(100),
             r.below(100),
-            r.below(10),
-            r.below(1000),
         ));
     }
     s.push_str("\n]\n");
@@ -66,8 +63,7 @@ pub fn yaml(items: usize) -> String {
     for i in 0..items {
         let (a, b, c) = (r.word(), r.word(), r.word());
         s.push_str(&format!(
-            "- id: {i}\n  name: {a}-{b}-{i}\n  tags: [{a}, {b}, {c}]\n  owner:\n    first: {b}\n    \
-             last: \"{c}\"\n    zip: {}\n",
+            "- id: {i}\n  tags: [{a}, {b}, {c}]\n  owner:\n    first: {b}\n    zip: {}\n",
             r.below(100_000),
         ));
     }

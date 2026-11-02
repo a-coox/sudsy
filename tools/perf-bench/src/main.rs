@@ -1,4 +1,4 @@
-//! `cargo run --release -p perf-bench [-- json|yaml|all]`
+//! `cargo run --release -p perf-bench -- [json|yaml|all] [--phases-only]`
 //!
 //! Generates the benchmark inputs and times every phase of `format_file` separately, then the
 //! whole call at 1x, 4x and 16x sizes to show the scaling. The 4x row is the headline size
@@ -74,7 +74,7 @@ fn whole(p: &dyn LanguageProvider, name: &str, text: &str) -> Result<Duration> {
     Ok(d)
 }
 
-fn report(label: &str, p: &dyn LanguageProvider, name: &str, make: fn(usize) -> String, base: usize) -> Result<()> {
+fn report(label: &str, p: &dyn LanguageProvider, name: &str, make: fn(usize) -> String, base: usize, scaling: bool) -> Result<()> {
     let text = make(base);
     let mb = text.len() as f64 / 1e6;
     let ph = phases(p, name, &text)?;
@@ -84,6 +84,9 @@ fn report(label: &str, p: &dyn LanguageProvider, name: &str, make: fn(usize) -> 
         println!("  {n:<34} {:>9.1} ms {:>6.1}%", ms(*d), 100.0 * d.as_secs_f64() / total.as_secs_f64());
     }
     println!("  {:<34} {:>9.1} ms  {:.2} MB/s", "total (phases summed)", ms(total), mb / total.as_secs_f64());
+    if !scaling {
+        return Ok(());
+    }
     println!("  scaling of format_file (best of 3):");
     for (factor, n) in [("1x", base / 4), ("4x", base), ("16x", base * 4)] {
         let t = make(n);
@@ -96,12 +99,13 @@ fn report(label: &str, p: &dyn LanguageProvider, name: &str, make: fn(usize) -> 
 
 fn main() -> Result<()> {
     let args: Vec<String> = std::env::args().skip(1).collect();
-    let which = args.first().map_or("all", String::as_str);
+    let which = args.iter().find(|a| !a.starts_with("--")).map_or("all", String::as_str);
+    let scaling = !args.iter().any(|a| a == "--phases-only");
     if matches!(which, "json" | "all") {
-        report("JSON", &lang_json::JsonProvider::new(), "bench.json", inputs::json, JSON_OBJECTS)?;
+        report("JSON", &lang_json::JsonProvider::new(), "bench.json", inputs::json, JSON_OBJECTS, scaling)?;
     }
     if matches!(which, "yaml" | "all") {
-        report("YAML", &lang_yaml::YamlProvider::new(), "bench.yaml", inputs::yaml, YAML_ITEMS)?;
+        report("YAML", &lang_yaml::YamlProvider::new(), "bench.yaml", inputs::yaml, YAML_ITEMS, scaling)?;
     }
     Ok(())
 }
