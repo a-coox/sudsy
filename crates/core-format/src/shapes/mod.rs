@@ -11,7 +11,7 @@ pub use key_value::{KeyValueStyle, key_value};
 pub use list::{ListLayout, ListStyle, TrailingComma, delimited_list};
 
 use crate::FormatCtx;
-use crate::comments::{self, Comment};
+use crate::comments::{self, Comment, CommentKind};
 use crate::directives::Directive;
 use crate::doc::{self, Doc};
 use crate::error::FormatError;
@@ -73,6 +73,7 @@ pub(crate) struct Rendered {
     /// First node of the item (directives are read from it).
     first: SyntaxNode,
     first_token: SyntaxToken,
+    last_token: SyntaxToken,
     doc: Doc,
     /// Separator after the last item of the run.
     sep: Option<SyntaxToken>,
@@ -108,14 +109,19 @@ pub(crate) fn render_slots(
             out.push(Rendered {
                 first: slots[i].node.clone(),
                 first_token: tok.clone(),
+                last_token: last.clone(),
                 doc: cx.verbatim_range(&tok, &last),
                 sep: slots[j].sep.clone(),
             });
             i = j + 1;
         } else {
+            let last_token = cx
+                .last_token(&slots[i].node)
+                .ok_or_else(|| FormatError::Shape("item without tokens".into()))?;
             out.push(Rendered {
                 first: slots[i].node.clone(),
                 first_token: tok,
+                last_token,
                 doc: cx.format(&slots[i].node)?,
                 sep: slots[i].sep.clone(),
             });
@@ -155,14 +161,33 @@ pub(crate) fn gap(
     doc::concat(parts)
 }
 
-/// Comments owned by a separator token, printed like trailing comments of the item before it.
-pub(crate) fn separator_comments(cx: &FormatCtx<'_>, sep: Option<&SyntaxToken>) -> Doc {
-    let Some(sep) = sep else { return Doc::Nil };
-    let all: Vec<Comment> = comments::leading_comments(cx.grammar, sep)
+/// Comments owned by the separator token after `item`, printed like trailing comments of the
+/// item. Once a line comment is on the line, anything further must go on its own line, or it
+/// would become part of that comment.
+pub(crate) fn separator_comments(cx: &FormatCtx<'_>, item: &Rendered) -> Doc {
+    let Some(sep) = item.sep.as_ref() else {
+        return Doc::Nil;
+    };
+    let g = cx.grammar;
+    let mut line_comment_open = comments::trailing_comments(g, &item.last_token)
+        .iter()
+        .any(|c| c.kind == CommentKind::Line);
+    let mut parts = Vec::new();
+    for c in comments::leading_comments(g, sep)
         .into_iter()
-        .chain(comments::trailing_comments(cx.grammar, sep))
-        .collect();
-    crate::context::trailing_comments_doc(&all)
+        .chain(comments::trailing_comments(g, sep))
+    {
+        if line_comment_open {
+            parts.push(doc::hardline());
+            parts.push(crate::context::verbatim_text(c.text()));
+        } else {
+            parts.push(crate::context::trailing_comments_doc(std::slice::from_ref(
+                &c,
+            )));
+            line_comment_open = c.kind == CommentKind::Line;
+        }
+    }
+    doc::concat(parts)
 }
 
 /// Comments in front of a closing delimiter, each on its own line inside the container.

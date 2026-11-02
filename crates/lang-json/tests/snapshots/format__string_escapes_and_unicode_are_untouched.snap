@@ -1,0 +1,7 @@
+---
+source: crates/lang-json/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+["aé\n\"", "日本語", 1.50E+10, -0, 0.1e-2]
+-----
+["aé\n\"", "日本語", 1.50E+10, -0, 0.1e-2]

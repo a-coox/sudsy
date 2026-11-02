@@ -1,0 +1,28 @@
+---
+source: crates/lang-json/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+// file header
+
+{
+  // about a
+  "a": 1, // trailing a
+
+  /* about b */
+  "b": 2 /* inline */,
+  "c": 3 // last
+}
+// footer
+
+-----
+// file header
+
+{
+  // about a
+  "a": 1, // trailing a
+
+  /* about b */
+  "b": 2 /* inline */,
+  "c": 3 // last
+}
+// footer

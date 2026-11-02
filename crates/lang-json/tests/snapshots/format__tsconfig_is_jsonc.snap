@@ -1,0 +1,15 @@
+---
+source: crates/lang-json/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+{"compilerOptions": {
+// strict
+"strict": true,
+}}
+-----
+{
+  "compilerOptions": {
+    // strict
+    "strict": true
+  }
+}

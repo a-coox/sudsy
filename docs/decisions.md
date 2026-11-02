@@ -156,3 +156,87 @@ M0.
 * The conformance corpus is not fetched in CI. The corpus test is `#[ignore]`d:
   `bash tests/conformance/fetch-corpus.sh && cargo test --release -p provider-api --test corpus_roundtrip -- --ignored --nocapture`.
 * Rust tests that need the worker build it with `dotnet build` on first use.
+
+## M1a: formatting engine and JSON
+
+### core-format
+* **Printer**: Prettier's algorithm (group fits flat if the rest of the line up to the next
+  possible break fits; `fill`; `conditional_group` takes the first candidate that fits, trying each
+  flat but allowing forced breaks inside it; line suffixes flush at the next newline; trailing
+  whitespace is trimmed). Widths use Unicode display width. A text containing a newline breaks the
+  enclosing groups (`verbatim_text`) and only its first line counts when measuring.
+* **Shared options** (`core_config::shared`): `line_width`, `indent_size`, `indent_style`
+  (`space`|`tab`), `final_newline`. plan.md says "indent"; two options keep tabs and width apart.
+  Providers pick their own defaults. `format_tree` always prints LF and then restores the file's
+  line ending (first line break decides) and applies `final_newline`.
+* **Comments** are never positioned by the formatter: a comment is owned by a token (trivia
+  attachment rule), and printing a token through `FormatCtx::token` prints its comments. Own-line
+  comments before a token stay on their own lines; a block comment on the same line stays inline;
+  a line comment after a token becomes a line suffix and breaks the enclosing group. Comments
+  before a closing delimiter are "dangling" and printed inside the container. Comments around a
+  list separator are printed as trailing comments of the item; a second comment on a line that
+  already ends in a line comment moves to its own line (found by a property test).
+* **Blank lines** between items are kept (at most 1 by default, `ListStyle`/`BlockStyle`
+  `max_blank_lines`). In a list that fits on one line they vanish.
+* **Shapes**: delimited list, block, key-value, statement sequence, verbatim. A shape finds its
+  structure from the grammar: first and last significant token are the delimiters, child nodes
+  are items, tokens tagged `#separator` after an item are its separator. List separators are
+  re-created from `ListStyle`; block separators are kept as written. **Binary chain and member
+  chain are left for M4**: they need operator and call-chain knowledge that is not generic.
+  JSON objects are tagged `#block` in the grammar but are laid out with the list shape (the
+  per-node code in `lang-json` does this; the `#block` tag default stays "one item per line").
+* **Layout directives** (`DIRECTIVES_VERSION = 1`): `BreakAll`, `KeepTogether` (list layout),
+  `BreakBefore`/`BreakAfter`, `BlankLineBefore(n)` (read by the item gap in lists and sequences:
+  a forced break expands the whole list, since a hard line breaks its group), `Align` (on the
+  parent: key-value separators line up, only when the parent is expanded), `Preserve` (verbatim),
+  `Style(name)` (read by provider code; shapes ignore it). Conflicts: `BreakAll` with
+  `KeepTogether`, `Preserve` with any other directive, two different `BlankLineBefore` or `Style`
+  values. Detected when a directive is added.
+* **Ignore comments**: `sudsy-ignore` before a node keeps it verbatim (the outermost node that
+  starts at that token); `sudsy-ignore-start` .. `sudsy-ignore-end` among the items of a list or
+  block keeps those items verbatim, including the separators between them. A start without an end
+  runs to the end of the container. The comment's first word must equal the marker.
+* **Subtrees**: `FormatCtx::format(node)` depends on nothing but the node and its neighbours in
+  the tree, so a subtree can be formatted in context (tested). Range formatting itself is not built.
+* **Safety check**: re-parse, then compare the sequences of node starts/ends and non-trivia
+  tokens. **Tokens tagged `#separator` are ignored too**, because adding or removing a trailing
+  comma is a legitimate change; a wrongly removed separator still changes the structure or fails
+  the re-parse. `NodeFormatter::extra_check(before, after)` is the hook for the YAML data-model
+  comparison. The test helper (`core_format::testing::check`) adds comment preservation to
+  round-trip, meaning and idempotency.
+* `provider_api::format_file` is the pipeline (parse, refuse files with syntax errors, format,
+  safety check). C#'s `OutOfProcessProvider` has a `DefaultFormatter` and an empty option schema
+  until `lang-csharp` (M4); the CLI only registers providers that can format.
+
+### lang-json
+* **Parser**: hand-written lexer and recursive-descent parser. Strings, numbers and escapes are
+  validated by the lexer. Errors: stray tokens become `ERROR` nodes; every token is in the tree
+  (checked by property tests and JSONTestSuite). Comments and trailing commas are *errors in the
+  `json` dialect* (the tree is the same). Nesting deeper than 256 levels is an error, the rest of
+  the file becomes one `ERROR` node (bounds recursion in parser, formatter and tree drop).
+  An empty file is an error (`n_structure_no_data`).
+* **Dialect**: matcher (`*.json` json; `*.jsonc`, `tsconfig.json`, `.vscode/*.json` jsonc; most
+  specific matcher wins), overridable with the JSON option `dialect` (`auto`|`json`|`jsonc`). The
+  effective dialect travels in `SourceFile::language_version` and, written back by
+  `resolve_dialect`, in the option `dialect` so the formatter knows whether trailing commas are
+  allowed. `FilePattern::InDirectory` was added for `.vscode/*.json`.
+* **Options**: `line_width` 80, `indent_size` 2, `indent_style`, `final_newline` true, `dialect`,
+  `trailing_commas` (`never`|`multiline`, JSONC only, default `never`) and `collapse`:
+  `preserve` (default: an object or array stays on one line only if it had no line break after its
+  opening bracket and it fits), `always` (anything that fits goes on one line), `never` (every
+  non-empty one is expanded). Objects print `{ "a": 1 }`, arrays `[1, 2]`; not configurable.
+* **Config resolution** (`Config::format_options`): schema defaults, then the shared `format:`
+  keys, then the language section. Unknown keys in a language section and invalid values are
+  errors. A shared key the language does not declare is ignored; a key that is not a shared option
+  at all is an error. M2 extends this one function.
+* JSONTestSuite is pinned to nst/JSONTestSuite `1ef36fa` (`tests/conformance/fetch-json-corpus.sh`).
+  The test is `#[ignore]`d like the C# corpus test. Every accepted file is also formatted with all
+  checks in both dialects.
+
+### CLI and discovery
+* `core-workspace` has only `discover_files` (walk, `.gitignore` also outside a git checkout,
+  hidden directories included, `.git` excluded; explicit file arguments are always kept).
+* `sudsy format [--check] [paths]`: exit 0 clean, 1 if `--check` finds files that would change,
+  2 if any file failed (syntax error, unreadable, bad option). Failed files are left alone and
+  the rest are still processed. A UTF-8 BOM is kept; config is the nearest `sudsy.yaml` above the
+  current directory (per-file resolution is M2).

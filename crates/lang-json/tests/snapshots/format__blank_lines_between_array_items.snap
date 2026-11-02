@@ -1,0 +1,18 @@
+---
+source: crates/lang-json/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+[
+  1,
+
+
+  2,
+  3
+]
+-----
+[
+  1,
+
+  2,
+  3
+]

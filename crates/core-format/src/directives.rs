@@ -87,13 +87,13 @@ impl DirectiveTable {
         node: &SyntaxNode,
         rule: &str,
         directive: Directive,
-    ) -> Result<(), DirectiveConflict> {
+    ) -> Result<(), Box<DirectiveConflict>> {
         let key = NodeKey::of(node);
         let entries = self.by_node.entry(key).or_default();
         if let Some((first_rule, first)) =
             entries.iter().find(|(_, d)| d.conflicts_with(&directive))
         {
-            return Err(DirectiveConflict {
+            return Err(Box::new(DirectiveConflict {
                 kind: format!("{:?}", node.kind()),
                 start: key.start,
                 end: key.end,
@@ -101,7 +101,7 @@ impl DirectiveTable {
                 first: first.clone(),
                 second_rule: rule.into(),
                 second: directive,
-            });
+            }));
         }
         if !entries.iter().any(|(_, d)| *d == directive) {
             entries.push((rule.into(), directive));
