@@ -17,7 +17,7 @@ Question (plan.md "Wire encoding"): how to send a tree between processes. Candid
   (token width in UTF-8 bytes, or node child count). Token text is not sent.
 * C# side: `workers/csharp/Sudsy.Bench` (Release, .NET 10, Roslyn 5.9.0). Parse time is
   `CSharpSyntaxTree.ParseText` + `GetRoot`; "mapping" is our Roslyn-to-grammar walk; "serialize" is
-  only the candidate's encoding of the mapped tree. One warm-up pass, then one measured pass over
+  only the candidate's encoding of the mapped tree (method used for the results below; the tools now run the production path only). One warm-up pass, then one measured pass over
   all files.
 * Rust side: `tools/wire-bench` (release). "Deserialize" turns the bytes into the element arrays;
   "build tree" turns the arrays into a rowan green tree (identical for all candidates). Best of
@@ -57,8 +57,12 @@ Whether an element is a token is a bit of the kind id, so there is no per-elemen
 are not sent: they are the sum of the children's. This is slightly leaner than plan.md's "kind,
 width and child count per element" and carries the same information.
 
-Only (d) is in production code. The other encoders live in `workers/csharp/Sudsy.Bench` and
-`tools/wire-bench`, which are marked as benchmark code and are not part of the product.
+Only (d) is in production code. The losing candidates (a), (b) and (c), with their protobuf
+packages and crate, were removed from `workers/csharp/Sudsy.Bench` and `tools/wire-bench` after the
+decision; they remain in git history at commit 5ae70ca. Both tools now benchmark the production path
+only (Roslyn parse, mapping walk, `WireEncoder` + MessagePack, Rust decode through
+`provider_api::protocol::decode` and `WireTree::unpack`, rowan build), reusing the production
+encode/decode code, as the tracked baseline for M4 mapping-cost work.
 
 ### Finding that matters more than the encoding
 
