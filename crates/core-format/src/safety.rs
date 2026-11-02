@@ -85,7 +85,14 @@ impl<'a> Iterator for Events<'a> {
                     self.stack.pop();
                     return Some((self.pos, Event::Leave(kind)));
                 }
-                Some(rowan::NodeOrToken::Node(n)) => return Some(self.enter(n)),
+                Some(rowan::NodeOrToken::Node(n)) => {
+                    // A structured trivia (a C# doc comment, a directive) is trivia as a whole.
+                    if self.g.is_trivia(SyntaxKind(n.kind().0)) {
+                        self.pos += usize::from(n.text_len());
+                        continue;
+                    }
+                    return Some(self.enter(n));
+                }
                 Some(rowan::NodeOrToken::Token(t)) => {
                     let kind = SyntaxKind(t.kind().0);
                     let at = self.pos;

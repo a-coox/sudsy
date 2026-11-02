@@ -5,7 +5,7 @@ namespace Sudsy.Worker.Generated;
 
 public static class CsharpGrammar
 {
-    public const string Hash = "26eef718aaa31a9002ed76a2a06d7b74826f87765480262c0657e028e3f9aeef";
+    public const string Hash = "6bc79b8d20d995370b8de50aaf05310908b795d86368c12d22aa5976a570a78f";
     public const byte LanguageId = 2;
 
     /// <summary>Kind id by grammar name; tokens carry bit 11.</summary>

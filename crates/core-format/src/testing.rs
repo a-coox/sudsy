@@ -4,7 +4,7 @@
 //! comment was lost or reordered.
 
 use crate::safety::equal_ignoring_trivia;
-use core_syntax::{Grammar, SyntaxNode, print};
+use core_syntax::{Grammar, SyntaxElement, SyntaxNode, print};
 
 /// What a language provides to be tested.
 pub trait Subject {
@@ -14,13 +14,37 @@ pub trait Subject {
     fn format(&self, text: &str) -> Result<String, String>;
 }
 
+/// The comments of a tree in order. Structured trivia (doc comments, directives) count as one,
+/// compared line by line without indentation because the printer re-indents them.
 fn comments(g: &Grammar, tree: &SyntaxNode) -> Vec<String> {
-    tree.descendants_with_tokens()
-        .filter_map(|e| e.into_token())
-        .filter(|t| g.has_tag(t.kind(), "comment"))
-        // The printer writes LF only, even inside block comments.
-        .map(|t| t.text().trim_end().replace("\r\n", "\n"))
-        .collect()
+    let mut out = Vec::new();
+    let mut walk = tree.preorder_with_tokens();
+    while let Some(event) = walk.next() {
+        let rowan::WalkEvent::Enter(e) = event else {
+            continue;
+        };
+        let structured = matches!(e, SyntaxElement::Node(_));
+        if g.has_tag(e.kind(), "comment") || g.has_tag(e.kind(), "verbatim-trivia") {
+            let text = match &e {
+                SyntaxElement::Token(t) => t.text().to_string(),
+                SyntaxElement::Node(n) => n.text().to_string(),
+            };
+            // The printer writes LF only, even inside block comments.
+            let text = text.replace("\r\n", "\n");
+            out.push(if structured {
+                text.lines()
+                    .map(str::trim)
+                    .collect::<Vec<_>>()
+                    .join("\n")
+            } else {
+                text.trim_end().to_string()
+            });
+            if structured {
+                walk.skip_subtree();
+            }
+        }
+    }
+    out
 }
 
 /// Formats `input` and checks the result; returns it for snapshotting.
