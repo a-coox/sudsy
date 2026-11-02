@@ -207,6 +207,16 @@ fn main() -> Result<()> {
             scaling,
         )?;
     }
+    if matches!(which, "json-flat" | "all") {
+        report(
+            "JSON, one line",
+            &lang_json::JsonProvider::new(),
+            "flat.json",
+            inputs::json_flat,
+            50_000,
+            scaling,
+        )?;
+    }
     if matches!(which, "yaml" | "all") {
         report(
             "YAML",

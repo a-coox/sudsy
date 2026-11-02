@@ -72,11 +72,38 @@ pub(crate) fn container(cx: &FormatCtx<'_>, node: &SyntaxNode) -> Result<Contain
 pub(crate) struct Rendered {
     /// First node of the item (directives are read from it).
     first: SyntaxNode,
-    first_token: SyntaxToken,
-    last_token: SyntaxToken,
+    /// Last node of the item.
+    last: SyntaxNode,
+    /// Blank lines the source has before the item (see [`comments::blank_lines_before`]).
+    blank_before: usize,
     doc: Doc,
     /// Separator after the last item of the run.
     sep: Option<SyntaxToken>,
+}
+
+fn no_tokens() -> FormatError {
+    FormatError::Shape("item without tokens".into())
+}
+
+/// The blank lines before a slot and its ignore mark. Only a comment can carry a mark, so the
+/// first token is looked at only when there is one.
+fn leading_info(
+    cx: &FormatCtx<'_>,
+    node: &SyntaxNode,
+) -> Result<(usize, Option<IgnoreMark>), FormatError> {
+    let g = cx.grammar;
+    let lead = comments::node_leading(g, node);
+    if !lead.has_tokens {
+        return Err(no_tokens());
+    }
+    if !lead.has_comment {
+        return Ok((lead.blank_lines, None));
+    }
+    let tok = cx.first_token(node).ok_or_else(no_tokens)?;
+    Ok((
+        comments::blank_lines_before(g, &tok),
+        ignore::mark_in(g, &comments::leading_comments(g, &tok)),
+    ))
 }
 
 /// Formats each slot; slots between `sudsy-ignore-start` and `sudsy-ignore-end` comments are
@@ -85,43 +112,31 @@ pub(crate) fn render_slots(
     cx: &FormatCtx<'_>,
     slots: &[Slot],
 ) -> Result<Vec<Rendered>, FormatError> {
-    let g = cx.grammar;
-    let first_token = |slot: &Slot| {
-        cx.first_token(&slot.node)
-            .ok_or_else(|| FormatError::Shape("item without tokens".into()))
-    };
-    let mark = |slot: &Slot| -> Result<Option<IgnoreMark>, FormatError> {
-        let tok = first_token(slot)?;
-        Ok(ignore::mark_in(g, &comments::leading_comments(g, &tok)))
-    };
-    let mut out = Vec::new();
+    let mut out = Vec::with_capacity(slots.len());
     let mut i = 0;
     while i < slots.len() {
-        let tok = first_token(&slots[i])?;
-        if mark(&slots[i])? == Some(IgnoreMark::Start) {
+        let (blank_before, mark) = leading_info(cx, &slots[i].node)?;
+        if mark == Some(IgnoreMark::Start) {
             let mut j = i;
-            while j + 1 < slots.len() && mark(&slots[j + 1])? != Some(IgnoreMark::End) {
+            while j + 1 < slots.len() && leading_info(cx, &slots[j + 1].node)?.1 != Some(IgnoreMark::End)
+            {
                 j += 1;
             }
-            let last = cx
-                .last_token(&slots[j].node)
-                .ok_or_else(|| FormatError::Shape("item without tokens".into()))?;
+            let tok = cx.first_token(&slots[i].node).ok_or_else(no_tokens)?;
+            let last = cx.last_token(&slots[j].node).ok_or_else(no_tokens)?;
             out.push(Rendered {
                 first: slots[i].node.clone(),
-                first_token: tok.clone(),
-                last_token: last.clone(),
+                last: slots[j].node.clone(),
+                blank_before,
                 doc: cx.verbatim_range(&tok, &last),
                 sep: slots[j].sep.clone(),
             });
             i = j + 1;
         } else {
-            let last_token = cx
-                .last_token(&slots[i].node)
-                .ok_or_else(|| FormatError::Shape("item without tokens".into()))?;
             out.push(Rendered {
                 first: slots[i].node.clone(),
-                first_token: tok,
-                last_token,
+                last: slots[i].node.clone(),
+                blank_before,
                 doc: cx.format(&slots[i].node)?,
                 sep: slots[i].sep.clone(),
             });
@@ -147,9 +162,7 @@ pub(crate) fn gap(
         || prev_d.has(&Directive::BreakAfter)
         || required.is_some_and(|n| n > 0);
     let hard_base = matches!(base, Doc::HardLine);
-    let blank = required.unwrap_or_else(|| {
-        comments::blank_lines_before(cx.grammar, &next.first_token).min(max_blank)
-    });
+    let blank = required.unwrap_or_else(|| next.blank_before.min(max_blank));
     // Blank lines the source had vanish when a list fits on one line; required ones do not.
     let blank_line = if hard_base || required.is_some() {
         doc::hardline()
@@ -169,14 +182,20 @@ pub(crate) fn separator_comments(cx: &FormatCtx<'_>, item: &Rendered) -> Doc {
         return Doc::Nil;
     };
     let g = cx.grammar;
-    let mut line_comment_open = comments::trailing_comments(g, &item.last_token)
-        .iter()
-        .any(|c| c.kind == CommentKind::Line);
-    let mut parts = Vec::new();
-    for c in comments::leading_comments(g, sep)
+    let own: Vec<Comment> = comments::leading_comments(g, sep)
         .into_iter()
         .chain(comments::trailing_comments(g, sep))
-    {
+        .collect();
+    if own.is_empty() {
+        return Doc::Nil;
+    }
+    let mut line_comment_open = cx.last_token(&item.last).is_some_and(|last| {
+        comments::trailing_comments(g, &last)
+            .iter()
+            .any(|c| c.kind == CommentKind::Line)
+    });
+    let mut parts = Vec::new();
+    for c in own {
         if line_comment_open {
             parts.push(doc::hardline());
             parts.push(crate::context::verbatim_text(c.text()));
