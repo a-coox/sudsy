@@ -88,12 +88,17 @@ fn records_have_primary_constructors_and_base_calls() {
 #[test]
 fn collection_expressions_have_elements_and_spreads() {
     let tree = parse("class C { int[] a = [1, ..b, 2,]; int[] e = []; }");
-    let mut all = tree.descendants().filter_map(cs::CollectionExpression::cast);
+    let mut all = tree
+        .descendants()
+        .filter_map(cs::CollectionExpression::cast);
     let a = all.next().unwrap();
     let elements: Vec<_> = a.elements().collect();
     assert_eq!(elements.len(), 3);
     assert_eq!(
-        elements.iter().map(|e| e.syntax().kind()).collect::<Vec<_>>(),
+        elements
+            .iter()
+            .map(|e| e.syntax().kind())
+            .collect::<Vec<_>>(),
         [
             kind::EXPRESSION_ELEMENT,
             kind::SPREAD_ELEMENT,
@@ -133,14 +138,25 @@ fn string_literals_keep_their_flavors() {
 
 #[test]
 fn interpolated_strings_split_into_text_and_interpolations() {
-    let tree = parse("class C { string s = $\"a {x,-5:F2} b {{c}} {y}\"; string r = $$\"\"\"{{z}}\"\"\"; }");
+    let tree = parse(
+        "class C { string s = $\"a {x,-5:F2} b {{c}} {y}\"; string r = $$\"\"\"{{z}}\"\"\"; }",
+    );
     let mut all = tree
         .descendants()
         .filter_map(cs::InterpolatedStringExpression::cast);
     let s = all.next().unwrap();
-    assert_eq!(s.string_start().unwrap().kind(), kind::INTERPOLATED_STRING_START_TOKEN);
+    assert_eq!(
+        s.string_start().unwrap().kind(),
+        kind::INTERPOLATED_STRING_START_TOKEN
+    );
     let contents: Vec<_> = s.contents().map(|c| c.syntax().kind()).collect();
-    assert_eq!(contents.iter().filter(|k| **k == kind::INTERPOLATION).count(), 2);
+    assert_eq!(
+        contents
+            .iter()
+            .filter(|k| **k == kind::INTERPOLATION)
+            .count(),
+        2
+    );
     assert!(contents.contains(&kind::INTERPOLATED_STRING_TEXT));
     let i = s
         .contents()
@@ -164,14 +180,20 @@ fn doc_comments_are_structured_trivia_nodes() {
     assert!(grammars::csharp().is_trivia(doc.syntax().kind()));
     // The doc comment is a leading trivia sibling of the `class` keyword.
     let class = first::<cs::ClassDeclaration>(&tree);
-    assert_eq!(class.syntax().first_child().unwrap().kind(), doc.syntax().kind());
+    assert_eq!(
+        class.syntax().first_child().unwrap().kind(),
+        doc.syntax().kind()
+    );
     let elements: Vec<_> = doc
         .content()
         .filter_map(|n| cs::XmlElement::cast(n.syntax().clone()))
         .collect();
     assert_eq!(elements.len(), 2);
     let summary = &elements[0];
-    assert_eq!(text(&summary.start_tag().unwrap().name().unwrap()), "summary");
+    assert_eq!(
+        text(&summary.start_tag().unwrap().name().unwrap()),
+        "summary"
+    );
     let see = doc
         .syntax()
         .descendants()
@@ -182,7 +204,10 @@ fn doc_comments_are_structured_trivia_nodes() {
         .find_map(|a| cs::XmlCrefAttribute::cast(a.syntax().clone()))
         .unwrap();
     assert_eq!(text(&cref.name().unwrap()), "cref");
-    assert_eq!(doc.syntax().text().to_string(), src[..src.rfind("class").unwrap()]);
+    assert_eq!(
+        doc.syntax().text().to_string(),
+        src[..src.rfind("class").unwrap()]
+    );
 }
 
 #[test]
@@ -258,9 +283,18 @@ fn skipped_tokens_are_error_nodes_holding_the_tokens_and_their_trivia() {
         .flat_map(|n| n.descendants_with_tokens())
         .filter_map(|e| e.into_token())
         .collect();
-    assert!(tokens.iter().any(|t| t.kind() == kind::BAD_TOKEN && t.text() == "@"));
+    assert!(
+        tokens
+            .iter()
+            .any(|t| t.kind() == kind::BAD_TOKEN && t.text() == "@")
+    );
     // Ordinary code around the damage is still there.
-    assert_eq!(tree.descendants().filter_map(cs::ClassDeclaration::cast).count(), 2);
+    assert_eq!(
+        tree.descendants()
+            .filter_map(cs::ClassDeclaration::cast)
+            .count(),
+        2
+    );
 }
 
 #[test]
@@ -276,7 +310,11 @@ fn chain_tags_mark_the_nodes_the_formatter_flattens() {
     ] {
         assert!(g.has_tag(k, "binary-chain"), "{}", g.name(k));
     }
-    for k in [kind::IS_EXPRESSION, kind::AS_EXPRESSION, kind::SIMPLE_ASSIGNMENT_EXPRESSION] {
+    for k in [
+        kind::IS_EXPRESSION,
+        kind::AS_EXPRESSION,
+        kind::SIMPLE_ASSIGNMENT_EXPRESSION,
+    ] {
         assert!(!g.has_tag(k, "binary-chain"), "{}", g.name(k));
     }
     for k in [
@@ -311,7 +349,10 @@ fn accessors_tell_apart_items_of_the_same_type() {
         "class C { void M() { for (int i = 0, j = 1; i < j; i++, j--) { } for (;;) { } for (a = 1; ; ) { } \
          var c = p ? q : r; var d = (T)x; var e = from v in w select v; var f = from int u in w select u; } }",
     );
-    let fors: Vec<_> = tree.descendants().filter_map(cs::ForStatement::cast).collect();
+    let fors: Vec<_> = tree
+        .descendants()
+        .filter_map(cs::ForStatement::cast)
+        .collect();
     assert_eq!(fors.len(), 3);
     assert_eq!(text(&fors[0].declaration().unwrap()), "int i = 0, j = 1");
     assert_eq!(fors[0].initializers().count(), 0);

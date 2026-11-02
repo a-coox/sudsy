@@ -62,7 +62,7 @@ packages and crate, were removed from `workers/csharp/Sudsy.Bench` and `tools/wi
 decision; they remain in git history at commit 5ae70ca. Both tools now benchmark the production path
 only (Roslyn parse, mapping walk, `WireEncoder` + MessagePack, Rust decode through
 `provider_api::protocol::decode` and `WireTree::unpack`, rowan build), reusing the production
-encode/decode code, as the tracked baseline for M4 mapping-cost work.
+encode/decode code, as the tracked baseline for mapping-cost work (M2a measured it again).
 
 ### Finding that matters more than the encoding
 
@@ -70,8 +70,7 @@ Encoding is cheap; **walking Roslyn's tree is not.** The mapping walk costs abou
 parse itself, because the public API materializes red nodes, tokens and trivia lazily and the parse
 only builds the green tree. Together with the Rust tree build, a C# file costs roughly 2.1x its
 Roslyn parse time to reach the Rust side, which is above plan.md's 10 % aspiration for tree
-transfer (that was framed around encoding alone). Mitigations to consider before M4: a single-pass
-walk (the current one pre-collects tokens), caching by content hash (already in the plan), and
+transfer (that was framed around encoding alone). Mitigations: a single-pass walk (done in M2a), caching by content hash (already in the plan), and
 a persistent worker. End to end the corpus (27.8 MB) parses, ships and rebuilds in about 9 s in
 the conformance test, including process and per-file round trips. Recorded as a risk; not blocking
 M0.
@@ -90,9 +89,8 @@ M0.
 * **Embedded languages** need no special node shape: an `EMBEDDED` node (core namespace) simply has
   the nested language's root as its child, and kinds are namespaced, so the wire encoding carries
   it unchanged (tested). `embedded_language()` reports the nested language.
-* `ERROR` exists in the model and wire encoding. The C# worker does not emit it yet: Roslyn's
-  skipped tokens arrive as one `SkippedTokensTrivia` token and the errors travel in the parse-error
-  list. Proper recovery nodes are part of the M4 mapping work.
+* `ERROR` exists in the model and wire encoding. The C# worker emits it for missing and skipped
+  tokens since M2a (see "M2a: C# mapping").
 
 ## Grammar format
 
@@ -103,13 +101,12 @@ M0.
 * The grammar hash is SHA-256 over the lexemes: comments and layout do not change it, declaration
   order does (it determines kind ids).
 * Generated Rust wrappers live in the language crates (`lang-json/src/generated.rs`,
-  `lang-yaml/src/generated.rs`); `csharp.rs` stays in `core-syntax/src/generated/` until `lang-csharp`
-  exists (M4). `codegen::rust_module` takes the path by which the module reaches `core_syntax`.
+  `lang-yaml/src/generated.rs`, and `lang-csharp/src/generated.rs` since M2a).
+  `codegen::rust_module` takes the path by which the module reaches `core_syntax`.
 * `grammars/csharp.grammar` was bootstrapped from Roslyn's `SyntaxKind` enum and syntax classes
-  (kind names equal Roslyn names; tags and partial fields derived heuristically) and is
-  hand-maintained from here on. The bootstrap script is not kept in the repo. Fields exist only for
-  kinds whose Roslyn class has the same name (e.g. `ClassDeclaration`), 574 kinds in total.
-  Doc comments and directives are single trivia tokens; structured trivia is M4.
+  (kind names equal Roslyn names) and is hand-maintained from here on. The bootstrap scripts are not
+  kept in the repo. M2a replaced the partial bodies of the first bootstrap with complete ones, see
+  "M2a: C# mapping".
 * The C# worker gets its kind table and grammar hash from `cargo xtask codegen`
   (`workers/csharp/Sudsy.Worker/Generated/CsharpGrammar.g.cs`); `xtask/tests/codegen_is_fresh.rs`
   fails if any generated file is stale. The kind table is matched to Roslyn kinds by name.
@@ -142,7 +139,7 @@ M0.
 * Only `id`, `grammar`, `file_matchers`, `capabilities` and `parse` exist. The rest of plan.md's
   trait (`formatter`, `option_schema`, `presets`, `builtin_rules`, `semantic`, `flow`, `summaries`)
   is added with the milestone that introduces its types.
-* The C# provider constructor lives in `provider-api::csharp` until `lang-csharp` exists (M4).
+* The C# provider constructor lives in `lang_csharp` (moved out of `provider-api` in M2a).
 
 ## core-config
 
@@ -211,7 +208,7 @@ M0.
   round-trip, meaning and idempotency.
 * `provider_api::format_file` is the pipeline (parse, refuse files with syntax errors, format,
   safety check). C#'s `OutOfProcessProvider` has a `DefaultFormatter` and an empty option schema
-  until `lang-csharp` (M4); the CLI only registers providers that can format.
+  until the C# formatter (M2b); the CLI only registers providers that can format.
 
 ### lang-json
 * **Parser**: hand-written lexer and recursive-descent parser. Strings, numbers and escapes are
@@ -524,3 +521,133 @@ Proposals, none done here:
   bounded first by the Roslyn parse plus mapping walk (about 2.1x parse time, see "Wire encoding"),
   so the formatter's share is decided with real C# numbers rather than JSON/YAML ones. Proposal 4
   (share YAML anchored nodes) is only relevant to alias-heavy files and stays open.
+
+## M2a: C# mapping
+
+The tree the C# formatter (M2b) builds on. Corpus result: 7659 files, 89.8 MB, 26.0 million tree
+elements (runtime CoreLib, roslyn, aspnetcore, see below) parse with no errors, round-trip byte for
+byte, satisfy the trivia attachment rule and fit every grammar body.
+
+### Crate and protocol
+* `crates/lang-csharp` holds the C# provider (`provider`, `locate_worker`) and the generated
+  wrappers (`lang_csharp::generated`). `provider-api::csharp` and `core-syntax/src/generated` are
+  gone. The CLI uses it for `debug parse` only: `sudsy format` still registers JSON and YAML only,
+  because C# has no formatter yet and its `DefaultFormatter` would reprint files (M2b registers it
+  together with the formatter).
+* Protocol **v2**: `Parse` carries `preprocessor_symbols` (`SourceFile::preprocessor_symbols`,
+  empty by default). Symbols belong to the file's build, so `OpenWorkspace` will supply them
+  (M5); until then callers set them, and nothing in the config reads them yet.
+
+### Grammar bodies
+* Every node body in `grammars/csharp.grammar` is Roslyn's field list for that kind, in order
+  (generated once from dotnet/roslyn's `Syntax.xml`, whose kinds match Microsoft.CodeAnalysis.CSharp
+  5.9.0; the generator is not kept). Optional fields are `?`, lists `*`, and a `Choice` in the XML
+  (the `for` statement's declaration versus initializers) is optional items in order. 321 node
+  kinds, 252 token kinds.
+* **Bodies are matched against the children in order** (`core_syntax::ast::assign`): a child goes to
+  the first slot at or after the current one that accepts its kind; a `*` slot stays current.
+  This replaced "n-th child of that type", which could not tell `condition` from `initializers` in
+  `for`, or a cast's type from its operand (a type name is also an expression). The grammar parser
+  therefore no longer rejects a type that appears in several items. The generated accessors and
+  `core_syntax::shape::ShapeChecker` share the routine; the checker is what the conformance suites
+  use: every child must land in a slot (separators aside) and every required item must be present.
+  JSON and YAML use the same generated code and pass unchanged.
+* Field types follow Roslyn: an abstract class used as a field type becomes a tag on all its kinds
+  (`#expression`, `#statement`, `#type`, `#pattern`, `#member`, `#name`, `#simple-name`,
+  `#base-type`, `#xml-node`, ...). **Types are also expressions** (as in Roslyn's hierarchy: `int.Parse`
+  has a `PredefinedType` on the left of the dot), so every `#type` kind also carries `#expression`.
+  Token fields with several kinds get a tag named after the field (`#binary-operator`,
+  `#assignment-operator`, `#modifier`, `#attribute-target`, ...).
+* Tags for the formatter beyond the plan's list: `#binary-chain` (the 20 chainable binary
+  expression kinds plus `and`/`or` patterns; not `is`/`as`), `#member-chain` (member access,
+  invocation, element access, conditional access, binding and `!`), `#assignment`,
+  `#type-declaration`, `#namespace`, `#interpolation`, `#declaration` (with `#member`). `#block`:
+  `Block`, `NamespaceDeclaration`, `AccessorList`. `#delimited-list`: argument, parameter,
+  type-argument, type-parameter and attribute lists, all initializers and the collection
+  expression, tuples, property and positional pattern clauses, list patterns, switch expressions.
+  `#key-value`: `NameColon`, `NameEquals`, `ExpressionColon`, `SwitchExpressionArm`. `#separator`:
+  the comma. `#string`: string literals, interpolated strings (and their text).
+* `record class` is `RecordDeclaration` and `record struct` is `RecordStructDeclaration` (two kinds,
+  one body); the keyword after `record` is in `class_or_struct_keyword`.
+
+### Structured trivia and errors
+* Doc comments (`SingleLineDocumentationCommentTrivia`, `MultiLine...`) and directives (`#if`,
+  `#region`, `#pragma`, ... all `*DirectiveTrivia`) are **nodes** tagged `#trivia`, holding the XML
+  or the directive's tokens. Their kinds moved from the token to the node namespace. Whitespace,
+  line ends, `//` and `/* */` comments, `DisabledTextTrivia` and `ConflictMarkerTrivia` stay trivia
+  tokens, so a disabled `#if` branch is one verbatim token. `Grammar::is_trivia` is true for the
+  structured kinds.
+* `trivia::check_attachment` treats a structured trivia as one element of its run (its last
+  character decides whether it ends a line) and checks the rule again inside it, as a tree of its
+  own. The worker maps a structured trivia as a scope of its own for the same reason.
+* Zero-width tokens other than missing ones are kept as tokens: `EndOfDirectiveToken` (which owns
+  the directive's line end), `EndOfDocumentationCommentToken`, the `Omitted*` tokens and EOF.
+* **Missing tokens** are zero-width `ERROR` nodes where the token would be. **Skipped tokens**
+  (`SkippedTokensTrivia`, which is no longer a kind) are an `ERROR` node per skipped run holding the
+  real tokens and their trivia, as a sibling of the token they were attached to. Every token is in
+  the tree and every byte of the source is covered. `ERROR` nodes are ignored by accessors, and the
+  shape check skips nodes that contain one.
+
+### The four CoreLib files with parse errors
+All four end a `#if`/`#elif` chain in `#else` + `#error` for a target the conformance run never
+defined, so the missing preprocessor symbols were the cause, not the mapping:
+`System/OperatingSystem.cs` (no `TARGET_*` operating system; also CS1525 where the `#else` branch
+leaves an expression empty), `System/Threading/PortableThreadPool.cs` (`TARGET_64BIT`/`TARGET_32BIT`),
+`RuntimeInformation.cs` (`TARGET_AMD64`...) and `RuntimeInformation.Browser.cs` (a browser-only
+file: `TARGET_BROWSER`). The conformance run now parses every file with `TARGET_WINDOWS`,
+`TARGET_AMD64` and `TARGET_64BIT`, and files named `*.Browser.*` with `TARGET_BROWSER`,
+`TARGET_WASM`, `TARGET_32BIT`. The language version was never the issue (latest is used). With that,
+no corpus file reports an error, and the test asserts it.
+
+### Corpus
+`tests/conformance/fetch-corpus.sh` fetches three pinned, shallow, sparse checkouts (only `.cs`
+files): dotnet/runtime v10.0.0 `System.Private.CoreLib/src` (1679 files, 27.8 MB), dotnet/roslyn
+tag Visual-Studio-2026-Version-18.7 `src/Compilers/CSharp/Portable`, `src/Compilers/Core/Portable`
+and `src/Workspaces/Core/Portable` (2858 files, 39.6 MB), dotnet/aspnetcore v10.0.0 `src/Http`,
+`Mvc/Mvc.Core`, `Middleware`, `Servers/Kestrel/Core/src`, `Components/Components/src` and
+`SignalR/common` (3122 files, 22.4 MB). Total 7659 files, 89.8 MB; the ignored test
+`cargo test --release -p lang-csharp --test corpus -- --ignored` takes about 27 s. It checks
+lossless round trip, the attachment rule, token texts by kind (no skipped text hiding in trivia),
+no parse errors, and the shape check. Edge-case fixtures live in `tests/fixtures/csharp/`
+(18 files; `error_*.cs` must report errors) with insta snapshots of their trees beside them; the
+same checks run on every fixture, also with CRLF line ends, in the normal test run.
+
+### Mapping cost
+Method: `workers/csharp/Sudsy.Bench` on CoreLib (Release, workstation GC without the background
+thread, best of three runs; numbers wobble by about 10 %), plus a scratch profile project that
+timed bare Roslyn traversals.
+
+| | Parse | Mapping | Mapping / parse | Elements |
+| --- | --- | --- | --- | --- |
+| M0 mapper (default GC) | 1424 ms | 1482 ms | 104 % | 6.2 M |
+| M0 mapper (no concurrent GC) | 927 ms | 1057 ms | 114 % | 6.2 M |
+| M2a mapper | 940 ms | 830 ms | 88 % | 8.4 M |
+
+Per element 170 ns became 100 ns while the tree grew by 35 % (structured trivia). **The 30 % target
+is out of reach, and the reason is the Roslyn API, not the mapper.** Visiting every node, token and
+trivia through the public API, with no mapping at all, costs 270-330 ms (34-40 % of parse) for the
+M0 tree shape and 540 ms (65 %) for the M2a shape, because every node is a red node that the
+public API creates and links on demand while the parse only builds the green tree. Roslyn's green
+tree is internal and reflection on it is ruled out. What was removed:
+* the second pass (`DescendantTokens` collected every token first, the walk then repeated the
+  work), per-token lists, and the cut table: one explicit-stack walk, trivia attached as it goes;
+* the extra lookup for the rare case that needs the next token (a token whose trailing trivia end
+  without a line break). It is skipped unless the character after the token can start trivia
+  (`#`, `///`; inside doc comments also line breaks, spaces, `*`), and when the next token is a
+  sibling nothing needs to move. This was about 15 % of parse before the cheap checks;
+* `ConcurrentGarbageCollection=false` in `workers/csharp/Directory.Build.props`: the worker is a
+  batch process and the background GC thread slowed parse and mapping alike by about 20 %.
+
+Not measurable: kind lookups, the output arrays and width computation (stubbing each out changed
+nothing beyond the noise). Two routines exist: the fast one for tokens with plain trivia and the
+general one (used for missing tokens, and for tokens next to skipped tokens, in files that have
+parse errors). `Sudsy.Bench <dir> <out> --verify` and a test over the fixtures check that the fast
+path produces exactly what the general routine does; the corpus agrees on all 7659 files.
+
+### Known gaps
+* A missing token that carries trivia of its own (only possible next to skipped tokens) is
+  attached with the same rule but its position among the neighbours' trivia is approximate; no
+  corpus or fixture file has one.
+* `#!` (shebang) directives only parse in script mode, so no fixture covers `ShebangDirectiveTrivia`.
+* Preprocessor symbols and the language version cannot be set from the config yet.
+* The CI does not fetch the corpus; the corpus test is run by hand (as before).
