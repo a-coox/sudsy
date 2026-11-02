@@ -401,15 +401,6 @@ fn resolve(
                 cardinality: it.cardinality.clone(),
             });
         }
-        // A repeated item must be the only item of its target, so accessors are unambiguous.
-        for it in body.iter().filter(|i| i.cardinality == Cardinality::Many) {
-            if body.iter().filter(|o| o.target == it.target).count() > 1 {
-                return err(
-                    r.line,
-                    "a `*` item's type must not appear elsewhere in the same body",
-                );
-            }
-        }
         let def = KindDef {
             name: r.name.clone(),
             kind,
@@ -511,10 +502,6 @@ node Long =
             (
                 "language x 1\ntoken T #a\nnode N #a = x:#a",
                 "both nodes and tokens",
-            ),
-            (
-                "language x 1\ntoken T\nnode N = a:T* b:T",
-                "must not appear elsewhere",
             ),
             ("language x 1\ntoken T\nnode N = a:T a:T", "duplicate label"),
             ("language x 1\nnode N = \"s\"", "expected a body item"),

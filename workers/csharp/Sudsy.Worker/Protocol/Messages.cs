@@ -8,7 +8,7 @@ namespace Sudsy.Worker.Protocol;
 /// </summary>
 public static class ProtocolInfo
 {
-    public const uint Version = 1;
+    public const uint Version = 2;
     public const uint FlowGraphFormatVersion = 1;
     public const uint WireFormatVersion = 1;
 }
@@ -39,6 +39,8 @@ public sealed class ParseRequest
     [Key(2)] public string Text { get; set; } = "";
     /// <summary>Language version such as "12" or "latest"; null means latest.</summary>
     [Key(3)] public string? LanguageVersion { get; set; }
+    /// <summary>Conditional compilation symbols; empty for none.</summary>
+    [Key(4)] public string[] PreprocessorSymbols { get; set; } = [];
 }
 
 [MessagePackObject]

@@ -1,9 +1,9 @@
 //! The trivia attachment rule, shared by every language.
 //!
-//! Between two consecutive non-trivia tokens lies a run of trivia tokens.
+//! Between two consecutive non-trivia tokens lies a run of trivia elements.
 //! * **Trailing** trivia of the first token: the run up to and including the
-//!   first trivia token that ends with a line break; if no token ends with a
-//!   line break, the whole run.
+//!   first trivia element that ends with a line break; if no element ends with
+//!   a line break, the whole run.
 //! * **Leading** trivia of the second token: the rest.
 //!
 //! Before the first token everything is leading. A tree encodes attachment by
@@ -11,63 +11,95 @@
 //! trivia are siblings directly before theirs. Providers must produce trees
 //! that satisfy [`check_attachment`]; the C# worker re-attaches Roslyn trivia
 //! to match.
+//!
+//! A trivia element is a trivia token, or a node of a trivia kind (a C# doc
+//! comment or directive). Such a structured trivia is one element of the run;
+//! its own tokens follow the same rule inside it, as if it were a tree of its
+//! own.
 
 use crate::kind::SyntaxKind;
-use crate::tree::{SyntaxNode, SyntaxToken};
+use crate::tree::{SyntaxElement, SyntaxNode};
+use rowan::WalkEvent;
 
 pub fn is_line_break(c: char) -> bool {
     matches!(c, '\n' | '\r' | '\u{85}' | '\u{2028}' | '\u{2029}')
 }
 
-fn ends_line(token: &SyntaxToken) -> bool {
-    token.text().chars().next_back().is_some_and(is_line_break)
+fn ends_line(element: &SyntaxElement) -> bool {
+    match element {
+        SyntaxElement::Token(t) => t.text().chars().next_back().is_some_and(is_line_break),
+        SyntaxElement::Node(n) => {
+            let text = n.text();
+            let len = text.len();
+            len > rowan::TextSize::from(0)
+                && text
+                    .char_at(len - rowan::TextSize::from(1))
+                    .is_some_and(is_line_break)
+        }
+    }
 }
 
-/// Verifies the attachment rule. `is_trivia` classifies token kinds.
+/// Verifies the attachment rule. `is_trivia` classifies token and node kinds.
 pub fn check_attachment(
     root: &SyntaxNode,
     is_trivia: impl Fn(SyntaxKind) -> bool,
 ) -> Result<(), String> {
-    let tokens: Vec<SyntaxToken> = root
-        .descendants_with_tokens()
-        .filter_map(|e| e.into_token())
-        .collect();
-    let mut prev_real: Option<SyntaxToken> = None;
-    let mut run: Vec<SyntaxToken> = Vec::new();
-    let check_run =
-        |prev: &Option<SyntaxToken>, run: &mut Vec<SyntaxToken>, next: Option<&SyntaxToken>| {
-            let cut = match prev {
-                None => 0,
-                Some(_) => run.iter().position(ends_line).map_or(run.len(), |i| i + 1),
-            };
-            for (i, t) in run.iter().enumerate() {
-                let (owner, side) = if i < cut {
-                    (prev, "trailing")
-                } else {
-                    (&next.cloned(), "leading")
-                };
-                if let Some(owner) = owner
-                    && owner.parent() != t.parent()
-                {
-                    return Err(format!(
-                        "{side} trivia at {:?} is not a sibling of its token at {:?}",
-                        t.text_range(),
-                        owner.text_range()
-                    ));
-                }
-            }
-            run.clear();
-            Ok(())
+    check_scope(root, &is_trivia)
+}
+
+fn check_scope(scope: &SyntaxNode, is_trivia: &impl Fn(SyntaxKind) -> bool) -> Result<(), String> {
+    let mut prev_real: Option<SyntaxElement> = None;
+    let mut run: Vec<SyntaxElement> = Vec::new();
+    let mut preorder = scope.preorder_with_tokens();
+    while let Some(event) = preorder.next() {
+        let WalkEvent::Enter(element) = event else {
+            continue;
         };
-    for t in tokens {
-        if is_trivia(t.kind()) {
-            run.push(t);
-        } else {
-            check_run(&prev_real, &mut run, Some(&t))?;
-            prev_real = Some(t);
+        match &element {
+            SyntaxElement::Node(n) if n == scope => continue,
+            SyntaxElement::Node(n) if is_trivia(n.kind()) => {
+                preorder.skip_subtree();
+                check_scope(n, is_trivia)?;
+                run.push(element);
+            }
+            SyntaxElement::Node(_) => continue,
+            SyntaxElement::Token(t) if is_trivia(t.kind()) => run.push(element),
+            SyntaxElement::Token(_) => {
+                check_run(prev_real.as_ref(), &mut run, Some(&element))?;
+                prev_real = Some(element);
+            }
         }
     }
-    check_run(&prev_real, &mut run, None)
+    check_run(prev_real.as_ref(), &mut run, None)
+}
+
+fn check_run(
+    prev: Option<&SyntaxElement>,
+    run: &mut Vec<SyntaxElement>,
+    next: Option<&SyntaxElement>,
+) -> Result<(), String> {
+    let cut = match prev {
+        None => 0,
+        Some(_) => run.iter().position(ends_line).map_or(run.len(), |i| i + 1),
+    };
+    for (i, t) in run.iter().enumerate() {
+        let (owner, side) = if i < cut {
+            (prev, "trailing")
+        } else {
+            (next, "leading")
+        };
+        if let Some(owner) = owner
+            && owner.parent() != t.parent()
+        {
+            return Err(format!(
+                "{side} trivia at {:?} is not a sibling of its token at {:?}",
+                t.text_range(),
+                owner.text_range()
+            ));
+        }
+    }
+    run.clear();
+    Ok(())
 }
 
 #[cfg(test)]

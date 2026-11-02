@@ -1,14 +1,10 @@
 namespace Sudsy.Worker.Mapping;
 
-/// <summary>
-/// A tree as two parallel pre-order arrays: the element kind and one number
-/// (token: width in UTF-8 bytes; node: child count). See the wire encoding in
-/// crates/core-syntax/src/wire.rs.
-/// </summary>
-public sealed class FlatTree
+/// <summary>A tree as parallel arrays in pre-order: per element its kind and one number (token: UTF-8 width, node: child count).</summary>
+public sealed class FlatTree(int capacity = 256)
 {
-    private ushort[] _kinds = new ushort[256];
-    private uint[] _values = new uint[256];
+    private ushort[] _kinds = new ushort[Math.Max(capacity, 16)];
+    private uint[] _values = new uint[Math.Max(capacity, 16)];
 
     public int Count { get; private set; }
 

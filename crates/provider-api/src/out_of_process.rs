@@ -82,6 +82,7 @@ impl LanguageProvider for OutOfProcessProvider {
                 version: file.version,
                 text: file.text.clone(),
                 language_version: file.language_version.clone(),
+                preprocessor_symbols: file.preprocessor_symbols.clone(),
             })
             .map_err(to_provider_error)?;
         if parsed.file_id != file.id || parsed.version != file.version {

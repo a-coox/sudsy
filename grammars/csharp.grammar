@@ -1,10 +1,12 @@
 // C# grammar: one node/token kind per Roslyn SyntaxKind, named after it.
-// Bootstrapped from Microsoft.CodeAnalysis.CSharp 5.9.0 (kinds, fixed token text, tags and
-// fields derived from Roslyn's syntax classes); hand-maintained from here on.
-// Fields are partial: only kinds whose Roslyn class has a same-named SyntaxKind get them.
-// Full mapping fidelity is M4. Format: see crates/core-syntax/src/grammar/mod.rs.
+// Node bodies follow Roslyn's Syntax.xml field by field (dotnet/roslyn Syntax.xml, matching
+// Microsoft.CodeAnalysis.CSharp 5.9.0) and are matched against the children in order, see
+// crates/core-syntax/src/ast.rs. Hand-maintained from here on. Format: see
+// crates/core-syntax/src/grammar/mod.rs.
 //
-// Trivia are tokens: directives and doc comments are single tokens for now (structured in M4).
+// Structured trivia (doc comments, directives) are nodes tagged #trivia whose children are the
+// comment's XML or the directive's tokens. Disabled text, whitespace, line comments and
+// end-of-line stay trivia tokens. Missing and skipped tokens are ERROR nodes (core kind).
 
 language csharp 2
 comments line "//" block "/*" "*/"
@@ -13,35 +15,35 @@ suppress ignore "sudsy-ignore"
 suppress ignore-start "sudsy-ignore-start"
 suppress ignore-end "sudsy-ignore-end"
 
-token TildeToken "~" #punctuation
-token ExclamationToken "!" #punctuation
+token TildeToken "~" #punctuation #prefix-unary-operator #operator-declaration-operator #operator-member-cref-operator
+token ExclamationToken "!" #punctuation #prefix-unary-operator #postfix-unary-operator #operator-declaration-operator #operator-member-cref-operator
 token DollarToken "$" #punctuation
-token PercentToken "%" #punctuation
-token CaretToken "^" #punctuation
-token AmpersandToken "&" #punctuation
-token AsteriskToken "*" #punctuation
+token PercentToken "%" #punctuation #binary-operator #operator-declaration-operator #operator-member-cref-operator
+token CaretToken "^" #punctuation #prefix-unary-operator #binary-operator #operator-declaration-operator #operator-member-cref-operator
+token AmpersandToken "&" #punctuation #prefix-unary-operator #binary-operator #operator-declaration-operator #operator-member-cref-operator
+token AsteriskToken "*" #punctuation #prefix-unary-operator #binary-operator #operator-declaration-operator #operator-member-cref-operator
 token OpenParenToken "(" #punctuation
 token CloseParenToken ")" #punctuation
-token MinusToken "-" #punctuation
-token PlusToken "+" #punctuation
-token EqualsToken "=" #punctuation
+token MinusToken "-" #punctuation #prefix-unary-operator #binary-operator #operator-declaration-operator #operator-member-cref-operator
+token PlusToken "+" #punctuation #prefix-unary-operator #binary-operator #operator-declaration-operator #operator-member-cref-operator
+token EqualsToken "=" #punctuation #assignment-operator
 token OpenBraceToken "{" #punctuation
 token CloseBraceToken "}" #punctuation
 token OpenBracketToken "[" #punctuation
 token CloseBracketToken "]" #punctuation
-token BarToken "|" #punctuation
+token BarToken "|" #punctuation #binary-operator #operator-declaration-operator #operator-member-cref-operator
 token BackslashToken "\\" #punctuation
 token ColonToken ":" #punctuation
 token SemicolonToken ";" #punctuation
-token DoubleQuoteToken "\"" #punctuation
-token SingleQuoteToken "'" #punctuation
-token LessThanToken "<" #punctuation
+token DoubleQuoteToken "\"" #punctuation #xml-text-attribute-start-quote #xml-text-attribute-end-quote #xml-cref-attribute-start-quote #xml-cref-attribute-end-quote #xml-name-attribute-start-quote #xml-name-attribute-end-quote
+token SingleQuoteToken "'" #punctuation #xml-text-attribute-start-quote #xml-text-attribute-end-quote #xml-cref-attribute-start-quote #xml-cref-attribute-end-quote #xml-name-attribute-start-quote #xml-name-attribute-end-quote
+token LessThanToken "<" #punctuation #binary-operator #relational-pattern-operator #operator-declaration-operator #operator-member-cref-operator
 token CommaToken "," #punctuation #separator
-token GreaterThanToken ">" #punctuation
-token DotToken "." #punctuation
+token GreaterThanToken ">" #punctuation #binary-operator #relational-pattern-operator #operator-declaration-operator #operator-member-cref-operator
+token DotToken "." #punctuation #member-access-operator
 token QuestionToken "?" #punctuation
 token HashToken "#" #punctuation
-token SlashToken "/" #punctuation
+token SlashToken "/" #punctuation #binary-operator #operator-declaration-operator #operator-member-cref-operator
 token DotDotToken ".." #punctuation
 token SlashGreaterThanToken "/>" #punctuation
 token LessThanSlashToken "</" #punctuation
@@ -51,54 +53,54 @@ token XmlCDataStartToken "<![CDATA["
 token XmlCDataEndToken "]]>"
 token XmlProcessingInstructionStartToken "<?"
 token XmlProcessingInstructionEndToken "?>"
-token BarBarToken "||" #punctuation
-token AmpersandAmpersandToken "&&" #punctuation
-token MinusMinusToken "--" #punctuation
-token PlusPlusToken "++" #punctuation
+token BarBarToken "||" #punctuation #binary-operator
+token AmpersandAmpersandToken "&&" #punctuation #binary-operator
+token MinusMinusToken "--" #punctuation #prefix-unary-operator #postfix-unary-operator #operator-declaration-operator #operator-member-cref-operator
+token PlusPlusToken "++" #punctuation #prefix-unary-operator #postfix-unary-operator #operator-declaration-operator #operator-member-cref-operator
 token ColonColonToken "::" #punctuation
-token QuestionQuestionToken "??" #punctuation
-token MinusGreaterThanToken "->" #punctuation
-token ExclamationEqualsToken "!=" #punctuation
-token EqualsEqualsToken "==" #punctuation
+token QuestionQuestionToken "??" #punctuation #binary-operator
+token MinusGreaterThanToken "->" #punctuation #member-access-operator
+token ExclamationEqualsToken "!=" #punctuation #binary-operator #relational-pattern-operator #operator-declaration-operator #operator-member-cref-operator
+token EqualsEqualsToken "==" #punctuation #binary-operator #relational-pattern-operator #operator-declaration-operator #operator-member-cref-operator
 token EqualsGreaterThanToken "=>" #punctuation
-token LessThanEqualsToken "<=" #punctuation
-token LessThanLessThanToken "<<" #punctuation
-token LessThanLessThanEqualsToken "<<=" #punctuation
-token GreaterThanEqualsToken ">=" #punctuation
-token GreaterThanGreaterThanToken ">>" #punctuation
-token GreaterThanGreaterThanEqualsToken ">>=" #punctuation
-token SlashEqualsToken "/=" #punctuation
-token AsteriskEqualsToken "*=" #punctuation
-token BarEqualsToken "|=" #punctuation
-token AmpersandEqualsToken "&=" #punctuation
-token PlusEqualsToken "+=" #punctuation
-token MinusEqualsToken "-=" #punctuation
-token CaretEqualsToken "^=" #punctuation
-token PercentEqualsToken "%=" #punctuation
-token QuestionQuestionEqualsToken "??=" #punctuation
-token GreaterThanGreaterThanGreaterThanToken ">>>" #punctuation
-token GreaterThanGreaterThanGreaterThanEqualsToken ">>>=" #punctuation
-token BoolKeyword "bool" #keyword
-token ByteKeyword "byte" #keyword
-token SByteKeyword "sbyte" #keyword
-token ShortKeyword "short" #keyword
-token UShortKeyword "ushort" #keyword
-token IntKeyword "int" #keyword
-token UIntKeyword "uint" #keyword
-token LongKeyword "long" #keyword
-token ULongKeyword "ulong" #keyword
-token DoubleKeyword "double" #keyword
-token FloatKeyword "float" #keyword
-token DecimalKeyword "decimal" #keyword
-token StringKeyword "string" #keyword
-token CharKeyword "char" #keyword
-token VoidKeyword "void" #keyword
-token ObjectKeyword "object" #keyword
+token LessThanEqualsToken "<=" #punctuation #binary-operator #relational-pattern-operator #operator-declaration-operator #operator-member-cref-operator
+token LessThanLessThanToken "<<" #punctuation #binary-operator #operator-declaration-operator #operator-member-cref-operator
+token LessThanLessThanEqualsToken "<<=" #punctuation #assignment-operator #operator-declaration-operator #operator-member-cref-operator
+token GreaterThanEqualsToken ">=" #punctuation #binary-operator #relational-pattern-operator #operator-declaration-operator #operator-member-cref-operator
+token GreaterThanGreaterThanToken ">>" #punctuation #binary-operator #operator-declaration-operator #operator-member-cref-operator
+token GreaterThanGreaterThanEqualsToken ">>=" #punctuation #assignment-operator #operator-declaration-operator #operator-member-cref-operator
+token SlashEqualsToken "/=" #punctuation #assignment-operator #operator-declaration-operator #operator-member-cref-operator
+token AsteriskEqualsToken "*=" #punctuation #assignment-operator #operator-declaration-operator #operator-member-cref-operator
+token BarEqualsToken "|=" #punctuation #assignment-operator #operator-declaration-operator #operator-member-cref-operator
+token AmpersandEqualsToken "&=" #punctuation #assignment-operator #operator-declaration-operator #operator-member-cref-operator
+token PlusEqualsToken "+=" #punctuation #assignment-operator #operator-declaration-operator #operator-member-cref-operator
+token MinusEqualsToken "-=" #punctuation #assignment-operator #operator-declaration-operator #operator-member-cref-operator
+token CaretEqualsToken "^=" #punctuation #assignment-operator #operator-declaration-operator #operator-member-cref-operator
+token PercentEqualsToken "%=" #punctuation #assignment-operator #operator-declaration-operator #operator-member-cref-operator
+token QuestionQuestionEqualsToken "??=" #punctuation #assignment-operator
+token GreaterThanGreaterThanGreaterThanToken ">>>" #punctuation #binary-operator #operator-declaration-operator #operator-member-cref-operator
+token GreaterThanGreaterThanGreaterThanEqualsToken ">>>=" #punctuation #assignment-operator #operator-declaration-operator #operator-member-cref-operator
+token BoolKeyword "bool" #keyword #predefined-type-keyword
+token ByteKeyword "byte" #keyword #predefined-type-keyword
+token SByteKeyword "sbyte" #keyword #predefined-type-keyword
+token ShortKeyword "short" #keyword #predefined-type-keyword
+token UShortKeyword "ushort" #keyword #predefined-type-keyword
+token IntKeyword "int" #keyword #predefined-type-keyword
+token UIntKeyword "uint" #keyword #predefined-type-keyword
+token LongKeyword "long" #keyword #predefined-type-keyword
+token ULongKeyword "ulong" #keyword #predefined-type-keyword
+token DoubleKeyword "double" #keyword #predefined-type-keyword
+token FloatKeyword "float" #keyword #predefined-type-keyword
+token DecimalKeyword "decimal" #keyword #predefined-type-keyword
+token StringKeyword "string" #keyword #predefined-type-keyword
+token CharKeyword "char" #keyword #predefined-type-keyword
+token VoidKeyword "void" #keyword #predefined-type-keyword
+token ObjectKeyword "object" #keyword #predefined-type-keyword
 token TypeOfKeyword "typeof" #keyword
 token SizeOfKeyword "sizeof" #keyword
-token NullKeyword "null" #keyword
-token TrueKeyword "true" #keyword
-token FalseKeyword "false" #keyword
+token NullKeyword "null" #keyword #literal-token
+token TrueKeyword "true" #keyword #literal-token #operator-declaration-operator #operator-member-cref-operator
+token FalseKeyword "false" #keyword #literal-token #operator-declaration-operator #operator-member-cref-operator
 token IfKeyword "if" #keyword
 token ElseKeyword "else" #keyword
 token WhileKeyword "while" #keyword
@@ -106,75 +108,75 @@ token ForKeyword "for" #keyword
 token ForEachKeyword "foreach" #keyword
 token DoKeyword "do" #keyword
 token SwitchKeyword "switch" #keyword
-token CaseKeyword "case" #keyword
-token DefaultKeyword "default" #keyword
+token CaseKeyword "case" #keyword #goto-statement-case-or-default-keyword
+token DefaultKeyword "default" #keyword #literal-token #goto-statement-case-or-default-keyword #line-directive-trivia-line
 token TryKeyword "try" #keyword
 token CatchKeyword "catch" #keyword
 token FinallyKeyword "finally" #keyword
 token LockKeyword "lock" #keyword
 token GotoKeyword "goto" #keyword
-token BreakKeyword "break" #keyword
+token BreakKeyword "break" #keyword #yield-statement-return-or-break-keyword
 token ContinueKeyword "continue" #keyword
-token ReturnKeyword "return" #keyword
+token ReturnKeyword "return" #keyword #yield-statement-return-or-break-keyword #attribute-target
 token ThrowKeyword "throw" #keyword
-token PublicKeyword "public" #keyword
-token PrivateKeyword "private" #keyword
-token InternalKeyword "internal" #keyword
-token ProtectedKeyword "protected" #keyword
-token StaticKeyword "static" #keyword
-token ReadOnlyKeyword "readonly" #keyword
-token SealedKeyword "sealed" #keyword
-token ConstKeyword "const" #keyword
-token FixedKeyword "fixed" #keyword
+token PublicKeyword "public" #keyword #modifier
+token PrivateKeyword "private" #keyword #modifier
+token InternalKeyword "internal" #keyword #modifier
+token ProtectedKeyword "protected" #keyword #modifier
+token StaticKeyword "static" #keyword #modifier
+token ReadOnlyKeyword "readonly" #keyword #modifier
+token SealedKeyword "sealed" #keyword #modifier
+token ConstKeyword "const" #keyword #modifier
+token FixedKeyword "fixed" #keyword #modifier
 token StackAllocKeyword "stackalloc" #keyword
-token VolatileKeyword "volatile" #keyword
-token NewKeyword "new" #keyword
-token OverrideKeyword "override" #keyword
-token AbstractKeyword "abstract" #keyword
-token VirtualKeyword "virtual" #keyword
-token EventKeyword "event" #keyword
-token ExternKeyword "extern" #keyword
-token RefKeyword "ref" #keyword
-token OutKeyword "out" #keyword
-token InKeyword "in" #keyword
-token IsKeyword "is" #keyword
-token AsKeyword "as" #keyword
-token ParamsKeyword "params" #keyword
-token ArgListKeyword "__arglist" #keyword
+token VolatileKeyword "volatile" #keyword #modifier
+token NewKeyword "new" #keyword #modifier
+token OverrideKeyword "override" #keyword #modifier
+token AbstractKeyword "abstract" #keyword #modifier
+token VirtualKeyword "virtual" #keyword #modifier
+token EventKeyword "event" #keyword #attribute-target
+token ExternKeyword "extern" #keyword #modifier
+token RefKeyword "ref" #keyword #modifier #argument-ref-kind-keyword #cref-parameter-ref-kind-keyword
+token OutKeyword "out" #keyword #modifier #argument-ref-kind-keyword #type-parameter-variance-keyword #cref-parameter-ref-kind-keyword
+token InKeyword "in" #keyword #modifier #argument-ref-kind-keyword #type-parameter-variance-keyword #cref-parameter-ref-kind-keyword
+token IsKeyword "is" #keyword #binary-operator #operator-declaration-operator
+token AsKeyword "as" #keyword #binary-operator
+token ParamsKeyword "params" #keyword #modifier
+token ArgListKeyword "__arglist" #keyword #literal-token #parameter-identifier
 token MakeRefKeyword "__makeref" #keyword
 token RefTypeKeyword "__reftype" #keyword
 token RefValueKeyword "__refvalue" #keyword
-token ThisKeyword "this" #keyword
-token BaseKeyword "base" #keyword
+token ThisKeyword "this" #keyword #modifier #constructor-initializer-this-or-base-keyword
+token BaseKeyword "base" #keyword #constructor-initializer-this-or-base-keyword
 token NamespaceKeyword "namespace" #keyword
 token UsingKeyword "using" #keyword
-token ClassKeyword "class" #keyword
-token StructKeyword "struct" #keyword
+token ClassKeyword "class" #keyword #record-declaration-class-or-struct-keyword #class-or-struct-constraint-class-or-struct-keyword
+token StructKeyword "struct" #keyword #record-declaration-class-or-struct-keyword #class-or-struct-constraint-class-or-struct-keyword
 token InterfaceKeyword "interface" #keyword
 token EnumKeyword "enum" #keyword
 token DelegateKeyword "delegate" #keyword
-token CheckedKeyword "checked" #keyword
-token UncheckedKeyword "unchecked" #keyword
-token UnsafeKeyword "unsafe" #keyword
+token CheckedKeyword "checked" #keyword #checked-keyword #checked-statement-keyword
+token UncheckedKeyword "unchecked" #keyword #checked-keyword #checked-statement-keyword
+token UnsafeKeyword "unsafe" #keyword #modifier
 token OperatorKeyword "operator" #keyword
-token ExplicitKeyword "explicit" #keyword
-token ImplicitKeyword "implicit" #keyword
+token ExplicitKeyword "explicit" #keyword #conversion-operator-declaration-implicit-or-explicit-keyword #conversion-operator-member-cref-implicit-or-explicit-keyword
+token ImplicitKeyword "implicit" #keyword #conversion-operator-declaration-implicit-or-explicit-keyword #conversion-operator-member-cref-implicit-or-explicit-keyword
 token YieldKeyword "yield" #keyword
-token PartialKeyword "partial" #keyword
+token PartialKeyword "partial" #keyword #modifier
 token AliasKeyword "alias" #keyword
-token GlobalKeyword "global" #keyword
-token AssemblyKeyword "assembly" #keyword
-token ModuleKeyword "module" #keyword
-token TypeKeyword "type" #keyword
-token FieldKeyword "field" #keyword
-token MethodKeyword "method" #keyword
-token ParamKeyword "param" #keyword
-token PropertyKeyword "property" #keyword
-token TypeVarKeyword "typevar" #keyword
-token GetKeyword "get" #keyword
-token SetKeyword "set" #keyword
-token AddKeyword "add" #keyword
-token RemoveKeyword "remove" #keyword
+token GlobalKeyword "global" #keyword #name-identifier
+token AssemblyKeyword "assembly" #keyword #attribute-target
+token ModuleKeyword "module" #keyword #attribute-target
+token TypeKeyword "type" #keyword #attribute-target
+token FieldKeyword "field" #keyword #attribute-target
+token MethodKeyword "method" #keyword #attribute-target
+token ParamKeyword "param" #keyword #attribute-target
+token PropertyKeyword "property" #keyword #attribute-target
+token TypeVarKeyword "typevar" #keyword #attribute-target
+token GetKeyword "get" #keyword #accessor-declaration-keyword
+token SetKeyword "set" #keyword #accessor-declaration-keyword
+token AddKeyword "add" #keyword #accessor-declaration-keyword
+token RemoveKeyword "remove" #keyword #accessor-declaration-keyword
 token WhereKeyword "where" #keyword
 token FromKeyword "from" #keyword
 token GroupKeyword "group" #keyword
@@ -186,27 +188,27 @@ token SelectKeyword "select" #keyword
 token OrderByKeyword "orderby" #keyword
 token OnKeyword "on" #keyword
 token EqualsKeyword "equals" #keyword
-token AscendingKeyword "ascending" #keyword
-token DescendingKeyword "descending" #keyword
+token AscendingKeyword "ascending" #keyword #ordering-ascending-or-descending-keyword
+token DescendingKeyword "descending" #keyword #ordering-ascending-or-descending-keyword
 token NameOfKeyword "nameof" #keyword
-token AsyncKeyword "async" #keyword
+token AsyncKeyword "async" #keyword #modifier
 token AwaitKeyword "await" #keyword
 token WhenKeyword "when" #keyword
-token OrKeyword "or" #keyword
-token AndKeyword "and" #keyword
+token OrKeyword "or" #keyword #binary-pattern-operator
+token AndKeyword "and" #keyword #binary-pattern-operator
 token NotKeyword "not" #keyword
 token WithKeyword "with" #keyword
-token InitKeyword "init" #keyword
+token InitKeyword "init" #keyword #accessor-declaration-keyword
 token RecordKeyword "record" #keyword
-token ManagedKeyword "managed" #keyword
-token UnmanagedKeyword "unmanaged" #keyword
-token RequiredKeyword "required" #keyword
-token ScopedKeyword "scoped" #keyword
-token FileKeyword "file" #keyword
+token ManagedKeyword "managed" #keyword #function-pointer-calling-convention-managed-or-unmanaged-keyword
+token UnmanagedKeyword "unmanaged" #keyword #function-pointer-calling-convention-managed-or-unmanaged-keyword
+token RequiredKeyword "required" #keyword #modifier
+token ScopedKeyword "scoped" #keyword #modifier
+token FileKeyword "file" #keyword #modifier
 token AllowsKeyword "allows" #keyword
 token ExtensionKeyword "extension" #keyword
 token UnionKeyword "union" #keyword
-token ClosedKeyword "closed" #keyword
+token ClosedKeyword "closed" #keyword #modifier
 token SafeKeyword "safe" #keyword
 token ElifKeyword "elif" #keyword
 token EndIfKeyword "endif" #keyword
@@ -218,19 +220,19 @@ token WarningKeyword "warning" #keyword
 token ErrorKeyword "error" #keyword
 token LineKeyword "line" #keyword
 token PragmaKeyword "pragma" #keyword
-token HiddenKeyword "hidden" #keyword
+token HiddenKeyword "hidden" #keyword #line-directive-trivia-line
 token ChecksumKeyword "checksum" #keyword
-token DisableKeyword "disable" #keyword
-token RestoreKeyword "restore" #keyword
+token DisableKeyword "disable" #keyword #pragma-warning-directive-trivia-disable-or-restore-keyword #nullable-directive-trivia-setting
+token RestoreKeyword "restore" #keyword #pragma-warning-directive-trivia-disable-or-restore-keyword #nullable-directive-trivia-setting
 token ReferenceKeyword "r" #keyword
-token InterpolatedStringStartToken "$\""
-token InterpolatedStringEndToken "\""
-token InterpolatedVerbatimStringStartToken "$@\""
+token InterpolatedStringStartToken "$\"" #interpolated-string-string-start
+token InterpolatedStringEndToken "\"" #interpolated-string-string-end
+token InterpolatedVerbatimStringStartToken "$@\"" #interpolated-string-string-start
 token LoadKeyword "load" #keyword
 token NullableKeyword "nullable" #keyword
-token EnableKeyword "enable" #keyword
-token WarningsKeyword "warnings" #keyword
-token AnnotationsKeyword "annotations" #keyword
+token EnableKeyword "enable" #keyword #nullable-directive-trivia-setting
+token WarningsKeyword "warnings" #keyword #nullable-directive-trivia-target
+token AnnotationsKeyword "annotations" #keyword #nullable-directive-trivia-target
 token VarKeyword "var" #keyword
 token UnderscoreToken "_" #punctuation
 token OmittedTypeArgumentToken
@@ -239,557 +241,672 @@ token EndOfDirectiveToken
 token EndOfDocumentationCommentToken
 token EndOfFileToken
 token BadToken #error
-token IdentifierToken #identifier
-token NumericLiteralToken #literal
-token CharacterLiteralToken #literal
-token StringLiteralToken #literal #string
-token XmlEntityLiteralToken #literal
-token XmlTextLiteralToken #literal
-token XmlTextLiteralNewLineToken
+token IdentifierToken #identifier #name-identifier #attribute-target #accessor-declaration-keyword #parameter-identifier
+token NumericLiteralToken #literal #literal-token #line-directive-trivia-line
+token CharacterLiteralToken #literal #literal-token
+token StringLiteralToken #literal #string #literal-token
+token XmlEntityLiteralToken #literal #xml-text-token
+token XmlTextLiteralToken #literal #xml-text-token
+token XmlTextLiteralNewLineToken #xml-text-token
 token InterpolatedStringToken
 token InterpolatedStringTextToken #literal #string
-token SingleLineRawStringLiteralToken #literal #string
-token MultiLineRawStringLiteralToken #literal #string
-token Utf8StringLiteralToken #literal #string
-token Utf8SingleLineRawStringLiteralToken #literal #string
-token Utf8MultiLineRawStringLiteralToken #literal #string
+token SingleLineRawStringLiteralToken #literal #string #literal-token
+token MultiLineRawStringLiteralToken #literal #string #literal-token
+token Utf8StringLiteralToken #literal #string #literal-token
+token Utf8SingleLineRawStringLiteralToken #literal #string #literal-token
+token Utf8MultiLineRawStringLiteralToken #literal #string #literal-token
 token RazorContentToken #punctuation
 token EndOfLineTrivia #trivia #newline
 token WhitespaceTrivia #trivia #whitespace
 token SingleLineCommentTrivia #trivia #comment
 token MultiLineCommentTrivia #trivia #comment
 token DocumentationCommentExteriorTrivia #trivia #comment #documentation
-token SingleLineDocumentationCommentTrivia #trivia #comment #documentation
-token MultiLineDocumentationCommentTrivia #trivia #comment #documentation
 token DisabledTextTrivia #trivia #disabled-text
 token PreprocessingMessageTrivia #trivia
-token IfDirectiveTrivia #trivia #directive
-token ElifDirectiveTrivia #trivia #directive
-token ElseDirectiveTrivia #trivia #directive
-token EndIfDirectiveTrivia #trivia #directive
-token RegionDirectiveTrivia #trivia #directive
-token EndRegionDirectiveTrivia #trivia #directive
-token DefineDirectiveTrivia #trivia #directive
-token UndefDirectiveTrivia #trivia #directive
-token ErrorDirectiveTrivia #trivia #directive
-token WarningDirectiveTrivia #trivia #directive
-token LineDirectiveTrivia #trivia #directive
-token PragmaWarningDirectiveTrivia #trivia #directive
-token PragmaChecksumDirectiveTrivia #trivia #directive
-token ReferenceDirectiveTrivia #trivia #directive
-token BadDirectiveTrivia #trivia #directive
-token SkippedTokensTrivia #trivia #error
 token ConflictMarkerTrivia #trivia
-node XmlElement =
-    start_tag:XmlElementStartTag end_tag:XmlElementEndTag
-node XmlElementStartTag =
-    less_than:LessThanToken? name:XmlName greater_than:GreaterThanToken?
-node XmlElementEndTag =
-    less_than_slash:LessThanSlashToken? name:XmlName greater_than:GreaterThanToken?
-node XmlEmptyElement =
-    less_than:LessThanToken? name:XmlName slash_greater_than:SlashGreaterThanToken?
-node XmlTextAttribute =
-    name:XmlName equals:EqualsToken? text_tokens:#keyword*
-node XmlCrefAttribute =
-    name:XmlName equals:EqualsToken?
-node XmlNameAttribute =
-    name:XmlName equals:EqualsToken? identifier:IdentifierName
-node XmlName =
-    prefix:XmlPrefix?
-node XmlPrefix =
-    colon:ColonToken?
-node XmlText =
-    text_tokens:#keyword*
-node XmlCDataSection =
-    text_tokens:#keyword*
-node XmlComment =
-    text_tokens:#keyword*
-node XmlProcessingInstruction =
-    name:XmlName text_tokens:#keyword*
-node TypeCref =
-    type:#type
-node QualifiedCref =
-    container:#type dot:DotToken?
-node NameMemberCref =
-    name:#type parameters:CrefParameterList?
-node IndexerMemberCref =
-    this_keyword:ThisKeyword? parameters:CrefBracketedParameterList?
-node OperatorMemberCref =
-    operator_keyword:OperatorKeyword? checked_keyword:CheckedKeyword? parameters:CrefParameterList?
-node ConversionOperatorMemberCref =
-    operator_keyword:OperatorKeyword? checked_keyword:CheckedKeyword? type:#type parameters:CrefParameterList?
-node CrefParameterList =
-    open_paren:OpenParenToken? parameters:CrefParameter* close_paren:CloseParenToken?
-node CrefBracketedParameterList =
-    open_bracket:OpenBracketToken? parameters:CrefParameter* close_bracket:CloseBracketToken?
-node CrefParameter =
-    read_only_keyword:ReadOnlyKeyword? type:#type
-node ExtensionMemberCref =
-    extension_keyword:ExtensionKeyword? type_argument_list:TypeArgumentList? parameters:CrefParameterList dot:DotToken?
-node IdentifierName #type =
-    identifier:IdentifierToken?
-node QualifiedName #type =
-    dot:DotToken?
-node GenericName #type =
-    identifier:IdentifierToken? type_argument_list:TypeArgumentList
+token InterpolatedSingleLineRawStringStartToken #interpolated-string-string-start
+token InterpolatedMultiLineRawStringStartToken #interpolated-string-string-start
+token InterpolatedRawStringEndToken #interpolated-string-string-end
+
+node IdentifierName #simple-name #name #type #expression =
+    identifier:#name-identifier
+node QualifiedName #name #type #expression =
+    left:#name dot:DotToken right:#simple-name
+node GenericName #simple-name #name #type #expression =
+    identifier:IdentifierToken type_argument_list:TypeArgumentList
 node TypeArgumentList #delimited-list =
-    less_than:LessThanToken? arguments:#type* greater_than:GreaterThanToken?
-node AliasQualifiedName #type =
-    alias:IdentifierName colon_colon:ColonColonToken?
-node PredefinedType #type
-node ArrayType #type =
+    less_than:LessThanToken arguments:#type* greater_than:GreaterThanToken
+node AliasQualifiedName #name #type #expression =
+    alias:IdentifierName colon_colon:ColonColonToken name:#simple-name
+node PredefinedType #type #expression =
+    keyword:#predefined-type-keyword
+node ArrayType #type #expression =
     element_type:#type rank_specifiers:ArrayRankSpecifier*
-node ArrayRankSpecifier =
-    open_bracket:OpenBracketToken? sizes:#expression* close_bracket:CloseBracketToken?
-node PointerType #type =
-    element_type:#type asterisk:AsteriskToken?
-node NullableType #type =
-    element_type:#type question:QuestionToken?
-node OmittedTypeArgument #type =
-    omitted_type_argument:OmittedTypeArgumentToken?
+node ArrayRankSpecifier #delimited-list =
+    open_bracket:OpenBracketToken sizes:#expression* close_bracket:CloseBracketToken
+node PointerType #type #expression =
+    element_type:#type asterisk:AsteriskToken
+node FunctionPointerType #type #expression =
+    delegate_keyword:DelegateKeyword asterisk:AsteriskToken calling_convention:FunctionPointerCallingConvention? parameter_list:FunctionPointerParameterList
+node FunctionPointerParameterList #delimited-list =
+    less_than:LessThanToken parameters:FunctionPointerParameter* greater_than:GreaterThanToken
+node FunctionPointerCallingConvention =
+    managed_or_unmanaged_keyword:#function-pointer-calling-convention-managed-or-unmanaged-keyword unmanaged_calling_convention_list:FunctionPointerUnmanagedCallingConventionList?
+node FunctionPointerUnmanagedCallingConventionList #delimited-list =
+    open_bracket:OpenBracketToken calling_conventions:FunctionPointerUnmanagedCallingConvention* close_bracket:CloseBracketToken
+node FunctionPointerUnmanagedCallingConvention =
+    name:IdentifierToken
+node NullableType #type #expression =
+    element_type:#type question:QuestionToken
+node TupleType #type #expression #delimited-list =
+    open_paren:OpenParenToken elements:TupleElement* close_paren:CloseParenToken
+node TupleElement =
+    type:#type identifier:IdentifierToken?
+node OmittedTypeArgument #type #expression =
+    omitted_type_argument:OmittedTypeArgumentToken
+node RefType #type #expression =
+    ref_keyword:RefKeyword read_only_keyword:ReadOnlyKeyword? type:#type
+node ScopedType #type #expression =
+    scoped_keyword:ScopedKeyword type:#type
 node ParenthesizedExpression #expression =
-    open_paren:OpenParenToken? expression:#expression close_paren:CloseParenToken?
+    open_paren:OpenParenToken expression:#expression close_paren:CloseParenToken
+node TupleExpression #expression #delimited-list =
+    open_paren:OpenParenToken arguments:Argument* close_paren:CloseParenToken
+node UnaryPlusExpression #expression =
+    operator:#prefix-unary-operator operand:#expression
+node UnaryMinusExpression #expression =
+    operator:#prefix-unary-operator operand:#expression
+node BitwiseNotExpression #expression =
+    operator:#prefix-unary-operator operand:#expression
+node LogicalNotExpression #expression =
+    operator:#prefix-unary-operator operand:#expression
+node PreIncrementExpression #expression =
+    operator:#prefix-unary-operator operand:#expression
+node PreDecrementExpression #expression =
+    operator:#prefix-unary-operator operand:#expression
+node AddressOfExpression #expression =
+    operator:#prefix-unary-operator operand:#expression
+node PointerIndirectionExpression #expression =
+    operator:#prefix-unary-operator operand:#expression
+node IndexExpression #expression =
+    operator:#prefix-unary-operator operand:#expression
+node AwaitExpression #expression =
+    await_keyword:AwaitKeyword expression:#expression
+node PostIncrementExpression #expression =
+    operand:#expression operator:#postfix-unary-operator
+node PostDecrementExpression #expression =
+    operand:#expression operator:#postfix-unary-operator
+node SuppressNullableWarningExpression #expression #member-chain =
+    operand:#expression operator:#postfix-unary-operator
+node SimpleMemberAccessExpression #expression #member-chain =
+    expression:#expression operator:#member-access-operator name:#simple-name
+node PointerMemberAccessExpression #expression =
+    expression:#expression operator:#member-access-operator name:#simple-name
+node ConditionalAccessExpression #expression #member-chain =
+    expression:#expression operator:QuestionToken when_not_null:#expression
+node MemberBindingExpression #expression #member-chain =
+    operator:DotToken name:#simple-name
+node ElementBindingExpression #expression #member-chain =
+    argument_list:BracketedArgumentList
+node RangeExpression #expression =
+    left_operand:#expression? operator:DotDotToken right_operand:#expression?
+node ImplicitElementAccess #expression =
+    argument_list:BracketedArgumentList
+node AddExpression #expression #binary-chain =
+    left:#expression operator:#binary-operator right:#expression
+node SubtractExpression #expression #binary-chain =
+    left:#expression operator:#binary-operator right:#expression
+node MultiplyExpression #expression #binary-chain =
+    left:#expression operator:#binary-operator right:#expression
+node DivideExpression #expression #binary-chain =
+    left:#expression operator:#binary-operator right:#expression
+node ModuloExpression #expression #binary-chain =
+    left:#expression operator:#binary-operator right:#expression
+node LeftShiftExpression #expression #binary-chain =
+    left:#expression operator:#binary-operator right:#expression
+node RightShiftExpression #expression #binary-chain =
+    left:#expression operator:#binary-operator right:#expression
+node UnsignedRightShiftExpression #expression #binary-chain =
+    left:#expression operator:#binary-operator right:#expression
+node LogicalOrExpression #expression #binary-chain =
+    left:#expression operator:#binary-operator right:#expression
+node LogicalAndExpression #expression #binary-chain =
+    left:#expression operator:#binary-operator right:#expression
+node BitwiseOrExpression #expression #binary-chain =
+    left:#expression operator:#binary-operator right:#expression
+node BitwiseAndExpression #expression #binary-chain =
+    left:#expression operator:#binary-operator right:#expression
+node ExclusiveOrExpression #expression #binary-chain =
+    left:#expression operator:#binary-operator right:#expression
+node EqualsExpression #expression #binary-chain =
+    left:#expression operator:#binary-operator right:#expression
+node NotEqualsExpression #expression #binary-chain =
+    left:#expression operator:#binary-operator right:#expression
+node LessThanExpression #expression #binary-chain =
+    left:#expression operator:#binary-operator right:#expression
+node LessThanOrEqualExpression #expression #binary-chain =
+    left:#expression operator:#binary-operator right:#expression
+node GreaterThanExpression #expression #binary-chain =
+    left:#expression operator:#binary-operator right:#expression
+node GreaterThanOrEqualExpression #expression #binary-chain =
+    left:#expression operator:#binary-operator right:#expression
+node IsExpression #expression =
+    left:#expression operator:#binary-operator right:#expression
+node AsExpression #expression =
+    left:#expression operator:#binary-operator right:#expression
+node CoalesceExpression #expression #binary-chain =
+    left:#expression operator:#binary-operator right:#expression
+node SimpleAssignmentExpression #expression #assignment =
+    left:#expression operator:#assignment-operator right:#expression
+node AddAssignmentExpression #expression #assignment =
+    left:#expression operator:#assignment-operator right:#expression
+node SubtractAssignmentExpression #expression #assignment =
+    left:#expression operator:#assignment-operator right:#expression
+node MultiplyAssignmentExpression #expression #assignment =
+    left:#expression operator:#assignment-operator right:#expression
+node DivideAssignmentExpression #expression #assignment =
+    left:#expression operator:#assignment-operator right:#expression
+node ModuloAssignmentExpression #expression #assignment =
+    left:#expression operator:#assignment-operator right:#expression
+node AndAssignmentExpression #expression #assignment =
+    left:#expression operator:#assignment-operator right:#expression
+node ExclusiveOrAssignmentExpression #expression #assignment =
+    left:#expression operator:#assignment-operator right:#expression
+node OrAssignmentExpression #expression #assignment =
+    left:#expression operator:#assignment-operator right:#expression
+node LeftShiftAssignmentExpression #expression #assignment =
+    left:#expression operator:#assignment-operator right:#expression
+node RightShiftAssignmentExpression #expression #assignment =
+    left:#expression operator:#assignment-operator right:#expression
+node UnsignedRightShiftAssignmentExpression #expression #assignment =
+    left:#expression operator:#assignment-operator right:#expression
+node CoalesceAssignmentExpression #expression #assignment =
+    left:#expression operator:#assignment-operator right:#expression
 node ConditionalExpression #expression =
-    condition:#expression question:QuestionToken? when_true:#expression colon:ColonToken? when_false:#expression
-node InvocationExpression #expression =
+    condition:#expression question:QuestionToken when_true:#expression colon:ColonToken when_false:#expression
+node ThisExpression #expression =
+    token:ThisKeyword
+node BaseExpression #expression =
+    token:BaseKeyword
+node ArgListExpression #expression =
+    token:#literal-token
+node NumericLiteralExpression #expression =
+    token:#literal-token
+node StringLiteralExpression #expression #string =
+    token:#literal-token
+node Utf8StringLiteralExpression #expression #string =
+    token:#literal-token
+node CharacterLiteralExpression #expression =
+    token:#literal-token
+node TrueLiteralExpression #expression =
+    token:#literal-token
+node FalseLiteralExpression #expression =
+    token:#literal-token
+node NullLiteralExpression #expression =
+    token:#literal-token
+node DefaultLiteralExpression #expression =
+    token:#literal-token
+node FieldExpression #expression =
+    token:FieldKeyword
+node MakeRefExpression #expression =
+    keyword:MakeRefKeyword open_paren:OpenParenToken expression:#expression close_paren:CloseParenToken
+node RefTypeExpression #expression =
+    keyword:RefTypeKeyword open_paren:OpenParenToken expression:#expression close_paren:CloseParenToken
+node RefValueExpression #expression =
+    keyword:RefValueKeyword open_paren:OpenParenToken expression:#expression comma:CommaToken type:#type close_paren:CloseParenToken
+node CheckedExpression #expression =
+    keyword:#checked-keyword open_paren:OpenParenToken expression:#expression close_paren:CloseParenToken
+node UncheckedExpression #expression =
+    keyword:#checked-keyword open_paren:OpenParenToken expression:#expression close_paren:CloseParenToken
+node UnsafeExpression #expression =
+    keyword:UnsafeKeyword open_paren:OpenParenToken expression:#expression close_paren:CloseParenToken
+node DefaultExpression #expression =
+    keyword:DefaultKeyword open_paren:OpenParenToken type:#type close_paren:CloseParenToken
+node TypeOfExpression #expression =
+    keyword:TypeOfKeyword open_paren:OpenParenToken type:#type close_paren:CloseParenToken
+node SizeOfExpression #expression =
+    keyword:SizeOfKeyword open_paren:OpenParenToken type:#type close_paren:CloseParenToken
+node InvocationExpression #expression #member-chain =
     expression:#expression argument_list:ArgumentList
-node ElementAccessExpression #expression =
+node ElementAccessExpression #expression #member-chain =
     expression:#expression argument_list:BracketedArgumentList
 node ArgumentList #delimited-list =
-    open_paren:OpenParenToken? arguments:Argument* close_paren:CloseParenToken?
+    open_paren:OpenParenToken arguments:Argument* close_paren:CloseParenToken
 node BracketedArgumentList #delimited-list =
-    open_bracket:OpenBracketToken? arguments:Argument* close_bracket:CloseBracketToken?
+    open_bracket:OpenBracketToken arguments:Argument* close_bracket:CloseBracketToken
 node Argument =
-    name_colon:NameColon? expression:#expression
-node NameColon #key-value =
-    expression:#expression name:IdentifierName colon:ColonToken?
+    name_colon:NameColon? ref_kind_keyword:#argument-ref-kind-keyword? expression:#expression
+node ExpressionColon #base-expression-colon #key-value =
+    expression:#expression colon:ColonToken
+node NameColon #base-expression-colon #key-value =
+    name:IdentifierName colon:ColonToken
+node DeclarationExpression #expression =
+    type:#type designation:#variable-designation
 node CastExpression #expression =
-    open_paren:OpenParenToken? type:#type close_paren:CloseParenToken? expression:#expression
+    open_paren:OpenParenToken type:#type close_paren:CloseParenToken expression:#expression
 node AnonymousMethodExpression #expression =
-    async_keyword:AsyncKeyword? modifiers:#keyword* delegate_keyword:DelegateKeyword? parameter_list:ParameterList? block:Block expression_body:#expression?
+    modifiers:#modifier* delegate_keyword:DelegateKeyword parameter_list:ParameterList? block:Block expression_body:#expression?
 node SimpleLambdaExpression #expression =
-    async_keyword:AsyncKeyword? attribute_lists:AttributeList* modifiers:#keyword* parameter:Parameter block:Block? expression_body:#expression?
+    attribute_lists:AttributeList* modifiers:#modifier* parameter:Parameter arrow:EqualsGreaterThanToken block:Block? expression_body:#expression?
+node RefExpression #expression =
+    ref_keyword:RefKeyword expression:#expression
 node ParenthesizedLambdaExpression #expression =
-    async_keyword:AsyncKeyword? attribute_lists:AttributeList* modifiers:#keyword* return_type:#type? parameter_list:ParameterList block:Block? expression_body:#expression?
-node ObjectInitializerExpression #expression #delimited-list
-node CollectionInitializerExpression #expression #delimited-list
-node ArrayInitializerExpression #expression #delimited-list
+    attribute_lists:AttributeList* modifiers:#modifier* return_type:#type? parameter_list:ParameterList arrow:EqualsGreaterThanToken block:Block? expression_body:#expression?
+node ObjectInitializerExpression #expression #initializer-expression #delimited-list =
+    open_brace:OpenBraceToken expressions:#expression* close_brace:CloseBraceToken
+node CollectionInitializerExpression #expression #initializer-expression #delimited-list =
+    open_brace:OpenBraceToken expressions:#expression* close_brace:CloseBraceToken
+node ArrayInitializerExpression #expression #initializer-expression #delimited-list =
+    open_brace:OpenBraceToken expressions:#expression* close_brace:CloseBraceToken
+node ComplexElementInitializerExpression #expression #initializer-expression #delimited-list =
+    open_brace:OpenBraceToken expressions:#expression* close_brace:CloseBraceToken
+node WithInitializerExpression #expression #initializer-expression #delimited-list =
+    open_brace:OpenBraceToken expressions:#expression* close_brace:CloseBraceToken
+node ImplicitObjectCreationExpression #expression =
+    new_keyword:NewKeyword argument_list:ArgumentList initializer:#initializer-expression?
+node ObjectCreationExpression #expression =
+    new_keyword:NewKeyword type:#type argument_list:ArgumentList? initializer:#initializer-expression?
+node WithExpression #expression =
+    expression:#expression with_keyword:WithKeyword initializer:#initializer-expression
 node AnonymousObjectMemberDeclarator =
     name_equals:NameEquals? expression:#expression
-node ComplexElementInitializerExpression #expression #delimited-list
-node ObjectCreationExpression #expression =
-    new_keyword:NewKeyword? type:#type argument_list:ArgumentList?
-node AnonymousObjectCreationExpression #expression =
-    new_keyword:NewKeyword? open_brace:OpenBraceToken? initializers:AnonymousObjectMemberDeclarator* close_brace:CloseBraceToken?
+node AnonymousObjectCreationExpression #expression #delimited-list =
+    new_keyword:NewKeyword open_brace:OpenBraceToken initializers:AnonymousObjectMemberDeclarator* close_brace:CloseBraceToken
 node ArrayCreationExpression #expression =
-    new_keyword:NewKeyword? type:ArrayType
-node ImplicitArrayCreationExpression #expression =
-    new_keyword:NewKeyword? open_bracket:OpenBracketToken? commas:#keyword* close_bracket:CloseBracketToken?
+    new_keyword:NewKeyword type:ArrayType initializer:#initializer-expression?
+node ImplicitArrayCreationExpression #expression #delimited-list =
+    new_keyword:NewKeyword open_bracket:OpenBracketToken commas:CommaToken* close_bracket:CloseBracketToken initializer:#initializer-expression
 node StackAllocArrayCreationExpression #expression =
-    stack_alloc_keyword:StackAllocKeyword? type:#type
-node OmittedArraySizeExpression #expression =
-    omitted_array_size_expression:OmittedArraySizeExpressionToken?
-node InterpolatedStringExpression #expression #string
-node ImplicitElementAccess =
-    argument_list:BracketedArgumentList
-node IsPatternExpression #expression =
-    expression:#expression is_keyword:IsKeyword? pattern:#pattern
-node RangeExpression #expression =
-    left_operand:#expression? right_operand:#expression?
-node ImplicitObjectCreationExpression #expression =
-    new_keyword:NewKeyword? argument_list:ArgumentList
-node AddExpression #expression
-node SubtractExpression #expression
-node MultiplyExpression #expression
-node DivideExpression #expression
-node ModuloExpression #expression
-node LeftShiftExpression #expression
-node RightShiftExpression #expression
-node LogicalOrExpression #expression
-node LogicalAndExpression #expression
-node BitwiseOrExpression #expression
-node BitwiseAndExpression #expression
-node ExclusiveOrExpression #expression
-node EqualsExpression #expression
-node NotEqualsExpression #expression
-node LessThanExpression #expression
-node LessThanOrEqualExpression #expression
-node GreaterThanExpression #expression
-node GreaterThanOrEqualExpression #expression
-node IsExpression #expression
-node AsExpression #expression
-node CoalesceExpression #expression
-node SimpleMemberAccessExpression #expression
-node PointerMemberAccessExpression #expression
-node ConditionalAccessExpression #expression =
-    expression:#expression when_not_null:#expression
-node UnsignedRightShiftExpression #expression
-node MemberBindingExpression #expression
-node ElementBindingExpression #expression =
-    argument_list:BracketedArgumentList
-node SimpleAssignmentExpression #expression
-node AddAssignmentExpression #expression
-node SubtractAssignmentExpression #expression
-node MultiplyAssignmentExpression #expression
-node DivideAssignmentExpression #expression
-node ModuloAssignmentExpression #expression
-node AndAssignmentExpression #expression
-node ExclusiveOrAssignmentExpression #expression
-node OrAssignmentExpression #expression
-node LeftShiftAssignmentExpression #expression
-node RightShiftAssignmentExpression #expression
-node CoalesceAssignmentExpression #expression
-node UnsignedRightShiftAssignmentExpression #expression
-node UnaryPlusExpression #expression
-node UnaryMinusExpression #expression
-node BitwiseNotExpression #expression
-node LogicalNotExpression #expression
-node PreIncrementExpression #expression
-node PreDecrementExpression #expression
-node PointerIndirectionExpression #expression
-node AddressOfExpression #expression
-node PostIncrementExpression #expression
-node PostDecrementExpression #expression
-node AwaitExpression #expression =
-    await_keyword:AwaitKeyword? expression:#expression
-node IndexExpression #expression
-node ThisExpression #expression
-node BaseExpression #expression
-node ArgListExpression #expression
-node NumericLiteralExpression #expression
-node StringLiteralExpression #expression #string
-node CharacterLiteralExpression #expression
-node TrueLiteralExpression #expression
-node FalseLiteralExpression #expression
-node NullLiteralExpression #expression
-node DefaultLiteralExpression #expression
-node Utf8StringLiteralExpression #expression #string
-node FieldExpression #expression
-node TypeOfExpression #expression =
-    open_paren:OpenParenToken? type:#type close_paren:CloseParenToken?
-node SizeOfExpression #expression =
-    open_paren:OpenParenToken? type:#type close_paren:CloseParenToken?
-node CheckedExpression #expression =
-    open_paren:OpenParenToken? expression:#expression close_paren:CloseParenToken?
-node UncheckedExpression #expression
-node DefaultExpression #expression =
-    open_paren:OpenParenToken? type:#type close_paren:CloseParenToken?
-node MakeRefExpression #expression =
-    open_paren:OpenParenToken? expression:#expression close_paren:CloseParenToken?
-node RefValueExpression #expression =
-    open_paren:OpenParenToken? expression:#expression type:#type close_paren:CloseParenToken?
-node RefTypeExpression #expression =
-    open_paren:OpenParenToken? expression:#expression close_paren:CloseParenToken?
-node UnsafeExpression #expression =
-    open_paren:OpenParenToken? expression:#expression close_paren:CloseParenToken?
+    stack_alloc_keyword:StackAllocKeyword type:#type initializer:#initializer-expression?
+node ImplicitStackAllocArrayCreationExpression #expression =
+    stack_alloc_keyword:StackAllocKeyword open_bracket:OpenBracketToken close_bracket:CloseBracketToken initializer:#initializer-expression
+node CollectionExpression #expression #delimited-list =
+    open_bracket:OpenBracketToken elements:#collection-element* close_bracket:CloseBracketToken
+node ExpressionElement #collection-element =
+    expression:#expression
+node SpreadElement #collection-element =
+    operator:DotDotToken expression:#expression
+node WithElement #collection-element =
+    with_keyword:WithKeyword argument_list:ArgumentList
 node QueryExpression #expression =
     from_clause:FromClause body:QueryBody
 node QueryBody =
-    continuation:QueryContinuation?
-node FromClause =
-    from_keyword:FromKeyword? type:#type? identifier:IdentifierToken? in_keyword:InKeyword? expression:#expression
-node LetClause =
-    let_keyword:LetKeyword? identifier:IdentifierToken? equals:EqualsToken? expression:#expression
-node JoinClause =
-    join_keyword:JoinKeyword? type:#type? identifier:IdentifierToken? in_keyword:InKeyword? in_expression:#expression on_keyword:OnKeyword? left_expression:#expression equals_keyword:EqualsKeyword? right_expression:#expression into:JoinIntoClause?
+    clauses:#query-clause* select_or_group:#select-or-group-clause continuation:QueryContinuation?
+node FromClause #query-clause =
+    from_keyword:FromKeyword type:#type? identifier:IdentifierToken in_keyword:InKeyword expression:#expression
+node LetClause #query-clause =
+    let_keyword:LetKeyword identifier:IdentifierToken equals:EqualsToken expression:#expression
+node JoinClause #query-clause =
+    join_keyword:JoinKeyword type:#type? identifier:IdentifierToken in_keyword:InKeyword in_expression:#expression on_keyword:OnKeyword left_expression:#expression equals_keyword:EqualsKeyword right_expression:#expression into:JoinIntoClause?
 node JoinIntoClause =
-    into_keyword:IntoKeyword? identifier:IdentifierToken?
-node WhereClause =
-    where_keyword:WhereKeyword? condition:#expression
-node OrderByClause =
-    order_by_keyword:OrderByKeyword?
-node AscendingOrdering
-node DescendingOrdering
-node SelectClause =
-    select_keyword:SelectKeyword? expression:#expression
-node GroupClause =
-    group_keyword:GroupKeyword? group_expression:#expression by_keyword:ByKeyword? by_expression:#expression
+    into_keyword:IntoKeyword identifier:IdentifierToken
+node WhereClause #query-clause =
+    where_keyword:WhereKeyword condition:#expression
+node OrderByClause #query-clause =
+    order_by_keyword:OrderByKeyword orderings:#ordering*
+node AscendingOrdering #ordering =
+    expression:#expression ascending_or_descending_keyword:#ordering-ascending-or-descending-keyword?
+node DescendingOrdering #ordering =
+    expression:#expression ascending_or_descending_keyword:#ordering-ascending-or-descending-keyword?
+node SelectClause #select-or-group-clause =
+    select_keyword:SelectKeyword expression:#expression
+node GroupClause #select-or-group-clause =
+    group_keyword:GroupKeyword group_expression:#expression by_keyword:ByKeyword by_expression:#expression
 node QueryContinuation =
-    into_keyword:IntoKeyword? identifier:IdentifierToken? body:QueryBody
+    into_keyword:IntoKeyword identifier:IdentifierToken body:QueryBody
+node OmittedArraySizeExpression #expression =
+    omitted_array_size_expression:OmittedArraySizeExpressionToken
+node InterpolatedStringExpression #expression #string =
+    string_start:#interpolated-string-string-start contents:#interpolated-string-content* string_end:#interpolated-string-string-end
+node IsPatternExpression #expression =
+    expression:#expression is_keyword:IsKeyword pattern:#pattern
+node ThrowExpression #expression =
+    throw_keyword:ThrowKeyword expression:#expression
+node WhenClause =
+    when_keyword:WhenKeyword condition:#expression
+node DiscardPattern #pattern =
+    underscore:UnderscoreToken
+node DeclarationPattern #pattern =
+    type:#type designation:#variable-designation
+node VarPattern #pattern =
+    var_keyword:VarKeyword designation:#variable-designation
+node RecursivePattern #pattern =
+    type:#type? positional_pattern_clause:PositionalPatternClause? property_pattern_clause:PropertyPatternClause? designation:#variable-designation?
+node PositionalPatternClause #delimited-list =
+    open_paren:OpenParenToken subpatterns:Subpattern* close_paren:CloseParenToken
+node PropertyPatternClause #delimited-list =
+    open_brace:OpenBraceToken subpatterns:Subpattern* close_brace:CloseBraceToken
+node Subpattern =
+    expression_colon:#base-expression-colon? pattern:#pattern
+node ConstantPattern #pattern =
+    expression:#expression
+node ParenthesizedPattern #pattern =
+    open_paren:OpenParenToken pattern:#pattern close_paren:CloseParenToken
+node RelationalPattern #pattern =
+    operator:#relational-pattern-operator expression:#expression
+node TypePattern #pattern =
+    type:#type
+node OrPattern #pattern #binary-chain =
+    left:#pattern operator:#binary-pattern-operator right:#pattern
+node AndPattern #pattern #binary-chain =
+    left:#pattern operator:#binary-pattern-operator right:#pattern
+node NotPattern #pattern =
+    operator:NotKeyword pattern:#pattern
+node ListPattern #pattern #delimited-list =
+    open_bracket:OpenBracketToken patterns:#pattern* close_bracket:CloseBracketToken designation:#variable-designation?
+node SlicePattern #pattern =
+    dot_dot:DotDotToken pattern:#pattern?
+node InterpolatedStringText #interpolated-string-content #string =
+    text:InterpolatedStringTextToken
+node Interpolation #interpolated-string-content #interpolation =
+    open_brace:OpenBraceToken expression:#expression alignment_clause:InterpolationAlignmentClause? format_clause:InterpolationFormatClause? close_brace:CloseBraceToken
+node InterpolationAlignmentClause =
+    comma:CommaToken value:#expression
+node InterpolationFormatClause =
+    colon:ColonToken format_string:InterpolatedStringTextToken
+node GlobalStatement #member #declaration =
+    attribute_lists:AttributeList* modifiers:#modifier* statement:#statement
 node Block #statement #block =
-    attribute_lists:AttributeList* open_brace:OpenBraceToken? statements:#statement* close_brace:CloseBraceToken?
+    attribute_lists:AttributeList* open_brace:OpenBraceToken statements:#statement* close_brace:CloseBraceToken
+node LocalFunctionStatement #statement =
+    attribute_lists:AttributeList* modifiers:#modifier* return_type:#type identifier:IdentifierToken type_parameter_list:TypeParameterList? parameter_list:ParameterList constraint_clauses:TypeParameterConstraintClause* body:Block? expression_body:ArrowExpressionClause? semicolon:SemicolonToken?
 node LocalDeclarationStatement #statement =
-    attribute_lists:AttributeList* await_keyword:AwaitKeyword? using_keyword:UsingKeyword? modifiers:#keyword* declaration:VariableDeclaration semicolon:SemicolonToken?
+    attribute_lists:AttributeList* await_keyword:AwaitKeyword? using_keyword:UsingKeyword? modifiers:#modifier* declaration:VariableDeclaration semicolon:SemicolonToken
 node VariableDeclaration =
     type:#type variables:VariableDeclarator*
 node VariableDeclarator =
-    identifier:IdentifierToken? argument_list:BracketedArgumentList? initializer:EqualsValueClause?
+    identifier:IdentifierToken argument_list:BracketedArgumentList? initializer:EqualsValueClause?
 node EqualsValueClause =
-    equals:EqualsToken? value:#expression
+    equals:EqualsToken value:#expression
+node SingleVariableDesignation #variable-designation =
+    identifier:IdentifierToken
+node DiscardDesignation #variable-designation =
+    underscore:UnderscoreToken
+node ParenthesizedVariableDesignation #variable-designation =
+    open_paren:OpenParenToken variables:#variable-designation* close_paren:CloseParenToken
 node ExpressionStatement #statement =
-    attribute_lists:AttributeList* expression:#expression semicolon:SemicolonToken?
+    attribute_lists:AttributeList* expression:#expression semicolon:SemicolonToken
 node EmptyStatement #statement =
-    attribute_lists:AttributeList* semicolon:SemicolonToken?
+    attribute_lists:AttributeList* semicolon:SemicolonToken
 node LabeledStatement #statement =
-    attribute_lists:AttributeList* identifier:IdentifierToken? colon:ColonToken? statement:#statement
+    attribute_lists:AttributeList* identifier:IdentifierToken colon:ColonToken statement:#statement
 node GotoStatement #statement =
-    attribute_lists:AttributeList* goto_keyword:GotoKeyword? expression:#expression? semicolon:SemicolonToken?
-node GotoCaseStatement #statement
-node GotoDefaultStatement #statement
+    attribute_lists:AttributeList* goto_keyword:GotoKeyword case_or_default_keyword:#goto-statement-case-or-default-keyword? expression:#expression? semicolon:SemicolonToken
+node GotoCaseStatement #statement =
+    attribute_lists:AttributeList* goto_keyword:GotoKeyword case_or_default_keyword:#goto-statement-case-or-default-keyword? expression:#expression? semicolon:SemicolonToken
+node GotoDefaultStatement #statement =
+    attribute_lists:AttributeList* goto_keyword:GotoKeyword case_or_default_keyword:#goto-statement-case-or-default-keyword? expression:#expression? semicolon:SemicolonToken
 node BreakStatement #statement =
-    attribute_lists:AttributeList* break_keyword:BreakKeyword? name:IdentifierName? semicolon:SemicolonToken?
+    attribute_lists:AttributeList* break_keyword:BreakKeyword name:IdentifierName? semicolon:SemicolonToken
 node ContinueStatement #statement =
-    attribute_lists:AttributeList* continue_keyword:ContinueKeyword? name:IdentifierName? semicolon:SemicolonToken?
+    attribute_lists:AttributeList* continue_keyword:ContinueKeyword name:IdentifierName? semicolon:SemicolonToken
 node ReturnStatement #statement =
-    attribute_lists:AttributeList* return_keyword:ReturnKeyword? expression:#expression? semicolon:SemicolonToken?
-node YieldReturnStatement #statement
-node YieldBreakStatement #statement
+    attribute_lists:AttributeList* return_keyword:ReturnKeyword expression:#expression? semicolon:SemicolonToken
 node ThrowStatement #statement =
-    attribute_lists:AttributeList* throw_keyword:ThrowKeyword? expression:#expression? semicolon:SemicolonToken?
+    attribute_lists:AttributeList* throw_keyword:ThrowKeyword expression:#expression? semicolon:SemicolonToken
+node YieldReturnStatement #statement =
+    attribute_lists:AttributeList* yield_keyword:YieldKeyword return_or_break_keyword:#yield-statement-return-or-break-keyword expression:#expression? semicolon:SemicolonToken
+node YieldBreakStatement #statement =
+    attribute_lists:AttributeList* yield_keyword:YieldKeyword return_or_break_keyword:#yield-statement-return-or-break-keyword expression:#expression? semicolon:SemicolonToken
 node WhileStatement #statement =
-    attribute_lists:AttributeList* while_keyword:WhileKeyword? open_paren:OpenParenToken? condition:#expression close_paren:CloseParenToken? statement:#statement
+    attribute_lists:AttributeList* while_keyword:WhileKeyword open_paren:OpenParenToken condition:#expression close_paren:CloseParenToken statement:#statement
 node DoStatement #statement =
-    attribute_lists:AttributeList* do_keyword:DoKeyword? statement:#statement while_keyword:WhileKeyword? open_paren:OpenParenToken? condition:#expression close_paren:CloseParenToken? semicolon:SemicolonToken?
+    attribute_lists:AttributeList* do_keyword:DoKeyword statement:#statement while_keyword:WhileKeyword open_paren:OpenParenToken condition:#expression close_paren:CloseParenToken semicolon:SemicolonToken
 node ForStatement #statement =
-    attribute_lists:AttributeList* for_keyword:ForKeyword? open_paren:OpenParenToken? declaration:VariableDeclaration? condition:#expression? close_paren:CloseParenToken? statement:#statement
+    attribute_lists:AttributeList* for_keyword:ForKeyword open_paren:OpenParenToken declaration:VariableDeclaration? initializers:#expression* first_semicolon:SemicolonToken condition:#expression? second_semicolon:SemicolonToken incrementors:#expression* close_paren:CloseParenToken statement:#statement
 node ForEachStatement #statement =
-    attribute_lists:AttributeList* await_keyword:AwaitKeyword? for_each_keyword:ForEachKeyword? open_paren:OpenParenToken? type:#type identifier:IdentifierToken? in_keyword:InKeyword? expression:#expression close_paren:CloseParenToken? statement:#statement
+    attribute_lists:AttributeList* await_keyword:AwaitKeyword? for_each_keyword:ForEachKeyword open_paren:OpenParenToken type:#type identifier:IdentifierToken in_keyword:InKeyword expression:#expression close_paren:CloseParenToken statement:#statement
+node ForEachVariableStatement #statement =
+    attribute_lists:AttributeList* await_keyword:AwaitKeyword? for_each_keyword:ForEachKeyword open_paren:OpenParenToken variable:#expression in_keyword:InKeyword expression:#expression close_paren:CloseParenToken statement:#statement
 node UsingStatement #statement =
-    attribute_lists:AttributeList* await_keyword:AwaitKeyword? using_keyword:UsingKeyword? open_paren:OpenParenToken? declaration:VariableDeclaration? expression:#expression? close_paren:CloseParenToken? statement:#statement
+    attribute_lists:AttributeList* await_keyword:AwaitKeyword? using_keyword:UsingKeyword open_paren:OpenParenToken declaration:VariableDeclaration? expression:#expression? close_paren:CloseParenToken statement:#statement
 node FixedStatement #statement =
-    attribute_lists:AttributeList* fixed_keyword:FixedKeyword? open_paren:OpenParenToken? declaration:VariableDeclaration close_paren:CloseParenToken? statement:#statement
+    attribute_lists:AttributeList* fixed_keyword:FixedKeyword open_paren:OpenParenToken declaration:VariableDeclaration close_paren:CloseParenToken statement:#statement
 node CheckedStatement #statement =
-    attribute_lists:AttributeList* block:Block
-node UncheckedStatement #statement
+    attribute_lists:AttributeList* keyword:#checked-statement-keyword block:Block
+node UncheckedStatement #statement =
+    attribute_lists:AttributeList* keyword:#checked-statement-keyword block:Block
 node UnsafeStatement #statement =
-    attribute_lists:AttributeList* unsafe_keyword:UnsafeKeyword? block:Block
+    attribute_lists:AttributeList* unsafe_keyword:UnsafeKeyword block:Block
 node LockStatement #statement =
-    attribute_lists:AttributeList* lock_keyword:LockKeyword? open_paren:OpenParenToken? expression:#expression close_paren:CloseParenToken? statement:#statement
+    attribute_lists:AttributeList* lock_keyword:LockKeyword open_paren:OpenParenToken expression:#expression close_paren:CloseParenToken statement:#statement
 node IfStatement #statement =
-    attribute_lists:AttributeList* if_keyword:IfKeyword? open_paren:OpenParenToken? condition:#expression close_paren:CloseParenToken? statement:#statement else:ElseClause?
+    attribute_lists:AttributeList* if_keyword:IfKeyword open_paren:OpenParenToken condition:#expression close_paren:CloseParenToken statement:#statement else:ElseClause?
 node ElseClause =
-    else_keyword:ElseKeyword? statement:#statement
+    else_keyword:ElseKeyword statement:#statement
 node SwitchStatement #statement =
-    attribute_lists:AttributeList* switch_keyword:SwitchKeyword? open_paren:OpenParenToken? expression:#expression close_paren:CloseParenToken? open_brace:OpenBraceToken? sections:SwitchSection* close_brace:CloseBraceToken?
+    attribute_lists:AttributeList* switch_keyword:SwitchKeyword open_paren:OpenParenToken? expression:#expression close_paren:CloseParenToken? open_brace:OpenBraceToken sections:SwitchSection* close_brace:CloseBraceToken
 node SwitchSection =
-    statements:#statement*
-node CaseSwitchLabel =
-    value:#expression colon:ColonToken?
-node DefaultSwitchLabel =
-    colon:ColonToken?
+    labels:#switch-label* statements:#statement*
+node CasePatternSwitchLabel #switch-label =
+    keyword:CaseKeyword pattern:#pattern when_clause:WhenClause? colon:ColonToken
+node CaseSwitchLabel #switch-label =
+    keyword:CaseKeyword value:#expression colon:ColonToken
+node DefaultSwitchLabel #switch-label =
+    keyword:DefaultKeyword colon:ColonToken
+node SwitchExpression #expression #delimited-list =
+    governing_expression:#expression switch_keyword:SwitchKeyword open_brace:OpenBraceToken arms:SwitchExpressionArm* close_brace:CloseBraceToken
+node SwitchExpressionArm #key-value =
+    pattern:#pattern when_clause:WhenClause? equals_greater_than:EqualsGreaterThanToken expression:#expression
 node TryStatement #statement =
-    attribute_lists:AttributeList* try_keyword:TryKeyword? block:Block catches:CatchClause* finally:FinallyClause?
+    attribute_lists:AttributeList* try_keyword:TryKeyword block:Block catches:CatchClause* finally:FinallyClause?
 node CatchClause =
-    catch_keyword:CatchKeyword? declaration:CatchDeclaration? filter:CatchFilterClause? block:Block
-node CatchDeclaration #declaration =
-    open_paren:OpenParenToken? type:#type identifier:IdentifierToken? close_paren:CloseParenToken?
+    catch_keyword:CatchKeyword declaration:CatchDeclaration? filter:CatchFilterClause? block:Block
+node CatchDeclaration =
+    open_paren:OpenParenToken type:#type identifier:IdentifierToken? close_paren:CloseParenToken
 node CatchFilterClause =
-    when_keyword:WhenKeyword? open_paren:OpenParenToken? filter_expression:#expression close_paren:CloseParenToken?
+    when_keyword:WhenKeyword open_paren:OpenParenToken filter_expression:#expression close_paren:CloseParenToken
 node FinallyClause =
-    finally_keyword:FinallyKeyword? block:Block
-node LocalFunctionStatement #statement =
-    attribute_lists:AttributeList* modifiers:#keyword* return_type:#type identifier:IdentifierToken? type_parameter_list:TypeParameterList? parameter_list:ParameterList constraint_clauses:TypeParameterConstraintClause* body:Block? expression_body:ArrowExpressionClause? semicolon:SemicolonToken?
+    finally_keyword:FinallyKeyword block:Block
 node CompilationUnit =
-    externs:ExternAliasDirective* usings:UsingDirective* attribute_lists:AttributeList* members:#member* end_of_file:EndOfFileToken?
-node GlobalStatement #statement #member =
-    attribute_lists:AttributeList* modifiers:#keyword* statement:#statement
-node NamespaceDeclaration #declaration #member =
-    attribute_lists:AttributeList* modifiers:#keyword* namespace_keyword:NamespaceKeyword? open_brace:OpenBraceToken? externs:ExternAliasDirective* usings:UsingDirective* members:#member* close_brace:CloseBraceToken? semicolon:SemicolonToken?
-node UsingDirective =
-    global_keyword:GlobalKeyword? using_keyword:UsingKeyword? static_keyword:StaticKeyword? unsafe_keyword:UnsafeKeyword? alias:NameEquals? namespace_or_type:#type semicolon:SemicolonToken?
+    externs:ExternAliasDirective* usings:UsingDirective* attribute_lists:AttributeList* members:#member* end_of_file:EndOfFileToken
 node ExternAliasDirective =
-    extern_keyword:ExternKeyword? alias_keyword:AliasKeyword? identifier:IdentifierToken? semicolon:SemicolonToken?
-node FileScopedNamespaceDeclaration #declaration #member =
-    attribute_lists:AttributeList* modifiers:#keyword* namespace_keyword:NamespaceKeyword? semicolon:SemicolonToken? externs:ExternAliasDirective* usings:UsingDirective* members:#member*
-node AttributeList =
-    open_bracket:OpenBracketToken? target:AttributeTargetSpecifier? attributes:Attribute* close_bracket:CloseBracketToken?
+    extern_keyword:ExternKeyword alias_keyword:AliasKeyword identifier:IdentifierToken semicolon:SemicolonToken
+node UsingDirective =
+    global_keyword:GlobalKeyword? using_keyword:UsingKeyword static_keyword:StaticKeyword? unsafe_keyword:UnsafeKeyword? alias:NameEquals? namespace_or_type:#type semicolon:SemicolonToken
+node NamespaceDeclaration #member #declaration #block #namespace =
+    attribute_lists:AttributeList* modifiers:#modifier* namespace_keyword:NamespaceKeyword name:#name open_brace:OpenBraceToken externs:ExternAliasDirective* usings:UsingDirective* members:#member* close_brace:CloseBraceToken semicolon:SemicolonToken?
+node FileScopedNamespaceDeclaration #member #declaration #namespace =
+    attribute_lists:AttributeList* modifiers:#modifier* namespace_keyword:NamespaceKeyword name:#name semicolon:SemicolonToken externs:ExternAliasDirective* usings:UsingDirective* members:#member*
+node AttributeList #delimited-list =
+    open_bracket:OpenBracketToken target:AttributeTargetSpecifier? attributes:Attribute* close_bracket:CloseBracketToken
 node AttributeTargetSpecifier =
-    identifier:IdentifierToken? colon:ColonToken?
+    identifier:#attribute-target colon:ColonToken
 node Attribute =
-    argument_list:AttributeArgumentList?
+    name:#name argument_list:AttributeArgumentList?
 node AttributeArgumentList #delimited-list =
-    open_paren:OpenParenToken? arguments:AttributeArgument* close_paren:CloseParenToken?
+    open_paren:OpenParenToken arguments:AttributeArgument* close_paren:CloseParenToken
 node AttributeArgument =
     name_equals:NameEquals? name_colon:NameColon? expression:#expression
 node NameEquals #key-value =
-    name:IdentifierName equals:EqualsToken?
-node ClassDeclaration #declaration #member =
-    attribute_lists:AttributeList* modifiers:#keyword* identifier:IdentifierToken? type_parameter_list:TypeParameterList? parameter_list:ParameterList? base_list:BaseList? constraint_clauses:TypeParameterConstraintClause* open_brace:OpenBraceToken? members:#member* close_brace:CloseBraceToken? semicolon:SemicolonToken?
-node StructDeclaration #declaration #member =
-    attribute_lists:AttributeList* modifiers:#keyword* identifier:IdentifierToken? type_parameter_list:TypeParameterList? parameter_list:ParameterList? base_list:BaseList? constraint_clauses:TypeParameterConstraintClause* open_brace:OpenBraceToken? members:#member* close_brace:CloseBraceToken? semicolon:SemicolonToken?
-node InterfaceDeclaration #declaration #member =
-    attribute_lists:AttributeList* modifiers:#keyword* identifier:IdentifierToken? type_parameter_list:TypeParameterList? parameter_list:ParameterList? base_list:BaseList? constraint_clauses:TypeParameterConstraintClause* open_brace:OpenBraceToken? members:#member* close_brace:CloseBraceToken? semicolon:SemicolonToken?
-node EnumDeclaration #declaration #member =
-    attribute_lists:AttributeList* modifiers:#keyword* enum_keyword:EnumKeyword? identifier:IdentifierToken? base_list:BaseList? open_brace:OpenBraceToken? members:EnumMemberDeclaration* close_brace:CloseBraceToken? semicolon:SemicolonToken?
-node DelegateDeclaration #declaration #member =
-    attribute_lists:AttributeList* modifiers:#keyword* delegate_keyword:DelegateKeyword? return_type:#type identifier:IdentifierToken? type_parameter_list:TypeParameterList? parameter_list:ParameterList constraint_clauses:TypeParameterConstraintClause* semicolon:SemicolonToken?
-node BaseList =
-    colon:ColonToken?
-node SimpleBaseType =
-    type:#type
-node TypeParameterConstraintClause =
-    where_keyword:WhereKeyword? name:IdentifierName colon:ColonToken?
-node ConstructorConstraint =
-    new_keyword:NewKeyword? open_paren:OpenParenToken? close_paren:CloseParenToken?
-node ClassConstraint
-node StructConstraint
-node TypeConstraint =
-    type:#type
-node ExplicitInterfaceSpecifier =
-    dot:DotToken?
-node EnumMemberDeclaration #declaration =
-    attribute_lists:AttributeList* modifiers:#keyword* identifier:IdentifierToken? equals_value:EqualsValueClause?
-node FieldDeclaration #declaration #member =
-    attribute_lists:AttributeList* modifiers:#keyword* declaration:VariableDeclaration semicolon:SemicolonToken?
-node EventFieldDeclaration #declaration #member =
-    attribute_lists:AttributeList* modifiers:#keyword* event_keyword:EventKeyword? declaration:VariableDeclaration semicolon:SemicolonToken?
-node MethodDeclaration #declaration #member =
-    attribute_lists:AttributeList* modifiers:#keyword* return_type:#type explicit_interface_specifier:ExplicitInterfaceSpecifier? identifier:IdentifierToken? type_parameter_list:TypeParameterList? parameter_list:ParameterList constraint_clauses:TypeParameterConstraintClause* body:Block? expression_body:ArrowExpressionClause? semicolon:SemicolonToken?
-node OperatorDeclaration #declaration #member =
-    attribute_lists:AttributeList* modifiers:#keyword* return_type:#type explicit_interface_specifier:ExplicitInterfaceSpecifier? operator_keyword:OperatorKeyword? checked_keyword:CheckedKeyword? parameter_list:ParameterList body:Block? expression_body:ArrowExpressionClause? semicolon:SemicolonToken?
-node ConversionOperatorDeclaration #declaration #member =
-    attribute_lists:AttributeList* modifiers:#keyword* explicit_interface_specifier:ExplicitInterfaceSpecifier? operator_keyword:OperatorKeyword? checked_keyword:CheckedKeyword? type:#type parameter_list:ParameterList body:Block? expression_body:ArrowExpressionClause? semicolon:SemicolonToken?
-node ConstructorDeclaration #declaration #member =
-    attribute_lists:AttributeList* modifiers:#keyword* identifier:IdentifierToken? parameter_list:ParameterList body:Block? expression_body:ArrowExpressionClause? semicolon:SemicolonToken?
-node AllowsConstraintClause =
-    allows_keyword:AllowsKeyword?
-node RefStructConstraint =
-    ref_keyword:RefKeyword? struct_keyword:StructKeyword?
-node BaseConstructorInitializer
-node ThisConstructorInitializer
-node DestructorDeclaration #declaration #member =
-    attribute_lists:AttributeList* modifiers:#keyword* tilde:TildeToken? identifier:IdentifierToken? parameter_list:ParameterList body:Block? expression_body:ArrowExpressionClause? semicolon:SemicolonToken?
-node PropertyDeclaration #declaration #member =
-    attribute_lists:AttributeList* modifiers:#keyword* type:#type explicit_interface_specifier:ExplicitInterfaceSpecifier? identifier:IdentifierToken? accessor_list:AccessorList? expression_body:ArrowExpressionClause? initializer:EqualsValueClause? semicolon:SemicolonToken?
-node EventDeclaration #declaration #member =
-    attribute_lists:AttributeList* modifiers:#keyword* event_keyword:EventKeyword? type:#type explicit_interface_specifier:ExplicitInterfaceSpecifier? identifier:IdentifierToken? accessor_list:AccessorList? semicolon:SemicolonToken?
-node IndexerDeclaration #declaration #member =
-    attribute_lists:AttributeList* modifiers:#keyword* type:#type explicit_interface_specifier:ExplicitInterfaceSpecifier? this_keyword:ThisKeyword? parameter_list:BracketedParameterList accessor_list:AccessorList? expression_body:ArrowExpressionClause? semicolon:SemicolonToken?
-node AccessorList =
-    open_brace:OpenBraceToken? close_brace:CloseBraceToken?
-node GetAccessorDeclaration #declaration
-node SetAccessorDeclaration #declaration
-node AddAccessorDeclaration #declaration
-node RemoveAccessorDeclaration #declaration
-node UnknownAccessorDeclaration #declaration
-node ParameterList #delimited-list =
-    open_paren:OpenParenToken? parameters:Parameter* close_paren:CloseParenToken?
-node BracketedParameterList #delimited-list =
-    open_bracket:OpenBracketToken? parameters:Parameter* close_bracket:CloseBracketToken?
-node Parameter =
-    attribute_lists:AttributeList* modifiers:#keyword* type:#type? identifier:IdentifierToken? default:EqualsValueClause?
+    name:IdentifierName equals:EqualsToken
 node TypeParameterList #delimited-list =
-    less_than:LessThanToken? parameters:TypeParameter* greater_than:GreaterThanToken?
+    less_than:LessThanToken parameters:TypeParameter* greater_than:GreaterThanToken
 node TypeParameter =
-    attribute_lists:AttributeList* identifier:IdentifierToken?
-node IncompleteMember #member =
-    attribute_lists:AttributeList* modifiers:#keyword* type:#type?
-node ArrowExpressionClause =
-    expression:#expression
-node Interpolation =
-    open_brace:OpenBraceToken? expression:#expression alignment_clause:InterpolationAlignmentClause? format_clause:InterpolationFormatClause? close_brace:CloseBraceToken?
-node InterpolatedStringText
-node InterpolationAlignmentClause =
-    comma:CommaToken? value:#expression
-node InterpolationFormatClause =
-    colon:ColonToken?
-token ShebangDirectiveTrivia #trivia #directive
-token LoadDirectiveTrivia #trivia #directive
-node TupleType #type #delimited-list =
-    open_paren:OpenParenToken? elements:TupleElement* close_paren:CloseParenToken?
-node TupleElement =
-    type:#type identifier:IdentifierToken?
-node TupleExpression #expression #delimited-list =
-    open_paren:OpenParenToken? arguments:Argument* close_paren:CloseParenToken?
-node SingleVariableDesignation =
-    identifier:IdentifierToken?
-node ParenthesizedVariableDesignation =
-    open_paren:OpenParenToken? close_paren:CloseParenToken?
-node ForEachVariableStatement #statement =
-    attribute_lists:AttributeList* await_keyword:AwaitKeyword? for_each_keyword:ForEachKeyword? open_paren:OpenParenToken? variable:#expression in_keyword:InKeyword? expression:#expression close_paren:CloseParenToken? statement:#statement
-node DeclarationPattern #pattern =
+    attribute_lists:AttributeList* variance_keyword:#type-parameter-variance-keyword? identifier:IdentifierToken
+node ClassDeclaration #member #declaration #type-declaration =
+    attribute_lists:AttributeList* modifiers:#modifier* keyword:ClassKeyword identifier:IdentifierToken type_parameter_list:TypeParameterList? parameter_list:ParameterList? base_list:BaseList? constraint_clauses:TypeParameterConstraintClause* open_brace:OpenBraceToken? members:#member* close_brace:CloseBraceToken? semicolon:SemicolonToken?
+node StructDeclaration #member #declaration #type-declaration =
+    attribute_lists:AttributeList* modifiers:#modifier* keyword:StructKeyword identifier:IdentifierToken type_parameter_list:TypeParameterList? parameter_list:ParameterList? base_list:BaseList? constraint_clauses:TypeParameterConstraintClause* open_brace:OpenBraceToken? members:#member* close_brace:CloseBraceToken? semicolon:SemicolonToken?
+node UnionDeclaration #member #declaration #type-declaration =
+    attribute_lists:AttributeList* modifiers:#modifier* keyword:UnionKeyword identifier:IdentifierToken type_parameter_list:TypeParameterList? parameter_list:ParameterList? base_list:BaseList? constraint_clauses:TypeParameterConstraintClause* open_brace:OpenBraceToken? members:#member* close_brace:CloseBraceToken? semicolon:SemicolonToken?
+node InterfaceDeclaration #member #declaration #type-declaration =
+    attribute_lists:AttributeList* modifiers:#modifier* keyword:InterfaceKeyword identifier:IdentifierToken type_parameter_list:TypeParameterList? parameter_list:ParameterList? base_list:BaseList? constraint_clauses:TypeParameterConstraintClause* open_brace:OpenBraceToken? members:#member* close_brace:CloseBraceToken? semicolon:SemicolonToken?
+node RecordDeclaration #member #declaration #type-declaration =
+    attribute_lists:AttributeList* modifiers:#modifier* keyword:RecordKeyword class_or_struct_keyword:#record-declaration-class-or-struct-keyword? identifier:IdentifierToken type_parameter_list:TypeParameterList? parameter_list:ParameterList? base_list:BaseList? constraint_clauses:TypeParameterConstraintClause* open_brace:OpenBraceToken? members:#member* close_brace:CloseBraceToken? semicolon:SemicolonToken?
+node RecordStructDeclaration #member #declaration #type-declaration =
+    attribute_lists:AttributeList* modifiers:#modifier* keyword:RecordKeyword class_or_struct_keyword:#record-declaration-class-or-struct-keyword? identifier:IdentifierToken type_parameter_list:TypeParameterList? parameter_list:ParameterList? base_list:BaseList? constraint_clauses:TypeParameterConstraintClause* open_brace:OpenBraceToken? members:#member* close_brace:CloseBraceToken? semicolon:SemicolonToken?
+node EnumDeclaration #member #declaration #type-declaration #delimited-list =
+    attribute_lists:AttributeList* modifiers:#modifier* enum_keyword:EnumKeyword identifier:IdentifierToken base_list:BaseList? open_brace:OpenBraceToken? members:EnumMemberDeclaration* close_brace:CloseBraceToken? semicolon:SemicolonToken?
+node DelegateDeclaration #member #declaration =
+    attribute_lists:AttributeList* modifiers:#modifier* delegate_keyword:DelegateKeyword return_type:#type identifier:IdentifierToken type_parameter_list:TypeParameterList? parameter_list:ParameterList constraint_clauses:TypeParameterConstraintClause* semicolon:SemicolonToken
+node EnumMemberDeclaration #member #declaration =
+    attribute_lists:AttributeList* modifiers:#modifier* identifier:IdentifierToken equals_value:EqualsValueClause?
+node ExtensionBlockDeclaration #member #declaration #type-declaration =
+    attribute_lists:AttributeList* modifiers:#modifier* keyword:ExtensionKeyword type_parameter_list:TypeParameterList? parameter_list:ParameterList? constraint_clauses:TypeParameterConstraintClause* open_brace:OpenBraceToken? members:#member* close_brace:CloseBraceToken? semicolon:SemicolonToken?
+node BaseList =
+    colon:ColonToken types:#base-type*
+node SimpleBaseType #base-type =
     type:#type
-node ConstantPattern #pattern =
-    expression:#expression
-node CasePatternSwitchLabel =
-    pattern:#pattern when_clause:WhenClause? colon:ColonToken?
-node WhenClause =
-    when_keyword:WhenKeyword? condition:#expression
-node DiscardDesignation =
-    underscore:UnderscoreToken?
-node RecursivePattern #pattern =
-    type:#type? positional_pattern_clause:PositionalPatternClause? property_pattern_clause:PropertyPatternClause?
-node PropertyPatternClause #delimited-list =
-    open_brace:OpenBraceToken? subpatterns:Subpattern* close_brace:CloseBraceToken?
-node Subpattern =
-    name_colon:NameColon? pattern:#pattern
-node PositionalPatternClause #delimited-list =
-    open_paren:OpenParenToken? subpatterns:Subpattern* close_paren:CloseParenToken?
-node DiscardPattern #pattern =
-    underscore:UnderscoreToken?
-node SwitchExpression #expression =
-    governing_expression:#expression switch_keyword:SwitchKeyword? open_brace:OpenBraceToken? arms:SwitchExpressionArm* close_brace:CloseBraceToken?
-node SwitchExpressionArm =
-    pattern:#pattern when_clause:WhenClause? equals_greater_than:EqualsGreaterThanToken? expression:#expression
-node VarPattern #pattern =
-    var_keyword:VarKeyword?
-node ParenthesizedPattern #pattern =
-    open_paren:OpenParenToken? pattern:#pattern close_paren:CloseParenToken?
-node RelationalPattern #pattern =
-    expression:#expression
-node TypePattern #pattern =
-    type:#type
-node OrPattern #pattern
-node AndPattern #pattern
-node NotPattern #pattern
-node SlicePattern #pattern =
-    dot_dot:DotDotToken? pattern:#pattern?
-node ListPattern #pattern #delimited-list =
-    open_bracket:OpenBracketToken? patterns:#pattern* close_bracket:CloseBracketToken?
-node DeclarationExpression #expression =
-    type:#type
-node RefExpression #expression =
-    ref_keyword:RefKeyword? expression:#expression
-node RefType #type =
-    ref_keyword:RefKeyword? read_only_keyword:ReadOnlyKeyword? type:#type
-node ThrowExpression #expression =
-    throw_keyword:ThrowKeyword? expression:#expression
-node ImplicitStackAllocArrayCreationExpression #expression =
-    stack_alloc_keyword:StackAllocKeyword? open_bracket:OpenBracketToken? close_bracket:CloseBracketToken?
-node SuppressNullableWarningExpression #expression
-token NullableDirectiveTrivia #trivia #directive
-node FunctionPointerType #type =
-    delegate_keyword:DelegateKeyword? asterisk:AsteriskToken? calling_convention:FunctionPointerCallingConvention? parameter_list:FunctionPointerParameterList
-node FunctionPointerParameter =
-    attribute_lists:AttributeList* modifiers:#keyword* type:#type
-node FunctionPointerParameterList =
-    less_than:LessThanToken? parameters:FunctionPointerParameter* greater_than:GreaterThanToken?
-node FunctionPointerCallingConvention =
-    unmanaged_calling_convention_list:FunctionPointerUnmanagedCallingConventionList?
-node InitAccessorDeclaration #declaration
-node WithExpression #expression =
-    expression:#expression with_keyword:WithKeyword?
-node WithInitializerExpression #expression #delimited-list
-node RecordDeclaration #declaration #member =
-    attribute_lists:AttributeList* modifiers:#keyword* identifier:IdentifierToken? type_parameter_list:TypeParameterList? parameter_list:ParameterList? base_list:BaseList? constraint_clauses:TypeParameterConstraintClause* open_brace:OpenBraceToken? members:#member* close_brace:CloseBraceToken? semicolon:SemicolonToken?
-node DefaultConstraint =
-    default_keyword:DefaultKeyword?
-node PrimaryConstructorBaseType =
+node PrimaryConstructorBaseType #base-type =
     type:#type argument_list:ArgumentList
-node FunctionPointerUnmanagedCallingConventionList =
-    open_bracket:OpenBracketToken? calling_conventions:FunctionPointerUnmanagedCallingConvention* close_bracket:CloseBracketToken?
-node FunctionPointerUnmanagedCallingConvention
-node RecordStructDeclaration #declaration #member
-node ExpressionColon =
-    expression:#expression colon:ColonToken?
+node TypeParameterConstraintClause =
+    where_keyword:WhereKeyword name:IdentifierName colon:ColonToken constraints:#type-parameter-constraint*
+node ConstructorConstraint #type-parameter-constraint =
+    new_keyword:NewKeyword open_paren:OpenParenToken close_paren:CloseParenToken
+node ClassConstraint #type-parameter-constraint =
+    class_or_struct_keyword:#class-or-struct-constraint-class-or-struct-keyword question:QuestionToken?
+node StructConstraint #type-parameter-constraint =
+    class_or_struct_keyword:#class-or-struct-constraint-class-or-struct-keyword question:QuestionToken?
+node TypeConstraint #type-parameter-constraint =
+    type:#type
+node DefaultConstraint #type-parameter-constraint =
+    default_keyword:DefaultKeyword
+node AllowsConstraintClause #type-parameter-constraint =
+    allows_keyword:AllowsKeyword constraints:#allows-constraint*
+node RefStructConstraint #allows-constraint =
+    ref_keyword:RefKeyword struct_keyword:StructKeyword
+node FieldDeclaration #member #declaration =
+    attribute_lists:AttributeList* modifiers:#modifier* declaration:VariableDeclaration semicolon:SemicolonToken
+node EventFieldDeclaration #member #declaration =
+    attribute_lists:AttributeList* modifiers:#modifier* event_keyword:EventKeyword declaration:VariableDeclaration semicolon:SemicolonToken
+node ExplicitInterfaceSpecifier =
+    name:#name dot:DotToken
+node MethodDeclaration #member #declaration =
+    attribute_lists:AttributeList* modifiers:#modifier* return_type:#type explicit_interface_specifier:ExplicitInterfaceSpecifier? identifier:IdentifierToken type_parameter_list:TypeParameterList? parameter_list:ParameterList constraint_clauses:TypeParameterConstraintClause* body:Block? expression_body:ArrowExpressionClause? semicolon:SemicolonToken?
+node OperatorDeclaration #member #declaration =
+    attribute_lists:AttributeList* modifiers:#modifier* return_type:#type explicit_interface_specifier:ExplicitInterfaceSpecifier? operator_keyword:OperatorKeyword checked_keyword:CheckedKeyword? operator:#operator-declaration-operator parameter_list:ParameterList body:Block? expression_body:ArrowExpressionClause? semicolon:SemicolonToken?
+node ConversionOperatorDeclaration #member #declaration =
+    attribute_lists:AttributeList* modifiers:#modifier* implicit_or_explicit_keyword:#conversion-operator-declaration-implicit-or-explicit-keyword explicit_interface_specifier:ExplicitInterfaceSpecifier? operator_keyword:OperatorKeyword checked_keyword:CheckedKeyword? type:#type parameter_list:ParameterList body:Block? expression_body:ArrowExpressionClause? semicolon:SemicolonToken?
+node ConstructorDeclaration #member #declaration =
+    attribute_lists:AttributeList* modifiers:#modifier* identifier:IdentifierToken parameter_list:ParameterList initializer:#constructor-initializer? body:Block? expression_body:ArrowExpressionClause? semicolon:SemicolonToken?
+node BaseConstructorInitializer #constructor-initializer =
+    colon:ColonToken this_or_base_keyword:#constructor-initializer-this-or-base-keyword argument_list:ArgumentList
+node ThisConstructorInitializer #constructor-initializer =
+    colon:ColonToken this_or_base_keyword:#constructor-initializer-this-or-base-keyword argument_list:ArgumentList
+node DestructorDeclaration #member #declaration =
+    attribute_lists:AttributeList* modifiers:#modifier* tilde:TildeToken identifier:IdentifierToken parameter_list:ParameterList body:Block? expression_body:ArrowExpressionClause? semicolon:SemicolonToken?
+node PropertyDeclaration #member #declaration =
+    attribute_lists:AttributeList* modifiers:#modifier* type:#type explicit_interface_specifier:ExplicitInterfaceSpecifier? identifier:IdentifierToken accessor_list:AccessorList? expression_body:ArrowExpressionClause? initializer:EqualsValueClause? semicolon:SemicolonToken?
+node ArrowExpressionClause =
+    arrow:EqualsGreaterThanToken expression:#expression
+node EventDeclaration #member #declaration =
+    attribute_lists:AttributeList* modifiers:#modifier* event_keyword:EventKeyword type:#type explicit_interface_specifier:ExplicitInterfaceSpecifier? identifier:IdentifierToken accessor_list:AccessorList? semicolon:SemicolonToken?
+node IndexerDeclaration #member #declaration =
+    attribute_lists:AttributeList* modifiers:#modifier* type:#type explicit_interface_specifier:ExplicitInterfaceSpecifier? this_keyword:ThisKeyword parameter_list:BracketedParameterList accessor_list:AccessorList? expression_body:ArrowExpressionClause? semicolon:SemicolonToken?
+node AccessorList #block =
+    open_brace:OpenBraceToken accessors:#accessor-declaration* close_brace:CloseBraceToken
+node GetAccessorDeclaration #accessor-declaration #declaration =
+    attribute_lists:AttributeList* modifiers:#modifier* keyword:#accessor-declaration-keyword body:Block? expression_body:ArrowExpressionClause? semicolon:SemicolonToken?
+node SetAccessorDeclaration #accessor-declaration #declaration =
+    attribute_lists:AttributeList* modifiers:#modifier* keyword:#accessor-declaration-keyword body:Block? expression_body:ArrowExpressionClause? semicolon:SemicolonToken?
+node InitAccessorDeclaration #accessor-declaration #declaration =
+    attribute_lists:AttributeList* modifiers:#modifier* keyword:#accessor-declaration-keyword body:Block? expression_body:ArrowExpressionClause? semicolon:SemicolonToken?
+node AddAccessorDeclaration #accessor-declaration #declaration =
+    attribute_lists:AttributeList* modifiers:#modifier* keyword:#accessor-declaration-keyword body:Block? expression_body:ArrowExpressionClause? semicolon:SemicolonToken?
+node RemoveAccessorDeclaration #accessor-declaration #declaration =
+    attribute_lists:AttributeList* modifiers:#modifier* keyword:#accessor-declaration-keyword body:Block? expression_body:ArrowExpressionClause? semicolon:SemicolonToken?
+node UnknownAccessorDeclaration #accessor-declaration #declaration =
+    attribute_lists:AttributeList* modifiers:#modifier* keyword:#accessor-declaration-keyword body:Block? expression_body:ArrowExpressionClause? semicolon:SemicolonToken?
+node ParameterList #delimited-list =
+    open_paren:OpenParenToken parameters:Parameter* close_paren:CloseParenToken
+node BracketedParameterList #delimited-list =
+    open_bracket:OpenBracketToken parameters:Parameter* close_bracket:CloseBracketToken
+node Parameter =
+    attribute_lists:AttributeList* modifiers:#modifier* type:#type? identifier:#parameter-identifier? default:EqualsValueClause?
+node FunctionPointerParameter =
+    attribute_lists:AttributeList* modifiers:#modifier* type:#type
+node IncompleteMember #member #declaration =
+    attribute_lists:AttributeList* modifiers:#modifier* type:#type?
+node SingleLineDocumentationCommentTrivia #trivia #comment #documentation =
+    content:#xml-node* end_of_comment:EndOfDocumentationCommentToken
+node MultiLineDocumentationCommentTrivia #trivia #comment #documentation =
+    content:#xml-node* end_of_comment:EndOfDocumentationCommentToken
+node TypeCref #cref =
+    type:#type
+node QualifiedCref #cref =
+    container:#type dot:DotToken member:#member-cref
+node NameMemberCref #member-cref #cref =
+    name:#type parameters:CrefParameterList?
+node ExtensionMemberCref #member-cref #cref =
+    extension_keyword:ExtensionKeyword type_argument_list:TypeArgumentList? parameters:CrefParameterList dot:DotToken member:#member-cref
+node IndexerMemberCref #member-cref #cref =
+    this_keyword:ThisKeyword parameters:CrefBracketedParameterList?
+node OperatorMemberCref #member-cref #cref =
+    operator_keyword:OperatorKeyword checked_keyword:CheckedKeyword? operator:#operator-member-cref-operator parameters:CrefParameterList?
+node ConversionOperatorMemberCref #member-cref #cref =
+    implicit_or_explicit_keyword:#conversion-operator-member-cref-implicit-or-explicit-keyword operator_keyword:OperatorKeyword checked_keyword:CheckedKeyword? type:#type parameters:CrefParameterList?
+node CrefParameterList #delimited-list =
+    open_paren:OpenParenToken parameters:CrefParameter* close_paren:CloseParenToken
+node CrefBracketedParameterList #delimited-list =
+    open_bracket:OpenBracketToken parameters:CrefParameter* close_bracket:CloseBracketToken
+node CrefParameter =
+    ref_kind_keyword:#cref-parameter-ref-kind-keyword? read_only_keyword:ReadOnlyKeyword? type:#type
+node XmlElement #xml-node =
+    start_tag:XmlElementStartTag content:#xml-node* end_tag:XmlElementEndTag
+node XmlElementStartTag =
+    less_than:LessThanToken name:XmlName attributes:#xml-attribute* greater_than:GreaterThanToken
+node XmlElementEndTag =
+    less_than_slash:LessThanSlashToken name:XmlName greater_than:GreaterThanToken
+node XmlEmptyElement #xml-node =
+    less_than:LessThanToken name:XmlName attributes:#xml-attribute* slash_greater_than:SlashGreaterThanToken
+node XmlName =
+    prefix:XmlPrefix? local_name:IdentifierToken
+node XmlPrefix =
+    prefix:IdentifierToken colon:ColonToken
+node XmlTextAttribute #xml-attribute =
+    name:XmlName equals:EqualsToken start_quote:#xml-text-attribute-start-quote text_tokens:#xml-text-token* end_quote:#xml-text-attribute-end-quote
+node XmlCrefAttribute #xml-attribute =
+    name:XmlName equals:EqualsToken start_quote:#xml-cref-attribute-start-quote cref:#cref end_quote:#xml-cref-attribute-end-quote
+node XmlNameAttribute #xml-attribute =
+    name:XmlName equals:EqualsToken start_quote:#xml-name-attribute-start-quote identifier:IdentifierName end_quote:#xml-name-attribute-end-quote
+node XmlText #xml-node =
+    text_tokens:#xml-text-token*
+node XmlCDataSection #xml-node =
+    start_c_data:XmlCDataStartToken text_tokens:#xml-text-token* end_c_data:XmlCDataEndToken
+node XmlProcessingInstruction #xml-node =
+    start_processing_instruction:XmlProcessingInstructionStartToken name:XmlName text_tokens:#xml-text-token* end_processing_instruction:XmlProcessingInstructionEndToken
+node XmlComment #xml-node =
+    less_than_exclamation_minus_minus:XmlCommentStartToken text_tokens:#xml-text-token* minus_minus_greater_than:XmlCommentEndToken
+node IfDirectiveTrivia #trivia #directive =
+    hash:HashToken if_keyword:IfKeyword condition:#expression end_of_directive:EndOfDirectiveToken
+node ElifDirectiveTrivia #trivia #directive =
+    hash:HashToken elif_keyword:ElifKeyword condition:#expression end_of_directive:EndOfDirectiveToken
+node ElseDirectiveTrivia #trivia #directive =
+    hash:HashToken else_keyword:ElseKeyword end_of_directive:EndOfDirectiveToken
+node EndIfDirectiveTrivia #trivia #directive =
+    hash:HashToken end_if_keyword:EndIfKeyword end_of_directive:EndOfDirectiveToken
+node RegionDirectiveTrivia #trivia #directive =
+    hash:HashToken region_keyword:RegionKeyword end_of_directive:EndOfDirectiveToken
+node EndRegionDirectiveTrivia #trivia #directive =
+    hash:HashToken end_region_keyword:EndRegionKeyword end_of_directive:EndOfDirectiveToken
+node ErrorDirectiveTrivia #trivia #directive =
+    hash:HashToken error_keyword:ErrorKeyword end_of_directive:EndOfDirectiveToken
+node WarningDirectiveTrivia #trivia #directive =
+    hash:HashToken warning_keyword:WarningKeyword end_of_directive:EndOfDirectiveToken
+node BadDirectiveTrivia #trivia #directive =
+    hash:HashToken identifier:IdentifierToken end_of_directive:EndOfDirectiveToken
+node DefineDirectiveTrivia #trivia #directive =
+    hash:HashToken define_keyword:DefineKeyword name:IdentifierToken end_of_directive:EndOfDirectiveToken
+node UndefDirectiveTrivia #trivia #directive =
+    hash:HashToken undef_keyword:UndefKeyword name:IdentifierToken end_of_directive:EndOfDirectiveToken
+node LineDirectiveTrivia #trivia #directive =
+    hash:HashToken line_keyword:LineKeyword line:#line-directive-trivia-line file:StringLiteralToken? end_of_directive:EndOfDirectiveToken
 node LineDirectivePosition =
-    open_paren:OpenParenToken? comma:CommaToken? close_paren:CloseParenToken?
-token LineSpanDirectiveTrivia #trivia #directive
-token InterpolatedSingleLineRawStringStartToken
-token InterpolatedMultiLineRawStringStartToken
-token InterpolatedRawStringEndToken
-node ScopedType #type =
-    scoped_keyword:ScopedKeyword? type:#type
-node CollectionExpression #expression #delimited-list =
-    open_bracket:OpenBracketToken? close_bracket:CloseBracketToken?
-node ExpressionElement =
-    expression:#expression
-node SpreadElement =
-    expression:#expression
-node ExtensionBlockDeclaration #declaration =
-    identifier:IdentifierToken? base_list:BaseList? attribute_lists:AttributeList* modifiers:#keyword* type_parameter_list:TypeParameterList? parameter_list:ParameterList? constraint_clauses:TypeParameterConstraintClause* open_brace:OpenBraceToken? members:#member* close_brace:CloseBraceToken? semicolon:SemicolonToken?
-token IgnoredDirectiveTrivia #trivia #directive
-node WithElement =
-    with_keyword:WithKeyword? argument_list:ArgumentList
-node UnionDeclaration #declaration =
-    attribute_lists:AttributeList* modifiers:#keyword* identifier:IdentifierToken? type_parameter_list:TypeParameterList? parameter_list:ParameterList? base_list:BaseList? constraint_clauses:TypeParameterConstraintClause* open_brace:OpenBraceToken? members:#member* close_brace:CloseBraceToken? semicolon:SemicolonToken?
+    open_paren:OpenParenToken line:NumericLiteralToken comma:CommaToken character:NumericLiteralToken close_paren:CloseParenToken
+node LineSpanDirectiveTrivia #trivia #directive =
+    hash:HashToken line_keyword:LineKeyword start:LineDirectivePosition minus:MinusToken end:LineDirectivePosition character_offset:NumericLiteralToken? file:StringLiteralToken end_of_directive:EndOfDirectiveToken
+node PragmaWarningDirectiveTrivia #trivia #directive =
+    hash:HashToken pragma_keyword:PragmaKeyword warning_keyword:WarningKeyword disable_or_restore_keyword:#pragma-warning-directive-trivia-disable-or-restore-keyword error_codes:#expression* end_of_directive:EndOfDirectiveToken
+node PragmaChecksumDirectiveTrivia #trivia #directive =
+    hash:HashToken pragma_keyword:PragmaKeyword checksum_keyword:ChecksumKeyword file:StringLiteralToken guid:StringLiteralToken bytes:StringLiteralToken end_of_directive:EndOfDirectiveToken
+node ReferenceDirectiveTrivia #trivia #directive =
+    hash:HashToken reference_keyword:ReferenceKeyword file:StringLiteralToken end_of_directive:EndOfDirectiveToken
+node LoadDirectiveTrivia #trivia #directive =
+    hash:HashToken load_keyword:LoadKeyword file:StringLiteralToken end_of_directive:EndOfDirectiveToken
+node ShebangDirectiveTrivia #trivia #directive =
+    hash:HashToken exclamation:ExclamationToken end_of_directive:EndOfDirectiveToken
+node IgnoredDirectiveTrivia #trivia #directive =
+    hash:HashToken colon:ColonToken content:StringLiteralToken? end_of_directive:EndOfDirectiveToken
+node NullableDirectiveTrivia #trivia #directive =
+    hash:HashToken nullable_keyword:NullableKeyword setting:#nullable-directive-trivia-setting target:#nullable-directive-trivia-target? end_of_directive:EndOfDirectiveToken
