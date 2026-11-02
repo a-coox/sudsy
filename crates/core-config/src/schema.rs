@@ -169,6 +169,10 @@ impl OptionSchema {
 pub struct ResolvedOptions(BTreeMap<String, OptionValue>);
 
 impl ResolvedOptions {
+    pub fn set(&mut self, name: &str, value: OptionValue) {
+        self.0.insert(name.into(), value);
+    }
+
     pub fn get(&self, name: &str) -> Option<&OptionValue> {
         self.0.get(name)
     }

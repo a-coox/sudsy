@@ -1,9 +1,11 @@
+use core_config::OptionSchema;
+use core_format::NodeFormatter;
 use core_syntax::{Grammar, LanguageId, SyntaxNode};
 use std::path::Path;
 
-/// What a language provider can do. In M0 only `parse` exists on the trait; later milestones add
-/// `formatter`, `option_schema`, `presets`, `builtin_rules`, `semantic`, `flow` and `summaries`
-/// (plan.md "Provider interface") together with the types they need.
+/// What a language provider can do. So far: parsing, formatting and format options. Later
+/// milestones add `presets`, `builtin_rules`, `semantic`, `flow` and `summaries` (plan.md
+/// "Provider interface") together with the types they need.
 pub trait LanguageProvider: Send + Sync {
     fn id(&self) -> LanguageId;
 
@@ -19,6 +21,12 @@ pub trait LanguageProvider: Send + Sync {
     /// Shared tree plus parse errors. Unlike plan.md's sketch this can fail: an out-of-process
     /// provider may be unavailable.
     fn parse(&self, file: &SourceFile) -> Result<ParseResult, ProviderError>;
+
+    /// Per-node formatting code and hooks; tags cover the rest.
+    fn formatter(&self) -> &dyn NodeFormatter;
+
+    /// The format options this provider understands.
+    fn option_schema(&self) -> &OptionSchema;
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -27,6 +35,8 @@ pub enum FilePattern {
     Extension(String),
     /// Exact file name, e.g. `tsconfig.json`.
     FileName(String),
+    /// Files with this extension directly inside a directory of this name, e.g. `.vscode/*.json`.
+    InDirectory { dir: String, extension: String },
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -45,11 +55,26 @@ impl FileMatcher {
     }
 
     pub fn matches(&self, path: &Path) -> bool {
+        let has_extension = |e: &str| path.extension().is_some_and(|x| x.eq_ignore_ascii_case(e));
         match &self.pattern {
-            FilePattern::Extension(e) => {
-                path.extension().is_some_and(|x| x.eq_ignore_ascii_case(e))
-            }
+            FilePattern::Extension(e) => has_extension(e),
             FilePattern::FileName(n) => path.file_name().is_some_and(|x| x == n.as_str()),
+            FilePattern::InDirectory { dir, extension } => {
+                has_extension(extension)
+                    && path
+                        .parent()
+                        .and_then(Path::file_name)
+                        .is_some_and(|d| d == dir.as_str())
+            }
+        }
+    }
+
+    /// When several matchers match a file, the most specific one wins.
+    pub fn specificity(&self) -> u8 {
+        match self.pattern {
+            FilePattern::Extension(_) => 1,
+            FilePattern::InDirectory { .. } => 2,
+            FilePattern::FileName(_) => 3,
         }
     }
 }
@@ -172,6 +197,20 @@ mod tests {
         assert!(f.had_bom);
         assert_eq!(f.text, "class A {}");
         assert!(SourceFile::from_bytes("a", 1, vec![0xff]).is_err());
+    }
+
+    #[test]
+    fn directory_matcher() {
+        let m = FileMatcher {
+            pattern: FilePattern::InDirectory {
+                dir: ".vscode".into(),
+                extension: "json".into(),
+            },
+            dialect: None,
+        };
+        assert!(m.matches(Path::new("repo/.vscode/settings.json")));
+        assert!(!m.matches(Path::new("repo/settings.json")));
+        assert!(!m.matches(Path::new("repo/.vscode/a/settings.json")));
     }
 
     #[test]
