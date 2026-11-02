@@ -4,4 +4,4 @@ expression: "format! (\"{input}\\n-----\\n{out}\")"
 ---
 [ /* empty */ ]
 -----
-[ /* empty */]
+[/* empty */]

@@ -23,6 +23,6 @@ class C
         x.A() // first
             .B() // second
             .C();
-        Foo( /* a */1, /* b */ 2);
+        Foo(/* a */ 1, /* b */ 2);
     }
 }

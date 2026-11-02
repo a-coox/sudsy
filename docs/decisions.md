@@ -714,8 +714,7 @@ round-trip, meaning, idempotency and comments-kept checks.
   (default), `never`, `multiline`; applies to initializers, collection expressions, enums and switch
   expressions, the only places C# allows a trailing comma), `member_chain_min_calls` (3), and the
   shared four. `none` moves opening braces to the line of the header; `else`, `catch` and
-  `finally` still start a line. Presets and `csharpier-compat` are M2c: the options and the
-  `Sep`/shape split above are where they plug in.
+  `finally` still start a line. Presets and `csharpier-compat` are in "M2c".
 * Blank lines between members and statements are kept (at most one), never added. An empty body is
   `{ }` on the header's line. Attribute lists on declarations and statements are one per line,
   inline on parameters, type parameters and lambdas. Expression-bodied members stay on the header's
@@ -732,8 +731,7 @@ round-trip, meaning, idempotency and comments-kept checks.
   one line, body hanging" and the one-argument-per-line list.
 * Not done: `sudsy-ignore` is honored on statements, members and list items through the shared
   shapes, not in the middle of an expression; `#if` regions are formatted only for the active
-  branch (plan.md), the rest is verbatim; a block comment right after `(` is followed by no space
-  (`Foo( /* a */1)`).
+  branch (plan.md), the rest is verbatim.
 
 ### Throughput (CoreLib, 1679 files, 27.8 MB, release, single thread, system allocator)
 `cargo test --release -p lang-csharp --test format_corpus corelib -- --ignored --nocapture`:
@@ -754,3 +752,161 @@ proposal 2 of "Performance" (compare tokens without a second tree) would save ab
 costs 4.7 s, about 180 ns per tree element, mostly red nodes and the `Vec` that `sig` makes per
 node; nothing was optimized here beyond a tag table. A `conditional_group` clones its candidates, so
 a chain or argument list nested in a hugged lambda doubles the size of its document per level.
+
+## M2c: CSharpier compatibility and speed
+
+### Presets (`core-config::presets`, `lang-csharp::format::options`)
+* `extends: [preset:csharp/csharpier-compat@1]` works for C#. A provider declares its presets next
+  to its option schema (`OptionSchema::with_presets`); a preset is a name `language/name@version`
+  and a list of option values. Resolution: schema defaults, then the presets of the file's language
+  in `extends` order, then the shared `format:` section, then the language section. A name without
+  `@version` means the newest version; an unknown name of the file's language is a config error
+  listing the known ones; entries for other languages and non-preset entries (config files, M3)
+  are skipped. Only `csharp/microsoft@1` (the schema defaults, so zero-config is the same preset)
+  and `csharp/csharpier-compat@1` exist; the rest of the preset table is M3.
+* `csharpier-compat@1` sets `line_width: 100` and `trailing_commas: multiline` (public options
+  from plan.md) and the internal value `layout: csharpier`. Internal values are set on the resolved
+  options without being declared in the schema, so users cannot set them (a `layout:` key in a
+  language section is "unknown option") and docs and the JSON Schema never list them. All
+  CSharpier-only layout variants read that one value (`options::csharpier`); no new user-facing
+  option was added.
+
+### Differential test against CSharpier 1.3.0
+* `dotnet-tools.json` pins CSharpier. `tests/conformance/csharpier-baseline.sh` copies the corpus
+  to `$SUDSY_DIFF_DIR` (default `<temp>/sudsy-differential`, outside the repository because
+  CSharpier honors `.gitignore` and `target/` is ignored) and formats the copy with CSharpier;
+  `cargo test --release -p lang-csharp --test differential -- --ignored --nocapture` formats the
+  originals with the preset, compares byte for byte, ranks the differing hunks by a coarse
+  category and writes examples to `hunks.txt` and the summary to `summary.txt`.
+* Files CSharpier leaves unchanged although Sudsy changes them (generated code, syntax errors,
+  "too deep") are not compared (48 files at the end). A leading byte order mark is ignored.
+* Trend (files identical / files compared; the start counted all 7659 files):
+
+| step | identical |
+| --- | --- |
+| preset with only `line_width: 100` | 1673 / 7659 (21.8 %) |
+| accessors on one line, constructor initializer on its own line, lone block in a switch section, arrow clauses, assignment layouts, initializers laid out by width, trailing commas | 3851 / 7581 (50.8 %) |
+| unbreakable single type argument, attribute and simple index; blank lines between members and accessors; property initializers | 4403 / 7556 (58.3 %) |
+| base lists, `operator ==(`, `[.. x]`, member chain groups, sole lambda argument hugs, switch arms, property patterns | 4952 / 7611 (65.1 %) |
+
+  End state by corpus: aspnetcore 2192 / 3122, roslyn 1657 / 2858, runtime 1103 / 1679. 3.9 % of
+  the 2.38 million output lines are inside differing hunks.
+* What the preset reproduces (all in `lang-csharp::format`, behind `options::csharpier`):
+  `get { return x; }` stays on a line when the body is one simple statement without comments and
+  fits (else braces on their own lines); `: base(...)` always on its own indented line; the only
+  block of a switch section is not indented; `=>` of a member breaks as a whole
+  (`group(indent(line body))`); assignment layouts (a string, binary chain, conditional,
+  collection expression or property initializer moves to the next line when it does not fit,
+  everything else is "fluid": only when its first line does not fit, using the new group ids and
+  `indent_if_break`); initializers and collection expressions are laid out by width alone (the
+  default keeps a list expanded when the source did), `trailing_commas: multiline`; base lists
+  break before the `:`, one type per line; a lone type argument, a lone attribute and `a[i]`
+  never break (the attribute's arguments break instead of its brackets); a lambda is hugged only
+  as the one argument of a call, with a block or an expression body (`Foo(x =>` / body / `)`);
+  property patterns and nested initializers put their braces on their own line when they break;
+  a member chain keeps the accesses before a call with it (`.A.B()`) and breaks at the dots when
+  an earlier group has a block lambda; `} while (...)` on one line; blank lines are added before a
+  method, constructor, operator or type with a body (and after one), and before a member that has
+  a comment or attribute above it (not before a directive).
+* Left (counts are hunks in the final report; `hunks.txt` has examples):
+  * **using order** (at least 211 files differ in nothing else): CSharpier sorts `using`
+    directives (ordinal, `;` included). That changes the order of the tree, so it needs a safety
+    check that treats a run of usings as unordered; not done.
+  * **`#if` / `#pragma`**: CSharpier formats the code of every branch and places directives
+    differently; Sudsy formats the active branch only (plan.md). Several hundred hunks.
+  * **Deeper layout differences** (about 2400 hunks in 474 files, "text differs" in the report;
+    mostly the same code with different breaks): interpolated strings as arguments, chains inside
+    lambdas, a cast followed by an object creation (`(T)` and `new ...` on separate lines),
+    parenthesized operands in binary chains, `is` patterns in `when` clauses.
+  * **Trailing commas**: 1569 hunks in 10 test-data files (nested initializers CSharpier keeps on
+    one line) and 787 in 223 files (a comma next to a comment, `0x00, /*body*/`).
+  * **Indentation** 1353 hunks in 428 files (binary operands inside parentheses, lambdas inside
+    chains) and **blank lines** 1363 + 478 hunks (members after `#region`, around comments).
+
+### Speed against CSharpier (same machine, 12 cores, release builds, `tests/conformance/speed.sh`)
+`sudsy format --check` with the preset against `csharpier check --no-cache` (CSharpier 1.3.0,
+multithreaded). Cold means a new process for every run (JIT, file cache as the previous run left
+it). The worker of this CLI lives for one run, so there is no warm CLI number until M4 has a
+long-lived worker; warm worker numbers are the second pass of the phase table below.
+
+| | CSharpier | Sudsy before | Sudsy now |
+| --- | --- | --- | --- |
+| CoreLib (1679 files, 27.8 MB) | 15.7 - 17.5 s | 8.2 - 9.2 s | 3.3 - 3.4 s |
+| full corpus (7659 files, 89.9 MB) | 36.8 - 38.0 s | 19.2 s | 8.6 - 8.7 s |
+| one file (process start to exit) | 1.07 s | 0.47 s | 0.42 s |
+
+(`csharpier format` of the whole corpus, writing the files: 37.7 s.) Sudsy is 4.7x (CoreLib) and
+4.3x (full corpus) faster than CSharpier, and 2.5x faster than before this milestone.
+
+### Speed work
+* **(a) `conditional_group` no longer copies its candidates.** New `Doc::Shared(Arc<..>)`
+  (`doc::shared`) clones in O(1) and remembers whether it forces a break; `conditional_group`,
+  `shapes::member_chain` and the last-argument hook build their candidates from shared parts, so
+  the document size is linear in the nesting. Test: 24 nested hugged lambdas format in a moment
+  (`presets.rs`, `nested_hugged_lambdas_do_not_grow_exponentially`). A conditional group whose
+  every candidate has a forced break now forces its parents (a hugged block lambda breaks the call
+  around it, as in Prettier and CSharpier); that changes the default preset's layout too
+  (`Add(Foo(() => { ... }))` breaks after the first `(`).
+* **(c) The worker's JIT.** `DOTNET_TC_CallCountingDelayMs=0`, set on the worker process by
+  `lang_csharp::provider`: the runtime waits for 100 ms without a new tier-0 compilation before it
+  starts counting calls, which in a worker that is busy from its first request means seconds in
+  unoptimized code for Roslyn and the mapper. First pass over CoreLib: time inside the worker 4.4 s
+  to 3.0 s. `TieredPGO=0`, `TieredCompilation=0`, GC budget settings and `QuickJitForLoops=0`
+  changed nothing measurable. The pipe is not the problem: sending takes 0.1 s, decoding the
+  MessagePack frame 15 ms and building the green tree 0.38 s per pass of CoreLib (26 MB per pass);
+  the rest of the 3.5 s a pass waits is inside the worker (Roslyn parse 1.1 s, mapping 1.5 - 2.1 s,
+  encoding 0.2 - 0.5 s). Mapping costs twice what `Sudsy.Bench` measures on a tree whose red nodes
+  already exist, so what is left is red-node creation in Roslyn's public API (M2a); nothing to
+  remove in the worker's I/O.
+* **A pool of workers** (not on the list; the largest win): `WorkerProxy` serialized every parse
+  of the process behind one worker, so the CLI's layout threads queued for it. The proxy now
+  starts up to `pool_size` workers, a new one only when all started ones are busy; C# uses
+  `min(cores, 4)` (`SUDSY_CSHARP_WORKERS` overrides). CoreLib: 6.1 s with one worker, 4.1 s with
+  two, 3.4 s with four, 3.3 s with six; hence the cap of four. `WorkerConfig` got `env` and
+  `pool_size`.
+* **(b) The second parse and the layout walk: not done, measured instead.**
+  * The check needs the output's tree, and the tree costs Roslyn parse plus mapping, not the
+    transfer: of the 2.9 s a re-parse takes, the pipe, MessagePack and green-tree decode together
+    are about 0.5 s. A check that keeps the guarantee exactly (the worker hashes the significant
+    events of its mapped tree, Rust hashes the same events of the input tree, a mismatch falls back
+    to today's full comparison) removes that 0.5 s and the tree comparison (0.17 s): about 5 % of
+    the run, for a new protocol message, a hash definition in two languages and a provider API
+    method. A token-level check (lexing only) would be several times cheaper, but cannot see
+    whitespace-sensitive parsing (Roslyn merges adjacent `>` tokens into `>>` in the parser) and
+    would rest on the argument that the parser ignores trivia, which is weaker than the current
+    check. Neither is a clear win; the re-parse stays as it is.
+  * The cursor over the green tree for the formatter (proposal 3) changes `NodeFormatter` and
+    every line of `lang-csharp::format` (red nodes everywhere). Layout is 4.9 s of single-thread
+    CPU for CoreLib and runs on the CLI's threads next to the pooled workers, so it is no longer
+    the limit of `sudsy format`; it stays an M4 topic (the LSP formats one file at a time).
+
+### Phases, CoreLib, one thread, release worker (`corelib_format_throughput`, default options)
+| phase (ms) | M2b (debug worker) | before, this session | now |
+| --- | --- | --- | --- |
+| worker parse (parse, mapping, transfer) | 5014 | 4150 - 5000 | 3100 - 3300 |
+| layout document | 4652 | 4700 | 4850 - 4900 |
+| print | 322 | 330 | 320 |
+| safety re-parse | 4631 | 3850 - 4500 | 2760 - 2960 |
+| safety tree comparison | 175 | 180 | 170 |
+| total | 15158 (1.84 MB/s) | 13600 - 15100 | 11800 (2.36 MB/s) |
+
+The test now uses `SUDSY_CSHARP_WORKER` when it is set (a Release build of the worker) instead of
+the debug build it makes itself; the M2b column was measured with the debug worker, the next two
+with the release one. Run-to-run noise on this machine is about 10 %.
+
+### Other changes
+* The corpus gate (`format_corpus`) now formats the corpus twice, with the default options and with
+  `csharp/csharpier-compat@1`: format, safety check and idempotency must hold for both (0 failures
+  each; the preset found three idempotency problems: a trailing comma added in front of a line
+  comment, which then belongs to the comma the next time, and a comment after the `:` of a base
+  list). A comma is no longer added after a last list element that ends in a line comment.
+* Cosmetic: a block comment after an opening delimiter sits against it and is followed by a space
+  when items follow (`Foo(/* a */ 1)`, was `Foo( /* a */1)`), for every language with comments in
+  lists.
+* Found by the differential test and fixed for every preset: no space between a modifier and a
+  tuple type's `(` (`private (int a, int b) x`), `operator ==(`, `[.. items]`, blank lines
+  between comments before a closing brace, and a trailing comma after a complex element
+  initializer (`{ "a", 1, }` is not C#; `trailing_commas: multiline` produced it).
+* Cleanup: nothing was left over from experiments (the instrumentation used for the pipe and
+  worker timings was never committed). `lists.rs` lost the unused `open`/`close` lookup in the
+  last-argument hook.

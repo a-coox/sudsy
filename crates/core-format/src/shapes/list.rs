@@ -105,7 +105,7 @@ fn list_of(
     let after = cx.trailing_comments_doc(&c.close);
     let opening = doc::concat(vec![
         cx.token_text(&c.open),
-        cx.trailing_comments_doc(&c.open),
+        open_comments_doc(&comments::trailing_comments(g, &c.open), !items.is_empty()),
     ]);
     let closing = cx.token_text(&c.close);
 
@@ -186,6 +186,25 @@ fn list_of(
         doc::group(body)
     };
     Ok(doc::concat(vec![before, list, after]))
+}
+
+/// Comments after the opening delimiter. A block comment sits against the delimiter and is
+/// followed by a space when items follow it on the same line: `(/* a */ 1)`.
+fn open_comments_doc(cs: &[comments::Comment], items_follow: bool) -> Doc {
+    let mut parts = Vec::new();
+    for c in cs {
+        if c.kind == comments::CommentKind::Block {
+            parts.push(crate::context::verbatim_text(&c.text()));
+            if items_follow {
+                parts.push(doc::if_break(Doc::Nil, doc::lit(" ")));
+            }
+        } else {
+            parts.push(crate::context::trailing_comments_doc(std::slice::from_ref(
+                c,
+            )));
+        }
+    }
+    doc::concat(parts)
 }
 
 /// Does the source between the opening and the closing delimiter contain a line break? Trivia

@@ -68,10 +68,30 @@ fn failure_kind(message: &str) -> &'static str {
     }
 }
 
+/// The options of the preset `csharp/csharpier-compat@1`.
+fn compat_options() -> core_config::ResolvedOptions {
+    let schema = lang_csharp::option_schema();
+    let mut options = schema.defaults();
+    core_config::apply_presets(
+        &["preset:csharp/csharpier-compat@1"],
+        "csharp",
+        &schema,
+        &mut options,
+    )
+    .unwrap();
+    options
+}
+
 #[test]
 #[ignore = "needs the corpora: bash tests/conformance/fetch-corpus.sh"]
 fn corpora_format_pass_the_safety_check_and_are_idempotent() {
-    let options = lang_csharp::option_schema().defaults();
+    println!("default options (csharp/microsoft):");
+    corpora_pass(&lang_csharp::option_schema().defaults());
+    println!("csharp/csharpier-compat:");
+    corpora_pass(&compat_options());
+}
+
+fn corpora_pass(options: &core_config::ResolvedOptions) {
     let filter = std::env::var("SUDSY_CORPUS_FILTER").unwrap_or_default();
     let started = Instant::now();
     let (mut files, mut bytes) = (0usize, 0usize);
@@ -90,7 +110,7 @@ fn corpora_format_pass_the_safety_check_and_are_idempotent() {
             .filter(|p| p.to_string_lossy().contains(&filter))
         {
             files += 1;
-            match check(path, &options) {
+            match check(path, options) {
                 Ok(size) => {
                     ok += 1;
                     bytes += size;

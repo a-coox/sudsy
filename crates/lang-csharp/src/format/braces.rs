@@ -1,8 +1,8 @@
 //! Compilation units and everything with a braced body: types, namespaces, blocks, switch
 //! statements and expressions, enums, accessor lists.
 
-use super::lists::source_trailing_comma;
-use super::options::{csharpier, trailing_comma};
+use super::lists::list_trailing_comma;
+use super::options::csharpier;
 use super::seq::{R, Sep, direct_tokens, is_empty_braces, sep_doc, separator, seq_of, sig};
 use super::tags::{self, Tag};
 use crate::generated::kind as k;
@@ -292,39 +292,27 @@ pub fn accessor_declaration(cx: &FormatCtx<'_>, accessor: &SyntaxNode) -> Option
 /// `: A, B` after a type: on the line of the type when it fits, else on the next line, one
 /// further type per line (CSharpier).
 pub fn base_list(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
-    let els = sig(cx, node);
-    let commented = els.iter().any(|e| match e {
-        SyntaxElement::Token(t) => {
-            !comments::leading_comments(cx.grammar, t).is_empty()
-                || !comments::trailing_comments(cx.grammar, t).is_empty()
-        }
-        SyntaxElement::Node(_) => false,
-    });
-    if commented {
-        return seq_of(cx, node, &els); // a comment on `:` or `,` stays where it is
-    }
-    let mut types = Vec::new();
-    for e in &els {
-        if let SyntaxElement::Node(n) = e {
-            types.push(cx.format(n)?);
-        }
-    }
-    let Some(SyntaxElement::Token(colon)) = els.first() else {
+    let mut els = sig(cx, node).into_iter();
+    let Some(SyntaxElement::Token(colon)) = els.next() else {
         return Err(FormatError::Shape("base list without `:`".into()));
     };
-    let mut types = types.into_iter();
-    let first = types.next().unwrap_or(doc::Doc::Nil);
+    let mut first = None;
     let mut rest = Vec::new();
-    for t in types {
-        rest.push(doc::lit(","));
-        rest.push(doc::line());
-        rest.push(t);
+    for e in els {
+        match e {
+            SyntaxElement::Node(n) if first.is_none() => first = Some(cx.format(&n)?),
+            SyntaxElement::Node(n) => {
+                rest.push(doc::line());
+                rest.push(cx.format(&n)?);
+            }
+            SyntaxElement::Token(comma) => rest.push(cx.token(&comma)),
+        }
     }
     Ok(doc::group(doc::indent(doc::concat(vec![
         doc::line(),
-        cx.token(colon),
+        cx.token(&colon),
         doc::lit(" "),
-        first,
+        first.unwrap_or(doc::Doc::Nil),
         doc::indent(doc::concat(rest)),
     ]))))
 }
@@ -367,7 +355,7 @@ pub fn switch_section(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
 fn arms_style(cx: &FormatCtx<'_>, node: &SyntaxNode, close: &SyntaxToken) -> ListStyle {
     ListStyle {
         layout: ListLayout::Break,
-        trailing_comma: trailing_comma(cx.options, source_trailing_comma(cx, node, close)),
+        trailing_comma: list_trailing_comma(cx, node, close),
         empty: " ",
         force_blank: (csharpier(cx.options) && node.kind() == k::ENUM_DECLARATION)
             .then_some(blank_between_members as BlankRule),
