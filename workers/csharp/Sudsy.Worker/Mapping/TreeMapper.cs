@@ -13,8 +13,9 @@ namespace Sudsy.Worker.Mapping;
 /// </summary>
 public static class TreeMapper
 {
-    public static FlatTree Map(SyntaxNode root, string text)
+    public static FlatTree Map(SyntaxNode root, string sourceText)
     {
+        var text = new Source(sourceText);
         var tokens = new List<SyntaxToken>();
         foreach (var t in root.DescendantTokens())
         {
@@ -75,7 +76,7 @@ public static class TreeMapper
     }
 
     /// <summary>For each token, how many of (its trailing + next token leading) trivia stay trailing.</summary>
-    private static int[] ComputeCuts(List<SyntaxToken> tokens, string text)
+    private static int[] ComputeCuts(List<SyntaxToken> tokens, Source text)
     {
         var cuts = new int[tokens.Count];
         for (var i = 0; i < tokens.Count; i++)
@@ -102,16 +103,16 @@ public static class TreeMapper
     private static SyntaxTrivia Pick(SyntaxTriviaList trailing, SyntaxTriviaList next, int j) =>
         j < trailing.Count ? trailing[j] : next[j - trailing.Count];
 
-    private static bool EndsLine(string text, SyntaxTrivia trivia)
+    private static bool EndsLine(Source text, SyntaxTrivia trivia)
     {
         var span = trivia.FullSpan;
-        return span.Length > 0 && IsLineBreak(text[span.End - 1]);
+        return span.Length > 0 && IsLineBreak(text.Text[span.End - 1]);
     }
 
     private static bool IsLineBreak(char c) => (int)c is 0x0A or 0x0D or 0x85 or 0x2028 or 0x2029;
 
     /// <summary>Emits leading trivia, the token and trailing trivia; returns the number of trivia siblings added.</summary>
-    private static uint EmitToken(FlatTree tree, List<SyntaxToken> tokens, int[] cuts, int i, string text)
+    private static uint EmitToken(FlatTree tree, List<SyntaxToken> tokens, int[] cuts, int i, Source text)
     {
         uint trivia = 0;
         var token = tokens[i];
@@ -147,9 +148,17 @@ public static class TreeMapper
         return trivia;
     }
 
-    private static void EmitTrivia(FlatTree tree, SyntaxTrivia trivia, string text) =>
+    private static void EmitTrivia(FlatTree tree, SyntaxTrivia trivia, Source text) =>
         tree.Add(GrammarKinds.Of(trivia.RawKind), (uint)Utf8Length(text, trivia.FullSpan));
 
-    private static int Utf8Length(string text, TextSpan span) =>
-        Encoding.UTF8.GetByteCount(text.AsSpan(span.Start, span.Length));
+    private static int Utf8Length(Source text, TextSpan span) =>
+        text.Ascii ? span.Length : Encoding.UTF8.GetByteCount(text.Text.AsSpan(span.Start, span.Length));
+}
+
+/// <summary>The source text, with a flag that makes UTF-8 widths free for pure ASCII input.</summary>
+internal readonly struct Source(string text)
+{
+    public string Text { get; } = text;
+
+    public bool Ascii { get; } = System.Text.Ascii.IsValid(text);
 }

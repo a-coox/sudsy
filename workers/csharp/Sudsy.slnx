@@ -1,4 +1,5 @@
 <Solution>
+  <Project Path="Sudsy.Bench/Sudsy.Bench.csproj" />
   <Project Path="Sudsy.Worker.Tests/Sudsy.Worker.Tests.csproj" />
   <Project Path="Sudsy.Worker/Sudsy.Worker.csproj" />
 </Solution>
