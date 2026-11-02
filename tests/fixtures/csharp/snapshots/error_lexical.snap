@@ -1,0 +1,102 @@
+---
+source: crates/lang-csharp/tests/fixtures.rs
+expression: dump
+---
+CompilationUnit 0..133
+  ClassDeclaration 0..113
+    ClassKeyword 0..5 "class"
+    WhitespaceTrivia 5..6 " "
+    IdentifierToken 6..7 "A"
+    EndOfLineTrivia 7..8 "\n"
+    OpenBraceToken 8..9 "{"
+    EndOfLineTrivia 9..10 "\n"
+    FieldDeclaration 10..40
+      VariableDeclaration 10..40
+        PredefinedType 10..21
+          WhitespaceTrivia 10..14 "    "
+          StringKeyword 14..20 "string"
+          WhitespaceTrivia 20..21 " "
+        VariableDeclarator 21..40
+          IdentifierToken 21..22 "s"
+          WhitespaceTrivia 22..23 " "
+          EqualsValueClause 23..40
+            EqualsToken 23..24 "="
+            WhitespaceTrivia 24..25 " "
+            StringLiteralExpression 25..40
+              StringLiteralToken 25..39 "\"unterminated;"
+              EndOfLineTrivia 39..40 "\n"
+      ERROR 40..40
+    FieldDeclaration 40..59
+      VariableDeclaration 40..57
+        PredefinedType 40..49
+          WhitespaceTrivia 40..44 "    "
+          CharKeyword 44..48 "char"
+          WhitespaceTrivia 48..49 " "
+        VariableDeclarator 49..57
+          IdentifierToken 49..50 "c"
+          WhitespaceTrivia 50..51 " "
+          EqualsValueClause 51..57
+            EqualsToken 51..52 "="
+            WhitespaceTrivia 52..53 " "
+            CharacterLiteralExpression 53..57
+              CharacterLiteralToken 53..57 "'ab'"
+      SemicolonToken 57..58 ";"
+      EndOfLineTrivia 58..59 "\n"
+    FieldDeclaration 59..75
+      VariableDeclaration 59..73
+        PredefinedType 59..67
+          WhitespaceTrivia 59..63 "    "
+          IntKeyword 63..66 "int"
+          WhitespaceTrivia 66..67 " "
+        VariableDeclarator 67..73
+          IdentifierToken 67..68 "n"
+          WhitespaceTrivia 68..69 " "
+          EqualsValueClause 69..73
+            EqualsToken 69..70 "="
+            WhitespaceTrivia 70..71 " "
+            NumericLiteralExpression 71..73
+              NumericLiteralToken 71..73 "0x"
+      SemicolonToken 73..74 ";"
+      EndOfLineTrivia 74..75 "\n"
+    FieldDeclaration 75..113
+      VariableDeclaration 75..113
+        PredefinedType 75..98
+          WhitespaceTrivia 75..79 "    "
+          SingleLineCommentTrivia 79..86 "// fine"
+          EndOfLineTrivia 86..87 "\n"
+          WhitespaceTrivia 87..91 "    "
+          StringKeyword 91..97 "string"
+          WhitespaceTrivia 97..98 " "
+        VariableDeclarator 98..113
+          IdentifierToken 98..99 "t"
+          WhitespaceTrivia 99..100 " "
+          EqualsValueClause 100..113
+            EqualsToken 100..101 "="
+            WhitespaceTrivia 101..102 " "
+            InterpolatedStringExpression 102..113
+              InterpolatedStringStartToken 102..104 "$\""
+              Interpolation 104..113
+                OpenBraceToken 104..105 "{"
+                WhitespaceTrivia 105..106 " "
+                IdentifierName 106..113
+                  IdentifierToken 106..110 "open"
+                  ERROR 110..113
+                    StringLiteralToken 110..112 "\";"
+                    EndOfLineTrivia 112..113 "\n"
+                ERROR 113..113
+              ERROR 113..113
+      ERROR 113..113
+    ERROR 113..113
+  WhitespaceTrivia 113..117 "    "
+  MultiLineCommentTrivia 117..133 "/* never closed\n"
+  EndOfFileToken 133..133 ""
+error CS1010 at 25..25: Newline in constant
+error CS1002 at 39..39: ; expected
+error CS1012 at 53..53: Too many characters in character literal
+error CS1013 at 71..71: Invalid number
+error CS8076 at 103..105: Missing close delimiter '}' for interpolated expression started with '{'.
+error CS1073 at 106..110: Unexpected token '";'
+error CS1010 at 110..110: Newline in constant
+error CS1035 at 117..117: End-of-file found, '*/' expected
+error CS1002 at 133..133: ; expected
+error CS1513 at 133..133: } expected

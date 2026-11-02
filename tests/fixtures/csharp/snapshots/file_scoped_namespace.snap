@@ -1,0 +1,229 @@
+---
+source: crates/lang-csharp/tests/fixtures.rs
+expression: dump
+---
+CompilationUnit 0..432
+  ExternAliasDirective 0..38
+    SingleLineCommentTrivia 0..17 "// header comment"
+    EndOfLineTrivia 17..18 "\n"
+    ExternKeyword 18..24 "extern"
+    WhitespaceTrivia 24..25 " "
+    AliasKeyword 25..30 "alias"
+    WhitespaceTrivia 30..31 " "
+    IdentifierToken 31..36 "Other"
+    SemicolonToken 36..37 ";"
+    EndOfLineTrivia 37..38 "\n"
+  UsingDirective 38..64
+    GlobalKeyword 38..44 "global"
+    WhitespaceTrivia 44..45 " "
+    UsingKeyword 45..50 "using"
+    WhitespaceTrivia 50..51 " "
+    QualifiedName 51..62
+      IdentifierName 51..57
+        IdentifierToken 51..57 "System"
+      DotToken 57..58 "."
+      IdentifierName 58..62
+        IdentifierToken 58..62 "Linq"
+    SemicolonToken 62..63 ";"
+    EndOfLineTrivia 63..64 "\n"
+  UsingDirective 64..78
+    UsingKeyword 64..69 "using"
+    WhitespaceTrivia 69..70 " "
+    IdentifierName 70..76
+      IdentifierToken 70..76 "System"
+    SemicolonToken 76..77 ";"
+    EndOfLineTrivia 77..78 "\n"
+  AttributeList 78..110
+    EndOfLineTrivia 78..79 "\n"
+    OpenBracketToken 79..80 "["
+    AttributeTargetSpecifier 80..90
+      AssemblyKeyword 80..88 "assembly"
+      ColonToken 88..89 ":"
+      WhitespaceTrivia 89..90 " "
+    Attribute 90..108
+      IdentifierName 90..102
+        IdentifierToken 90..102 "CLSCompliant"
+      AttributeArgumentList 102..108
+        OpenParenToken 102..103 "("
+        AttributeArgument 103..107
+          TrueLiteralExpression 103..107
+            TrueKeyword 103..107 "true"
+        CloseParenToken 107..108 ")"
+    CloseBracketToken 108..109 "]"
+    EndOfLineTrivia 109..110 "\n"
+  FileScopedNamespaceDeclaration 110..432
+    EndOfLineTrivia 110..111 "\n"
+    NamespaceKeyword 111..120 "namespace"
+    WhitespaceTrivia 120..121 " "
+    QualifiedName 121..144
+      QualifiedName 121..136
+        IdentifierName 121..128
+          IdentifierToken 121..128 "Company"
+        DotToken 128..129 "."
+        IdentifierName 129..136
+          IdentifierToken 129..136 "Product"
+      DotToken 136..137 "."
+      IdentifierName 137..144
+        IdentifierToken 137..144 "Feature"
+    SemicolonToken 144..145 ";"
+    EndOfLineTrivia 145..146 "\n"
+    ClassDeclaration 146..358
+      EndOfLineTrivia 146..147 "\n"
+      SingleLineDocumentationCommentTrivia 147..205
+        XmlText 147..151
+          DocumentationCommentExteriorTrivia 147..150 "///"
+          XmlTextLiteralToken 150..151 " "
+        XmlElement 151..204
+          XmlElementStartTag 151..160
+            LessThanToken 151..152 "<"
+            XmlName 152..159
+              IdentifierToken 152..159 "summary"
+            GreaterThanToken 159..160 ">"
+          XmlText 160..194
+            XmlTextLiteralToken 160..194 "A type in a file-scoped namespace."
+          XmlElementEndTag 194..204
+            LessThanSlashToken 194..196 "</"
+            XmlName 196..203
+              IdentifierToken 196..203 "summary"
+            GreaterThanToken 203..204 ">"
+        XmlText 204..205
+          XmlTextLiteralNewLineToken 204..205 "\n"
+        EndOfDocumentationCommentToken 205..205 ""
+      PublicKeyword 205..211 "public"
+      WhitespaceTrivia 211..212 " "
+      SealedKeyword 212..218 "sealed"
+      WhitespaceTrivia 218..219 " "
+      PartialKeyword 219..226 "partial"
+      WhitespaceTrivia 226..227 " "
+      ClassKeyword 227..232 "class"
+      WhitespaceTrivia 232..233 " "
+      IdentifierToken 233..239 "Widget"
+      TypeParameterList 239..243
+        LessThanToken 239..240 "<"
+        TypeParameter 240..241
+          IdentifierToken 240..241 "T"
+        GreaterThanToken 241..242 ">"
+        WhitespaceTrivia 242..243 " "
+      BaseList 243..257
+        ColonToken 243..244 ":"
+        WhitespaceTrivia 244..245 " "
+        SimpleBaseType 245..257
+          IdentifierName 245..257
+            IdentifierToken 245..256 "IDisposable"
+            EndOfLineTrivia 256..257 "\n"
+      TypeParameterConstraintClause 257..284
+        WhitespaceTrivia 257..261 "    "
+        WhereKeyword 261..266 "where"
+        WhitespaceTrivia 266..267 " "
+        IdentifierName 267..269
+          IdentifierToken 267..268 "T"
+          WhitespaceTrivia 268..269 " "
+        ColonToken 269..270 ":"
+        WhitespaceTrivia 270..271 " "
+        ClassConstraint 271..276
+          ClassKeyword 271..276 "class"
+        CommaToken 276..277 ","
+        WhitespaceTrivia 277..278 " "
+        ConstructorConstraint 278..284
+          NewKeyword 278..281 "new"
+          OpenParenToken 281..282 "("
+          CloseParenToken 282..283 ")"
+          EndOfLineTrivia 283..284 "\n"
+      OpenBraceToken 284..285 "{"
+      EndOfLineTrivia 285..286 "\n"
+      FieldDeclaration 286..325
+        WhitespaceTrivia 286..290 "    "
+        PrivateKeyword 290..297 "private"
+        WhitespaceTrivia 297..298 " "
+        ReadOnlyKeyword 298..306 "readonly"
+        WhitespaceTrivia 306..307 " "
+        VariableDeclaration 307..323
+          IdentifierName 307..309
+            IdentifierToken 307..308 "T"
+            WhitespaceTrivia 308..309 " "
+          VariableDeclarator 309..323
+            IdentifierToken 309..315 "_value"
+            WhitespaceTrivia 315..316 " "
+            EqualsValueClause 316..323
+              EqualsToken 316..317 "="
+              WhitespaceTrivia 317..318 " "
+              ImplicitObjectCreationExpression 318..323
+                NewKeyword 318..321 "new"
+                ArgumentList 321..323
+                  OpenParenToken 321..322 "("
+                  CloseParenToken 322..323 ")"
+        SemicolonToken 323..324 ";"
+        EndOfLineTrivia 324..325 "\n"
+      MethodDeclaration 325..356
+        EndOfLineTrivia 325..326 "\n"
+        WhitespaceTrivia 326..330 "    "
+        PublicKeyword 330..336 "public"
+        WhitespaceTrivia 336..337 " "
+        PredefinedType 337..342
+          VoidKeyword 337..341 "void"
+          WhitespaceTrivia 341..342 " "
+        IdentifierToken 342..349 "Dispose"
+        ParameterList 349..352
+          OpenParenToken 349..350 "("
+          CloseParenToken 350..351 ")"
+          WhitespaceTrivia 351..352 " "
+        Block 352..356
+          OpenBraceToken 352..353 "{"
+          WhitespaceTrivia 353..354 " "
+          CloseBraceToken 354..355 "}"
+          EndOfLineTrivia 355..356 "\n"
+      CloseBraceToken 356..357 "}"
+      EndOfLineTrivia 357..358 "\n"
+    EnumDeclaration 358..432
+      EndOfLineTrivia 358..359 "\n"
+      InternalKeyword 359..367 "internal"
+      WhitespaceTrivia 367..368 " "
+      EnumKeyword 368..372 "enum"
+      WhitespaceTrivia 372..373 " "
+      IdentifierToken 373..377 "Mode"
+      WhitespaceTrivia 377..378 " "
+      BaseList 378..385
+        ColonToken 378..379 ":"
+        WhitespaceTrivia 379..380 " "
+        SimpleBaseType 380..385
+          PredefinedType 380..385
+            ByteKeyword 380..384 "byte"
+            EndOfLineTrivia 384..385 "\n"
+      OpenBraceToken 385..386 "{"
+      EndOfLineTrivia 386..387 "\n"
+      EnumMemberDeclaration 387..399
+        WhitespaceTrivia 387..391 "    "
+        IdentifierToken 391..395 "None"
+        WhitespaceTrivia 395..396 " "
+        EqualsValueClause 396..399
+          EqualsToken 396..397 "="
+          WhitespaceTrivia 397..398 " "
+          NumericLiteralExpression 398..399
+            NumericLiteralToken 398..399 "0"
+      CommaToken 399..400 ","
+      EndOfLineTrivia 400..401 "\n"
+      EnumMemberDeclaration 401..409
+        WhitespaceTrivia 401..405 "    "
+        IdentifierToken 405..409 "Fast"
+      CommaToken 409..410 ","
+      EndOfLineTrivia 410..411 "\n"
+      EnumMemberDeclaration 411..428
+        WhitespaceTrivia 411..415 "    "
+        IdentifierToken 415..419 "Slow"
+        WhitespaceTrivia 419..420 " "
+        EqualsValueClause 420..428
+          EqualsToken 420..421 "="
+          WhitespaceTrivia 421..422 " "
+          LeftShiftExpression 422..428
+            NumericLiteralExpression 422..424
+              NumericLiteralToken 422..423 "1"
+              WhitespaceTrivia 423..424 " "
+            LessThanLessThanToken 424..426 "<<"
+            WhitespaceTrivia 426..427 " "
+            NumericLiteralExpression 427..428
+              NumericLiteralToken 427..428 "3"
+      CommaToken 428..429 ","
+      EndOfLineTrivia 429..430 "\n"
+      CloseBraceToken 430..431 "}"
+      EndOfLineTrivia 431..432 "\n"
+  EndOfFileToken 432..432 ""

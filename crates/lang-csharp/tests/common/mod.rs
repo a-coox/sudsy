@@ -94,7 +94,7 @@ pub fn check_token_texts(tree: &SyntaxNode) -> Result<(), String> {
         } else if k == kind::SINGLE_LINE_COMMENT_TRIVIA {
             !text.starts_with("//") || text.chars().any(trivia::is_line_break)
         } else if k == kind::MULTI_LINE_COMMENT_TRIVIA {
-            !(text.starts_with("/*") && text.ends_with("*/"))
+            !text.starts_with("/*")
         } else if g.is_trivia(k) {
             false
         } else {

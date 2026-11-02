@@ -1,0 +1,127 @@
+---
+source: crates/lang-csharp/tests/fixtures.rs
+expression: dump
+---
+CompilationUnit 0..154
+  UsingDirective 0..14
+    UsingKeyword 0..5 "using"
+    WhitespaceTrivia 5..6 " "
+    IdentifierName 6..12
+      IdentifierToken 6..12 "System"
+    SemicolonToken 12..13 ";"
+    EndOfLineTrivia 13..14 "\n"
+  NamespaceDeclaration 14..154
+    EndOfLineTrivia 14..15 "\n"
+    NamespaceKeyword 15..24 "namespace"
+    WhitespaceTrivia 24..25 " "
+    IdentifierName 25..27
+      IdentifierToken 25..26 "N"
+      EndOfLineTrivia 26..27 "\n"
+    OpenBraceToken 27..28 "{"
+    EndOfLineTrivia 28..29 "\n"
+    ClassDeclaration 29..77
+      WhitespaceTrivia 29..33 "    "
+      ClassKeyword 33..38 "class"
+      WhitespaceTrivia 38..39 " "
+      IdentifierToken 39..40 "A"
+      WhitespaceTrivia 40..41 " "
+      OpenBraceToken 41..42 "{"
+      WhitespaceTrivia 42..43 " "
+      MethodDeclaration 43..71
+        PredefinedType 43..48
+          VoidKeyword 43..47 "void"
+          WhitespaceTrivia 47..48 " "
+        IdentifierToken 48..49 "M"
+        ParameterList 49..52
+          OpenParenToken 49..50 "("
+          CloseParenToken 50..51 ")"
+          WhitespaceTrivia 51..52 " "
+        Block 52..71
+          OpenBraceToken 52..53 "{"
+          WhitespaceTrivia 53..54 " "
+          LocalDeclarationStatement 54..64
+            VariableDeclaration 54..64
+              PredefinedType 54..58
+                IntKeyword 54..57 "int"
+                WhitespaceTrivia 57..58 " "
+              VariableDeclarator 58..64
+                IdentifierToken 58..59 "x"
+                WhitespaceTrivia 59..60 " "
+                EqualsValueClause 60..64
+                  EqualsToken 60..61 "="
+                  WhitespaceTrivia 61..62 " "
+                  NumericLiteralExpression 62..64
+                    NumericLiteralToken 62..63 "1"
+                    WhitespaceTrivia 63..64 " "
+            ERROR 64..64
+          ExpressionStatement 64..66
+            NumericLiteralExpression 64..66
+              NumericLiteralToken 64..65 "2"
+              WhitespaceTrivia 65..66 " "
+            ERROR 66..66
+          ExpressionStatement 66..69
+            NumericLiteralExpression 66..67
+              NumericLiteralToken 66..67 "3"
+            SemicolonToken 67..68 ";"
+            WhitespaceTrivia 68..69 " "
+          CloseBraceToken 69..70 "}"
+          WhitespaceTrivia 70..71 " "
+      CloseBraceToken 71..72 "}"
+      WhitespaceTrivia 72..73 " "
+      ERROR 73..77
+        InterpolatedStringToken 73..76 "$$$"
+        WhitespaceTrivia 76..77 " "
+    IncompleteMember 77..84
+      IdentifierName 77..84
+        IdentifierToken 77..81 "junk"
+        WhitespaceTrivia 81..82 " "
+        ERROR 82..84
+          BadToken 82..83 "@"
+          WhitespaceTrivia 83..84 " "
+    FieldDeclaration 84..96
+      VariableDeclaration 84..96
+        NullableType 84..86
+          IdentifierName 84..84
+            ERROR 84..84
+          QuestionToken 84..85 "?"
+          EndOfLineTrivia 85..86 "\n"
+        VariableDeclarator 86..96
+          WhitespaceTrivia 86..90 "    "
+          IdentifierToken 90..95 "stray"
+          WhitespaceTrivia 95..96 " "
+      ERROR 96..96
+    FieldDeclaration 96..134
+      VariableDeclaration 96..107
+        IdentifierName 96..103
+          IdentifierToken 96..102 "tokens"
+          WhitespaceTrivia 102..103 " "
+        VariableDeclarator 103..107
+          IdentifierToken 103..107 "here"
+      SemicolonToken 107..108 ";"
+      WhitespaceTrivia 108..109 " "
+      SingleLineCommentTrivia 109..133 "// comment after skipped"
+      EndOfLineTrivia 133..134 "\n"
+    ClassDeclaration 134..150
+      WhitespaceTrivia 134..138 "    "
+      ClassKeyword 138..143 "class"
+      WhitespaceTrivia 143..144 " "
+      IdentifierToken 144..145 "B"
+      WhitespaceTrivia 145..146 " "
+      OpenBraceToken 146..147 "{"
+      WhitespaceTrivia 147..148 " "
+      CloseBraceToken 148..149 "}"
+      EndOfLineTrivia 149..150 "\n"
+    CloseBraceToken 150..151 "}"
+    EndOfLineTrivia 151..152 "\n"
+    ERROR 152..154
+      CloseBraceToken 152..153 "}"
+      EndOfLineTrivia 153..154 "\n"
+  EndOfFileToken 154..154 ""
+error CS1002 at 64..65: ; expected
+error CS1002 at 66..67: ; expected
+error CS9009 at 73..76: String must start with quote character: "
+error CS0116 at 77..81: A namespace cannot directly contain members such as fields, methods or statements
+error CS1646 at 82..82: Keyword, identifier, or string expected after verbatim specifier: @
+error CS1031 at 84..85: Type expected
+error CS1002 at 96..102: ; expected
+error CS1022 at 152..153: Type or namespace definition, or end-of-file expected

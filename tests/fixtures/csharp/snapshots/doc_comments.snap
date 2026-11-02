@@ -1,0 +1,533 @@
+---
+source: crates/lang-csharp/tests/fixtures.rs
+expression: dump
+---
+CompilationUnit 0..1074
+  UsingDirective 0..14
+    UsingKeyword 0..5 "using"
+    WhitespaceTrivia 5..6 " "
+    IdentifierName 6..12
+      IdentifierToken 6..12 "System"
+    SemicolonToken 12..13 ";"
+    EndOfLineTrivia 13..14 "\n"
+  ClassDeclaration 14..1074
+    EndOfLineTrivia 14..15 "\n"
+    SingleLineDocumentationCommentTrivia 15..330
+      XmlText 15..19
+        DocumentationCommentExteriorTrivia 15..18 "///"
+        XmlTextLiteralToken 18..19 " "
+      XmlElement 19..187
+        XmlElementStartTag 19..28
+          LessThanToken 19..20 "<"
+          XmlName 20..27
+            IdentifierToken 20..27 "summary"
+          GreaterThanToken 27..28 ">"
+        XmlText 28..56
+          XmlTextLiteralNewLineToken 28..29 "\n"
+          DocumentationCommentExteriorTrivia 29..32 "///"
+          XmlTextLiteralToken 32..56 " A documented type with "
+        XmlElement 56..69
+          XmlElementStartTag 56..59
+            LessThanToken 56..57 "<"
+            XmlName 57..58
+              IdentifierToken 57..58 "c"
+            GreaterThanToken 58..59 ">"
+          XmlText 59..65
+            XmlTextLiteralToken 59..65 "inline"
+          XmlElementEndTag 65..69
+            LessThanSlashToken 65..67 "</"
+            XmlName 67..68
+              IdentifierToken 67..68 "c"
+            GreaterThanToken 68..69 ">"
+        XmlText 69..78
+          XmlTextLiteralToken 69..78 " code, a "
+        XmlEmptyElement 78..101
+          LessThanToken 78..79 "<"
+          XmlName 79..83
+            IdentifierToken 79..82 "see"
+            WhitespaceTrivia 82..83 " "
+          XmlCrefAttribute 83..99
+            XmlName 83..87
+              IdentifierToken 83..87 "cref"
+            EqualsToken 87..88 "="
+            DoubleQuoteToken 88..89 "\""
+            NameMemberCref 89..98
+              IdentifierName 89..98
+                IdentifierToken 89..98 "Exception"
+            DoubleQuoteToken 98..99 "\""
+          SlashGreaterThanToken 99..101 "/>"
+        XmlText 101..122
+          XmlTextLiteralToken 101..115 " reference and"
+          XmlTextLiteralNewLineToken 115..116 "\n"
+          DocumentationCommentExteriorTrivia 116..119 "///"
+          XmlTextLiteralToken 119..122 " a "
+        XmlEmptyElement 122..142
+          LessThanToken 122..123 "<"
+          XmlName 123..132
+            IdentifierToken 123..131 "paramref"
+            WhitespaceTrivia 131..132 " "
+          XmlNameAttribute 132..140
+            XmlName 132..136
+              IdentifierToken 132..136 "name"
+            EqualsToken 136..137 "="
+            DoubleQuoteToken 137..138 "\""
+            IdentifierName 138..139
+              IdentifierToken 138..139 "x"
+            DoubleQuoteToken 139..140 "\""
+          SlashGreaterThanToken 140..142 "/>"
+        XmlText 142..177
+          XmlTextLiteralToken 142..153 " that spans"
+          XmlTextLiteralNewLineToken 153..154 "\n"
+          DocumentationCommentExteriorTrivia 154..157 "///"
+          XmlTextLiteralToken 157..172 " several lines."
+          XmlTextLiteralNewLineToken 172..173 "\n"
+          DocumentationCommentExteriorTrivia 173..176 "///"
+          XmlTextLiteralToken 176..177 " "
+        XmlElementEndTag 177..187
+          LessThanSlashToken 177..179 "</"
+          XmlName 179..186
+            IdentifierToken 179..186 "summary"
+          GreaterThanToken 186..187 ">"
+      XmlText 187..192
+        XmlTextLiteralNewLineToken 187..188 "\n"
+        DocumentationCommentExteriorTrivia 188..191 "///"
+        XmlTextLiteralToken 191..192 " "
+      XmlElement 192..283
+        XmlElementStartTag 192..201
+          LessThanToken 192..193 "<"
+          XmlName 193..200
+            IdentifierToken 193..200 "remarks"
+          GreaterThanToken 200..201 ">"
+        XmlText 201..206
+          XmlTextLiteralNewLineToken 201..202 "\n"
+          DocumentationCommentExteriorTrivia 202..205 "///"
+          XmlTextLiteralToken 205..206 " "
+        XmlCDataSection 206..236
+          XmlCDataStartToken 206..215 "<![CDATA["
+          XmlTextLiteralToken 215..233 " raw <xml> & text "
+          XmlCDataEndToken 233..236 "]]>"
+        XmlText 236..273
+          XmlTextLiteralNewLineToken 236..237 "\n"
+          DocumentationCommentExteriorTrivia 237..240 "///"
+          XmlTextLiteralToken 240..251 " Entities: "
+          XmlEntityLiteralToken 251..255 "&lt;"
+          XmlTextLiteralToken 255..256 " "
+          XmlEntityLiteralToken 256..261 "&amp;"
+          XmlTextLiteralToken 261..262 " "
+          XmlEntityLiteralToken 262..268 "&#169;"
+          XmlTextLiteralNewLineToken 268..269 "\n"
+          DocumentationCommentExteriorTrivia 269..272 "///"
+          XmlTextLiteralToken 272..273 " "
+        XmlElementEndTag 273..283
+          LessThanSlashToken 273..275 "</"
+          XmlName 275..282
+            IdentifierToken 275..282 "remarks"
+          GreaterThanToken 282..283 ">"
+      XmlText 283..288
+        XmlTextLiteralNewLineToken 283..284 "\n"
+        DocumentationCommentExteriorTrivia 284..287 "///"
+        XmlTextLiteralToken 287..288 " "
+      XmlElement 288..329
+        XmlElementStartTag 288..308
+          LessThanToken 288..289 "<"
+          XmlName 289..299
+            IdentifierToken 289..298 "typeparam"
+            WhitespaceTrivia 298..299 " "
+          XmlNameAttribute 299..307
+            XmlName 299..303
+              IdentifierToken 299..303 "name"
+            EqualsToken 303..304 "="
+            DoubleQuoteToken 304..305 "\""
+            IdentifierName 305..306
+              IdentifierToken 305..306 "T"
+            DoubleQuoteToken 306..307 "\""
+          GreaterThanToken 307..308 ">"
+        XmlText 308..317
+          XmlTextLiteralToken 308..317 "The type."
+        XmlElementEndTag 317..329
+          LessThanSlashToken 317..319 "</"
+          XmlName 319..328
+            IdentifierToken 319..328 "typeparam"
+          GreaterThanToken 328..329 ">"
+      XmlText 329..330
+        XmlTextLiteralNewLineToken 329..330 "\n"
+      EndOfDocumentationCommentToken 330..330 ""
+    PublicKeyword 330..336 "public"
+    WhitespaceTrivia 336..337 " "
+    ClassKeyword 337..342 "class"
+    WhitespaceTrivia 342..343 " "
+    IdentifierToken 343..353 "Documented"
+    TypeParameterList 353..357
+      LessThanToken 353..354 "<"
+      TypeParameter 354..355
+        IdentifierToken 354..355 "T"
+      GreaterThanToken 355..356 ">"
+      EndOfLineTrivia 356..357 "\n"
+    OpenBraceToken 357..358 "{"
+    EndOfLineTrivia 358..359 "\n"
+    MethodDeclaration 359..436
+      WhitespaceTrivia 359..363 "    "
+      MultiLineDocumentationCommentTrivia 363..407
+        XmlText 363..367
+          DocumentationCommentExteriorTrivia 363..366 "/**"
+          XmlTextLiteralToken 366..367 " "
+        XmlElement 367..404
+          XmlElementStartTag 367..376
+            LessThanToken 367..368 "<"
+            XmlName 368..375
+              IdentifierToken 368..375 "summary"
+            GreaterThanToken 375..376 ">"
+          XmlText 376..394
+            XmlTextLiteralToken 376..394 "Block doc comment."
+          XmlElementEndTag 394..404
+            LessThanSlashToken 394..396 "</"
+            XmlName 396..403
+              IdentifierToken 396..403 "summary"
+            GreaterThanToken 403..404 ">"
+        XmlText 404..407
+          XmlTextLiteralToken 404..405 " "
+          DocumentationCommentExteriorTrivia 405..407 "*/"
+        EndOfDocumentationCommentToken 407..407 ""
+      EndOfLineTrivia 407..408 "\n"
+      WhitespaceTrivia 408..412 "    "
+      PublicKeyword 412..418 "public"
+      WhitespaceTrivia 418..419 " "
+      PredefinedType 419..424
+        VoidKeyword 419..423 "void"
+        WhitespaceTrivia 423..424 " "
+      IdentifierToken 424..429 "Block"
+      ParameterList 429..432
+        OpenParenToken 429..430 "("
+        CloseParenToken 430..431 ")"
+        WhitespaceTrivia 431..432 " "
+      Block 432..436
+        OpenBraceToken 432..433 "{"
+        WhitespaceTrivia 433..434 " "
+        CloseBraceToken 434..435 "}"
+        EndOfLineTrivia 435..436 "\n"
+    MethodDeclaration 436..672
+      EndOfLineTrivia 436..437 "\n"
+      WhitespaceTrivia 437..441 "    "
+      SingleLineDocumentationCommentTrivia 441..637
+        XmlText 441..445
+          DocumentationCommentExteriorTrivia 441..444 "///"
+          XmlTextLiteralToken 444..445 " "
+        XmlElement 445..473
+          XmlElementStartTag 445..454
+            LessThanToken 445..446 "<"
+            XmlName 446..453
+              IdentifierToken 446..453 "summary"
+            GreaterThanToken 453..454 ">"
+          XmlText 454..463
+            XmlTextLiteralToken 454..463 "A method."
+          XmlElementEndTag 463..473
+            LessThanSlashToken 463..465 "</"
+            XmlName 465..472
+              IdentifierToken 465..472 "summary"
+            GreaterThanToken 472..473 ">"
+        XmlText 473..482
+          XmlTextLiteralNewLineToken 473..474 "\n"
+          DocumentationCommentExteriorTrivia 474..481 "    ///"
+          XmlTextLiteralToken 481..482 " "
+        XmlElement 482..516
+          XmlElementStartTag 482..498
+            LessThanToken 482..483 "<"
+            XmlName 483..489
+              IdentifierToken 483..488 "param"
+              WhitespaceTrivia 488..489 " "
+            XmlNameAttribute 489..497
+              XmlName 489..493
+                IdentifierToken 489..493 "name"
+              EqualsToken 493..494 "="
+              DoubleQuoteToken 494..495 "\""
+              IdentifierName 495..496
+                IdentifierToken 495..496 "x"
+              DoubleQuoteToken 496..497 "\""
+            GreaterThanToken 497..498 ">"
+          XmlText 498..508
+            XmlTextLiteralToken 498..508 "The input."
+          XmlElementEndTag 508..516
+            LessThanSlashToken 508..510 "</"
+            XmlName 510..515
+              IdentifierToken 510..515 "param"
+            GreaterThanToken 515..516 ">"
+        XmlText 516..525
+          XmlTextLiteralNewLineToken 516..517 "\n"
+          DocumentationCommentExteriorTrivia 517..524 "    ///"
+          XmlTextLiteralToken 524..525 " "
+        XmlElement 525..551
+          XmlElementStartTag 525..534
+            LessThanToken 525..526 "<"
+            XmlName 526..533
+              IdentifierToken 526..533 "returns"
+            GreaterThanToken 533..534 ">"
+          XmlText 534..541
+            XmlTextLiteralToken 534..541 "Nothing"
+          XmlElementEndTag 541..551
+            LessThanSlashToken 541..543 "</"
+            XmlName 543..550
+              IdentifierToken 543..550 "returns"
+            GreaterThanToken 550..551 ">"
+        XmlText 551..560
+          XmlTextLiteralNewLineToken 551..552 "\n"
+          DocumentationCommentExteriorTrivia 552..559 "    ///"
+          XmlTextLiteralToken 559..560 " "
+        XmlElement 560..636
+          XmlElementStartTag 560..596
+            LessThanToken 560..561 "<"
+            XmlName 561..571
+              IdentifierToken 561..570 "exception"
+              WhitespaceTrivia 570..571 " "
+            XmlCrefAttribute 571..595
+              XmlName 571..575
+                IdentifierToken 571..575 "cref"
+              EqualsToken 575..576 "="
+              DoubleQuoteToken 576..577 "\""
+              NameMemberCref 577..594
+                IdentifierName 577..594
+                  IdentifierToken 577..594 "ArgumentException"
+              DoubleQuoteToken 594..595 "\""
+            GreaterThanToken 595..596 ">"
+          XmlText 596..608
+            XmlTextLiteralToken 596..608 "Thrown when "
+          XmlElement 608..616
+            XmlElementStartTag 608..611
+              LessThanToken 608..609 "<"
+              XmlName 609..610
+                IdentifierToken 609..610 "c"
+              GreaterThanToken 610..611 ">"
+            XmlText 611..612
+              XmlTextLiteralToken 611..612 "x"
+            XmlElementEndTag 612..616
+              LessThanSlashToken 612..614 "</"
+              XmlName 614..615
+                IdentifierToken 614..615 "c"
+              GreaterThanToken 615..616 ">"
+          XmlText 616..624
+            XmlTextLiteralToken 616..624 " is bad."
+          XmlElementEndTag 624..636
+            LessThanSlashToken 624..626 "</"
+            XmlName 626..635
+              IdentifierToken 626..635 "exception"
+            GreaterThanToken 635..636 ">"
+        XmlText 636..637
+          XmlTextLiteralNewLineToken 636..637 "\n"
+        EndOfDocumentationCommentToken 637..637 ""
+      WhitespaceTrivia 637..641 "    "
+      PublicKeyword 641..647 "public"
+      WhitespaceTrivia 647..648 " "
+      PredefinedType 648..652
+        IntKeyword 648..651 "int"
+        WhitespaceTrivia 651..652 " "
+      IdentifierToken 652..658 "Method"
+      ParameterList 658..666
+        OpenParenToken 658..659 "("
+        Parameter 659..664
+          PredefinedType 659..663
+            IntKeyword 659..662 "int"
+            WhitespaceTrivia 662..663 " "
+          IdentifierToken 663..664 "x"
+        CloseParenToken 664..665 ")"
+        WhitespaceTrivia 665..666 " "
+      ArrowExpressionClause 666..670
+        EqualsGreaterThanToken 666..668 "=>"
+        WhitespaceTrivia 668..669 " "
+        IdentifierName 669..670
+          IdentifierToken 669..670 "x"
+      SemicolonToken 670..671 ";"
+      EndOfLineTrivia 671..672 "\n"
+    PropertyDeclaration 672..931
+      EndOfLineTrivia 672..673 "\n"
+      WhitespaceTrivia 673..677 "    "
+      SingleLineDocumentationCommentTrivia 677..904
+        XmlText 677..681
+          DocumentationCommentExteriorTrivia 677..680 "///"
+          XmlTextLiteralToken 680..681 " "
+        XmlElement 681..862
+          XmlElementStartTag 681..690
+            LessThanToken 681..682 "<"
+            XmlName 682..689
+              IdentifierToken 682..689 "summary"
+            GreaterThanToken 689..690 ">"
+          XmlText 690..699
+            XmlTextLiteralNewLineToken 690..691 "\n"
+            DocumentationCommentExteriorTrivia 691..698 "    ///"
+            XmlTextLiteralToken 698..699 " "
+          XmlElement 699..843
+            XmlElementStartTag 699..719
+              LessThanToken 699..700 "<"
+              XmlName 700..705
+                IdentifierToken 700..704 "list"
+                WhitespaceTrivia 704..705 " "
+              XmlTextAttribute 705..718
+                XmlName 705..709
+                  IdentifierToken 705..709 "type"
+                EqualsToken 709..710 "="
+                DoubleQuoteToken 710..711 "\""
+                XmlTextLiteralToken 711..717 "bullet"
+                DoubleQuoteToken 717..718 "\""
+              GreaterThanToken 718..719 ">"
+            XmlText 719..730
+              XmlTextLiteralNewLineToken 719..720 "\n"
+              DocumentationCommentExteriorTrivia 720..727 "    ///"
+              XmlTextLiteralToken 727..730 "   "
+            XmlElement 730..773
+              XmlElementStartTag 730..736
+                LessThanToken 730..731 "<"
+                XmlName 731..735
+                  IdentifierToken 731..735 "item"
+                GreaterThanToken 735..736 ">"
+              XmlElement 736..766
+                XmlElementStartTag 736..749
+                  LessThanToken 736..737 "<"
+                  XmlName 737..748
+                    IdentifierToken 737..748 "description"
+                  GreaterThanToken 748..749 ">"
+                XmlText 749..752
+                  XmlTextLiteralToken 749..752 "one"
+                XmlElementEndTag 752..766
+                  LessThanSlashToken 752..754 "</"
+                  XmlName 754..765
+                    IdentifierToken 754..765 "description"
+                  GreaterThanToken 765..766 ">"
+              XmlElementEndTag 766..773
+                LessThanSlashToken 766..768 "</"
+                XmlName 768..772
+                  IdentifierToken 768..772 "item"
+                GreaterThanToken 772..773 ">"
+            XmlText 773..784
+              XmlTextLiteralNewLineToken 773..774 "\n"
+              DocumentationCommentExteriorTrivia 774..781 "    ///"
+              XmlTextLiteralToken 781..784 "   "
+            XmlElement 784..827
+              XmlElementStartTag 784..790
+                LessThanToken 784..785 "<"
+                XmlName 785..789
+                  IdentifierToken 785..789 "item"
+                GreaterThanToken 789..790 ">"
+              XmlElement 790..820
+                XmlElementStartTag 790..803
+                  LessThanToken 790..791 "<"
+                  XmlName 791..802
+                    IdentifierToken 791..802 "description"
+                  GreaterThanToken 802..803 ">"
+                XmlText 803..806
+                  XmlTextLiteralToken 803..806 "two"
+                XmlElementEndTag 806..820
+                  LessThanSlashToken 806..808 "</"
+                  XmlName 808..819
+                    IdentifierToken 808..819 "description"
+                  GreaterThanToken 819..820 ">"
+              XmlElementEndTag 820..827
+                LessThanSlashToken 820..822 "</"
+                XmlName 822..826
+                  IdentifierToken 822..826 "item"
+                GreaterThanToken 826..827 ">"
+            XmlText 827..836
+              XmlTextLiteralNewLineToken 827..828 "\n"
+              DocumentationCommentExteriorTrivia 828..835 "    ///"
+              XmlTextLiteralToken 835..836 " "
+            XmlElementEndTag 836..843
+              LessThanSlashToken 836..838 "</"
+              XmlName 838..842
+                IdentifierToken 838..842 "list"
+              GreaterThanToken 842..843 ">"
+          XmlText 843..852
+            XmlTextLiteralNewLineToken 843..844 "\n"
+            DocumentationCommentExteriorTrivia 844..851 "    ///"
+            XmlTextLiteralToken 851..852 " "
+          XmlElementEndTag 852..862
+            LessThanSlashToken 852..854 "</"
+            XmlName 854..861
+              IdentifierToken 854..861 "summary"
+            GreaterThanToken 861..862 ">"
+        XmlText 862..871
+          XmlTextLiteralNewLineToken 862..863 "\n"
+          DocumentationCommentExteriorTrivia 863..870 "    ///"
+          XmlTextLiteralToken 870..871 " "
+        XmlEmptyElement 871..903
+          LessThanToken 871..872 "<"
+          XmlName 872..883
+            IdentifierToken 872..882 "inheritdoc"
+            WhitespaceTrivia 882..883 " "
+          XmlCrefAttribute 883..901
+            XmlName 883..887
+              IdentifierToken 883..887 "cref"
+            EqualsToken 887..888 "="
+            DoubleQuoteToken 888..889 "\""
+            NameMemberCref 889..900
+              IdentifierName 889..895
+                IdentifierToken 889..895 "Method"
+              CrefParameterList 895..900
+                OpenParenToken 895..896 "("
+                CrefParameter 896..899
+                  PredefinedType 896..899
+                    IntKeyword 896..899 "int"
+                CloseParenToken 899..900 ")"
+            DoubleQuoteToken 900..901 "\""
+          SlashGreaterThanToken 901..903 "/>"
+        XmlText 903..904
+          XmlTextLiteralNewLineToken 903..904 "\n"
+        EndOfDocumentationCommentToken 904..904 ""
+      WhitespaceTrivia 904..908 "    "
+      PublicKeyword 908..914 "public"
+      WhitespaceTrivia 914..915 " "
+      PredefinedType 915..919
+        IntKeyword 915..918 "int"
+        WhitespaceTrivia 918..919 " "
+      IdentifierToken 919..924 "Other"
+      WhitespaceTrivia 924..925 " "
+      ArrowExpressionClause 925..929
+        EqualsGreaterThanToken 925..927 "=>"
+        WhitespaceTrivia 927..928 " "
+        NumericLiteralExpression 928..929
+          NumericLiteralToken 928..929 "0"
+      SemicolonToken 929..930 ";"
+      EndOfLineTrivia 930..931 "\n"
+    FieldDeclaration 931..1072
+      VariableDeclaration 931..1037
+        PredefinedType 931..1032
+          EndOfLineTrivia 931..932 "\n"
+          WhitespaceTrivia 932..936 "    "
+          SingleLineCommentTrivia 936..957 "// Not a doc comment."
+          EndOfLineTrivia 957..958 "\n"
+          WhitespaceTrivia 958..962 "    "
+          SingleLineCommentTrivia 962..983 "//// Neither is this."
+          EndOfLineTrivia 983..984 "\n"
+          WhitespaceTrivia 984..988 "    "
+          SingleLineDocumentationCommentTrivia 988..1024
+            XmlText 988..992
+              DocumentationCommentExteriorTrivia 988..991 "///"
+              XmlTextLiteralToken 991..992 " "
+            XmlElement 992..1023
+              XmlElementStartTag 992..1001
+                LessThanToken 992..993 "<"
+                XmlName 993..1000
+                  IdentifierToken 993..1000 "summary"
+                GreaterThanToken 1000..1001 ">"
+              XmlText 1001..1013
+                XmlTextLiteralToken 1001..1013 "Trailing doc"
+              XmlElementEndTag 1013..1023
+                LessThanSlashToken 1013..1015 "</"
+                XmlName 1015..1022
+                  IdentifierToken 1015..1022 "summary"
+                GreaterThanToken 1022..1023 ">"
+            XmlText 1023..1024
+              XmlTextLiteralNewLineToken 1023..1024 "\n"
+            EndOfDocumentationCommentToken 1024..1024 ""
+          WhitespaceTrivia 1024..1028 "    "
+          IntKeyword 1028..1031 "int"
+          WhitespaceTrivia 1031..1032 " "
+        VariableDeclarator 1032..1037
+          IdentifierToken 1032..1037 "field"
+      SemicolonToken 1037..1038 ";"
+      WhitespaceTrivia 1038..1039 " "
+      SingleLineDocumentationCommentTrivia 1039..1072
+        XmlText 1039..1072
+          DocumentationCommentExteriorTrivia 1039..1042 "///"
+          XmlTextLiteralToken 1042..1071 " not documentation after code"
+          XmlTextLiteralNewLineToken 1071..1072 "\n"
+        EndOfDocumentationCommentToken 1072..1072 ""
+    CloseBraceToken 1072..1073 "}"
+    EndOfLineTrivia 1073..1074 "\n"
+  EndOfFileToken 1074..1074 ""

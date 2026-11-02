@@ -1,0 +1,180 @@
+---
+source: crates/lang-csharp/tests/fixtures.rs
+expression: dump
+---
+CompilationUnit 0..580
+  UsingDirective 0..75
+    SingleLineCommentTrivia 0..23 "// leading file comment"
+    EndOfLineTrivia 23..24 "\n"
+    EndOfLineTrivia 24..25 "\n"
+    MultiLineCommentTrivia 25..36 "/* block */"
+    WhitespaceTrivia 36..37 " "
+    UsingKeyword 37..42 "using"
+    WhitespaceTrivia 42..43 " "
+    IdentifierName 43..49
+      IdentifierToken 43..49 "System"
+    SemicolonToken 49..50 ";"
+    WhitespaceTrivia 50..51 " "
+    SingleLineCommentTrivia 51..74 "// trailing after using"
+    EndOfLineTrivia 74..75 "\n"
+  UsingDirective 75..137
+    UsingKeyword 75..80 "using"
+    WhitespaceTrivia 80..81 " "
+    QualifiedName 81..92
+      IdentifierName 81..87
+        IdentifierToken 81..87 "System"
+      DotToken 87..88 "."
+      IdentifierName 88..92
+        IdentifierToken 88..92 "Linq"
+    SemicolonToken 92..93 ";"
+    WhitespaceTrivia 93..94 " "
+    MultiLineCommentTrivia 94..114 "/* trailing block */"
+    WhitespaceTrivia 114..115 " "
+    SingleLineCommentTrivia 115..136 "// and a line comment"
+    EndOfLineTrivia 136..137 "\n"
+  ClassDeclaration 137..541
+    EndOfLineTrivia 137..138 "\n"
+    MultiLineCommentTrivia 138..156 "/* before class */"
+    EndOfLineTrivia 156..157 "\n"
+    ClassKeyword 157..162 "class"
+    WhitespaceTrivia 162..163 " "
+    IdentifierToken 163..164 "C"
+    WhitespaceTrivia 164..165 " "
+    MultiLineCommentTrivia 165..181 "/* after name */"
+    WhitespaceTrivia 181..182 " "
+    BaseList 182..206
+      ColonToken 182..183 ":"
+      WhitespaceTrivia 183..184 " "
+      SimpleBaseType 184..206
+        IdentifierName 184..206
+          IdentifierToken 184..188 "Base"
+          WhitespaceTrivia 188..189 " "
+          MultiLineCommentTrivia 189..205 "/* after base */"
+          EndOfLineTrivia 205..206 "\n"
+    OpenBraceToken 206..207 "{"
+    WhitespaceTrivia 207..208 " "
+    SingleLineCommentTrivia 208..227 "// after open brace"
+    EndOfLineTrivia 227..228 "\n"
+    FieldDeclaration 228..255
+      VariableDeclaration 228..237
+        PredefinedType 228..233
+          WhitespaceTrivia 228..229 "\t"
+          IntKeyword 229..232 "int"
+          WhitespaceTrivia 232..233 " "
+        VariableDeclarator 233..237
+          IdentifierToken 233..237 "tabs"
+      SemicolonToken 237..238 ";"
+      WhitespaceTrivia 238..239 " "
+      SingleLineCommentTrivia 239..254 "// tab indented"
+      EndOfLineTrivia 254..255 "\n"
+    FieldDeclaration 255..293
+      VariableDeclaration 255..291
+        PredefinedType 255..264
+          EndOfLineTrivia 255..256 "\n"
+          WhitespaceTrivia 256..260 "    "
+          IntKeyword 260..263 "int"
+          WhitespaceTrivia 263..264 " "
+        VariableDeclarator 264..265
+          IdentifierToken 264..265 "a"
+        CommaToken 265..266 ","
+        WhitespaceTrivia 266..267 " "
+        SingleLineCommentTrivia 267..281 "// after comma"
+        EndOfLineTrivia 281..282 "\n"
+        VariableDeclarator 282..291
+          WhitespaceTrivia 282..290 "        "
+          IdentifierToken 290..291 "b"
+      SemicolonToken 291..292 ";"
+      EndOfLineTrivia 292..293 "\n"
+    FieldDeclaration 293..329
+      VariableDeclaration 293..327
+        PredefinedType 293..326
+          EndOfLineTrivia 293..294 "\n"
+          WhitespaceTrivia 294..298 "    "
+          MultiLineCommentTrivia 298..321 "/* multi\n       line */"
+          WhitespaceTrivia 321..322 " "
+          IntKeyword 322..325 "int"
+          WhitespaceTrivia 325..326 " "
+        VariableDeclarator 326..327
+          IdentifierToken 326..327 "c"
+      SemicolonToken 327..328 ";"
+      EndOfLineTrivia 328..329 "\n"
+    MethodDeclaration 329..524
+      PredefinedType 329..339
+        EndOfLineTrivia 329..330 "\n"
+        WhitespaceTrivia 330..334 "    "
+        VoidKeyword 334..338 "void"
+        WhitespaceTrivia 338..339 " "
+      IdentifierToken 339..340 "M"
+      ParameterList 340..385
+        OpenParenToken 340..341 "("
+        MultiLineCommentTrivia 341..356 "/* in params */"
+        WhitespaceTrivia 356..357 " "
+        Parameter 357..376
+          PredefinedType 357..361
+            IntKeyword 357..360 "int"
+            WhitespaceTrivia 360..361 " "
+          IdentifierToken 361..362 "x"
+          WhitespaceTrivia 362..363 " "
+          MultiLineCommentTrivia 363..376 "/* after x */"
+        CommaToken 376..377 ","
+        WhitespaceTrivia 377..378 " "
+        Parameter 378..383
+          PredefinedType 378..382
+            IntKeyword 378..381 "int"
+            WhitespaceTrivia 381..382 " "
+          IdentifierToken 382..383 "y"
+        CloseParenToken 383..384 ")"
+        EndOfLineTrivia 384..385 "\n"
+      Block 385..524
+        WhitespaceTrivia 385..389 "    "
+        OpenBraceToken 389..390 "{"
+        EndOfLineTrivia 390..391 "\n"
+        LocalDeclarationStatement 391..442
+          VariableDeclaration 391..433
+            IdentifierName 391..403
+              WhitespaceTrivia 391..399 "        "
+              IdentifierToken 399..402 "var"
+              WhitespaceTrivia 402..403 " "
+            VariableDeclarator 403..433
+              IdentifierToken 403..404 "s"
+              WhitespaceTrivia 404..405 " "
+              EqualsValueClause 405..433
+                EqualsToken 405..406 "="
+                WhitespaceTrivia 406..407 " "
+                AddExpression 407..433
+                  IdentifierName 407..419
+                    IdentifierToken 407..408 "x"
+                    WhitespaceTrivia 408..409 " "
+                    MultiLineCommentTrivia 409..418 "/* mid */"
+                    WhitespaceTrivia 418..419 " "
+                  PlusToken 419..420 "+"
+                  WhitespaceTrivia 420..421 " "
+                  MultiLineCommentTrivia 421..431 "/* mid2 */"
+                  WhitespaceTrivia 431..432 " "
+                  IdentifierName 432..433
+                    IdentifierToken 432..433 "y"
+          SemicolonToken 433..434 ";"
+          WhitespaceTrivia 434..435 " "
+          SingleLineCommentTrivia 435..441 "// end"
+          EndOfLineTrivia 441..442 "\n"
+        ReturnStatement 442..497
+          EndOfLineTrivia 442..443 "\n"
+          EndOfLineTrivia 443..444 "\n"
+          WhitespaceTrivia 444..452 "        "
+          SingleLineCommentTrivia 452..480 "// a comment alone on a line"
+          EndOfLineTrivia 480..481 "\n"
+          WhitespaceTrivia 481..489 "        "
+          ReturnKeyword 489..495 "return"
+          SemicolonToken 495..496 ";"
+          EndOfLineTrivia 496..497 "\n"
+        WhitespaceTrivia 497..501 "    "
+        CloseBraceToken 501..502 "}"
+        WhitespaceTrivia 502..503 " "
+        SingleLineCommentTrivia 503..523 "// after close brace"
+        EndOfLineTrivia 523..524 "\n"
+    CloseBraceToken 524..525 "}"
+    WhitespaceTrivia 525..526 " "
+    SingleLineCommentTrivia 526..540 "// after class"
+    EndOfLineTrivia 540..541 "\n"
+  SingleLineCommentTrivia 541..580 "// last line comment, no newline at end"
+  EndOfFileToken 580..580 ""
