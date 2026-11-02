@@ -1,8 +1,13 @@
-//! The C# provider: the grammar's typed wrappers and the proxy to the Roslyn worker. The format
-//! code, rules and options arrive with M2b and later.
+//! The C# provider: the grammar's typed wrappers, the proxy to the Roslyn worker and the
+//! formatter.
 
+mod format;
 #[rustfmt::skip]
 pub mod generated;
+
+pub use format::{
+    BRACE_NEWLINE, CSharpFormatter, MEMBER_CHAIN_MIN_CALLS, TRAILING_COMMAS, option_schema,
+};
 
 use core_syntax::{LanguageId, grammars};
 use provider_api::{FileMatcher, OutOfProcessProvider, WorkerConfig};
@@ -40,4 +45,5 @@ pub fn provider(worker_dll: &Path) -> OutOfProcessProvider {
         vec![FileMatcher::extension("cs")],
         WorkerConfig::new(command, grammar.hash()),
     )
+    .with_format(Box::new(CSharpFormatter), option_schema())
 }

@@ -1,19 +1,24 @@
-use super::{Rendered, Slot, container, dangling_comments, gap, render_slots};
+use super::{Rendered, Slot, container, container_between, dangling_comments, gap, render_slots};
 use crate::FormatCtx;
 use crate::comments;
 use crate::doc::{self, Doc};
 use crate::error::FormatError;
-use core_syntax::SyntaxNode;
+use core_syntax::{SyntaxNode, SyntaxToken};
 
 #[derive(Clone, Debug)]
 pub struct BlockStyle {
     /// Blank lines between items kept from the source.
     pub max_blank_lines: usize,
+    /// What stands between the delimiters of an empty block.
+    pub empty: &'static str,
 }
 
 impl Default for BlockStyle {
     fn default() -> Self {
-        BlockStyle { max_blank_lines: 1 }
+        BlockStyle {
+            max_blank_lines: 1,
+            empty: "",
+        }
     }
 }
 
@@ -24,8 +29,26 @@ pub fn block(
     node: &SyntaxNode,
     style: &BlockStyle,
 ) -> Result<Doc, FormatError> {
+    block_of(cx, container(cx, node)?, style)
+}
+
+/// [`block`] for the delimiters `open` and `close` among the children of `node`.
+pub fn block_between(
+    cx: &FormatCtx<'_>,
+    node: &SyntaxNode,
+    open: &SyntaxToken,
+    close: &SyntaxToken,
+    style: &BlockStyle,
+) -> Result<Doc, FormatError> {
+    block_of(cx, container_between(cx, node, Some((open, close)))?, style)
+}
+
+fn block_of(
+    cx: &FormatCtx<'_>,
+    c: super::Container,
+    style: &BlockStyle,
+) -> Result<Doc, FormatError> {
     let g = cx.grammar;
-    let c = container(cx, node)?;
     let dangling = comments::leading_comments(g, &c.close);
     let opening = cx.token(&c.open);
     let closing = doc::concat(vec![
@@ -35,6 +58,7 @@ pub fn block(
     if c.slots.is_empty() && dangling.is_empty() {
         return Ok(doc::concat(vec![
             opening,
+            doc::lit(style.empty),
             cx.token_text(&c.close),
             cx.trailing_comments_doc(&c.close),
         ]));

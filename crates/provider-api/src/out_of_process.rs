@@ -13,7 +13,7 @@ pub struct OutOfProcessProvider {
     grammar: &'static Grammar,
     matchers: Vec<FileMatcher>,
     proxy: WorkerProxy,
-    /// No format options until the C# formatter exists (M2b).
+    formatter: Box<dyn NodeFormatter>,
     schema: OptionSchema,
 }
 
@@ -30,8 +30,17 @@ impl OutOfProcessProvider {
             grammar,
             matchers,
             proxy: WorkerProxy::new(worker),
+            formatter: Box::new(DefaultFormatter),
             schema: OptionSchema::default(),
         }
+    }
+
+    /// The provider's formatting code and its format options; without them every node uses the
+    /// tag defaults and there are no options.
+    pub fn with_format(mut self, formatter: Box<dyn NodeFormatter>, schema: OptionSchema) -> Self {
+        self.formatter = formatter;
+        self.schema = schema;
+        self
     }
 
     pub fn proxy(&self) -> &WorkerProxy {
@@ -67,7 +76,7 @@ impl LanguageProvider for OutOfProcessProvider {
     }
 
     fn formatter(&self) -> &dyn NodeFormatter {
-        &DefaultFormatter
+        self.formatter.as_ref()
     }
 
     fn option_schema(&self) -> &OptionSchema {

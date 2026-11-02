@@ -251,6 +251,16 @@ pub fn verbatim_text(s: &str) -> Doc {
     }
 }
 
+/// One own-line comment (or kept-as-written text) as a document, without the break after it.
+pub fn comment_doc(c: &Comment) -> Doc {
+    let text = c.text();
+    match c.kind {
+        CommentKind::Lines => lines_doc(&text),
+        CommentKind::Directive => doc::concat(vec![doc::line_start(text), doc::break_parent()]),
+        CommentKind::Line | CommentKind::Block => verbatim_text(&text),
+    }
+}
+
 /// The lines of `text` with their indentation replaced by the current one.
 fn lines_doc(text: &str) -> Doc {
     let mut parts = Vec::new();
@@ -270,12 +280,7 @@ pub fn leading_comments_doc(cs: &[Comment]) -> Doc {
     }
     let mut parts = Vec::new();
     for c in cs {
-        let text = c.text();
-        parts.push(match c.kind {
-            CommentKind::Lines => lines_doc(&text),
-            CommentKind::Directive => doc::concat(vec![doc::line_start(text), doc::break_parent()]),
-            CommentKind::Line | CommentKind::Block => verbatim_text(&text),
-        });
+        parts.push(comment_doc(c));
         if c.kind == CommentKind::Line || c.breaks_after > 0 {
             parts.push(doc::hardline());
             if c.breaks_after >= 2 {
@@ -298,11 +303,11 @@ pub fn trailing_comments_doc(cs: &[Comment]) -> Doc {
     for c in cs {
         let body = doc::concat(vec![doc::lit(" "), verbatim_text(&c.text())]);
         match c.kind {
-            CommentKind::Line => {
+            CommentKind::Line | CommentKind::Lines | CommentKind::Directive => {
                 parts.push(doc::line_suffix(body));
                 parts.push(doc::break_parent());
             }
-            CommentKind::Block | CommentKind::Lines | CommentKind::Directive => parts.push(body),
+            CommentKind::Block => parts.push(body),
         }
     }
     doc::concat(parts)

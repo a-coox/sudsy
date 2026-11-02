@@ -710,7 +710,7 @@ node FileScopedNamespaceDeclaration #member #declaration #namespace =
     attribute_lists:AttributeList* modifiers:#modifier* namespace_keyword:NamespaceKeyword name:#name semicolon:SemicolonToken externs:ExternAliasDirective* usings:UsingDirective* members:#member*
 node AttributeList #delimited-list =
     open_bracket:OpenBracketToken target:AttributeTargetSpecifier? attributes:Attribute* close_bracket:CloseBracketToken
-node AttributeTargetSpecifier =
+node AttributeTargetSpecifier #list-prefix =
     identifier:#attribute-target colon:ColonToken
 node Attribute =
     name:#name argument_list:AttributeArgumentList?

@@ -6,9 +6,9 @@ mod block;
 mod key_value;
 mod list;
 
-pub use block::{BlockStyle, block, statement_sequence};
+pub use block::{BlockStyle, block, block_between, statement_sequence};
 pub use key_value::{KeyValueStyle, key_value};
-pub use list::{ListLayout, ListStyle, TrailingComma, delimited_list};
+pub use list::{ListLayout, ListStyle, TrailingComma, delimited_list, delimited_list_between};
 
 use crate::FormatCtx;
 use crate::comments::{self, Comment, CommentKind};
@@ -33,29 +33,69 @@ pub(crate) struct Slot {
 pub(crate) struct Container {
     open: SyntaxToken,
     close: SyntaxToken,
+    /// A node tagged `#list-prefix` before the first item (a C# attribute target: `[assembly: A]`).
+    prefix: Option<SyntaxNode>,
     slots: Vec<Slot>,
 }
 
+/// The container of a node whose first and last significant elements are its delimiters.
 pub(crate) fn container(cx: &FormatCtx<'_>, node: &SyntaxNode) -> Result<Container, FormatError> {
+    container_between(cx, node, None)
+}
+
+/// The container formed by the elements of `node` from the delimiter token `open` to the
+/// delimiter token `close` (the node's first and last when `None`); other children of the node
+/// are the caller's business.
+pub(crate) fn container_between(
+    cx: &FormatCtx<'_>,
+    node: &SyntaxNode,
+    bounds: Option<(&SyntaxToken, &SyntaxToken)>,
+) -> Result<Container, FormatError> {
     let g = cx.grammar;
     let name = g.name(node.kind());
     let shape = |m: &str| FormatError::Shape(format!("{name}: {m}"));
-    let mut elements = node.children_with_tokens().by_kind(|k| !g.is_trivia(k));
-    let Some(SyntaxElement::Token(open)) = elements.next() else {
+    let all: Vec<SyntaxElement> = node
+        .children_with_tokens()
+        .by_kind(|k| !g.is_trivia(k))
+        .collect();
+    let position = |t: &SyntaxToken| {
+        all.iter()
+            .position(|e| matches!(e, SyntaxElement::Token(x) if x == t))
+    };
+    let (first, last) = match bounds {
+        Some((o, c)) => (position(o), position(c)),
+        None => (Some(0), all.len().checked_sub(1)),
+    };
+    let (Some(first), Some(last)) = (first, last) else {
         return Err(shape("expected an opening and a closing token"));
     };
-    let mut slots: Vec<Slot> = Vec::new();
-    // The last element is the closing token, so each one is placed when the next arrives.
-    let mut held: Option<SyntaxElement> = None;
-    for e in elements {
-        if let Some(previous) = held.replace(e) {
-            place(g, &mut slots, previous).map_err(|m| shape(&m))?;
-        }
+    let (Some(SyntaxElement::Token(open)), Some(SyntaxElement::Token(close))) =
+        (all.get(first), all.get(last))
+    else {
+        return Err(shape("expected an opening and a closing token"));
+    };
+    if first >= last {
+        return Err(shape("expected an opening and a closing token"));
     }
-    let Some(SyntaxElement::Token(close)) = held else {
-        return Err(shape("expected an opening and a closing token"));
-    };
-    Ok(Container { open, close, slots })
+    let mut slots: Vec<Slot> = Vec::new();
+    let mut prefix = None;
+    for e in &all[first + 1..last] {
+        if slots.is_empty()
+            && prefix.is_none()
+            && let SyntaxElement::Node(n) = e
+            && g.has_tag(n.kind(), "list-prefix")
+        {
+            prefix = Some(n.clone());
+            continue;
+        }
+        place(g, &mut slots, e.clone()).map_err(|m| shape(&m))?;
+    }
+    Ok(Container {
+        open: open.clone(),
+        close: close.clone(),
+        prefix,
+        slots,
+    })
 }
 
 /// Adds a child between the delimiters: a node starts a slot, a separator ends the last one.
@@ -223,7 +263,7 @@ pub(crate) fn separator_comments(cx: &FormatCtx<'_>, item: &Rendered) -> Doc {
 pub fn dangling_comments(cs: &[Comment]) -> Doc {
     doc::concat(
         cs.iter()
-            .flat_map(|c| [doc::hardline(), crate::context::verbatim_text(&c.text())])
+            .flat_map(|c| [doc::hardline(), crate::context::comment_doc(c)])
             .collect(),
     )
 }

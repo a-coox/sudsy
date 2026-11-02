@@ -17,12 +17,15 @@ pub struct FormatArgs {
     paths: Vec<PathBuf>,
 }
 
-/// Providers that can format. Languages without a formatter yet are not listed, so their files
-/// are skipped.
+/// The providers of the languages Sudsy formats. The C# worker is started on the first C# file
+/// only; when it cannot be found, the C# files fail with the reason and the rest are formatted.
 fn providers() -> Vec<Box<dyn LanguageProvider>> {
+    let worker = lang_csharp::locate_worker()
+        .unwrap_or_else(|_| PathBuf::from("csharp-worker/Sudsy.Worker.dll"));
     vec![
         Box::new(lang_json::JsonProvider::new()),
         Box::new(lang_yaml::YamlProvider::new()),
+        Box::new(lang_csharp::provider(&worker)),
     ]
 }
 
