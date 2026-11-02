@@ -43,40 +43,80 @@ struct Cmd<'a> {
     item: Item<'a>,
 }
 
-/// Indentation levels are interned: a command carries an index into this arena.
+/// One interned indentation level.
+struct Level {
+    text: String,
+    width: usize,
+    /// The level one indent deeper, once it exists.
+    indented: Option<usize>,
+    /// The levels `align` made from this one, as `(spaces, level)`.
+    aligned: Vec<(usize, usize)>,
+}
+
+/// Indentation levels are interned: a command carries an index into this arena, and a level is
+/// built once however often the document indents by it.
 struct Indents {
-    levels: Vec<(String, usize)>,
+    levels: Vec<Level>,
     opts: PrintOptions,
 }
 
 impl Indents {
     fn new(opts: PrintOptions) -> Self {
-        Indents {
-            levels: vec![(String::new(), 0)],
+        let mut indents = Indents {
+            levels: Vec::new(),
             opts,
-        }
+        };
+        indents.push(String::new(), 0);
+        indents
+    }
+
+    fn push(&mut self, text: String, width: usize) -> usize {
+        self.levels.push(Level {
+            text,
+            width,
+            indented: None,
+            aligned: Vec::new(),
+        });
+        self.levels.len() - 1
     }
 
     fn indent(&mut self, parent: usize) -> usize {
-        let (text, width) = self.levels[parent].clone();
-        let (add, w) = if self.opts.use_tabs {
-            ("\t".to_string(), self.opts.indent_width)
+        if let Some(i) = self.levels[parent].indented {
+            return i;
+        }
+        let Level { text, width, .. } = &self.levels[parent];
+        let w = self.opts.indent_width;
+        let (text, width) = if self.opts.use_tabs {
+            (format!("{text}\t"), width + w)
         } else {
-            (" ".repeat(self.opts.indent_width), self.opts.indent_width)
+            (format!("{text}{}", " ".repeat(w)), width + w)
         };
-        self.levels.push((text + &add, width + w));
-        self.levels.len() - 1
+        let i = self.push(text, width);
+        self.levels[parent].indented = Some(i);
+        i
     }
 
     fn align(&mut self, parent: usize, spaces: usize) -> usize {
-        let (text, width) = self.levels[parent].clone();
-        self.levels
-            .push((text + &" ".repeat(spaces), width + spaces));
-        self.levels.len() - 1
+        if let Some((_, i)) = self.levels[parent]
+            .aligned
+            .iter()
+            .find(|(n, _)| *n == spaces)
+        {
+            return *i;
+        }
+        let Level { text, width, .. } = &self.levels[parent];
+        let (text, width) = (format!("{text}{}", " ".repeat(spaces)), width + spaces);
+        let i = self.push(text, width);
+        self.levels[parent].aligned.push((spaces, i));
+        i
     }
 }
 
 fn str_width(s: &str, tab: usize) -> usize {
+    // Printable ASCII is one column per byte.
+    if s.bytes().all(|b| (0x20..0x7f).contains(&b)) {
+        return s.len();
+    }
     s.chars()
         .map(|c| {
             if c == '\t' {
@@ -96,6 +136,20 @@ pub fn print(doc: &mut Doc, opts: &PrintOptions) -> String {
 /// Like [`print`]; also returns the length of the output up to which trailing whitespace is
 /// significant because it was written by [`Doc::Verbatim`].
 pub fn print_protected(doc: &mut Doc, opts: &PrintOptions) -> (String, usize) {
+    let (out, keep, _) = print_counting(doc, opts);
+    (out, keep)
+}
+
+/// Work done by the printer besides writing: the number of steps `fits` took in total. It grows
+/// linearly with the document when each group's measurement stops at its own line; a
+/// measurement that rescans what follows would make it grow faster.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct PrintStats {
+    pub fits_steps: usize,
+}
+
+/// Like [`print_protected`], with the printer's work counted.
+pub fn print_counting(doc: &mut Doc, opts: &PrintOptions) -> (String, usize, PrintStats) {
     doc.propagate_breaks();
     let mut p = Printer {
         opts: *opts,
@@ -105,9 +159,13 @@ pub fn print_protected(doc: &mut Doc, opts: &PrintOptions) -> (String, usize) {
         suffixes: Vec::new(),
         remeasure: false,
         keep: 0,
+        measure: Measure::default(),
     };
     p.run(doc);
-    (p.out, p.keep)
+    let stats = PrintStats {
+        fits_steps: p.measure.steps,
+    };
+    (p.out, p.keep, stats)
 }
 
 struct Printer<'a> {
@@ -120,6 +178,8 @@ struct Printer<'a> {
     remeasure: bool,
     /// Output before this length ends with significant blanks (see [`Doc::Verbatim`]).
     keep: usize,
+    /// Work list of [`fits`], kept between calls.
+    measure: Measure<'a>,
 }
 
 impl<'a> Printer<'a> {
@@ -149,9 +209,9 @@ impl<'a> Printer<'a> {
         let trimmed = self.out.trim_end_matches([' ', '\t']).len().max(self.keep);
         self.out.truncate(trimmed);
         self.out.push('\n');
-        let (text, width) = &self.indents.levels[indent];
-        self.out.push_str(text);
-        self.pos = *width;
+        let level = &self.indents.levels[indent];
+        self.out.push_str(&level.text);
+        self.pos = level.width;
     }
 
     fn write(&mut self, s: &str) {
@@ -256,7 +316,8 @@ impl<'a> Printer<'a> {
                 }
                 self.remeasure = false;
                 let next = flat_cmd(&g.contents);
-                if !g.broken && fits(next, cmds, self.width_left(), false) {
+                let width = self.width_left();
+                if !g.broken && fits(&mut self.measure, next, cmds, width, false) {
                     cmds.push(next);
                 } else if let Some(most_expanded) = g.states.last() {
                     if g.broken {
@@ -266,7 +327,7 @@ impl<'a> Printer<'a> {
                     let chosen = g.states[1..]
                         .iter()
                         .map(flat_cmd)
-                        .find(|c| fits(*c, cmds, self.width_left(), false));
+                        .find(|c| fits(&mut self.measure, *c, cmds, width, false));
                     match chosen {
                         Some(c) => cmds.push(c),
                         None => push(cmds, indent, Mode::Break, most_expanded),
@@ -283,7 +344,7 @@ impl<'a> Printer<'a> {
         let width = self.width_left();
         let [content, rest @ ..] = parts else { return };
         let content_flat = cmd(Mode::Flat, Item::Doc(content));
-        let content_fits = fits_flat_only(content_flat, width);
+        let content_fits = fits(&mut self.measure, content_flat, &[], width, true);
         let [whitespace, rest @ ..] = rest else {
             let m = if content_fits {
                 Mode::Flat
@@ -304,7 +365,8 @@ impl<'a> Printer<'a> {
             return;
         }
         let remaining = cmd(mode, Item::Fill(rest));
-        let first_two_fit = fits_flat_only(cmd(Mode::Flat, Item::Seq(&parts[..3])), width);
+        let first_two = cmd(Mode::Flat, Item::Seq(&parts[..3]));
+        let first_two_fit = fits(&mut self.measure, first_two, &[], width, true);
         if first_two_fit {
             cmds.extend([remaining, ws(Mode::Flat), content_cmd(Mode::Flat)]);
         } else if content_fits {
@@ -315,52 +377,85 @@ impl<'a> Printer<'a> {
     }
 }
 
+/// The work list of [`fits`] and a count of the steps it took.
+#[derive(Default)]
+struct Measure<'a> {
+    stack: Vec<(Mode, Item<'a>)>,
+    steps: usize,
+}
+
+/// Takes the width of `s` off `width`. Only the first line of text with a line break counts
+/// against the current line: then the answer to "does it fit" is known (`Some`).
+fn measure(s: &str, width: &mut isize) -> Option<bool> {
+    match s.find('\n') {
+        Some(i) => Some(*width - (str_width(&s[..i], 1) as isize) >= 0),
+        None => {
+            *width -= str_width(s, 1) as isize;
+            None
+        }
+    }
+}
+
 /// Does `next`, followed by whatever is already queued in `rest`, fit in `width` columns up to
 /// the first line break in break mode?
-fn fits(next: Cmd<'_>, rest: &[Cmd<'_>], width: isize, must_be_flat: bool) -> bool {
+fn fits<'a>(
+    m: &mut Measure<'a>,
+    next: Cmd<'a>,
+    rest: &[Cmd<'a>],
+    width: isize,
+    must_be_flat: bool,
+) -> bool {
     let mut width = width;
     let mut rest_idx = rest.len();
-    let mut stack = vec![(next.mode, next.item)];
+    m.stack.clear();
+    m.stack.push((next.mode, next.item));
     while width >= 0 {
-        let Some((mode, item)) = stack.pop() else {
+        m.steps += 1;
+        let Some((mode, item)) = m.stack.pop() else {
             if rest_idx == 0 {
                 return true;
             }
             rest_idx -= 1;
-            stack.push((rest[rest_idx].mode, rest[rest_idx].item));
+            m.stack.push((rest[rest_idx].mode, rest[rest_idx].item));
             continue;
         };
         let doc = match item {
             Item::Doc(d) => d,
             Item::Seq(parts) | Item::Fill(parts) => {
-                stack.extend(parts.iter().rev().map(|d| (mode, Item::Doc(d))));
+                m.stack
+                    .extend(parts.iter().rev().map(|d| (mode, Item::Doc(d))));
                 continue;
             }
         };
         match doc {
             Doc::Nil | Doc::BreakParent | Doc::LineSuffix(_) => {}
-            Doc::Text(s) | Doc::Verbatim(s) => match s.find('\n') {
-                // Only the first line of verbatim text counts against this line.
-                Some(i) => return width - (str_width(&s[..i], 1) as isize) >= 0,
-                None => width -= str_width(s, 1) as isize,
-            },
-            Doc::Concat(parts) => stack.push((mode, Item::Seq(parts))),
-            Doc::Indent(d) | Doc::Align(_, d) => stack.push((mode, Item::Doc(d))),
-            Doc::IfBreak { broken, flat } => stack.push((
+            Doc::Text(s) => {
+                if let Some(answer) = measure(s, &mut width) {
+                    return answer;
+                }
+            }
+            Doc::Verbatim(s) => {
+                if let Some(answer) = measure(s, &mut width) {
+                    return answer;
+                }
+            }
+            Doc::Concat(parts) => m.stack.push((mode, Item::Seq(parts))),
+            Doc::Indent(d) | Doc::Align(_, d) => m.stack.push((mode, Item::Doc(d))),
+            Doc::IfBreak { broken, flat } => m.stack.push((
                 mode,
                 Item::Doc(if mode == Mode::Break { broken } else { flat }),
             )),
-            Doc::Fill(parts) => stack.push((mode, Item::Fill(parts))),
+            Doc::Fill(parts) => m.stack.push((mode, Item::Fill(parts))),
             Doc::Group(g) => {
                 if must_be_flat && g.broken {
                     return false;
                 }
-                let m = if g.broken { Mode::Break } else { mode };
-                let contents = match (m, g.states.last()) {
+                let group_mode = if g.broken { Mode::Break } else { mode };
+                let contents = match (group_mode, g.states.last()) {
                     (Mode::Break, Some(last)) => last,
                     _ => &g.contents,
                 };
-                stack.push((m, Item::Doc(contents)));
+                m.stack.push((group_mode, Item::Doc(contents)));
             }
             Doc::Line | Doc::SoftLine | Doc::HardLine => {
                 if mode == Mode::Break || matches!(doc, Doc::HardLine) {
@@ -373,8 +468,4 @@ fn fits(next: Cmd<'_>, rest: &[Cmd<'_>], width: isize, must_be_flat: bool) -> bo
         }
     }
     false
-}
-
-fn fits_flat_only(next: Cmd<'_>, width: isize) -> bool {
-    fits(next, &[], width, true)
 }

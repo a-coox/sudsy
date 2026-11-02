@@ -78,7 +78,7 @@ pub fn statement_sequence(
     ))
 }
 
-fn sequence_items(cx: &FormatCtx<'_>, items: Vec<Rendered>, max_blank: usize) -> Doc {
+fn sequence_items(cx: &FormatCtx<'_>, mut items: Vec<Rendered>, max_blank: usize) -> Doc {
     let mut parts = Vec::new();
     for i in 0..items.len() {
         if i > 0 {
@@ -90,7 +90,7 @@ fn sequence_items(cx: &FormatCtx<'_>, items: Vec<Rendered>, max_blank: usize) ->
                 max_blank,
             ));
         }
-        parts.push(items[i].doc.clone());
+        parts.push(std::mem::replace(&mut items[i].doc, Doc::Nil));
         if let Some(sep) = &items[i].sep {
             parts.push(cx.token(sep));
         }

@@ -139,8 +139,8 @@ impl NodeFormatter for YamlFormatter {
 
     /// The data model must be the same before and after: indentation and quoting can change
     /// meaning, and the tree comparison cannot see it.
-    fn extra_check(&self, before: &str, after: &str) -> Result<(), String> {
-        let (a, b) = (model::load(before)?, model::load(after)?);
+    fn extra_check(&self, before: &SyntaxNode, after: &SyntaxNode) -> Result<(), String> {
+        let (a, b) = (model::load_tree(before)?, model::load_tree(after)?);
         if a.len() != b.len() {
             return Err(format!(
                 "the data model changed: {} documents became {}",

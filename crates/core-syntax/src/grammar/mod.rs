@@ -92,6 +92,33 @@ pub struct Grammar {
     tokens: Vec<KindDef>,
     by_name: HashMap<String, SyntaxKind>,
     hash: String,
+    /// Hot tags per kind, indexed like `tokens` and `nodes`.
+    token_flags: Vec<u8>,
+    node_flags: Vec<u8>,
+}
+
+/// Tags that formatting code asks about for every token or node: answered from a bit set
+/// instead of scanning the tag strings.
+const HOT_TAGS: [&str; 7] = [
+    "trivia",
+    "separator",
+    "restyle",
+    "comment",
+    "delimited-list",
+    "block",
+    "key-value",
+];
+
+fn hot_flags(defs: &[KindDef]) -> Vec<u8> {
+    defs.iter()
+        .map(|d| {
+            HOT_TAGS
+                .iter()
+                .enumerate()
+                .filter(|(_, t)| d.has_tag(t))
+                .fold(0u8, |acc, (i, _)| acc | 1 << i)
+        })
+        .collect()
 }
 
 impl Grammar {
@@ -130,11 +157,26 @@ impl Grammar {
     }
 
     pub fn has_tag(&self, kind: SyntaxKind, tag: &str) -> bool {
+        if let Some(bit) = HOT_TAGS.iter().position(|t| *t == tag) {
+            return self.flags_of(kind) & (1 << bit) != 0;
+        }
         self.def(kind).is_some_and(|d| d.has_tag(tag))
     }
 
+    fn flags_of(&self, kind: SyntaxKind) -> u8 {
+        if kind.lang() != self.language_id {
+            return 0;
+        }
+        let list = if kind.is_token() {
+            &self.token_flags
+        } else {
+            &self.node_flags
+        };
+        list.get(kind.index() as usize).copied().unwrap_or(0)
+    }
+
     pub fn is_trivia(&self, kind: SyntaxKind) -> bool {
-        self.has_tag(kind, "trivia")
+        self.flags_of(kind) & 1 != 0
     }
 
     /// All kinds (tokens first, then nodes) carrying `tag`, in id order.

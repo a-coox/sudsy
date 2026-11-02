@@ -5,9 +5,11 @@ use crate::directives::{Directive, DirectiveTable, NodeDirectives};
 use crate::doc::{self, Doc};
 use crate::error::FormatError;
 use crate::ignore::{self, IgnoreMark};
+use crate::lines::LineBreaks;
 use crate::shapes::{self, BlockStyle, KeyValueStyle, ListStyle};
 use core_config::ResolvedOptions;
-use core_syntax::{Grammar, SyntaxElement, SyntaxNode, SyntaxToken};
+use core_syntax::{Grammar, SyntaxElement, SyntaxNode, SyntaxToken, TextRange};
+use std::sync::Mutex;
 
 /// A provider's formatting code. Nodes it does not handle fall back to the shared shape of their
 /// grammar tag (`#block`, `#delimited-list`, `#key-value`), and else to their children
@@ -22,8 +24,9 @@ pub trait NodeFormatter: Send + Sync {
     ) -> Result<Option<Doc>, FormatError>;
 
     /// A provider-specific addition to the generic safety check (YAML compares the loaded data
-    /// model here). `before` and `after` are the source and the formatted output.
-    fn extra_check(&self, _before: &str, _after: &str) -> Result<(), String> {
+    /// model here). `before` and `after` are the trees of the source and of the formatted
+    /// output, both already parsed without errors.
+    fn extra_check(&self, _before: &SyntaxNode, _after: &SyntaxNode) -> Result<(), String> {
         Ok(())
     }
 }
@@ -45,6 +48,8 @@ pub struct FormatCtx<'a> {
     pub options: &'a ResolvedOptions,
     pub directives: &'a DirectiveTable,
     formatter: &'a dyn NodeFormatter,
+    /// The line breaks of the tree being formatted, found when first asked for.
+    line_breaks: Mutex<Option<LineBreaks>>,
 }
 
 impl<'a> FormatCtx<'a> {
@@ -59,7 +64,19 @@ impl<'a> FormatCtx<'a> {
             options,
             directives,
             formatter,
+            line_breaks: Mutex::new(None),
         }
+    }
+
+    /// Does the source contain a line break (`\n` or `\r`) within `range`, which is given in the
+    /// offsets of the tree `node` is in?
+    pub fn has_line_break(&self, node: &SyntaxNode, range: TextRange) -> bool {
+        let root = node.ancestors().last().unwrap_or_else(|| node.clone());
+        let mut cached = self.line_breaks.lock().unwrap_or_else(|e| e.into_inner());
+        if !cached.as_ref().is_some_and(|l| l.is_of(&root)) {
+            *cached = Some(LineBreaks::of(&root));
+        }
+        cached.as_ref().is_some_and(|l| l.any_in(range))
     }
 
     pub fn directives_of(&self, node: &SyntaxNode) -> NodeDirectives<'a> {
@@ -69,7 +86,10 @@ impl<'a> FormatCtx<'a> {
     /// Formats a child node. Honors `sudsy-ignore` comments before the node and the `Preserve`
     /// directive; use [`FormatCtx::format_unguarded`] for the node a caller was invoked for.
     pub fn format(&self, node: &SyntaxNode) -> Result<Doc, FormatError> {
-        if let Some(first) = self.first_token(node) {
+        // Only a comment can ask for the node to be kept as written.
+        if comments::node_leading(self.grammar, node).has_comment
+            && let Some(first) = self.first_token(node)
+        {
             let leading = comments::leading_comments(self.grammar, &first);
             if ignore::mark_in(self.grammar, &leading) == Some(IgnoreMark::Ignore) {
                 return Ok(self.verbatim_node(node));
@@ -106,17 +126,24 @@ impl<'a> FormatCtx<'a> {
 
     /// Children printed one after the other, with no spacing.
     pub fn concat_children(&self, node: &SyntaxNode) -> Result<Doc, FormatError> {
+        // The first part waits in `single`: most nodes have just one, and need no list.
+        let mut single = None;
         let mut parts = Vec::new();
-        for e in node.children_with_tokens() {
-            match e {
-                SyntaxElement::Node(n) => parts.push(self.format(&n)?),
-                SyntaxElement::Token(t) if !self.grammar.is_trivia(t.kind()) => {
-                    parts.push(self.token(&t))
-                }
-                SyntaxElement::Token(_) => {}
+        let significant = node
+            .children_with_tokens()
+            .by_kind(|k| !self.grammar.is_trivia(k));
+        for e in significant {
+            let part = match e {
+                SyntaxElement::Node(n) => self.format(&n)?,
+                SyntaxElement::Token(t) => self.token(&t),
+            };
+            match single.take() {
+                None if parts.is_empty() => single = Some(part),
+                None => parts.push(part),
+                Some(first) => parts.extend([first, part]),
             }
         }
-        Ok(doc::concat(parts))
+        Ok(single.unwrap_or_else(|| doc::concat(parts)))
     }
 
     pub fn first_token(&self, node: &SyntaxNode) -> Option<SyntaxToken> {
@@ -126,24 +153,30 @@ impl<'a> FormatCtx<'a> {
     }
 
     pub fn last_token(&self, node: &SyntaxNode) -> Option<SyntaxToken> {
-        let mut last = None;
-        for t in node
-            .descendants_with_tokens()
-            .filter_map(SyntaxElement::into_token)
-        {
+        // Walk back from the node's last token over trivia, staying inside the node.
+        let mut cur = node.last_token();
+        while let Some(t) = cur {
             if !self.grammar.is_trivia(t.kind()) {
-                last = Some(t);
+                return Some(t);
             }
+            cur = t
+                .prev_token()
+                .filter(|p| p.parent_ancestors().any(|a| a == *node));
         }
-        last
+        None
     }
 
     /// A token with its leading and trailing comments.
     pub fn token(&self, tok: &SyntaxToken) -> Doc {
+        let leading = comments::leading_comments(self.grammar, tok);
+        let trailing = comments::trailing_comments(self.grammar, tok);
+        if leading.is_empty() && trailing.is_empty() {
+            return self.token_text(tok);
+        }
         doc::concat(vec![
-            self.leading_comments_doc(tok),
+            leading_comments_doc(&leading),
             self.token_text(tok),
-            self.trailing_comments_doc(tok),
+            trailing_comments_doc(&trailing),
         ])
     }
 
@@ -193,12 +226,15 @@ pub fn verbatim_text(s: &str) -> Doc {
     if s.contains('\n') || s.contains('\r') {
         doc::concat(vec![doc::text(s), doc::break_parent()])
     } else {
-        doc::text(s)
+        doc::snippet(s)
     }
 }
 
 /// Own-line comments go on their own lines, inline block comments stay inline.
 pub fn leading_comments_doc(cs: &[Comment]) -> Doc {
+    if cs.is_empty() {
+        return Doc::Nil;
+    }
     let mut parts = Vec::new();
     for c in cs {
         parts.push(verbatim_text(c.text()));
@@ -208,7 +244,7 @@ pub fn leading_comments_doc(cs: &[Comment]) -> Doc {
                 parts.push(doc::hardline());
             }
         } else {
-            parts.push(doc::text(" "));
+            parts.push(doc::lit(" "));
         }
     }
     doc::concat(parts)
@@ -217,9 +253,12 @@ pub fn leading_comments_doc(cs: &[Comment]) -> Doc {
 /// Comments after a token on its line: line comments are deferred to the end of the line and
 /// force the enclosing group to break.
 pub fn trailing_comments_doc(cs: &[Comment]) -> Doc {
+    if cs.is_empty() {
+        return Doc::Nil;
+    }
     let mut parts = Vec::new();
     for c in cs {
-        let body = doc::concat(vec![doc::text(" "), verbatim_text(c.text())]);
+        let body = doc::concat(vec![doc::lit(" "), verbatim_text(c.text())]);
         match c.kind {
             CommentKind::Line => {
                 parts.push(doc::line_suffix(body));
