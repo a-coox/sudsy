@@ -222,8 +222,8 @@ M0.
   allowed. `FilePattern::InDirectory` was added for `.vscode/*.json`.
 * **Options**: `line_width` 80, `indent_size` 2, `indent_style`, `final_newline` true, `dialect`,
   `trailing_commas` (`never`|`multiline`, JSONC only, default `never`) and `collapse`:
-  `preserve` (default: an object or array stays on one line only if it had no line break after its
-  opening bracket and it fits), `always` (anything that fits goes on one line), `never` (every
+  `preserve` (default: an object or array stays on one line only if its source had no line break
+  anywhere between its delimiters, nested items included, and it fits), `always` (anything that fits goes on one line), `never` (every
   non-empty one is expanded). Objects print `{ "a": 1 }`, arrays `[1, 2]`; not configurable.
 * **Config resolution** (`Config::format_options`): schema defaults, then the shared `format:`
   keys, then the language section. Unknown keys in a language section and invalid values are

@@ -22,7 +22,7 @@ fn read(dir: &Path, rel: &str) -> String {
 }
 
 const MESSY: &str = "{\"a\":   1,\n \"b\":[1,2]}";
-const CLEAN: &str = "{ \"a\": 1, \"b\": [1, 2] }\n";
+const CLEAN: &str = "{\n  \"a\": 1,\n  \"b\": [1, 2]\n}\n";
 
 #[test]
 fn formats_files_in_place() {
@@ -163,6 +163,6 @@ fn keeps_crlf_and_byte_order_mark() {
     let bytes = fs::read(t.path().join("a.json")).unwrap();
     assert_eq!(
         String::from_utf8(bytes).unwrap(),
-        "\u{feff}{ \"a\": 1 }\r\n"
+        "\u{feff}{\r\n  \"a\": 1\r\n}\r\n"
     );
 }

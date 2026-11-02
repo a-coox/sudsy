@@ -4,7 +4,7 @@ use crate::comments;
 use crate::directives::Directive;
 use crate::doc::{self, Doc};
 use crate::error::FormatError;
-use core_syntax::SyntaxNode;
+use core_syntax::{SyntaxNode, SyntaxToken, TextRange};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum TrailingComma {
@@ -17,8 +17,8 @@ pub enum TrailingComma {
 pub enum ListLayout {
     /// One line if it fits, else one item per line.
     Fit,
-    /// Like `Fit`, but a list that has a line break after its opening delimiter in the source
-    /// stays expanded.
+    /// Like `Fit`, but a list with a line break anywhere between its delimiters in the source
+    /// (nested items included) stays expanded.
     PreserveBreak,
     /// Always one item per line.
     Break,
@@ -115,7 +115,7 @@ pub fn delimited_list(
         match style.layout {
             ListLayout::Fit => false,
             ListLayout::Break => !items.is_empty(),
-            ListLayout::PreserveBreak => !items.is_empty() && comments::break_after(g, &c.open),
+            ListLayout::PreserveBreak => !items.is_empty() && spans_lines(node, &c.open, &c.close),
         }
     };
     let list = if broken {
@@ -124,4 +124,16 @@ pub fn delimited_list(
         doc::group(body)
     };
     Ok(doc::concat(vec![before, list, after]))
+}
+
+/// Does the source between the opening and the closing delimiter contain a line break? Trivia
+/// outside the delimiters (the node's own leading and trailing trivia) do not count.
+fn spans_lines(node: &SyntaxNode, open: &SyntaxToken, close: &SyntaxToken) -> bool {
+    let base = node.text_range().start();
+    let range = TextRange::new(
+        open.text_range().start() - base,
+        close.text_range().start() - base,
+    );
+    let text = node.text().slice(range);
+    text.contains_char(char::from(10)) || text.contains_char(char::from(13))
 }

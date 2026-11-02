@@ -40,6 +40,12 @@ const NESTED_BROKEN: &str = r#"{
 
 // Delimited list and block shape defaults ------------------------------------------------------
 
+snap!(
+    newline_after_a_comma_expands_the_outer_object_only,
+    "y.json",
+    "{\"z\":[1,2],
+\"y\":{\"k\":\"v\"}}"
+);
 snap!(object_flat_stays_flat, "a.json", NESTED_FLAT);
 snap!(
     object_with_break_after_brace_stays_expanded,
