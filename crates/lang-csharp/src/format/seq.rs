@@ -3,6 +3,7 @@
 
 use super::options::brace_on_new_line;
 use super::spacing;
+use super::tags::{self, Tag};
 use crate::generated::kind as k;
 use core_format::doc::{self, Doc};
 use core_format::{FormatCtx, FormatError};
@@ -132,7 +133,7 @@ pub fn separator(
                 Sep::Brace
             };
         }
-        if cx.grammar.has_tag(nk, "initializer-expression") {
+        if tags::has(cx.grammar, nk, Tag::InitializerExpression) {
             return match pk {
                 k::OBJECT_CREATION_EXPRESSION
                 | k::IMPLICIT_OBJECT_CREATION_EXPRESSION
@@ -152,7 +153,7 @@ pub fn separator(
             };
         }
         if has_embedded_body(pk)
-            && cx.grammar.has_tag(nk, "statement")
+            && tags::has(cx.grammar, nk, Tag::Statement)
             && !(pk == k::ELSE_CLAUSE && nk == k::IF_STATEMENT)
         {
             return Sep::Embedded;
@@ -163,7 +164,7 @@ pub fn separator(
         if nk == k::TYPE_PARAMETER_CONSTRAINT_CLAUSE {
             return Sep::HardIndented;
         }
-        if pk == k::LABELED_STATEMENT && cx.grammar.has_tag(nk, "statement") {
+        if pk == k::LABELED_STATEMENT && tags::has(cx.grammar, nk, Tag::Statement) {
             return Sep::Hard;
         }
     }
@@ -314,7 +315,10 @@ pub fn prefix_unary(cx: &FormatCtx<'_>, node: &SyntaxNode) -> Result<Option<Doc>
     };
     let merges = cx.first_token(operand).is_some_and(|f| {
         let (a, b) = (op.text().chars().next_back(), f.text().chars().next());
-        matches!((a, b), (Some('+'), Some('+')) | (Some('-'), Some('-')) | (Some('&'), Some('&')))
+        matches!(
+            (a, b),
+            (Some('+'), Some('+')) | (Some('-'), Some('-')) | (Some('&'), Some('&'))
+        )
     });
     let _ = g;
     Ok(Some(doc::concat(vec![

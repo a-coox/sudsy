@@ -276,7 +276,8 @@ snap!(
 
 #[test]
 fn symbols_select_the_active_branch() {
-    let input = "class C\n{\n#if FEATURE\n    void   A() { }\n#else\n    void   B() { }\n#endif\n}\n";
+    let input =
+        "class C\n{\n#if FEATURE\n    void   A() { }\n#else\n    void   B() { }\n#endif\n}\n";
     let on = subject(&[]).with_symbols(&["FEATURE"]);
     let off = subject(&[]);
     let out_on = assert_formats(&on, input);

@@ -168,10 +168,8 @@ fn corelib_format_throughput() {
         let mut doc = cx.format_unguarded(&parsed.tree).unwrap();
         layout += t.elapsed();
         let t = Instant::now();
-        let (printed, _) = core_format::printer::print_protected(
-            &mut doc,
-            &core_format::print_options(&options),
-        );
+        let (printed, _) =
+            core_format::printer::print_protected(&mut doc, &core_format::print_options(&options));
         print += t.elapsed();
         out_bytes += printed.len();
         let mut again = file.clone();
@@ -192,7 +190,10 @@ fn corelib_format_throughput() {
         bytes as f64 / 1e6,
         out_bytes as f64 / 1e6
     );
-    println!("  worker parse (parse, mapping, transfer): {:.0} ms", ms(parse));
+    println!(
+        "  worker parse (parse, mapping, transfer): {:.0} ms",
+        ms(parse)
+    );
     println!("  layout document: {:.0} ms", ms(layout));
     println!("  print: {:.0} ms", ms(print));
     println!("  safety re-parse: {:.0} ms", ms(reparse));

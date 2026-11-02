@@ -63,6 +63,7 @@ impl NodeFormatter for Statements {
                 node,
                 &BlockStyle {
                     max_blank_lines: self.max_blank_lines,
+                    ..BlockStyle::default()
                 },
             )
             .map(Some),

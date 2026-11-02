@@ -2,7 +2,7 @@
 //! attribute lists, and the hook that keeps a lambda as the last argument on the call's line.
 
 use super::options::trailing_comma;
-use super::seq::{R, Sep, direct_tokens, sep_doc, seq_of, separator, sig};
+use super::seq::{R, Sep, direct_tokens, sep_doc, separator, seq_of, sig};
 use crate::generated::kind as k;
 use core_format::shapes::{
     ListLayout, ListStyle, TrailingComma, delimited_list, delimited_list_between,

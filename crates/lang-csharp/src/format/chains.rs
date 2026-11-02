@@ -1,31 +1,18 @@
 //! Expressions that lay out as a chain: binary operators, member accesses and calls, assignments
 //! and the conditional operator.
 
-use super::seq::{R, Sep, paren_group, sep_doc, sig};
+use super::seq::{R, paren_group, sig};
+use super::tags::{self, Tag};
 use crate::generated::kind as k;
 use core_format::doc::{self, Doc};
+use core_format::shapes::{
+    self, MemberChain, ends_in_line_comment, gap_after_operator, member_chain as member_chain_shape,
+};
 use core_format::{FormatCtx, FormatError};
 use core_syntax::{SyntaxElement, SyntaxNode, SyntaxToken};
 
 fn shape(msg: &str) -> FormatError {
     FormatError::Shape(msg.into())
-}
-
-/// Does a line comment follow this token on its line? Whatever comes next must then start a
-/// new line, or the comment would move to the end of a later line (and change owner).
-fn ends_in_line_comment(cx: &FormatCtx<'_>, t: &SyntaxToken) -> bool {
-    core_format::comments::trailing_comments(cx.grammar, t)
-        .iter()
-        .any(|c| c.kind != core_format::comments::CommentKind::Block)
-}
-
-/// The space after an operator, or a line break when its comment ends the line.
-fn after_operator(cx: &FormatCtx<'_>, op: &SyntaxToken) -> Doc {
-    if ends_in_line_comment(cx, op) {
-        doc::hardline()
-    } else {
-        doc::lit(" ")
-    }
 }
 
 // ---------------------------------------------------------------- assignment
@@ -34,7 +21,7 @@ fn after_operator(cx: &FormatCtx<'_>, op: &SyntaxToken) -> Doc {
 fn breaks_after_operator(cx: &FormatCtx<'_>, rhs: &SyntaxNode) -> bool {
     // A comment on its own line before the value keeps the value on the next line.
     core_format::comments::node_leading(cx.grammar, rhs).has_comment
-        || cx.grammar.has_tag(rhs.kind(), "binary-chain")
+        || tags::has(cx.grammar, rhs.kind(), Tag::BinaryChain)
         || matches!(rhs.kind(), k::CONDITIONAL_EXPRESSION | k::QUERY_EXPRESSION)
 }
 
@@ -62,7 +49,8 @@ pub fn assignment(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
         SyntaxElement::Node(left),
         SyntaxElement::Token(op),
         SyntaxElement::Node(right),
-    ] = els.as_slice() else {
+    ] = els.as_slice()
+    else {
         return Err(shape("assignment: expected left, operator and right"));
     };
     let lead = doc::concat(vec![cx.format(left)?, doc::lit(" "), cx.token(op)]);
@@ -95,7 +83,8 @@ pub fn conditional(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
         SyntaxElement::Node(yes),
         SyntaxElement::Token(c),
         SyntaxElement::Node(no),
-    ] = els.as_slice() else {
+    ] = els.as_slice()
+    else {
         return Err(shape("conditional expression: unexpected children"));
     };
     Ok(doc::group(doc::concat(vec![
@@ -103,11 +92,11 @@ pub fn conditional(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
         doc::indent(doc::concat(vec![
             doc::line(),
             cx.token(q),
-            after_operator(cx, q),
+            gap_after_operator(cx, q),
             cx.format(yes)?,
             doc::line(),
             cx.token(c),
-            after_operator(cx, c),
+            gap_after_operator(cx, c),
             cx.format(no)?,
         ])),
     ])))
@@ -119,7 +108,8 @@ pub fn parenthesized(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
         SyntaxElement::Token(open),
         SyntaxElement::Node(expr),
         SyntaxElement::Token(close),
-    ] = els.as_slice() else {
+    ] = els.as_slice()
+    else {
         return Err(shape("parenthesized expression: unexpected children"));
     };
     paren_group(cx, open, expr, close)
@@ -146,7 +136,10 @@ fn level(op: &str) -> u8 {
     }
 }
 
-fn parts_of(cx: &FormatCtx<'_>, node: &SyntaxNode) -> Option<(SyntaxNode, SyntaxToken, SyntaxNode)> {
+fn parts_of(
+    cx: &FormatCtx<'_>,
+    node: &SyntaxNode,
+) -> Option<(SyntaxNode, SyntaxToken, SyntaxNode)> {
     match sig(cx, node).as_slice() {
         [
             SyntaxElement::Node(l),
@@ -172,8 +165,8 @@ fn parent_indents(cx: &FormatCtx<'_>, parent: Option<SyntaxNode>) -> bool {
             | k::DO_STATEMENT
             | k::LOCK_STATEMENT
             | k::SWITCH_STATEMENT
-    ) || cx.grammar.has_tag(kind, "assignment")
-        || cx.grammar.has_tag(kind, "binary-chain")
+    ) || tags::has(cx.grammar, kind, Tag::Assignment)
+        || tags::has(cx.grammar, kind, Tag::BinaryChain)
 }
 
 /// `a + b + c`: the operands of one precedence level, one per line (operator first) when the
@@ -183,7 +176,7 @@ pub fn binary_chain(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
     let (_, top_op, _) = parts_of(cx, node).ok_or_else(|| shape("binary expression"))?;
     let lvl = level(top_op.text());
     let same_level = |n: &SyntaxNode| {
-        g.has_tag(n.kind(), "binary-chain")
+        tags::has(g, n.kind(), Tag::BinaryChain)
             && parts_of(cx, n).is_some_and(|(_, op, _)| level(op.text()) == lvl)
     };
     if lvl == 11 {
@@ -203,7 +196,7 @@ pub fn binary_chain(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
     };
     rest.reverse();
     let indent = !parent_indents(cx, node.parent());
-    layout(cx, &first, &rest, indent)
+    shapes::binary_chain(cx, &first, &rest, indent)
 }
 
 /// `a ?? b ?? c` groups to the right: `a ?? (b ?? c)`.
@@ -216,7 +209,7 @@ fn coalesce_chain(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
         let (l, op, r) = parts_of(cx, &cur).ok_or_else(|| shape("binary expression"))?;
         operands.push(l);
         ops.push(op);
-        let continues = g.has_tag(r.kind(), "binary-chain")
+        let continues = tags::has(g, r.kind(), Tag::BinaryChain)
             && parts_of(cx, &r).is_some_and(|(_, o, _)| level(o.text()) == 11);
         if continues {
             cur = r;
@@ -228,27 +221,7 @@ fn coalesce_chain(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
     let first = operands.remove(0);
     let rest: Vec<(SyntaxToken, SyntaxNode)> = ops.into_iter().zip(operands).collect();
     let indent = !parent_indents(cx, node.parent());
-    layout(cx, &first, &rest, indent)
-}
-
-fn layout(
-    cx: &FormatCtx<'_>,
-    first: &SyntaxNode,
-    rest: &[(SyntaxToken, SyntaxNode)],
-    indent: bool,
-) -> R {
-    let mut tail = Vec::with_capacity(rest.len());
-    for (op, operand) in rest {
-        tail.push(doc::line());
-        tail.push(cx.token(op));
-        tail.push(after_operator(cx, op));
-        tail.push(cx.format(operand)?);
-    }
-    let tail = doc::concat(tail);
-    Ok(doc::group(doc::concat(vec![
-        cx.format(first)?,
-        if indent { doc::indent(tail) } else { tail },
-    ])))
+    shapes::binary_chain(cx, &first, &rest, indent)
 }
 
 // ------------------------------------------------------------------- member
@@ -272,7 +245,7 @@ fn walk(
 ) -> Result<Option<SyntaxNode>, FormatError> {
     let els = sig(cx, node);
     let inner = |cx: &FormatCtx<'_>, n: &SyntaxNode, links: &mut Vec<Link>| {
-        if cx.grammar.has_tag(n.kind(), "member-chain") {
+        if tags::has(cx.grammar, n.kind(), Tag::MemberChain) {
             walk(cx, n, links)
         } else {
             Ok(Some(n.clone()))
@@ -291,7 +264,11 @@ fn walk(
         }
         (
             k::SIMPLE_MEMBER_ACCESS_EXPRESSION,
-            [SyntaxElement::Node(e), SyntaxElement::Token(op), SyntaxElement::Node(name)],
+            [
+                SyntaxElement::Node(e),
+                SyntaxElement::Token(op),
+                SyntaxElement::Node(name),
+            ],
         ) => {
             let head = inner(cx, e, links)?;
             links.push(Link::Dot(op.clone(), name.clone()));
@@ -307,11 +284,15 @@ fn walk(
         }
         (
             k::CONDITIONAL_ACCESS_EXPRESSION,
-            [SyntaxElement::Node(e), SyntaxElement::Token(q), SyntaxElement::Node(w)],
+            [
+                SyntaxElement::Node(e),
+                SyntaxElement::Token(q),
+                SyntaxElement::Node(w),
+            ],
         ) => {
             let head = inner(cx, e, links)?;
             links.push(Link::Question(q.clone()));
-            if cx.grammar.has_tag(w.kind(), "member-chain") {
+            if tags::has(cx.grammar, w.kind(), Tag::MemberChain) {
                 walk(cx, w, links)?;
             } else {
                 links.push(Link::Tail(w.clone()));
@@ -407,35 +388,14 @@ pub fn member_chain(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
     let mut head_parts = vec![cx.format(&head)?];
     head_parts.extend(prefix);
     let min_calls = cx.options.int(super::options::MEMBER_CHAIN_MIN_CALLS) as usize;
-    let commented = has_line_comment(cx, &links);
-    if (calls < min_calls && !commented) || groups.is_empty() {
-        for g in groups {
-            head_parts.extend(g);
-        }
-        return Ok(doc::concat(head_parts));
-    }
-    if merges_first_group(cx, &head) {
+    if merges_first_group(cx, &head) && !groups.is_empty() {
         head_parts.extend(groups.remove(0));
     }
-    let flat = {
-        let mut parts = head_parts.clone();
-        for g in &groups {
-            parts.extend(g.iter().cloned());
-        }
-        doc::concat(parts)
-    };
-    if groups.is_empty() {
-        return Ok(flat);
-    }
-    let mut broken = head_parts;
-    let mut tail = Vec::new();
-    for g in groups {
-        tail.push(sep_doc(cx, Sep::Hard));
-        tail.extend(g);
-    }
-    broken.push(doc::indent(doc::concat(tail)));
-    if commented {
-        return Ok(doc::concat(broken));
-    }
-    Ok(doc::conditional_group(vec![flat, doc::concat(broken)]))
+    Ok(member_chain_shape(MemberChain {
+        head: head_parts,
+        groups,
+        calls,
+        min_calls,
+        force_break: has_line_comment(cx, &links),
+    }))
 }
