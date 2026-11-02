@@ -1,0 +1,28 @@
+---
+source: crates/lang-yaml/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+plain: first line
+    second line
+
+    after blank
+quoted: "one
+    two"
+single: 'a
+ b'
+seq:
+- plain
+    more
+
+-----
+plain: first line
+  second line
+
+  after blank
+quoted: "one
+  two"
+single: 'a
+  b'
+seq:
+- plain
+  more

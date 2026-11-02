@@ -1,0 +1,32 @@
+---
+source: crates/lang-yaml/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+base: &b
+  k: v
+use: *b
+t: !!str  12
+m: !!map
+  a: b
+s: !!seq
+- x
+list:
+- &i item
+- !t {a: 1}
+- &c
+  k: v
+
+-----
+base: &b
+  k: v
+use: *b
+t: !!str 12
+m: !!map
+  a: b
+s: !!seq
+- x
+list:
+- &i item
+- !t { a: 1 }
+- &c
+  k: v

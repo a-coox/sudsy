@@ -1,0 +1,13 @@
+---
+source: crates/lang-yaml/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+# only a comment
+
+
+# another
+
+-----
+# only a comment
+
+# another

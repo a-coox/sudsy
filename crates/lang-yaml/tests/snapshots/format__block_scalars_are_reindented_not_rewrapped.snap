@@ -1,0 +1,32 @@
+---
+source: crates/lang-yaml/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+lit: |
+      deep text
+        more   
+      end
+fold: >-
+   folded
+   text
+
+   para
+list:
+  - |
+        item
+  - next
+
+-----
+lit: |
+  deep text
+    more   
+  end
+fold: >-
+  folded
+  text
+
+  para
+list:
+  - |
+    item
+  - next

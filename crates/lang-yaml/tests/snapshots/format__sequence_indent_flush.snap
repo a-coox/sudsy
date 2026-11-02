@@ -1,0 +1,24 @@
+---
+source: crates/lang-yaml/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+flush:
+- a
+- b
+indented:
+    - c
+    - d
+nested:
+  inner:
+      - e
+
+-----
+flush:
+- a
+- b
+indented:
+- c
+- d
+nested:
+  inner:
+  - e

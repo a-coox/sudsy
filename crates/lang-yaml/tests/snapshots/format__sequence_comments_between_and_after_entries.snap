@@ -1,0 +1,22 @@
+---
+source: crates/lang-yaml/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+list:
+  - a
+  # between
+  - b   # trailing b
+    # inside b?
+  - c
+  # after the list
+next: 1
+
+-----
+list:
+  - a
+  # between
+  - b # trailing b
+  # inside b?
+  - c
+  # after the list
+next: 1

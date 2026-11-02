@@ -64,7 +64,7 @@ fn block_scalars_split_header_and_content() {
         .filter(|t| t.kind() == k::BLOCK_CONTENT)
         .map(|t| t.text().to_string())
         .collect();
-    assert_eq!(content, ["  x\n\n\n", "  y"]);
+    assert_eq!(content, ["  x", "  y"]);
 }
 
 #[test]
@@ -142,4 +142,25 @@ fn generated_code_matches_the_grammar() {
     assert_eq!(g.hash(), GRAMMAR_HASH);
     assert_eq!(g.kind_by_name("BlockMapping"), Some(k::BLOCK_MAPPING));
     assert_eq!(g.kind_by_name("Plain"), Some(k::PLAIN));
+}
+
+#[test]
+fn nesting_beyond_the_limit_is_an_error_not_a_crash() {
+    let deep = |n: usize| format!("{}x{}", "[".repeat(n), "]".repeat(n));
+    let ok = parse(&deep(lang_yaml::MAX_DEPTH));
+    assert!(ok.errors.is_empty(), "{:?}", ok.errors.first());
+    let too_deep = parse(&deep(lang_yaml::MAX_DEPTH + 1));
+    assert_eq!(too_deep.errors[0].code, "too-deep");
+    assert_eq!(print(&too_deep.tree), deep(lang_yaml::MAX_DEPTH + 1));
+    // Block nesting counts too.
+    let blocks: String = (0..lang_yaml::MAX_DEPTH + 10)
+        .map(|i| {
+            format!(
+                "{}- 
+",
+                " ".repeat(i)
+            )
+        })
+        .collect();
+    assert_eq!(parse(&blocks).errors[0].code, "too-deep");
 }

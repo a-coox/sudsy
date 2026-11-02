@@ -6,7 +6,9 @@ use super::comments::{
 };
 use super::{SequenceIndent, Style, scalars};
 use crate::generated::kind as k;
-use crate::tree::{column, first_token, is_trivia, line_break_between};
+use crate::tree::{column, first_token, is_trivia, last_token, line_break_between};
+use core_format::comments;
+use core_format::ignore::{self, IgnoreMark};
 use core_format::shapes::{ListLayout, ListStyle, TrailingComma, delimited_list};
 use core_format::{Doc, FormatCtx, FormatError, doc};
 use core_syntax::{SyntaxElement, SyntaxNode, SyntaxToken};
@@ -56,15 +58,34 @@ pub(crate) enum Ctx {
 }
 
 /// Entries one under the other with the blank lines of the source, then the comments that
-/// belong at the end of the collection.
+/// belong at the end of the collection. Entries between `sudsy-ignore-start` and
+/// `sudsy-ignore-end` comments are kept as written.
 pub(crate) fn collection(cx: &FormatCtx<'_>, st: &Style, node: &SyntaxNode) -> R {
+    let g = cx.grammar;
+    let entries: Vec<SyntaxNode> = node.children().collect();
+    let mark = |entry: &SyntaxNode| {
+        let first = first_token(entry)?;
+        ignore::mark_in(g, &comments::leading_comments(g, &first))
+    };
     let mut out = Vec::new();
-    for (i, entry) in node.children().enumerate() {
+    let mut i = 0;
+    while i < entries.len() {
+        let first = first_token(&entries[i]).ok_or_else(|| shape("an empty entry"))?;
         if i > 0 {
-            let first = first_token(&entry).ok_or_else(|| shape("an empty entry"))?;
             out.push(gap(cx, st, &first));
         }
-        out.push(cx.format(&entry)?);
+        if mark(&entries[i]) == Some(IgnoreMark::Start) {
+            let mut j = i + 1;
+            while j < entries.len() && mark(&entries[j]) != Some(IgnoreMark::End) {
+                j += 1;
+            }
+            let last = last_token(&entries[j - 1]).ok_or_else(|| shape("an empty entry"))?;
+            out.push(cx.verbatim_range(&first, &last));
+            i = j;
+        } else {
+            out.push(cx.format(&entries[i])?);
+            i += 1;
+        }
     }
     out.push(dangling(cx, st, node));
     Ok(doc::concat(out))

@@ -1,0 +1,22 @@
+---
+source: crates/lang-yaml/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+a:
+  b:
+    c: 1
+    # about c
+  # about b
+# about a
+d: 2
+    # indented at the end
+
+-----
+a:
+  b:
+    c: 1
+    # about c
+  # about b
+# about a
+d: 2
+# indented at the end

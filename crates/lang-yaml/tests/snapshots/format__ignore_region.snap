@@ -1,0 +1,20 @@
+---
+source: crates/lang-yaml/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+a:    1
+# sudsy-ignore-start
+b:   [1,    2]
+  # inside
+c:    3
+# sudsy-ignore-end
+d:    4
+
+-----
+a: 1
+# sudsy-ignore-start
+b:   [1,    2]
+  # inside
+c:    3
+# sudsy-ignore-end
+d: 4

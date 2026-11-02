@@ -12,7 +12,7 @@ mod tree;
 pub use format::{
     DOCUMENT_START, MAX_BLANK_LINES, QUOTE_STYLE, SEQUENCE_INDENT, YamlFormatter, option_schema,
 };
-pub use parser::{Parsed, parse};
+pub use parser::{MAX_DEPTH, Parsed, parse};
 
 use core_config::OptionSchema;
 use core_format::NodeFormatter;

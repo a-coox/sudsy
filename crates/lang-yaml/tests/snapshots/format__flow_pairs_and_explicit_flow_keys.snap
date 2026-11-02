@@ -1,0 +1,16 @@
+---
+source: crates/lang-yaml/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+a: &a x
+b: [x: 1, y]
+c: {? k : v, z, ? w}
+d: ["q": 1]
+e: { *a : 1 }
+
+-----
+a: &a x
+b: [x: 1, y]
+c: { ? k : v, z, ? w }
+d: ["q": 1]
+e: { *a : 1 }

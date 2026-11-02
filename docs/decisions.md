@@ -241,3 +241,117 @@ M0.
   2 if any file failed (syntax error, unreadable, bad option). Failed files are left alone and
   the rest are still processed. A UTF-8 BOM is kept; config is the nearest `sudsy.yaml` above the
   current directory (per-file resolution is M2).
+
+## M1b: YAML
+
+### Parser evaluation (plan.md: "evaluate existing crates first")
+Checked on crates.io and docs.rs, 2026-11; the crates were not run against the yaml-test-suite.
+
+| Crate | What it is | Why not |
+| --- | --- | --- |
+| `saphyr-parser` 0.3 (successor of `yaml-rust2`), `libyml`/`unsafe-libyaml`, `serde-saphyr` | YAML 1.2 event or value parsers; events carry source marks | Not lossless: comments, blank lines and the spelling of scalars are not in the output. |
+| `yaml_parser` 0.3 (g-plane, MIT; the parser of `pretty_yaml`) | "Semi-tolerant YAML concrete syntax tree parser" on `rowan` | Closest to what we need, but its kinds and tree shape are its own (principle 1: only our grammar defines the tree), its trivia placement is not our rule, and "semi-tolerant" means it deviates from the spec; we need the suite as a gate and control over error recovery. |
+| `yaml-edit` 0.3 (Apache-2.0, first released 2025-08) | "Lossless parser and editor", `rowan` based, editing API | Same tree-shape problem, young, and aimed at editing, not at feeding a shared formatter. |
+| `tree-sitter-yaml` | Incremental CST grammar with an external C scanner | Adds a C toolchain and a second tree model; its recovery and trivia do not follow our rule. |
+
+Verdict: write our own (as plan.md expected). It is about 1600 lines for the parser and 800 for the
+data model loader with scalar decoding, and it passes the whole suite (below).
+
+### Tree shape (`grammars/yaml.grammar`)
+* One node per collection, entry and scalar: `BlockMapping`/`BlockMappingEntry`,
+  `BlockSequence`/`BlockSequenceEntry`, `FlowMapping`/`FlowSequence`, `FlowPair` (a `key: value`
+  in `{}` or the single pair in `[]`), `Scalar`, `BlockScalar` (header and content tokens),
+  `AliasNode`, and `PropertyNode` (tag and anchor tokens, then the node they apply to). An empty node
+  (`key:`, `-`) is simply absent. Tags: `#value` on every node that can be a value, `#block`,
+  `#delimited-list`, `#key-value`, `#string`, `#comment`.
+* Indentation is trivia (whitespace tokens). A multi-line plain or quoted scalar is one token that
+  contains its line breaks; so is a block scalar's content (indentation included, never ending in
+  a line break: the blank lines after it are trivia, and the loader counts them for `keep`
+  chomping). This keeps the trivia attachment rule valid for every tree.
+* Properties on several lines (`&a`, newline, `!!str`, newline, `value`) are one `PropertyNode`.
+* New tags in the shared engine: `#restyle` on scalar tokens and block headers (the safety check
+  compares only their position; the data-model check verifies the value) and `#separator` on `---`
+  (the formatter may add or drop it; documents are still compared as nodes).
+
+### Parser
+* Recursive descent after the spec's productions, with `n` the enclosing block indentation. The
+  parser reports events (`Start`, tokens, `Finish`); `parser/builder.rs` lexes the trivia between
+  tokens, splits it by the attachment rule and builds the tree, so no byte can be lost.
+* An error aborts the rest of its document: everything up to the next document marker becomes one
+  `ERROR` node of `Unknown` tokens (every byte stays in the tree), and the next document is
+  parsed normally. Errors carry the first problem only.
+* Nesting deeper than 100 (`MAX_DEPTH`; JSON allows 256) is an error. YAML recurses more per
+  level (collection, entry, value), and a test pins that 100 levels format on a 2 MiB test-thread
+  stack in debug builds.
+* Choices where the spec and common parsers differ: the closing bracket of a flow collection
+  must be indented like its content (spec; libyaml accepts less), so the formatter moves a broken
+  flow collection to its own line; `%TAG` handles are checked per document; a document marker
+  inside a flow collection, quoted scalar or at the start of a plain scalar line is an error; a
+  tab can separate (`key:<tab>value`) but never indent a block collection; the 1024 character
+  limit of implicit keys is not enforced.
+* Characters outside YAML's printable set are errors; a BOM at the start of a later document
+  line is trivia.
+
+### Data model (`lang-yaml::model`)
+Loaded from our tree (no second parser): core-schema resolution (`yes`, `on`, `0b1`, `1_000` are
+strings; `0o17`, `0xFF`, `.inf`, `.nan` are not), tags (`%TAG` handles, verbatim and custom tags
+kept, `!!str`/`!!int`/`!!float`/`!!bool`/`!!null` force the type), anchors and aliases expanded,
+plain, quoted and block scalar folding with chomping and indentation indicators (the parent
+indentation comes from the tree). A lone `...` is not a document. The end of the input counts as
+a line break for block scalars, as the suite's expectations show.
+
+### Formatter
+* Options (`option_schema()`): `line_width` 80, `indent_size` 2, `final_newline` true (shared),
+  `sequence_indent` (`preserve`, `indented`, `flush`), `quote_style` (`preserve`, `single`,
+  `double`), `document_start` (`preserve`, `always`, `never`) and `max_blank_lines` 1.
+  No `indent_style`: tabs cannot indent YAML. Deviation from plan.md: `sequence_indent` has a third
+  value, `preserve`, and it is the default, because both styles are common (Kubernetes versus
+  GitHub Actions) and the zero-config goal is the smallest diff.
+* Zero-config behavior: quotes, key order, flow versus block, comments and blank lines (at most
+  one) are kept; spacing and indentation are normalized (`key: value`, `{ a: 1 }`, `[1, 2]`).
+* `quote_style`: a scalar changes only if the other quote style needs no more escapes than the
+  source has (a double-quoted `it's` stays double; `"say \"hi\""` becomes `'say "hi"'`), never when
+  it contains control characters, and never when it spans lines. Plain scalars are never quoted.
+* `document_start`: `always` adds `---` to documents that have content; `never` leaves it out of
+  the first document unless it has directives or no content; comments on a removed marker stay.
+* Block scalars: contents are re-indented, never re-wrapped; trailing blanks of lines are kept
+  (new `Doc::Verbatim` and a protected output length in the printer; `format_tree` no longer trims
+  protected trailing blanks and newlines). A block indentation indicator is rewritten to match the
+  new indentation. Blank lines after a `keep` scalar are exact, not limited by `max_blank_lines`.
+* Multi-line plain and quoted scalars keep their line structure; continuation lines are re-indented
+  and lose surrounding blanks (line folding ignores them), except an escaped blank before a break.
+* Where a value goes after `key:`, `-`, `?` or `---` is `block::node_after`: scalars stay on the
+  line they were on, a collection after `-` starts on the dash line (`- a: 1`), a comment after the
+  indicator keeps the value on the next line. A flow collection that does not fit moves under its
+  key (`key:`, newline, `[`...`]`), because the closing bracket may not sit at the key's column.
+  A flow collection used as a key is printed as written so that it never breaks.
+* Hooks (all in `lang-yaml/src/format`): the flow-versus-block placement above, and **comment
+  placement at the end of block collections**: the comments between the end of a nested
+  collection and the next token belong to that token (trivia rule) and would move to its
+  indentation. A block collection that ends right before the token takes the leading comments
+  indented at least as far as itself (innermost first) and prints them after its last entry.
+* `sudsy-ignore` before an entry and `sudsy-ignore-start`/`-end` among the entries of a block
+  collection keep those entries as written; flow collections use the shared list shape's handling.
+* Safety: the generic tree comparison, then `extra_check` loads the data model before and after
+  and aborts on any difference (value, type, tag, structure, document count).
+* The CLI formats `.yaml`/`.yml` files, `sudsy.yaml` among them, with the options of the nearest
+  config. The config loader itself still uses `serde-saphyr` (M0); switching it to our parser is
+  not part of M1b.
+
+### Known gaps
+* Trailing blanks at the end of a block scalar's last line, and a `keep` scalar's blank lines at
+  the very end of the file, survive only through the printer's protected output length.
+* Properties split over several lines with a comment between them are printed as written.
+* The formatter does not wrap long plain or quoted scalars or re-flow long comments.
+* Existing files with a flow collection whose closing bracket sits at its key's column are
+  rejected by the parser (as the spec requires).
+* Speed is about 1 MB/s end to end (parse, format, re-parse, tree comparison, two model loads),
+  the same order as JSON; the shared engine dominates.
+
+### Conformance (yaml-test-suite `data` branch at `6ad3d2c`, `tests/conformance/fetch-yaml-corpus.sh`)
+`cargo test --release -p lang-yaml --test conformance -- --ignored --nocapture`:
+308 valid cases parse without errors, round-trip byte for byte and satisfy the attachment rule;
+94 error cases report an error (402 in all); 279 of the 279 valid cases with an `in.json` have an
+equal data model; all 308 valid cases format with every shared check (re-parse, tree comparison,
+data model, comments kept, idempotency), also under each of the 22 single option values and two
+combined option sets.

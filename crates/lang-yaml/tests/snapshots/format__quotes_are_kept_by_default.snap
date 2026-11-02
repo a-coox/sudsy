@@ -1,0 +1,16 @@
+---
+source: crates/lang-yaml/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+a: 'single'
+b: "double"
+c: plain
+d: "it's"
+e: 'say "hi"'
+
+-----
+a: 'single'
+b: "double"
+c: plain
+d: "it's"
+e: 'say "hi"'
