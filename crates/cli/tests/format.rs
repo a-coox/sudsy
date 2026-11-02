@@ -60,13 +60,12 @@ fn respects_gitignore_skips_other_languages_and_takes_explicit_paths() {
     let t = tempfile::tempdir().unwrap();
     write(t.path(), ".gitignore", "ignored/\n");
     write(t.path(), "ignored/a.json", MESSY);
-    write(t.path(), "Program.cs", "class  A{}");
-    write(t.path(), "notes.txt", "x");
+    write(t.path(), "notes.txt", "x  ");
     write(t.path(), "keep.json", MESSY);
     let out = sudsy(t.path(), &[]);
     assert_eq!(out.status.code(), Some(0));
     assert_eq!(read(t.path(), "ignored/a.json"), MESSY);
-    assert_eq!(read(t.path(), "Program.cs"), "class  A{}");
+    assert_eq!(read(t.path(), "notes.txt"), "x  ");
     assert_eq!(read(t.path(), "keep.json"), CLEAN);
     let explicit = sudsy(t.path(), &["ignored/a.json"]);
     assert_eq!(explicit.status.code(), Some(0));
@@ -260,4 +259,59 @@ fn yaml_syntax_errors_fail_without_touching_the_file() {
 "
     );
     assert_eq!(read(t.path(), "ok.yaml"), YAML_CLEAN);
+}
+
+/// The C# worker, built once for the test process.
+fn csharp_worker() -> std::path::PathBuf {
+    let project = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../workers/csharp/Sudsy.Worker");
+    let status = Command::new("dotnet")
+        .args(["build", "-c", "Debug", "--nologo", "-v", "q"])
+        .arg(&project)
+        .status()
+        .expect("dotnet is installed");
+    assert!(status.success(), "dotnet build failed");
+    project.join("bin/Debug/net10.0/Sudsy.Worker.dll")
+}
+
+#[test]
+fn formats_csharp_files_with_the_worker() {
+    let t = tempfile::tempdir().unwrap();
+    write(t.path(), "Program.cs", "class  A{void M(){x();}}");
+    write(t.path(), "bad.cs", "class A {");
+    let out = Command::new(env!("CARGO_BIN_EXE_sudsy"))
+        .arg("format")
+        .env("SUDSY_CSHARP_WORKER", csharp_worker())
+        .current_dir(t.path())
+        .output()
+        .unwrap();
+    assert_eq!(out.status.code(), Some(2));
+    assert_eq!(
+        read(t.path(), "Program.cs"),
+        "class A
+{
+    void M()
+    {
+        x();
+    }
+}
+"
+    );
+    assert_eq!(read(t.path(), "bad.cs"), "class A {");
+    assert!(String::from_utf8_lossy(&out.stderr).contains("bad.cs"));
+}
+
+#[test]
+fn csharp_without_a_worker_fails_the_file_and_formats_the_rest() {
+    let t = tempfile::tempdir().unwrap();
+    write(t.path(), "Program.cs", "class A{}");
+    write(t.path(), "a.json", MESSY);
+    let out = Command::new(env!("CARGO_BIN_EXE_sudsy"))
+        .arg("format")
+        .env("SUDSY_CSHARP_WORKER", t.path().join("missing.dll"))
+        .current_dir(t.path())
+        .output()
+        .unwrap();
+    assert_eq!(out.status.code(), Some(2));
+    assert_eq!(read(t.path(), "Program.cs"), "class A{}");
+    assert_eq!(read(t.path(), "a.json"), CLEAN);
 }
