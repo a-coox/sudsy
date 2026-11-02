@@ -12,9 +12,11 @@ mod options;
 mod query;
 mod seq;
 mod spacing;
+mod tags;
 
 pub use options::{BRACE_NEWLINE, MEMBER_CHAIN_MIN_CALLS, TRAILING_COMMAS, option_schema};
 
+use self::tags::Tag;
 use crate::generated::kind as k;
 use core_format::{Doc, FormatCtx, FormatError, NodeFormatter};
 use core_syntax::SyntaxNode;
@@ -53,23 +55,23 @@ impl NodeFormatter for CSharpFormatter {
             k::QUERY_BODY => query::query_body(cx, node)?,
             k::QUERY_CONTINUATION => query::query_continuation(cx, node)?,
             _ => {
-                if g.has_tag(kind, "binary-chain") {
+                if tags::has(g, kind, Tag::BinaryChain) {
                     chains::binary_chain(cx, node)?
-                } else if g.has_tag(kind, "member-chain") {
+                } else if tags::has(g, kind, Tag::MemberChain) {
                     chains::member_chain(cx, node)?
-                } else if g.has_tag(kind, "assignment") {
+                } else if tags::has(g, kind, Tag::Assignment) {
                     chains::assignment(cx, node)?
-                } else if g.has_tag(kind, "initializer-expression") {
+                } else if tags::has(g, kind, Tag::InitializerExpression) {
                     lists::initializer(cx, node)?
                 } else if kind == k::COLLECTION_EXPRESSION {
                     lists::collection_expression(cx, node)?
                 } else if kind == k::BLOCK
-                    || g.has_tag(kind, "namespace")
-                    || g.has_tag(kind, "type-declaration")
+                    || tags::has(g, kind, Tag::Namespace)
+                    || tags::has(g, kind, Tag::TypeDeclaration)
                     || kind == k::SWITCH_STATEMENT
                 {
                     braces::braced(cx, node)?
-                } else if g.has_tag(kind, "delimited-list") {
+                } else if tags::has(g, kind, Tag::DelimitedList) {
                     lists::plain_list(cx, node)?
                 } else if let Some(prefix) = seq::prefix_unary(cx, node)? {
                     prefix

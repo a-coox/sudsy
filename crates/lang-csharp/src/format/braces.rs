@@ -3,7 +3,8 @@
 
 use super::lists::source_trailing_comma;
 use super::options::trailing_comma;
-use super::seq::{R, Sep, direct_tokens, is_empty_braces, sep_doc, seq_of, separator, sig};
+use super::seq::{R, Sep, direct_tokens, is_empty_braces, sep_doc, separator, seq_of, sig};
+use super::tags::{self, Tag};
 use crate::generated::kind as k;
 use core_format::shapes::{
     BlockStyle, ListLayout, ListStyle, block_between, delimited_list_between, statement_sequence,
@@ -124,11 +125,12 @@ pub fn accessors_inline(cx: &FormatCtx<'_>, list: &SyntaxNode) -> bool {
     let range = TextRange::new(open.text_range().start(), close.text_range().start());
     let simple = list.children().all(|a| {
         g.is_trivia(a.kind())
-            || a.children()
-                .all(|c| !matches!(
+            || a.children().all(|c| {
+                !matches!(
                     c.kind(),
                     k::BLOCK | k::ARROW_EXPRESSION_CLAUSE | k::ATTRIBUTE_LIST
-                ))
+                )
+            })
     });
     let has_comment = list
         .descendants_with_tokens()
@@ -159,7 +161,7 @@ pub fn switch_section(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
     let g = cx.grammar;
     let (labels, statements): (Vec<_>, Vec<_>) = nodes_of(&sig(cx, node))
         .into_iter()
-        .partition(|n| g.has_tag(n.kind(), "switch-label"));
+        .partition(|n| tags::has(g, n.kind(), Tag::SwitchLabel));
     let mut parts = Vec::new();
     for (i, label) in labels.iter().enumerate() {
         if i > 0 {

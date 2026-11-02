@@ -183,8 +183,8 @@ M0.
 * **Shapes**: delimited list, block, key-value, statement sequence, verbatim. A shape finds its
   structure from the grammar: first and last significant token are the delimiters, child nodes
   are items, tokens tagged `#separator` after an item are its separator. List separators are
-  re-created from `ListStyle`; block separators are kept as written. **Binary chain and member
-  chain are left for M4**: they need operator and call-chain knowledge that is not generic.
+  re-created from `ListStyle`; block separators are kept as written. Binary chain and member
+  chain arrived with the C# formatter (M2b, below).
   JSON objects are tagged `#block` in the grammar but are laid out with the list shape (the
   per-node code in `lang-json` does this; the `#block` tag default stays "one item per line").
 * **Layout directives** (`DIRECTIVES_VERSION = 1`): `BreakAll`, `KeepTogether` (list layout),
@@ -207,8 +207,8 @@ M0.
   comparison. The test helper (`core_format::testing::check`) adds comment preservation to
   round-trip, meaning and idempotency.
 * `provider_api::format_file` is the pipeline (parse, refuse files with syntax errors, format,
-  safety check). C#'s `OutOfProcessProvider` has a `DefaultFormatter` and an empty option schema
-  until the C# formatter (M2b); the CLI only registers providers that can format.
+  safety check). An `OutOfProcessProvider` has a `DefaultFormatter` and an empty option schema
+  unless `with_format` gives it more (C# does, since M2b).
 
 ### lang-json
 * **Parser**: hand-written lexer and recursive-descent parser. Strings, numbers and escapes are
@@ -531,9 +531,7 @@ byte, satisfy the trivia attachment rule and fit every grammar body.
 ### Crate and protocol
 * `crates/lang-csharp` holds the C# provider (`provider`, `locate_worker`) and the generated
   wrappers (`lang_csharp::generated`). `provider-api::csharp` and `core-syntax/src/generated` are
-  gone. The CLI uses it for `debug parse` only: `sudsy format` still registers JSON and YAML only,
-  because C# has no formatter yet and its `DefaultFormatter` would reprint files (M2b registers it
-  together with the formatter).
+  gone.
 * Protocol **v2**: `Parse` carries `preprocessor_symbols` (`SourceFile::preprocessor_symbols`,
   empty by default). Symbols belong to the file's build, so `OpenWorkspace` will supply them
   (M5); until then callers set them, and nothing in the config reads them yet.
@@ -651,3 +649,108 @@ path produces exactly what the general routine does; the corpus agrees on all 76
 * `#!` (shebang) directives only parse in script mode, so no fixture covers `ShebangDirectiveTrivia`.
 * Preprocessor symbols and the language version cannot be set from the config yet.
 * The CI does not fetch the corpus; the corpus test is run by hand (as before).
+
+## M2b: C# formatter
+
+Corpus result (`cargo test --release -p lang-csharp --test format_corpus -- --ignored`): all 7659
+files (89.9 MB: CoreLib, roslyn, aspnetcore) format, pass the safety check and are idempotent
+(`format(format(x)) == format(x)`); 0 failures. The first run had 142 (137 idempotency, 5 output
+that did not parse); the causes are in "Comments" below and in the conditional-access fix. Fixtures
+and option values are snapshot-tested in `crates/lang-csharp/tests/format.rs` with the shared
+round-trip, meaning, idempotency and comments-kept checks.
+
+### Structure
+* `lang-csharp/src/format`: `mod.rs` dispatches on kind and grammar tag; nodes with no code of their
+  own are `seq` (their children one after the other, separated by `Sep`: none, space, hard line,
+  the brace separator, or "embedded statement": indented on its own line). `spacing.rs` decides the
+  space between two tokens (a short table of exceptions; the default is a space), `braces.rs` types,
+  namespaces, blocks, switch, enum and accessors, `lists.rs` the delimited lists and the lambda
+  hook, `chains.rs` binary, member, conditional and assignment layout, `query.rs` LINQ, `tags.rs` a
+  table of the grammar tags asked for every node.
+* The tag defaults (`#block`, `#delimited-list`, `#key-value`) are not used for C#: every kind goes
+  through the dispatch. The grammar tags are used to find kinds (`#binary-chain`, `#member-chain`,
+  `#assignment`, `#initializer-expression`, `#type-declaration`, `#statement`, `#switch-label`).
+* Files with syntax errors are not formatted: reported with the first error, file left alone, exit
+  code 2, same as JSON and YAML. The CLI registers the C# provider always; without a worker
+  (`SUDSY_CSHARP_WORKER` or `csharp-worker/` beside the executable) C# files fail with that reason
+  and JSON and YAML are still formatted. The CLI passes no preprocessor symbols (config for them
+  is M3), so the 4 CoreLib files whose `#else` branch is an `#error` fail to parse there.
+* Safety check: `provider_api::format_parsed`, unchanged (re-parse in the worker, tree comparison
+  ignoring trivia; structured trivia count as trivia as a whole).
+
+### core-format additions (all generic)
+* `shapes::binary_chain` and `shapes::member_chain` (the two shapes of plan.md that were missing):
+  the first lays out operands and operators (operator first on continuation lines), the second
+  takes the already formatted head and call groups and chooses between one line and one group per
+  line (a `conditional_group`). Reading the tree (precedence levels, which links form a group, when
+  the head merges with the first call) stays in `lang-csharp`.
+* `shapes::delimited_list_between` and `block_between` for nodes whose delimiters are not their
+  first and last tokens (`new { ... }`, `x switch { ... }`, enums, list patterns); `ListStyle`
+  got `leading_line` (a `line` before the opening delimiter, inside the group: braces on their own
+  line only when the list breaks) and `empty`, `BlockStyle` got `empty`; a child tagged
+  `#list-prefix` before the first item is printed first (the attribute target in `[assembly: A]`).
+* **Structured trivia are comments** (`comments::Comment::element` is a token or a trivia node).
+  Kinds: `Line`, `Block`, `Lines` (a doc comment: printed line by line at the current
+  indentation) and `Directive` (tag `#verbatim-trivia`: preprocessor directives, disabled text and
+  conflict markers, kept as written starting at column 0; `#region` and `#endregion` also carry
+  `#indented` and follow the indentation). New docs: `LineStart` (text at column 0, on a line of its
+  own) and `NewlineIfNeeded` (a hard line break unless the line is empty). The safety check skips
+  structured trivia whole; the test helper compares them line by line without indentation.
+* Own-line comments start their own line (`NewlineIfNeeded`) wherever the formatter put the code
+  before them; this changed no JSON or YAML output.
+
+### Comments
+* A trailing line comment on an operator (`&&`, `=`, `?`, `:`, `=>`) makes the next operand start a
+  new line, otherwise the comment moves to the end of the later line, changes owner and the next
+  run formats differently (this was most of the 142 first failures). A line comment between the
+  links of a member chain breaks the chain at every dot (two comments would end on one line).
+* A comment on its own line between `=` and the value keeps the value on the next line, indented.
+* Hooks that print tokens themselves (lambda hug) apply only when no delimiter or comma of the
+  argument list and no argument start has a comment; else the shared list shape is used.
+
+### Layout decisions (where plan.md and the style guide are silent)
+* Defaults are `csharp/microsoft`: width 120, indent 4, Allman braces, final newline. Options
+  (plan.md config section only): `brace_newline` (`all`, `none`), `trailing_commas` (`preserve`
+  (default), `never`, `multiline`; applies to initializers, collection expressions, enums and switch
+  expressions, the only places C# allows a trailing comma), `member_chain_min_calls` (3), and the
+  shared four. `none` moves opening braces to the line of the header; `else`, `catch` and
+  `finally` still start a line. Presets and `csharpier-compat` are M2c: the options and the
+  `Sep`/shape split above are where they plug in.
+* Blank lines between members and statements are kept (at most one), never added. An empty body is
+  `{ }` on the header's line. Attribute lists on declarations and statements are one per line,
+  inline on parameters, type parameters and lambdas. Expression-bodied members stay on the header's
+  line. `where` clauses go on their own indented lines. Embedded statements (`if (x) y;`) go on
+  their own indented line. `else if` stays on one line.
+* Binary chains: one group per precedence level, operator first; a chain after `=`, `=>` or inside
+  `if ( )` or `( )` adds no extra indent because the parent indents. The conditional operator breaks
+  before `?` and `:`. Query expressions break before each clause. Interpolated strings are kept as
+  written (their expressions are not formatted); raw and verbatim strings are single tokens.
+* Member chains: a chain with at least `member_chain_min_calls` calls that does not fit goes
+  one call per line; the first call stays on the head's line when the head is `this`, `base`, a
+  predefined type, a capitalized name or a name no longer than the indent.
+* Lambda as last argument: only for block bodies. A `conditional_group` of "arguments before it on
+  one line, body hanging" and the one-argument-per-line list.
+* Not done: `sudsy-ignore` is honored on statements, members and list items through the shared
+  shapes, not in the middle of an expression; `#if` regions are formatted only for the active
+  branch (plan.md), the rest is verbatim; a block comment right after `(` is followed by no space
+  (`Foo( /* a */1)`).
+
+### Throughput (CoreLib, 1679 files, 27.8 MB, release, single thread, system allocator)
+`cargo test --release -p lang-csharp --test format_corpus corelib -- --ignored --nocapture`:
+
+| phase | ms | share |
+| --- | --- | --- |
+| worker parse (Roslyn parse, mapping, pipe, decode) | 5014 | 33 % |
+| layout document | 4652 | 31 % |
+| print | 322 | 2 % |
+| safety re-parse (the same path as the first parse) | 4631 | 31 % |
+| safety tree comparison | 175 | 1 % |
+| total | 15158 | 1.84 MB/s |
+
+`sudsy format --check` on the same directory (threads for layout, mimalloc): 8.7 s, 3.2 MB/s. From
+Sudsy.Bench (M2a) the Roslyn parse itself is about 0.94 s and the mapping 0.83 s of the 5.0 s: the
+rest is the pipe and the decoding into rowan. The re-parse costs as much as the first parse, so
+proposal 2 of "Performance" (compare tokens without a second tree) would save about 30 %. Layout
+costs 4.7 s, about 180 ns per tree element, mostly red nodes and the `Vec` that `sig` makes per
+node; nothing was optimized here beyond a tag table. A `conditional_group` clones its candidates, so
+a chain or argument list nested in a hugged lambda doubles the size of its document per level.

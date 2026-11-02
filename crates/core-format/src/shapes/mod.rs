@@ -3,10 +3,14 @@
 //! `#separator`), merges its style with the node's layout directives, and returns a [`Doc`].
 
 mod block;
+mod chain;
 mod key_value;
 mod list;
 
 pub use block::{BlockStyle, block, block_between, statement_sequence};
+pub use chain::{
+    MemberChain, binary_chain, ends_in_line_comment, gap_after_operator, member_chain,
+};
 pub use key_value::{KeyValueStyle, key_value};
 pub use list::{ListLayout, ListStyle, TrailingComma, delimited_list, delimited_list_between};
 

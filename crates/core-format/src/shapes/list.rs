@@ -1,4 +1,6 @@
-use super::{container, container_between, dangling_comments, gap, render_slots, separator_comments};
+use super::{
+    container, container_between, dangling_comments, gap, render_slots, separator_comments,
+};
 use crate::FormatCtx;
 use crate::comments;
 use crate::directives::Directive;
@@ -106,7 +108,11 @@ fn list_of(
     if items.is_empty() && dangling.is_empty() && !open_comments && c.prefix.is_none() {
         return Ok(doc::concat(vec![
             before,
-            if style.leading_line { doc::lit(" ") } else { Doc::Nil },
+            if style.leading_line {
+                doc::lit(" ")
+            } else {
+                Doc::Nil
+            },
             opening,
             doc::lit(style.empty),
             closing,
