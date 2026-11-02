@@ -1,0 +1,19 @@
+# Sudsy
+
+Formatter + linter for C#, JSON and YAML. `plan.md` is the design source of truth; read the sections relevant to your task before changing code.
+
+## Layout
+- Cargo workspace in `crates/` (see plan.md "Repository layout"). Language crates depend on core crates, never the reverse.
+- .NET worker in `workers/csharp/` (net10.0, roll-forward). Grammars in `grammars/`, WIT in `wit/`, VS Code extension in `editors/vscode/`.
+
+## Conventions
+- Small focused modules; extract helpers instead of growing entrypoints. No duplicated logic across crates: shared behavior lives in a core crate.
+- Errors: `thiserror` in libraries, `anyhow` only in binaries (`cli`, `lsp`).
+- Snapshot tests use `insta`; fixtures live under `tests/fixtures/<lang>/` or the crate's `tests/`.
+- Every formatter test checks lossless round-trip, idempotency and meaning preservation.
+- No speculative features beyond plan.md. When the plan leaves a detail open, pick the simplest option and note it in `docs/decisions.md`.
+
+## Commands
+- `cargo build --workspace`, `cargo test --workspace`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo fmt --all`
+- `dotnet build workers/csharp` / `dotnet test workers/csharp`
+- All of the above must pass before committing.
