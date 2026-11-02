@@ -570,6 +570,7 @@ dependencies = [
  "core-format",
  "core-syntax",
  "insta",
+ "proptest",
  "provider-api",
 ]
 

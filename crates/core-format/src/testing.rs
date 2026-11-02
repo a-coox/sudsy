@@ -18,7 +18,8 @@ fn comments(g: &Grammar, tree: &SyntaxNode) -> Vec<String> {
     tree.descendants_with_tokens()
         .filter_map(|e| e.into_token())
         .filter(|t| g.has_tag(t.kind(), "comment"))
-        .map(|t| t.text().trim_end().to_string())
+        // The printer writes LF only, even inside block comments.
+        .map(|t| t.text().trim_end().replace("\r\n", "\n"))
         .collect()
 }
 

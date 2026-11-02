@@ -6,7 +6,7 @@ pub enum FormatError {
     #[error("unexpected syntax shape: {0}")]
     Shape(String),
     #[error(transparent)]
-    Directives(#[from] DirectiveConflict),
+    Directives(#[from] Box<DirectiveConflict>),
     /// The safety check failed: the output is not valid, or means something else.
     #[error("internal error, file not changed: {0}")]
     Safety(String),

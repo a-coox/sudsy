@@ -1,0 +1,7 @@
+---
+source: crates/lang-json/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+{"a": /* v */ 1}
+-----
+{ "a": /* v */ 1 }

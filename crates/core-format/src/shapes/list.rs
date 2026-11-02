@@ -60,17 +60,18 @@ pub fn delimited_list(
     let items = render_slots(cx, &c.slots)?;
     let dangling = comments::leading_comments(g, &c.close);
     let open_comments = !comments::trailing_comments(g, &c.open).is_empty();
-    let open = cx.token_text(&c.open);
-    let close = cx.token_text(&c.close);
+    // Comments before the opening and after the closing delimiter belong outside the group: a
+    // comment must not force the list itself to break.
+    let before = cx.leading_comments_doc(&c.open);
+    let after = cx.trailing_comments_doc(&c.close);
     let opening = doc::concat(vec![
-        cx.leading_comments_doc(&c.open),
-        open,
+        cx.token_text(&c.open),
         cx.trailing_comments_doc(&c.open),
     ]);
-    let closing = doc::concat(vec![close, cx.trailing_comments_doc(&c.close)]);
+    let closing = cx.token_text(&c.close);
 
     if items.is_empty() && dangling.is_empty() && !open_comments {
-        return Ok(doc::concat(vec![opening, closing]));
+        return Ok(doc::concat(vec![before, opening, closing, after]));
     }
 
     let pad = if style.padding {
@@ -100,7 +101,7 @@ pub fn delimited_list(
             (true, TrailingComma::Never) => Doc::Nil,
             (true, TrailingComma::WhenBroken) => doc::if_break(sep.clone(), Doc::Nil),
         });
-        inner.push(separator_comments(cx, item.sep.as_ref()));
+        inner.push(separator_comments(cx, item));
     }
     inner.push(dangling_comments(&dangling));
     let body = doc::concat(vec![opening, doc::indent(doc::concat(inner)), pad, closing]);
@@ -117,9 +118,10 @@ pub fn delimited_list(
             ListLayout::PreserveBreak => !items.is_empty() && comments::break_after(g, &c.open),
         }
     };
-    Ok(if broken {
+    let list = if broken {
         doc::group_broken(body)
     } else {
         doc::group(body)
-    })
+    };
+    Ok(doc::concat(vec![before, list, after]))
 }

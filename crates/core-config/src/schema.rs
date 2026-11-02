@@ -276,6 +276,20 @@ pub fn resolve_format(
     Ok(resolved)
 }
 
+impl crate::Config {
+    /// Format options for files of `language` (a grammar's language name). This is the one place
+    /// M2 extends with presets, overrides and `.editorconfig`.
+    pub fn format_options(
+        &self,
+        language: &str,
+        schema: &OptionSchema,
+    ) -> Result<ResolvedOptions, OptionError> {
+        let none = LanguageSection::default();
+        let section = self.language_section(language).unwrap_or(&none);
+        resolve_format(&self.format, section, schema)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -336,18 +350,26 @@ mod tests {
             assert!(e.to_string().contains(needle), "{e}");
         }
     }
-}
 
-impl crate::Config {
-    /// Format options for files of `language` (a grammar's language name). This is the one place
-    /// M2 extends with presets, overrides and `.editorconfig`.
-    pub fn format_options(
-        &self,
-        language: &str,
-        schema: &OptionSchema,
-    ) -> Result<ResolvedOptions, OptionError> {
-        let none = LanguageSection::default();
-        let section = self.language_section(language).unwrap_or(&none);
-        resolve_format(&self.format, section, schema)
+    #[test]
+    fn config_picks_the_section_of_the_language() {
+        let config = crate::parse_str(
+            "format:
+  line_width: 100
+json:
+  format:
+    line_width: 90
+",
+        )
+        .unwrap();
+        let line_width = |lang| {
+            config
+                .format_options(lang, &schema())
+                .unwrap()
+                .int("line_width")
+        };
+        assert_eq!(line_width("json"), 90);
+        assert_eq!(line_width("yaml"), 100);
+        assert_eq!(line_width("unknown"), 100);
     }
 }

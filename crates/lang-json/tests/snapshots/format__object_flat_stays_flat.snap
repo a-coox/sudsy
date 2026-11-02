@@ -1,0 +1,13 @@
+---
+source: crates/lang-json/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+{"name":"sudsy","tags":["a","b"],"nested":{"x":1,"y":[1,2,3]},"empty":{},"none":[]}
+-----
+{
+  "name": "sudsy",
+  "tags": ["a", "b"],
+  "nested": { "x": 1, "y": [1, 2, 3] },
+  "empty": {},
+  "none": []
+}

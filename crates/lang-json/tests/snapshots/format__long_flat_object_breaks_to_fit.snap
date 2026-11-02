@@ -1,0 +1,12 @@
+---
+source: crates/lang-json/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+{"alpha": "aaaaaaaaaaaa", "beta": "bbbbbbbbbbbb", "gamma": "cccccccccccc", "delta": [1, 2]}
+-----
+{
+  "alpha": "aaaaaaaaaaaa",
+  "beta": "bbbbbbbbbbbb",
+  "gamma": "cccccccccccc",
+  "delta": [1, 2]
+}

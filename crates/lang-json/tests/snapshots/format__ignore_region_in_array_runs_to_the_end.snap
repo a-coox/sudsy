@@ -1,0 +1,17 @@
+---
+source: crates/lang-json/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+[
+  1,
+  /* sudsy-ignore-start */
+  2,    3,
+  4
+]
+-----
+[
+  1,
+  /* sudsy-ignore-start */
+  2,    3,
+  4
+]
