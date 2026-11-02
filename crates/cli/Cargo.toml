@@ -12,6 +12,7 @@ path = "src/main.rs"
 [dependencies]
 anyhow.workspace = true
 clap.workspace = true
+mimalloc.workspace = true
 core-config.workspace = true
 core-format.workspace = true
 core-incremental.workspace = true

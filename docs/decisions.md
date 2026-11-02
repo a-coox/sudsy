@@ -513,3 +513,14 @@ Proposals, none done here:
    engine and 25 MB/s; it also fits the incremental work in `core-incremental`.
 4. YAML: share anchored nodes with `Rc`; `anchors.get(name).cloned()` copies the whole
    anchored node at every alias (not hit by the benchmark, quadratic for alias-heavy files).
+
+### Follow-up decisions (lead)
+
+* mimalloc is the CLI's global allocator (proposal 1). CLI `format --check` on the 10.6 MB JSON /
+  5.1 MB YAML inputs: 6.0 s / 9.1 s before the performance pass, 1.7 s / 3.6 s after it, 1.2 s /
+  2.4 s with mimalloc.
+* Proposals 2 (compare output tokens without building a second tree) and 3 (green-tree cursor for
+  the formatter) wait for M2's gate, which measures C# speed against CSharpier. C# throughput is
+  bounded first by the Roslyn parse plus mapping walk (about 2.1x parse time, see "Wire encoding"),
+  so the formatter's share is decided with real C# numbers rather than JSON/YAML ones. Proposal 4
+  (share YAML anchored nodes) is only relevant to alias-heavy files and stays open.
