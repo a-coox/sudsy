@@ -261,9 +261,9 @@ token WhitespaceTrivia #trivia #whitespace
 token SingleLineCommentTrivia #trivia #comment
 token MultiLineCommentTrivia #trivia #comment
 token DocumentationCommentExteriorTrivia #trivia #comment #documentation
-token DisabledTextTrivia #trivia #disabled-text
+token DisabledTextTrivia #trivia #disabled-text #verbatim-trivia
 token PreprocessingMessageTrivia #trivia
-token ConflictMarkerTrivia #trivia
+token ConflictMarkerTrivia #trivia #verbatim-trivia
 token InterpolatedSingleLineRawStringStartToken #interpolated-string-string-start
 token InterpolatedMultiLineRawStringStartToken #interpolated-string-string-start
 token InterpolatedRawStringEndToken #interpolated-string-string-end
@@ -868,45 +868,45 @@ node XmlProcessingInstruction #xml-node =
     start_processing_instruction:XmlProcessingInstructionStartToken name:XmlName text_tokens:#xml-text-token* end_processing_instruction:XmlProcessingInstructionEndToken
 node XmlComment #xml-node =
     less_than_exclamation_minus_minus:XmlCommentStartToken text_tokens:#xml-text-token* minus_minus_greater_than:XmlCommentEndToken
-node IfDirectiveTrivia #trivia #directive =
+node IfDirectiveTrivia #trivia #directive #verbatim-trivia =
     hash:HashToken if_keyword:IfKeyword condition:#expression end_of_directive:EndOfDirectiveToken
-node ElifDirectiveTrivia #trivia #directive =
+node ElifDirectiveTrivia #trivia #directive #verbatim-trivia =
     hash:HashToken elif_keyword:ElifKeyword condition:#expression end_of_directive:EndOfDirectiveToken
-node ElseDirectiveTrivia #trivia #directive =
+node ElseDirectiveTrivia #trivia #directive #verbatim-trivia =
     hash:HashToken else_keyword:ElseKeyword end_of_directive:EndOfDirectiveToken
-node EndIfDirectiveTrivia #trivia #directive =
+node EndIfDirectiveTrivia #trivia #directive #verbatim-trivia =
     hash:HashToken end_if_keyword:EndIfKeyword end_of_directive:EndOfDirectiveToken
-node RegionDirectiveTrivia #trivia #directive =
+node RegionDirectiveTrivia #trivia #directive #verbatim-trivia #indented =
     hash:HashToken region_keyword:RegionKeyword end_of_directive:EndOfDirectiveToken
-node EndRegionDirectiveTrivia #trivia #directive =
+node EndRegionDirectiveTrivia #trivia #directive #verbatim-trivia #indented =
     hash:HashToken end_region_keyword:EndRegionKeyword end_of_directive:EndOfDirectiveToken
-node ErrorDirectiveTrivia #trivia #directive =
+node ErrorDirectiveTrivia #trivia #directive #verbatim-trivia =
     hash:HashToken error_keyword:ErrorKeyword end_of_directive:EndOfDirectiveToken
-node WarningDirectiveTrivia #trivia #directive =
+node WarningDirectiveTrivia #trivia #directive #verbatim-trivia =
     hash:HashToken warning_keyword:WarningKeyword end_of_directive:EndOfDirectiveToken
-node BadDirectiveTrivia #trivia #directive =
+node BadDirectiveTrivia #trivia #directive #verbatim-trivia =
     hash:HashToken identifier:IdentifierToken end_of_directive:EndOfDirectiveToken
-node DefineDirectiveTrivia #trivia #directive =
+node DefineDirectiveTrivia #trivia #directive #verbatim-trivia =
     hash:HashToken define_keyword:DefineKeyword name:IdentifierToken end_of_directive:EndOfDirectiveToken
-node UndefDirectiveTrivia #trivia #directive =
+node UndefDirectiveTrivia #trivia #directive #verbatim-trivia =
     hash:HashToken undef_keyword:UndefKeyword name:IdentifierToken end_of_directive:EndOfDirectiveToken
-node LineDirectiveTrivia #trivia #directive =
+node LineDirectiveTrivia #trivia #directive #verbatim-trivia =
     hash:HashToken line_keyword:LineKeyword line:#line-directive-trivia-line file:StringLiteralToken? end_of_directive:EndOfDirectiveToken
 node LineDirectivePosition =
     open_paren:OpenParenToken line:NumericLiteralToken comma:CommaToken character:NumericLiteralToken close_paren:CloseParenToken
-node LineSpanDirectiveTrivia #trivia #directive =
+node LineSpanDirectiveTrivia #trivia #directive #verbatim-trivia =
     hash:HashToken line_keyword:LineKeyword start:LineDirectivePosition minus:MinusToken end:LineDirectivePosition character_offset:NumericLiteralToken? file:StringLiteralToken end_of_directive:EndOfDirectiveToken
-node PragmaWarningDirectiveTrivia #trivia #directive =
+node PragmaWarningDirectiveTrivia #trivia #directive #verbatim-trivia =
     hash:HashToken pragma_keyword:PragmaKeyword warning_keyword:WarningKeyword disable_or_restore_keyword:#pragma-warning-directive-trivia-disable-or-restore-keyword error_codes:#expression* end_of_directive:EndOfDirectiveToken
-node PragmaChecksumDirectiveTrivia #trivia #directive =
+node PragmaChecksumDirectiveTrivia #trivia #directive #verbatim-trivia =
     hash:HashToken pragma_keyword:PragmaKeyword checksum_keyword:ChecksumKeyword file:StringLiteralToken guid:StringLiteralToken bytes:StringLiteralToken end_of_directive:EndOfDirectiveToken
-node ReferenceDirectiveTrivia #trivia #directive =
+node ReferenceDirectiveTrivia #trivia #directive #verbatim-trivia =
     hash:HashToken reference_keyword:ReferenceKeyword file:StringLiteralToken end_of_directive:EndOfDirectiveToken
-node LoadDirectiveTrivia #trivia #directive =
+node LoadDirectiveTrivia #trivia #directive #verbatim-trivia =
     hash:HashToken load_keyword:LoadKeyword file:StringLiteralToken end_of_directive:EndOfDirectiveToken
-node ShebangDirectiveTrivia #trivia #directive =
+node ShebangDirectiveTrivia #trivia #directive #verbatim-trivia =
     hash:HashToken exclamation:ExclamationToken end_of_directive:EndOfDirectiveToken
-node IgnoredDirectiveTrivia #trivia #directive =
+node IgnoredDirectiveTrivia #trivia #directive #verbatim-trivia =
     hash:HashToken colon:ColonToken content:StringLiteralToken? end_of_directive:EndOfDirectiveToken
-node NullableDirectiveTrivia #trivia #directive =
+node NullableDirectiveTrivia #trivia #directive #verbatim-trivia =
     hash:HashToken nullable_keyword:NullableKeyword setting:#nullable-directive-trivia-setting target:#nullable-directive-trivia-target? end_of_directive:EndOfDirectiveToken

@@ -15,6 +15,10 @@ pub enum Doc {
     /// Text of one line whose trailing blanks are significant (block scalar content): the
     /// printer does not trim them at the next line break.
     Verbatim(String),
+    /// Text that starts a line at column 0 whatever the indentation (a preprocessor directive, or
+    /// disabled code): the printer takes back the indentation of a blank line, or first starts a
+    /// new line if the current one has content. It breaks the enclosing groups.
+    LineStart(String),
     /// A space when the enclosing group fits on one line, else a newline.
     Line,
     /// Nothing when the enclosing group fits on one line, else a newline.
@@ -57,7 +61,7 @@ impl Doc {
     /// directly only to inspect a document.
     pub fn propagate_breaks(&mut self) -> bool {
         match self {
-            Doc::HardLine | Doc::BreakParent => true,
+            Doc::HardLine | Doc::BreakParent | Doc::LineStart(_) => true,
             Doc::Nil | Doc::Text(_) | Doc::Verbatim(_) | Doc::Line | Doc::SoftLine => false,
             Doc::Concat(parts) | Doc::Fill(parts) => parts
                 .iter_mut()
@@ -134,6 +138,11 @@ pub fn snippet(s: &str) -> Doc {
         },
         _ => text(s),
     }
+}
+
+/// See [`Doc::LineStart`].
+pub fn line_start(s: impl Into<String>) -> Doc {
+    Doc::LineStart(s.into())
 }
 
 /// See [`Doc::Verbatim`].

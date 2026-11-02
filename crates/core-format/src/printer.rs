@@ -214,6 +214,17 @@ impl<'a> Printer<'a> {
         self.pos = level.width;
     }
 
+    /// See [`Doc::LineStart`].
+    fn line_start(&mut self, s: &str) {
+        let line_start = self.out.rfind('\n').map_or(0, |i| i + 1).max(self.keep);
+        if self.out[line_start..].bytes().all(|b| b == b' ' || b == b'\t') {
+            self.out.truncate(line_start);
+        } else {
+            self.newline(0);
+        }
+        self.write(s);
+    }
+
     fn write(&mut self, s: &str) {
         self.out.push_str(s);
         match s.rfind('\n') {
@@ -250,6 +261,7 @@ impl<'a> Printer<'a> {
                 self.write(s);
                 self.keep = self.out.len();
             }
+            Doc::LineStart(s) => self.line_start(s),
             Doc::Concat(parts) => cmds.push(Cmd {
                 indent,
                 mode,
@@ -439,6 +451,7 @@ fn fits<'a>(
                     return answer;
                 }
             }
+            Doc::LineStart(_) => return true,
             Doc::Concat(parts) => m.stack.push((mode, Item::Seq(parts))),
             Doc::Indent(d) | Doc::Align(_, d) => m.stack.push((mode, Item::Doc(d))),
             Doc::IfBreak { broken, flat } => m.stack.push((

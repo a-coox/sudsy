@@ -8,28 +8,61 @@
 //! Everything here reads the tree locally (token neighbours), so it works for any subtree.
 
 use core_syntax::trivia::is_line_break;
-use core_syntax::{Grammar, SyntaxKind, SyntaxNode, SyntaxToken};
+use core_syntax::{Grammar, SyntaxElement, SyntaxKind, SyntaxNode, SyntaxToken};
+use std::borrow::Cow;
 use std::ops::ControlFlow;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum CommentKind {
     Line,
     Block,
+    /// An own-line comment that is a structured trivia node (a C# doc comment) or a one-line
+    /// directive tagged `#indented`: printed line by line at the current indentation.
+    Lines,
+    /// Own-line text kept as written at column 0 (tag `#verbatim-trivia`): a preprocessor
+    /// directive, disabled code. It ends its own line.
+    Directive,
 }
 
 #[derive(Clone, Debug)]
 pub struct Comment {
-    pub token: SyntaxToken,
+    /// A trivia token, or a structured trivia node (one element of the run, see
+    /// [`core_syntax::trivia`]).
+    pub element: SyntaxElement,
     pub kind: CommentKind,
     /// Line breaks between this comment and whatever follows it (the next comment or the owner
-    /// token). Only meaningful for leading comments.
+    /// token), counting the comment's own line end. Only meaningful for leading comments.
     pub breaks_after: usize,
 }
 
 impl Comment {
-    /// The comment as written, without trailing whitespace.
-    pub fn text(&self) -> &str {
-        self.token.text().trim_end()
+    /// The token of a comment that is one (every comment of a language without structured
+    /// trivia).
+    pub fn token(&self) -> &SyntaxToken {
+        match &self.element {
+            SyntaxElement::Token(t) => t,
+            SyntaxElement::Node(_) => panic!("a structured trivia is not a token"),
+        }
+    }
+
+    /// The comment as written, without trailing whitespace. For [`CommentKind::Directive`] only
+    /// the line break that ends it is removed: the lines of disabled code are exact.
+    pub fn text(&self) -> Cow<'_, str> {
+        let raw = element_text(&self.element);
+        let strip = |t: &str| -> String {
+            if self.kind == CommentKind::Directive {
+                t.strip_suffix("\r\n")
+                    .or_else(|| t.strip_suffix(['\n', '\r']))
+                    .unwrap_or(t)
+                    .to_string()
+            } else {
+                t.trim_end().to_string()
+            }
+        };
+        match raw {
+            Cow::Borrowed(t) if self.kind != CommentKind::Directive => Cow::Borrowed(t.trim_end()),
+            other => Cow::Owned(strip(&other)),
+        }
     }
 }
 
@@ -46,76 +79,136 @@ pub fn count_breaks(text: &str) -> usize {
     n
 }
 
-fn ends_line(t: &SyntaxToken) -> bool {
-    t.text().chars().next_back().is_some_and(is_line_break)
+fn element_text(e: &SyntaxElement) -> Cow<'_, str> {
+    match e {
+        SyntaxElement::Token(t) => Cow::Borrowed(t.text()),
+        SyntaxElement::Node(n) => Cow::Owned(n.text().to_string()),
+    }
+}
+
+fn ends_line(e: &SyntaxElement) -> bool {
+    match e {
+        SyntaxElement::Token(t) => t.text().chars().next_back().is_some_and(is_line_break),
+        SyntaxElement::Node(n) => n
+            .last_token()
+            .is_some_and(|t| t.text().chars().next_back().is_some_and(is_line_break)),
+    }
 }
 
 fn is_trivia(g: &Grammar, k: SyntaxKind) -> bool {
     g.is_trivia(k)
 }
 
+/// Is this kind a comment, or text that is kept as written like one?
+fn is_comment_like(g: &Grammar, k: SyntaxKind) -> bool {
+    g.has_tag(k, "comment") || g.has_tag(k, "verbatim-trivia")
+}
+
+/// The outermost structured trivia node a token is inside of, if any.
+fn trivia_ancestor(g: &Grammar, t: &SyntaxToken) -> Option<SyntaxNode> {
+    t.parent_ancestors()
+        .filter(|a| is_trivia(g, a.kind()))
+        .last()
+}
+
+/// A token as one element of a trivia run: the structured trivia it is in, else itself.
+fn element_of(g: &Grammar, t: SyntaxToken) -> SyntaxElement {
+    match trivia_ancestor(g, &t) {
+        Some(n) => SyntaxElement::Node(n),
+        None => SyntaxElement::Token(t),
+    }
+}
+
+fn before_element(g: &Grammar, e: &SyntaxElement) -> Option<SyntaxElement> {
+    let first = match e {
+        SyntaxElement::Token(t) => t.clone(),
+        SyntaxElement::Node(n) => n.first_token()?,
+    };
+    first.prev_token().map(|t| element_of(g, t))
+}
+
+fn after_element(g: &Grammar, e: &SyntaxElement) -> Option<SyntaxElement> {
+    let last = match e {
+        SyntaxElement::Token(t) => t.clone(),
+        SyntaxElement::Node(n) => n.last_token()?,
+    };
+    last.next_token().map(|t| element_of(g, t))
+}
+
+fn is_trivia_element(g: &Grammar, e: &SyntaxElement) -> bool {
+    is_trivia(g, e.kind())
+}
+
 /// The trivia run directly before `tok` and whether a non-trivia token precedes it.
-fn run_before(g: &Grammar, tok: &SyntaxToken) -> (Vec<SyntaxToken>, bool) {
+fn run_before(g: &Grammar, tok: &SyntaxToken) -> (Vec<SyntaxElement>, bool) {
     let mut run = Vec::new();
-    let mut cur = tok.prev_token();
-    while let Some(t) = cur {
-        if !is_trivia(g, t.kind()) {
+    let mut cur = before_element(g, &SyntaxElement::Token(tok.clone()));
+    while let Some(e) = cur {
+        if !is_trivia_element(g, &e) {
             run.reverse();
             return (run, true);
         }
-        cur = t.prev_token();
-        run.push(t);
+        cur = before_element(g, &e);
+        run.push(e);
     }
     run.reverse();
     (run, false)
 }
 
-fn run_after(g: &Grammar, tok: &SyntaxToken) -> Vec<SyntaxToken> {
+fn run_after(g: &Grammar, tok: &SyntaxToken) -> Vec<SyntaxElement> {
     let mut run = Vec::new();
-    let mut cur = tok.next_token();
-    while let Some(t) = cur {
-        if !is_trivia(g, t.kind()) {
+    let mut cur = after_element(g, &SyntaxElement::Token(tok.clone()));
+    while let Some(e) = cur {
+        if !is_trivia_element(g, &e) {
             break;
         }
-        cur = t.next_token();
-        run.push(t);
+        cur = after_element(g, &e);
+        run.push(e);
     }
     run
 }
 
-fn trailing_cut(run: &[SyntaxToken]) -> usize {
+fn trailing_cut(run: &[SyntaxElement]) -> usize {
     run.iter().position(ends_line).map_or(run.len(), |i| i + 1)
 }
 
 /// Trivia owned by `tok` that follows it on its line.
-pub fn trailing_trivia(g: &Grammar, tok: &SyntaxToken) -> Vec<SyntaxToken> {
+pub fn trailing_trivia(g: &Grammar, tok: &SyntaxToken) -> Vec<SyntaxElement> {
     let mut run = run_after(g, tok);
     run.truncate(trailing_cut(&run));
     run
 }
 
 /// Trivia owned by `tok` that precedes it (own-line comments, indentation, blank lines).
-pub fn leading_trivia(g: &Grammar, tok: &SyntaxToken) -> Vec<SyntaxToken> {
+pub fn leading_trivia(g: &Grammar, tok: &SyntaxToken) -> Vec<SyntaxElement> {
     let (mut run, has_prev) = run_before(g, tok);
     let cut = if has_prev { trailing_cut(&run) } else { 0 };
     run.drain(..cut);
     run
 }
 
-fn kind_of(g: &Grammar, t: &SyntaxToken) -> Option<CommentKind> {
-    if !g.has_tag(t.kind(), "comment") {
+fn kind_of(g: &Grammar, e: &SyntaxElement) -> Option<CommentKind> {
+    let kind = e.kind();
+    if g.has_tag(kind, "verbatim-trivia") {
+        return Some(if g.has_tag(kind, "indented") {
+            CommentKind::Lines
+        } else {
+            CommentKind::Directive
+        });
+    }
+    if !g.has_tag(kind, "comment") {
         return None;
     }
-    let text = t.text();
+    let text = element_text(e);
     let is_line = g
         .comments
         .line
         .as_deref()
         .is_some_and(|l| text.starts_with(l));
-    Some(if is_line {
-        CommentKind::Line
-    } else {
-        CommentKind::Block
+    Some(match e {
+        SyntaxElement::Node(_) if text.starts_with("///") => CommentKind::Lines,
+        _ if is_line => CommentKind::Line,
+        _ => CommentKind::Block,
     })
 }
 
@@ -148,18 +241,20 @@ impl ScanBefore {
 /// token are mostly trivia, and creating a red token for each of them would cost far more than
 /// looking at them.
 fn walk_back<B>(
+    g: &Grammar,
     parent: Option<SyntaxNode>,
     mut idx: usize,
     mut visit: impl FnMut(SyntaxKind, &str) -> ControlFlow<B>,
 ) -> Option<B> {
     fn down<B>(
+        g: &Grammar,
         node: &rowan::GreenNodeData,
         visit: &mut impl FnMut(SyntaxKind, &str) -> ControlFlow<B>,
     ) -> ControlFlow<B> {
         for child in node.children().rev() {
             match child {
                 rowan::NodeOrToken::Token(t) => visit(SyntaxKind(t.kind().0), t.text())?,
-                rowan::NodeOrToken::Node(n) => down(n, visit)?,
+                rowan::NodeOrToken::Node(n) => visit_node(g, n, visit, down)?,
             }
         }
         ControlFlow::Continue(())
@@ -169,7 +264,7 @@ fn walk_back<B>(
         for child in node.green().children().take(idx).rev() {
             let flow = match child {
                 rowan::NodeOrToken::Token(t) => visit(SyntaxKind(t.kind().0), t.text()),
-                rowan::NodeOrToken::Node(n) => down(n, &mut visit),
+                rowan::NodeOrToken::Node(n) => visit_node(g, n, &mut visit, down),
             };
             if let ControlFlow::Break(b) = flow {
                 return Some(b);
@@ -180,19 +275,37 @@ fn walk_back<B>(
     }
 }
 
+/// Visits a green node: a structured trivia is one element (its kind and whole text), any other
+/// node is entered with `down`.
+fn visit_node<B, V: FnMut(SyntaxKind, &str) -> ControlFlow<B>>(
+    g: &Grammar,
+    node: &rowan::GreenNodeData,
+    visit: &mut V,
+    down: fn(&Grammar, &rowan::GreenNodeData, &mut V) -> ControlFlow<B>,
+) -> ControlFlow<B> {
+    let kind = SyntaxKind(node.kind().0);
+    if is_trivia(g, kind) {
+        visit(kind, &node.to_string())
+    } else {
+        down(g, node, visit)
+    }
+}
+
 /// Like [`walk_back`], for the tokens after `tok`.
 fn walk_forward<B>(
+    g: &Grammar,
     tok: &SyntaxToken,
     mut visit: impl FnMut(SyntaxKind, &str) -> ControlFlow<B>,
 ) -> Option<B> {
     fn down<B>(
+        g: &Grammar,
         node: &rowan::GreenNodeData,
         visit: &mut impl FnMut(SyntaxKind, &str) -> ControlFlow<B>,
     ) -> ControlFlow<B> {
         for child in node.children() {
             match child {
                 rowan::NodeOrToken::Token(t) => visit(SyntaxKind(t.kind().0), t.text())?,
-                rowan::NodeOrToken::Node(n) => down(n, visit)?,
+                rowan::NodeOrToken::Node(n) => visit_node(g, n, visit, down)?,
             }
         }
         ControlFlow::Continue(())
@@ -203,7 +316,7 @@ fn walk_forward<B>(
         for child in node.green().children().skip(idx) {
             let flow = match child {
                 rowan::NodeOrToken::Token(t) => visit(SyntaxKind(t.kind().0), t.text()),
-                rowan::NodeOrToken::Node(n) => down(n, &mut visit),
+                rowan::NodeOrToken::Node(n) => visit_node(g, n, &mut visit, down),
             };
             if let ControlFlow::Break(b) = flow {
                 return Some(b);
@@ -221,7 +334,7 @@ fn text_ends_line(text: &str) -> bool {
 fn scan_back(g: &Grammar, parent: Option<SyntaxNode>, idx: usize) -> ScanBefore {
     let mut breaks = 0;
     let mut after_first_line_end = None;
-    let stopped = walk_back(parent, idx, |kind, text| {
+    let stopped = walk_back(g, parent, idx, |kind, text| {
         if !is_trivia(g, kind) {
             return ControlFlow::Break(ScanBefore {
                 has_prev: true,
@@ -230,7 +343,7 @@ fn scan_back(g: &Grammar, parent: Option<SyntaxNode>, idx: usize) -> ScanBefore 
                 after_first_line_end,
             });
         }
-        if g.has_tag(kind, "comment") {
+        if is_comment_like(g, kind) {
             return ControlFlow::Break(ScanBefore {
                 has_prev: false,
                 has_comment: true,
@@ -273,11 +386,11 @@ pub fn node_leading(g: &Grammar, node: &SyntaxNode) -> NodeLeading {
     // The trivia inside the node, in front of its first token.
     let (mut total, mut after_first, mut seen_line_end) = (0, 0, false);
     let mut comment = false;
-    let found = walk_node(node, |kind, text| {
+    let found = walk_node(g, node, |kind, text| {
         if !is_trivia(g, kind) {
             return ControlFlow::Break(true);
         }
-        if g.has_tag(kind, "comment") {
+        if is_comment_like(g, kind) {
             comment = true;
             return ControlFlow::Break(true);
         }
@@ -322,22 +435,24 @@ pub fn node_leading(g: &Grammar, node: &SyntaxNode) -> NodeLeading {
 
 /// Calls `visit` with the tokens of `node` in document order until it returns `Break`.
 fn walk_node<B>(
+    g: &Grammar,
     node: &SyntaxNode,
     mut visit: impl FnMut(SyntaxKind, &str) -> ControlFlow<B>,
 ) -> Option<B> {
     fn down<B>(
+        g: &Grammar,
         node: &rowan::GreenNodeData,
         visit: &mut impl FnMut(SyntaxKind, &str) -> ControlFlow<B>,
     ) -> ControlFlow<B> {
         for child in node.children() {
             match child {
                 rowan::NodeOrToken::Token(t) => visit(SyntaxKind(t.kind().0), t.text())?,
-                rowan::NodeOrToken::Node(n) => down(n, visit)?,
+                rowan::NodeOrToken::Node(n) => visit_node(g, n, visit, down)?,
             }
         }
         ControlFlow::Continue(())
     }
-    match down(&node.green(), &mut visit) {
+    match down(g, &node.green(), &mut visit) {
         ControlFlow::Break(b) => Some(b),
         ControlFlow::Continue(()) => None,
     }
@@ -345,10 +460,10 @@ fn walk_node<B>(
 
 /// Is there a comment in the trivia directly after `tok`?
 fn comment_follows(g: &Grammar, tok: &SyntaxToken) -> bool {
-    walk_forward(tok, |kind, _| {
+    walk_forward(g, tok, |kind, _| {
         if !is_trivia(g, kind) {
             ControlFlow::Break(false)
-        } else if g.has_tag(kind, "comment") {
+        } else if is_comment_like(g, kind) {
             ControlFlow::Break(true)
         } else {
             ControlFlow::Continue(())
@@ -366,13 +481,14 @@ pub fn leading_comments(g: &Grammar, tok: &SyntaxToken) -> Vec<Comment> {
     for t in trivia {
         match kind_of(g, &t) {
             Some(kind) => out.push(Comment {
-                token: t,
+                // A structured trivia ends its own line.
+                breaks_after: usize::from(ends_line(&t) && kind != CommentKind::Line),
+                element: t,
                 kind,
-                breaks_after: 0,
             }),
             None => {
                 if let Some(last) = out.last_mut() {
-                    last.breaks_after += count_breaks(t.text());
+                    last.breaks_after += count_breaks(&element_text(&t));
                 }
             }
         }
@@ -388,7 +504,7 @@ pub fn trailing_comments(g: &Grammar, tok: &SyntaxToken) -> Vec<Comment> {
         .into_iter()
         .filter_map(|t| {
             kind_of(g, &t).map(|kind| Comment {
-                token: t,
+                element: t,
                 kind,
                 breaks_after: 0,
             })
@@ -414,13 +530,13 @@ pub fn blank_lines_before(g: &Grammar, tok: &SyntaxToken) -> usize {
     leading_trivia(g, tok)
         .iter()
         .take_while(|t| kind_of(g, t).is_none())
-        .map(|t| count_breaks(t.text()))
+        .map(|t| count_breaks(&element_text(t)))
         .sum()
 }
 
 /// Is there a line break in the trivia between `tok` and the next non-trivia token?
 pub fn break_after(g: &Grammar, tok: &SyntaxToken) -> bool {
-    walk_forward(tok, |kind, text| {
+    walk_forward(g, tok, |kind, text| {
         if !is_trivia(g, kind) {
             ControlFlow::Break(false)
         } else if count_breaks(text) > 0 {

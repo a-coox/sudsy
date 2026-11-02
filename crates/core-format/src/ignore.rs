@@ -13,9 +13,10 @@ pub enum IgnoreMark {
     End,
 }
 
-/// The comment's text without its delimiters.
-fn body<'a>(g: &Grammar, c: &'a Comment) -> &'a str {
+/// The comment's text without its delimiters; empty for what is not a plain comment.
+fn body(g: &Grammar, c: &Comment) -> String {
     let text = c.text();
+    let text: &str = &text;
     match c.kind {
         CommentKind::Line => {
             let prefix = g.comments.line.as_deref().unwrap_or("");
@@ -28,8 +29,10 @@ fn body<'a>(g: &Grammar, c: &'a Comment) -> &'a str {
                 .unwrap_or(text),
             None => text,
         },
+        CommentKind::Lines | CommentKind::Directive => "",
     }
     .trim()
+    .to_string()
 }
 
 fn marker<'a>(g: &'a Grammar, role: &str) -> Option<&'a str> {
@@ -40,7 +43,8 @@ fn marker<'a>(g: &'a Grammar, role: &str) -> Option<&'a str> {
 }
 
 pub fn mark_of(g: &Grammar, c: &Comment) -> Option<IgnoreMark> {
-    let word = body(g, c).split_whitespace().next()?;
+    let body = body(g, c);
+    let word = body.split_whitespace().next()?;
     [
         ("ignore", IgnoreMark::Ignore),
         ("ignore-start", IgnoreMark::Start),

@@ -102,7 +102,7 @@ fn takers(cs: &[Comment], t: &SyntaxToken) -> Vec<(SyntaxNode, usize, usize)> {
             let col = first_token(&a).map_or(0, |f| column(&f));
             let take = cs[start..]
                 .iter()
-                .take_while(|c| column(&c.token) >= col)
+                .take_while(|c| column(c.token()) >= col)
                 .count();
             out.push((a, start, start + take));
             start += take;
@@ -146,7 +146,7 @@ pub(crate) fn dangling(cx: &FormatCtx<'_>, st: &Style, collection: &SyntaxNode) 
             blank.min(st.max_blank)
         };
         parts.push(breaks(1 + blank));
-        parts.push(cx.token_text(&cs[i].token));
+        parts.push(cx.token_text(cs[i].token()));
     }
     doc::concat(parts)
 }

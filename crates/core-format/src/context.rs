@@ -147,16 +147,30 @@ impl<'a> FormatCtx<'a> {
     }
 
     pub fn first_token(&self, node: &SyntaxNode) -> Option<SyntaxToken> {
-        node.descendants_with_tokens()
-            .filter_map(SyntaxElement::into_token)
-            .find(|t| !self.grammar.is_trivia(t.kind()))
+        let mut walk = node.preorder_with_tokens();
+        while let Some(event) = walk.next() {
+            match event {
+                rowan::WalkEvent::Enter(SyntaxElement::Node(n))
+                    if self.grammar.is_trivia(n.kind()) =>
+                {
+                    walk.skip_subtree();
+                }
+                rowan::WalkEvent::Enter(SyntaxElement::Token(t))
+                    if !self.grammar.is_trivia(t.kind()) =>
+                {
+                    return Some(t);
+                }
+                _ => {}
+            }
+        }
+        None
     }
 
     pub fn last_token(&self, node: &SyntaxNode) -> Option<SyntaxToken> {
         // Walk back from the node's last token over trivia, staying inside the node.
         let mut cur = node.last_token();
         while let Some(t) = cur {
-            if !self.grammar.is_trivia(t.kind()) {
+            if !self.grammar.is_trivia(t.kind()) && !self.in_trivia_node(&t, node) {
                 return Some(t);
             }
             cur = t
@@ -164,6 +178,13 @@ impl<'a> FormatCtx<'a> {
                 .filter(|p| p.parent_ancestors().any(|a| a == *node));
         }
         None
+    }
+
+    /// Is `t` inside a structured trivia node (a doc comment) below `node`?
+    fn in_trivia_node(&self, t: &SyntaxToken, node: &SyntaxNode) -> bool {
+        t.parent_ancestors()
+            .take_while(|a| a != node)
+            .any(|a| self.grammar.is_trivia(a.kind()))
     }
 
     /// A token with its leading and trailing comments.
@@ -230,6 +251,18 @@ pub fn verbatim_text(s: &str) -> Doc {
     }
 }
 
+/// The lines of `text` with their indentation replaced by the current one.
+fn lines_doc(text: &str) -> Doc {
+    let mut parts = Vec::new();
+    for (i, line) in text.lines().enumerate() {
+        if i > 0 {
+            parts.push(doc::hardline());
+        }
+        parts.push(doc::snippet(line.trim_start()));
+    }
+    doc::concat(parts)
+}
+
 /// Own-line comments go on their own lines, inline block comments stay inline.
 pub fn leading_comments_doc(cs: &[Comment]) -> Doc {
     if cs.is_empty() {
@@ -237,7 +270,12 @@ pub fn leading_comments_doc(cs: &[Comment]) -> Doc {
     }
     let mut parts = Vec::new();
     for c in cs {
-        parts.push(verbatim_text(c.text()));
+        let text = c.text();
+        parts.push(match c.kind {
+            CommentKind::Lines => lines_doc(&text),
+            CommentKind::Directive => doc::concat(vec![doc::line_start(text), doc::break_parent()]),
+            CommentKind::Line | CommentKind::Block => verbatim_text(&text),
+        });
         if c.kind == CommentKind::Line || c.breaks_after > 0 {
             parts.push(doc::hardline());
             if c.breaks_after >= 2 {
@@ -258,13 +296,13 @@ pub fn trailing_comments_doc(cs: &[Comment]) -> Doc {
     }
     let mut parts = Vec::new();
     for c in cs {
-        let body = doc::concat(vec![doc::lit(" "), verbatim_text(c.text())]);
+        let body = doc::concat(vec![doc::lit(" "), verbatim_text(&c.text())]);
         match c.kind {
             CommentKind::Line => {
                 parts.push(doc::line_suffix(body));
                 parts.push(doc::break_parent());
             }
-            CommentKind::Block => parts.push(body),
+            CommentKind::Block | CommentKind::Lines | CommentKind::Directive => parts.push(body),
         }
     }
     doc::concat(parts)

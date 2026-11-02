@@ -208,7 +208,7 @@ pub(crate) fn separator_comments(cx: &FormatCtx<'_>, item: &Rendered) -> Doc {
     for c in own {
         if line_comment_open {
             parts.push(doc::hardline());
-            parts.push(crate::context::verbatim_text(c.text()));
+            parts.push(crate::context::verbatim_text(&c.text()));
         } else {
             parts.push(crate::context::trailing_comments_doc(std::slice::from_ref(
                 &c,
@@ -220,10 +220,10 @@ pub(crate) fn separator_comments(cx: &FormatCtx<'_>, item: &Rendered) -> Doc {
 }
 
 /// Comments in front of a closing delimiter, each on its own line inside the container.
-pub(crate) fn dangling_comments(cs: &[Comment]) -> Doc {
+pub fn dangling_comments(cs: &[Comment]) -> Doc {
     doc::concat(
         cs.iter()
-            .flat_map(|c| [doc::hardline(), crate::context::verbatim_text(c.text())])
+            .flat_map(|c| [doc::hardline(), crate::context::verbatim_text(&c.text())])
             .collect(),
     )
 }
