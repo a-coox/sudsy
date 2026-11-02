@@ -16,9 +16,9 @@ pub fn run(p: &dyn LanguageProvider, name: &str, text: &str) {
     let g = p.grammar();
     macro_rules! t {
         ($label:expr, $e:expr) => {{
-            let s = Instant::now();
+            let a0 = crate::allocs(); let s = Instant::now();
             let r = $e;
-            println!("{:<28} {:>8.1} ms", $label, s.elapsed().as_secs_f64() * 1000.0);
+            println!("{:<28} {:>8.1} ms {:>10} allocs", $label, s.elapsed().as_secs_f64() * 1000.0, crate::allocs() - a0);
             r
         }};
     }
