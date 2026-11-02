@@ -2,7 +2,7 @@
 //! options onto the list shape for objects and arrays and handles the document's end.
 
 use crate::generated::kind as k;
-use core_config::{OptionDef, OptionSchema, ResolvedOptions, shared};
+use core_config::{OptionDef, OptionSchema, OptionValue, Preset, ResolvedOptions, shared};
 use core_format::shapes::{ListLayout, ListStyle, TrailingComma, delimited_list};
 use core_format::{Doc, FormatCtx, FormatError, NodeFormatter, comments, doc};
 use core_syntax::SyntaxNode;
@@ -38,6 +38,7 @@ pub fn option_schema() -> OptionSchema {
             "JSON or JSONC (comments, trailing commas); `auto` decides by file name.",
         ),
     ])
+    .with_presets(presets())
 }
 
 pub struct JsonFormatter;
@@ -54,6 +55,8 @@ fn list_style(options: &ResolvedOptions, is_object: bool) -> ListStyle {
         layout: match options.str(COLLAPSE) {
             "always" => ListLayout::Fit,
             "never" => ListLayout::Break,
+            _ if prettier(options) && is_object => ListLayout::PreserveOpenBreak,
+            _ if prettier(options) => ListLayout::Fit,
             _ => ListLayout::PreserveBreak,
         },
         ..ListStyle::default()
@@ -97,4 +100,31 @@ fn document(cx: &FormatCtx<'_>, node: &SyntaxNode) -> Result<Doc, FormatError> {
         parts.push(core_format::context::leading_comments_doc(&trailing));
     }
     Ok(doc::concat(parts))
+}
+
+/// `json/default` is the schema's defaults (two spaces, width 80). `json/prettier-compat` pins
+/// the values that reproduce Prettier's JSON output.
+fn presets() -> Vec<Preset> {
+    vec![
+        Preset::new("json/default@1", vec![]),
+        Preset::new(
+            "json/prettier-compat@1",
+            vec![
+                (shared::LINE_WIDTH, OptionValue::Int(80)),
+                (shared::INDENT_SIZE, OptionValue::Int(2)),
+                (COLLAPSE, OptionValue::String("preserve".into())),
+                (TRAILING_COMMAS, OptionValue::String("never".into())),
+                (LAYOUT, OptionValue::String("prettier".into())),
+            ],
+        ),
+    ]
+}
+
+/// Preset-internal value (not in the schema, so users cannot set it): `prettier` makes `preserve`
+/// follow Prettier: an object stays expanded when its first key is on a line of its own, an array
+/// is on one line whenever it fits.
+const LAYOUT: &str = "layout";
+
+fn prettier(options: &ResolvedOptions) -> bool {
+    matches!(options.get(LAYOUT), Some(OptionValue::String(s)) if s == "prettier")
 }

@@ -2,7 +2,7 @@
 //! statements and expressions, enums, accessor lists.
 
 use super::lists::list_trailing_comma;
-use super::options::csharpier;
+use super::options::{csharpier, empty_braces};
 use super::seq::{R, Sep, direct_tokens, is_empty_braces, sep_doc, separator, seq_of, sig};
 use super::tags::{self, Tag};
 use crate::generated::kind as k;
@@ -113,11 +113,13 @@ fn with_braces(
     Ok(doc::concat(parts))
 }
 
-const BLOCK: BlockStyle = BlockStyle {
-    max_blank_lines: 1,
-    empty: " ",
-    force_blank: None,
-};
+fn block_style(cx: &FormatCtx<'_>) -> BlockStyle {
+    BlockStyle {
+        max_blank_lines: 1,
+        empty: empty_braces(cx.options),
+        force_blank: None,
+    }
+}
 
 /// A method with a body, or a type: whatever CSharpier sets apart with blank lines.
 fn has_body_or_members(member: &SyntaxNode) -> bool {
@@ -177,7 +179,7 @@ fn member_rule(cx: &FormatCtx<'_>, node: &SyntaxNode) -> Option<BlankRule> {
 pub fn braced(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
     let style = BlockStyle {
         force_blank: member_rule(cx, node),
-        ..BLOCK
+        ..block_style(cx)
     };
     with_braces(cx, node, |open, close| {
         block_between(cx, node, open, close, &style)
@@ -215,7 +217,7 @@ pub fn accessor_list(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
         // CSharpier drops the blank lines between accessors.
         let style = BlockStyle {
             max_blank_lines: if csharpier(cx.options) { 0 } else { 1 },
-            ..BLOCK
+            ..block_style(cx)
         };
         return with_braces(cx, node, |open, close| {
             block_between(cx, node, open, close, &style)
@@ -356,7 +358,7 @@ fn arms_style(cx: &FormatCtx<'_>, node: &SyntaxNode, close: &SyntaxToken) -> Lis
     ListStyle {
         layout: ListLayout::Break,
         trailing_comma: list_trailing_comma(cx, node, close),
-        empty: " ",
+        empty: empty_braces(cx.options),
         force_blank: (csharpier(cx.options) && node.kind() == k::ENUM_DECLARATION)
             .then_some(blank_between_members as BlankRule),
         ..ListStyle::default()

@@ -1,7 +1,9 @@
 //! Delimited lists: argument and parameter lists, initializers, collection expressions,
 //! attribute lists, and the hook that keeps a lambda as the last argument on the call's line.
 
-use super::options::{csharpier, initializer_layout, trailing_comma};
+use super::options::{
+    csharpier, empty_braces, initializer_layout, same_line_initializers, trailing_comma,
+};
 use super::seq::{R, Sep, direct_tokens, sep_doc, separator, seq_of, sig};
 use crate::generated::kind as k;
 use core_format::shapes::{ListStyle, TrailingComma, delimited_list, delimited_list_between};
@@ -62,7 +64,7 @@ pub fn plain_list(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
     let style = match node.kind() {
         k::PROPERTY_PATTERN_CLAUSE => ListStyle {
             padding: true,
-            empty: " ",
+            empty: empty_braces(cx.options),
             leading_line: csharpier(cx.options) && property_pattern_follows_something(node),
             ..ListStyle::default()
         },
@@ -112,7 +114,7 @@ fn brace_style(cx: &FormatCtx<'_>, node: &SyntaxNode, close: &SyntaxToken) -> Li
             list_trailing_comma(cx, node, close)
         },
         layout: initializer_layout(cx.options),
-        empty: " ",
+        empty: empty_braces(cx.options),
         ..ListStyle::default()
     }
 }
@@ -123,7 +125,8 @@ pub fn initializer(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
         .pop()
         .ok_or_else(|| core_format::FormatError::Shape("initializer without `}`".into()))?;
     let mut style = brace_style(cx, node, &close);
-    style.leading_line = creation_parent(node.parent().map(|p| p.kind()))
+    style.leading_line = (creation_parent(node.parent().map(|p| p.kind()))
+        && !same_line_initializers(cx.options))
         || (csharpier(cx.options)
             && node.parent().map(|p| p.kind()) == Some(k::SIMPLE_ASSIGNMENT_EXPRESSION));
     delimited_list(cx, node, &style)

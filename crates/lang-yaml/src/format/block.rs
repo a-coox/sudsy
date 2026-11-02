@@ -215,7 +215,12 @@ pub(crate) fn node_after(
             let body = cx.format(value)?;
             Ok(match ctx {
                 Ctx::Mapping { key_col } => {
-                    let lead = breaks(1 + blank_lines_before(cx, &first, st));
+                    let blank = if st.tight_values {
+                        0
+                    } else {
+                        blank_lines_before(cx, &first, st)
+                    };
+                    let lead = breaks(1 + blank);
                     let flush = value.kind() == k::BLOCK_SEQUENCE
                         && match st.sequence {
                             SequenceIndent::Flush => true,
