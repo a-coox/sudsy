@@ -1,0 +1,30 @@
+[workspace]
+resolver = "3"
+members = ["crates/core-syntax", "xtask"]
+
+[workspace.package]
+edition = "2024"
+license = "MIT"
+version = "0.0.0"
+publish = false
+
+[workspace.dependencies]
+anyhow = "1"
+clap = { version = "4", features = ["derive"] }
+prost = "0.14"
+proptest = "1"
+rmp-serde = "1"
+rowan = "0.16"
+serde = { version = "1", features = ["derive"] }
+serde_bytes = "0.11"
+serde-saphyr = "2"
+sha2 = "0.10"
+tempfile = "3"
+thiserror = "2"
+
+core-config = { path = "crates/core-config" }
+core-syntax = { path = "crates/core-syntax" }
+provider-api = { path = "crates/provider-api" }
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
