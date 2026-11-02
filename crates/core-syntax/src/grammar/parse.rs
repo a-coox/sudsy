@@ -139,8 +139,7 @@ fn content_hash(decls: &[Decl]) -> String {
             h.update(text.as_bytes());
             h.update([0]);
         }
-        h.update(b"
-");
+        h.update(b"\n");
     }
     h.finalize().iter().map(|b| format!("{b:02x}")).collect()
 }
