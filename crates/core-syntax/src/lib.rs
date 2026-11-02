@@ -10,7 +10,6 @@
 
 pub mod ast;
 pub mod codegen;
-pub mod generated;
 pub mod grammar;
 pub mod grammars;
 pub mod kind;

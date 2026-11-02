@@ -1,7 +1,8 @@
 use anyhow::{Context, Result, bail, ensure};
 use clap::Subcommand;
 use core_syntax::{dump_tree, grammars, print, trivia};
-use provider_api::{LanguageProvider, SourceFile, csharp};
+use lang_csharp as csharp;
+use provider_api::{LanguageProvider, SourceFile};
 use std::path::{Path, PathBuf};
 
 #[derive(Subcommand)]

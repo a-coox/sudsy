@@ -3,8 +3,8 @@
 mod common;
 
 use core_syntax::ast::AstNode;
-use core_syntax::generated::csharp;
 use core_syntax::{SyntaxKind, grammars, print, trivia};
+use lang_csharp::generated as csharp;
 use provider_api::protocol::{FlowGraphs, OpenWorkspace, Query, Request, UpdateText};
 use provider_api::{
     Capabilities, LanguageProvider, ProviderError, ProxyError, SourceFile, WorkerConfig,
@@ -12,7 +12,7 @@ use provider_api::{
 use std::ffi::OsString;
 
 fn provider() -> provider_api::OutOfProcessProvider {
-    provider_api::csharp::provider(&common::worker_dll())
+    lang_csharp::provider(&common::worker_dll())
 }
 
 const SAMPLE: &str = "using System;\n\nnamespace N // ns\n{\n    /// <summary>Doc</summary>\n    public class Greeter\n    {\n        string s = \"h\u{e9}llo \u{1F642}\"; /* c */\n        void M() { }\n    }\n}\n";

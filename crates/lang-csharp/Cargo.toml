@@ -1,0 +1,16 @@
+[package]
+name = "lang-csharp"
+edition.workspace = true
+license.workspace = true
+version.workspace = true
+publish.workspace = true
+
+[dependencies]
+core-syntax.workspace = true
+provider-api.workspace = true
+
+[dev-dependencies]
+insta.workspace = true
+
+[lints]
+workspace = true

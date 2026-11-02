@@ -1,9 +1,11 @@
-//! The C# provider's out-of-process half. Moves to `lang-csharp` in M4.
+//! The C# provider: the grammar's typed wrappers and the proxy to the Roslyn worker. The format
+//! code, rules and options arrive with M2b and later.
 
-use crate::out_of_process::OutOfProcessProvider;
-use crate::provider::FileMatcher;
-use crate::proxy::WorkerConfig;
+#[rustfmt::skip]
+pub mod generated;
+
 use core_syntax::{LanguageId, grammars};
+use provider_api::{FileMatcher, OutOfProcessProvider, WorkerConfig};
 use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 
