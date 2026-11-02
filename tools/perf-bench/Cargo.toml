@@ -15,10 +15,10 @@ lang-json.workspace = true
 lang-yaml.workspace = true
 provider-api.workspace = true
 anyhow.workspace = true
-mimalloc = { version = "0.1", optional = true }
+mimalloc = { workspace = true, optional = true }
 
 [features]
-# Measure the effect of a faster global allocator (the CLI uses the system one).
+# Use the CLI's global allocator (mimalloc); without it the bench measures the system allocator.
 mimalloc = ["dep:mimalloc"]
 # Count allocations per phase.
 count = []

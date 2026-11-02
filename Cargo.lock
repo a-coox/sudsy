@@ -268,6 +268,7 @@ dependencies = [
  "core-workspace",
  "lang-json",
  "lang-yaml",
+ "mimalloc",
  "provider-api",
  "tempfile",
 ]
