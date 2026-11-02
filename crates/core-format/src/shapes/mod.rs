@@ -7,7 +7,7 @@ mod chain;
 mod key_value;
 mod list;
 
-pub use block::{BlockStyle, block, block_between, statement_sequence};
+pub use block::{BlockStyle, block, block_between, statement_sequence, statement_sequence_with};
 pub use chain::{
     MemberChain, binary_chain, ends_in_line_comment, gap_after_operator, member_chain,
 };
@@ -26,6 +26,10 @@ use core_syntax::{Grammar, SyntaxElement, SyntaxNode, SyntaxToken};
 pub fn verbatim(cx: &FormatCtx<'_>, node: &SyntaxNode) -> Doc {
     cx.verbatim_node(node)
 }
+
+/// Decides whether a blank line must stand between two items (the previous item's last node and
+/// the next item's first node) although the source has none.
+pub type BlankRule = fn(&FormatCtx<'_>, &SyntaxNode, &SyntaxNode) -> bool;
 
 /// A child node and the separator token that follows it, if any.
 pub(crate) struct Slot {
@@ -205,9 +209,14 @@ pub(crate) fn gap(
     next: &Rendered,
     base: Doc,
     max_blank: usize,
+    force_blank: Option<BlankRule>,
 ) -> Doc {
     let (prev_d, next_d) = (cx.directives_of(&prev.first), cx.directives_of(&next.first));
-    let required = next_d.blank_lines_before();
+    let required = next_d.blank_lines_before().or_else(|| {
+        force_blank
+            .is_some_and(|rule| rule(cx, &prev.last, &next.first))
+            .then_some(1)
+    });
     let forced = next_d.has(&Directive::BreakBefore)
         || prev_d.has(&Directive::BreakAfter)
         || required.is_some_and(|n| n > 0);
@@ -263,11 +272,16 @@ pub(crate) fn separator_comments(cx: &FormatCtx<'_>, item: &Rendered) -> Doc {
     doc::concat(parts)
 }
 
-/// Comments in front of a closing delimiter, each on its own line inside the container.
-pub fn dangling_comments(cs: &[Comment]) -> Doc {
-    doc::concat(
-        cs.iter()
-            .flat_map(|c| [doc::hardline(), crate::context::comment_doc(c)])
-            .collect(),
-    )
+/// Comments in front of a closing delimiter, each on its own line inside the container. Blank
+/// lines between them are kept, and one before the first when `blank_before`.
+pub fn dangling_comments(cs: &[Comment], blank_before: bool) -> Doc {
+    let mut parts = Vec::new();
+    for (i, c) in cs.iter().enumerate() {
+        parts.push(doc::hardline());
+        if (i == 0 && blank_before) || (i > 0 && cs[i - 1].breaks_after >= 2) {
+            parts.push(doc::hardline());
+        }
+        parts.push(crate::context::comment_doc(c));
+    }
+    doc::concat(parts)
 }

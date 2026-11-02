@@ -37,7 +37,7 @@ pub fn space(prev: &SyntaxToken, next: &SyntaxToken, parent: SyntaxKind) -> bool
     match n {
         "(" => {
             return if ends_word(p) {
-                SPACE_BEFORE_PAREN.contains(&p)
+                SPACE_BEFORE_PAREN.contains(&p) || parent_kind(next) == Some(k::TUPLE_TYPE)
             } else {
                 !matches!(p, ")" | "]" | ">" | "!" | "?")
             };

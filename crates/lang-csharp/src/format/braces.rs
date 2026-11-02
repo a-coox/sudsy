@@ -2,12 +2,13 @@
 //! statements and expressions, enums, accessor lists.
 
 use super::lists::source_trailing_comma;
-use super::options::trailing_comma;
+use super::options::{csharpier, trailing_comma};
 use super::seq::{R, Sep, direct_tokens, is_empty_braces, sep_doc, separator, seq_of, sig};
 use super::tags::{self, Tag};
 use crate::generated::kind as k;
 use core_format::shapes::{
-    BlockStyle, ListLayout, ListStyle, block_between, delimited_list_between, statement_sequence,
+    BlankRule, BlockStyle, ListLayout, ListStyle, block_between, delimited_list_between,
+    statement_sequence, statement_sequence_with,
 };
 use core_format::{FormatCtx, FormatError, comments, doc};
 use core_syntax::{SyntaxElement, SyntaxNode, SyntaxToken, TextRange};
@@ -30,7 +31,12 @@ fn position(els: &[SyntaxElement], t: &SyntaxToken) -> Option<usize> {
 pub fn compilation_unit(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
     let els = sig(cx, node);
     let items: Vec<SyntaxNode> = nodes_of(&els);
-    let mut parts = vec![statement_sequence(cx, &items, 1)?];
+    let mut parts = vec![statement_sequence_with(
+        cx,
+        &items,
+        1,
+        member_rule(cx, node),
+    )?];
     if let Some(SyntaxElement::Token(eof)) = els.last() {
         let trailing = comments::leading_comments(cx.grammar, eof);
         if !trailing.is_empty() {
@@ -63,7 +69,12 @@ pub fn file_scoped_namespace(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
     if comments::blank_lines_before(cx.grammar, &first) > 0 {
         parts.push(doc::hardline());
     }
-    parts.push(statement_sequence(cx, &rest, 1)?);
+    parts.push(statement_sequence_with(
+        cx,
+        &rest,
+        1,
+        member_rule(cx, node),
+    )?);
     Ok(doc::concat(parts))
 }
 
@@ -105,12 +116,54 @@ fn with_braces(
 const BLOCK: BlockStyle = BlockStyle {
     max_blank_lines: 1,
     empty: " ",
+    force_blank: None,
 };
+
+/// A member that is one line by nature: it may follow its neighbours without a blank line.
+fn is_simple_member(cx: &FormatCtx<'_>, member: &SyntaxNode) -> bool {
+    match member.kind() {
+        k::FIELD_DECLARATION
+        | k::EVENT_FIELD_DECLARATION
+        | k::USING_DIRECTIVE
+        | k::EXTERN_ALIAS_DIRECTIVE
+        | k::DELEGATE_DECLARATION
+        | k::ENUM_MEMBER_DECLARATION => true,
+        k::PROPERTY_DECLARATION => member.children().all(|c| match c.kind() {
+            k::ACCESSOR_LIST => accessors_inline(cx, &c),
+            k::ARROW_EXPRESSION_CLAUSE => true,
+            _ => true,
+        }),
+        _ => false,
+    }
+}
+
+/// CSharpier puts a blank line between members, except between two simple ones when the second
+/// has no comment, directive or attribute above it.
+fn blank_between_members(cx: &FormatCtx<'_>, prev: &SyntaxNode, next: &SyntaxNode) -> bool {
+    let commented = cx
+        .first_token(next)
+        .is_some_and(|t| !comments::leading_comments(cx.grammar, &t).is_empty());
+    let decorated = commented || next.children().any(|c| c.kind() == k::ATTRIBUTE_LIST);
+    !(is_simple_member(cx, prev) && is_simple_member(cx, next) && !decorated)
+}
+
+/// The blank line rule of a body whose children are members, if the preset has one.
+fn member_rule(cx: &FormatCtx<'_>, node: &SyntaxNode) -> Option<BlankRule> {
+    let g = cx.grammar;
+    let members = tags::has(g, node.kind(), Tag::Namespace)
+        || tags::has(g, node.kind(), Tag::TypeDeclaration)
+        || node.kind() == k::COMPILATION_UNIT;
+    (csharpier(cx.options) && members).then_some(blank_between_members as BlankRule)
+}
 
 /// Blocks, namespaces, types and switch statements.
 pub fn braced(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
+    let style = BlockStyle {
+        force_blank: member_rule(cx, node),
+        ..BLOCK
+    };
     with_braces(cx, node, |open, close| {
-        block_between(cx, node, open, close, &BLOCK)
+        block_between(cx, node, open, close, &style)
     })
 }
 
@@ -142,8 +195,13 @@ pub fn accessors_inline(cx: &FormatCtx<'_>, list: &SyntaxNode) -> bool {
 pub fn accessor_list(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
     let els = sig(cx, node);
     if !accessors_inline(cx, node) {
+        // CSharpier drops the blank lines between accessors.
+        let style = BlockStyle {
+            max_blank_lines: if csharpier(cx.options) { 0 } else { 1 },
+            ..BLOCK
+        };
         return with_braces(cx, node, |open, close| {
-            block_between(cx, node, open, close, &BLOCK)
+            block_between(cx, node, open, close, &style)
         });
     }
     let mut parts = Vec::new();
@@ -154,6 +212,73 @@ pub fn accessor_list(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
         parts.push(super::seq::element_doc(cx, e)?);
     }
     Ok(doc::concat(parts))
+}
+
+/// `get { return x; }`: CSharpier keeps the body of an accessor on its line when it is a single
+/// simple statement without comments and everything fits; otherwise the braces get their own
+/// lines. `None` for any accessor this does not apply to.
+pub fn accessor_declaration(cx: &FormatCtx<'_>, accessor: &SyntaxNode) -> Option<R> {
+    let g = cx.grammar;
+    let els = sig(cx, accessor);
+    let (SyntaxElement::Node(block), head) = els.split_last()? else {
+        return None;
+    };
+    let body = sig(cx, block);
+    let [
+        SyntaxElement::Token(open),
+        SyntaxElement::Node(statement),
+        SyntaxElement::Token(close),
+    ] = body.as_slice()
+    else {
+        return None;
+    };
+    let simple = block.kind() == k::BLOCK
+        && matches!(
+            statement.kind(),
+            k::RETURN_STATEMENT | k::THROW_STATEMENT | k::EXPRESSION_STATEMENT
+        );
+    let has_comment = accessor
+        .descendants_with_tokens()
+        .filter_map(SyntaxElement::into_token)
+        .any(|t| g.has_tag(t.kind(), "comment"));
+    if !simple || has_comment {
+        return None;
+    }
+    Some((|| {
+        let head = seq_of(cx, accessor, head)?;
+        let statement = doc::shared(cx.format(statement)?);
+        if statement.clone().propagate_breaks() {
+            return Ok(doc::concat(vec![head, doc::hardline(), cx.format(block)?]));
+        }
+        let (open, close) = (cx.token(open), cx.token(close));
+        let one_line = doc::concat(vec![
+            head.clone(),
+            doc::lit(" "),
+            open.clone(),
+            doc::lit(" "),
+            statement.clone(),
+            doc::lit(" "),
+            close.clone(),
+        ]);
+        let expanded = doc::concat(vec![
+            head,
+            doc::hardline(),
+            open,
+            doc::indent(doc::concat(vec![doc::hardline(), statement])),
+            doc::hardline(),
+            close,
+        ]);
+        Ok(doc::conditional_group(vec![one_line, expanded]))
+    })())
+}
+
+/// `: base(args)` of a constructor, on its own line below the signature.
+pub fn constructor_initializer(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
+    let els = sig(cx, node);
+    Ok(doc::indent(doc::concat(vec![
+        doc::hardline(),
+        seq_of(cx, node, &els)?,
+    ])))
 }
 
 /// Labels one per line, then the statements indented below them.
@@ -169,7 +294,11 @@ pub fn switch_section(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
         }
         parts.push(cx.format(label)?);
     }
-    if !statements.is_empty() {
+    // CSharpier does not indent a block that is the only statement of a section.
+    if csharpier(cx.options) && matches!(statements.as_slice(), [only] if only.kind() == k::BLOCK) {
+        parts.push(doc::hardline());
+        parts.push(cx.format(&statements[0])?);
+    } else if !statements.is_empty() {
         parts.push(doc::indent(doc::concat(vec![
             doc::hardline(),
             statement_sequence(cx, &statements, 1)?,
@@ -183,6 +312,8 @@ fn arms_style(cx: &FormatCtx<'_>, node: &SyntaxNode, close: &SyntaxToken) -> Lis
         layout: ListLayout::Break,
         trailing_comma: trailing_comma(cx.options, source_trailing_comma(cx, node, close)),
         empty: " ",
+        force_blank: (csharpier(cx.options) && node.kind() == k::ENUM_DECLARATION)
+            .then_some(blank_between_members as BlankRule),
         ..ListStyle::default()
     }
 }

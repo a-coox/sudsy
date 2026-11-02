@@ -1,8 +1,8 @@
 //! The C# format options (plan.md "Configuration and presets": `brace_newline`,
 //! `trailing_commas`, `member_chain_min_calls`, plus the shared ones).
 
-use core_config::{OptionDef, OptionSchema, ResolvedOptions, shared};
-use core_format::shapes::TrailingComma;
+use core_config::{OptionDef, OptionSchema, OptionValue, Preset, ResolvedOptions, shared};
+use core_format::shapes::{ListLayout, TrailingComma};
 
 pub const BRACE_NEWLINE: &str = "brace_newline";
 pub const TRAILING_COMMAS: &str = "trailing_commas";
@@ -38,10 +38,46 @@ pub fn option_schema() -> OptionSchema {
              call per line when it does not fit on a line.",
         ),
     ])
+    .with_presets(presets())
+}
+
+/// Preset-internal value (not in the schema, so users cannot set it): `csharpier` selects the
+/// layout variants that reproduce CSharpier's output; absent means the default layout.
+const LAYOUT: &str = "layout";
+
+/// `csharp/microsoft` is the schema's defaults. `csharp/csharpier-compat` reproduces CSharpier's
+/// output (print width 100, its layout variants).
+fn presets() -> Vec<Preset> {
+    vec![
+        Preset::new("csharp/microsoft@1", vec![]),
+        Preset::new(
+            "csharp/csharpier-compat@1",
+            vec![
+                (shared::LINE_WIDTH, OptionValue::Int(100)),
+                (TRAILING_COMMAS, OptionValue::String("multiline".into())),
+                (LAYOUT, OptionValue::String("csharpier".into())),
+            ],
+        ),
+    ]
+}
+
+/// Does this file use CSharpier's layout variants (the `csharp/csharpier-compat` preset)?
+pub fn csharpier(options: &ResolvedOptions) -> bool {
+    matches!(options.get(LAYOUT), Some(OptionValue::String(s)) if s == "csharpier")
 }
 
 pub fn brace_on_new_line(options: &ResolvedOptions) -> bool {
     options.str(BRACE_NEWLINE) == "all"
+}
+
+/// Initializers and collection expressions: CSharpier lays them out by width alone, the default
+/// keeps a list expanded when the source has a line break in it.
+pub fn initializer_layout(options: &ResolvedOptions) -> ListLayout {
+    if csharpier(options) {
+        ListLayout::Fit
+    } else {
+        ListLayout::PreserveBreak
+    }
 }
 
 /// How a list that may carry a trailing comma is printed, given whether its source had one.
