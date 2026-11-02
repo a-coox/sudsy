@@ -66,7 +66,10 @@ impl LineEnding {
     /// Like [`LineEnding::detect`] for the text of a tree, without making the text.
     pub fn of_tree(root: &SyntaxNode) -> Self {
         let mut after_cr = false;
-        for token in root.descendants_with_tokens().filter_map(|e| e.into_token()) {
+        for token in root
+            .descendants_with_tokens()
+            .filter_map(|e| e.into_token())
+        {
             let text = token.text();
             if let Some(i) = text.find('\n') {
                 let cr = text[..i].ends_with('\r') || i == 0 && after_cr;

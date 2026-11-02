@@ -359,3 +359,89 @@ a line break for block scalars, as the suite's expectations show.
 equal data model; all 308 valid cases format with every shared check (re-parse, tree comparison,
 data model, comments kept, idempotency), also under each of the 22 single option values and two
 combined option sets.
+
+## Performance
+
+Release build, Windows, one thread, system allocator, `format_file` as the CLI calls it
+(parse, layout, print, re-parse, tree comparison, YAML model comparison). Timings vary by about
+10% between runs.
+
+### Method
+* `cargo run --release -p perf-bench -- [json|yaml|json-flat|all] [--phases-only]`
+  (`tools/perf-bench`) generates the inputs deterministically (40k pretty-printed JSON objects,
+  11.1 MB; 60k YAML sequence items, 5.0 MB; a one-line JSON object, 1.1 MB), times every phase
+  separately, and times whole `format_file` calls at 1x, 4x (the sizes above) and 16x.
+  `--features count` adds allocations per phase and `--sites` samples which code allocates;
+  `--features mimalloc` swaps the global allocator.
+* No sampling profiler runs here (`samply` needs Administrator), so the work was found from
+  phase timings, allocation counts and sampled allocation backtraces.
+* Guards, counting work instead of time so they cannot flake: `core-format/tests/scaling.rs`
+  (steps `fits` takes grow at most 4x for 4x the document, for long lists, deep nesting and
+  fills) and `tools/perf-bench/tests/scaling.rs` (allocations of a whole `format_file` call grow
+  at most 4.6x for 4x the input, for JSON, one-line JSON and YAML, and for nesting depth).
+
+### Result
+| phase (ms) | JSON before | JSON after | YAML before | YAML after |
+|---|---|---|---|---|
+| parse | 539 | 306 | 345 | 303 |
+| layout document | 6255 | 869 | 3970 | 1155 |
+| print | 405 | 233 | 376 | 179 |
+| drop of the layout document | (not timed) | 150 | (not timed) | 104 |
+| safety: re-parse | 336 | 313 | 346 | 305 |
+| safety: tree comparison | 940 | 135 | 606 | 103 |
+| safety: YAML data model (2 loads, were 2 loads and 2 parses) | - | - | 1344 | 625 |
+| total | 8475 (1.3 MB/s) | 2007 (5.6 MB/s) | 6987 (0.7 MB/s) | 2773 (1.8 MB/s) |
+
+Whole `format_file`, best of 3: JSON 5.3 / 5.3 / 5.0 MB/s and YAML 1.8 / 1.7 / 1.6 MB/s at
+1x / 4x / 16x (before: 1.5 / 1.4 / 1.3 and 0.8 / 0.75 / 0.76 on slightly larger inputs). Time is
+linear in the size of the file. With mimalloc as the global allocator: JSON 6.7, YAML 2.4 MB/s.
+
+### Root causes and fixes
+* **Tree comparison** built a red node, a `String` and an event per token of both trees; it now
+  walks the green trees (`safety.rs`), 7x faster.
+* **Item documents were cloned** at every level (`item.doc.clone()` in lists and blocks), copying
+  each subtree once per ancestor; they are moved.
+* **`last_token` / `first_token` per item** scanned the whole subtree (size x depth); item
+  tokens are no longer needed (blank lines and ignore marks come from `comments::node_leading`),
+  and `last_token` walks back from the end of the node.
+* **Collapse-preserve check** (`spans_lines`) scanned the text of every list for a line break; for
+  nested lists on one line that is size x depth (4x the depth cost 14x). `FormatCtx` now finds
+  the tree's line breaks once (`lines.rs`) and answers each list by binary search.
+* **Per-token costs**: tag queries compared strings (now a bit set for the hot tags); comment
+  lookups collected trivia into a `Vec` of red tokens (now a green-tree walk that allocates
+  nothing when there is no comment, and a token without comments is plain text, not a concat of
+  three documents); punctuation and literals share their text instead of allocating.
+* **Printer**: every `indent` document pushed a new interned level and cloned its string (now
+  built once per level); `fits` allocated its work list per call (now reused); ASCII width fast
+  path. The measurement was not quadratic: `fits` stops at the first possible break and the rest
+  of the queue is not expanded (checked by the scaling test, also for one-line input).
+* **Safety check**: the YAML model comparison parsed both texts again (`extra_check` now gets the
+  two trees the generic check already has); the re-parse copied the source text only to replace
+  it; `format_tree` copied the output twice and the input once.
+* **YAML**: comment takers (`last_token`, `column`, `prev_significant` of every ancestor) ran for
+  every token although there was no comment to place; tokens were copied twice per scalar.
+
+### Not reached: 25 MB/s JSON, 10 MB/s YAML
+The remaining time is spread evenly over the phases, so no further single fix helps:
+* Parse alone costs 306 ms for the JSON file and the safety check parses the output again; with
+  no other work that caps `format --check` at about 18 MB/s. Two thirds of the parse is the
+  parser feeding rowan's node builder (cache lookups and green allocations for one token every
+  3 bytes of pretty-printed input, most of them whitespace and newlines).
+* Layout is about 7 allocations per node, mostly rowan red nodes: every formatter step that
+  looks at a child or neighbour allocates a red node or token (100 ns each with the system
+  allocator). A faster allocator gives 1.3-1.4x (mimalloc, a one-line `#[global_allocator]` in the
+  CLI binary, left to the CLI owner).
+* The data-model check of YAML loads two models (half a second for 5 MB).
+
+Proposals, none done here:
+1. Set mimalloc (or another fast allocator) as the global allocator of the CLI: +25-35% on
+   everything (measured: JSON 5.3 to 6.7 MB/s, YAML 1.7 to 2.4 MB/s).
+2. Compare the output without building a second tree: a provider-level `tokens(text)` that
+   returns the significant tokens, compared with the input's, would remove the re-parse and
+   the tree comparison (about a fifth of the time).
+3. Give formatting code a cursor over the green tree (kinds, text, children, trivia ranges by
+   index) in place of rowan red nodes, and make trivia of one line a single token. That is a
+   change to `NodeFormatter`, and to the provider API for C#, and is what stands between this
+   engine and 25 MB/s; it also fits the incremental work in `core-incremental`.
+4. YAML: share anchored nodes with `Rc`; `anchors.get(name).cloned()` copies the whole
+   anchored node at every alias (not hit by the benchmark, quadratic for alias-heavy files).

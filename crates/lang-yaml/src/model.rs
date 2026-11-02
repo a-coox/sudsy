@@ -241,8 +241,8 @@ impl Loader {
     fn scalar(&mut self, n: &SyntaxNode, tag: Option<String>) -> Result<Node, String> {
         let t = n
             .children_with_tokens()
-        .by_kind(|kind| kind.is_token() && !is_trivia(kind))
-        .find_map(|e| e.into_token())
+            .by_kind(|kind| kind.is_token() && !is_trivia(kind))
+            .find_map(|e| e.into_token())
             .ok_or("scalar without a token")?;
         let (text, plain) = match t.kind() {
             k::PLAIN => (scalar::plain_value(t.text()), true),

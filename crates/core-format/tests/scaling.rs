@@ -7,7 +7,9 @@ use core_format::doc::*;
 use core_format::printer::{PrintOptions, print_counting};
 
 fn steps(mut d: Doc) -> usize {
-    print_counting(&mut d, &PrintOptions::default()).2.fits_steps
+    print_counting(&mut d, &PrintOptions::default())
+        .2
+        .fits_steps
 }
 
 /// An object that has to break, holding `n` short groups that fit on their own line.
@@ -17,13 +19,23 @@ fn many_groups(n: usize) -> Doc {
             hardline(),
             group(concat(vec![
                 text("["),
-                indent(concat(vec![softline(), text(format!("item{i}")), line(), text("x")])),
+                indent(concat(vec![
+                    softline(),
+                    text(format!("item{i}")),
+                    line(),
+                    text("x"),
+                ])),
                 softline(),
                 text("]"),
             ])),
         ]
     });
-    group(concat(vec![text("{"), indent(concat(items.collect())), hardline(), text("}")]))
+    group(concat(vec![
+        text("{"),
+        indent(concat(items.collect())),
+        hardline(),
+        text("}"),
+    ]))
 }
 
 /// A chain of `depth` groups, each holding a short line and the next group.

@@ -14,7 +14,6 @@ mod counting;
 #[global_allocator]
 static A: counting::Counting = counting::Counting;
 
-
 use anyhow::{Result, anyhow};
 use core_format::{DirectiveTable, FormatCtx, safety};
 use perf_bench::{file, inputs};
@@ -65,18 +64,20 @@ fn timed<T>(f: impl FnOnce() -> T) -> (T, Cost) {
     let t = Instant::now();
     let v = f();
     let time = t.elapsed();
-    (v, Cost { time, allocs: allocs() - a })
+    (
+        v,
+        Cost {
+            time,
+            allocs: allocs() - a,
+        },
+    )
 }
 
 fn ms(d: Duration) -> f64 {
     d.as_secs_f64() * 1000.0
 }
 
-fn phases(
-    p: &dyn LanguageProvider,
-    name: &str,
-    text: &str,
-) -> Result<Vec<(&'static str, Cost)>> {
+fn phases(p: &dyn LanguageProvider, name: &str, text: &str) -> Result<Vec<(&'static str, Cost)>> {
     let (f, opts) = file(p, name, 1, text);
     let (parsed, parse) = timed(|| p.parse(&f));
     let parsed = parsed?;
@@ -97,7 +98,11 @@ fn phases(
     let (cmp, compare) =
         timed(|| safety::equal_ignoring_trivia(p.grammar(), &parsed.tree, &re.tree));
     cmp.map_err(|e| anyhow!(e))?;
-    let (extra, extra_t) = timed(|| sites("extra check", || p.formatter().extra_check(&parsed.tree, &re.tree)));
+    let (extra, extra_t) = timed(|| {
+        sites("extra check", || {
+            p.formatter().extra_check(&parsed.tree, &re.tree)
+        })
+    });
     extra.map_err(|e| anyhow!(e))?;
     Ok(vec![
         ("parse", parse),

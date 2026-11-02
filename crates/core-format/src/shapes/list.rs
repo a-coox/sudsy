@@ -115,7 +115,9 @@ pub fn delimited_list(
         match style.layout {
             ListLayout::Fit => false,
             ListLayout::Break => !items.is_empty(),
-            ListLayout::PreserveBreak => !items.is_empty() && spans_lines(cx, node, &c.open, &c.close),
+            ListLayout::PreserveBreak => {
+                !items.is_empty() && spans_lines(cx, node, &c.open, &c.close)
+            }
         }
     };
     let list = if broken {
