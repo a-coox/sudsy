@@ -69,3 +69,24 @@ pub fn yaml(items: usize) -> String {
     }
     s
 }
+
+/// One-line minified JSON: an object of `members` members with small flat arrays. The printer
+/// has to break the object and measure every array on its own.
+pub fn json_flat(members: usize) -> String {
+    let mut r = Rng::new(0x1f1a);
+    let mut s = String::with_capacity(members * 24);
+    s.push('{');
+    for i in 0..members {
+        if i > 0 {
+            s.push(',');
+        }
+        s.push_str(&format!(
+            "\"k{i}\":[{},{},{}]",
+            r.below(1000),
+            r.below(1000),
+            r.below(1000)
+        ));
+    }
+    s.push_str("}\n");
+    s
+}

@@ -70,7 +70,10 @@ impl<'a> FormatCtx<'a> {
     /// Formats a child node. Honors `sudsy-ignore` comments before the node and the `Preserve`
     /// directive; use [`FormatCtx::format_unguarded`] for the node a caller was invoked for.
     pub fn format(&self, node: &SyntaxNode) -> Result<Doc, FormatError> {
-        if let Some(first) = self.first_token(node) {
+        // Only a comment can ask for the node to be kept as written.
+        if comments::node_leading(self.grammar, node).has_comment
+            && let Some(first) = self.first_token(node)
+        {
             let leading = comments::leading_comments(self.grammar, &first);
             if ignore::mark_in(self.grammar, &leading) == Some(IgnoreMark::Ignore) {
                 return Ok(self.verbatim_node(node));

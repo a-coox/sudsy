@@ -8,7 +8,7 @@
 //! Everything here reads the tree locally (token neighbours), so it works for any subtree.
 
 use core_syntax::trivia::is_line_break;
-use core_syntax::{Grammar, SyntaxKind, SyntaxToken};
+use core_syntax::{Grammar, SyntaxKind, SyntaxNode, SyntaxToken};
 use std::ops::ControlFlow;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -126,14 +126,32 @@ struct ScanBefore {
     has_prev: bool,
     /// Is there a comment in the run? Then the other fields are not computed.
     has_comment: bool,
-    /// Line breaks in the part of the run the token owns (see [`leading_trivia`]).
-    leading_breaks: usize,
+    /// Line breaks in the whole run.
+    breaks: usize,
+    /// Line breaks in the tokens after the first one that ends a line.
+    after_first_line_end: Option<usize>,
 }
 
-/// Calls `visit` with each token before `tok`, nearest first, until it returns `Break`. Walks
-/// the green tree: the neighbours of a token are mostly trivia, and creating a red token for
-/// each of them would cost far more than looking at them.
-fn walk_back<B>(tok: &SyntaxToken, mut visit: impl FnMut(SyntaxKind, &str) -> ControlFlow<B>) -> Option<B> {
+impl ScanBefore {
+    /// Line breaks in the part of the run the token owns (see [`leading_trivia`]).
+    fn leading_breaks(&self) -> usize {
+        if self.has_prev {
+            self.after_first_line_end.unwrap_or(0)
+        } else {
+            self.breaks
+        }
+    }
+}
+
+/// Calls `visit` with each token before the child at `idx` of `parent` (`None`: nothing
+/// before), nearest first, until it returns `Break`. Walks the green tree: the neighbours of a
+/// token are mostly trivia, and creating a red token for each of them would cost far more than
+/// looking at them.
+fn walk_back<B>(
+    parent: Option<SyntaxNode>,
+    mut idx: usize,
+    mut visit: impl FnMut(SyntaxKind, &str) -> ControlFlow<B>,
+) -> Option<B> {
     fn down<B>(
         node: &rowan::GreenNodeData,
         visit: &mut impl FnMut(SyntaxKind, &str) -> ControlFlow<B>,
@@ -146,8 +164,7 @@ fn walk_back<B>(tok: &SyntaxToken, mut visit: impl FnMut(SyntaxKind, &str) -> Co
         }
         ControlFlow::Continue(())
     }
-    let mut node = tok.parent()?;
-    let mut idx = tok.index();
+    let mut node = parent?;
     loop {
         for child in node.green().children().take(idx).rev() {
             let flow = match child {
@@ -198,23 +215,24 @@ fn text_ends_line(text: &str) -> bool {
     text.chars().next_back().is_some_and(is_line_break)
 }
 
-fn scan_before(g: &Grammar, tok: &SyntaxToken) -> ScanBefore {
+fn scan_back(g: &Grammar, parent: Option<SyntaxNode>, idx: usize) -> ScanBefore {
     let mut breaks = 0;
-    // Breaks in the tokens after the first one that ends a line.
     let mut after_first_line_end = None;
-    let stopped = walk_back(tok, |kind, text| {
+    let stopped = walk_back(parent, idx, |kind, text| {
         if !is_trivia(g, kind) {
             return ControlFlow::Break(ScanBefore {
                 has_prev: true,
                 has_comment: false,
-                leading_breaks: after_first_line_end.unwrap_or(0),
+                breaks,
+                after_first_line_end,
             });
         }
         if g.has_tag(kind, "comment") {
             return ControlFlow::Break(ScanBefore {
                 has_prev: false,
                 has_comment: true,
-                leading_breaks: 0,
+                breaks: 0,
+                after_first_line_end: None,
             });
         }
         if text_ends_line(text) {
@@ -226,8 +244,100 @@ fn scan_before(g: &Grammar, tok: &SyntaxToken) -> ScanBefore {
     stopped.unwrap_or(ScanBefore {
         has_prev: false,
         has_comment: false,
-        leading_breaks: breaks,
+        breaks,
+        after_first_line_end,
     })
+}
+
+fn scan_before(g: &Grammar, tok: &SyntaxToken) -> ScanBefore {
+    scan_back(g, tok.parent(), tok.index())
+}
+
+/// What precedes the first non-trivia token of a node: see [`node_leading`].
+pub struct NodeLeading {
+    /// Does the node hold a non-trivia token at all?
+    pub has_tokens: bool,
+    /// Is there a comment among the leading trivia of its first token? When there is, the
+    /// other fields are not computed and the caller has to look at the token itself.
+    pub has_comment: bool,
+    /// [`blank_lines_before`] for the node's first token.
+    pub blank_lines: usize,
+}
+
+/// Answers what [`blank_lines_before`] and [`leading_comments`] would for the first non-trivia
+/// token of `node`, without creating that token or any of the trivia around it.
+pub fn node_leading(g: &Grammar, node: &SyntaxNode) -> NodeLeading {
+    // The trivia inside the node, in front of its first token.
+    let (mut total, mut after_first, mut seen_line_end) = (0, 0, false);
+    let mut comment = false;
+    let found = walk_node(node, |kind, text| {
+        if !is_trivia(g, kind) {
+            return ControlFlow::Break(true);
+        }
+        if g.has_tag(kind, "comment") {
+            comment = true;
+            return ControlFlow::Break(true);
+        }
+        let n = count_breaks(text);
+        total += n;
+        if seen_line_end {
+            after_first += n;
+        } else if text_ends_line(text) {
+            seen_line_end = true;
+        }
+        ControlFlow::Continue(())
+    })
+    .unwrap_or(false);
+    if !found {
+        return NodeLeading {
+            has_tokens: false,
+            has_comment: false,
+            blank_lines: 0,
+        };
+    }
+    // The trivia before the node, joined to the above.
+    let outer = scan_back(g, node.parent(), node.index());
+    if comment || outer.has_comment {
+        return NodeLeading {
+            has_tokens: true,
+            has_comment: true,
+            blank_lines: 0,
+        };
+    }
+    let blank_lines = match (outer.has_prev, outer.after_first_line_end, seen_line_end) {
+        (false, ..) => 0,
+        (true, Some(after), _) => after + total,
+        (true, None, true) => after_first,
+        (true, None, false) => 0,
+    };
+    NodeLeading {
+        has_tokens: true,
+        has_comment: false,
+        blank_lines,
+    }
+}
+
+/// Calls `visit` with the tokens of `node` in document order until it returns `Break`.
+fn walk_node<B>(
+    node: &SyntaxNode,
+    mut visit: impl FnMut(SyntaxKind, &str) -> ControlFlow<B>,
+) -> Option<B> {
+    fn down<B>(
+        node: &rowan::GreenNodeData,
+        visit: &mut impl FnMut(SyntaxKind, &str) -> ControlFlow<B>,
+    ) -> ControlFlow<B> {
+        for child in node.children() {
+            match child {
+                rowan::NodeOrToken::Token(t) => visit(SyntaxKind(t.kind().0), t.text())?,
+                rowan::NodeOrToken::Node(n) => down(n, visit)?,
+            }
+        }
+        ControlFlow::Continue(())
+    }
+    match down(&node.green(), &mut visit) {
+        ControlFlow::Break(b) => Some(b),
+        ControlFlow::Continue(()) => None,
+    }
 }
 
 /// Is there a comment in the trivia directly after `tok`?
@@ -288,7 +398,7 @@ pub fn trailing_comments(g: &Grammar, tok: &SyntaxToken) -> Vec<Comment> {
 pub fn blank_lines_before(g: &Grammar, tok: &SyntaxToken) -> usize {
     let scan = scan_before(g, tok);
     if !scan.has_comment {
-        return if scan.has_prev { scan.leading_breaks } else { 0 };
+        return if scan.has_prev { scan.leading_breaks() } else { 0 };
     }
     let (_, has_prev) = run_before(g, tok);
     if !has_prev {
