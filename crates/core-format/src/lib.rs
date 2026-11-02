@@ -65,14 +65,15 @@ impl LineEnding {
 /// the `final_newline` option, when the provider declares it, decides how the text ends.
 pub fn format_tree(root: &SyntaxNode, cx: &FormatCtx<'_>) -> Result<String, FormatError> {
     let mut doc = cx.format_unguarded(root)?;
-    let printed = printer::print(&mut doc, &print_options(cx.options));
+    let (printed, keep) = printer::print_protected(&mut doc, &print_options(cx.options));
+    let keep = printed[..keep].replace("\r\n", "\n").len();
     let mut out = printed.replace("\r\n", "\n");
-    out.truncate(out.trim_end_matches(['\n', ' ', '\t']).len());
+    out.truncate(out.trim_end_matches(['\n', ' ', '\t']).len().max(keep));
     let final_newline = !matches!(
         cx.options.get(core_config::shared::FINAL_NEWLINE),
         Some(core_config::OptionValue::Bool(false))
     );
-    if final_newline && !out.is_empty() {
+    if final_newline && !out.is_empty() && !out.ends_with('\n') {
         out.push('\n');
     }
     Ok(match LineEnding::detect(&root.text().to_string()) {

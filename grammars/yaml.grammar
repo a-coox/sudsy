@@ -23,7 +23,8 @@ token RBrace "}" #punctuation
 token LBracket "[" #punctuation
 token RBracket "]" #punctuation
 token Comma "," #punctuation #separator
-token DocStart "---" #punctuation
+// `---` may be added or left out by the formatter, so the safety check does not compare it.
+token DocStart "---" #punctuation #separator
 token DocEnd "..." #punctuation
 
 // `%YAML 1.2`, `%TAG ! tag:example.com,2000:`: the whole directive line, without its comment.
@@ -34,16 +35,16 @@ token Alias #literal
 // `!`, `!!str`, `!local`, `!<verbatim>`.
 token Tag #property
 
-// Scalars. A multi-line flow scalar is one token that contains its line breaks. Quoted scalars
-// carry `#restyle`: the formatter may change their quote style, which the data-model check
-// verifies instead of the token text.
-token Plain #literal #string
+// Scalars. A multi-line flow scalar is one token that contains its line breaks. Scalar text
+// carries `#restyle`: the formatter may change quote style and re-indent continuation lines,
+// which the data-model check verifies instead of the token text.
+token Plain #literal #string #restyle
 token SingleQuoted #literal #string #restyle
 token DoubleQuoted #literal #string #restyle
 // `|` or `>` with its indentation and chomping indicators, then the lines of the scalar
 // (indentation included, final line break excluded).
-token BlockHeader #literal
-token BlockContent #literal #string
+token BlockHeader #literal #restyle
+token BlockContent #literal #string #restyle
 
 // Zero-width end-of-file token; it carries the leading trivia of the file's tail.
 token Eof

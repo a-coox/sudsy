@@ -166,3 +166,98 @@ fn keeps_crlf_and_byte_order_mark() {
         "\u{feff}{\r\n  \"a\": 1\r\n}\r\n"
     );
 }
+
+const YAML_MESSY: &str = "a:   1
+list:
+    - x
+    -   y
+m: {b: 2}
+";
+const YAML_CLEAN: &str = "a: 1
+list:
+  - x
+  - y
+m: { b: 2 }
+";
+
+#[test]
+fn formats_yaml_files() {
+    let t = tempfile::tempdir().unwrap();
+    write(t.path(), "a.yaml", YAML_MESSY);
+    write(t.path(), "sub/b.yml", YAML_MESSY);
+    let out = sudsy(t.path(), &[]);
+    assert_eq!(
+        out.status.code(),
+        Some(0),
+        "{}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    assert_eq!(read(t.path(), "a.yaml"), YAML_CLEAN);
+    assert_eq!(read(t.path(), "sub/b.yml"), YAML_CLEAN);
+    assert_eq!(sudsy(t.path(), &["--check"]).status.code(), Some(0));
+}
+
+#[test]
+fn the_config_file_is_formatted_like_any_other_yaml_file() {
+    let t = tempfile::tempdir().unwrap();
+    write(
+        t.path(),
+        "sudsy.yaml",
+        "yaml:
+    format:
+        indent_size: 4
+    # keep
+format:   {line_width: 100}
+",
+    );
+    write(
+        t.path(),
+        "a.yaml",
+        "k:
+  - x
+",
+    );
+    let out = sudsy(t.path(), &[]);
+    assert_eq!(
+        out.status.code(),
+        Some(0),
+        "{}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    // The file's own `yaml:` section applies to it and to the other YAML files.
+    assert_eq!(
+        read(t.path(), "sudsy.yaml"),
+        "yaml:
+    format:
+        indent_size: 4
+    # keep
+format: { line_width: 100 }
+"
+    );
+    assert_eq!(
+        read(t.path(), "a.yaml"),
+        "k:
+    - x
+"
+    );
+}
+
+#[test]
+fn yaml_syntax_errors_fail_without_touching_the_file() {
+    let t = tempfile::tempdir().unwrap();
+    write(
+        t.path(),
+        "bad.yaml",
+        "a: b: c
+",
+    );
+    write(t.path(), "ok.yaml", YAML_MESSY);
+    let out = sudsy(t.path(), &[]);
+    assert_eq!(out.status.code(), Some(2));
+    assert_eq!(
+        read(t.path(), "bad.yaml"),
+        "a: b: c
+"
+    );
+    assert_eq!(read(t.path(), "ok.yaml"), YAML_CLEAN);
+}

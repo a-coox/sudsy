@@ -20,7 +20,7 @@ enum Command {
     /// Developer tools for inspecting the foundations (M0).
     #[command(subcommand)]
     Debug(debug::DebugCommand),
-    /// Format files (JSON and JSONC so far); languages without a formatter are skipped.
+    /// Format files (JSON, JSONC and YAML so far); languages without a formatter are skipped.
     Format(format::FormatArgs),
 }
 

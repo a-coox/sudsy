@@ -16,6 +16,7 @@ core-config.workspace = true
 core-format.workspace = true
 core-workspace.workspace = true
 lang-json.workspace = true
+lang-yaml.workspace = true
 core-syntax.workspace = true
 provider-api.workspace = true
 

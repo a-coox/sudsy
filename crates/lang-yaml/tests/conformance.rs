@@ -6,6 +6,8 @@
 //! Run: `bash tests/conformance/fetch-yaml-corpus.sh &&
 //! cargo test --release -p lang-yaml --test conformance -- --ignored --nocapture`
 
+mod common;
+
 use core_syntax::{print, trivia};
 use lang_yaml::model::{Node, Value, load};
 use std::path::PathBuf;
@@ -203,4 +205,70 @@ fn yaml_test_suite_data_model() {
         println!("  {f}");
     }
     assert!(failures.is_empty(), "data model differences, see above");
+}
+
+#[test]
+#[ignore = "needs the corpus: bash tests/conformance/fetch-yaml-corpus.sh"]
+fn yaml_test_suite_formats() {
+    let subject = common::subject(&[]);
+    let (mut formatted, mut total) = (0, 0);
+    let mut failures = Vec::new();
+    for case in cases().into_iter().filter(|c| !c.error) {
+        total += 1;
+        match core_format::testing::check(&subject, &case.text) {
+            Ok(_) => formatted += 1,
+            Err(e) => failures.push(format!("{}: {}", case.name, e.lines().next().unwrap_or(""))),
+        }
+    }
+    println!("valid cases formatted with every check: {formatted} of {total}");
+    for f in &failures {
+        println!("  {f}");
+    }
+    assert!(failures.is_empty(), "formatting failures, see above");
+}
+
+/// The same corpus with every option value, one option at a time and a few combinations.
+#[test]
+#[ignore = "needs the corpus: bash tests/conformance/fetch-yaml-corpus.sh"]
+fn yaml_test_suite_formats_with_every_option_value() {
+    use core_config::OptionValue;
+    let schema = lang_yaml::option_schema();
+    let mut sets: Vec<Vec<(&str, OptionValue)>> = Vec::new();
+    for def in schema.defs() {
+        for v in def.sample_values() {
+            sets.push(vec![(def.name, v)]);
+        }
+    }
+    sets.push(vec![
+        ("indent_size", OptionValue::Int(4)),
+        ("sequence_indent", common::s("indented")),
+        ("quote_style", common::s("single")),
+        ("document_start", common::s("always")),
+    ]);
+    sets.push(vec![
+        ("indent_size", OptionValue::Int(1)),
+        ("sequence_indent", common::s("flush")),
+        ("quote_style", common::s("double")),
+        ("document_start", common::s("never")),
+        ("line_width", OptionValue::Int(20)),
+    ]);
+    let cases: Vec<Case> = cases().into_iter().filter(|c| !c.error).collect();
+    let mut failures = Vec::new();
+    for options in &sets {
+        let subject = common::subject(options);
+        for case in &cases {
+            if let Err(e) = core_format::testing::check(&subject, &case.text) {
+                failures.push(format!(
+                    "{} with {options:?}: {}",
+                    case.name,
+                    e.lines().next().unwrap_or("")
+                ));
+            }
+        }
+    }
+    println!("{} option sets x {} cases", sets.len(), cases.len());
+    for f in &failures {
+        println!("  {f}");
+    }
+    assert!(failures.is_empty(), "formatting failures, see above");
 }

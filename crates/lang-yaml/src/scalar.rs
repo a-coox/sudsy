@@ -200,11 +200,17 @@ pub fn block_header(text: &str) -> BlockHeader {
 }
 
 /// The value of a block scalar. `content` is the content token (indentation included) and `n`
-/// the indentation of the parent node (-1 at the document level). The end of the input counts as
-/// a line break.
-pub fn block_value(header: BlockHeader, content: &str, n: i64) -> String {
+/// the indentation of the parent node (-1 at the document level). `blank_after` is the number of
+/// blank lines after the token, which only `keep` chomping cares about. The end of the input
+/// counts as a line break.
+pub fn block_value(header: BlockHeader, content: &str, n: i64, blank_after: usize) -> String {
     if content.is_empty() {
-        return String::new();
+        return match header.chomp {
+            Chomp::Keep => "
+"
+            .repeat(blank_after),
+            _ => String::new(),
+        };
     }
     // Lines, each with whether a line break ended it.
     let mut lines = split_lines(content);
@@ -228,7 +234,7 @@ pub fn block_value(header: BlockHeader, content: &str, n: i64) -> String {
         })
         .collect();
     let last_text = stripped.iter().rposition(|l| !l.is_empty());
-    let trailing_blank = stripped.len() - last_text.map_or(0, |i| i + 1);
+    let trailing_blank = stripped.len() - last_text.map_or(0, |i| i + 1) + blank_after;
     let mut body = String::new();
     if let Some(last) = last_text {
         if header.folded {
@@ -284,7 +290,7 @@ mod tests {
     use super::*;
 
     fn block(header: &str, content: &str, n: i64) -> String {
-        block_value(block_header(header), content, n)
+        block_value(block_header(header), content, n, 0)
     }
 
     #[test]
