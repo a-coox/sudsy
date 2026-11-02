@@ -3,6 +3,8 @@ use crate::provider::{
     Capabilities, FileMatcher, LanguageProvider, ParseError, ParseResult, ProviderError, SourceFile,
 };
 use crate::proxy::{ProxyError, WorkerConfig, WorkerProxy};
+use core_config::OptionSchema;
+use core_format::{DefaultFormatter, NodeFormatter};
 use core_syntax::{Grammar, LanguageId, SyntaxNode};
 
 /// A provider whose parser runs in a worker process.
@@ -11,6 +13,8 @@ pub struct OutOfProcessProvider {
     grammar: &'static Grammar,
     matchers: Vec<FileMatcher>,
     proxy: WorkerProxy,
+    /// No format options until `lang-csharp` exists (M4).
+    schema: OptionSchema,
 }
 
 impl OutOfProcessProvider {
@@ -26,6 +30,7 @@ impl OutOfProcessProvider {
             grammar,
             matchers,
             proxy: WorkerProxy::new(worker),
+            schema: OptionSchema::default(),
         }
     }
 
@@ -59,6 +64,14 @@ impl LanguageProvider for OutOfProcessProvider {
 
     fn capabilities(&self) -> Capabilities {
         self.proxy.capabilities().unwrap_or(Capabilities::NONE)
+    }
+
+    fn formatter(&self) -> &dyn NodeFormatter {
+        &DefaultFormatter
+    }
+
+    fn option_schema(&self) -> &OptionSchema {
+        &self.schema
     }
 
     fn parse(&self, file: &SourceFile) -> Result<ParseResult, ProviderError> {

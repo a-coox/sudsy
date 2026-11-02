@@ -2,11 +2,13 @@
 //! parsed by a worker process (C#).
 
 pub mod csharp;
+pub mod format;
 pub mod out_of_process;
 pub mod protocol;
 pub mod provider;
 pub mod proxy;
 
+pub use format::{FileFormatError, format_file, resolve_dialect, select_provider};
 pub use out_of_process::OutOfProcessProvider;
 pub use provider::{
     Capabilities, FileMatcher, FilePattern, LanguageProvider, ParseError, ParseResult,

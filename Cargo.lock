@@ -692,6 +692,8 @@ dependencies = [
 name = "provider-api"
 version = "0.0.0"
 dependencies = [
+ "core-config",
+ "core-format",
  "core-syntax",
  "rmp-serde",
  "serde",
