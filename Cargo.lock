@@ -253,6 +253,7 @@ dependencies = [
  "clap",
  "core-config",
  "core-format",
+ "core-incremental",
  "core-syntax",
  "core-workspace",
  "lang-json",
