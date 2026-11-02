@@ -23,7 +23,7 @@ class C /* a */
 {
     // leading
     int x /* b */ = /* c */ 1; // trailing
-    void M( /* none */) // after paren
+    void M(/* none */) // after paren
     {
         Foo(
             1, // first

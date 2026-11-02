@@ -9,8 +9,9 @@ use crate::provider::Capabilities;
 use core_syntax::wire::WIRE_VERSION;
 use std::ffi::OsString;
 use std::process::{Child, ChildStdin, Command, Stdio};
-use std::sync::Mutex;
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::mpsc::{self, Receiver, RecvTimeoutError};
+use std::sync::{Mutex, MutexGuard};
 use std::time::Duration;
 
 #[derive(Clone, Debug)]
@@ -24,6 +25,12 @@ pub struct WorkerConfig {
     pub request_timeout: Duration,
     /// How often a crashed or hung worker is restarted before giving up.
     pub max_restarts: u32,
+    /// Environment variables set for the worker process.
+    pub env: Vec<(OsString, OsString)>,
+    /// How many worker processes may run side by side. A worker handles one request at a time;
+    /// with more of them, threads that parse at once do not queue behind each other. They start
+    /// when a request finds all the others busy.
+    pub pool_size: usize,
 }
 
 impl WorkerConfig {
@@ -34,6 +41,8 @@ impl WorkerConfig {
             handshake_timeout: Duration::from_secs(30),
             request_timeout: Duration::from_secs(120),
             max_restarts: 1,
+            env: Vec::new(),
+            pool_size: 1,
         }
     }
 }
@@ -78,24 +87,33 @@ struct Inner {
 
 pub struct WorkerProxy {
     config: WorkerConfig,
-    inner: Mutex<Inner>,
+    /// One entry per worker process of the pool.
+    slots: Vec<Mutex<Inner>>,
+    /// Where the search for a free slot starts, so that waiting requests spread over the pool.
+    next: AtomicUsize,
 }
 
 impl WorkerProxy {
     pub fn new(config: WorkerConfig) -> Self {
+        let slots = (0..config.pool_size.max(1))
+            .map(|_| {
+                Mutex::new(Inner {
+                    state: State::NotStarted,
+                    restarts: 0,
+                })
+            })
+            .collect();
         WorkerProxy {
             config,
-            inner: Mutex::new(Inner {
-                state: State::NotStarted,
-                restarts: 0,
-            }),
+            slots,
+            next: AtomicUsize::new(0),
         }
     }
 
-    /// Starts the worker if needed and returns what it advertises.
+    /// Starts the first worker if needed and returns what it advertises.
     pub fn capabilities(&self) -> Result<Capabilities, ProxyError> {
         self.with_worker(|_| Ok(()))?;
-        match &self.lock().state {
+        match &Self::lock(&self.slots[0]).state {
             State::Running(r) => Ok(r.capabilities),
             _ => Err(ProxyError::Unavailable("worker is not running".into())),
         }
@@ -113,7 +131,7 @@ impl WorkerProxy {
     /// Sends any request (used by contract tests for the not-yet-supported messages).
     pub fn request(&self, request: Request) -> Result<Response, ProxyError> {
         let timeout = self.config.request_timeout;
-        let mut inner = self.lock();
+        let mut inner = self.claim();
         loop {
             let worker = self.ensure_running(&mut inner)?;
             match exchange(worker, &request, timeout) {
@@ -129,24 +147,49 @@ impl WorkerProxy {
 
     /// Asks the worker to exit and waits briefly, then makes sure it is gone.
     pub fn shutdown(&self) {
-        let mut inner = self.lock();
-        if let State::Running(mut r) = std::mem::replace(&mut inner.state, State::NotStarted) {
-            let _ = protocol::send(&mut r.stdin, &Request::Shutdown(Empty {}));
-            let _ = r.frames.recv_timeout(Duration::from_secs(2));
-            kill(&mut r.child);
+        for slot in &self.slots {
+            let mut inner = Self::lock(slot);
+            if let State::Running(mut r) = std::mem::replace(&mut inner.state, State::NotStarted) {
+                let _ = protocol::send(&mut r.stdin, &Request::Shutdown(Empty {}));
+                let _ = r.frames.recv_timeout(Duration::from_secs(2));
+                kill(&mut r.child);
+            }
+            inner.state = State::Unavailable("worker was shut down".into());
         }
-        inner.state = State::Unavailable("worker was shut down".into());
     }
 
-    fn lock(&self) -> std::sync::MutexGuard<'_, Inner> {
-        self.inner.lock().unwrap_or_else(|e| e.into_inner())
+    fn lock(slot: &Mutex<Inner>) -> MutexGuard<'_, Inner> {
+        slot.lock().unwrap_or_else(|e| e.into_inner())
+    }
+
+    /// The first worker that is not busy (so a worker starts only when the ones before it are
+    /// occupied), else, waiting for it, the next one in turn. Workers that have become
+    /// unavailable are passed over while another one is left.
+    fn claim(&self) -> MutexGuard<'_, Inner> {
+        let n = self.slots.len();
+        let mut busy = false;
+        for slot in &self.slots {
+            match slot.try_lock() {
+                Ok(guard) if !matches!(guard.state, State::Unavailable(_)) => return guard,
+                Err(std::sync::TryLockError::Poisoned(e)) => return e.into_inner(),
+                Err(std::sync::TryLockError::WouldBlock) => busy = true,
+                Ok(_) => {}
+            }
+        }
+        // Everything is busy (wait for one) or unavailable (report the first one's reason).
+        let turn = if busy {
+            self.next.fetch_add(1, Ordering::Relaxed) % n
+        } else {
+            0
+        };
+        Self::lock(&self.slots[turn])
     }
 
     fn with_worker(
         &self,
         f: impl FnOnce(&mut Running) -> Result<(), String>,
     ) -> Result<(), ProxyError> {
-        let mut inner = self.lock();
+        let mut inner = Self::lock(&self.slots[0]);
         let worker = self.ensure_running(&mut inner)?;
         f(worker).map_err(ProxyError::Unavailable)
     }
@@ -200,6 +243,7 @@ impl WorkerProxy {
             .ok_or_else(|| Transport::Spawn("no worker command".into()))?;
         let mut child = Command::new(program)
             .args(args)
+            .envs(self.config.env.iter().map(|(k, v)| (k, v)))
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .stderr(Stdio::inherit())
@@ -274,9 +318,10 @@ impl WorkerProxy {
 
 impl Drop for WorkerProxy {
     fn drop(&mut self) {
-        let mut inner = self.inner.lock().unwrap_or_else(|e| e.into_inner());
-        if let State::Running(r) = &mut inner.state {
-            kill(&mut r.child);
+        for slot in &self.slots {
+            if let State::Running(r) = &mut Self::lock(slot).state {
+                kill(&mut r.child);
+            }
         }
     }
 }

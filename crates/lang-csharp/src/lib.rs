@@ -35,15 +35,36 @@ pub fn locate_worker() -> Result<PathBuf, String> {
     }
 }
 
+/// Environment variable with the largest number of worker processes (default: the number of
+/// cores, at most four).
+pub const WORKERS_ENV: &str = "SUDSY_CSHARP_WORKERS";
+
+fn pool_size() -> usize {
+    std::env::var(WORKERS_ENV)
+        .ok()
+        .and_then(|v| v.parse::<usize>().ok())
+        .filter(|n| *n >= 1)
+        .unwrap_or_else(|| {
+            std::thread::available_parallelism().map_or(1, |n| n.get().min(MAX_WORKERS))
+        })
+}
+
+const MAX_WORKERS: usize = 4;
+
 /// A C# provider that runs the framework-dependent worker through the `dotnet` host.
 pub fn provider(worker_dll: &Path) -> OutOfProcessProvider {
     let grammar = grammars::csharp();
     let command: Vec<OsString> = vec!["dotnet".into(), worker_dll.into()];
+    let mut config = WorkerConfig::new(command, grammar.hash());
+    config.pool_size = pool_size();
+    // The worker is a batch process: start counting calls at once, so that its hot methods
+    // reach optimized code in the first second instead of after the default 100 ms of quiet.
+    config.env = vec![("DOTNET_TC_CallCountingDelayMs".into(), "0".into())];
     OutOfProcessProvider::new(
         LanguageId::CSHARP,
         grammar,
         vec![FileMatcher::extension("cs")],
-        WorkerConfig::new(command, grammar.hash()),
+        config,
     )
     .with_format(Box::new(CSharpFormatter), option_schema())
 }

@@ -12,10 +12,14 @@ pub fn repo_root() -> PathBuf {
         .to_path_buf()
 }
 
-/// Builds the C# worker once per test process and returns the assembly path.
+/// Builds the C# worker once per test process and returns the assembly path. With
+/// `SUDSY_CSHARP_WORKER` set (the speed measurements use a Release build) that assembly is used.
 pub fn worker_dll() -> PathBuf {
     static DLL: OnceLock<PathBuf> = OnceLock::new();
     DLL.get_or_init(|| {
+        if let Some(path) = std::env::var_os(lang_csharp::WORKER_ENV) {
+            return PathBuf::from(path);
+        }
         let project = repo_root().join("workers/csharp/Sudsy.Worker");
         let status = std::process::Command::new("dotnet")
             .args(["build", "-c", "Debug", "--nologo", "-v", "q"])

@@ -27,6 +27,35 @@ fn property_pattern_follows_something(clause: &SyntaxNode) -> bool {
         || pattern.parent().map(|p| p.kind()) == Some(k::IS_PATTERN_EXPRESSION)
 }
 
+/// The trailing comma of a list, as `trailing_commas` says, except that a comma is not added after
+/// a last element that ends in a line comment: the comma would end up in front of the comment,
+/// and the comment would belong to the comma the next time (a different layout, so not stable).
+pub fn list_trailing_comma(
+    cx: &FormatCtx<'_>,
+    node: &SyntaxNode,
+    close: &SyntaxToken,
+) -> TrailingComma {
+    let source = source_trailing_comma(cx, node, close);
+    let els = sig(cx, node);
+    let last_item_comment = els
+        .iter()
+        .position(|e| matches!(e, SyntaxElement::Token(t) if t == close))
+        .and_then(|i| i.checked_sub(1))
+        .and_then(|i| match &els[i] {
+            SyntaxElement::Node(n) => cx.last_token(n),
+            SyntaxElement::Token(_) => None,
+        })
+        .is_some_and(|t| {
+            comments::trailing_comments(cx.grammar, &t)
+                .iter()
+                .any(|c| c.kind != comments::CommentKind::Block)
+        });
+    if last_item_comment && !source {
+        return TrailingComma::Never;
+    }
+    trailing_comma(cx.options, source)
+}
+
 /// Parameters, arguments, type arguments, attributes, tuples, patterns: one line if it fits,
 /// else one item per line.
 pub fn plain_list(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
@@ -80,7 +109,7 @@ fn brace_style(cx: &FormatCtx<'_>, node: &SyntaxNode, close: &SyntaxToken) -> Li
         trailing_comma: if node.kind() == k::COMPLEX_ELEMENT_INITIALIZER_EXPRESSION {
             TrailingComma::Never
         } else {
-            trailing_comma(cx.options, source_trailing_comma(cx, node, close))
+            list_trailing_comma(cx, node, close)
         },
         layout: initializer_layout(cx.options),
         empty: " ",
@@ -106,7 +135,7 @@ pub fn collection_expression(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
         .ok_or_else(|| core_format::FormatError::Shape("collection without `]`".into()))?;
     let style = ListStyle {
         padding: false,
-        trailing_comma: trailing_comma(cx.options, source_trailing_comma(cx, node, &close)),
+        trailing_comma: list_trailing_comma(cx, node, &close),
         layout: initializer_layout(cx.options),
         ..ListStyle::default()
     };
@@ -278,13 +307,6 @@ pub fn argument_list(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
     if init.iter().any(|d| d.clone().propagate_breaks()) {
         return delimited_list(cx, node, &ListStyle::default());
     }
-    let (open, close) = (
-        direct_tokens(node, k::OPEN_PAREN_TOKEN).pop(),
-        direct_tokens(node, k::CLOSE_PAREN_TOKEN).pop(),
-    );
-    let (Some(open), Some(close)) = (open, close) else {
-        return delimited_list(cx, node, &ListStyle::default());
-    };
     let hugged = {
         let mut parts = vec![doc::lit("(")];
         for d in init {
@@ -304,6 +326,5 @@ pub fn argument_list(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
         doc::softline(),
         doc::lit(")"),
     ]));
-    let _ = (open, close);
     Ok(doc::conditional_group(vec![hugged, expanded]))
 }
