@@ -11,6 +11,9 @@ publish = false
 [workspace.dependencies]
 anyhow = "1"
 clap = { version = "4", features = ["derive"] }
+ignore = "0.4"
+insta = "1"
+unicode-width = "0.2"
 prost = "0.14"
 proptest = "1"
 rmp-serde = "1"
@@ -23,6 +26,9 @@ tempfile = "3"
 thiserror = "2"
 
 core-config = { path = "crates/core-config" }
+core-format = { path = "crates/core-format" }
+core-workspace = { path = "crates/core-workspace" }
+lang-json = { path = "crates/lang-json" }
 core-syntax = { path = "crates/core-syntax" }
 provider-api = { path = "crates/provider-api" }
 
