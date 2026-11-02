@@ -1,0 +1,28 @@
+---
+source: crates/lang-csharp/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+class C{void M(){try{a();}catch(IOException e)when(e.Code==1){b();}catch{c();}finally{d();}}}
+-----
+class C
+{
+    void M()
+    {
+        try
+        {
+            a();
+        }
+        catch (IOException e) when (e.Code == 1)
+        {
+            b();
+        }
+        catch
+        {
+            c();
+        }
+        finally
+        {
+            d();
+        }
+    }
+}

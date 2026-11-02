@@ -1,0 +1,38 @@
+---
+source: crates/lang-csharp/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+class C {
+ int A { get; set; }
+ int B { get; init; } = 3;
+ int C2 { get { return 1; } set { x = value; } }
+ int D => 4;
+ public int E
+ {
+ get;
+ set;
+ }
+}
+-----
+class C
+{
+    int A { get; set; }
+    int B { get; init; } = 3;
+    int C2
+    {
+        get
+        {
+            return 1;
+        }
+        set
+        {
+            x = value;
+        }
+    }
+    int D => 4;
+    public int E
+    {
+        get;
+        set;
+    }
+}

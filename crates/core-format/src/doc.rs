@@ -19,6 +19,9 @@ pub enum Doc {
     /// disabled code): the printer takes back the indentation of a blank line, or first starts a
     /// new line if the current one has content. It breaks the enclosing groups.
     LineStart(String),
+    /// A hard line break, unless the current line is empty. Starts an own-line comment that
+    /// follows text on the line the formatter chose. It breaks the enclosing groups.
+    NewlineIfNeeded,
     /// A space when the enclosing group fits on one line, else a newline.
     Line,
     /// Nothing when the enclosing group fits on one line, else a newline.
@@ -61,7 +64,7 @@ impl Doc {
     /// directly only to inspect a document.
     pub fn propagate_breaks(&mut self) -> bool {
         match self {
-            Doc::HardLine | Doc::BreakParent | Doc::LineStart(_) => true,
+            Doc::HardLine | Doc::BreakParent | Doc::LineStart(_) | Doc::NewlineIfNeeded => true,
             Doc::Nil | Doc::Text(_) | Doc::Verbatim(_) | Doc::Line | Doc::SoftLine => false,
             Doc::Concat(parts) | Doc::Fill(parts) => parts
                 .iter_mut()
@@ -138,6 +141,11 @@ pub fn snippet(s: &str) -> Doc {
         },
         _ => text(s),
     }
+}
+
+/// See [`Doc::NewlineIfNeeded`].
+pub fn newline_if_needed() -> Doc {
+    Doc::NewlineIfNeeded
 }
 
 /// See [`Doc::LineStart`].

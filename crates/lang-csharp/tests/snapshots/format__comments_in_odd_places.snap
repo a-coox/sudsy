@@ -1,0 +1,41 @@
+---
+source: crates/lang-csharp/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+class C /* a */ {
+// leading
+int x /* b */ = /* c */ 1; // trailing
+void M(/* none */) // after paren
+{
+  Foo(1, // first
+      2 /* second */);
+  var a = b // end of line
+      + c;
+  if (x) // cond
+    y();
+  // last in block
+}
+// last in class
+}
+// end of file
+-----
+class C /* a */
+{
+    // leading
+    int x /* b */ = /* c */ 1; // trailing
+    void M( /* none */) // after paren
+    {
+        Foo(
+            1, // first
+            2 /* second */
+        );
+        var a =
+            b // end of line
+            + c;
+        if (x) // cond
+            y();
+        // last in block
+    }
+    // last in class
+}
+// end of file

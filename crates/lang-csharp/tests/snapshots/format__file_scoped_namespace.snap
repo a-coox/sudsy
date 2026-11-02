@@ -1,0 +1,19 @@
+---
+source: crates/lang-csharp/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+namespace N;
+using System;
+
+
+public class C { }
+class D { int x; }
+-----
+namespace N;
+using System;
+
+public class C { }
+class D
+{
+    int x;
+}

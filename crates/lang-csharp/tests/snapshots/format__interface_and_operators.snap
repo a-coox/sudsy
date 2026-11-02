@@ -1,0 +1,17 @@
+---
+source: crates/lang-csharp/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+interface I{void M();int P{get;}}
+struct S{public static S operator+(S a,S b)=>a;public static implicit operator int(S s)=>0;}
+-----
+interface I
+{
+    void M();
+    int P { get; }
+}
+struct S
+{
+    public static S operator + (S a, S b) => a;
+    public static implicit operator int(S s) => 0;
+}

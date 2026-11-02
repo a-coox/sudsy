@@ -1,0 +1,29 @@
+---
+source: crates/lang-csharp/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+class C{void M(){var a=new Foo
+{
+A=1,
+B=2
+};
+var b=new List<int>{
+1,
+2};}}
+-----
+class C
+{
+    void M()
+    {
+        var a = new Foo
+        {
+            A = 1,
+            B = 2
+        };
+        var b = new List<int>
+        {
+            1,
+            2
+        };
+    }
+}

@@ -1,0 +1,18 @@
+---
+source: crates/lang-csharp/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+class C{void M(){var a=repository.GetAllCustomers().Where(customer=>customer.IsActive&&customer.Orders.Count>0).OrderBy(customer=>customer.LastName).Select(customer=>customer.Name).ToList();}}
+-----
+class C
+{
+    void M()
+    {
+        var a = repository
+            .GetAllCustomers()
+            .Where(customer => customer.IsActive && customer.Orders.Count > 0)
+            .OrderBy(customer => customer.LastName)
+            .Select(customer => customer.Name)
+            .ToList();
+    }
+}

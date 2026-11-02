@@ -1,0 +1,14 @@
+---
+source: crates/lang-csharp/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+class C{void M(){var a=customer?.Address?.Street?.Trim().ToUpper().Substring(0,3).PadLeft(10).Replace("a","b")?.Length;a!.B!.C();}}
+-----
+class C
+{
+    void M()
+    {
+        var a = customer?.Address?.Street?.Trim().ToUpper().Substring(0, 3).PadLeft(10).Replace("a", "b")?.Length;
+        a!.B!.C();
+    }
+}

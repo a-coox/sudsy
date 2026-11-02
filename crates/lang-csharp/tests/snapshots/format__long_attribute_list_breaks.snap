@@ -1,0 +1,9 @@
+---
+source: crates/lang-csharp/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+[Attribute1("a long argument"), Attribute2("another long argument"), Attribute3("and one more long argument"), Attr4]
+class C{}
+-----
+[Attribute1("a long argument"), Attribute2("another long argument"), Attribute3("and one more long argument"), Attr4]
+class C { }

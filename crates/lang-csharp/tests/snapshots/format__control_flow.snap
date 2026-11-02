@@ -1,0 +1,51 @@
+---
+source: crates/lang-csharp/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+class C{void M(int a){if(a>1)return;else if(a<0){x();}else y();
+while(a>0)a--;
+do{a++;}while(a<5);
+for(int i=0;i<10;i++)Foo(i);
+for(;;){break;}
+foreach(var x in xs)Bar(x);
+lock(o){x();}
+using(var f=Open())f.Read();
+using var g=Open();
+}}
+-----
+class C
+{
+    void M(int a)
+    {
+        if (a > 1)
+            return;
+        else if (a < 0)
+        {
+            x();
+        }
+        else
+            y();
+        while (a > 0)
+            a--;
+        do
+        {
+            a++;
+        }
+        while (a < 5);
+        for (int i = 0; i < 10; i++)
+            Foo(i);
+        for (;;)
+        {
+            break;
+        }
+        foreach (var x in xs)
+            Bar(x);
+        lock (o)
+        {
+            x();
+        }
+        using (var f = Open())
+            f.Read();
+        using var g = Open();
+    }
+}

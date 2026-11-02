@@ -1,0 +1,19 @@
+---
+source: crates/lang-csharp/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+class C{void M(){
+// sudsy-ignore
+var   a  =   1 ;
+var   b  =   2 ;
+}}
+-----
+class C
+{
+    void M()
+    {
+        // sudsy-ignore
+        var   a  =   1 ;
+        var b = 2;
+    }
+}

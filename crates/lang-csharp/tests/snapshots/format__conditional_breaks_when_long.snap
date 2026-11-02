@@ -1,0 +1,16 @@
+---
+source: crates/lang-csharp/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+class C{void M(){var result=someCondition&&anotherCondition?computeTheFirstValue(argumentNumberOne,argumentNumberTwo):computeTheSecondValue(argumentNumberOne);}}
+-----
+class C
+{
+    void M()
+    {
+        var result =
+            someCondition && anotherCondition
+                ? computeTheFirstValue(argumentNumberOne, argumentNumberTwo)
+                : computeTheSecondValue(argumentNumberOne);
+    }
+}

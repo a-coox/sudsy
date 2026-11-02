@@ -1,0 +1,23 @@
+---
+source: crates/lang-csharp/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+using System;
+namespace N{public class C:Base,IFoo{private int x=1;public int X{get;set;}
+public C(int x):base(x){this.x=x;}
+public void M(){}}}
+-----
+using System;
+namespace N
+{
+    public class C : Base, IFoo
+    {
+        private int x = 1;
+        public int X { get; set; }
+        public C(int x) : base(x)
+        {
+            this.x = x;
+        }
+        public void M() { }
+    }
+}

@@ -1,0 +1,27 @@
+---
+source: crates/lang-csharp/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+enum E{A,B=2,C}
+enum F : byte { X = 1, Y, }
+delegate void D(int x);
+[Flags] enum G { None = 0, All = 1 | 2 }
+-----
+enum E
+{
+    A,
+    B = 2,
+    C
+}
+enum F : byte
+{
+    X = 1,
+    Y,
+}
+delegate void D(int x);
+[Flags]
+enum G
+{
+    None = 0,
+    All = 1 | 2
+}

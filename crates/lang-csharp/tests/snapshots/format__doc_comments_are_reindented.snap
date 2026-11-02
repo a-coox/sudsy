@@ -1,0 +1,29 @@
+---
+source: crates/lang-csharp/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+namespace N{
+        /// <summary>
+        ///   A type.
+        /// </summary>
+   public class C{
+        /// <summary>M</summary>
+        /// <param name="x">x</param>
+    public void M(int x){}
+    /** block doc */
+    public void N(){}}}
+-----
+namespace N
+{
+    /// <summary>
+    ///   A type.
+    /// </summary>
+    public class C
+    {
+        /// <summary>M</summary>
+        /// <param name="x">x</param>
+        public void M(int x) { }
+        /** block doc */
+        public void N() { }
+    }
+}

@@ -1,0 +1,22 @@
+---
+source: crates/lang-csharp/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+[assembly:InternalsVisibleTo("X")]
+[Serializable][Obsolete("x",true)]
+class C{[Fact]public void M([FromBody]int x,[A,B]string y){}
+[return:NotNull]public int N()=>1;
+[A(1,B=2,C="x")]int f;}
+-----
+[assembly: InternalsVisibleTo("X")]
+[Serializable]
+[Obsolete("x", true)]
+class C
+{
+    [Fact]
+    public void M([FromBody] int x, [A, B] string y) { }
+    [return: NotNull]
+    public int N() => 1;
+    [A(1, B = 2, C = "x")]
+    int f;
+}

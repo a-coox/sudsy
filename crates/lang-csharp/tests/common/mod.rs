@@ -110,3 +110,125 @@ pub fn check_token_texts(tree: &SyntaxNode) -> Result<(), String> {
     }
     Ok(())
 }
+
+use core_config::{OptionValue, ResolvedOptions};
+use core_format::DirectiveTable;
+use core_format::testing::Subject;
+use core_syntax::Grammar;
+use provider_api::{LanguageProvider, OutOfProcessProvider, SourceFile, format_file};
+
+/// One provider (one worker process) for every test of the process.
+pub fn shared_provider() -> &'static OutOfProcessProvider {
+    static PROVIDER: OnceLock<OutOfProcessProvider> = OnceLock::new();
+    PROVIDER.get_or_init(|| lang_csharp::provider(&worker_dll()))
+}
+
+/// C# text formatted with some options, for the shared checks.
+pub struct CsSubject {
+    options: Vec<(String, OptionValue)>,
+    symbols: Vec<String>,
+}
+
+pub fn subject(options: &[(&str, OptionValue)]) -> CsSubject {
+    CsSubject {
+        options: options
+            .iter()
+            .map(|(k, v)| (k.to_string(), v.clone()))
+            .collect(),
+        symbols: Vec::new(),
+    }
+}
+
+pub fn s(v: &str) -> OptionValue {
+    OptionValue::String(v.into())
+}
+
+pub fn n(v: i64) -> OptionValue {
+    OptionValue::Int(v)
+}
+
+impl CsSubject {
+    pub fn with_symbols(mut self, symbols: &[&str]) -> Self {
+        self.symbols = symbols.iter().map(|s| s.to_string()).collect();
+        self
+    }
+
+    pub fn resolved(&self) -> ResolvedOptions {
+        let schema = lang_csharp::option_schema();
+        let mut options = schema.defaults();
+        for (k, v) in &self.options {
+            schema.apply(&mut options, k, v).unwrap();
+        }
+        options
+    }
+
+    fn file(&self, text: &str) -> SourceFile {
+        let mut f = SourceFile::new("a.cs", 1, text);
+        f.preprocessor_symbols = self.symbols.clone();
+        f
+    }
+}
+
+impl Subject for CsSubject {
+    fn grammar(&self) -> &Grammar {
+        shared_provider().grammar()
+    }
+
+    fn parse(&self, text: &str) -> Result<core_syntax::SyntaxNode, String> {
+        let r = shared_provider()
+            .parse(&self.file(text))
+            .map_err(|e| e.to_string())?;
+        match r.errors.first() {
+            Some(e) => Err(format!("{} (byte {})", e.message, e.start)),
+            None => Ok(r.tree),
+        }
+    }
+
+    fn format(&self, text: &str) -> Result<String, String> {
+        format_file(
+            shared_provider(),
+            &self.file(text),
+            &self.resolved(),
+            &DirectiveTable::default(),
+        )
+        .map_err(|e| e.to_string())
+    }
+}
+
+/// Formats with every check of the shared helper; returns the output.
+#[track_caller]
+pub fn fmt(input: &str, options: &[(&str, OptionValue)]) -> String {
+    core_format::testing::assert_formats(&subject(options), input)
+}
+
+pub struct Corpus {
+    pub name: &'static str,
+    pub dirs: &'static [&'static str],
+}
+
+pub const CORPORA: &[Corpus] = &[
+    Corpus {
+        name: "runtime",
+        dirs: &["src/libraries/System.Private.CoreLib/src"],
+    },
+    Corpus {
+        name: "roslyn",
+        dirs: &[
+            "src/Compilers/CSharp/Portable",
+            "src/Compilers/Core/Portable",
+            "src/Workspaces/Core/Portable",
+        ],
+    },
+    Corpus {
+        name: "aspnetcore",
+        dirs: &[
+            "src/Http",
+            "src/Mvc/Mvc.Core",
+            "src/Middleware",
+            "src/Servers/Kestrel/Core/src",
+            "src/Components/Components/src",
+            "src/SignalR/common",
+        ],
+    },
+];
+

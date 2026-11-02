@@ -1,0 +1,16 @@
+---
+source: crates/lang-csharp/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+class C{void M(){var (a,b)=Foo();(int x,int y)=(1,2);var t=(a:1,b:2);(string,int) u=("a",1);}}
+-----
+class C
+{
+    void M()
+    {
+        var (a, b) = Foo();
+        (int x, int y) = (1, 2);
+        var t = (a: 1, b: 2);
+        (string, int) u = ("a", 1);
+    }
+}

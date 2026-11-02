@@ -1,0 +1,24 @@
+---
+source: crates/lang-csharp/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+class C{void M(){int Local(int x)=>x+1;
+async Task<int> L2(){await Task.Delay(1);return 1;}
+label:
+x();goto label;}}
+-----
+class C
+{
+    void M()
+    {
+        int Local(int x) => x + 1;
+        async Task<int> L2()
+        {
+            await Task.Delay(1);
+            return 1;
+        }
+        label:
+        x();
+        goto label;
+    }
+}

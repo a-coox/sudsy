@@ -6,42 +6,13 @@
 
 mod common;
 
+use common::CORPORA;
+
 use core_syntax::shape::ShapeChecker;
 use core_syntax::{grammars, print, trivia};
 use provider_api::{LanguageProvider, SourceFile};
 use std::path::Path;
 use std::time::Instant;
-
-struct Corpus {
-    name: &'static str,
-    dirs: &'static [&'static str],
-}
-
-const CORPORA: &[Corpus] = &[
-    Corpus {
-        name: "runtime",
-        dirs: &["src/libraries/System.Private.CoreLib/src"],
-    },
-    Corpus {
-        name: "roslyn",
-        dirs: &[
-            "src/Compilers/CSharp/Portable",
-            "src/Compilers/Core/Portable",
-            "src/Workspaces/Core/Portable",
-        ],
-    },
-    Corpus {
-        name: "aspnetcore",
-        dirs: &[
-            "src/Http",
-            "src/Mvc/Mvc.Core",
-            "src/Middleware",
-            "src/Servers/Kestrel/Core/src",
-            "src/Components/Components/src",
-            "src/SignalR/common",
-        ],
-    },
-];
 
 #[derive(Default)]
 struct Totals {

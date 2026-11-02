@@ -1,0 +1,18 @@
+---
+source: crates/lang-csharp/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+using System;
+var x=1;
+Console.WriteLine(x);
+if(x>0){Console.WriteLine("p");}
+class C{}
+-----
+using System;
+var x = 1;
+Console.WriteLine(x);
+if (x > 0)
+{
+    Console.WriteLine("p");
+}
+class C { }

@@ -1,0 +1,22 @@
+---
+source: crates/lang-csharp/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+class C{void M(){var a=-x;var b=- -x;var c=!y;var d=~z;var e=x++ + ++x;var f=x-(-y);var g=(int)-x;var h=a!;var i=^1;var j=a..b;}}
+-----
+class C
+{
+    void M()
+    {
+        var a = -x;
+        var b = - -x;
+        var c = !y;
+        var d = ~z;
+        var e = x++ + ++x;
+        var f = x - (-y);
+        var g = (int)-x;
+        var h = a!;
+        var i = ^1;
+        var j = a..b;
+    }
+}

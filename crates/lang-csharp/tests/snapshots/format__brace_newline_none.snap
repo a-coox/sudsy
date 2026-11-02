@@ -1,0 +1,25 @@
+---
+source: crates/lang-csharp/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+class C{void M(){if(a){x();}else{y();}foreach(var i in l){z();}}
+int P{get{return 1;}}}
+-----
+class C {
+    void M() {
+        if (a) {
+            x();
+        }
+        else {
+            y();
+        }
+        foreach (var i in l) {
+            z();
+        }
+    }
+    int P {
+        get {
+            return 1;
+        }
+    }
+}

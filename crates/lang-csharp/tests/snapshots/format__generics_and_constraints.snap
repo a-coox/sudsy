@@ -1,0 +1,14 @@
+---
+source: crates/lang-csharp/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+class C<T,U>where T:class,new()where U:struct{ void M<V>(V v)where V:IComparable<V>{} Dictionary<string,List<int>> d; }
+-----
+class C<T, U>
+    where T : class, new()
+    where U : struct
+{
+    void M<V>(V v)
+        where V : IComparable<V> { }
+    Dictionary<string, List<int>> d;
+}
