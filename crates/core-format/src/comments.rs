@@ -118,7 +118,69 @@ fn kind_of(g: &Grammar, t: &SyntaxToken) -> Option<CommentKind> {
     })
 }
 
+/// What the trivia run before a token holds, found without collecting it. Most tokens have no
+/// comment, and then every question about their trivia is answered by this one backward walk.
+struct ScanBefore {
+    /// Does a non-trivia token precede the run?
+    has_prev: bool,
+    /// Is there a comment in the run? Then the other fields are not computed.
+    has_comment: bool,
+    /// Line breaks in the part of the run the token owns (see [`leading_trivia`]).
+    leading_breaks: usize,
+}
+
+fn scan_before(g: &Grammar, tok: &SyntaxToken) -> ScanBefore {
+    let mut breaks = 0;
+    // Breaks in the tokens after the first one that ends a line.
+    let mut after_first_line_end = None;
+    let mut cur = tok.prev_token();
+    while let Some(t) = cur {
+        if !is_trivia(g, t.kind()) {
+            return ScanBefore {
+                has_prev: true,
+                has_comment: false,
+                leading_breaks: after_first_line_end.unwrap_or(0),
+            };
+        }
+        if g.has_tag(t.kind(), "comment") {
+            return ScanBefore {
+                has_prev: false,
+                has_comment: true,
+                leading_breaks: 0,
+            };
+        }
+        if ends_line(&t) {
+            after_first_line_end = Some(breaks);
+        }
+        breaks += count_breaks(t.text());
+        cur = t.prev_token();
+    }
+    ScanBefore {
+        has_prev: false,
+        has_comment: false,
+        leading_breaks: breaks,
+    }
+}
+
+/// Is there a comment in the trivia directly after `tok`?
+fn comment_follows(g: &Grammar, tok: &SyntaxToken) -> bool {
+    let mut cur = tok.next_token();
+    while let Some(t) = cur {
+        if !is_trivia(g, t.kind()) {
+            return false;
+        }
+        if g.has_tag(t.kind(), "comment") {
+            return true;
+        }
+        cur = t.next_token();
+    }
+    false
+}
+
 pub fn leading_comments(g: &Grammar, tok: &SyntaxToken) -> Vec<Comment> {
+    if !scan_before(g, tok).has_comment {
+        return Vec::new();
+    }
     let trivia = leading_trivia(g, tok);
     let mut out: Vec<Comment> = Vec::new();
     for t in trivia {
@@ -139,6 +201,9 @@ pub fn leading_comments(g: &Grammar, tok: &SyntaxToken) -> Vec<Comment> {
 }
 
 pub fn trailing_comments(g: &Grammar, tok: &SyntaxToken) -> Vec<Comment> {
+    if !comment_follows(g, tok) {
+        return Vec::new();
+    }
     trailing_trivia(g, tok)
         .into_iter()
         .filter_map(|t| {
@@ -154,6 +219,10 @@ pub fn trailing_comments(g: &Grammar, tok: &SyntaxToken) -> Vec<Comment> {
 /// Blank lines between the previous line and `tok` (or its first leading comment), 0 at the
 /// start of a file.
 pub fn blank_lines_before(g: &Grammar, tok: &SyntaxToken) -> usize {
+    let scan = scan_before(g, tok);
+    if !scan.has_comment {
+        return if scan.has_prev { scan.leading_breaks } else { 0 };
+    }
     let (_, has_prev) = run_before(g, tok);
     if !has_prev {
         return 0;
@@ -167,7 +236,17 @@ pub fn blank_lines_before(g: &Grammar, tok: &SyntaxToken) -> usize {
 
 /// Is there a line break in the trivia between `tok` and the next non-trivia token?
 pub fn break_after(g: &Grammar, tok: &SyntaxToken) -> bool {
-    run_after(g, tok).iter().any(|t| count_breaks(t.text()) > 0)
+    let mut cur = tok.next_token();
+    while let Some(t) = cur {
+        if !is_trivia(g, t.kind()) {
+            return false;
+        }
+        if count_breaks(t.text()) > 0 {
+            return true;
+        }
+        cur = t.next_token();
+    }
+    false
 }
 
 #[cfg(test)]

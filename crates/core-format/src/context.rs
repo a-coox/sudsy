@@ -141,10 +141,15 @@ impl<'a> FormatCtx<'a> {
 
     /// A token with its leading and trailing comments.
     pub fn token(&self, tok: &SyntaxToken) -> Doc {
+        let leading = comments::leading_comments(self.grammar, tok);
+        let trailing = comments::trailing_comments(self.grammar, tok);
+        if leading.is_empty() && trailing.is_empty() {
+            return self.token_text(tok);
+        }
         doc::concat(vec![
-            self.leading_comments_doc(tok),
+            leading_comments_doc(&leading),
             self.token_text(tok),
-            self.trailing_comments_doc(tok),
+            trailing_comments_doc(&trailing),
         ])
     }
 

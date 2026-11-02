@@ -4,7 +4,12 @@
 //! whole call at 1x, 4x and 16x sizes to show the scaling. The 4x row is the headline size
 //! (40k JSON objects, 60k YAML items).
 
+#[cfg(feature = "mimalloc")]
+#[global_allocator]
+static A: mimalloc::MiMalloc = mimalloc::MiMalloc;
+
 mod inputs;
+mod micro;
 
 use anyhow::{Result, anyhow};
 use core_format::{DirectiveTable, FormatCtx, safety};
@@ -100,6 +105,10 @@ fn report(label: &str, p: &dyn LanguageProvider, name: &str, make: fn(usize) -> 
 fn main() -> Result<()> {
     let args: Vec<String> = std::env::args().skip(1).collect();
     let which = args.iter().find(|a| !a.starts_with("--")).map_or("all", String::as_str);
+    if args.iter().any(|a| a == "--micro") {
+        micro::run(&lang_json::JsonProvider::new(), "a.json", &inputs::json(JSON_OBJECTS));
+        return Ok(());
+    }
     let scaling = !args.iter().any(|a| a == "--phases-only");
     if matches!(which, "json" | "all") {
         report("JSON", &lang_json::JsonProvider::new(), "bench.json", inputs::json, JSON_OBJECTS, scaling)?;
