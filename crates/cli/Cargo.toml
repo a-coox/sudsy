@@ -13,6 +13,9 @@ path = "src/main.rs"
 anyhow.workspace = true
 clap.workspace = true
 core-config.workspace = true
+core-format.workspace = true
+core-workspace.workspace = true
+lang-json.workspace = true
 core-syntax.workspace = true
 provider-api.workspace = true
 

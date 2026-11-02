@@ -129,3 +129,15 @@ pub struct Config {
     pub yaml: LanguageSection,
     pub overrides: Vec<Override>,
 }
+
+impl Config {
+    /// The `csharp:`, `json:` or `yaml:` section for a grammar's language name.
+    pub fn language_section(&self, language: &str) -> Option<&LanguageSection> {
+        match language {
+            "csharp" => Some(&self.csharp),
+            "json" => Some(&self.json),
+            "yaml" => Some(&self.yaml),
+            _ => None,
+        }
+    }
+}

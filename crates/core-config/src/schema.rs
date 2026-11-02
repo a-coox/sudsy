@@ -337,3 +337,17 @@ mod tests {
         }
     }
 }
+
+impl crate::Config {
+    /// Format options for files of `language` (a grammar's language name). This is the one place
+    /// M2 extends with presets, overrides and `.editorconfig`.
+    pub fn format_options(
+        &self,
+        language: &str,
+        schema: &OptionSchema,
+    ) -> Result<ResolvedOptions, OptionError> {
+        let none = LanguageSection::default();
+        let section = self.language_section(language).unwrap_or(&none);
+        resolve_format(&self.format, section, schema)
+    }
+}
