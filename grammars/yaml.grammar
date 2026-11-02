@@ -1,0 +1,67 @@
+// YAML 1.2. Block structure is derived from indentation by the parser; the tree has one node per
+// collection, entry and scalar so that the formatter sees structure, not columns.
+// Format: see crates/core-syntax/src/grammar/mod.rs.
+
+language yaml 3
+comments line "#"
+suppress disable-next-line "sudsy-disable-next-line"
+suppress ignore "sudsy-ignore"
+suppress ignore-start "sudsy-ignore-start"
+suppress ignore-end "sudsy-ignore-end"
+
+// Trivia. Indentation is whitespace; the formatter re-creates it. Newline tokens end a line for
+// the trivia attachment rule.
+token Whitespace #trivia #whitespace
+token Newline #trivia #newline
+token Comment #trivia #comment
+
+token Dash "-" #punctuation
+token Question "?" #punctuation
+token Colon ":" #punctuation
+token LBrace "{" #punctuation
+token RBrace "}" #punctuation
+token LBracket "[" #punctuation
+token RBracket "]" #punctuation
+token Comma "," #punctuation #separator
+token DocStart "---" #punctuation
+token DocEnd "..." #punctuation
+
+// `%YAML 1.2`, `%TAG ! tag:example.com,2000:`: the whole directive line, without its comment.
+token Directive #directive
+// `&name` and `*name`.
+token Anchor #property
+token Alias #literal
+// `!`, `!!str`, `!local`, `!<verbatim>`.
+token Tag #property
+
+// Scalars. A multi-line flow scalar is one token that contains its line breaks. Quoted scalars
+// carry `#restyle`: the formatter may change their quote style, which the data-model check
+// verifies instead of the token text.
+token Plain #literal #string
+token SingleQuoted #literal #string #restyle
+token DoubleQuoted #literal #string #restyle
+// `|` or `>` with its indentation and chomping indicators, then the lines of the scalar
+// (indentation included, final line break excluded).
+token BlockHeader #literal
+token BlockContent #literal #string
+
+// Zero-width end-of-file token; it carries the leading trivia of the file's tail.
+token Eof
+// Text the parser could not classify.
+token Unknown #error
+
+node Stream = documents:Document* Eof
+node Document = directives:Directive* DocStart? body:#value? DocEnd?
+node BlockMapping #value #block = entries:BlockMappingEntry*
+node BlockMappingEntry #key-value = Question? key:#value? Colon? value:#value?
+node BlockSequence #value #block = entries:BlockSequenceEntry*
+node BlockSequenceEntry = Dash value:#value?
+node FlowMapping #value #delimited-list = LBrace entries:FlowPair* RBrace
+node FlowSequence #value #delimited-list = LBracket items:#value* RBracket
+// `key: value` inside `{}`, or a single pair inside `[]`.
+node FlowPair #value #key-value = Question? key:#value? Colon? value:#value?
+// Anchor and tag, then the node they apply to (absent for an empty node).
+node PropertyNode #value = properties:#property* content:#value?
+node Scalar #value = value:#string
+node BlockScalar #value = header:BlockHeader content:BlockContent?
+node AliasNode #value = Alias

@@ -16,3 +16,8 @@ pub fn csharp() -> &'static Grammar {
     static G: OnceLock<Grammar> = OnceLock::new();
     load(&G, include_str!("../../../grammars/csharp.grammar"))
 }
+
+pub fn yaml() -> &'static Grammar {
+    static G: OnceLock<Grammar> = OnceLock::new();
+    load(&G, include_str!("../../../grammars/yaml.grammar"))
+}

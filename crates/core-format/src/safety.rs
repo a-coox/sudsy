@@ -4,6 +4,10 @@
 //! Tokens tagged `#separator` are ignored as well. A formatter may legitimately add or remove a
 //! trailing comma, and a missing separator elsewhere changes the item structure or fails the
 //! re-parse, so nothing is lost by not comparing them.
+//!
+//! Tokens tagged `#restyle` (YAML's quoted scalars) may change their kind and text, for example
+//! from single to double quotes; they only have to stay where they are. The provider's
+//! [`NodeFormatter::extra_check`] must verify their meaning.
 
 use crate::FormatError;
 use crate::context::NodeFormatter;
@@ -15,6 +19,8 @@ enum Event {
     Enter(SyntaxKind),
     Leave(SyntaxKind),
     Token(SyntaxKind, String),
+    /// A `#restyle` token: only its position is compared.
+    Restyled,
 }
 
 fn events<'a>(g: &'a Grammar, root: &SyntaxNode) -> impl Iterator<Item = (usize, Event)> + use<'a> {
@@ -27,10 +33,12 @@ fn events<'a>(g: &'a Grammar, root: &SyntaxNode) -> impl Iterator<Item = (usize,
             Some((n.text_range().end().into(), Event::Leave(n.kind())))
         }
         WalkEvent::Enter(rowan::NodeOrToken::Token(t)) => significant(g, &t).then(|| {
-            (
-                t.text_range().start().into(),
-                Event::Token(t.kind(), t.text().to_string()),
-            )
+            let event = if g.has_tag(t.kind(), "restyle") {
+                Event::Restyled
+            } else {
+                Event::Token(t.kind(), t.text().to_string())
+            };
+            (t.text_range().start().into(), event)
         }),
         WalkEvent::Leave(rowan::NodeOrToken::Token(_)) => None,
     })
@@ -67,6 +75,7 @@ fn describe(g: &Grammar, ev: Option<(usize, Event)>) -> String {
         Some((at, Event::Token(k, text))) => {
             format!("{} `{text}` at byte {at}", g.name(k))
         }
+        Some((at, Event::Restyled)) => format!("a restyled token at byte {at}"),
     }
 }
 
