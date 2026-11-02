@@ -244,6 +244,7 @@ dependencies = [
  "core-syntax",
  "core-workspace",
  "lang-json",
+ "lang-yaml",
  "provider-api",
  "tempfile",
 ]

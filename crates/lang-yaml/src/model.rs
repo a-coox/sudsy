@@ -4,6 +4,7 @@
 
 use crate::generated::kind as k;
 use crate::scalar::{self, block_header, block_value};
+use crate::tree::{blank_lines_after, block_parent_indent, is_trivia};
 use core_syntax::{SyntaxElement, SyntaxKind, SyntaxNode, SyntaxToken};
 use std::collections::HashMap;
 
@@ -44,7 +45,6 @@ const CORE: &str = "tag:yaml.org,2002:";
 
 /// Loads every document of a tree without syntax errors.
 pub fn load_tree(root: &SyntaxNode) -> Result<Vec<Node>, String> {
-    let src = root.text().to_string();
     let mut docs = Vec::new();
     for doc in root.children().filter(|n| n.kind() == k::DOCUMENT) {
         // A lone `...` is not a document.
@@ -54,7 +54,7 @@ pub fn load_tree(root: &SyntaxNode) -> Result<Vec<Node>, String> {
         if !explicit && doc.children().next().is_none() {
             continue;
         }
-        docs.push(Loader::new(&src).document(&doc)?);
+        docs.push(Loader::new().document(&doc)?);
     }
     Ok(docs)
 }
@@ -68,16 +68,14 @@ pub fn load(src: &str) -> Result<Vec<Node>, String> {
     load_tree(&parsed.tree)
 }
 
-struct Loader<'a> {
-    src: &'a str,
+struct Loader {
     handles: HashMap<String, String>,
     anchors: HashMap<String, Node>,
 }
 
-impl<'a> Loader<'a> {
-    fn new(src: &'a str) -> Self {
+impl Loader {
+    fn new() -> Self {
         Loader {
-            src,
             handles: HashMap::new(),
             anchors: HashMap::new(),
         }
@@ -125,7 +123,7 @@ impl<'a> Loader<'a> {
         match n.kind() {
             k::PROPERTY_NODE => self.property_node(n),
             k::ALIAS_NODE => {
-                let t = first_token(n, k::ALIAS).ok_or("alias without a name")?;
+                let t = token_of(n, k::ALIAS).ok_or("alias without a name")?;
                 let name = &t.text()[1..];
                 self.anchors
                     .get(name)
@@ -255,41 +253,19 @@ impl<'a> Loader<'a> {
     }
 
     fn block_scalar(&mut self, n: &SyntaxNode, tag: Option<String>) -> Result<Node, String> {
-        let header = first_token(n, k::BLOCK_HEADER).ok_or("block scalar without a header")?;
+        let header = token_of(n, k::BLOCK_HEADER).ok_or("block scalar without a header")?;
         let header_info = block_header(header.text());
-        let content =
-            first_token(n, k::BLOCK_CONTENT).map_or_else(String::new, |c| c.text().to_string());
-        let parent_indent = self.parent_indent(n);
-        let text = block_value(header_info, &content, parent_indent);
+        let content_token = token_of(n, k::BLOCK_CONTENT);
+        let content = content_token
+            .as_ref()
+            .map_or_else(String::new, |c| c.text().to_string());
+        let blank_after = blank_lines_after(content_token.as_ref().unwrap_or(&header));
+        let text = block_value(header_info, &content, block_parent_indent(n), blank_after);
         Ok(resolve_scalar(text, false, tag.as_deref()))
     }
-
-    /// Indentation of the block collection entry (or document) a block scalar belongs to.
-    fn parent_indent(&self, n: &SyntaxNode) -> i64 {
-        for a in n.ancestors().skip(1) {
-            match a.kind() {
-                k::BLOCK_MAPPING_ENTRY | k::BLOCK_SEQUENCE_ENTRY => {
-                    let start: usize = a
-                        .descendants_with_tokens()
-                        .filter_map(SyntaxElement::into_token)
-                        .find(|t| !is_trivia(t.kind()))
-                        .map_or(0, |t| t.text_range().start().into());
-                    let line = self.src[..start].rfind(['\n', '\r']).map_or(0, |i| i + 1);
-                    return self.src[line..start].chars().count() as i64;
-                }
-                k::DOCUMENT => return -1,
-                _ => {}
-            }
-        }
-        -1
-    }
 }
 
-fn is_trivia(kind: SyntaxKind) -> bool {
-    matches!(kind, k::WHITESPACE | k::NEWLINE | k::COMMENT)
-}
-
-fn first_token(n: &SyntaxNode, kind: SyntaxKind) -> Option<SyntaxToken> {
+fn token_of(n: &SyntaxNode, kind: SyntaxKind) -> Option<SyntaxToken> {
     n.children_with_tokens()
         .filter_map(|e| e.into_token())
         .find(|t| t.kind() == kind)

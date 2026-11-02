@@ -12,13 +12,6 @@ pub(crate) enum Ctx {
     BlockOut,
 }
 
-#[derive(Clone, Copy, PartialEq, Eq)]
-enum Chomp {
-    Clip,
-    Strip,
-    Keep,
-}
-
 impl Parser<'_> {
     pub(crate) fn stream(&mut self) {
         self.start(k::STREAM);
@@ -387,17 +380,11 @@ impl Parser<'_> {
         self.start(k::BLOCK_SCALAR);
         let hs = self.pos;
         self.pos += 1;
-        let mut chomp = Chomp::Clip;
         let mut explicit = None;
         let mut seen_chomp = false;
         for _ in 0..2 {
             match self.cur() {
                 b'+' | b'-' if !seen_chomp => {
-                    chomp = if self.cur() == b'+' {
-                        Chomp::Keep
-                    } else {
-                        Chomp::Strip
-                    };
                     seen_chomp = true;
                     self.pos += 1;
                 }
@@ -423,7 +410,7 @@ impl Parser<'_> {
             );
         }
         self.tok(k::BLOCK_HEADER, hs, he);
-        self.block_scalar_content(n, chomp, explicit)?;
+        self.block_scalar_content(n, explicit)?;
         self.finish();
         Ok(())
     }
@@ -440,9 +427,9 @@ impl Parser<'_> {
     }
 
     /// The lines of a block scalar. The token starts at the first line and ends with the last
-    /// line of text, or, for `keep` chomping with trailing blank lines, after the last blank
-    /// line's break. Trailing blank lines are otherwise left to the trivia.
-    fn block_scalar_content(&mut self, n: i64, chomp: Chomp, explicit: Option<i64>) -> R<()> {
+    /// line of text, never with a line break. Trailing blank lines are left to the trivia (the
+    /// data model counts them for `keep` chomping).
+    fn block_scalar_content(&mut self, n: i64, explicit: Option<i64>) -> R<()> {
         let mut q = self.pos;
         while q < self.b.len() && !is_break(self.b[q]) {
             q += 1;
@@ -490,7 +477,6 @@ impl Parser<'_> {
         let m = indent.unwrap_or(usize::MAX);
         let mut p = content_start;
         let mut last_text_end = None;
-        let mut after_blanks = None;
         while p < self.b.len() {
             let (e, blank, spaces) = self.line_info(p);
             let next = if e >= self.b.len() {
@@ -500,25 +486,18 @@ impl Parser<'_> {
             };
             // Spaces beyond the indentation are content.
             let blank = blank && (m == usize::MAX || spaces <= m);
-            if blank {
-                after_blanks = Some(next);
-            } else {
+            if !blank {
                 if spaces < m || (spaces == 0 && self.marker_at(p).is_some()) {
                     break;
                 }
                 last_text_end = Some(e);
-                after_blanks = None;
             }
             if next == e {
                 break;
             }
             p = next;
         }
-        let end = match (chomp, after_blanks) {
-            (Chomp::Keep, Some(after)) => Some(after),
-            _ => last_text_end,
-        };
-        if let Some(end) = end
+        if let Some(end) = last_text_end
             && end > content_start
         {
             self.tok(k::BLOCK_CONTENT, content_start, end);

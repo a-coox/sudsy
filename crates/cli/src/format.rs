@@ -19,7 +19,10 @@ pub struct FormatArgs {
 /// Providers that can format. Languages without a formatter yet are not listed, so their files
 /// are skipped.
 fn providers() -> Vec<Box<dyn LanguageProvider>> {
-    vec![Box::new(lang_json::JsonProvider::new())]
+    vec![
+        Box::new(lang_json::JsonProvider::new()),
+        Box::new(lang_yaml::YamlProvider::new()),
+    ]
 }
 
 #[derive(Default)]

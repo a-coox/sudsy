@@ -5,9 +5,9 @@
 //! trailing comma, and a missing separator elsewhere changes the item structure or fails the
 //! re-parse, so nothing is lost by not comparing them.
 //!
-//! Tokens tagged `#restyle` (YAML's quoted scalars) may change their kind and text, for example
-//! from single to double quotes; they only have to stay where they are. The provider's
-//! [`NodeFormatter::extra_check`] must verify their meaning.
+//! Tokens tagged `#restyle` (YAML's scalars) may change their kind and text, for example from
+//! single to double quotes or by re-indenting continuation lines; they only have to stay where
+//! they are. The provider's [`NodeFormatter::extra_check`] must verify their meaning.
 
 use crate::FormatError;
 use crate::context::NodeFormatter;

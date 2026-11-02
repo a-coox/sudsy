@@ -10,6 +10,9 @@ pub enum Doc {
     /// Literal text. It may contain newlines (verbatim code); the printer then restarts the
     /// column count after the last one and does not re-indent the following lines.
     Text(String),
+    /// Text of one line whose trailing blanks are significant (block scalar content): the
+    /// printer does not trim them at the next line break.
+    Verbatim(String),
     /// A space when the enclosing group fits on one line, else a newline.
     Line,
     /// Nothing when the enclosing group fits on one line, else a newline.
@@ -53,7 +56,7 @@ impl Doc {
     pub fn propagate_breaks(&mut self) -> bool {
         match self {
             Doc::HardLine | Doc::BreakParent => true,
-            Doc::Nil | Doc::Text(_) | Doc::Line | Doc::SoftLine => false,
+            Doc::Nil | Doc::Text(_) | Doc::Verbatim(_) | Doc::Line | Doc::SoftLine => false,
             Doc::Concat(parts) | Doc::Fill(parts) => parts
                 .iter_mut()
                 .fold(false, |forced, d| d.propagate_breaks() | forced),
@@ -94,6 +97,16 @@ pub fn nil() -> Doc {
 pub fn text(s: impl Into<String>) -> Doc {
     let s = s.into();
     if s.is_empty() { Doc::Nil } else { Doc::Text(s) }
+}
+
+/// See [`Doc::Verbatim`].
+pub fn verbatim(s: impl Into<String>) -> Doc {
+    let s = s.into();
+    if s.is_empty() {
+        Doc::Nil
+    } else {
+        Doc::Verbatim(s)
+    }
 }
 
 pub fn line() -> Doc {

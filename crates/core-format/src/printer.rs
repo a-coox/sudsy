@@ -90,6 +90,12 @@ fn str_width(s: &str, tab: usize) -> usize {
 
 /// Prints `doc`. Trailing whitespace before a newline is trimmed.
 pub fn print(doc: &mut Doc, opts: &PrintOptions) -> String {
+    print_protected(doc, opts).0
+}
+
+/// Like [`print`]; also returns the length of the output up to which trailing whitespace is
+/// significant because it was written by [`Doc::Verbatim`].
+pub fn print_protected(doc: &mut Doc, opts: &PrintOptions) -> (String, usize) {
     doc.propagate_breaks();
     let mut p = Printer {
         opts: *opts,
@@ -98,9 +104,10 @@ pub fn print(doc: &mut Doc, opts: &PrintOptions) -> String {
         pos: 0,
         suffixes: Vec::new(),
         remeasure: false,
+        keep: 0,
     };
     p.run(doc);
-    p.out
+    (p.out, p.keep)
 }
 
 struct Printer<'a> {
@@ -111,6 +118,8 @@ struct Printer<'a> {
     suffixes: Vec<Cmd<'a>>,
     /// Set after a hard line in flat mode: the next group must be measured again.
     remeasure: bool,
+    /// Output before this length ends with significant blanks (see [`Doc::Verbatim`]).
+    keep: usize,
 }
 
 impl<'a> Printer<'a> {
@@ -137,7 +146,7 @@ impl<'a> Printer<'a> {
     }
 
     fn newline(&mut self, indent: usize) {
-        let trimmed = self.out.trim_end_matches([' ', '\t']).len();
+        let trimmed = self.out.trim_end_matches([' ', '\t']).len().max(self.keep);
         self.out.truncate(trimmed);
         self.out.push('\n');
         let (text, width) = &self.indents.levels[indent];
@@ -177,6 +186,10 @@ impl<'a> Printer<'a> {
         match doc {
             Doc::Nil | Doc::BreakParent => {}
             Doc::Text(s) => self.write(s),
+            Doc::Verbatim(s) => {
+                self.write(s);
+                self.keep = self.out.len();
+            }
             Doc::Concat(parts) => cmds.push(Cmd {
                 indent,
                 mode,
@@ -326,7 +339,7 @@ fn fits(next: Cmd<'_>, rest: &[Cmd<'_>], width: isize, must_be_flat: bool) -> bo
         };
         match doc {
             Doc::Nil | Doc::BreakParent | Doc::LineSuffix(_) => {}
-            Doc::Text(s) => match s.find('\n') {
+            Doc::Text(s) | Doc::Verbatim(s) => match s.find('\n') {
                 // Only the first line of verbatim text counts against this line.
                 Some(i) => return width - (str_width(&s[..i], 1) as isize) >= 0,
                 None => width -= str_width(s, 1) as isize,
