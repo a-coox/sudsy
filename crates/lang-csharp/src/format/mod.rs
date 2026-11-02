@@ -16,7 +16,7 @@ mod tags;
 
 pub use options::{BRACE_NEWLINE, MEMBER_CHAIN_MIN_CALLS, TRAILING_COMMAS, option_schema};
 
-use self::options::csharpier;
+use self::options::{csharpier, inline_accessor_bodies};
 use self::tags::Tag;
 use crate::generated::kind as k;
 use core_format::{Doc, FormatCtx, FormatError, NodeFormatter};
@@ -71,7 +71,7 @@ impl NodeFormatter for CSharpFormatter {
             | k::ADD_ACCESSOR_DECLARATION
             | k::REMOVE_ACCESSOR_DECLARATION
             | k::UNKNOWN_ACCESSOR_DECLARATION
-                if csharpier(cx.options) =>
+                if inline_accessor_bodies(cx.options) =>
             {
                 match braces::accessor_declaration(cx, node) {
                     Some(doc) => doc?,

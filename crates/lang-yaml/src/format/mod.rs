@@ -14,7 +14,7 @@ mod scalars;
 
 use crate::generated::kind as k;
 use crate::model;
-use core_config::{OptionDef, OptionSchema, ResolvedOptions, shared};
+use core_config::{OptionDef, OptionSchema, OptionValue, Preset, ResolvedOptions, shared};
 use core_format::{Doc, FormatCtx, FormatError, NodeFormatter};
 use core_syntax::SyntaxNode;
 
@@ -56,6 +56,7 @@ pub fn option_schema() -> OptionSchema {
             "Largest number of blank lines kept between entries, comments and documents.",
         ),
     ])
+    .with_presets(presets())
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -70,6 +71,8 @@ pub(crate) enum Quotes {
     Preserve,
     Single,
     Double,
+    /// Prettier's rule (`yaml/prettier-compat`): double quotes, single when the text has a `"`.
+    Prettier,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -86,11 +89,15 @@ pub(crate) struct Style {
     pub quotes: Quotes,
     pub document_start: DocumentStart,
     pub max_blank: usize,
+    /// Blank lines between `key:` and a block value on the next line are dropped.
+    pub tight_values: bool,
 }
 
 impl Style {
     fn of(options: &ResolvedOptions) -> Style {
+        let prettier = prettier(options);
         Style {
+            tight_values: prettier,
             indent: options.int(shared::INDENT_SIZE) as usize,
             sequence: match options.str(SEQUENCE_INDENT) {
                 "indented" => SequenceIndent::Indented,
@@ -98,6 +105,7 @@ impl Style {
                 _ => SequenceIndent::Preserve,
             },
             quotes: match options.str(QUOTE_STYLE) {
+                _ if prettier => Quotes::Prettier,
                 "single" => Quotes::Single,
                 "double" => Quotes::Double,
                 _ => Quotes::Preserve,
@@ -153,4 +161,31 @@ impl NodeFormatter for YamlFormatter {
             Some(i) => Err(format!("the data model of document {} changed", i + 1)),
         }
     }
+}
+
+/// `yaml/default` is the schema's defaults: conservative, every style kept as written.
+/// `yaml/prettier-compat` pins the values that reproduce Prettier's YAML output.
+fn presets() -> Vec<Preset> {
+    vec![
+        Preset::new("yaml/default@1", vec![]),
+        Preset::new(
+            "yaml/prettier-compat@1",
+            vec![
+                (shared::LINE_WIDTH, OptionValue::Int(80)),
+                (shared::INDENT_SIZE, OptionValue::Int(2)),
+                (SEQUENCE_INDENT, OptionValue::String("indented".into())),
+                (DOCUMENT_START, OptionValue::String("preserve".into())),
+                (MAX_BLANK_LINES, OptionValue::Int(1)),
+                (LAYOUT, OptionValue::String("prettier".into())),
+            ],
+        ),
+    ]
+}
+
+/// Preset-internal value (not in the schema, so users cannot set it): `prettier` selects the
+/// layout rules that reproduce Prettier's output beyond the public options.
+const LAYOUT: &str = "layout";
+
+fn prettier(options: &ResolvedOptions) -> bool {
+    matches!(options.get(LAYOUT), Some(OptionValue::String(s)) if s == "prettier")
 }

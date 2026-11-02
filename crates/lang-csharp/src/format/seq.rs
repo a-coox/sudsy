@@ -1,7 +1,7 @@
 //! The generic layout: a node's significant children one after the other, separated by the
 //! space, line break or nothing that [`Sep`] decides.
 
-use super::options::{brace_on_new_line, csharpier};
+use super::options::{brace_on_new_line, csharpier, cuddled_clauses, same_line_initializers};
 use super::spacing;
 use super::tags::{self, Tag};
 use crate::generated::kind as k;
@@ -157,7 +157,13 @@ pub fn separator(
                 | k::IMPLICIT_ARRAY_CREATION_EXPRESSION
                 | k::STACK_ALLOC_ARRAY_CREATION_EXPRESSION
                 | k::IMPLICIT_STACK_ALLOC_ARRAY_CREATION_EXPRESSION
-                | k::WITH_EXPRESSION => Sep::None,
+                | k::WITH_EXPRESSION => {
+                    if same_line_initializers(cx.options) {
+                        Sep::Space
+                    } else {
+                        Sep::None
+                    }
+                }
                 _ => Sep::Space,
             };
         }
@@ -175,7 +181,11 @@ pub fn separator(
             return Sep::Embedded;
         }
         if matches!(nk, k::ELSE_CLAUSE | k::CATCH_CLAUSE | k::FINALLY_CLAUSE) {
-            return Sep::Hard;
+            return if cuddled_clauses(cx.options) && clause_can_cuddle(cx, prev, n) {
+                Sep::Space
+            } else {
+                Sep::Hard
+            };
         }
         if nk == k::TYPE_PARAMETER_CONSTRAINT_CLAUSE {
             return Sep::HardIndented;
@@ -347,4 +357,20 @@ pub fn prefix_unary(cx: &FormatCtx<'_>, node: &SyntaxNode) -> Result<Option<Doc>
         if merges { doc::lit(" ") } else { Doc::Nil },
         cx.format(operand)?,
     ])))
+}
+
+/// `} else {`: only after a block, and only when no comment sits between the `}` and the keyword
+/// (a line comment there would swallow the clause).
+fn clause_can_cuddle(cx: &FormatCtx<'_>, prev: &SyntaxElement, clause: &SyntaxNode) -> bool {
+    let g = cx.grammar;
+    let ends_in_block = match prev {
+        SyntaxElement::Node(n) => n.kind() == k::BLOCK || n.kind() == k::CATCH_CLAUSE,
+        SyntaxElement::Token(_) => false,
+    };
+    let (Some(last), Some(first)) = (last_tok(cx, prev), cx.first_token(clause)) else {
+        return false;
+    };
+    ends_in_block
+        && core_format::comments::trailing_comments(g, &last).is_empty()
+        && core_format::comments::leading_comments(g, &first).is_empty()
 }

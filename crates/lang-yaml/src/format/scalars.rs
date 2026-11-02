@@ -89,6 +89,9 @@ pub(crate) fn restyle(text: &str, kind: SyntaxKind, quotes: Quotes) -> Option<St
     if text.contains(['\n', '\r']) {
         return None;
     }
+    if quotes == Quotes::Prettier {
+        return prettier_restyle(text, kind);
+    }
     match (kind, quotes) {
         (k::DOUBLE_QUOTED, Quotes::Single) => {
             let value = double_quoted_value(text)?;
@@ -120,6 +123,40 @@ pub(crate) fn restyle(text: &str, kind: SyntaxKind, quotes: Quotes) -> Option<St
         }
         _ => None,
     }
+}
+
+/// Prettier's quote rule: a quoted scalar with escapes other than `\"` (double) or any backslash
+/// (single) is kept; else one with a `"` in it is single-quoted, one with only a `'` is
+/// double-quoted, and the rest are double-quoted.
+fn prettier_restyle(text: &str, kind: SyntaxKind) -> Option<String> {
+    let raw = text.get(1..text.len().checked_sub(1)?)?;
+    let double = kind == k::DOUBLE_QUOTED;
+    let single = kind == k::SINGLE_QUOTED;
+    if !double && !single {
+        return None;
+    }
+    let other_escapes = raw.replace("\\\"", "").contains('\\');
+    if (single && raw.contains('\\')) || (double && other_escapes) {
+        return None;
+    }
+    let body = if raw.contains('"') {
+        let content = if double {
+            raw.replace("\\\"", "\"").replace('\'', "''")
+        } else {
+            raw.to_string()
+        };
+        format!("'{content}'")
+    } else if raw.contains('\'') {
+        let content = if single {
+            raw.replace("''", "'")
+        } else {
+            raw.to_string()
+        };
+        format!("\"{content}\"")
+    } else {
+        format!("\"{raw}\"")
+    };
+    (body != text).then_some(body)
 }
 
 /// A block scalar: the header, then the content lines re-indented one level deeper than the

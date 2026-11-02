@@ -51,6 +51,34 @@ fn presets() -> Vec<Preset> {
     vec![
         Preset::new("csharp/microsoft@1", vec![]),
         Preset::new(
+            "csharp/dotnet-runtime@1",
+            vec![(LAYOUT, OptionValue::String("runtime".into()))],
+        ),
+        Preset::new(
+            "csharp/google@1",
+            vec![
+                (shared::LINE_WIDTH, OptionValue::Int(100)),
+                (shared::INDENT_SIZE, OptionValue::Int(2)),
+                (BRACE_NEWLINE, OptionValue::String("none".into())),
+                (TRAILING_COMMAS, OptionValue::String("multiline".into())),
+                (LAYOUT, OptionValue::String("google".into())),
+            ],
+        ),
+        Preset::new(
+            "csharp/dotnet-runtime@1",
+            vec![(LAYOUT, OptionValue::String("runtime".into()))],
+        ),
+        Preset::new(
+            "csharp/google@1",
+            vec![
+                (shared::LINE_WIDTH, OptionValue::Int(100)),
+                (shared::INDENT_SIZE, OptionValue::Int(2)),
+                (BRACE_NEWLINE, OptionValue::String("none".into())),
+                (TRAILING_COMMAS, OptionValue::String("multiline".into())),
+                (LAYOUT, OptionValue::String("google".into())),
+            ],
+        ),
+        Preset::new(
             "csharp/csharpier-compat@1",
             vec![
                 (shared::LINE_WIDTH, OptionValue::Int(100)),
@@ -61,9 +89,37 @@ fn presets() -> Vec<Preset> {
     ]
 }
 
+fn layout_is(options: &ResolvedOptions, name: &str) -> bool {
+    matches!(options.get(LAYOUT), Some(OptionValue::String(s)) if s == name)
+}
+
 /// Does this file use CSharpier's layout variants (the `csharp/csharpier-compat` preset)?
 pub fn csharpier(options: &ResolvedOptions) -> bool {
-    matches!(options.get(LAYOUT), Some(OptionValue::String(s)) if s == "csharpier")
+    layout_is(options, "csharpier")
+}
+
+/// `get { return x; }` stays on one line when it fits (`csharp/dotnet-runtime`, CSharpier).
+pub fn inline_accessor_bodies(options: &ResolvedOptions) -> bool {
+    csharpier(options) || layout_is(options, "runtime")
+}
+
+/// `} else {`, `} catch {`, `} finally {` (`csharp/google`).
+pub fn cuddled_clauses(options: &ResolvedOptions) -> bool {
+    layout_is(options, "google")
+}
+
+/// `new T {` with the brace on the line of the expression (`csharp/google`).
+pub fn same_line_initializers(options: &ResolvedOptions) -> bool {
+    layout_is(options, "google")
+}
+
+/// What stands between the braces of an empty body: `{ }`, or `{}` for `csharp/google`.
+pub fn empty_braces(options: &ResolvedOptions) -> &'static str {
+    if layout_is(options, "google") {
+        ""
+    } else {
+        " "
+    }
 }
 
 pub fn brace_on_new_line(options: &ResolvedOptions) -> bool {

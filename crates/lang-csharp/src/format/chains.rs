@@ -219,7 +219,8 @@ fn parts_of(
 }
 
 /// Is the expression whose parent is `parent` printed inside something that already indents
-/// its continuation lines?
+/// its continuation lines? (A chain inside a chain of another precedence is indented only by
+/// CSharpier.)
 fn parent_indents(cx: &FormatCtx<'_>, parent: Option<SyntaxNode>) -> bool {
     let Some(p) = parent else { return false };
     let kind = p.kind();
@@ -234,7 +235,7 @@ fn parent_indents(cx: &FormatCtx<'_>, parent: Option<SyntaxNode>) -> bool {
             | k::LOCK_STATEMENT
             | k::SWITCH_STATEMENT
     ) || tags::has(cx.grammar, kind, Tag::Assignment)
-        || tags::has(cx.grammar, kind, Tag::BinaryChain)
+        || (tags::has(cx.grammar, kind, Tag::BinaryChain) && !csharpier(cx.options))
 }
 
 /// `a + b + c`: the operands of one precedence level, one per line (operator first) when the

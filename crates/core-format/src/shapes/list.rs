@@ -23,6 +23,9 @@ pub enum ListLayout {
     /// Like `Fit`, but a list with a line break anywhere between its delimiters in the source
     /// (nested items included) stays expanded.
     PreserveBreak,
+    /// Like `Fit`, but a line break between the opening delimiter and the first item keeps the
+    /// list expanded (Prettier's rule for objects).
+    PreserveOpenBreak,
     /// Always one item per line.
     Break,
 }
@@ -178,6 +181,9 @@ fn list_of(
             ListLayout::PreserveBreak => {
                 !items.is_empty() && spans_lines(cx, node, &c.open, &c.close)
             }
+            ListLayout::PreserveOpenBreak => {
+                !items.is_empty() && breaks_after_open(cx, node, &c.open)
+            }
         }
     };
     let list = if broken {
@@ -217,4 +223,19 @@ fn spans_lines(
 ) -> bool {
     let range = TextRange::new(open.text_range().start(), close.text_range().start());
     cx.has_line_break(node, range)
+}
+
+/// Is there a line break between the opening delimiter and the first token after it that is not
+/// trivia?
+fn breaks_after_open(cx: &FormatCtx<'_>, node: &SyntaxNode, open: &SyntaxToken) -> bool {
+    let g = cx.grammar;
+    let mut next = open.next_token();
+    while let Some(t) = &next {
+        if !g.is_trivia(t.kind()) {
+            break;
+        }
+        next = t.next_token();
+    }
+    let end = next.map_or(node.text_range().end(), |t| t.text_range().start());
+    cx.has_line_break(node, TextRange::new(open.text_range().end(), end))
 }
