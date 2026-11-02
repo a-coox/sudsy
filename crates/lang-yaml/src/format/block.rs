@@ -34,7 +34,10 @@ fn parts(node: &SyntaxNode) -> Parts {
         colon: None,
         value: None,
     };
-    for e in node.children_with_tokens() {
+    let wanted = node
+        .children_with_tokens()
+        .by_kind(|kind| matches!(kind, k::QUESTION | k::COLON) || !kind.is_token());
+    for e in wanted {
         match e {
             SyntaxElement::Token(t) if t.kind() == k::QUESTION => p.question = Some(t),
             SyntaxElement::Token(t) if t.kind() == k::COLON => p.colon = Some(t),
@@ -98,8 +101,8 @@ pub(crate) fn collection(cx: &FormatCtx<'_>, st: &Style, node: &SyntaxNode) -> R
 pub(crate) fn sequence_entry(cx: &FormatCtx<'_>, st: &Style, node: &SyntaxNode) -> R {
     let dash = node
         .children_with_tokens()
-        .filter_map(|e| e.into_token())
-        .find(|t| t.kind() == k::DASH)
+        .by_kind(|kind| kind == k::DASH)
+        .find_map(|e| e.into_token())
         .ok_or_else(|| shape("a sequence entry without `-`"))?;
     let mut out = vec![tok(cx, &dash)];
     if let Some(value) = node.children().next() {

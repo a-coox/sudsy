@@ -175,7 +175,10 @@ impl Loader {
     /// A mapping entry: nodes before the `:` are the key, after it the value.
     fn pair(&mut self, entry: &SyntaxNode) -> Result<(Node, Node), String> {
         let (mut key, mut value, mut after_colon) = (None, None, false);
-        for e in entry.children_with_tokens() {
+        let wanted = entry
+            .children_with_tokens()
+            .by_kind(|kind| kind == k::COLON || !kind.is_token());
+        for e in wanted {
             match e {
                 SyntaxElement::Token(t) if t.kind() == k::COLON => after_colon = true,
                 SyntaxElement::Node(n) => {
@@ -238,8 +241,8 @@ impl Loader {
     fn scalar(&mut self, n: &SyntaxNode, tag: Option<String>) -> Result<Node, String> {
         let t = n
             .children_with_tokens()
-            .filter_map(|e| e.into_token())
-            .find(|t| !is_trivia(t.kind()))
+        .by_kind(|kind| kind.is_token() && !is_trivia(kind))
+        .find_map(|e| e.into_token())
             .ok_or("scalar without a token")?;
         let (text, plain) = match t.kind() {
             k::PLAIN => (scalar::plain_value(t.text()), true),
@@ -267,8 +270,8 @@ impl Loader {
 
 fn token_of(n: &SyntaxNode, kind: SyntaxKind) -> Option<SyntaxToken> {
     n.children_with_tokens()
-        .filter_map(|e| e.into_token())
-        .find(|t| t.kind() == kind)
+        .by_kind(|found| found == kind)
+        .find_map(|e| e.into_token())
 }
 
 fn null() -> Node {

@@ -11,8 +11,8 @@ use std::borrow::Cow;
 
 fn token_of(node: &SyntaxNode, what: &str) -> Result<SyntaxToken, FormatError> {
     node.children_with_tokens()
-        .filter_map(|e| e.into_token())
-        .find(|t| !is_trivia(t.kind()))
+        .by_kind(|kind| kind.is_token() && !is_trivia(kind))
+        .find_map(|e| e.into_token())
         .ok_or_else(|| FormatError::Shape(format!("{what} without a token")))
 }
 
@@ -134,13 +134,13 @@ pub(crate) fn block_scalar(
 ) -> Result<Doc, FormatError> {
     let header = node
         .children_with_tokens()
-        .filter_map(|e| e.into_token())
-        .find(|t| t.kind() == k::BLOCK_HEADER)
+        .by_kind(|kind| kind == k::BLOCK_HEADER)
+        .find_map(|e| e.into_token())
         .ok_or_else(|| FormatError::Shape("a block scalar without a header".into()))?;
     let content = node
         .children_with_tokens()
-        .filter_map(|e| e.into_token())
-        .find(|t| t.kind() == k::BLOCK_CONTENT);
+        .by_kind(|kind| kind == k::BLOCK_CONTENT)
+        .find_map(|e| e.into_token());
     let info = block_header(header.text());
     // With an indentation indicator the content depth must be 1-9 columns below the parent.
     let depth = match info.indent {
