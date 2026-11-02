@@ -126,16 +126,17 @@ impl<'a> FormatCtx<'a> {
     }
 
     pub fn last_token(&self, node: &SyntaxNode) -> Option<SyntaxToken> {
-        let mut last = None;
-        for t in node
-            .descendants_with_tokens()
-            .filter_map(SyntaxElement::into_token)
-        {
+        // Walk back from the node's last token over trivia, staying inside the node.
+        let mut cur = node.last_token();
+        while let Some(t) = cur {
             if !self.grammar.is_trivia(t.kind()) {
-                last = Some(t);
+                return Some(t);
             }
+            cur = t
+                .prev_token()
+                .filter(|p| p.parent_ancestors().any(|a| a == *node));
         }
-        last
+        None
     }
 
     /// A token with its leading and trailing comments.
