@@ -143,3 +143,106 @@ impl<'g> ShapeChecker<'g> {
         self.grammar.has_tag(child.kind(), "separator")
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::tree::TreeBuilder;
+
+    const GRAMMAR: &str = r#"
+language mini 9
+token Space #trivia
+token Comma "," #separator
+token Semi ";"
+token Word
+token Number
+node Root = items:#item* Semi
+node Call #item = name:Word args:Args? Semi
+node Args = items:#item* tail:Number?
+node Leaf #item = value:Word
+node Pair = left:Word right:Word?
+"#;
+
+    fn check(build: impl Fn(&mut TreeBuilder, &Grammar)) -> Result<(), String> {
+        let g = Grammar::parse(GRAMMAR).unwrap();
+        let mut b = TreeBuilder::new();
+        build(&mut b, &g);
+        let tree = SyntaxNode::new_root(b.finish());
+        ShapeChecker::new(&g).check(&tree)
+    }
+
+    fn kind(g: &Grammar, name: &str) -> SyntaxKind {
+        g.kind_by_name(name).unwrap()
+    }
+
+    #[test]
+    fn accepts_children_that_fit_in_order_with_separators_and_trivia() {
+        check(|b, g| {
+            b.start_node(kind(g, "Root"));
+            b.start_node(kind(g, "Leaf"));
+            b.token(kind(g, "Word"), "a");
+            b.token(kind(g, "Comma"), ",");
+            b.token(kind(g, "Space"), " ");
+            b.finish_node();
+            b.token(kind(g, "Semi"), ";");
+            b.finish_node();
+        })
+        .unwrap();
+    }
+
+    #[test]
+    fn a_node_may_leave_optional_items_out() {
+        check(|b, g| {
+            b.start_node(kind(g, "Pair"));
+            b.token(kind(g, "Word"), "a");
+            b.finish_node();
+        })
+        .unwrap();
+    }
+
+    #[test]
+    fn rejects_a_child_no_item_accepts() {
+        let e = check(|b, g| {
+            b.start_node(kind(g, "Pair"));
+            b.token(kind(g, "Word"), "a");
+            b.token(kind(g, "Number"), "1");
+            b.finish_node();
+        })
+        .unwrap_err();
+        assert!(e.contains("Pair") && e.contains("Number"), "{e}");
+    }
+
+    #[test]
+    fn rejects_a_missing_required_item_and_a_repeated_optional_one() {
+        let e = check(|b, g| {
+            b.start_node(kind(g, "Pair"));
+            b.finish_node();
+        })
+        .unwrap_err();
+        assert!(e.contains("left") && e.contains("0 children"), "{e}");
+        let e = check(|b, g| {
+            b.start_node(kind(g, "Call"));
+            b.token(kind(g, "Word"), "f");
+            b.start_node(kind(g, "Args"));
+            b.finish_node();
+            b.start_node(kind(g, "Args"));
+            b.finish_node();
+            b.token(kind(g, "Semi"), ";");
+            b.finish_node();
+        })
+        .unwrap_err();
+        assert!(e.contains("Call"), "{e}");
+    }
+
+    #[test]
+    fn nodes_with_an_error_child_are_not_checked() {
+        check(|b, g| {
+            b.start_node(kind(g, "Pair"));
+            b.start_node(SyntaxKind::ERROR);
+            b.token(kind(g, "Number"), "1");
+            b.finish_node();
+            b.finish_node();
+        })
+        .unwrap();
+    }
+}

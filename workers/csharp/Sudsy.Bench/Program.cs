@@ -1,4 +1,5 @@
-// Production-path benchmark (NOT PRODUCT CODE). Usage: Sudsy.Bench <corpus dir> <out dir>
+// Production-path benchmark (NOT PRODUCT CODE). Usage: Sudsy.Bench <corpus dir> <out dir> [--verify]
+// (--verify only cross-checks the fast mapping path against the general routine.)
 //
 // Per .cs file: times Roslyn's parse, the mapping walk and the production serializer
 // (WireEncoder + MessagePack, as the worker's protocol does). The encoded files are written to
@@ -16,6 +17,26 @@ var files = Directory.EnumerateFiles(corpus, "*.cs", SearchOption.AllDirectories
 var texts = files.Select(f => Encoding.UTF8.GetString(File.ReadAllBytes(f))).ToList();
 var totalBytes = texts.Sum(t => (long)Encoding.UTF8.GetByteCount(t));
 Console.WriteLine($"{files.Count} files, {totalBytes / 1e6:F1} MB");
+
+if (args.Length > 2 && args[2] == "--verify")
+{
+    // Cross-check: the fast mapping path must produce exactly what the general routine does.
+    var differ = 0;
+    for (var i = 0; i < files.Count; i++)
+    {
+        var root = CSharpSyntaxTree.ParseText(texts[i]).GetRoot();
+        var fast = TreeMapper.Map(root, texts[i]);
+        var general = TreeMapper.MapGeneral(root, texts[i]);
+        if (!fast.Kinds.SequenceEqual(general.Kinds) || !fast.Values.SequenceEqual(general.Values))
+        {
+            differ++;
+            Console.WriteLine($"DIFFERS: {files[i]}");
+        }
+    }
+
+    Console.WriteLine($"{files.Count} files, {differ} differ");
+    Environment.Exit(differ == 0 ? 0 : 1);
+}
 
 Stats Run(bool keep)
 {
