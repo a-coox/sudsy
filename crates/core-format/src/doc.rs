@@ -99,16 +99,18 @@ impl Doc {
             Doc::Indent(d) | Doc::Align(_, d) | Doc::LineSuffix(d) => d.propagate_breaks(),
             Doc::IfBreak { broken, flat } => broken.propagate_breaks() | flat.propagate_breaks(),
             Doc::Group(g) => {
-                let mut forced = g.contents.propagate_breaks();
+                let forced = g.contents.propagate_breaks();
+                let mut every_candidate = !g.states.is_empty();
                 for s in &mut g.states {
-                    forced |= s.propagate_breaks();
+                    every_candidate &= s.propagate_breaks();
                 }
                 // A conditional group picks among its candidates, so a forced break inside one
-                // does not force the group itself (and does not leak to the parent).
+                // does not force the group itself. When every candidate has one, whichever is
+                // chosen breaks the parent.
                 if forced && g.states.is_empty() {
                     g.broken = true;
                 }
-                g.broken
+                g.broken || every_candidate
             }
         }
     }

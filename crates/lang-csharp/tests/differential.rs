@@ -251,7 +251,13 @@ fn csharpier_compat_matches_csharpier_on_the_corpus() {
     ranked.sort_by_key(|(_, v)| std::cmp::Reverse(v.len()));
     let mut report = String::new();
     for (name, list) in &ranked {
-        say!("  {:>6}  {name}", list.len());
+        let mut per_file: BTreeMap<&str, usize> = BTreeMap::new();
+        for (at, _) in (*list).iter() {
+            *per_file
+                .entry(at.rsplit_once(':').map_or(at, |p| p.0))
+                .or_default() += 1;
+        }
+        say!("  {:>6}  {name}  ({} files)", list.len(), per_file.len());
         writeln!(report, "=== {} hunks: {name}", list.len()).unwrap();
         for (at, h) in list.iter().take(8) {
             writeln!(report, "--- {at}").unwrap();

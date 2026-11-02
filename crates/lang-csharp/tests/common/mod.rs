@@ -125,12 +125,14 @@ pub fn shared_provider() -> &'static OutOfProcessProvider {
 
 /// C# text formatted with some options, for the shared checks.
 pub struct CsSubject {
+    preset: Option<&'static str>,
     options: Vec<(String, OptionValue)>,
     symbols: Vec<String>,
 }
 
 pub fn subject(options: &[(&str, OptionValue)]) -> CsSubject {
     CsSubject {
+        preset: None,
         options: options
             .iter()
             .map(|(k, v)| (k.to_string(), v.clone()))
@@ -153,9 +155,24 @@ impl CsSubject {
         self
     }
 
+    /// Starts from a preset, e.g. `csharp/csharpier-compat@1`.
+    pub fn with_preset(mut self, preset: &'static str) -> Self {
+        self.preset = Some(preset);
+        self
+    }
+
     pub fn resolved(&self) -> ResolvedOptions {
         let schema = lang_csharp::option_schema();
         let mut options = schema.defaults();
+        if let Some(preset) = self.preset {
+            core_config::apply_presets(
+                &[&format!("preset:{preset}")],
+                "csharp",
+                &schema,
+                &mut options,
+            )
+            .unwrap();
+        }
         for (k, v) in &self.options {
             schema.apply(&mut options, k, v).unwrap();
         }
@@ -199,6 +216,12 @@ impl Subject for CsSubject {
 #[track_caller]
 pub fn fmt(input: &str, options: &[(&str, OptionValue)]) -> String {
     core_format::testing::assert_formats(&subject(options), input)
+}
+
+/// Like [`fmt`], starting from a preset.
+#[track_caller]
+pub fn fmt_preset(input: &str, preset: &'static str) -> String {
+    core_format::testing::assert_formats(&subject(&[]).with_preset(preset), input)
 }
 
 pub struct Corpus {

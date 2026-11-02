@@ -1,0 +1,24 @@
+---
+source: crates/lang-csharp/tests/presets.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+public abstract partial class Array : ICloneable, IList, IStructuralComparable, IStructuralEquatable, IFoo { }
+class D { public IDictionary<string, AuthenticationSchemeBuilder> SchemeMap { get; } = new Dictionary<string, AuthenticationSchemeBuilder>(StringComparer.Ordinal);
+ protected Task InvokeAsync(Func<Task> workItem) => _renderHandle.Dispatcher.InvokeAsync(workItem, anotherArgument);
+}
+-----
+public abstract partial class Array
+    : ICloneable,
+        IList,
+        IStructuralComparable,
+        IStructuralEquatable,
+        IFoo { }
+
+class D
+{
+    public IDictionary<string, AuthenticationSchemeBuilder> SchemeMap { get; } =
+        new Dictionary<string, AuthenticationSchemeBuilder>(StringComparer.Ordinal);
+
+    protected Task InvokeAsync(Func<Task> workItem) =>
+        _renderHandle.Dispatcher.InvokeAsync(workItem, anotherArgument);
+}

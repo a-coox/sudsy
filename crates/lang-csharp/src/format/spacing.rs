@@ -29,6 +29,9 @@ pub fn space(prev: &SyntaxToken, next: &SyntaxToken, parent: SyntaxKind) -> bool
         ")" | "]" | "," | ";" | "." | "?." | "::" | "->" | "++" | "--" | ".." => return false,
         _ => {}
     }
+    if p == ".." && parent_kind(prev) == Some(k::SPREAD_ELEMENT) {
+        return true; // `[.. items]`
+    }
     match p {
         "(" | "[" | "." | "?." | "::" | "->" | "~" | ".." => return false,
         "," | ";" => return true,
@@ -36,6 +39,9 @@ pub fn space(prev: &SyntaxToken, next: &SyntaxToken, parent: SyntaxKind) -> bool
     }
     match n {
         "(" => {
+            if parent_kind(prev) == Some(k::OPERATOR_DECLARATION) {
+                return false; // `operator ==(`
+            }
             return if ends_word(p) {
                 SPACE_BEFORE_PAREN.contains(&p) || parent_kind(next) == Some(k::TUPLE_TYPE)
             } else {

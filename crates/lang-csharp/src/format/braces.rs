@@ -119,32 +119,49 @@ const BLOCK: BlockStyle = BlockStyle {
     force_blank: None,
 };
 
-/// A member that is one line by nature: it may follow its neighbours without a blank line.
-fn is_simple_member(cx: &FormatCtx<'_>, member: &SyntaxNode) -> bool {
-    match member.kind() {
-        k::FIELD_DECLARATION
-        | k::EVENT_FIELD_DECLARATION
-        | k::USING_DIRECTIVE
-        | k::EXTERN_ALIAS_DIRECTIVE
-        | k::DELEGATE_DECLARATION
-        | k::ENUM_MEMBER_DECLARATION => true,
-        k::PROPERTY_DECLARATION => member.children().all(|c| match c.kind() {
-            k::ACCESSOR_LIST => accessors_inline(cx, &c),
-            k::ARROW_EXPRESSION_CLAUSE => true,
-            _ => true,
-        }),
-        _ => false,
+/// A method with a body, or a type: whatever CSharpier sets apart with blank lines.
+fn has_body_or_members(member: &SyntaxNode) -> bool {
+    let kind = member.kind();
+    if matches!(
+        kind,
+        k::METHOD_DECLARATION
+            | k::CONSTRUCTOR_DECLARATION
+            | k::DESTRUCTOR_DECLARATION
+            | k::OPERATOR_DECLARATION
+            | k::CONVERSION_OPERATOR_DECLARATION
+    ) {
+        return member
+            .children()
+            .any(|c| matches!(c.kind(), k::BLOCK | k::ARROW_EXPRESSION_CLAUSE));
     }
+    matches!(
+        kind,
+        k::CLASS_DECLARATION
+            | k::STRUCT_DECLARATION
+            | k::INTERFACE_DECLARATION
+            | k::RECORD_DECLARATION
+            | k::RECORD_STRUCT_DECLARATION
+            | k::ENUM_DECLARATION
+            | k::NAMESPACE_DECLARATION
+    )
 }
 
-/// CSharpier puts a blank line between members, except between two simple ones when the second
-/// has no comment, directive or attribute above it.
 fn blank_between_members(cx: &FormatCtx<'_>, prev: &SyntaxNode, next: &SyntaxNode) -> bool {
-    let commented = cx
+    // A directive in front of the member (`#if`, `#endif`): the blank line, if any, is the
+    // source's, since the member may start after the directive.
+    let leading = cx
         .first_token(next)
-        .is_some_and(|t| !comments::leading_comments(cx.grammar, &t).is_empty());
+        .map(|t| comments::leading_comments(cx.grammar, &t))
+        .unwrap_or_default();
+    if leading
+        .iter()
+        .any(|c| c.kind == comments::CommentKind::Directive)
+    {
+        return false;
+    }
+    let commented = !leading.is_empty();
     let decorated = commented || next.children().any(|c| c.kind() == k::ATTRIBUTE_LIST);
-    !(is_simple_member(cx, prev) && is_simple_member(cx, next) && !decorated)
+    decorated || has_body_or_members(prev) || has_body_or_members(next)
 }
 
 /// The blank line rule of a body whose children are members, if the preset has one.
@@ -270,6 +287,46 @@ pub fn accessor_declaration(cx: &FormatCtx<'_>, accessor: &SyntaxNode) -> Option
         ]);
         Ok(doc::conditional_group(vec![one_line, expanded]))
     })())
+}
+
+/// `: A, B` after a type: on the line of the type when it fits, else on the next line, one
+/// further type per line (CSharpier).
+pub fn base_list(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
+    let els = sig(cx, node);
+    let commented = els.iter().any(|e| match e {
+        SyntaxElement::Token(t) => {
+            !comments::leading_comments(cx.grammar, t).is_empty()
+                || !comments::trailing_comments(cx.grammar, t).is_empty()
+        }
+        SyntaxElement::Node(_) => false,
+    });
+    if commented {
+        return seq_of(cx, node, &els); // a comment on `:` or `,` stays where it is
+    }
+    let mut types = Vec::new();
+    for e in &els {
+        if let SyntaxElement::Node(n) = e {
+            types.push(cx.format(n)?);
+        }
+    }
+    let Some(SyntaxElement::Token(colon)) = els.first() else {
+        return Err(FormatError::Shape("base list without `:`".into()));
+    };
+    let mut types = types.into_iter();
+    let first = types.next().unwrap_or(doc::Doc::Nil);
+    let mut rest = Vec::new();
+    for t in types {
+        rest.push(doc::lit(","));
+        rest.push(doc::line());
+        rest.push(t);
+    }
+    Ok(doc::group(doc::indent(doc::concat(vec![
+        doc::line(),
+        cx.token(colon),
+        doc::lit(" "),
+        first,
+        doc::indent(doc::concat(rest)),
+    ]))))
 }
 
 /// `: base(args)` of a constructor, on its own line below the signature.

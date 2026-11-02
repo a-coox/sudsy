@@ -1,0 +1,42 @@
+---
+source: crates/lang-csharp/tests/presets.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+class C { void M() {
+ switch (x) { case 1: { Foo(); break; } default: break; }
+ var d = new Dictionary<string, int> { ["a"] = 1 };
+ var e = new Foo {
+ A = 1,
+ B = 2 };
+ Assert.Throws<ArgumentNullException>(() => RequestDelegateFactory.Create(handler: null!, options: someVeryLongOptionsValue));
+ do { x++; } while (x < 3);
+ var s = "a very long string literal that does not fit on the line with the declaration of the variable";
+ } }
+-----
+class C
+{
+    void M()
+    {
+        switch (x)
+        {
+            case 1:
+            {
+                Foo();
+                break;
+            }
+            default:
+                break;
+        }
+        var d = new Dictionary<string, int> { ["a"] = 1 };
+        var e = new Foo { A = 1, B = 2 };
+        Assert.Throws<ArgumentNullException>(() =>
+            RequestDelegateFactory.Create(handler: null!, options: someVeryLongOptionsValue)
+        );
+        do
+        {
+            x++;
+        } while (x < 3);
+        var s =
+            "a very long string literal that does not fit on the line with the declaration of the variable";
+    }
+}

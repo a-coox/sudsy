@@ -5,7 +5,7 @@ use super::options::{csharpier, initializer_layout, trailing_comma};
 use super::seq::{R, Sep, direct_tokens, sep_doc, separator, seq_of, sig};
 use crate::generated::kind as k;
 use core_format::shapes::{ListStyle, TrailingComma, delimited_list, delimited_list_between};
-use core_format::{Doc, FormatCtx, comments, doc};
+use core_format::{Doc, FormatCtx, FormatError, comments, doc};
 use core_syntax::{SyntaxElement, SyntaxKind, SyntaxNode, SyntaxToken};
 
 /// Did the source put a comma after the last element, before `close`?
@@ -17,6 +17,16 @@ pub fn source_trailing_comma(cx: &FormatCtx<'_>, node: &SyntaxNode, close: &Synt
         .is_some_and(|i| matches!(&els[i], SyntaxElement::Token(t) if t.kind() == k::COMMA_TOKEN))
 }
 
+/// `x is { A: 1 }` and `x is T { A: 1 }`: the braces of a property pattern start on their own
+/// line when the pattern breaks, but not in `{ A: 1 } => ...`, where nothing precedes them.
+fn property_pattern_follows_something(clause: &SyntaxNode) -> bool {
+    let Some(pattern) = clause.parent() else {
+        return false;
+    };
+    clause.prev_sibling().is_some()
+        || pattern.parent().map(|p| p.kind()) == Some(k::IS_PATTERN_EXPRESSION)
+}
+
 /// Parameters, arguments, type arguments, attributes, tuples, patterns: one line if it fits,
 /// else one item per line.
 pub fn plain_list(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
@@ -24,6 +34,7 @@ pub fn plain_list(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
         k::PROPERTY_PATTERN_CLAUSE => ListStyle {
             padding: true,
             empty: " ",
+            leading_line: csharpier(cx.options) && property_pattern_follows_something(node),
             ..ListStyle::default()
         },
         _ => ListStyle::default(),
@@ -83,7 +94,9 @@ pub fn initializer(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
         .pop()
         .ok_or_else(|| core_format::FormatError::Shape("initializer without `}`".into()))?;
     let mut style = brace_style(cx, node, &close);
-    style.leading_line = creation_parent(node.parent().map(|p| p.kind()));
+    style.leading_line = creation_parent(node.parent().map(|p| p.kind()))
+        || (csharpier(cx.options)
+            && node.parent().map(|p| p.kind()) == Some(k::SIMPLE_ASSIGNMENT_EXPRESSION));
     delimited_list(cx, node, &style)
 }
 
@@ -166,6 +179,63 @@ fn block_lambda(arg: &SyntaxNode) -> bool {
     })
 }
 
+fn is_lambda(kind: SyntaxKind) -> bool {
+    matches!(
+        kind,
+        k::SIMPLE_LAMBDA_EXPRESSION
+            | k::PARENTHESIZED_LAMBDA_EXPRESSION
+            | k::ANONYMOUS_METHOD_EXPRESSION
+    )
+}
+
+/// CSharpier: a call whose one argument is a lambda with an expression body keeps the lambda's
+/// head on the call's line and puts the body on its own line when the call does not fit:
+/// `Foo(x =>` / `    body` / `)`. `None` when the argument is anything else.
+fn expression_lambda_hug(cx: &FormatCtx<'_>, arg: &SyntaxNode) -> Result<Option<Doc>, FormatError> {
+    let mut children = arg.children();
+    let (Some(lambda), None) = (children.next(), children.next()) else {
+        return Ok(None);
+    };
+    if !is_lambda(lambda.kind()) {
+        return Ok(None);
+    }
+    let els = sig(cx, &lambda);
+    let Some((SyntaxElement::Node(body), head)) = els.split_last() else {
+        return Ok(None);
+    };
+    if body.kind() == k::BLOCK {
+        return Ok(None);
+    }
+    let head = doc::shared(seq_of(cx, &lambda, head)?);
+    let body = doc::shared(cx.format(body)?);
+    let flat = doc::concat(vec![
+        doc::lit("("),
+        head.clone(),
+        doc::lit(" "),
+        body.clone(),
+        doc::lit(")"),
+    ]);
+    let hugged = doc::concat(vec![
+        doc::lit("("),
+        head.clone(),
+        doc::indent(doc::concat(vec![doc::hardline(), body.clone()])),
+        doc::hardline(),
+        doc::lit(")"),
+    ]);
+    let expanded = doc::group(doc::concat(vec![
+        doc::lit("("),
+        doc::indent(doc::concat(vec![
+            doc::softline(),
+            head,
+            doc::lit(" "),
+            body,
+        ])),
+        doc::softline(),
+        doc::lit(")"),
+    ]));
+    Ok(Some(doc::conditional_group(vec![flat, hugged, expanded])))
+}
+
 /// `(a, b, x => { ... })`: when the arguments before the last one fit on the call's line, the
 /// lambda's body hangs from it; otherwise one argument per line.
 pub fn argument_list(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
@@ -178,6 +248,16 @@ pub fn argument_list(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
         .filter_map(SyntaxElement::into_token)
         .filter(|t| !cx.grammar.is_trivia(t.kind()))
         .all(|t| !has_comments(cx, &t));
+    if csharpier(cx.options)
+        && args.len() == 1
+        && simple_tokens
+        && cx
+            .first_token(&args[0])
+            .is_some_and(|t| comments::leading_comments(cx.grammar, &t).is_empty())
+        && let Some(hugged) = expression_lambda_hug(cx, &args[0])?
+    {
+        return Ok(hugged);
+    }
     // CSharpier hugs a lambda only when it is the one argument.
     let hug = args.last().is_some_and(block_lambda)
         && (args.len() == 1 || !csharpier(cx.options))

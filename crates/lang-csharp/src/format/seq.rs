@@ -134,6 +134,14 @@ pub fn separator(
         {
             return Sep::None; // the initializer starts its own line
         }
+        let bare_property_pattern = nk == k::RECURSIVE_PATTERN
+            && pk == k::IS_PATTERN_EXPRESSION
+            && matches!(n.children().next(), Some(c) if c.kind() == k::PROPERTY_PATTERN_CLAUSE);
+        if csharpier(cx.options)
+            && (matches!(nk, k::BASE_LIST | k::PROPERTY_PATTERN_CLAUSE) || bare_property_pattern)
+        {
+            return Sep::None; // these start with a `line` of their own
+        }
         if nk == k::BLOCK {
             return if block_is_empty(cx, n) {
                 Sep::Space
@@ -188,7 +196,12 @@ pub fn separator(
     if pk == k::DO_STATEMENT
         && matches!(next, SyntaxElement::Token(t) if t.kind() == k::WHILE_KEYWORD)
     {
-        return Sep::Hard;
+        // CSharpier keeps `} while (...)` on one line.
+        return if csharpier(cx.options) {
+            Sep::Space
+        } else {
+            Sep::Hard
+        };
     }
     match (last_tok(cx, prev), first_tok(cx, next)) {
         (Some(a), Some(b)) => {
