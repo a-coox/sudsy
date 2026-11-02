@@ -57,7 +57,7 @@ pub fn delimited_list(
 ) -> Result<Doc, FormatError> {
     let g = cx.grammar;
     let c = container(cx, node)?;
-    let items = render_slots(cx, &c.slots)?;
+    let mut items = render_slots(cx, &c.slots)?;
     let dangling = comments::leading_comments(g, &c.close);
     let open_comments = !comments::trailing_comments(g, &c.open).is_empty();
     // Comments before the opening and after the closing delimiter belong outside the group: a
@@ -85,23 +85,23 @@ pub fn delimited_list(
     if !items.is_empty() {
         inner.push(pad.clone());
     }
-    for (i, item) in items.iter().enumerate() {
+    for i in 0..items.len() {
         if i > 0 {
             inner.push(gap(
                 cx,
                 &items[i - 1],
-                item,
+                &items[i],
                 doc::line(),
                 style.max_blank_lines,
             ));
         }
-        inner.push(item.doc.clone());
+        inner.push(std::mem::replace(&mut items[i].doc, Doc::Nil));
         inner.push(match (i == last, style.trailing_comma) {
             (false, _) => sep.clone(),
             (true, TrailingComma::Never) => Doc::Nil,
             (true, TrailingComma::WhenBroken) => doc::if_break(sep.clone(), Doc::Nil),
         });
-        inner.push(separator_comments(cx, item));
+        inner.push(separator_comments(cx, &items[i]));
     }
     inner.push(dangling_comments(&dangling));
     let body = doc::concat(vec![opening, doc::indent(doc::concat(inner)), pad, closing]);

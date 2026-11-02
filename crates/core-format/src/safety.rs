@@ -11,47 +11,101 @@
 
 use crate::FormatError;
 use crate::context::NodeFormatter;
-use core_syntax::{Grammar, SyntaxKind, SyntaxNode, SyntaxToken};
-use rowan::WalkEvent;
+use core_syntax::{Grammar, SyntaxKind, SyntaxNode};
 
 #[derive(Debug, PartialEq, Eq)]
-enum Event {
+enum Event<'a> {
     Enter(SyntaxKind),
     Leave(SyntaxKind),
-    Token(SyntaxKind, String),
+    Token(SyntaxKind, &'a str),
     /// A `#restyle` token: only its position is compared.
     Restyled,
 }
 
-fn events<'a>(g: &'a Grammar, root: &SyntaxNode) -> impl Iterator<Item = (usize, Event)> + use<'a> {
-    let root = root.clone();
-    root.preorder_with_tokens().filter_map(move |ev| match ev {
-        WalkEvent::Enter(rowan::NodeOrToken::Node(n)) => {
-            Some((n.text_range().start().into(), Event::Enter(n.kind())))
-        }
-        WalkEvent::Leave(rowan::NodeOrToken::Node(n)) => {
-            Some((n.text_range().end().into(), Event::Leave(n.kind())))
-        }
-        WalkEvent::Enter(rowan::NodeOrToken::Token(t)) => significant(g, &t).then(|| {
-            let event = if g.has_tag(t.kind(), "restyle") {
-                Event::Restyled
-            } else {
-                Event::Token(t.kind(), t.text().to_string())
-            };
-            (t.text_range().start().into(), event)
-        }),
-        WalkEvent::Leave(rowan::NodeOrToken::Token(_)) => None,
-    })
+/// What the comparison needs to know about a token kind, looked up once per kind.
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum Class {
+    Ignored,
+    Restyle,
+    Compared,
 }
 
-fn significant(g: &Grammar, t: &SyntaxToken) -> bool {
-    !g.is_trivia(t.kind()) && !g.has_tag(t.kind(), "separator")
+/// The significant events of a tree in document order, each with its byte offset. It walks the
+/// green tree directly: building red nodes for millions of tokens would cost more than the
+/// comparison itself.
+struct Events<'a> {
+    g: &'a Grammar,
+    /// Open nodes: their kind and the children still to visit.
+    stack: Vec<(SyntaxKind, rowan::Children<'a>)>,
+    /// Byte offset after the tokens seen so far.
+    pos: usize,
+    root: Option<&'a rowan::GreenNodeData>,
+}
+
+impl<'a> Events<'a> {
+    fn new(g: &'a Grammar, root: &'a rowan::GreenNodeData) -> Self {
+        Events {
+            g,
+            stack: Vec::new(),
+            pos: 0,
+            root: Some(root),
+        }
+    }
+
+    fn enter(&mut self, node: &'a rowan::GreenNodeData) -> (usize, Event<'a>) {
+        let kind = SyntaxKind(node.kind().0);
+        self.stack.push((kind, node.children()));
+        (self.pos, Event::Enter(kind))
+    }
+
+    fn class(&self, kind: SyntaxKind) -> Class {
+        let g = self.g;
+        if g.is_trivia(kind) || g.has_tag(kind, "separator") {
+            Class::Ignored
+        } else if g.has_tag(kind, "restyle") {
+            Class::Restyle
+        } else {
+            Class::Compared
+        }
+    }
+}
+
+impl<'a> Iterator for Events<'a> {
+    type Item = (usize, Event<'a>);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if let Some(root) = self.root.take() {
+            return Some(self.enter(root));
+        }
+        loop {
+            let (kind, children) = self.stack.last_mut()?;
+            match children.next() {
+                None => {
+                    let kind = *kind;
+                    self.stack.pop();
+                    return Some((self.pos, Event::Leave(kind)));
+                }
+                Some(rowan::NodeOrToken::Node(n)) => return Some(self.enter(n)),
+                Some(rowan::NodeOrToken::Token(t)) => {
+                    let kind = SyntaxKind(t.kind().0);
+                    let at = self.pos;
+                    self.pos += t.text().len();
+                    match self.class(kind) {
+                        Class::Ignored => {}
+                        Class::Restyle => return Some((at, Event::Restyled)),
+                        Class::Compared => return Some((at, Event::Token(kind, t.text()))),
+                    }
+                }
+            }
+        }
+    }
 }
 
 /// `Ok` when both trees have the same nodes and non-trivia tokens in the same order; else a
 /// description of the first difference.
 pub fn equal_ignoring_trivia(g: &Grammar, a: &SyntaxNode, b: &SyntaxNode) -> Result<(), String> {
-    let (mut a, mut b) = (events(g, a), events(g, b));
+    let (a, b) = (a.green(), b.green());
+    let (mut a, mut b) = (Events::new(g, &a), Events::new(g, &b));
     loop {
         match (a.next(), b.next()) {
             (None, None) => return Ok(()),
@@ -67,7 +121,7 @@ pub fn equal_ignoring_trivia(g: &Grammar, a: &SyntaxNode, b: &SyntaxNode) -> Res
     }
 }
 
-fn describe(g: &Grammar, ev: Option<(usize, Event)>) -> String {
+fn describe(g: &Grammar, ev: Option<(usize, Event<'_>)>) -> String {
     match ev {
         None => "nothing more".into(),
         Some((at, Event::Enter(k))) => format!("start of {} at byte {at}", g.name(k)),
