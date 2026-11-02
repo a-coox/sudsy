@@ -14,12 +14,11 @@ mod counting;
 #[global_allocator]
 static A: counting::Counting = counting::Counting;
 
-mod inputs;
-mod micro;
 
 use anyhow::{Result, anyhow};
 use core_format::{DirectiveTable, FormatCtx, safety};
-use provider_api::{LanguageProvider, SourceFile};
+use perf_bench::{file, inputs};
+use provider_api::LanguageProvider;
 use std::time::{Duration, Instant};
 
 const JSON_OBJECTS: usize = 40_000;
@@ -71,21 +70,6 @@ fn timed<T>(f: impl FnOnce() -> T) -> (T, Cost) {
 
 fn ms(d: Duration) -> f64 {
     d.as_secs_f64() * 1000.0
-}
-
-fn file(
-    p: &dyn LanguageProvider,
-    name: &str,
-    version: u64,
-    text: &str,
-) -> (SourceFile, core_config::ResolvedOptions) {
-    let config = core_config::Config::default();
-    let mut opts = config
-        .format_options(&p.grammar().language, p.option_schema())
-        .expect("default options");
-    let mut f = SourceFile::new(name, version, text);
-    f.language_version = provider_api::resolve_dialect(&mut opts, None);
-    (f, opts)
 }
 
 fn phases(
@@ -192,10 +176,6 @@ fn main() -> Result<()> {
         .iter()
         .find(|a| !a.starts_with("--"))
         .map_or("all", String::as_str);
-    if args.iter().any(|a| a == "--micro") {
-        micro::run(&lang_json::JsonProvider::new(), "a.json", &inputs::json(JSON_OBJECTS));
-        return Ok(());
-    }
     let scaling = !args.iter().any(|a| a == "--phases-only");
     if matches!(which, "json" | "all") {
         report(

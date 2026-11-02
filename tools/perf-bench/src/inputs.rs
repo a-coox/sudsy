@@ -90,3 +90,26 @@ pub fn json_flat(members: usize) -> String {
     s.push_str("}\n");
     s
 }
+
+/// Objects nested `depth` levels deep, a few members at each level.
+pub fn json_nested(depth: usize) -> String {
+    let mut s = String::new();
+    for _ in 0..depth {
+        s.push_str("{\"a\": 1, \"b\": [1, 2], \"c\": ");
+    }
+    s.push_str("null");
+    s.push_str(&"}".repeat(depth));
+    s.push('\n');
+    s
+}
+
+/// Block mappings nested `depth` levels deep, a few entries at each level.
+pub fn yaml_nested(depth: usize) -> String {
+    let mut s = String::new();
+    for i in 0..depth {
+        let pad = "  ".repeat(i);
+        s.push_str(&format!("{pad}a: 1\n{pad}b: [1, 2]\n{pad}c:\n"));
+    }
+    s.push_str(&format!("{}d: 1\n", "  ".repeat(depth)));
+    s
+}

@@ -136,6 +136,20 @@ pub fn print(doc: &mut Doc, opts: &PrintOptions) -> String {
 /// Like [`print`]; also returns the length of the output up to which trailing whitespace is
 /// significant because it was written by [`Doc::Verbatim`].
 pub fn print_protected(doc: &mut Doc, opts: &PrintOptions) -> (String, usize) {
+    let (out, keep, _) = print_counting(doc, opts);
+    (out, keep)
+}
+
+/// Work done by the printer besides writing: the number of steps `fits` took in total. It grows
+/// linearly with the document when each group's measurement stops at its own line; a
+/// measurement that rescans what follows would make it grow faster.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct PrintStats {
+    pub fits_steps: usize,
+}
+
+/// Like [`print_protected`], with the printer's work counted.
+pub fn print_counting(doc: &mut Doc, opts: &PrintOptions) -> (String, usize, PrintStats) {
     doc.propagate_breaks();
     let mut p = Printer {
         opts: *opts,
@@ -145,10 +159,13 @@ pub fn print_protected(doc: &mut Doc, opts: &PrintOptions) -> (String, usize) {
         suffixes: Vec::new(),
         remeasure: false,
         keep: 0,
-        scratch: Vec::new(),
+        measure: Measure::default(),
     };
     p.run(doc);
-    (p.out, p.keep)
+    let stats = PrintStats {
+        fits_steps: p.measure.steps,
+    };
+    (p.out, p.keep, stats)
 }
 
 struct Printer<'a> {
@@ -162,7 +179,7 @@ struct Printer<'a> {
     /// Output before this length ends with significant blanks (see [`Doc::Verbatim`]).
     keep: usize,
     /// Work list of [`fits`], kept between calls.
-    scratch: Vec<(Mode, Item<'a>)>,
+    measure: Measure<'a>,
 }
 
 impl<'a> Printer<'a> {
@@ -300,7 +317,7 @@ impl<'a> Printer<'a> {
                 self.remeasure = false;
                 let next = flat_cmd(&g.contents);
                 let width = self.width_left();
-                if !g.broken && fits(&mut self.scratch, next, cmds, width, false) {
+                if !g.broken && fits(&mut self.measure, next, cmds, width, false) {
                     cmds.push(next);
                 } else if let Some(most_expanded) = g.states.last() {
                     if g.broken {
@@ -310,7 +327,7 @@ impl<'a> Printer<'a> {
                     let chosen = g.states[1..]
                         .iter()
                         .map(flat_cmd)
-                        .find(|c| fits(&mut self.scratch, *c, cmds, width, false));
+                        .find(|c| fits(&mut self.measure, *c, cmds, width, false));
                     match chosen {
                         Some(c) => cmds.push(c),
                         None => push(cmds, indent, Mode::Break, most_expanded),
@@ -327,7 +344,7 @@ impl<'a> Printer<'a> {
         let width = self.width_left();
         let [content, rest @ ..] = parts else { return };
         let content_flat = cmd(Mode::Flat, Item::Doc(content));
-        let content_fits = fits(&mut self.scratch, content_flat, &[], width, true);
+        let content_fits = fits(&mut self.measure, content_flat, &[], width, true);
         let [whitespace, rest @ ..] = rest else {
             let m = if content_fits {
                 Mode::Flat
@@ -349,7 +366,7 @@ impl<'a> Printer<'a> {
         }
         let remaining = cmd(mode, Item::Fill(rest));
         let first_two = cmd(Mode::Flat, Item::Seq(&parts[..3]));
-        let first_two_fit = fits(&mut self.scratch, first_two, &[], width, true);
+        let first_two_fit = fits(&mut self.measure, first_two, &[], width, true);
         if first_two_fit {
             cmds.extend([remaining, ws(Mode::Flat), content_cmd(Mode::Flat)]);
         } else if content_fits {
@@ -358,6 +375,13 @@ impl<'a> Printer<'a> {
             cmds.extend([remaining, ws(Mode::Break), content_cmd(Mode::Break)]);
         }
     }
+}
+
+/// The work list of [`fits`] and a count of the steps it took.
+#[derive(Default)]
+struct Measure<'a> {
+    stack: Vec<(Mode, Item<'a>)>,
+    steps: usize,
 }
 
 /// Takes the width of `s` off `width`. Only the first line of text with a line break counts
@@ -375,7 +399,7 @@ fn measure(s: &str, width: &mut isize) -> Option<bool> {
 /// Does `next`, followed by whatever is already queued in `rest`, fit in `width` columns up to
 /// the first line break in break mode?
 fn fits<'a>(
-    stack: &mut Vec<(Mode, Item<'a>)>,
+    m: &mut Measure<'a>,
     next: Cmd<'a>,
     rest: &[Cmd<'a>],
     width: isize,
@@ -383,21 +407,22 @@ fn fits<'a>(
 ) -> bool {
     let mut width = width;
     let mut rest_idx = rest.len();
-    stack.clear();
-    stack.push((next.mode, next.item));
+    m.stack.clear();
+    m.stack.push((next.mode, next.item));
     while width >= 0 {
-        let Some((mode, item)) = stack.pop() else {
+        m.steps += 1;
+        let Some((mode, item)) = m.stack.pop() else {
             if rest_idx == 0 {
                 return true;
             }
             rest_idx -= 1;
-            stack.push((rest[rest_idx].mode, rest[rest_idx].item));
+            m.stack.push((rest[rest_idx].mode, rest[rest_idx].item));
             continue;
         };
         let doc = match item {
             Item::Doc(d) => d,
             Item::Seq(parts) | Item::Fill(parts) => {
-                stack.extend(parts.iter().rev().map(|d| (mode, Item::Doc(d))));
+                m.stack.extend(parts.iter().rev().map(|d| (mode, Item::Doc(d))));
                 continue;
             }
         };
@@ -413,23 +438,23 @@ fn fits<'a>(
                     return answer;
                 }
             }
-            Doc::Concat(parts) => stack.push((mode, Item::Seq(parts))),
-            Doc::Indent(d) | Doc::Align(_, d) => stack.push((mode, Item::Doc(d))),
-            Doc::IfBreak { broken, flat } => stack.push((
+            Doc::Concat(parts) => m.stack.push((mode, Item::Seq(parts))),
+            Doc::Indent(d) | Doc::Align(_, d) => m.stack.push((mode, Item::Doc(d))),
+            Doc::IfBreak { broken, flat } => m.stack.push((
                 mode,
                 Item::Doc(if mode == Mode::Break { broken } else { flat }),
             )),
-            Doc::Fill(parts) => stack.push((mode, Item::Fill(parts))),
+            Doc::Fill(parts) => m.stack.push((mode, Item::Fill(parts))),
             Doc::Group(g) => {
                 if must_be_flat && g.broken {
                     return false;
                 }
-                let m = if g.broken { Mode::Break } else { mode };
-                let contents = match (m, g.states.last()) {
+                let group_mode = if g.broken { Mode::Break } else { mode };
+                let contents = match (group_mode, g.states.last()) {
                     (Mode::Break, Some(last)) => last,
                     _ => &g.contents,
                 };
-                stack.push((m, Item::Doc(contents)));
+                m.stack.push((group_mode, Item::Doc(contents)));
             }
             Doc::Line | Doc::SoftLine | Doc::HardLine => {
                 if mode == Mode::Break || matches!(doc, Doc::HardLine) {

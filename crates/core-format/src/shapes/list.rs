@@ -115,7 +115,7 @@ pub fn delimited_list(
         match style.layout {
             ListLayout::Fit => false,
             ListLayout::Break => !items.is_empty(),
-            ListLayout::PreserveBreak => !items.is_empty() && spans_lines(node, &c.open, &c.close),
+            ListLayout::PreserveBreak => !items.is_empty() && spans_lines(cx, node, &c.open, &c.close),
         }
     };
     let list = if broken {
@@ -128,12 +128,12 @@ pub fn delimited_list(
 
 /// Does the source between the opening and the closing delimiter contain a line break? Trivia
 /// outside the delimiters (the node's own leading and trailing trivia) do not count.
-fn spans_lines(node: &SyntaxNode, open: &SyntaxToken, close: &SyntaxToken) -> bool {
-    let base = node.text_range().start();
-    let range = TextRange::new(
-        open.text_range().start() - base,
-        close.text_range().start() - base,
-    );
-    let text = node.text().slice(range);
-    text.contains_char(char::from(10)) || text.contains_char(char::from(13))
+fn spans_lines(
+    cx: &FormatCtx<'_>,
+    node: &SyntaxNode,
+    open: &SyntaxToken,
+    close: &SyntaxToken,
+) -> bool {
+    let range = TextRange::new(open.text_range().start(), close.text_range().start());
+    cx.has_line_break(node, range)
 }
