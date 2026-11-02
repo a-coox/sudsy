@@ -17,6 +17,7 @@ unicode-width = "0.2"
 proptest = "1"
 rmp-serde = "1"
 rowan = "0.16"
+salsa = "0.28"
 serde = { version = "1", features = ["derive"] }
 serde_bytes = "0.11"
 serde-saphyr = "2"
@@ -26,6 +27,7 @@ tempfile = "3"
 thiserror = "2"
 
 core-config = { path = "crates/core-config" }
+core-incremental = { path = "crates/core-incremental" }
 core-format = { path = "crates/core-format" }
 core-workspace = { path = "crates/core-workspace" }
 lang-json = { path = "crates/lang-json" }

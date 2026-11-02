@@ -1,6 +1,6 @@
 //! Formatting a file through a provider: parse, format, safety check.
 
-use crate::provider::{LanguageProvider, ParseError, ProviderError, SourceFile};
+use crate::provider::{LanguageProvider, ParseError, ParseResult, ProviderError, SourceFile};
 use core_config::ResolvedOptions;
 use core_format::{DirectiveTable, FormatCtx, FormatError, format_tree, safety};
 use std::path::Path;
@@ -57,6 +57,18 @@ pub fn format_file(
     directives: &DirectiveTable,
 ) -> Result<String, FileFormatError> {
     let parsed = provider.parse(file)?;
+    format_parsed(provider, file, &parsed, options, directives)
+}
+
+/// [`format_file`] for a tree that is already parsed (the incremental engine memoizes parsing).
+/// `parsed` must be the result of parsing `file`.
+pub fn format_parsed(
+    provider: &dyn LanguageProvider,
+    file: &SourceFile,
+    parsed: &ParseResult,
+    options: &ResolvedOptions,
+    directives: &DirectiveTable,
+) -> Result<String, FileFormatError> {
     if !parsed.errors.is_empty() {
         return Err(syntax_error(&file.text, &parsed.errors));
     }
@@ -97,12 +109,22 @@ pub fn select_provider<'a>(
     providers: &'a [Box<dyn LanguageProvider>],
     path: &Path,
 ) -> Option<(&'a dyn LanguageProvider, Option<String>)> {
+    select_provider_index(providers, path)
+        .map(|(index, dialect)| (providers[index].as_ref(), dialect))
+}
+
+/// [`select_provider`], naming the provider by its position in `providers`.
+pub fn select_provider_index(
+    providers: &[Box<dyn LanguageProvider>],
+    path: &Path,
+) -> Option<(usize, Option<String>)> {
     providers
         .iter()
-        .flat_map(|p| p.file_matchers().iter().map(move |m| (p, m)))
+        .enumerate()
+        .flat_map(|(i, p)| p.file_matchers().iter().map(move |m| (i, m)))
         .filter(|(_, m)| m.matches(path))
         .max_by_key(|(_, m)| m.specificity())
-        .map(|(p, m)| (p.as_ref(), m.dialect.clone()))
+        .map(|(i, m)| (i, m.dialect.clone()))
 }
 
 /// Fixes the dialect of a file for parsing and formatting. A provider whose schema has a
