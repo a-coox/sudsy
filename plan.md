@@ -33,7 +33,23 @@ C# is the target language and stresses every part of the design: an out-of-proce
 
 A Rust core owns everything that is not inherently language-specific; each language contributes a thin provider, and only C# parsing and semantic queries run outside Rust, in a .NET worker.
 
-&#91;embedded content: architecture · shared core, three providers, one .NET worker\]
+```
+VS Code extension (thin LSP client) ──> LSP server (diagnostics, actions, format)      CLI (format, lint, fix, check)
+                                                   │                                         │
+Shared core (Rust) ────────────────────────────────┴─────────────────────────────────────────┘
+  Workspace      discovery, ignore, incremental engine     Config        presets, overrides, .editorconfig
+  Syntax tree    lossless, untyped, grammar codegen        Format engine layout doc, printer, shapes, hooks
+  Rule engine    diagnostics, fixes, suppressions          Pattern rules user rule files with fixes
+  Wasm host      user Rust plugins, WIT API, sandboxed     Flow analysis flow graphs, dataflow solver, reachability
+        │
+Provider interface: parse, grammar, formatting, rules, semantics, flow
+        │
+  JSON provider (Rust, in-process, JSON + JSONC)
+  YAML provider (Rust, in-process, lossless YAML parser)        JSON and YAML never start a .NET process
+  C# provider (Rust: format spec, hooks, built-in rules, worker proxy)
+        │ versioned binary protocol
+  C# worker (.NET): Roslyn parse and mapping, semantic queries, flow-graph export
+```
 
 Everything above the provider interface is shared; the C# provider's Rust half holds the format spec and rules, and the worker only parses and answers semantic queries.
 
@@ -527,7 +543,15 @@ tests/
 
 Seven phases, each closed by a gate that must pass before the next starts. JSON comes first because it exercises the whole core with the smallest parser.
 
-&#91;embedded content: milestones · 7 phases, each closed by a gate\]
+| Phase | Scope | Gate |
+| --- | --- | --- |
+| M0 · Foundations | Shared tree, grammar codegen, incremental query engine, JSON parser, CLI skeleton, config loading, encoding benchmark | JSON round-trips byte for byte across JSONTestSuite |
+| M1 · Formatter core | Layout document, printer, shared shapes, layout directives; JSON formatter and options; YAML lossless parser | JSON idempotent, YAML lossless (gated on yaml-test-suite) |
+| M2 · C# formatting | .NET worker, protocol v1, Roslyn mapping layer; C# formatting, hooks, csharpier-compat, YAML formatter | C# corpus lossless and idempotent; speed measured against CSharpier |
+| M3 · Rules and config | Rule engine with all scopes, fix kinds, suppressions; config, presets, .editorconfig mapping, depth modes, CLI | Presets match their samples; `check` command usable in CI |
+| M4 · Editor | LSP server, long-lived C# worker, VS Code extension; diagnostics, quick fixes, format on save | Used daily on this repo, all three languages in VS Code |
+| M5 · Semantics and flow | Capability layers, symbol ids, summaries, flow-graph export; dataflow solver; unused, unreachable and nullability rules | Flow rules agree with compiler (CS0162, CS0168, CS0219) on corpus |
+| M6 · Extensibility | Pattern matcher and YAML pattern rules; Wasm host, Rust SDK with flow API (v0) | v0.1 release, all earlier gates still green |
 
 M3 and M4 can overlap once the diagnostics model is stable. Durations are not estimated yet.
 
