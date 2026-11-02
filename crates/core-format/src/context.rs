@@ -7,7 +7,9 @@ use crate::error::FormatError;
 use crate::ignore::{self, IgnoreMark};
 use crate::shapes::{self, BlockStyle, KeyValueStyle, ListStyle};
 use core_config::ResolvedOptions;
-use core_syntax::{Grammar, SyntaxElement, SyntaxNode, SyntaxToken};
+use crate::lines::LineBreaks;
+use core_syntax::{Grammar, SyntaxElement, SyntaxNode, SyntaxToken, TextRange};
+use std::sync::Mutex;
 
 /// A provider's formatting code. Nodes it does not handle fall back to the shared shape of their
 /// grammar tag (`#block`, `#delimited-list`, `#key-value`), and else to their children
@@ -46,6 +48,8 @@ pub struct FormatCtx<'a> {
     pub options: &'a ResolvedOptions,
     pub directives: &'a DirectiveTable,
     formatter: &'a dyn NodeFormatter,
+    /// The line breaks of the tree being formatted, found when first asked for.
+    line_breaks: Mutex<Option<LineBreaks>>,
 }
 
 impl<'a> FormatCtx<'a> {
@@ -60,7 +64,19 @@ impl<'a> FormatCtx<'a> {
             options,
             directives,
             formatter,
+            line_breaks: Mutex::new(None),
         }
+    }
+
+    /// Does the source contain a line break (`\n` or `\r`) within `range`, which is given in the
+    /// offsets of the tree `node` is in?
+    pub fn has_line_break(&self, node: &SyntaxNode, range: TextRange) -> bool {
+        let root = node.ancestors().last().unwrap_or_else(|| node.clone());
+        let mut cached = self.line_breaks.lock().unwrap_or_else(|e| e.into_inner());
+        if !cached.as_ref().is_some_and(|l| l.is_of(&root)) {
+            *cached = Some(LineBreaks::of(&root));
+        }
+        cached.as_ref().is_some_and(|l| l.any_in(range))
     }
 
     pub fn directives_of(&self, node: &SyntaxNode) -> NodeDirectives<'a> {
@@ -113,11 +129,13 @@ impl<'a> FormatCtx<'a> {
         // The first part waits in `single`: most nodes have just one, and need no list.
         let mut single = None;
         let mut parts = Vec::new();
-        for e in node.children_with_tokens() {
+        let significant = node
+            .children_with_tokens()
+            .by_kind(|k| !self.grammar.is_trivia(k));
+        for e in significant {
             let part = match e {
                 SyntaxElement::Node(n) => self.format(&n)?,
-                SyntaxElement::Token(t) if !self.grammar.is_trivia(t.kind()) => self.token(&t),
-                SyntaxElement::Token(_) => continue,
+                SyntaxElement::Token(t) => self.token(&t),
             };
             match single.take() {
                 None if parts.is_empty() => single = Some(part),

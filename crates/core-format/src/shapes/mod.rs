@@ -42,7 +42,7 @@ pub(crate) fn container(cx: &FormatCtx<'_>, node: &SyntaxNode) -> Result<Contain
     let shape = |m: &str| FormatError::Shape(format!("{name}: {m}"));
     let mut elements = node
         .children_with_tokens()
-        .filter(|e| e.as_token().is_none_or(|t| !g.is_trivia(t.kind())));
+        .by_kind(|k| !g.is_trivia(k));
     let Some(SyntaxElement::Token(open)) = elements.next() else {
         return Err(shape("expected an opening and a closing token"));
     };

@@ -25,7 +25,7 @@ fn significant<'a>(
     node: &SyntaxNode,
 ) -> impl Iterator<Item = SyntaxElement> + use<'a> {
     node.children_with_tokens()
-        .filter(|e| e.as_token().is_none_or(|t| !cx.grammar.is_trivia(t.kind())))
+        .by_kind(|k| !cx.grammar.is_trivia(k))
 }
 
 fn element_doc(cx: &FormatCtx<'_>, e: &SyntaxElement) -> Result<Doc, FormatError> {
