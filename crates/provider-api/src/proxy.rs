@@ -115,10 +115,7 @@ impl WorkerProxy {
         let timeout = self.config.request_timeout;
         let mut inner = self.lock();
         loop {
-            let worker = match self.ensure_running(&mut inner) {
-                Ok(w) => w,
-                Err(e) => return Err(e),
-            };
+            let worker = self.ensure_running(&mut inner)?;
             match exchange(worker, &request, timeout) {
                 Ok(Response::Error(e)) => return Err(ProxyError::Worker(e)),
                 Ok(response) => return Ok(response),

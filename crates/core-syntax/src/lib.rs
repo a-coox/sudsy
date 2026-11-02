@@ -22,5 +22,6 @@ pub use grammar::Grammar;
 pub use kind::{LanguageId, SyntaxKind};
 pub use rowan::{GreenNode, TextRange, TextSize};
 pub use tree::{
-    SudsyLang, SyntaxElement, SyntaxNode, SyntaxToken, TreeBuilder, embedded_language, print,
+    SudsyLang, SyntaxElement, SyntaxNode, SyntaxToken, TreeBuilder, dump_tree, embedded_language,
+    print,
 };

@@ -67,3 +67,32 @@ impl TreeBuilder {
         self.inner.finish()
     }
 }
+
+/// Indented dump for debugging: `Kind start..end` for nodes, plus the escaped text for tokens.
+pub fn dump_tree(root: &SyntaxNode, grammar: &crate::Grammar) -> String {
+    use std::fmt::Write;
+    let mut out = String::new();
+    let mut depth = 0usize;
+    for event in root.preorder_with_tokens() {
+        match event {
+            rowan::WalkEvent::Enter(el) => {
+                let name = grammar.name(el.kind());
+                let range = el.text_range();
+                let (start, end) = (u32::from(range.start()), u32::from(range.end()));
+                let _ = write!(
+                    out,
+                    "{:indent$}{name} {start}..{end}",
+                    "",
+                    indent = depth * 2
+                );
+                if let rowan::NodeOrToken::Token(t) = &el {
+                    let _ = write!(out, " {:?}", t.text());
+                }
+                out.push('\n');
+                depth += 1;
+            }
+            rowan::WalkEvent::Leave(_) => depth -= 1,
+        }
+    }
+    out
+}
