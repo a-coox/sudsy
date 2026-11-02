@@ -7,6 +7,7 @@ use crate::scalar::{block_header, double_quoted_value, single_quoted_value};
 use crate::tree::{block_parent_indent, is_trivia};
 use core_format::{Doc, FormatCtx, FormatError, doc};
 use core_syntax::{SyntaxKind, SyntaxNode, SyntaxToken};
+use std::borrow::Cow;
 
 fn token_of(node: &SyntaxNode, what: &str) -> Result<SyntaxToken, FormatError> {
     node.children_with_tokens()
@@ -26,8 +27,8 @@ pub(crate) fn scalar(
 ) -> Result<Doc, FormatError> {
     let t = token_of(node, "a scalar")?;
     let text = match t.kind() {
-        k::PLAIN => t.text().to_string(),
-        kind => restyle(t.text(), kind, st.quotes).unwrap_or_else(|| t.text().to_string()),
+        k::PLAIN => Cow::Borrowed(t.text()),
+        kind => restyle(t.text(), kind, st.quotes).map_or(Cow::Borrowed(t.text()), Cow::Owned),
     };
     Ok(comments::with_text(cx, &t, lines(&text)))
 }
@@ -36,7 +37,7 @@ pub(crate) fn scalar(
 /// surrounding blanks, which line folding ignores anyway; empty lines stay.
 fn lines(text: &str) -> Doc {
     if !text.contains(['\n', '\r']) {
-        return doc::text(text);
+        return doc::snippet(text);
     }
     let all = split_lines(text);
     let last = all.len() - 1;

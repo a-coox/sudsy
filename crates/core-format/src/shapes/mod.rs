@@ -16,7 +16,7 @@ use crate::directives::Directive;
 use crate::doc::{self, Doc};
 use crate::error::FormatError;
 use crate::ignore::{self, IgnoreMark};
-use core_syntax::{SyntaxElement, SyntaxNode, SyntaxToken};
+use core_syntax::{Grammar, SyntaxElement, SyntaxNode, SyntaxToken};
 
 /// Source text of a node exactly as written (plus its outer comments).
 pub fn verbatim(cx: &FormatCtx<'_>, node: &SyntaxNode) -> Doc {
@@ -40,35 +40,42 @@ pub(crate) fn container(cx: &FormatCtx<'_>, node: &SyntaxNode) -> Result<Contain
     let g = cx.grammar;
     let name = g.name(node.kind());
     let shape = |m: &str| FormatError::Shape(format!("{name}: {m}"));
-    let mut elements: Vec<SyntaxElement> = node
+    let mut elements = node
         .children_with_tokens()
-        .filter(|e| e.as_token().is_none_or(|t| !g.is_trivia(t.kind())))
-        .collect();
-    let (Some(SyntaxElement::Token(close)), Some(SyntaxElement::Token(open))) = (
-        elements.pop(),
-        (!elements.is_empty()).then(|| elements.remove(0)),
-    ) else {
+        .filter(|e| e.as_token().is_none_or(|t| !g.is_trivia(t.kind())));
+    let Some(SyntaxElement::Token(open)) = elements.next() else {
         return Err(shape("expected an opening and a closing token"));
     };
     let mut slots: Vec<Slot> = Vec::new();
+    // The last element is the closing token, so each one is placed when the next arrives.
+    let mut held: Option<SyntaxElement> = None;
     for e in elements {
-        match e {
-            SyntaxElement::Node(node) => slots.push(Slot { node, sep: None }),
-            SyntaxElement::Token(t) if g.has_tag(t.kind(), "separator") => {
-                match slots.last_mut().filter(|s| s.sep.is_none()) {
-                    Some(slot) => slot.sep = Some(t),
-                    None => return Err(shape("separator without a preceding item")),
-                }
-            }
-            SyntaxElement::Token(t) => {
-                return Err(shape(&format!("unexpected token `{}`", t.text())));
-            }
+        if let Some(previous) = held.replace(e) {
+            place(g, &mut slots, previous).map_err(|m| shape(&m))?;
         }
     }
+    let Some(SyntaxElement::Token(close)) = held else {
+        return Err(shape("expected an opening and a closing token"));
+    };
     Ok(Container { open, close, slots })
 }
 
-/// A formatted item, or a run of items kept as written by an ignore region.
+/// Adds a child between the delimiters: a node starts a slot, a separator ends the last one.
+fn place(g: &Grammar, slots: &mut Vec<Slot>, e: SyntaxElement) -> Result<(), String> {
+    match e {
+        SyntaxElement::Node(node) => slots.push(Slot { node, sep: None }),
+        SyntaxElement::Token(t) if g.has_tag(t.kind(), "separator") => {
+            match slots.last_mut().filter(|s| s.sep.is_none()) {
+                Some(slot) => slot.sep = Some(t),
+                None => return Err("separator without a preceding item".into()),
+            }
+        }
+        SyntaxElement::Token(t) => return Err(format!("unexpected token `{}`", t.text())),
+    }
+    Ok(())
+}
+
+// A formatted item, or a run of items kept as written by an ignore region.
 pub(crate) struct Rendered {
     /// First node of the item (directives are read from it).
     first: SyntaxNode,
@@ -169,7 +176,11 @@ pub(crate) fn gap(
     } else {
         doc::softline()
     };
-    let mut parts = vec![if forced { doc::hardline() } else { base }];
+    let first = if forced { doc::hardline() } else { base };
+    if blank == 0 {
+        return first;
+    }
+    let mut parts = vec![first];
     parts.extend((0..blank).map(|_| blank_line.clone()));
     doc::concat(parts)
 }
