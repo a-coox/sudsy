@@ -1,0 +1,256 @@
+---
+source: crates/lang-csharp/tests/fixtures.rs
+expression: dump
+---
+CompilationUnit 0..678
+  UsingDirective 0..107
+    DefineDirectiveTrivia 0..16
+      HashToken 0..1 "#"
+      DefineKeyword 1..7 "define"
+      WhitespaceTrivia 7..8 " "
+      IdentifierToken 8..15 "FEATURE"
+      EndOfDirectiveToken 15..15 ""
+      EndOfLineTrivia 15..16 "\n"
+    UndefDirectiveTrivia 16..27
+      HashToken 16..17 "#"
+      UndefKeyword 17..22 "undef"
+      WhitespaceTrivia 22..23 " "
+      IdentifierToken 23..26 "OLD"
+      EndOfDirectiveToken 26..26 ""
+      EndOfLineTrivia 26..27 "\n"
+    NullableDirectiveTrivia 27..44
+      HashToken 27..28 "#"
+      NullableKeyword 28..36 "nullable"
+      WhitespaceTrivia 36..37 " "
+      EnableKeyword 37..43 "enable"
+      EndOfDirectiveToken 43..43 ""
+      EndOfLineTrivia 43..44 "\n"
+    PragmaWarningDirectiveTrivia 44..93
+      HashToken 44..45 "#"
+      PragmaKeyword 45..51 "pragma"
+      WhitespaceTrivia 51..52 " "
+      WarningKeyword 52..59 "warning"
+      WhitespaceTrivia 59..60 " "
+      DisableKeyword 60..67 "disable"
+      WhitespaceTrivia 67..68 " "
+      IdentifierName 68..74
+        IdentifierToken 68..74 "CS0168"
+      CommaToken 74..75 ","
+      WhitespaceTrivia 75..76 " "
+      IdentifierName 76..92
+        IdentifierToken 76..82 "CS0219"
+        WhitespaceTrivia 82..83 " "
+        SingleLineCommentTrivia 83..92 "// unused"
+      EndOfDirectiveToken 92..92 ""
+      EndOfLineTrivia 92..93 "\n"
+    UsingKeyword 93..98 "using"
+    WhitespaceTrivia 98..99 " "
+    IdentifierName 99..105
+      IdentifierToken 99..105 "System"
+    SemicolonToken 105..106 ";"
+    EndOfLineTrivia 106..107 "\n"
+  NamespaceDeclaration 107..678
+    EndOfLineTrivia 107..108 "\n"
+    NamespaceKeyword 108..117 "namespace"
+    WhitespaceTrivia 117..118 " "
+    IdentifierName 118..129
+      IdentifierToken 118..128 "Directives"
+      EndOfLineTrivia 128..129 "\n"
+    OpenBraceToken 129..130 "{"
+    EndOfLineTrivia 130..131 "\n"
+    ClassDeclaration 131..661
+      WhitespaceTrivia 131..135 "    "
+      RegionDirectiveTrivia 135..151
+        HashToken 135..136 "#"
+        RegionKeyword 136..142 "region"
+        WhitespaceTrivia 142..143 " "
+        PreprocessingMessageTrivia 143..150 "Members"
+        EndOfDirectiveToken 150..150 ""
+        EndOfLineTrivia 150..151 "\n"
+      WhitespaceTrivia 151..155 "    "
+      ClassKeyword 155..160 "class"
+      WhitespaceTrivia 160..161 " "
+      IdentifierToken 161..162 "C"
+      EndOfLineTrivia 162..163 "\n"
+      WhitespaceTrivia 163..167 "    "
+      OpenBraceToken 167..168 "{"
+      EndOfLineTrivia 168..169 "\n"
+      MethodDeclaration 169..207
+        PredefinedType 169..194
+          IfDirectiveTrivia 169..181
+            HashToken 169..170 "#"
+            IfKeyword 170..172 "if"
+            WhitespaceTrivia 172..173 " "
+            IdentifierName 173..180
+              IdentifierToken 173..180 "FEATURE"
+            EndOfDirectiveToken 180..180 ""
+            EndOfLineTrivia 180..181 "\n"
+          WhitespaceTrivia 181..189 "        "
+          VoidKeyword 189..193 "void"
+          WhitespaceTrivia 193..194 " "
+        IdentifierToken 194..200 "Active"
+        ParameterList 200..203
+          OpenParenToken 200..201 "("
+          CloseParenToken 201..202 ")"
+          WhitespaceTrivia 202..203 " "
+        Block 203..207
+          OpenBraceToken 203..204 "{"
+          WhitespaceTrivia 204..205 " "
+          CloseBraceToken 205..206 "}"
+          EndOfLineTrivia 206..207 "\n"
+      FieldDeclaration 207..436
+        VariableDeclaration 207..425
+          PredefinedType 207..424
+            ElifDirectiveTrivia 207..232
+              HashToken 207..208 "#"
+              ElifKeyword 208..212 "elif"
+              WhitespaceTrivia 212..213 " "
+              LogicalAndExpression 213..231
+                IdentifierName 213..220
+                  IdentifierToken 213..219 "LEGACY"
+                  WhitespaceTrivia 219..220 " "
+                AmpersandAmpersandToken 220..222 "&&"
+                WhitespaceTrivia 222..223 " "
+                LogicalNotExpression 223..231
+                  ExclamationToken 223..224 "!"
+                  IdentifierName 224..231
+                    IdentifierToken 224..231 "FEATURE"
+              EndOfDirectiveToken 231..231 ""
+              EndOfLineTrivia 231..232 "\n"
+            DisabledTextTrivia 232..273 "        void Legacy() { int never = 1; }\n"
+            ElseDirectiveTrivia 273..279
+              HashToken 273..274 "#"
+              ElseKeyword 274..278 "else"
+              EndOfDirectiveToken 278..278 ""
+              EndOfLineTrivia 278..279 "\n"
+            DisabledTextTrivia 279..329 "        void Fallback() { not even valid C# $$$ }\n"
+            EndIfDirectiveTrivia 329..336
+              HashToken 329..330 "#"
+              EndIfKeyword 330..335 "endif"
+              EndOfDirectiveToken 335..335 ""
+              EndOfLineTrivia 335..336 "\n"
+            EndOfLineTrivia 336..337 "\n"
+            IfDirectiveTrivia 337..380
+              HashToken 337..338 "#"
+              IfKeyword 338..340 "if"
+              WhitespaceTrivia 340..341 " "
+              LogicalOrExpression 341..379
+                IdentifierName 341..347
+                  IdentifierToken 341..346 "DEBUG"
+                  WhitespaceTrivia 346..347 " "
+                BarBarToken 347..349 "||"
+                WhitespaceTrivia 349..350 " "
+                ParenthesizedExpression 350..379
+                  OpenParenToken 350..351 "("
+                  LogicalAndExpression 351..378
+                    IdentifierName 351..369
+                      IdentifierToken 351..368 "NET8_0_OR_GREATER"
+                      WhitespaceTrivia 368..369 " "
+                    AmpersandAmpersandToken 369..371 "&&"
+                    WhitespaceTrivia 371..372 " "
+                    LogicalNotExpression 372..378
+                      ExclamationToken 372..373 "!"
+                      IdentifierName 373..378
+                        IdentifierToken 373..378 "TRACE"
+                  CloseParenToken 378..379 ")"
+              EndOfDirectiveToken 379..379 ""
+              EndOfLineTrivia 379..380 "\n"
+            DisabledTextTrivia 380..405 "        void Debug() { }\n"
+            EndIfDirectiveTrivia 405..412
+              HashToken 405..406 "#"
+              EndIfKeyword 406..411 "endif"
+              EndOfDirectiveToken 411..411 ""
+              EndOfLineTrivia 411..412 "\n"
+            WhitespaceTrivia 412..420 "        "
+            IntKeyword 420..423 "int"
+            WhitespaceTrivia 423..424 " "
+          VariableDeclarator 424..425
+            IdentifierToken 424..425 "x"
+        SemicolonToken 425..426 ";"
+        WhitespaceTrivia 426..427 " "
+        SingleLineCommentTrivia 427..435 "// after"
+        EndOfLineTrivia 435..436 "\n"
+      FieldDeclaration 436..590
+        VariableDeclaration 436..588
+          PredefinedType 436..587
+            PragmaWarningDirectiveTrivia 436..467
+              HashToken 436..437 "#"
+              PragmaKeyword 437..443 "pragma"
+              WhitespaceTrivia 443..444 " "
+              WarningKeyword 444..451 "warning"
+              WhitespaceTrivia 451..452 " "
+              RestoreKeyword 452..459 "restore"
+              WhitespaceTrivia 459..460 " "
+              IdentifierName 460..466
+                IdentifierToken 460..466 "CS0168"
+              EndOfDirectiveToken 466..466 ""
+              EndOfLineTrivia 466..467 "\n"
+            PragmaChecksumDirectiveTrivia 467..550
+              HashToken 467..468 "#"
+              PragmaKeyword 468..474 "pragma"
+              WhitespaceTrivia 474..475 " "
+              ChecksumKeyword 475..483 "checksum"
+              WhitespaceTrivia 483..484 " "
+              StringLiteralToken 484..493 "\"file.cs\""
+              WhitespaceTrivia 493..494 " "
+              StringLiteralToken 494..534 "\"{406EA660-64CF-4C82-B6F0-42D48172A799}\""
+              WhitespaceTrivia 534..535 " "
+              StringLiteralToken 535..549 "\"ab007f1d23d9\""
+              EndOfDirectiveToken 549..549 ""
+              EndOfLineTrivia 549..550 "\n"
+            LineDirectiveTrivia 550..575
+              HashToken 550..551 "#"
+              LineKeyword 551..555 "line"
+              WhitespaceTrivia 555..556 " "
+              NumericLiteralToken 556..559 "200"
+              WhitespaceTrivia 559..560 " "
+              StringLiteralToken 560..574 "\"generated.cs\""
+              EndOfDirectiveToken 574..574 ""
+              EndOfLineTrivia 574..575 "\n"
+            WhitespaceTrivia 575..583 "        "
+            IntKeyword 583..586 "int"
+            WhitespaceTrivia 586..587 " "
+          VariableDeclarator 587..588
+            IdentifierToken 587..588 "y"
+        SemicolonToken 588..589 ";"
+        EndOfLineTrivia 589..590 "\n"
+      LineDirectiveTrivia 590..603
+        HashToken 590..591 "#"
+        LineKeyword 591..595 "line"
+        WhitespaceTrivia 595..596 " "
+        HiddenKeyword 596..602 "hidden"
+        EndOfDirectiveToken 602..602 ""
+        EndOfLineTrivia 602..603 "\n"
+      LineDirectiveTrivia 603..617
+        HashToken 603..604 "#"
+        LineKeyword 604..608 "line"
+        WhitespaceTrivia 608..609 " "
+        DefaultKeyword 609..616 "default"
+        EndOfDirectiveToken 616..616 ""
+        EndOfLineTrivia 616..617 "\n"
+      NullableDirectiveTrivia 617..635
+        HashToken 617..618 "#"
+        NullableKeyword 618..626 "nullable"
+        WhitespaceTrivia 626..627 " "
+        RestoreKeyword 627..634 "restore"
+        EndOfDirectiveToken 634..634 ""
+        EndOfLineTrivia 634..635 "\n"
+      WarningDirectiveTrivia 635..655
+        HashToken 635..636 "#"
+        WarningKeyword 636..643 "warning"
+        WhitespaceTrivia 643..644 " "
+        PreprocessingMessageTrivia 644..654 "be careful"
+        EndOfDirectiveToken 654..654 ""
+        EndOfLineTrivia 654..655 "\n"
+      WhitespaceTrivia 655..659 "    "
+      CloseBraceToken 659..660 "}"
+      EndOfLineTrivia 660..661 "\n"
+    WhitespaceTrivia 661..665 "    "
+    EndRegionDirectiveTrivia 665..676
+      HashToken 665..666 "#"
+      EndRegionKeyword 666..675 "endregion"
+      EndOfDirectiveToken 675..675 ""
+      EndOfLineTrivia 675..676 "\n"
+    CloseBraceToken 676..677 "}"
+    EndOfLineTrivia 677..678 "\n"
+  EndOfFileToken 678..678 ""

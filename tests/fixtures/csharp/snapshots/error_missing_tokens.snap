@@ -1,0 +1,106 @@
+---
+source: crates/lang-csharp/tests/fixtures.rs
+expression: dump
+---
+CompilationUnit 0..83
+  ClassDeclaration 0..83
+    ClassKeyword 0..5 "class"
+    WhitespaceTrivia 5..6 " "
+    IdentifierToken 6..7 "A"
+    EndOfLineTrivia 7..8 "\n"
+    OpenBraceToken 8..9 "{"
+    EndOfLineTrivia 9..10 "\n"
+    FieldDeclaration 10..24
+      VariableDeclaration 10..22
+        PredefinedType 10..18
+          WhitespaceTrivia 10..14 "    "
+          IntKeyword 14..17 "int"
+          WhitespaceTrivia 17..18 " "
+        VariableDeclarator 18..22
+          IdentifierToken 18..19 "x"
+          WhitespaceTrivia 19..20 " "
+          EqualsValueClause 20..22
+            EqualsToken 20..21 "="
+            WhitespaceTrivia 21..22 " "
+            IdentifierName 22..22
+              ERROR 22..22
+      SemicolonToken 22..23 ";"
+      EndOfLineTrivia 23..24 "\n"
+    MethodDeclaration 24..40
+      PredefinedType 24..33
+        WhitespaceTrivia 24..28 "    "
+        VoidKeyword 28..32 "void"
+        WhitespaceTrivia 32..33 " "
+      IdentifierToken 33..34 "M"
+      ParameterList 34..36
+        OpenParenToken 34..35 "("
+        WhitespaceTrivia 35..36 " "
+        ERROR 36..36
+      Block 36..40
+        OpenBraceToken 36..37 "{"
+        WhitespaceTrivia 37..38 " "
+        CloseBraceToken 38..39 "}"
+        EndOfLineTrivia 39..40 "\n"
+    FieldDeclaration 40..67
+      VariableDeclaration 40..67
+        PredefinedType 40..48
+          WhitespaceTrivia 40..44 "    "
+          IntKeyword 44..47 "int"
+          WhitespaceTrivia 47..48 " "
+        VariableDeclarator 48..67
+          IdentifierToken 48..49 "y"
+          WhitespaceTrivia 49..50 " "
+          EqualsValueClause 50..67
+            EqualsToken 50..51 "="
+            WhitespaceTrivia 51..52 " "
+            AddExpression 52..67
+              NumericLiteralExpression 52..54
+                NumericLiteralToken 52..53 "1"
+                WhitespaceTrivia 53..54 " "
+              PlusToken 54..55 "+"
+              EndOfLineTrivia 55..56 "\n"
+              PredefinedType 56..67
+                WhitespaceTrivia 56..60 "    "
+                StringKeyword 60..66 "string"
+                WhitespaceTrivia 66..67 " "
+      ERROR 67..67
+    IncompleteMember 67..71
+      IdentifierName 67..71
+        IdentifierToken 67..68 "z"
+        WhitespaceTrivia 68..69 " "
+        ERROR 69..71
+          EqualsToken 69..70 "="
+          WhitespaceTrivia 70..71 " "
+    ConstructorDeclaration 71..81
+      IdentifierToken 71..74 "Foo"
+      ParameterList 74..79
+        OpenParenToken 74..75 "("
+        ERROR 75..76
+          NumericLiteralToken 75..76 "1"
+        Parameter 76..76
+          IdentifierName 76..76
+            ERROR 76..76
+          ERROR 76..76
+        CommaToken 76..77 ","
+        WhitespaceTrivia 77..78 " "
+        Parameter 78..78
+          IdentifierName 78..78
+            ERROR 78..78
+          ERROR 78..78
+        CloseParenToken 78..79 ")"
+      SemicolonToken 79..80 ";"
+      EndOfLineTrivia 80..81 "\n"
+    CloseBraceToken 81..82 "}"
+    EndOfLineTrivia 82..83 "\n"
+  EndOfFileToken 83..83 ""
+error CS1525 at 22..23: Invalid expression term ';'
+error CS1026 at 36..37: ) expected
+error CS1525 at 60..66: Invalid expression term 'string'
+error CS1002 at 67..68: ; expected
+error CS1519 at 69..70: Invalid token '=' in a member declaration
+error CS1519 at 69..70: Invalid token '=' in a member declaration
+error CS1001 at 75..76: Identifier expected
+error CS1031 at 76..77: Type expected
+error CS1001 at 76..77: Identifier expected
+error CS1031 at 78..79: Type expected
+error CS1001 at 78..79: Identifier expected

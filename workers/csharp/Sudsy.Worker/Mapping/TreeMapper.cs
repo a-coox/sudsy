@@ -42,6 +42,8 @@ internal sealed class Mapper
         /// <summary>Leading trivia of the next token already emitted as trailing trivia of the previous one.</summary>
         public int Consumed;
         public int Start;
+        /// <summary>Index of the innermost open frame while a token is visited.</summary>
+        public int Top;
         public int End;
         public Frame[] Frames = new Frame[32];
     }
@@ -59,12 +61,12 @@ internal sealed class Mapper
         _text = text;
         _forceGeneral = forceGeneral;
         _byteOffsets = System.Text.Ascii.IsValid(text) ? null : Utf8Offsets(text);
-        _tree = new FlatTree((text.Length / 4) + 64);
+        _tree = new FlatTree((text.Length / 3) + 64);
     }
 
     public FlatTree Run(SyntaxNode root)
     {
-        _scanForSkipped = root.ContainsSkippedText;
+        _scanForSkipped = root.ContainsSkippedText && root.ContainsDiagnostics;
         RunScope(root, 0);
         return _tree;
     }
@@ -161,6 +163,7 @@ internal sealed class Mapper
                 continue;
             }
 
+            scope.Top = top;
             var token = child.AsToken();
             var added = _forceGeneral || token.IsMissing || (_scanForSkipped && HasSkipped(token))
                 ? VisitGeneral(token, scope, depth)
@@ -460,12 +463,19 @@ internal sealed class Mapper
     /// </summary>
     private uint ExtendRun(SyntaxToken token, Scope scope, int depth)
     {
-        if (!NextMayStartWithTrivia(token.FullSpan.End))
+        if (!NextMayStartWithTrivia(token, token.FullSpan.End, depth))
         {
             return 0;
         }
 
-        var next = token.GetNextToken(includeZeroWidth: true);
+        var next = PeekNext(scope, out var sibling);
+        if (sibling && (!_scanForSkipped || !HasSkipped(next)))
+        {
+            // The next token is a sibling (and has no skipped tokens): its leading trivia land beside this token's trailing
+            // trivia either way, so there is nothing to move.
+            return 0;
+        }
+
         if (next.RawKind == 0 || next.FullSpan.Start < scope.Start || next.FullSpan.End > scope.End || next.IsMissing)
         {
             return 0;
@@ -491,12 +501,14 @@ internal sealed class Mapper
     }
 
     /// <summary>
-    /// Roslyn's trailing trivia take every space and comment up to the line break, so in code the
-    /// next token can only start with trivia when it begins with something that is not part of a
-    /// token. Inside doc comments and directives a line break after a token is the next token's
-    /// leading trivia (or a token of its own), so it has to be looked at.
+    /// Whether the next token can start with trivia that the shared rule would make trailing trivia
+    /// of <paramref name="token"/>. Roslyn's own trailing trivia already take every space, comment
+    /// and line break of code up to the line break, so in code only a directive (<c>#</c>) can be
+    /// left. Inside doc comments and directives (depth above zero) the line break after a token in
+    /// a tag, a space, or the closing <c>*/</c> is the next token's leading trivia; after the end of
+    /// a tag or after text a line break is a token of its own.
     /// </summary>
-    private bool NextMayStartWithTrivia(int end)
+    private bool NextMayStartWithTrivia(SyntaxToken token, int end, int depth)
     {
         if (end >= _text.Length)
         {
@@ -504,9 +516,68 @@ internal sealed class Mapper
         }
 
         var c = _text[end];
-        return c is '#' or ' ' or '\t' or '\r' or '\n'
-            || (c == '/' && end + 1 < _text.Length && _text[end + 1] is '/' or '*')
-            || (c > 0x7f && char.IsWhiteSpace(c));
+        if (depth == 0)
+        {
+            // A directive, or a doc comment (Roslyn leaves those to the next token).
+            return c == '#'
+                || (c == '/' && end + 1 < _text.Length && _text[end + 1] is '/' or '*')
+                || (c > 0x7f && char.IsWhiteSpace(c));
+        }
+
+        switch (c)
+        {
+            case '\r':
+            case '\n':
+                return !EndsTagOrText((CS.SyntaxKind)token.RawKind);
+            case ' ':
+            case '\t':
+            case '/':
+            case '*':
+            case '#':
+                return true;
+            default:
+                return c > 0x7f && char.IsWhiteSpace(c);
+        }
+    }
+
+    private static bool EndsTagOrText(CS.SyntaxKind kind) => kind
+        is CS.SyntaxKind.GreaterThanToken
+        or CS.SyntaxKind.SlashGreaterThanToken
+        or CS.SyntaxKind.XmlTextLiteralToken
+        or CS.SyntaxKind.XmlEntityLiteralToken
+        or CS.SyntaxKind.XmlCDataEndToken
+        or CS.SyntaxKind.XmlCommentEndToken
+        or CS.SyntaxKind.XmlProcessingInstructionEndToken;
+
+    /// <summary>
+    /// The token after the one being visited, found from the open frames: the next sibling at the
+    /// innermost level that has one (its first token when it is a node). Cheaper than asking the
+    /// token to navigate up the tree. <paramref name="isSibling"/>: it is a child of the same node.
+    /// </summary>
+    private static SyntaxToken PeekNext(Scope scope, out bool isSibling)
+    {
+        isSibling = false;
+        for (var level = scope.Top; level >= 0; level--)
+        {
+            var siblings = scope.Frames[level].Children;
+            while (siblings.MoveNext())
+            {
+                var next = siblings.Current;
+                if (next.IsToken)
+                {
+                    isSibling = level == scope.Top;
+                    return next.AsToken();
+                }
+
+                var first = next.AsNode()!.GetFirstToken(includeZeroWidth: true);
+                if (first.RawKind != 0)
+                {
+                    return first;
+                }
+            }
+        }
+
+        return default;
     }
 
     private uint EmitTrivia(SyntaxTrivia trivia, int depth)

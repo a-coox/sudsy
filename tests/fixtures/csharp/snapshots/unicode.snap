@@ -1,0 +1,145 @@
+---
+source: crates/lang-csharp/tests/fixtures.rs
+expression: dump
+---
+CompilationUnit 0..375
+  ClassDeclaration 0..375
+    SingleLineCommentTrivia 0..37 "// Ünïcode in a comment 🙂 中文"
+    EndOfLineTrivia 37..38 "\n"
+    SingleLineDocumentationCommentTrivia 38..103
+      XmlText 38..42
+        DocumentationCommentExteriorTrivia 38..41 "///"
+        XmlTextLiteralToken 41..42 " "
+      XmlElement 42..102
+        XmlElementStartTag 42..51
+          LessThanToken 42..43 "<"
+          XmlName 43..50
+            IdentifierToken 43..50 "summary"
+          GreaterThanToken 50..51 ">"
+        XmlText 51..92
+          XmlTextLiteralToken 51..79 "Résumé: naïve café 🙂 "
+          XmlEntityLiteralToken 79..84 "&amp;"
+          XmlTextLiteralToken 84..92 " 中文."
+        XmlElementEndTag 92..102
+          LessThanSlashToken 92..94 "</"
+          XmlName 94..101
+            IdentifierToken 94..101 "summary"
+          GreaterThanToken 101..102 ">"
+      XmlText 102..103
+        XmlTextLiteralNewLineToken 102..103 "\n"
+      EndOfDocumentationCommentToken 103..103 ""
+    ClassKeyword 103..108 "class"
+    WhitespaceTrivia 108..109 " "
+    IdentifierToken 109..118 "Ünïcode"
+    EndOfLineTrivia 118..119 "\n"
+    OpenBraceToken 119..120 "{"
+    EndOfLineTrivia 120..121 "\n"
+    FieldDeclaration 121..181
+      VariableDeclaration 121..156
+        PredefinedType 121..132
+          WhitespaceTrivia 121..125 "    "
+          StringKeyword 125..131 "string"
+          WhitespaceTrivia 131..132 " "
+        VariableDeclarator 132..156
+          IdentifierToken 132..133 "s"
+          WhitespaceTrivia 133..134 " "
+          EqualsValueClause 134..156
+            EqualsToken 134..135 "="
+            WhitespaceTrivia 135..136 " "
+            StringLiteralExpression 136..156
+              StringLiteralToken 136..156 "\"héllo 🙂 中文\""
+      SemicolonToken 156..157 ";"
+      WhitespaceTrivia 157..158 " "
+      SingleLineCommentTrivia 158..180 "// trailing ünï 🙂"
+      EndOfLineTrivia 180..181 "\n"
+    FieldDeclaration 181..240
+      VariableDeclaration 181..238
+        PredefinedType 181..192
+          WhitespaceTrivia 181..185 "    "
+          StringKeyword 185..191 "string"
+          WhitespaceTrivia 191..192 " "
+        VariableDeclarator 192..238
+          IdentifierToken 192..195 "raw"
+          WhitespaceTrivia 195..196 " "
+          EqualsValueClause 196..238
+            EqualsToken 196..197 "="
+            WhitespaceTrivia 197..198 " "
+            StringLiteralExpression 198..238
+              MultiLineRawStringLiteralToken 198..238 "\"\"\"\n        ünï \"raw\" 🙂\n        \"\"\""
+      SemicolonToken 238..239 ";"
+      EndOfLineTrivia 239..240 "\n"
+    FieldDeclaration 240..281
+      VariableDeclaration 240..258
+        PredefinedType 240..248
+          WhitespaceTrivia 240..244 "    "
+          IntKeyword 244..247 "int"
+          WhitespaceTrivia 247..248 " "
+        VariableDeclarator 248..258
+          IdentifierToken 248..254 "变量"
+          WhitespaceTrivia 254..255 " "
+          EqualsValueClause 255..258
+            EqualsToken 255..256 "="
+            WhitespaceTrivia 256..257 " "
+            NumericLiteralExpression 257..258
+              NumericLiteralToken 257..258 "1"
+      SemicolonToken 258..259 ";"
+      WhitespaceTrivia 259..260 " "
+      MultiLineCommentTrivia 260..280 "/* 块注释 🙂 */"
+      EndOfLineTrivia 280..281 "\n"
+    FieldDeclaration 281..327
+      VariableDeclaration 281..325
+        PredefinedType 281..292
+          WhitespaceTrivia 281..285 "    "
+          StringKeyword 285..291 "string"
+          WhitespaceTrivia 291..292 " "
+        VariableDeclarator 292..325
+          IdentifierToken 292..293 "i"
+          WhitespaceTrivia 293..294 " "
+          EqualsValueClause 294..325
+            EqualsToken 294..295 "="
+            WhitespaceTrivia 295..296 " "
+            InterpolatedStringExpression 296..325
+              InterpolatedStringStartToken 296..298 "$\""
+              Interpolation 298..306
+                OpenBraceToken 298..299 "{"
+                IdentifierName 299..305
+                  IdentifierToken 299..305 "变量"
+                CloseBraceToken 305..306 "}"
+              InterpolatedStringText 306..310
+                InterpolatedStringTextToken 306..310 " é "
+              Interpolation 310..319
+                OpenBraceToken 310..311 "{"
+                IdentifierName 311..312
+                  IdentifierToken 311..312 "s"
+                InterpolationAlignmentClause 312..315
+                  CommaToken 312..313 ","
+                  UnaryMinusExpression 313..315
+                    MinusToken 313..314 "-"
+                    NumericLiteralExpression 314..315
+                      NumericLiteralToken 314..315 "5"
+                InterpolationFormatClause 315..318
+                  ColonToken 315..316 ":"
+                  InterpolatedStringTextToken 316..318 "F2"
+                CloseBraceToken 318..319 "}"
+              InterpolatedStringText 319..324
+                InterpolatedStringTextToken 319..324 " 🙂"
+              InterpolatedStringEndToken 324..325 "\""
+      SemicolonToken 325..326 ";"
+      EndOfLineTrivia 326..327 "\n"
+    IfDirectiveTrivia 327..337
+      HashToken 327..328 "#"
+      IfKeyword 328..330 "if"
+      WhitespaceTrivia 330..331 " "
+      IdentifierName 331..336
+        IdentifierToken 331..336 "NEVER"
+      EndOfDirectiveToken 336..336 ""
+      EndOfLineTrivia 336..337 "\n"
+    DisabledTextTrivia 337..366 "    ünï disabled 🙂 text\n"
+    EndIfDirectiveTrivia 366..373
+      HashToken 366..367 "#"
+      EndIfKeyword 367..372 "endif"
+      EndOfDirectiveToken 372..372 ""
+      EndOfLineTrivia 372..373 "\n"
+    CloseBraceToken 373..374 "}"
+    EndOfLineTrivia 374..375 "\n"
+  EndOfFileToken 375..375 ""

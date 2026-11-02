@@ -1,0 +1,324 @@
+---
+source: crates/lang-csharp/tests/fixtures.rs
+expression: dump
+---
+CompilationUnit 0..684
+  ClassDeclaration 0..684
+    ClassKeyword 0..5 "class"
+    WhitespaceTrivia 5..6 " "
+    IdentifierToken 6..13 "Strings"
+    EndOfLineTrivia 13..14 "\n"
+    OpenBraceToken 14..15 "{"
+    EndOfLineTrivia 15..16 "\n"
+    FieldDeclaration 16..60
+      VariableDeclaration 16..58
+        PredefinedType 16..27
+          WhitespaceTrivia 16..20 "    "
+          StringKeyword 20..26 "string"
+          WhitespaceTrivia 26..27 " "
+        VariableDeclarator 27..58
+          IdentifierToken 27..32 "plain"
+          WhitespaceTrivia 32..33 " "
+          EqualsValueClause 33..58
+            EqualsToken 33..34 "="
+            WhitespaceTrivia 34..35 " "
+            StringLiteralExpression 35..58
+              StringLiteralToken 35..58 "\"a\\tb\\u00e9 \\\"quoted\\\"\""
+      SemicolonToken 58..59 ";"
+      EndOfLineTrivia 59..60 "\n"
+    FieldDeclaration 60..113
+      VariableDeclaration 60..111
+        PredefinedType 60..71
+          WhitespaceTrivia 60..64 "    "
+          StringKeyword 64..70 "string"
+          WhitespaceTrivia 70..71 " "
+        VariableDeclarator 71..111
+          IdentifierToken 71..79 "verbatim"
+          WhitespaceTrivia 79..80 " "
+          EqualsValueClause 80..111
+            EqualsToken 80..81 "="
+            WhitespaceTrivia 81..82 " "
+            StringLiteralExpression 82..111
+              StringLiteralToken 82..111 "@\"C:\\temp\\ \"\"x\"\"\nsecond line\""
+      SemicolonToken 111..112 ";"
+      EndOfLineTrivia 112..113 "\n"
+    FieldDeclaration 113..132
+      VariableDeclaration 113..130
+        PredefinedType 113..122
+          WhitespaceTrivia 113..117 "    "
+          CharKeyword 117..121 "char"
+          WhitespaceTrivia 121..122 " "
+        VariableDeclarator 122..130
+          IdentifierToken 122..123 "c"
+          WhitespaceTrivia 123..124 " "
+          EqualsValueClause 124..130
+            EqualsToken 124..125 "="
+            WhitespaceTrivia 125..126 " "
+            CharacterLiteralExpression 126..130
+              CharacterLiteralToken 126..130 "'\\''"
+      SemicolonToken 130..131 ";"
+      EndOfLineTrivia 131..132 "\n"
+    FieldDeclaration 132..172
+      VariableDeclaration 132..170
+        PredefinedType 132..143
+          WhitespaceTrivia 132..136 "    "
+          StringKeyword 136..142 "string"
+          WhitespaceTrivia 142..143 " "
+        VariableDeclarator 143..170
+          IdentifierToken 143..147 "raw1"
+          WhitespaceTrivia 147..148 " "
+          EqualsValueClause 148..170
+            EqualsToken 148..149 "="
+            WhitespaceTrivia 149..150 " "
+            StringLiteralExpression 150..170
+              SingleLineRawStringLiteralToken 150..170 "\"\"\"one \"line\" raw\"\"\""
+      SemicolonToken 170..171 ";"
+      EndOfLineTrivia 171..172 "\n"
+    FieldDeclaration 172..242
+      VariableDeclaration 172..240
+        PredefinedType 172..183
+          WhitespaceTrivia 172..176 "    "
+          StringKeyword 176..182 "string"
+          WhitespaceTrivia 182..183 " "
+        VariableDeclarator 183..240
+          IdentifierToken 183..187 "raw2"
+          WhitespaceTrivia 187..188 " "
+          EqualsValueClause 188..240
+            EqualsToken 188..189 "="
+            WhitespaceTrivia 189..190 " "
+            StringLiteralExpression 190..240
+              MultiLineRawStringLiteralToken 190..240 "\"\"\"\n        multi\n          line \"raw\"\n        \"\"\""
+      SemicolonToken 240..241 ";"
+      EndOfLineTrivia 241..242 "\n"
+    FieldDeclaration 242..287
+      VariableDeclaration 242..285
+        PredefinedType 242..253
+          WhitespaceTrivia 242..246 "    "
+          StringKeyword 246..252 "string"
+          WhitespaceTrivia 252..253 " "
+        VariableDeclarator 253..285
+          IdentifierToken 253..257 "raw3"
+          WhitespaceTrivia 257..258 " "
+          EqualsValueClause 258..285
+            EqualsToken 258..259 "="
+            WhitespaceTrivia 259..260 " "
+            StringLiteralExpression 260..285
+              SingleLineRawStringLiteralToken 260..285 "\"\"\"\"nested \"\"\" quotes\"\"\"\""
+      SemicolonToken 285..286 ";"
+      EndOfLineTrivia 286..287 "\n"
+    FieldDeclaration 287..370
+      VariableDeclaration 287..368
+        PredefinedType 287..298
+          WhitespaceTrivia 287..291 "    "
+          StringKeyword 291..297 "string"
+          WhitespaceTrivia 297..298 " "
+        VariableDeclarator 298..368
+          IdentifierToken 298..304 "interp"
+          WhitespaceTrivia 304..305 " "
+          EqualsValueClause 305..368
+            EqualsToken 305..306 "="
+            WhitespaceTrivia 306..307 " "
+            InterpolatedStringExpression 307..368
+              InterpolatedStringStartToken 307..309 "$\""
+              InterpolatedStringText 309..313
+                InterpolatedStringTextToken 309..313 "x = "
+              Interpolation 313..316
+                OpenBraceToken 313..314 "{"
+                IdentifierName 314..315
+                  IdentifierToken 314..315 "x"
+                CloseBraceToken 315..316 "}"
+              InterpolatedStringText 316..322
+                InterpolatedStringTextToken 316..322 ", y = "
+              Interpolation 322..328
+                OpenBraceToken 322..323 "{"
+                IdentifierName 323..324
+                  IdentifierToken 323..324 "y"
+                InterpolationFormatClause 324..327
+                  ColonToken 324..325 ":"
+                  InterpolatedStringTextToken 325..327 "F2"
+                CloseBraceToken 327..328 "}"
+              InterpolatedStringText 328..334
+                InterpolatedStringTextToken 328..334 ", z = "
+              Interpolation 334..340
+                OpenBraceToken 334..335 "{"
+                IdentifierName 335..336
+                  IdentifierToken 335..336 "z"
+                InterpolationAlignmentClause 336..339
+                  CommaToken 336..337 ","
+                  UnaryMinusExpression 337..339
+                    MinusToken 337..338 "-"
+                    NumericLiteralExpression 338..339
+                      NumericLiteralToken 338..339 "8"
+                CloseBraceToken 339..340 "}"
+              InterpolatedStringText 340..342
+                InterpolatedStringTextToken 340..342 ", "
+              Interpolation 342..355
+                OpenBraceToken 342..343 "{"
+                ParenthesizedExpression 343..354
+                  OpenParenToken 343..344 "("
+                  ConditionalExpression 344..353
+                    IdentifierName 344..346
+                      IdentifierToken 344..345 "a"
+                      WhitespaceTrivia 345..346 " "
+                    QuestionToken 346..347 "?"
+                    WhitespaceTrivia 347..348 " "
+                    IdentifierName 348..350
+                      IdentifierToken 348..349 "b"
+                      WhitespaceTrivia 349..350 " "
+                    ColonToken 350..351 ":"
+                    WhitespaceTrivia 351..352 " "
+                    IdentifierName 352..353
+                      IdentifierToken 352..353 "c"
+                  CloseParenToken 353..354 ")"
+                CloseBraceToken 354..355 "}"
+              InterpolatedStringText 355..367
+                InterpolatedStringTextToken 355..367 " {{literal}}"
+              InterpolatedStringEndToken 367..368 "\""
+      SemicolonToken 368..369 ";"
+      EndOfLineTrivia 369..370 "\n"
+    FieldDeclaration 370..417
+      VariableDeclaration 370..415
+        PredefinedType 370..381
+          WhitespaceTrivia 370..374 "    "
+          StringKeyword 374..380 "string"
+          WhitespaceTrivia 380..381 " "
+        VariableDeclarator 381..415
+          IdentifierToken 381..395 "interpVerbatim"
+          WhitespaceTrivia 395..396 " "
+          EqualsValueClause 396..415
+            EqualsToken 396..397 "="
+            WhitespaceTrivia 397..398 " "
+            InterpolatedStringExpression 398..415
+              InterpolatedVerbatimStringStartToken 398..401 "$@\""
+              Interpolation 401..407
+                OpenBraceToken 401..402 "{"
+                IdentifierName 402..406
+                  IdentifierToken 402..406 "name"
+                CloseBraceToken 406..407 "}"
+              InterpolatedStringText 407..408
+                InterpolatedStringTextToken 407..408 "\\"
+              Interpolation 408..414
+                OpenBraceToken 408..409 "{"
+                IdentifierName 409..413
+                  IdentifierToken 409..413 "path"
+                CloseBraceToken 413..414 "}"
+              InterpolatedStringEndToken 414..415 "\""
+      SemicolonToken 415..416 ";"
+      EndOfLineTrivia 416..417 "\n"
+    FieldDeclaration 417..487
+      VariableDeclaration 417..485
+        PredefinedType 417..428
+          WhitespaceTrivia 417..421 "    "
+          StringKeyword 421..427 "string"
+          WhitespaceTrivia 427..428 " "
+        VariableDeclarator 428..485
+          IdentifierToken 428..437 "interpRaw"
+          WhitespaceTrivia 437..438 " "
+          EqualsValueClause 438..485
+            EqualsToken 438..439 "="
+            WhitespaceTrivia 439..440 " "
+            InterpolatedStringExpression 440..485
+              InterpolatedMultiLineRawStringStartToken 440..446 "$$\"\"\"\n"
+              InterpolatedStringText 446..463
+                InterpolatedStringTextToken 446..463 "        {\"json\": "
+              Interpolation 463..472
+                OpenBraceToken 463..465 "{{"
+                IdentifierName 465..470
+                  IdentifierToken 465..470 "value"
+                CloseBraceToken 470..472 "}}"
+              InterpolatedStringText 472..473
+                InterpolatedStringTextToken 472..473 "}"
+              InterpolatedRawStringEndToken 473..485 "\n        \"\"\""
+      SemicolonToken 485..486 ";"
+      EndOfLineTrivia 486..487 "\n"
+    FieldDeclaration 487..539
+      VariableDeclaration 487..537
+        PredefinedType 487..498
+          WhitespaceTrivia 487..491 "    "
+          StringKeyword 491..497 "string"
+          WhitespaceTrivia 497..498 " "
+        VariableDeclarator 498..537
+          IdentifierToken 498..504 "nested"
+          WhitespaceTrivia 504..505 " "
+          EqualsValueClause 505..537
+            EqualsToken 505..506 "="
+            WhitespaceTrivia 506..507 " "
+            InterpolatedStringExpression 507..537
+              InterpolatedStringStartToken 507..509 "$\""
+              InterpolatedStringText 509..515
+                InterpolatedStringTextToken 509..515 "outer "
+              Interpolation 515..532
+                OpenBraceToken 515..516 "{"
+                InterpolatedStringExpression 516..531
+                  InterpolatedStringStartToken 516..518 "$\""
+                  InterpolatedStringText 518..524
+                    InterpolatedStringTextToken 518..524 "inner "
+                  Interpolation 524..530
+                    OpenBraceToken 524..525 "{"
+                    IdentifierName 525..529
+                      IdentifierToken 525..529 "deep"
+                    CloseBraceToken 529..530 "}"
+                  InterpolatedStringEndToken 530..531 "\""
+                CloseBraceToken 531..532 "}"
+              InterpolatedStringText 532..536
+                InterpolatedStringTextToken 532..536 " end"
+              InterpolatedStringEndToken 536..537 "\""
+      SemicolonToken 537..538 ";"
+      EndOfLineTrivia 538..539 "\n"
+    FieldDeclaration 539..568
+      VariableDeclaration 539..566
+        ArrayType 539..550
+          PredefinedType 539..547
+            WhitespaceTrivia 539..543 "    "
+            ByteKeyword 543..547 "byte"
+          ArrayRankSpecifier 547..550
+            OpenBracketToken 547..548 "["
+            OmittedArraySizeExpression 548..548
+              OmittedArraySizeExpressionToken 548..548 ""
+            CloseBracketToken 548..549 "]"
+            WhitespaceTrivia 549..550 " "
+        VariableDeclarator 550..566
+          IdentifierToken 550..554 "utf8"
+          WhitespaceTrivia 554..555 " "
+          EqualsValueClause 555..566
+            EqualsToken 555..556 "="
+            WhitespaceTrivia 556..557 " "
+            Utf8StringLiteralExpression 557..566
+              Utf8StringLiteralToken 557..566 "\"bytes\"u8"
+      SemicolonToken 566..567 ";"
+      EndOfLineTrivia 567..568 "\n"
+    FieldDeclaration 568..637
+      VariableDeclaration 568..635
+        PredefinedType 568..579
+          WhitespaceTrivia 568..572 "    "
+          StringKeyword 572..578 "string"
+          WhitespaceTrivia 578..579 " "
+        VariableDeclarator 579..635
+          IdentifierToken 579..586 "unicode"
+          WhitespaceTrivia 586..587 " "
+          EqualsValueClause 587..635
+            EqualsToken 587..588 "="
+            WhitespaceTrivia 588..589 " "
+            StringLiteralExpression 589..635
+              StringLiteralToken 589..635 "\"h\\u00e9llo \\U0001F642 caf\\u00e9 \\u4e2d\\u6587\""
+      SemicolonToken 635..636 ";"
+      EndOfLineTrivia 636..637 "\n"
+    FieldDeclaration 637..682
+      VariableDeclaration 637..680
+        PredefinedType 637..648
+          WhitespaceTrivia 637..641 "    "
+          StringKeyword 641..647 "string"
+          WhitespaceTrivia 647..648 " "
+        VariableDeclarator 648..680
+          IdentifierToken 648..653 "emoji"
+          WhitespaceTrivia 653..654 " "
+          EqualsValueClause 654..680
+            EqualsToken 654..655 "="
+            WhitespaceTrivia 655..656 " "
+            StringLiteralExpression 656..680
+              StringLiteralToken 656..680 "\"caf\\u00e9 \\ud83d\\ude42\""
+      SemicolonToken 680..681 ";"
+      EndOfLineTrivia 681..682 "\n"
+    CloseBraceToken 682..683 "}"
+    EndOfLineTrivia 683..684 "\n"
+  EndOfFileToken 684..684 ""

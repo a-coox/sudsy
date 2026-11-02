@@ -1,0 +1,810 @@
+---
+source: crates/lang-csharp/tests/fixtures.rs
+expression: dump
+---
+CompilationUnit 0..965
+  ClassDeclaration 0..965
+    ClassKeyword 0..5 "class"
+    WhitespaceTrivia 5..6 " "
+    IdentifierToken 6..12 "Chains"
+    EndOfLineTrivia 12..13 "\n"
+    OpenBraceToken 13..14 "{"
+    EndOfLineTrivia 14..15 "\n"
+    MethodDeclaration 15..963
+      PredefinedType 15..24
+        WhitespaceTrivia 15..19 "    "
+        VoidKeyword 19..23 "void"
+        WhitespaceTrivia 23..24 " "
+      IdentifierToken 24..25 "M"
+      ParameterList 25..28
+        OpenParenToken 25..26 "("
+        CloseParenToken 26..27 ")"
+        EndOfLineTrivia 27..28 "\n"
+      Block 28..963
+        WhitespaceTrivia 28..32 "    "
+        OpenBraceToken 32..33 "{"
+        EndOfLineTrivia 33..34 "\n"
+        LocalDeclarationStatement 34..123
+          VariableDeclaration 34..121
+            IdentifierName 34..46
+              WhitespaceTrivia 34..42 "        "
+              IdentifierToken 42..45 "var"
+              WhitespaceTrivia 45..46 " "
+            VariableDeclarator 46..121
+              IdentifierToken 46..47 "q"
+              WhitespaceTrivia 47..48 " "
+              EqualsValueClause 48..121
+                EqualsToken 48..49 "="
+                WhitespaceTrivia 49..50 " "
+                InvocationExpression 50..121
+                  SimpleMemberAccessExpression 50..119
+                    InvocationExpression 50..112
+                      SimpleMemberAccessExpression 50..104
+                        InvocationExpression 50..96
+                          SimpleMemberAccessExpression 50..83
+                            InvocationExpression 50..76
+                              SimpleMemberAccessExpression 50..61
+                                IdentifierName 50..55
+                                  IdentifierToken 50..55 "items"
+                                DotToken 55..56 "."
+                                IdentifierName 56..61
+                                  IdentifierToken 56..61 "Where"
+                              ArgumentList 61..76
+                                OpenParenToken 61..62 "("
+                                Argument 62..75
+                                  SimpleLambdaExpression 62..75
+                                    Parameter 62..64
+                                      IdentifierToken 62..63 "x"
+                                      WhitespaceTrivia 63..64 " "
+                                    EqualsGreaterThanToken 64..66 "=>"
+                                    WhitespaceTrivia 66..67 " "
+                                    SimpleMemberAccessExpression 67..75
+                                      IdentifierName 67..68
+                                        IdentifierToken 67..68 "x"
+                                      DotToken 68..69 "."
+                                      IdentifierName 69..75
+                                        IdentifierToken 69..75 "Active"
+                                CloseParenToken 75..76 ")"
+                            DotToken 76..77 "."
+                            IdentifierName 77..83
+                              IdentifierToken 77..83 "Select"
+                          ArgumentList 83..96
+                            OpenParenToken 83..84 "("
+                            Argument 84..95
+                              SimpleLambdaExpression 84..95
+                                Parameter 84..86
+                                  IdentifierToken 84..85 "x"
+                                  WhitespaceTrivia 85..86 " "
+                                EqualsGreaterThanToken 86..88 "=>"
+                                WhitespaceTrivia 88..89 " "
+                                SimpleMemberAccessExpression 89..95
+                                  IdentifierName 89..90
+                                    IdentifierToken 89..90 "x"
+                                  DotToken 90..91 "."
+                                  IdentifierName 91..95
+                                    IdentifierToken 91..95 "Name"
+                            CloseParenToken 95..96 ")"
+                        DotToken 96..97 "."
+                        IdentifierName 97..104
+                          IdentifierToken 97..104 "OrderBy"
+                      ArgumentList 104..112
+                        OpenParenToken 104..105 "("
+                        Argument 105..111
+                          SimpleLambdaExpression 105..111
+                            Parameter 105..107
+                              IdentifierToken 105..106 "n"
+                              WhitespaceTrivia 106..107 " "
+                            EqualsGreaterThanToken 107..109 "=>"
+                            WhitespaceTrivia 109..110 " "
+                            IdentifierName 110..111
+                              IdentifierToken 110..111 "n"
+                        CloseParenToken 111..112 ")"
+                    DotToken 112..113 "."
+                    IdentifierName 113..119
+                      IdentifierToken 113..119 "ToList"
+                  ArgumentList 119..121
+                    OpenParenToken 119..120 "("
+                    CloseParenToken 120..121 ")"
+          SemicolonToken 121..122 ";"
+          EndOfLineTrivia 122..123 "\n"
+        LocalDeclarationStatement 123..201
+          VariableDeclaration 123..199
+            IdentifierName 123..135
+              WhitespaceTrivia 123..131 "        "
+              IdentifierToken 131..134 "var"
+              WhitespaceTrivia 134..135 " "
+            VariableDeclarator 135..199
+              IdentifierToken 135..136 "r"
+              WhitespaceTrivia 136..137 " "
+              EqualsValueClause 137..199
+                EqualsToken 137..138 "="
+                WhitespaceTrivia 138..139 " "
+                ConditionalAccessExpression 139..199
+                  InvocationExpression 139..173
+                    SimpleMemberAccessExpression 139..170
+                      InvocationExpression 139..160
+                        SimpleMemberAccessExpression 139..155
+                          IdentifierName 139..146
+                            IdentifierToken 139..146 "builder"
+                          DotToken 146..147 "."
+                          IdentifierName 147..155
+                            IdentifierToken 147..155 "WithName"
+                        ArgumentList 155..160
+                          OpenParenToken 155..156 "("
+                          Argument 156..159
+                            StringLiteralExpression 156..159
+                              StringLiteralToken 156..159 "\"a\""
+                          CloseParenToken 159..160 ")"
+                      DotToken 160..161 "."
+                      IdentifierName 161..170
+                        IdentifierToken 161..170 "WithValue"
+                    ArgumentList 170..173
+                      OpenParenToken 170..171 "("
+                      Argument 171..172
+                        NumericLiteralExpression 171..172
+                          NumericLiteralToken 171..172 "1"
+                      CloseParenToken 172..173 ")"
+                  QuestionToken 173..174 "?"
+                  ConditionalAccessExpression 174..199
+                    ElementAccessExpression 174..192
+                      SimpleMemberAccessExpression 174..189
+                        SuppressNullableWarningExpression 174..183
+                          InvocationExpression 174..182
+                            MemberBindingExpression 174..180
+                              DotToken 174..175 "."
+                              IdentifierName 175..180
+                                IdentifierToken 175..180 "Build"
+                            ArgumentList 180..182
+                              OpenParenToken 180..181 "("
+                              CloseParenToken 181..182 ")"
+                          ExclamationToken 182..183 "!"
+                        DotToken 183..184 "."
+                        IdentifierName 184..189
+                          IdentifierToken 184..189 "Items"
+                      BracketedArgumentList 189..192
+                        OpenBracketToken 189..190 "["
+                        Argument 190..191
+                          NumericLiteralExpression 190..191
+                            NumericLiteralToken 190..191 "0"
+                        CloseBracketToken 191..192 "]"
+                    QuestionToken 192..193 "?"
+                    MemberBindingExpression 193..199
+                      DotToken 193..194 "."
+                      IdentifierName 194..199
+                        IdentifierToken 194..199 "Value"
+          SemicolonToken 199..200 ";"
+          EndOfLineTrivia 200..201 "\n"
+        LocalDeclarationStatement 201..257
+          VariableDeclaration 201..255
+            IdentifierName 201..213
+              WhitespaceTrivia 201..209 "        "
+              IdentifierToken 209..212 "var"
+              WhitespaceTrivia 212..213 " "
+            VariableDeclarator 213..255
+              IdentifierToken 213..215 "ok"
+              WhitespaceTrivia 215..216 " "
+              EqualsValueClause 216..255
+                EqualsToken 216..217 "="
+                WhitespaceTrivia 217..218 " "
+                LogicalOrExpression 218..255
+                  LogicalOrExpression 218..236
+                    LogicalAndExpression 218..225
+                      IdentifierName 218..220
+                        IdentifierToken 218..219 "a"
+                        WhitespaceTrivia 219..220 " "
+                      AmpersandAmpersandToken 220..222 "&&"
+                      WhitespaceTrivia 222..223 " "
+                      IdentifierName 223..225
+                        IdentifierToken 223..224 "b"
+                        WhitespaceTrivia 224..225 " "
+                    BarBarToken 225..227 "||"
+                    WhitespaceTrivia 227..228 " "
+                    LogicalAndExpression 228..236
+                      IdentifierName 228..230
+                        IdentifierToken 228..229 "c"
+                        WhitespaceTrivia 229..230 " "
+                      AmpersandAmpersandToken 230..232 "&&"
+                      WhitespaceTrivia 232..233 " "
+                      LogicalNotExpression 233..236
+                        ExclamationToken 233..234 "!"
+                        IdentifierName 234..236
+                          IdentifierToken 234..235 "d"
+                          WhitespaceTrivia 235..236 " "
+                  BarBarToken 236..238 "||"
+                  WhitespaceTrivia 238..239 " "
+                  LogicalAndExpression 239..255
+                    EqualsExpression 239..246
+                      IdentifierName 239..241
+                        IdentifierToken 239..240 "e"
+                        WhitespaceTrivia 240..241 " "
+                      EqualsEqualsToken 241..243 "=="
+                      WhitespaceTrivia 243..244 " "
+                      IdentifierName 244..246
+                        IdentifierToken 244..245 "f"
+                        WhitespaceTrivia 245..246 " "
+                    AmpersandAmpersandToken 246..248 "&&"
+                    WhitespaceTrivia 248..249 " "
+                    NotEqualsExpression 249..255
+                      IdentifierName 249..251
+                        IdentifierToken 249..250 "g"
+                        WhitespaceTrivia 250..251 " "
+                      ExclamationEqualsToken 251..253 "!="
+                      WhitespaceTrivia 253..254 " "
+                      IdentifierName 254..255
+                        IdentifierToken 254..255 "h"
+          SemicolonToken 255..256 ";"
+          EndOfLineTrivia 256..257 "\n"
+        LocalDeclarationStatement 257..298
+          VariableDeclaration 257..296
+            IdentifierName 257..269
+              WhitespaceTrivia 257..265 "        "
+              IdentifierToken 265..268 "var"
+              WhitespaceTrivia 268..269 " "
+            VariableDeclarator 269..296
+              IdentifierToken 269..272 "sum"
+              WhitespaceTrivia 272..273 " "
+              EqualsValueClause 273..296
+                EqualsToken 273..274 "="
+                WhitespaceTrivia 274..275 " "
+                SubtractExpression 275..296
+                  AddExpression 275..285
+                    IdentifierName 275..277
+                      IdentifierToken 275..276 "a"
+                      WhitespaceTrivia 276..277 " "
+                    PlusToken 277..278 "+"
+                    WhitespaceTrivia 278..279 " "
+                    MultiplyExpression 279..285
+                      IdentifierName 279..281
+                        IdentifierToken 279..280 "b"
+                        WhitespaceTrivia 280..281 " "
+                      AsteriskToken 281..282 "*"
+                      WhitespaceTrivia 282..283 " "
+                      IdentifierName 283..285
+                        IdentifierToken 283..284 "c"
+                        WhitespaceTrivia 284..285 " "
+                  MinusToken 285..286 "-"
+                  WhitespaceTrivia 286..287 " "
+                  ModuloExpression 287..296
+                    DivideExpression 287..293
+                      IdentifierName 287..289
+                        IdentifierToken 287..288 "d"
+                        WhitespaceTrivia 288..289 " "
+                      SlashToken 289..290 "/"
+                      WhitespaceTrivia 290..291 " "
+                      IdentifierName 291..293
+                        IdentifierToken 291..292 "e"
+                        WhitespaceTrivia 292..293 " "
+                    PercentToken 293..294 "%"
+                    WhitespaceTrivia 294..295 " "
+                    IdentifierName 295..296
+                      IdentifierToken 295..296 "f"
+          SemicolonToken 296..297 ";"
+          EndOfLineTrivia 297..298 "\n"
+        LocalDeclarationStatement 298..343
+          VariableDeclaration 298..341
+            IdentifierName 298..310
+              WhitespaceTrivia 298..306 "        "
+              IdentifierToken 306..309 "var"
+              WhitespaceTrivia 309..310 " "
+            VariableDeclarator 310..341
+              IdentifierToken 310..315 "shift"
+              WhitespaceTrivia 315..316 " "
+              EqualsValueClause 316..341
+                EqualsToken 316..317 "="
+                WhitespaceTrivia 317..318 " "
+                BitwiseOrExpression 318..341
+                  LeftShiftExpression 318..325
+                    IdentifierName 318..320
+                      IdentifierToken 318..319 "a"
+                      WhitespaceTrivia 319..320 " "
+                    LessThanLessThanToken 320..322 "<<"
+                    WhitespaceTrivia 322..323 " "
+                    NumericLiteralExpression 323..325
+                      NumericLiteralToken 323..324 "2"
+                      WhitespaceTrivia 324..325 " "
+                  BarToken 325..326 "|"
+                  WhitespaceTrivia 326..327 " "
+                  ExclusiveOrExpression 327..341
+                    BitwiseAndExpression 327..338
+                      RightShiftExpression 327..334
+                        IdentifierName 327..329
+                          IdentifierToken 327..328 "b"
+                          WhitespaceTrivia 328..329 " "
+                        GreaterThanGreaterThanToken 329..331 ">>"
+                        WhitespaceTrivia 331..332 " "
+                        NumericLiteralExpression 332..334
+                          NumericLiteralToken 332..333 "1"
+                          WhitespaceTrivia 333..334 " "
+                      AmpersandToken 334..335 "&"
+                      WhitespaceTrivia 335..336 " "
+                      IdentifierName 336..338
+                        IdentifierToken 336..337 "c"
+                        WhitespaceTrivia 337..338 " "
+                    CaretToken 338..339 "^"
+                    WhitespaceTrivia 339..340 " "
+                    IdentifierName 340..341
+                      IdentifierToken 340..341 "d"
+          SemicolonToken 341..342 ";"
+          EndOfLineTrivia 342..343 "\n"
+        LocalDeclarationStatement 343..398
+          VariableDeclaration 343..396
+            IdentifierName 343..355
+              WhitespaceTrivia 343..351 "        "
+              IdentifierToken 351..354 "var"
+              WhitespaceTrivia 354..355 " "
+            VariableDeclarator 355..396
+              IdentifierToken 355..359 "text"
+              WhitespaceTrivia 359..360 " "
+              EqualsValueClause 360..396
+                EqualsToken 360..361 "="
+                WhitespaceTrivia 361..362 " "
+                AddExpression 362..396
+                  AddExpression 362..391
+                    AddExpression 362..376
+                      AddExpression 362..370
+                        StringLiteralExpression 362..366
+                          StringLiteralToken 362..365 "\"a\""
+                          WhitespaceTrivia 365..366 " "
+                        PlusToken 366..367 "+"
+                        WhitespaceTrivia 367..368 " "
+                        IdentifierName 368..370
+                          IdentifierToken 368..369 "b"
+                          WhitespaceTrivia 369..370 " "
+                      PlusToken 370..371 "+"
+                      WhitespaceTrivia 371..372 " "
+                      StringLiteralExpression 372..376
+                        StringLiteralToken 372..375 "\"c\""
+                        WhitespaceTrivia 375..376 " "
+                    PlusToken 376..377 "+"
+                    WhitespaceTrivia 377..378 " "
+                    InvocationExpression 378..391
+                      SimpleMemberAccessExpression 378..388
+                        IdentifierName 378..379
+                          IdentifierToken 378..379 "d"
+                        DotToken 379..380 "."
+                        IdentifierName 380..388
+                          IdentifierToken 380..388 "ToString"
+                      ArgumentList 388..391
+                        OpenParenToken 388..389 "("
+                        CloseParenToken 389..390 ")"
+                        WhitespaceTrivia 390..391 " "
+                  PlusToken 391..392 "+"
+                  WhitespaceTrivia 392..393 " "
+                  StringLiteralExpression 393..396
+                    StringLiteralToken 393..396 "\"e\""
+          SemicolonToken 396..397 ";"
+          EndOfLineTrivia 397..398 "\n"
+        LocalDeclarationStatement 398..436
+          VariableDeclaration 398..434
+            IdentifierName 398..410
+              WhitespaceTrivia 398..406 "        "
+              IdentifierToken 406..409 "var"
+              WhitespaceTrivia 409..410 " "
+            VariableDeclarator 410..434
+              IdentifierToken 410..414 "cond"
+              WhitespaceTrivia 414..415 " "
+              EqualsValueClause 415..434
+                EqualsToken 415..416 "="
+                WhitespaceTrivia 416..417 " "
+                ConditionalExpression 417..434
+                  IdentifierName 417..419
+                    IdentifierToken 417..418 "a"
+                    WhitespaceTrivia 418..419 " "
+                  QuestionToken 419..420 "?"
+                  WhitespaceTrivia 420..421 " "
+                  IdentifierName 421..423
+                    IdentifierToken 421..422 "b"
+                    WhitespaceTrivia 422..423 " "
+                  ColonToken 423..424 ":"
+                  WhitespaceTrivia 424..425 " "
+                  ConditionalExpression 425..434
+                    IdentifierName 425..427
+                      IdentifierToken 425..426 "c"
+                      WhitespaceTrivia 426..427 " "
+                    QuestionToken 427..428 "?"
+                    WhitespaceTrivia 428..429 " "
+                    IdentifierName 429..431
+                      IdentifierToken 429..430 "d"
+                      WhitespaceTrivia 430..431 " "
+                    ColonToken 431..432 ":"
+                    WhitespaceTrivia 432..433 " "
+                    IdentifierName 433..434
+                      IdentifierToken 433..434 "e"
+          SemicolonToken 434..435 ";"
+          EndOfLineTrivia 435..436 "\n"
+        LocalDeclarationStatement 436..467
+          VariableDeclaration 436..465
+            IdentifierName 436..448
+              WhitespaceTrivia 436..444 "        "
+              IdentifierToken 444..447 "var"
+              WhitespaceTrivia 447..448 " "
+            VariableDeclarator 448..465
+              IdentifierToken 448..451 "nul"
+              WhitespaceTrivia 451..452 " "
+              EqualsValueClause 452..465
+                EqualsToken 452..453 "="
+                WhitespaceTrivia 453..454 " "
+                CoalesceExpression 454..465
+                  IdentifierName 454..456
+                    IdentifierToken 454..455 "a"
+                    WhitespaceTrivia 455..456 " "
+                  QuestionQuestionToken 456..458 "??"
+                  WhitespaceTrivia 458..459 " "
+                  CoalesceExpression 459..465
+                    IdentifierName 459..461
+                      IdentifierToken 459..460 "b"
+                      WhitespaceTrivia 460..461 " "
+                    QuestionQuestionToken 461..463 "??"
+                    WhitespaceTrivia 463..464 " "
+                    IdentifierName 464..465
+                      IdentifierToken 464..465 "c"
+          SemicolonToken 465..466 ";"
+          EndOfLineTrivia 466..467 "\n"
+        ExpressionStatement 467..484
+          CoalesceAssignmentExpression 467..482
+            IdentifierName 467..477
+              WhitespaceTrivia 467..475 "        "
+              IdentifierToken 475..476 "a"
+              WhitespaceTrivia 476..477 " "
+            QuestionQuestionEqualsToken 477..480 "??="
+            WhitespaceTrivia 480..481 " "
+            IdentifierName 481..482
+              IdentifierToken 481..482 "b"
+          SemicolonToken 482..483 ";"
+          EndOfLineTrivia 483..484 "\n"
+        ExpressionStatement 484..500
+          AddAssignmentExpression 484..498
+            IdentifierName 484..494
+              WhitespaceTrivia 484..492 "        "
+              IdentifierToken 492..493 "x"
+              WhitespaceTrivia 493..494 " "
+            PlusEqualsToken 494..496 "+="
+            WhitespaceTrivia 496..497 " "
+            IdentifierName 497..498
+              IdentifierToken 497..498 "y"
+          SemicolonToken 498..499 ";"
+          WhitespaceTrivia 499..500 " "
+        ExpressionStatement 500..508
+          SubtractAssignmentExpression 500..506
+            IdentifierName 500..502
+              IdentifierToken 500..501 "x"
+              WhitespaceTrivia 501..502 " "
+            MinusEqualsToken 502..504 "-="
+            WhitespaceTrivia 504..505 " "
+            NumericLiteralExpression 505..506
+              NumericLiteralToken 505..506 "1"
+          SemicolonToken 506..507 ";"
+          WhitespaceTrivia 507..508 " "
+        ExpressionStatement 508..517
+          LeftShiftAssignmentExpression 508..515
+            IdentifierName 508..510
+              IdentifierToken 508..509 "x"
+              WhitespaceTrivia 509..510 " "
+            LessThanLessThanEqualsToken 510..513 "<<="
+            WhitespaceTrivia 513..514 " "
+            NumericLiteralExpression 514..515
+              NumericLiteralToken 514..515 "2"
+          SemicolonToken 515..516 ";"
+          WhitespaceTrivia 516..517 " "
+        ExpressionStatement 517..527
+          UnsignedRightShiftAssignmentExpression 517..525
+            IdentifierName 517..519
+              IdentifierToken 517..518 "x"
+              WhitespaceTrivia 518..519 " "
+            GreaterThanGreaterThanGreaterThanEqualsToken 519..523 ">>>="
+            WhitespaceTrivia 523..524 " "
+            NumericLiteralExpression 524..525
+              NumericLiteralToken 524..525 "1"
+          SemicolonToken 525..526 ";"
+          EndOfLineTrivia 526..527 "\n"
+        LocalDeclarationStatement 527..581
+          VariableDeclaration 527..579
+            IdentifierName 527..539
+              WhitespaceTrivia 527..535 "        "
+              IdentifierToken 535..538 "var"
+              WhitespaceTrivia 538..539 " "
+            VariableDeclarator 539..579
+              IdentifierToken 539..542 "cmp"
+              WhitespaceTrivia 542..543 " "
+              EqualsValueClause 543..579
+                EqualsToken 543..544 "="
+                WhitespaceTrivia 544..545 " "
+                LogicalAndExpression 545..579
+                  LogicalAndExpression 545..570
+                    LogicalAndExpression 545..561
+                      LessThanExpression 545..551
+                        IdentifierName 545..547
+                          IdentifierToken 545..546 "a"
+                          WhitespaceTrivia 546..547 " "
+                        LessThanToken 547..548 "<"
+                        WhitespaceTrivia 548..549 " "
+                        IdentifierName 549..551
+                          IdentifierToken 549..550 "b"
+                          WhitespaceTrivia 550..551 " "
+                      AmpersandAmpersandToken 551..553 "&&"
+                      WhitespaceTrivia 553..554 " "
+                      LessThanOrEqualExpression 554..561
+                        IdentifierName 554..556
+                          IdentifierToken 554..555 "b"
+                          WhitespaceTrivia 555..556 " "
+                        LessThanEqualsToken 556..558 "<="
+                        WhitespaceTrivia 558..559 " "
+                        IdentifierName 559..561
+                          IdentifierToken 559..560 "c"
+                          WhitespaceTrivia 560..561 " "
+                    AmpersandAmpersandToken 561..563 "&&"
+                    WhitespaceTrivia 563..564 " "
+                    GreaterThanExpression 564..570
+                      IdentifierName 564..566
+                        IdentifierToken 564..565 "c"
+                        WhitespaceTrivia 565..566 " "
+                      GreaterThanToken 566..567 ">"
+                      WhitespaceTrivia 567..568 " "
+                      IdentifierName 568..570
+                        IdentifierToken 568..569 "d"
+                        WhitespaceTrivia 569..570 " "
+                  AmpersandAmpersandToken 570..572 "&&"
+                  WhitespaceTrivia 572..573 " "
+                  GreaterThanOrEqualExpression 573..579
+                    IdentifierName 573..575
+                      IdentifierToken 573..574 "d"
+                      WhitespaceTrivia 574..575 " "
+                    GreaterThanEqualsToken 575..577 ">="
+                    WhitespaceTrivia 577..578 " "
+                    IdentifierName 578..579
+                      IdentifierToken 578..579 "e"
+          SemicolonToken 579..580 ";"
+          EndOfLineTrivia 580..581 "\n"
+        LocalDeclarationStatement 581..633
+          VariableDeclaration 581..631
+            IdentifierName 581..593
+              WhitespaceTrivia 581..589 "        "
+              IdentifierToken 589..592 "var"
+              WhitespaceTrivia 592..593 " "
+            VariableDeclarator 593..631
+              IdentifierToken 593..597 "asIs"
+              WhitespaceTrivia 597..598 " "
+              EqualsValueClause 598..631
+                EqualsToken 598..599 "="
+                WhitespaceTrivia 599..600 " "
+                ConditionalExpression 600..631
+                  IsPatternExpression 600..614
+                    IdentifierName 600..602
+                      IdentifierToken 600..601 "o"
+                      WhitespaceTrivia 601..602 " "
+                    IsKeyword 602..604 "is"
+                    WhitespaceTrivia 604..605 " "
+                    DeclarationPattern 605..614
+                      PredefinedType 605..612
+                        StringKeyword 605..611 "string"
+                        WhitespaceTrivia 611..612 " "
+                      SingleVariableDesignation 612..614
+                        IdentifierToken 612..613 "s"
+                        WhitespaceTrivia 613..614 " "
+                  QuestionToken 614..615 "?"
+                  WhitespaceTrivia 615..616 " "
+                  IdentifierName 616..618
+                    IdentifierToken 616..617 "s"
+                    WhitespaceTrivia 617..618 " "
+                  ColonToken 618..619 ":"
+                  WhitespaceTrivia 619..620 " "
+                  AsExpression 620..631
+                    IdentifierName 620..622
+                      IdentifierToken 620..621 "o"
+                      WhitespaceTrivia 621..622 " "
+                    AsKeyword 622..624 "as"
+                    WhitespaceTrivia 624..625 " "
+                    PredefinedType 625..631
+                      StringKeyword 625..631 "string"
+          SemicolonToken 631..632 ";"
+          EndOfLineTrivia 632..633 "\n"
+        LocalDeclarationStatement 633..906
+          VariableDeclaration 633..904
+            IdentifierName 633..645
+              WhitespaceTrivia 633..641 "        "
+              IdentifierToken 641..644 "var"
+              WhitespaceTrivia 644..645 " "
+            VariableDeclarator 645..904
+              IdentifierToken 645..647 "q2"
+              WhitespaceTrivia 647..648 " "
+              EqualsValueClause 648..904
+                EqualsToken 648..649 "="
+                WhitespaceTrivia 649..650 " "
+                QueryExpression 650..904
+                  FromClause 650..663
+                    FromKeyword 650..654 "from"
+                    WhitespaceTrivia 654..655 " "
+                    IdentifierToken 655..656 "x"
+                    WhitespaceTrivia 656..657 " "
+                    InKeyword 657..659 "in"
+                    WhitespaceTrivia 659..660 " "
+                    IdentifierName 660..663
+                      IdentifierToken 660..662 "xs"
+                      EndOfLineTrivia 662..663 "\n"
+                  QueryBody 663..904
+                    WhereClause 663..692
+                      WhitespaceTrivia 663..680 "                 "
+                      WhereKeyword 680..685 "where"
+                      WhitespaceTrivia 685..686 " "
+                      GreaterThanExpression 686..692
+                        IdentifierName 686..688
+                          IdentifierToken 686..687 "x"
+                          WhitespaceTrivia 687..688 " "
+                        GreaterThanToken 688..689 ">"
+                        WhitespaceTrivia 689..690 " "
+                        NumericLiteralExpression 690..692
+                          NumericLiteralToken 690..691 "1"
+                          EndOfLineTrivia 691..692 "\n"
+                    LetClause 692..723
+                      WhitespaceTrivia 692..709 "                 "
+                      LetKeyword 709..712 "let"
+                      WhitespaceTrivia 712..713 " "
+                      IdentifierToken 713..714 "y"
+                      WhitespaceTrivia 714..715 " "
+                      EqualsToken 715..716 "="
+                      WhitespaceTrivia 716..717 " "
+                      MultiplyExpression 717..723
+                        IdentifierName 717..719
+                          IdentifierToken 717..718 "x"
+                          WhitespaceTrivia 718..719 " "
+                        AsteriskToken 719..720 "*"
+                        WhitespaceTrivia 720..721 " "
+                        NumericLiteralExpression 721..723
+                          NumericLiteralToken 721..722 "2"
+                          EndOfLineTrivia 722..723 "\n"
+                    JoinClause 723..770
+                      WhitespaceTrivia 723..740 "                 "
+                      JoinKeyword 740..744 "join"
+                      WhitespaceTrivia 744..745 " "
+                      IdentifierToken 745..746 "z"
+                      WhitespaceTrivia 746..747 " "
+                      InKeyword 747..749 "in"
+                      WhitespaceTrivia 749..750 " "
+                      IdentifierName 750..753
+                        IdentifierToken 750..752 "zs"
+                        WhitespaceTrivia 752..753 " "
+                      OnKeyword 753..755 "on"
+                      WhitespaceTrivia 755..756 " "
+                      IdentifierName 756..758
+                        IdentifierToken 756..757 "x"
+                        WhitespaceTrivia 757..758 " "
+                      EqualsKeyword 758..764 "equals"
+                      WhitespaceTrivia 764..765 " "
+                      SimpleMemberAccessExpression 765..770
+                        IdentifierName 765..766
+                          IdentifierToken 765..766 "z"
+                        DotToken 766..767 "."
+                        IdentifierName 767..770
+                          IdentifierToken 767..769 "Id"
+                          EndOfLineTrivia 769..770 "\n"
+                    OrderByClause 770..811
+                      WhitespaceTrivia 770..787 "                 "
+                      OrderByKeyword 787..794 "orderby"
+                      WhitespaceTrivia 794..795 " "
+                      DescendingOrdering 795..807
+                        IdentifierName 795..797
+                          IdentifierToken 795..796 "y"
+                          WhitespaceTrivia 796..797 " "
+                        DescendingKeyword 797..807 "descending"
+                      CommaToken 807..808 ","
+                      WhitespaceTrivia 808..809 " "
+                      AscendingOrdering 809..811
+                        IdentifierName 809..811
+                          IdentifierToken 809..810 "x"
+                          EndOfLineTrivia 810..811 "\n"
+                    GroupClause 811..841
+                      WhitespaceTrivia 811..828 "                 "
+                      GroupKeyword 828..833 "group"
+                      WhitespaceTrivia 833..834 " "
+                      IdentifierName 834..836
+                        IdentifierToken 834..835 "x"
+                        WhitespaceTrivia 835..836 " "
+                      ByKeyword 836..838 "by"
+                      WhitespaceTrivia 838..839 " "
+                      IdentifierName 839..841
+                        IdentifierToken 839..840 "y"
+                        WhitespaceTrivia 840..841 " "
+                    QueryContinuation 841..904
+                      IntoKeyword 841..845 "into"
+                      WhitespaceTrivia 845..846 " "
+                      IdentifierToken 846..847 "g"
+                      EndOfLineTrivia 847..848 "\n"
+                      QueryBody 848..904
+                        SelectClause 848..904
+                          WhitespaceTrivia 848..865 "                 "
+                          SelectKeyword 865..871 "select"
+                          WhitespaceTrivia 871..872 " "
+                          AnonymousObjectCreationExpression 872..904
+                            NewKeyword 872..875 "new"
+                            WhitespaceTrivia 875..876 " "
+                            OpenBraceToken 876..877 "{"
+                            WhitespaceTrivia 877..878 " "
+                            AnonymousObjectMemberDeclarator 878..883
+                              SimpleMemberAccessExpression 878..883
+                                IdentifierName 878..879
+                                  IdentifierToken 878..879 "g"
+                                DotToken 879..880 "."
+                                IdentifierName 880..883
+                                  IdentifierToken 880..883 "Key"
+                            CommaToken 883..884 ","
+                            WhitespaceTrivia 884..885 " "
+                            AnonymousObjectMemberDeclarator 885..903
+                              NameEquals 885..893
+                                IdentifierName 885..891
+                                  IdentifierToken 885..890 "Count"
+                                  WhitespaceTrivia 890..891 " "
+                                EqualsToken 891..892 "="
+                                WhitespaceTrivia 892..893 " "
+                              InvocationExpression 893..903
+                                SimpleMemberAccessExpression 893..900
+                                  IdentifierName 893..894
+                                    IdentifierToken 893..894 "g"
+                                  DotToken 894..895 "."
+                                  IdentifierName 895..900
+                                    IdentifierToken 895..900 "Count"
+                                ArgumentList 900..903
+                                  OpenParenToken 900..901 "("
+                                  CloseParenToken 901..902 ")"
+                                  WhitespaceTrivia 902..903 " "
+                            CloseBraceToken 903..904 "}"
+          SemicolonToken 904..905 ";"
+          EndOfLineTrivia 905..906 "\n"
+        LocalDeclarationStatement 906..938
+          VariableDeclaration 906..936
+            IdentifierName 906..918
+              WhitespaceTrivia 906..914 "        "
+              IdentifierToken 914..917 "var"
+              WhitespaceTrivia 917..918 " "
+            VariableDeclarator 918..936
+              IdentifierToken 918..923 "range"
+              WhitespaceTrivia 923..924 " "
+              EqualsValueClause 924..936
+                EqualsToken 924..925 "="
+                WhitespaceTrivia 925..926 " "
+                ElementAccessExpression 926..936
+                  IdentifierName 926..929
+                    IdentifierToken 926..929 "arr"
+                  BracketedArgumentList 929..936
+                    OpenBracketToken 929..930 "["
+                    Argument 930..935
+                      RangeExpression 930..935
+                        NumericLiteralExpression 930..931
+                          NumericLiteralToken 930..931 "1"
+                        DotDotToken 931..933 ".."
+                        IndexExpression 933..935
+                          CaretToken 933..934 "^"
+                          NumericLiteralExpression 934..935
+                            NumericLiteralToken 934..935 "1"
+                    CloseBracketToken 935..936 "]"
+          SemicolonToken 936..937 ";"
+          WhitespaceTrivia 937..938 " "
+        LocalDeclarationStatement 938..957
+          VariableDeclaration 938..955
+            IdentifierName 938..942
+              IdentifierToken 938..941 "var"
+              WhitespaceTrivia 941..942 " "
+            VariableDeclarator 942..955
+              IdentifierToken 942..945 "idx"
+              WhitespaceTrivia 945..946 " "
+              EqualsValueClause 946..955
+                EqualsToken 946..947 "="
+                WhitespaceTrivia 947..948 " "
+                ElementAccessExpression 948..955
+                  IdentifierName 948..951
+                    IdentifierToken 948..951 "arr"
+                  BracketedArgumentList 951..955
+                    OpenBracketToken 951..952 "["
+                    Argument 952..954
+                      IndexExpression 952..954
+                        CaretToken 952..953 "^"
+                        NumericLiteralExpression 953..954
+                          NumericLiteralToken 953..954 "1"
+                    CloseBracketToken 954..955 "]"
+          SemicolonToken 955..956 ";"
+          EndOfLineTrivia 956..957 "\n"
+        WhitespaceTrivia 957..961 "    "
+        CloseBraceToken 961..962 "}"
+        EndOfLineTrivia 962..963 "\n"
+    CloseBraceToken 963..964 "}"
+    EndOfLineTrivia 964..965 "\n"
+  EndOfFileToken 965..965 ""

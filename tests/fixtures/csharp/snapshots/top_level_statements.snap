@@ -1,0 +1,278 @@
+---
+source: crates/lang-csharp/tests/fixtures.rs
+expression: dump
+---
+CompilationUnit 0..384
+  UsingDirective 0..14
+    UsingKeyword 0..5 "using"
+    WhitespaceTrivia 5..6 " "
+    IdentifierName 6..12
+      IdentifierToken 6..12 "System"
+    SemicolonToken 12..13 ";"
+    EndOfLineTrivia 13..14 "\n"
+  UsingDirective 14..43
+    UsingKeyword 14..19 "using"
+    WhitespaceTrivia 19..20 " "
+    StaticKeyword 20..26 "static"
+    WhitespaceTrivia 26..27 " "
+    QualifiedName 27..41
+      IdentifierName 27..33
+        IdentifierToken 27..33 "System"
+      DotToken 33..34 "."
+      IdentifierName 34..41
+        IdentifierToken 34..41 "Console"
+    SemicolonToken 41..42 ";"
+    EndOfLineTrivia 42..43 "\n"
+  UsingDirective 43..95
+    UsingKeyword 43..48 "using"
+    WhitespaceTrivia 48..49 " "
+    NameEquals 49..57
+      IdentifierName 49..55
+        IdentifierToken 49..54 "Alias"
+        WhitespaceTrivia 54..55 " "
+      EqualsToken 55..56 "="
+      WhitespaceTrivia 56..57 " "
+    QualifiedName 57..93
+      QualifiedName 57..83
+        QualifiedName 57..75
+          IdentifierName 57..63
+            IdentifierToken 57..63 "System"
+          DotToken 63..64 "."
+          IdentifierName 64..75
+            IdentifierToken 64..75 "Collections"
+        DotToken 75..76 "."
+        IdentifierName 76..83
+          IdentifierToken 76..83 "Generic"
+      DotToken 83..84 "."
+      GenericName 84..93
+        IdentifierToken 84..88 "List"
+        TypeArgumentList 88..93
+          LessThanToken 88..89 "<"
+          PredefinedType 89..92
+            IntKeyword 89..92 "int"
+          GreaterThanToken 92..93 ">"
+    SemicolonToken 93..94 ";"
+    EndOfLineTrivia 94..95 "\n"
+  GlobalStatement 95..133
+    LocalDeclarationStatement 95..133
+      VariableDeclaration 95..131
+        IdentifierName 95..100
+          EndOfLineTrivia 95..96 "\n"
+          IdentifierToken 96..99 "var"
+          WhitespaceTrivia 99..100 " "
+        VariableDeclarator 100..131
+          IdentifierToken 100..107 "numbers"
+          WhitespaceTrivia 107..108 " "
+          EqualsValueClause 108..131
+            EqualsToken 108..109 "="
+            WhitespaceTrivia 109..110 " "
+            ObjectCreationExpression 110..131
+              NewKeyword 110..113 "new"
+              WhitespaceTrivia 113..114 " "
+              IdentifierName 114..120
+                IdentifierToken 114..119 "Alias"
+                WhitespaceTrivia 119..120 " "
+              CollectionInitializerExpression 120..131
+                OpenBraceToken 120..121 "{"
+                WhitespaceTrivia 121..122 " "
+                NumericLiteralExpression 122..123
+                  NumericLiteralToken 122..123 "1"
+                CommaToken 123..124 ","
+                WhitespaceTrivia 124..125 " "
+                NumericLiteralExpression 125..126
+                  NumericLiteralToken 125..126 "2"
+                CommaToken 126..127 ","
+                WhitespaceTrivia 127..128 " "
+                NumericLiteralExpression 128..130
+                  NumericLiteralToken 128..129 "3"
+                  WhitespaceTrivia 129..130 " "
+                CloseBraceToken 130..131 "}"
+      SemicolonToken 131..132 ";"
+      EndOfLineTrivia 132..133 "\n"
+  GlobalStatement 133..182
+    ForEachStatement 133..182
+      ForEachKeyword 133..140 "foreach"
+      WhitespaceTrivia 140..141 " "
+      OpenParenToken 141..142 "("
+      IdentifierName 142..146
+        IdentifierToken 142..145 "var"
+        WhitespaceTrivia 145..146 " "
+      IdentifierToken 146..147 "n"
+      WhitespaceTrivia 147..148 " "
+      InKeyword 148..150 "in"
+      WhitespaceTrivia 150..151 " "
+      IdentifierName 151..158
+        IdentifierToken 151..158 "numbers"
+      CloseParenToken 158..159 ")"
+      EndOfLineTrivia 159..160 "\n"
+      ExpressionStatement 160..182
+        InvocationExpression 160..180
+          IdentifierName 160..173
+            WhitespaceTrivia 160..164 "    "
+            IdentifierToken 164..173 "WriteLine"
+          ArgumentList 173..180
+            OpenParenToken 173..174 "("
+            Argument 174..179
+              MultiplyExpression 174..179
+                IdentifierName 174..176
+                  IdentifierToken 174..175 "n"
+                  WhitespaceTrivia 175..176 " "
+                AsteriskToken 176..177 "*"
+                WhitespaceTrivia 177..178 " "
+                NumericLiteralExpression 178..179
+                  NumericLiteralToken 178..179 "2"
+            CloseParenToken 179..180 ")"
+        SemicolonToken 180..181 ";"
+        EndOfLineTrivia 181..182 "\n"
+  GlobalStatement 182..210
+    LocalFunctionStatement 182..210
+      PredefinedType 182..187
+        EndOfLineTrivia 182..183 "\n"
+        IntKeyword 183..186 "int"
+        WhitespaceTrivia 186..187 " "
+      IdentifierToken 187..192 "Twice"
+      ParameterList 192..200
+        OpenParenToken 192..193 "("
+        Parameter 193..198
+          PredefinedType 193..197
+            IntKeyword 193..196 "int"
+            WhitespaceTrivia 196..197 " "
+          IdentifierToken 197..198 "x"
+        CloseParenToken 198..199 ")"
+        WhitespaceTrivia 199..200 " "
+      ArrowExpressionClause 200..208
+        EqualsGreaterThanToken 200..202 "=>"
+        WhitespaceTrivia 202..203 " "
+        MultiplyExpression 203..208
+          IdentifierName 203..205
+            IdentifierToken 203..204 "x"
+            WhitespaceTrivia 204..205 " "
+          AsteriskToken 205..206 "*"
+          WhitespaceTrivia 206..207 " "
+          NumericLiteralExpression 207..208
+            NumericLiteralToken 207..208 "2"
+      SemicolonToken 208..209 ";"
+      EndOfLineTrivia 209..210 "\n"
+  GlobalStatement 210..323
+    IfStatement 210..323
+      EndOfLineTrivia 210..211 "\n"
+      IfKeyword 211..213 "if"
+      WhitespaceTrivia 213..214 " "
+      OpenParenToken 214..215 "("
+      EqualsExpression 215..231
+        SimpleMemberAccessExpression 215..227
+          IdentifierName 215..219
+            IdentifierToken 215..219 "args"
+          DotToken 219..220 "."
+          IdentifierName 220..227
+            IdentifierToken 220..226 "Length"
+            WhitespaceTrivia 226..227 " "
+        EqualsEqualsToken 227..229 "=="
+        WhitespaceTrivia 229..230 " "
+        NumericLiteralExpression 230..231
+          NumericLiteralToken 230..231 "0"
+      CloseParenToken 231..232 ")"
+      EndOfLineTrivia 232..233 "\n"
+      Block 233..283
+        OpenBraceToken 233..234 "{"
+        EndOfLineTrivia 234..235 "\n"
+        ExpressionStatement 235..281
+          InvocationExpression 235..267
+            SimpleMemberAccessExpression 235..256
+              IdentifierName 235..246
+                WhitespaceTrivia 235..239 "    "
+                IdentifierToken 239..246 "Console"
+              DotToken 246..247 "."
+              IdentifierName 247..256
+                IdentifierToken 247..256 "WriteLine"
+            ArgumentList 256..267
+              OpenParenToken 256..257 "("
+              Argument 257..266
+                StringLiteralExpression 257..266
+                  StringLiteralToken 257..266 "\"no args\""
+              CloseParenToken 266..267 ")"
+          SemicolonToken 267..268 ";"
+          WhitespaceTrivia 268..269 " "
+          SingleLineCommentTrivia 269..280 "// trailing"
+          EndOfLineTrivia 280..281 "\n"
+        CloseBraceToken 281..282 "}"
+        EndOfLineTrivia 282..283 "\n"
+      ElseClause 283..323
+        ElseKeyword 283..287 "else"
+        EndOfLineTrivia 287..288 "\n"
+        Block 288..323
+          OpenBraceToken 288..289 "{"
+          EndOfLineTrivia 289..290 "\n"
+          ReturnStatement 290..321
+            WhitespaceTrivia 290..294 "    "
+            ReturnKeyword 294..300 "return"
+            WhitespaceTrivia 300..301 " "
+            InvocationExpression 301..319
+              IdentifierName 301..306
+                IdentifierToken 301..306 "Twice"
+              ArgumentList 306..319
+                OpenParenToken 306..307 "("
+                Argument 307..318
+                  SimpleMemberAccessExpression 307..318
+                    IdentifierName 307..311
+                      IdentifierToken 307..311 "args"
+                    DotToken 311..312 "."
+                    IdentifierName 312..318
+                      IdentifierToken 312..318 "Length"
+                CloseParenToken 318..319 ")"
+            SemicolonToken 319..320 ";"
+            EndOfLineTrivia 320..321 "\n"
+          CloseBraceToken 321..322 "}"
+          EndOfLineTrivia 322..323 "\n"
+  GlobalStatement 323..345
+    ExpressionStatement 323..345
+      AwaitExpression 323..343
+        EndOfLineTrivia 323..324 "\n"
+        AwaitKeyword 324..329 "await"
+        WhitespaceTrivia 329..330 " "
+        InvocationExpression 330..343
+          SimpleMemberAccessExpression 330..340
+            IdentifierName 330..334
+              IdentifierToken 330..334 "Task"
+            DotToken 334..335 "."
+            IdentifierName 335..340
+              IdentifierToken 335..340 "Delay"
+          ArgumentList 340..343
+            OpenParenToken 340..341 "("
+            Argument 341..342
+              NumericLiteralExpression 341..342
+                NumericLiteralToken 341..342 "1"
+            CloseParenToken 342..343 ")"
+      SemicolonToken 343..344 ";"
+      EndOfLineTrivia 344..345 "\n"
+  GlobalStatement 345..355
+    ReturnStatement 345..355
+      ReturnKeyword 345..351 "return"
+      WhitespaceTrivia 351..352 " "
+      NumericLiteralExpression 352..353
+        NumericLiteralToken 352..353 "0"
+      SemicolonToken 353..354 ";"
+      EndOfLineTrivia 354..355 "\n"
+  RecordDeclaration 355..384
+    EndOfLineTrivia 355..356 "\n"
+    RecordKeyword 356..362 "record"
+    WhitespaceTrivia 362..363 " "
+    IdentifierToken 363..368 "Point"
+    ParameterList 368..382
+      OpenParenToken 368..369 "("
+      Parameter 369..374
+        PredefinedType 369..373
+          IntKeyword 369..372 "int"
+          WhitespaceTrivia 372..373 " "
+        IdentifierToken 373..374 "X"
+      CommaToken 374..375 ","
+      WhitespaceTrivia 375..376 " "
+      Parameter 376..381
+        PredefinedType 376..380
+          IntKeyword 376..379 "int"
+          WhitespaceTrivia 379..380 " "
+        IdentifierToken 380..381 "Y"
+      CloseParenToken 381..382 ")"
+    SemicolonToken 382..383 ";"
+    EndOfLineTrivia 383..384 "\n"
+  EndOfFileToken 384..384 ""

@@ -1,0 +1,385 @@
+---
+source: crates/lang-csharp/tests/fixtures.rs
+expression: dump
+---
+CompilationUnit 0..680
+  NamespaceDeclaration 0..680
+    NamespaceKeyword 0..9 "namespace"
+    WhitespaceTrivia 9..10 " "
+    IdentifierName 10..18
+      IdentifierToken 10..17 "Records"
+      EndOfLineTrivia 17..18 "\n"
+    OpenBraceToken 18..19 "{"
+    EndOfLineTrivia 19..20 "\n"
+    RecordDeclaration 20..147
+      WhitespaceTrivia 20..24 "    "
+      PublicKeyword 24..30 "public"
+      WhitespaceTrivia 30..31 " "
+      RecordKeyword 31..37 "record"
+      WhitespaceTrivia 37..38 " "
+      IdentifierToken 38..44 "Person"
+      ParameterList 44..72
+        OpenParenToken 44..45 "("
+        Parameter 45..57
+          PredefinedType 45..52
+            StringKeyword 45..51 "string"
+            WhitespaceTrivia 51..52 " "
+          IdentifierToken 52..57 "First"
+        CommaToken 57..58 ","
+        WhitespaceTrivia 58..59 " "
+        Parameter 59..70
+          PredefinedType 59..66
+            StringKeyword 59..65 "string"
+            WhitespaceTrivia 65..66 " "
+          IdentifierToken 66..70 "Last"
+        CloseParenToken 70..71 ")"
+        WhitespaceTrivia 71..72 " "
+      BaseList 72..86
+        ColonToken 72..73 ":"
+        WhitespaceTrivia 73..74 " "
+        PrimaryConstructorBaseType 74..86
+          IdentifierName 74..78
+            IdentifierToken 74..78 "Base"
+          ArgumentList 78..86
+            OpenParenToken 78..79 "("
+            Argument 79..84
+              IdentifierName 79..84
+                IdentifierToken 79..84 "First"
+            CloseParenToken 84..85 ")"
+            EndOfLineTrivia 85..86 "\n"
+      WhitespaceTrivia 86..90 "    "
+      OpenBraceToken 90..91 "{"
+      EndOfLineTrivia 91..92 "\n"
+      PropertyDeclaration 92..141
+        WhitespaceTrivia 92..100 "        "
+        PublicKeyword 100..106 "public"
+        WhitespaceTrivia 106..107 " "
+        PredefinedType 107..114
+          StringKeyword 107..113 "string"
+          WhitespaceTrivia 113..114 " "
+        IdentifierToken 114..118 "Full"
+        WhitespaceTrivia 118..119 " "
+        ArrowExpressionClause 119..139
+          EqualsGreaterThanToken 119..121 "=>"
+          WhitespaceTrivia 121..122 " "
+          InterpolatedStringExpression 122..139
+            InterpolatedStringStartToken 122..124 "$\""
+            Interpolation 124..131
+              OpenBraceToken 124..125 "{"
+              IdentifierName 125..130
+                IdentifierToken 125..130 "First"
+              CloseBraceToken 130..131 "}"
+            InterpolatedStringText 131..132
+              InterpolatedStringTextToken 131..132 " "
+            Interpolation 132..138
+              OpenBraceToken 132..133 "{"
+              IdentifierName 133..137
+                IdentifierToken 133..137 "Last"
+              CloseBraceToken 137..138 "}"
+            InterpolatedStringEndToken 138..139 "\""
+        SemicolonToken 139..140 ";"
+        EndOfLineTrivia 140..141 "\n"
+      WhitespaceTrivia 141..145 "    "
+      CloseBraceToken 145..146 "}"
+      EndOfLineTrivia 146..147 "\n"
+    RecordStructDeclaration 147..203
+      EndOfLineTrivia 147..148 "\n"
+      WhitespaceTrivia 148..152 "    "
+      PublicKeyword 152..158 "public"
+      WhitespaceTrivia 158..159 " "
+      ReadOnlyKeyword 159..167 "readonly"
+      WhitespaceTrivia 167..168 " "
+      RecordKeyword 168..174 "record"
+      WhitespaceTrivia 174..175 " "
+      StructKeyword 175..181 "struct"
+      WhitespaceTrivia 181..182 " "
+      IdentifierToken 182..187 "Point"
+      ParameterList 187..201
+        OpenParenToken 187..188 "("
+        Parameter 188..193
+          PredefinedType 188..192
+            IntKeyword 188..191 "int"
+            WhitespaceTrivia 191..192 " "
+          IdentifierToken 192..193 "X"
+        CommaToken 193..194 ","
+        WhitespaceTrivia 194..195 " "
+        Parameter 195..200
+          PredefinedType 195..199
+            IntKeyword 195..198 "int"
+            WhitespaceTrivia 198..199 " "
+          IdentifierToken 199..200 "Y"
+        CloseParenToken 200..201 ")"
+      SemicolonToken 201..202 ";"
+      EndOfLineTrivia 202..203 "\n"
+    RecordDeclaration 203..235
+      EndOfLineTrivia 203..204 "\n"
+      WhitespaceTrivia 204..208 "    "
+      PublicKeyword 208..214 "public"
+      WhitespaceTrivia 214..215 " "
+      RecordKeyword 215..221 "record"
+      WhitespaceTrivia 221..222 " "
+      ClassKeyword 222..227 "class"
+      WhitespaceTrivia 227..228 " "
+      IdentifierToken 228..233 "Empty"
+      SemicolonToken 233..234 ";"
+      EndOfLineTrivia 234..235 "\n"
+    RecordDeclaration 235..330
+      EndOfLineTrivia 235..236 "\n"
+      WhitespaceTrivia 236..240 "    "
+      PublicKeyword 240..246 "public"
+      WhitespaceTrivia 246..247 " "
+      RecordKeyword 247..253 "record"
+      WhitespaceTrivia 253..254 " "
+      IdentifierToken 254..261 "Derived"
+      ParameterList 261..310
+        OpenParenToken 261..262 "("
+        Parameter 262..268
+          PredefinedType 262..266
+            IntKeyword 262..265 "int"
+            WhitespaceTrivia 265..266 " "
+          IdentifierToken 266..268 "Id"
+        CommaToken 268..269 ","
+        WhitespaceTrivia 269..270 " "
+        Parameter 270..308
+          AttributeList 270..291
+            OpenBracketToken 270..271 "["
+            AttributeTargetSpecifier 271..281
+              PropertyKeyword 271..279 "property"
+              ColonToken 279..280 ":"
+              WhitespaceTrivia 280..281 " "
+            Attribute 281..289
+              IdentifierName 281..289
+                IdentifierToken 281..289 "Obsolete"
+            CloseBracketToken 289..290 "]"
+            WhitespaceTrivia 290..291 " "
+          PredefinedType 291..298
+            StringKeyword 291..297 "string"
+            WhitespaceTrivia 297..298 " "
+          IdentifierToken 298..302 "Name"
+          WhitespaceTrivia 302..303 " "
+          EqualsValueClause 303..308
+            EqualsToken 303..304 "="
+            WhitespaceTrivia 304..305 " "
+            StringLiteralExpression 305..308
+              StringLiteralToken 305..308 "\"x\""
+        CloseParenToken 308..309 ")"
+        WhitespaceTrivia 309..310 " "
+      BaseList 310..328
+        ColonToken 310..311 ":"
+        WhitespaceTrivia 311..312 " "
+        PrimaryConstructorBaseType 312..328
+          IdentifierName 312..318
+            IdentifierToken 312..318 "Person"
+          ArgumentList 318..328
+            OpenParenToken 318..319 "("
+            Argument 319..322
+              StringLiteralExpression 319..322
+                StringLiteralToken 319..322 "\"a\""
+            CommaToken 322..323 ","
+            WhitespaceTrivia 323..324 " "
+            Argument 324..327
+              StringLiteralExpression 324..327
+                StringLiteralToken 324..327 "\"b\""
+            CloseParenToken 327..328 ")"
+      SemicolonToken 328..329 ";"
+      EndOfLineTrivia 329..330 "\n"
+    ClassDeclaration 330..464
+      EndOfLineTrivia 330..331 "\n"
+      WhitespaceTrivia 331..335 "    "
+      PublicKeyword 335..341 "public"
+      WhitespaceTrivia 341..342 " "
+      ClassKeyword 342..347 "class"
+      WhitespaceTrivia 347..348 " "
+      IdentifierToken 348..355 "Service"
+      ParameterList 355..387
+        OpenParenToken 355..356 "("
+        Parameter 356..372
+          IdentifierName 356..368
+            IdentifierToken 356..367 "IRepository"
+            WhitespaceTrivia 367..368 " "
+          IdentifierToken 368..372 "repo"
+        CommaToken 372..373 ","
+        WhitespaceTrivia 373..374 " "
+        Parameter 374..385
+          IdentifierName 374..382
+            IdentifierToken 374..381 "ILogger"
+            WhitespaceTrivia 381..382 " "
+          IdentifierToken 382..385 "log"
+        CloseParenToken 385..386 ")"
+        WhitespaceTrivia 386..387 " "
+      BaseList 387..407
+        ColonToken 387..388 ":"
+        WhitespaceTrivia 388..389 " "
+        PrimaryConstructorBaseType 389..407
+          IdentifierName 389..400
+            IdentifierToken 389..400 "ServiceBase"
+          ArgumentList 400..407
+            OpenParenToken 400..401 "("
+            Argument 401..405
+              IdentifierName 401..405
+                IdentifierToken 401..405 "repo"
+            CloseParenToken 405..406 ")"
+            EndOfLineTrivia 406..407 "\n"
+      WhitespaceTrivia 407..411 "    "
+      OpenBraceToken 411..412 "{"
+      EndOfLineTrivia 412..413 "\n"
+      FieldDeclaration 413..458
+        WhitespaceTrivia 413..421 "        "
+        PrivateKeyword 421..428 "private"
+        WhitespaceTrivia 428..429 " "
+        ReadOnlyKeyword 429..437 "readonly"
+        WhitespaceTrivia 437..438 " "
+        VariableDeclaration 438..456
+          IdentifierName 438..446
+            IdentifierToken 438..445 "ILogger"
+            WhitespaceTrivia 445..446 " "
+          VariableDeclarator 446..456
+            IdentifierToken 446..450 "_log"
+            WhitespaceTrivia 450..451 " "
+            EqualsValueClause 451..456
+              EqualsToken 451..452 "="
+              WhitespaceTrivia 452..453 " "
+              IdentifierName 453..456
+                IdentifierToken 453..456 "log"
+        SemicolonToken 456..457 ";"
+        EndOfLineTrivia 457..458 "\n"
+      WhitespaceTrivia 458..462 "    "
+      CloseBraceToken 462..463 "}"
+      EndOfLineTrivia 463..464 "\n"
+    StructDeclaration 464..552
+      EndOfLineTrivia 464..465 "\n"
+      WhitespaceTrivia 465..469 "    "
+      PublicKeyword 469..475 "public"
+      WhitespaceTrivia 475..476 " "
+      StructKeyword 476..482 "struct"
+      WhitespaceTrivia 482..483 " "
+      IdentifierToken 483..487 "Pair"
+      TypeParameterList 487..490
+        LessThanToken 487..488 "<"
+        TypeParameter 488..489
+          IdentifierToken 488..489 "T"
+        GreaterThanToken 489..490 ">"
+      ParameterList 490..501
+        OpenParenToken 490..491 "("
+        Parameter 491..494
+          IdentifierName 491..493
+            IdentifierToken 491..492 "T"
+            WhitespaceTrivia 492..493 " "
+          IdentifierToken 493..494 "a"
+        CommaToken 494..495 ","
+        WhitespaceTrivia 495..496 " "
+        Parameter 496..499
+          IdentifierName 496..498
+            IdentifierToken 496..497 "T"
+            WhitespaceTrivia 497..498 " "
+          IdentifierToken 498..499 "b"
+        CloseParenToken 499..500 ")"
+        EndOfLineTrivia 500..501 "\n"
+      WhitespaceTrivia 501..505 "    "
+      OpenBraceToken 505..506 "{"
+      EndOfLineTrivia 506..507 "\n"
+      PropertyDeclaration 507..546
+        WhitespaceTrivia 507..515 "        "
+        PublicKeyword 515..521 "public"
+        WhitespaceTrivia 521..522 " "
+        IdentifierName 522..524
+          IdentifierToken 522..523 "T"
+          WhitespaceTrivia 523..524 " "
+        IdentifierToken 524..525 "A"
+        WhitespaceTrivia 525..526 " "
+        AccessorList 526..541
+          OpenBraceToken 526..527 "{"
+          WhitespaceTrivia 527..528 " "
+          GetAccessorDeclaration 528..533
+            GetKeyword 528..531 "get"
+            SemicolonToken 531..532 ";"
+            WhitespaceTrivia 532..533 " "
+          InitAccessorDeclaration 533..539
+            InitKeyword 533..537 "init"
+            SemicolonToken 537..538 ";"
+            WhitespaceTrivia 538..539 " "
+          CloseBraceToken 539..540 "}"
+          WhitespaceTrivia 540..541 " "
+        EqualsValueClause 541..544
+          EqualsToken 541..542 "="
+          WhitespaceTrivia 542..543 " "
+          IdentifierName 543..544
+            IdentifierToken 543..544 "a"
+        SemicolonToken 544..545 ";"
+        EndOfLineTrivia 545..546 "\n"
+      WhitespaceTrivia 546..550 "    "
+      CloseBraceToken 550..551 "}"
+      EndOfLineTrivia 551..552 "\n"
+    ClassDeclaration 552..678
+      EndOfLineTrivia 552..553 "\n"
+      WhitespaceTrivia 553..557 "    "
+      PublicKeyword 557..563 "public"
+      WhitespaceTrivia 563..564 " "
+      StaticKeyword 564..570 "static"
+      WhitespaceTrivia 570..571 " "
+      ClassKeyword 571..576 "class"
+      WhitespaceTrivia 576..577 " "
+      IdentifierToken 577..580 "Use"
+      EndOfLineTrivia 580..581 "\n"
+      WhitespaceTrivia 581..585 "    "
+      OpenBraceToken 585..586 "{"
+      EndOfLineTrivia 586..587 "\n"
+      MethodDeclaration 587..672
+        WhitespaceTrivia 587..595 "        "
+        PublicKeyword 595..601 "public"
+        WhitespaceTrivia 601..602 " "
+        StaticKeyword 602..608 "static"
+        WhitespaceTrivia 608..609 " "
+        IdentifierName 609..616
+          IdentifierToken 609..615 "Person"
+          WhitespaceTrivia 615..616 " "
+        IdentifierToken 616..622 "Rename"
+        ParameterList 622..633
+          OpenParenToken 622..623 "("
+          Parameter 623..631
+            IdentifierName 623..630
+              IdentifierToken 623..629 "Person"
+              WhitespaceTrivia 629..630 " "
+            IdentifierToken 630..631 "p"
+          CloseParenToken 631..632 ")"
+          WhitespaceTrivia 632..633 " "
+        ArrowExpressionClause 633..670
+          EqualsGreaterThanToken 633..635 "=>"
+          WhitespaceTrivia 635..636 " "
+          WithExpression 636..670
+            IdentifierName 636..638
+              IdentifierToken 636..637 "p"
+              WhitespaceTrivia 637..638 " "
+            WithKeyword 638..642 "with"
+            WhitespaceTrivia 642..643 " "
+            WithInitializerExpression 643..670
+              OpenBraceToken 643..644 "{"
+              WhitespaceTrivia 644..645 " "
+              SimpleAssignmentExpression 645..656
+                IdentifierName 645..651
+                  IdentifierToken 645..650 "First"
+                  WhitespaceTrivia 650..651 " "
+                EqualsToken 651..652 "="
+                WhitespaceTrivia 652..653 " "
+                StringLiteralExpression 653..656
+                  StringLiteralToken 653..656 "\"Z\""
+              CommaToken 656..657 ","
+              WhitespaceTrivia 657..658 " "
+              SimpleAssignmentExpression 658..669
+                IdentifierName 658..663
+                  IdentifierToken 658..662 "Last"
+                  WhitespaceTrivia 662..663 " "
+                EqualsToken 663..664 "="
+                WhitespaceTrivia 664..665 " "
+                StringLiteralExpression 665..669
+                  StringLiteralToken 665..668 "\"Q\""
+                  WhitespaceTrivia 668..669 " "
+              CloseBraceToken 669..670 "}"
+        SemicolonToken 670..671 ";"
+        EndOfLineTrivia 671..672 "\n"
+      WhitespaceTrivia 672..676 "    "
+      CloseBraceToken 676..677 "}"
+      EndOfLineTrivia 677..678 "\n"
+    CloseBraceToken 678..679 "}"
+    EndOfLineTrivia 679..680 "\n"
+  EndOfFileToken 680..680 ""
