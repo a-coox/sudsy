@@ -81,7 +81,7 @@ fn document(cx: &FormatCtx<'_>, st: &Style, node: &SyntaxNode, index: usize) -> 
             }
         }
         (None, true) => {
-            out.push(doc::text("---"));
+            out.push(doc::lit("---"));
             if let Some(b) = &body {
                 out.push(doc::hardline());
                 out.push(root_body(cx, st, b)?);

@@ -22,7 +22,11 @@ pub(crate) fn tok(cx: &FormatCtx<'_>, t: &SyntaxToken) -> Doc {
 
 /// `text` standing in for the token's own text, with the comments around it.
 pub(crate) fn with_text(cx: &FormatCtx<'_>, t: &SyntaxToken, text: Doc) -> Doc {
-    doc::concat(vec![leading(cx, t), text, cx.trailing_comments_doc(t)])
+    let (leading, trailing) = (leading(cx, t), cx.trailing_comments_doc(t));
+    if leading.is_nil() && trailing.is_nil() {
+        return text;
+    }
+    doc::concat(vec![leading, text, trailing])
 }
 
 /// The leading comments the collections before the token have not taken.

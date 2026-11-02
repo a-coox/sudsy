@@ -79,7 +79,7 @@ pub fn delimited_list(
     } else {
         doc::softline()
     };
-    let sep = doc::text(style.separator);
+    let sep = doc::lit(style.separator);
     let last = items.len().saturating_sub(1);
     let mut inner = Vec::new();
     if !items.is_empty() {

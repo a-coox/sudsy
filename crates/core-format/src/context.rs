@@ -110,17 +110,22 @@ impl<'a> FormatCtx<'a> {
 
     /// Children printed one after the other, with no spacing.
     pub fn concat_children(&self, node: &SyntaxNode) -> Result<Doc, FormatError> {
+        // The first part waits in `single`: most nodes have just one, and need no list.
+        let mut single = None;
         let mut parts = Vec::new();
         for e in node.children_with_tokens() {
-            match e {
-                SyntaxElement::Node(n) => parts.push(self.format(&n)?),
-                SyntaxElement::Token(t) if !self.grammar.is_trivia(t.kind()) => {
-                    parts.push(self.token(&t))
-                }
-                SyntaxElement::Token(_) => {}
+            let part = match e {
+                SyntaxElement::Node(n) => self.format(&n)?,
+                SyntaxElement::Token(t) if !self.grammar.is_trivia(t.kind()) => self.token(&t),
+                SyntaxElement::Token(_) => continue,
+            };
+            match single.take() {
+                None if parts.is_empty() => single = Some(part),
+                None => parts.push(part),
+                Some(first) => parts.extend([first, part]),
             }
         }
-        Ok(doc::concat(parts))
+        Ok(single.unwrap_or_else(|| doc::concat(parts)))
     }
 
     pub fn first_token(&self, node: &SyntaxNode) -> Option<SyntaxToken> {
@@ -203,12 +208,15 @@ pub fn verbatim_text(s: &str) -> Doc {
     if s.contains('\n') || s.contains('\r') {
         doc::concat(vec![doc::text(s), doc::break_parent()])
     } else {
-        doc::text(s)
+        doc::snippet(s)
     }
 }
 
 /// Own-line comments go on their own lines, inline block comments stay inline.
 pub fn leading_comments_doc(cs: &[Comment]) -> Doc {
+    if cs.is_empty() {
+        return Doc::Nil;
+    }
     let mut parts = Vec::new();
     for c in cs {
         parts.push(verbatim_text(c.text()));
@@ -218,7 +226,7 @@ pub fn leading_comments_doc(cs: &[Comment]) -> Doc {
                 parts.push(doc::hardline());
             }
         } else {
-            parts.push(doc::text(" "));
+            parts.push(doc::lit(" "));
         }
     }
     doc::concat(parts)
@@ -227,9 +235,12 @@ pub fn leading_comments_doc(cs: &[Comment]) -> Doc {
 /// Comments after a token on its line: line comments are deferred to the end of the line and
 /// force the enclosing group to break.
 pub fn trailing_comments_doc(cs: &[Comment]) -> Doc {
+    if cs.is_empty() {
+        return Doc::Nil;
+    }
     let mut parts = Vec::new();
     for c in cs {
-        let body = doc::concat(vec![doc::text(" "), verbatim_text(c.text())]);
+        let body = doc::concat(vec![doc::lit(" "), verbatim_text(c.text())]);
         match c.kind {
             CommentKind::Line => {
                 parts.push(doc::line_suffix(body));

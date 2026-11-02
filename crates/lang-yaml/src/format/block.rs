@@ -64,6 +64,10 @@ pub(crate) fn collection(cx: &FormatCtx<'_>, st: &Style, node: &SyntaxNode) -> R
     let g = cx.grammar;
     let entries: Vec<SyntaxNode> = node.children().collect();
     let mark = |entry: &SyntaxNode| {
+        // Only a comment can carry a mark.
+        if !comments::node_leading(g, entry).has_comment {
+            return None;
+        }
         let first = first_token(entry)?;
         ignore::mark_in(g, &comments::leading_comments(g, &first))
     };
@@ -118,7 +122,7 @@ pub(crate) fn mapping_entry(cx: &FormatCtx<'_>, st: &Style, node: &SyntaxNode) -
     if let Some(key) = &p.key {
         out.push(key_doc(cx, key)?);
         if space_before_colon(key) {
-            out.push(doc::text(" "));
+            out.push(doc::lit(" "));
         }
     }
     out.push(tok(cx, colon));
@@ -224,7 +228,7 @@ pub(crate) fn node_after(
                     if force || after_props {
                         next_line(ctx, body)
                     } else {
-                        doc::concat(vec![doc::text(" "), doc::align(2, body)])
+                        doc::concat(vec![doc::lit(" "), doc::align(2, body)])
                     }
                 }
                 Ctx::Root => {
@@ -238,7 +242,7 @@ pub(crate) fn node_after(
             Ok(if next {
                 next_line(ctx, body)
             } else {
-                doc::concat(vec![doc::text(" "), body])
+                doc::concat(vec![doc::lit(" "), body])
             })
         }
         kind => {
@@ -252,12 +256,12 @@ pub(crate) fn node_after(
                 Ctx::Mapping { .. } if flow => {
                     doc::group(doc::indent(doc::concat(vec![doc::line(), body])))
                 }
-                Ctx::Compact if flow => doc::concat(vec![doc::text(" "), doc::align(2, body)]),
+                Ctx::Compact if flow => doc::concat(vec![doc::lit(" "), doc::align(2, body)]),
                 // A scalar that was on its own line stays there.
                 Ctx::Mapping { .. } | Ctx::Root if line_break_between(indicator, &first) => {
                     next_line(ctx, body)
                 }
-                _ => doc::concat(vec![doc::text(" "), body]),
+                _ => doc::concat(vec![doc::lit(" "), body]),
             })
         }
     }
@@ -274,7 +278,7 @@ fn properties(node: &SyntaxNode) -> Vec<SyntaxToken> {
 
 fn property_head(cx: &FormatCtx<'_>, props: &[SyntaxToken]) -> Doc {
     let docs: Vec<Doc> = props.iter().map(|p| tok(cx, p)).collect();
-    doc::join(&doc::text(" "), docs)
+    doc::join(&doc::lit(" "), docs)
 }
 
 /// Properties that a layout can handle: comments between them need the node as written.
@@ -306,7 +310,7 @@ fn property_after(
         .as_ref()
         .is_some_and(|c| c.kind() == k::BLOCK_SCALAR);
     if !props_are_simple(cx, &props) || force && block_scalar {
-        return Ok(doc::concat(vec![doc::text(" "), cx.verbatim_node(node)]));
+        return Ok(doc::concat(vec![doc::lit(" "), cx.verbatim_node(node)]));
     }
     let mut out = vec![property_head(cx, &props)];
     if let Some(c) = &content {
@@ -317,7 +321,7 @@ fn property_after(
     Ok(if force {
         next_line(ctx, body)
     } else {
-        doc::concat(vec![doc::text(" "), body])
+        doc::concat(vec![doc::lit(" "), body])
     })
 }
 
@@ -342,7 +346,7 @@ pub(crate) fn property_inline(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
     let props = properties(node);
     let mut out = vec![property_head(cx, &props)];
     if let Some(c) = node.children().next() {
-        out.push(doc::text(" "));
+        out.push(doc::lit(" "));
         out.push(cx.format(&c)?);
     }
     Ok(doc::concat(out))
@@ -368,16 +372,16 @@ pub(crate) fn flow_pair(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
     let p = parts(node);
     let mut out = Vec::new();
     let value_doc = |cx: &FormatCtx<'_>, v: &SyntaxNode| -> R {
-        Ok(doc::concat(vec![doc::text(" "), cx.format(v)?]))
+        Ok(doc::concat(vec![doc::lit(" "), cx.format(v)?]))
     };
     if let Some(q) = &p.question {
         out.push(tok(cx, q));
         if let Some(key) = &p.key {
-            out.push(doc::text(" "));
+            out.push(doc::lit(" "));
             out.push(cx.format(key)?);
         }
         if let Some(colon) = &p.colon {
-            out.push(doc::text(" "));
+            out.push(doc::lit(" "));
             out.push(tok(cx, colon));
             if let Some(v) = &p.value {
                 out.push(value_doc(cx, v)?);
@@ -388,7 +392,7 @@ pub(crate) fn flow_pair(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
     if let Some(key) = &p.key {
         out.push(key_doc(cx, key)?);
         if p.colon.is_some() && space_before_colon(key) {
-            out.push(doc::text(" "));
+            out.push(doc::lit(" "));
         }
     }
     if let Some(colon) = &p.colon {

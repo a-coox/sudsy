@@ -10,7 +10,7 @@ pub struct Counting;
 
 static COUNT: AtomicU64 = AtomicU64::new(0);
 static SAMPLING: AtomicU64 = AtomicU64::new(0);
-const EVERY: u64 = 499;
+const EVERY: u64 = 97;
 
 thread_local! {
     static BUSY: Cell<bool> = const { Cell::new(false) };

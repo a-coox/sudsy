@@ -360,6 +360,18 @@ impl<'a> Printer<'a> {
     }
 }
 
+/// Takes the width of `s` off `width`. Only the first line of text with a line break counts
+/// against the current line: then the answer to "does it fit" is known (`Some`).
+fn measure(s: &str, width: &mut isize) -> Option<bool> {
+    match s.find('\n') {
+        Some(i) => Some(*width - (str_width(&s[..i], 1) as isize) >= 0),
+        None => {
+            *width -= str_width(s, 1) as isize;
+            None
+        }
+    }
+}
+
 /// Does `next`, followed by whatever is already queued in `rest`, fit in `width` columns up to
 /// the first line break in break mode?
 fn fits<'a>(
@@ -391,11 +403,16 @@ fn fits<'a>(
         };
         match doc {
             Doc::Nil | Doc::BreakParent | Doc::LineSuffix(_) => {}
-            Doc::Text(s) | Doc::Verbatim(s) => match s.find('\n') {
-                // Only the first line of verbatim text counts against this line.
-                Some(i) => return width - (str_width(&s[..i], 1) as isize) >= 0,
-                None => width -= str_width(s, 1) as isize,
-            },
+            Doc::Text(s) => {
+                if let Some(answer) = measure(s, &mut width) {
+                    return answer;
+                }
+            }
+            Doc::Verbatim(s) => {
+                if let Some(answer) = measure(s, &mut width) {
+                    return answer;
+                }
+            }
             Doc::Concat(parts) => stack.push((mode, Item::Seq(parts))),
             Doc::Indent(d) | Doc::Align(_, d) => stack.push((mode, Item::Doc(d))),
             Doc::IfBreak { broken, flat } => stack.push((
