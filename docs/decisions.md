@@ -359,3 +359,71 @@ a line break for block scalars, as the suite's expectations show.
 equal data model; all 308 valid cases format with every shared check (re-parse, tree comparison,
 data model, comments kept, idempotency), also under each of the 22 single option values and two
 combined option sets.
+
+## Incremental engine (`core-incremental`)
+
+Built on `salsa` 0.28 (current stable). Nothing in it blocked use: tracked functions, singleton
+inputs, event hooks, thread handles and structural-equality backdating all fit what exists.
+
+### Graph
+* **Inputs:** `File { path, version, text, had_bom }` (one per file; an edit sets `text` and
+  `version`) and the singleton `ConfigFile { path, text }`. Which config applies (the walk up from
+  the working directory) stays with the caller; the engine sees only its contents.
+* **Queries:** `config` (parse + validate) -> `selection` (provider and matcher dialect, from the
+  path only) -> `options` (resolved format options, dialect fixed) -> `language_version` (the
+  only part of the options parsing reads, a separate query so changing `indent_size` leaves the
+  parse valid) -> `parse` (green tree + parse errors) -> `format` (output; the safety check runs
+  inside it, so "formatted output plus safety result" is one value, `Ok(text)` or the failure).
+* The provider list is part of the database, not an input: fixed for its lifetime. The Wasm host
+  (M6) will make it dynamic, and it becomes an input then. Rule results, semantic requests and
+  flow graphs plug in as further queries over `parse` (comment at the top of `queries.rs`); none
+  exist yet.
+
+### Failures are values
+`Failure { stage, message }` is `Clone + Eq`, so a failing query is memoized and backdated like
+any other. The layers below have non-`Eq` errors; the message is the error and its causes joined
+with `": "`, exactly what `anyhow`'s `{:#}` printed, so CLI output is unchanged. A C# worker that
+is missing or crashed is `Err(Failure { stage: Parse })`, never a panic. `parse` is not pure for
+C#, but is determined by what it reads (path, version, text, dialect) given a deterministic
+worker. A failed parse stays memoized for the run (the proxy already declares the worker unusable
+for the rest of the run); an editor retries by setting the file again, which always bumps the
+revision even for the same text.
+
+### Equality and rowan
+Query values need `Eq`/`PartialEq` for backdating. `SyntaxNode` (red) is `!Send` and has identity
+equality, so `parse` stores the `GreenNode`: `Send + Sync`, a refcounted pointer (cloning from a
+memo is free), and structurally comparable. The red root is rebuilt in O(1) with
+`SyntaxNode::new_root` where a consumer needs one. Structural `==` costs O(tree) but only when a
+query re-runs and a previous value exists; the first run never compares. The alternative
+(pointer equality) would make every re-parse "changed". Because trees are lossless, an equal tree
+means equal text, so tree backdating only fires when the text is unchanged (e.g. new `version`);
+the backdating that pays off is further down: `config` (comment-only edits), `options` (a change
+to the `yaml:` section leaves JSON options equal, so JSON files are not reformatted), and
+`format` (a whitespace edit whose output is unchanged stops at `format`: dependents do not
+re-run). `format` reads `version` (the safety re-parse needs it), so a version bump alone
+re-runs it. `salsa::Update` is satisfied by salsa's `PartialEq` fallback; no `unsafe` needed.
+
+### Parallelism
+A salsa database handle is `Clone` and shares the memos; reads on separate handles run
+concurrently and identical in-flight queries block rather than duplicate. Setting an input needs
+`&mut` access and waits for all other handles to be dropped (readers on other handles are
+cancelled), so the rule is: set inputs on one handle, then fan out. The CLI sets the config, then
+`std::thread::scope` workers (no new dependency) each take a clone, claim paths from an atomic
+counter, read the file, create its `File` input (creating is allowed concurrently) and run
+`format`. Results are reported in path order afterwards, so output and exit codes are identical
+and deterministic. The C# worker is one process behind a `Sync` proxy, so C# parses serialize on
+it. Memos for the whole run stay in memory until exit (previously each file was dropped after
+formatting); `lru` on `parse` is the lever if that matters for very large trees.
+
+### Tests and results
+`crates/core-incremental/tests/engine.rs` (11 tests) asserts on salsa `WillExecute` events:
+one edited file re-parses only that file; a config edit re-resolves options without re-parsing;
+a comment-only config edit stops at `config`; an unrelated-language config edit stops at
+`options`; a whitespace edit with equal output stops at `format`; worker failure (a real
+`OutOfProcessProvider` with a missing command) is an error value; threads share memos.
+`sudsy format --check` on 2381 mixed JSON/YAML files (2.3 MB, 10 syntax errors, release,
+Windows): 1.82 s before, 0.75 s after; stdout, stderr and exit code identical.
+
+### Small changes elsewhere
+`provider_api::format_parsed` (format an already-parsed tree; `format_file` calls it) and
+`select_provider_index` (`select_provider` calls it).
