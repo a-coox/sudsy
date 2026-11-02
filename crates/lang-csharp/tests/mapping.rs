@@ -35,10 +35,6 @@ fn text(n: &impl AstNode) -> String {
     n.syntax().text().to_string().trim().to_string()
 }
 
-fn kinds_of(node: &SyntaxNode) -> Vec<SyntaxKind> {
-    node.children_with_tokens().map(|c| c.kind()).collect()
-}
-
 #[test]
 fn top_level_statements_are_global_statements_of_the_compilation_unit() {
     let tree = parse("using System;\nvar x = 1;\nreturn x;\nclass C { }\n");
