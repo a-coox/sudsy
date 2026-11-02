@@ -9,7 +9,7 @@ class C
     void M()
     {
         int[] a = [1, 2, 3];
-        List<int> b = [..a, 4];
+        List<int> b = [.. a, 4];
         var c = [];
         int[][] d = [[1], [2, 3]];
     }

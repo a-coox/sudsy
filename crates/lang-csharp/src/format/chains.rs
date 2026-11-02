@@ -26,25 +26,30 @@ fn breaks_after_operator(cx: &FormatCtx<'_>, rhs: &SyntaxNode) -> bool {
         || matches!(rhs.kind(), k::CONDITIONAL_EXPRESSION | k::QUERY_EXPRESSION)
 }
 
-/// CSharpier's layouts of `lead rhs` (Prettier's assignment layouts): a string stays after the
-/// operator whatever its length, a binary expression moves to its own line when it does not fit,
-/// and anything else moves only when its first line (up to its first possible break) does not
-/// fit after the operator ("fluid").
+/// CSharpier's layouts of `lead rhs` (Prettier's assignment layouts): a string, a binary
+/// expression or the initializer of a property moves to its own line when it does not fit, and
+/// anything else moves only when its first line (up to its first possible break) does not fit
+/// after the operator ("fluid").
 fn csharpier_rhs(cx: &FormatCtx<'_>, lead: Doc, rhs: &SyntaxNode, rhs_doc: Doc) -> Doc {
     let has_comment = core_format::comments::node_leading(cx.grammar, rhs).has_comment;
-    if matches!(
-        rhs.kind(),
-        k::STRING_LITERAL_EXPRESSION | k::INTERPOLATED_STRING_EXPRESSION
-    ) && !has_comment
-    {
-        return doc::concat(vec![lead, doc::lit(" "), rhs_doc]);
-    }
     // The initializer of a property moves as a whole.
     let property_initializer = rhs
         .parent()
         .and_then(|clause| clause.parent())
         .is_some_and(|decl| decl.kind() == k::PROPERTY_DECLARATION);
-    if has_comment || property_initializer || tags::has(cx.grammar, rhs.kind(), Tag::BinaryChain) {
+    let string = matches!(
+        rhs.kind(),
+        k::STRING_LITERAL_EXPRESSION | k::INTERPOLATED_STRING_EXPRESSION
+    );
+    if has_comment
+        || property_initializer
+        || string
+        || matches!(
+            rhs.kind(),
+            k::COLLECTION_EXPRESSION | k::CONDITIONAL_EXPRESSION
+        )
+        || tags::has(cx.grammar, rhs.kind(), Tag::BinaryChain)
+    {
         return doc::concat(vec![
             lead,
             doc::group(doc::indent(doc::concat(vec![doc::line(), rhs_doc]))),
@@ -122,6 +127,18 @@ pub fn arrow_clause(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
         }
     }
     operator_and_value(cx, node)
+}
+
+/// `pattern => expr` in a switch expression (CSharpier layouts the arm like an assignment).
+pub fn switch_arm(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
+    let els = sig(cx, node);
+    let Some((SyntaxElement::Node(value), head)) = els.split_last() else {
+        return Err(shape("switch expression arm: expected a value"));
+    };
+    let Some(SyntaxElement::Token(arrow)) = head.last() else {
+        return Err(shape("switch expression arm: expected `=>`"));
+    };
+    with_rhs(cx, super::seq::seq_of(cx, node, head)?, arrow, value)
 }
 
 // --------------------------------------------------------------- conditional
@@ -423,6 +440,10 @@ pub fn member_chain(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
     let mut groups: Vec<Vec<Doc>> = Vec::new();
     for (i, link) in links.iter().enumerate() {
         let starts = match link {
+            // CSharpier (as Prettier) keeps the accesses before a call with it: `.A.B()`.
+            Link::Dot(..) if csharpier(cx.options) => {
+                !(i > 0 && matches!(links[i - 1], Link::Question(_) | Link::Dot(..)))
+            }
             Link::Dot(..) => !(i > 0 && matches!(links[i - 1], Link::Question(_))),
             Link::Question(_) => matches!(links.get(i + 1), Some(Link::Dot(..))),
             _ => false,
@@ -448,5 +469,6 @@ pub fn member_chain(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
         calls,
         min_calls,
         force_break: has_line_comment(cx, &links),
+        break_on_inner_break: csharpier(cx.options),
     }))
 }

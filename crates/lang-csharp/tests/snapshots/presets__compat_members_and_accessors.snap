@@ -1,0 +1,38 @@
+---
+source: crates/lang-csharp/tests/presets.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+class C : IFoo {
+ private int a;
+ private int b;
+ [Obsolete] private int c;
+ public int X { get { return a; } set { a = value; } }
+ public int Y { get; set; }
+ public int Z => 1;
+ public C(int a) : base(a) { }
+ public void M() { }
+ void N();
+}
+-----
+class C : IFoo
+{
+    private int a;
+    private int b;
+
+    [Obsolete]
+    private int c;
+    public int X
+    {
+        get { return a; }
+        set { a = value; }
+    }
+    public int Y { get; set; }
+    public int Z => 1;
+
+    public C(int a)
+        : base(a) { }
+
+    public void M() { }
+
+    void N();
+}

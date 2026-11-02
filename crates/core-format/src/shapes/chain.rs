@@ -56,6 +56,9 @@ pub struct MemberChain {
     pub min_calls: usize,
     /// Break at the dots whatever the width (a line comment sits between the links).
     pub force_break: bool,
+    /// Break at the dots when a group other than the last has a forced break inside it (a call
+    /// with a block lambda), as Prettier does.
+    pub break_on_inner_break: bool,
 }
 
 /// `head.A().B().C()` on one line if it fits, else the head and then one group per line,
@@ -67,6 +70,7 @@ pub fn member_chain(chain: MemberChain) -> Doc {
         calls,
         min_calls,
         force_break,
+        break_on_inner_break,
     } = chain;
     if groups.is_empty() || (calls < min_calls && !force_break) {
         let mut parts = head;
@@ -80,6 +84,11 @@ pub fn member_chain(chain: MemberChain) -> Doc {
         .into_iter()
         .map(|g| doc::shared(doc::concat(g)))
         .collect();
+    let force_break = force_break
+        || (break_on_inner_break
+            && groups
+                .split_last()
+                .is_some_and(|(_, init)| init.iter().any(|g| g.clone().propagate_breaks())));
     let flat = (!force_break).then(|| {
         let mut parts = vec![head.clone()];
         parts.extend(groups.iter().cloned());

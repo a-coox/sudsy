@@ -107,6 +107,8 @@ impl NodeFormatter for CSharpFormatter {
             k::EQUALS_VALUE_CLAUSE => chains::equals_value_clause(cx, node)?,
             k::ARROW_EXPRESSION_CLAUSE => chains::arrow_clause(cx, node)?,
             k::CONDITIONAL_EXPRESSION => chains::conditional(cx, node)?,
+            k::SWITCH_EXPRESSION_ARM if csharpier(cx.options) => chains::switch_arm(cx, node)?,
+            k::BASE_LIST if csharpier(cx.options) => braces::base_list(cx, node)?,
             k::PARENTHESIZED_EXPRESSION => chains::parenthesized(cx, node)?,
             k::QUERY_EXPRESSION => query::query_expression(cx, node)?,
             k::QUERY_BODY => query::query_body(cx, node)?,
