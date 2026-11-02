@@ -10,7 +10,13 @@ publish.workspace = true
 [dependencies]
 core-config.workspace = true
 core-format.workspace = true
+core-syntax.workspace = true
 lang-json.workspace = true
 lang-yaml.workspace = true
 provider-api.workspace = true
 anyhow.workspace = true
+mimalloc = { version = "0.1", optional = true }
+
+[features]
+# Measure the effect of a faster global allocator (the CLI uses the system one).
+mimalloc = ["dep:mimalloc"]
