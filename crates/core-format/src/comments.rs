@@ -9,6 +9,7 @@
 
 use core_syntax::trivia::is_line_break;
 use core_syntax::{Grammar, SyntaxKind, SyntaxToken};
+use std::ops::ControlFlow;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum CommentKind {
@@ -129,52 +130,118 @@ struct ScanBefore {
     leading_breaks: usize,
 }
 
+/// Calls `visit` with each token before `tok`, nearest first, until it returns `Break`. Walks
+/// the green tree: the neighbours of a token are mostly trivia, and creating a red token for
+/// each of them would cost far more than looking at them.
+fn walk_back<B>(tok: &SyntaxToken, mut visit: impl FnMut(SyntaxKind, &str) -> ControlFlow<B>) -> Option<B> {
+    fn down<B>(
+        node: &rowan::GreenNodeData,
+        visit: &mut impl FnMut(SyntaxKind, &str) -> ControlFlow<B>,
+    ) -> ControlFlow<B> {
+        for child in node.children().rev() {
+            match child {
+                rowan::NodeOrToken::Token(t) => visit(SyntaxKind(t.kind().0), t.text())?,
+                rowan::NodeOrToken::Node(n) => down(n, visit)?,
+            }
+        }
+        ControlFlow::Continue(())
+    }
+    let mut node = tok.parent()?;
+    let mut idx = tok.index();
+    loop {
+        for child in node.green().children().take(idx).rev() {
+            let flow = match child {
+                rowan::NodeOrToken::Token(t) => visit(SyntaxKind(t.kind().0), t.text()),
+                rowan::NodeOrToken::Node(n) => down(n, &mut visit),
+            };
+            if let ControlFlow::Break(b) = flow {
+                return Some(b);
+            }
+        }
+        idx = node.index();
+        node = node.parent()?;
+    }
+}
+
+/// Like [`walk_back`], for the tokens after `tok`.
+fn walk_forward<B>(tok: &SyntaxToken, mut visit: impl FnMut(SyntaxKind, &str) -> ControlFlow<B>) -> Option<B> {
+    fn down<B>(
+        node: &rowan::GreenNodeData,
+        visit: &mut impl FnMut(SyntaxKind, &str) -> ControlFlow<B>,
+    ) -> ControlFlow<B> {
+        for child in node.children() {
+            match child {
+                rowan::NodeOrToken::Token(t) => visit(SyntaxKind(t.kind().0), t.text())?,
+                rowan::NodeOrToken::Node(n) => down(n, visit)?,
+            }
+        }
+        ControlFlow::Continue(())
+    }
+    let mut node = tok.parent()?;
+    let mut idx = tok.index() + 1;
+    loop {
+        for child in node.green().children().skip(idx) {
+            let flow = match child {
+                rowan::NodeOrToken::Token(t) => visit(SyntaxKind(t.kind().0), t.text()),
+                rowan::NodeOrToken::Node(n) => down(n, &mut visit),
+            };
+            if let ControlFlow::Break(b) = flow {
+                return Some(b);
+            }
+        }
+        idx = node.index() + 1;
+        node = node.parent()?;
+    }
+}
+
+fn text_ends_line(text: &str) -> bool {
+    text.chars().next_back().is_some_and(is_line_break)
+}
+
 fn scan_before(g: &Grammar, tok: &SyntaxToken) -> ScanBefore {
     let mut breaks = 0;
     // Breaks in the tokens after the first one that ends a line.
     let mut after_first_line_end = None;
-    let mut cur = tok.prev_token();
-    while let Some(t) = cur {
-        if !is_trivia(g, t.kind()) {
-            return ScanBefore {
+    let stopped = walk_back(tok, |kind, text| {
+        if !is_trivia(g, kind) {
+            return ControlFlow::Break(ScanBefore {
                 has_prev: true,
                 has_comment: false,
                 leading_breaks: after_first_line_end.unwrap_or(0),
-            };
+            });
         }
-        if g.has_tag(t.kind(), "comment") {
-            return ScanBefore {
+        if g.has_tag(kind, "comment") {
+            return ControlFlow::Break(ScanBefore {
                 has_prev: false,
                 has_comment: true,
                 leading_breaks: 0,
-            };
+            });
         }
-        if ends_line(&t) {
+        if text_ends_line(text) {
             after_first_line_end = Some(breaks);
         }
-        breaks += count_breaks(t.text());
-        cur = t.prev_token();
-    }
-    ScanBefore {
+        breaks += count_breaks(text);
+        ControlFlow::Continue(())
+    });
+    stopped.unwrap_or(ScanBefore {
         has_prev: false,
         has_comment: false,
         leading_breaks: breaks,
-    }
+    })
 }
 
 /// Is there a comment in the trivia directly after `tok`?
 fn comment_follows(g: &Grammar, tok: &SyntaxToken) -> bool {
-    let mut cur = tok.next_token();
-    while let Some(t) = cur {
-        if !is_trivia(g, t.kind()) {
-            return false;
+    walk_forward(tok, |kind, _| {
+        if !is_trivia(g, kind) {
+            ControlFlow::Break(false)
+        } else if g.has_tag(kind, "comment") {
+            ControlFlow::Break(true)
+        } else {
+            ControlFlow::Continue(())
         }
-        if g.has_tag(t.kind(), "comment") {
-            return true;
-        }
-        cur = t.next_token();
-    }
-    false
+    })
+    .unwrap_or(false)
 }
 
 pub fn leading_comments(g: &Grammar, tok: &SyntaxToken) -> Vec<Comment> {
@@ -236,17 +303,16 @@ pub fn blank_lines_before(g: &Grammar, tok: &SyntaxToken) -> usize {
 
 /// Is there a line break in the trivia between `tok` and the next non-trivia token?
 pub fn break_after(g: &Grammar, tok: &SyntaxToken) -> bool {
-    let mut cur = tok.next_token();
-    while let Some(t) = cur {
-        if !is_trivia(g, t.kind()) {
-            return false;
+    walk_forward(tok, |kind, text| {
+        if !is_trivia(g, kind) {
+            ControlFlow::Break(false)
+        } else if count_breaks(text) > 0 {
+            ControlFlow::Break(true)
+        } else {
+            ControlFlow::Continue(())
         }
-        if count_breaks(t.text()) > 0 {
-            return true;
-        }
-        cur = t.next_token();
-    }
-    false
+    })
+    .unwrap_or(false)
 }
 
 #[cfg(test)]

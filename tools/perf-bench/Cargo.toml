@@ -20,3 +20,5 @@ mimalloc = { version = "0.1", optional = true }
 [features]
 # Measure the effect of a faster global allocator (the CLI uses the system one).
 mimalloc = ["dep:mimalloc"]
+# Count allocations per phase.
+count = []
