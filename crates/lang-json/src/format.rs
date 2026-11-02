@@ -1,11 +1,11 @@
 //! JSON formatting. Almost everything is the shared tag defaults; this file only maps the JSON
 //! options onto the list shape for objects and arrays and handles the document's end.
 
+use crate::generated::kind as k;
 use core_config::{OptionDef, OptionSchema, ResolvedOptions, shared};
 use core_format::shapes::{ListLayout, ListStyle, TrailingComma, delimited_list};
 use core_format::{Doc, FormatCtx, FormatError, NodeFormatter, comments, doc};
 use core_syntax::SyntaxNode;
-use core_syntax::generated::json::kind as k;
 
 pub const COLLAPSE: &str = "collapse";
 pub const TRAILING_COMMAS: &str = "trailing_commas";

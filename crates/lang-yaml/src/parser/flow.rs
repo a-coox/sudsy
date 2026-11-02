@@ -2,7 +2,7 @@
 
 use super::scan::is_flow_indicator;
 use super::{Parser, R};
-use core_syntax::generated::yaml::kind as k;
+use crate::generated::kind as k;
 
 /// What `flow_node_cand` found: a node that may turn out to be an implicit key.
 #[derive(Default)]

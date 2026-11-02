@@ -98,8 +98,9 @@ M0.
   generated wrappers (`AnyExpression`, `AnyValue`).
 * The grammar hash is SHA-256 over the lexemes: comments and layout do not change it, declaration
   order does (it determines kind ids).
-* Generated Rust wrappers live in `crates/core-syntax/src/generated/` for now. They move to the
-  `lang-*` crates when those exist (M1, M4).
+* Generated Rust wrappers live in the language crates (`lang-json/src/generated.rs`,
+  `lang-yaml/src/generated.rs`); `csharp.rs` stays in `core-syntax/src/generated/` until `lang-csharp`
+  exists (M4). `codegen::rust_module` takes the path by which the module reaches `core_syntax`.
 * `grammars/csharp.grammar` was bootstrapped from Roslyn's `SyntaxKind` enum and syntax classes
   (kind names equal Roslyn names; tags and partial fields derived heuristically) and is
   hand-maintained from here on. The bootstrap script is not kept in the repo. Fields exist only for

@@ -4,8 +4,8 @@
 //! `core_syntax::trivia`): trailing trivia right after their token, leading trivia right before
 //! theirs, inside the node that token belongs to. Unexpected tokens are wrapped in `ERROR` nodes.
 
+use crate::generated::kind as k;
 use crate::lexer::{LexError, Token, lex};
-use core_syntax::generated::json::kind as k;
 use core_syntax::trivia::is_line_break;
 use core_syntax::{SyntaxKind, SyntaxNode, TreeBuilder};
 use provider_api::ParseError;

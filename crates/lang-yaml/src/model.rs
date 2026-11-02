@@ -2,8 +2,8 @@
 //! core-schema scalar resolution, tags, and aliases expanded. The formatter's safety check
 //! compares the model before and after formatting.
 
+use crate::generated::kind as k;
 use crate::scalar::{self, block_header, block_value};
-use core_syntax::generated::yaml::kind as k;
 use core_syntax::{SyntaxElement, SyntaxKind, SyntaxNode, SyntaxToken};
 use std::collections::HashMap;
 

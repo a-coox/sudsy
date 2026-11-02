@@ -2,7 +2,7 @@
 
 use super::scan::{Marker, is_blank, is_break};
 use super::{Parser, R};
-use core_syntax::generated::yaml::kind as k;
+use crate::generated::kind as k;
 
 /// Where a block node appears; decides whether a sequence may sit at the parent's indentation.
 #[derive(Clone, Copy, PartialEq, Eq)]
