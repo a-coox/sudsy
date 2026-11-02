@@ -1,67 +1,163 @@
-//! Conformance: every file of the pinned dotnet/runtime corpus round-trips losslessly through
-//! worker -> Rust tree and satisfies the trivia attachment rule.
+//! Conformance over the pinned corpora (dotnet/runtime's CoreLib, dotnet/roslyn, dotnet/aspnetcore;
+//! about 90 MB): every file parses without errors, round-trips byte for byte, satisfies the trivia
+//! attachment rule, has every token in the tree, and fits the bodies of the grammar.
 //!
-//! Run: `bash tests/conformance/fetch-corpus.sh && cargo test -p provider-api --test corpus_roundtrip -- --ignored --nocapture`
+//! Run: `bash tests/conformance/fetch-corpus.sh && cargo test --release -p lang-csharp --test corpus -- --ignored --nocapture`
 
 mod common;
 
+use core_syntax::shape::ShapeChecker;
 use core_syntax::{grammars, print, trivia};
 use provider_api::{LanguageProvider, SourceFile};
 use std::path::Path;
 use std::time::Instant;
 
-fn collect(dir: &Path, out: &mut Vec<std::path::PathBuf>) {
-    for entry in std::fs::read_dir(dir).unwrap() {
-        let path = entry.unwrap().path();
-        if path.is_dir() {
-            collect(&path, out);
-        } else if path.extension().is_some_and(|e| e == "cs") {
-            out.push(path);
+struct Corpus {
+    name: &'static str,
+    dirs: &'static [&'static str],
+}
+
+const CORPORA: &[Corpus] = &[
+    Corpus {
+        name: "runtime",
+        dirs: &["src/libraries/System.Private.CoreLib/src"],
+    },
+    Corpus {
+        name: "roslyn",
+        dirs: &[
+            "src/Compilers/CSharp/Portable",
+            "src/Compilers/Core/Portable",
+            "src/Workspaces/Core/Portable",
+        ],
+    },
+    Corpus {
+        name: "aspnetcore",
+        dirs: &[
+            "src/Http",
+            "src/Mvc/Mvc.Core",
+            "src/Middleware",
+            "src/Servers/Kestrel/Core/src",
+            "src/Components/Components/src",
+            "src/SignalR/common",
+        ],
+    },
+];
+
+#[derive(Default)]
+struct Totals {
+    files: usize,
+    bytes: usize,
+    elements: usize,
+    with_errors: usize,
+    failures: Vec<String>,
+}
+
+fn check_file(
+    provider: &impl LanguageProvider,
+    shapes: &ShapeChecker,
+    path: &Path,
+    totals: &mut Totals,
+) {
+    let mut fail = |what: String| totals.failures.push(format!("{}: {what}", path.display()));
+    let mut source =
+        SourceFile::from_bytes(path.to_string_lossy(), 1, std::fs::read(path).unwrap())
+            .unwrap_or_else(|e| panic!("{e}"));
+    source.preprocessor_symbols = common::symbols_for(path);
+    let result = match provider.parse(&source) {
+        Ok(r) => r,
+        Err(e) => return fail(format!("parse failed: {e}")),
+    };
+    totals.files += 1;
+    totals.bytes += source.text.len();
+    totals.elements += result.tree.descendants_with_tokens().count();
+    if print(&result.tree) != source.text {
+        return fail("not lossless".into());
+    }
+    if let Err(e) = trivia::check_attachment(&result.tree, |k| grammars::csharp().is_trivia(k)) {
+        fail(format!("trivia attachment: {e}"));
+    }
+    if let Err(e) = common::check_token_texts(&result.tree) {
+        fail(format!("token text: {e}"));
+    }
+    if result.errors.is_empty() {
+        if let Err(e) = shapes.check(&result.tree) {
+            fail(format!("shape: {e}"));
         }
+    } else {
+        totals.with_errors += 1;
+        let first = &result.errors[..result.errors.len().min(3)];
+        fail(format!("parse errors: {first:?}"));
     }
 }
 
 #[test]
-#[ignore = "needs the corpus: bash tests/conformance/fetch-corpus.sh"]
-fn corpus_round_trips_losslessly() {
-    let root = common::repo_root()
-        .join("tests/conformance/corpus/runtime/src/libraries/System.Private.CoreLib/src");
-    assert!(
-        root.exists(),
-        "corpus missing; run tests/conformance/fetch-corpus.sh"
-    );
-    let mut files = Vec::new();
-    collect(&root, &mut files);
-    files.sort();
-
+#[ignore = "needs the corpora: bash tests/conformance/fetch-corpus.sh"]
+fn corpora_parse_round_trip_and_fit_the_grammar() {
     let provider = lang_csharp::provider(&common::worker_dll());
-    let (mut bytes, mut with_errors, mut elements) = (0usize, 0usize, 0usize);
+    let shapes = ShapeChecker::new(grammars::csharp());
     let started = Instant::now();
-    for path in &files {
-        let source =
-            SourceFile::from_bytes(path.to_string_lossy(), 1, std::fs::read(path).unwrap())
-                .unwrap_or_else(|e| panic!("{e}"));
-        let result = provider
-            .parse(&source)
-            .unwrap_or_else(|e| panic!("{}: {e}", path.display()));
+    let mut all = Totals::default();
+    for corpus in CORPORA {
+        let base = common::corpus_root().join(corpus.name);
         assert!(
-            print(&result.tree) == source.text,
-            "{}: not lossless",
-            path.display()
+            base.exists(),
+            "corpus {} missing; run tests/conformance/fetch-corpus.sh",
+            corpus.name
         );
-        trivia::check_attachment(&result.tree, |k| grammars::csharp().is_trivia(k))
-            .unwrap_or_else(|e| panic!("{}: {e}", path.display()));
-        bytes += source.text.len();
-        elements += result.tree.descendants_with_tokens().count();
-        with_errors += usize::from(!result.errors.is_empty());
+        let mut files = Vec::new();
+        for dir in corpus.dirs {
+            common::collect_cs(&base.join(dir), &mut files);
+        }
+        files.sort();
+        let mut totals = Totals::default();
+        let t = Instant::now();
+        for path in &files {
+            check_file(&provider, &shapes, path, &mut totals);
+        }
+        println!(
+            "{}: {} files, {:.1} MB, {} tree elements, {} files with parse errors, {} failures, {:.1}s",
+            corpus.name,
+            totals.files,
+            totals.bytes as f64 / 1e6,
+            totals.elements,
+            totals.with_errors,
+            totals.failures.len(),
+            t.elapsed().as_secs_f64()
+        );
+        all.files += totals.files;
+        all.bytes += totals.bytes;
+        all.elements += totals.elements;
+        all.with_errors += totals.with_errors;
+        all.failures.extend(totals.failures);
     }
     println!(
-        "corpus: {} files, {:.1} MB, {} tree elements, {} files with parse errors, {:.1}s end to end",
-        files.len(),
-        bytes as f64 / 1e6,
-        elements,
-        with_errors,
+        "total: {} files, {:.1} MB, {} tree elements, {:.1}s end to end",
+        all.files,
+        all.bytes as f64 / 1e6,
+        all.elements,
         started.elapsed().as_secs_f64()
     );
-    assert!(files.len() > 1000);
+    if let Some(path) = std::env::var_os("SUDSY_CORPUS_FAILURES") {
+        std::fs::write(
+            path,
+            all.failures.join(
+                "
+",
+            ),
+        )
+        .unwrap();
+    }
+    assert!(all.files > 7000);
+    assert!(
+        all.failures.is_empty(),
+        "{} failures, first {}:\n{}",
+        all.failures.len(),
+        all.failures.len().min(25),
+        all.failures
+            .iter()
+            .take(25)
+            .cloned()
+            .collect::<Vec<_>>()
+            .join("\n")
+    );
 }

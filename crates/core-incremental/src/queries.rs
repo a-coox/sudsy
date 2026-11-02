@@ -119,6 +119,7 @@ fn source_file(db: &dyn Db, file: File, language_version: Option<String>) -> Sou
         text: file.text(db).clone(),
         had_bom: file.had_bom(db),
         language_version,
+        preprocessor_symbols: Vec::new(),
     }
 }
 

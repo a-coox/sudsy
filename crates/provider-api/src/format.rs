@@ -83,6 +83,7 @@ pub fn format_parsed(
             text: text.to_string(),
             had_bom: file.had_bom,
             language_version: file.language_version.clone(),
+            preprocessor_symbols: file.preprocessor_symbols.clone(),
         };
         let result = provider.parse(&again).map_err(|e| e.to_string())?;
         match result.errors.first() {

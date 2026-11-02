@@ -1,7 +1,7 @@
 //! Support code for the generated typed wrappers (`json::Member::key()` etc.).
 
 use crate::kind::SyntaxKind;
-use crate::tree::{SyntaxNode, SyntaxToken};
+use crate::tree::{SyntaxElement, SyntaxNode, SyntaxToken};
 
 /// A typed view over a [`SyntaxNode`].
 pub trait AstNode: Sized {
@@ -52,34 +52,87 @@ macro_rules! ast_any {
     };
 }
 
+/// One position in a node's body: the kinds it accepts and whether it repeats.
+#[derive(Clone, Copy, Debug)]
+pub struct Slot<'a> {
+    /// Sorted, so membership is a binary search.
+    pub kinds: &'a [SyntaxKind],
+    pub many: bool,
+}
+
+/// A node's body as data: its slots in order, plus the kinds that never take part in matching.
+#[derive(Clone, Copy, Debug)]
+pub struct Pattern<'a> {
+    pub slots: &'a [Slot<'a>],
+    /// Trivia and `ERROR` nodes: invisible to the body.
+    pub skip: &'a [SyntaxKind],
+}
+
+fn contains(kinds: &[SyntaxKind], kind: SyntaxKind) -> bool {
+    kinds.binary_search(&kind).is_ok()
+}
+
+/// Assigns each child of `parent` to a slot of `pattern` (the generated accessors and the
+/// conformance shape check use this one routine).
+///
+/// Children are matched in order: a child goes to the first slot at or after the current one that
+/// accepts its kind, which skips slots of absent optional items. A `many` slot stays current until a
+/// later slot takes a child; any other slot is current only up to its match. A child no later slot
+/// accepts (a separator, or something the grammar does not describe) gets no slot and does not
+/// move the current one.
+pub fn assign<'a>(
+    parent: &SyntaxNode,
+    pattern: &'a Pattern<'a>,
+) -> impl Iterator<Item = (usize, SyntaxElement)> + 'a {
+    let mut current = 0;
+    parent.children_with_tokens().filter_map(move |child| {
+        let kind = child.kind();
+        if contains(pattern.skip, kind) {
+            return None;
+        }
+        let index =
+            (current..pattern.slots.len()).find(|&i| contains(pattern.slots[i].kinds, kind))?;
+        current = if pattern.slots[index].many {
+            index
+        } else {
+            index + 1
+        };
+        Some((index, child))
+    })
+}
+
 pub mod support {
     use super::*;
 
-    /// The `nth` child node castable to `N`.
-    pub fn child<N: AstNode>(parent: &SyntaxNode, nth: usize) -> Option<N> {
-        children(parent).nth(nth)
+    /// The node in slot `index`, if the tree has one.
+    pub fn node<N: AstNode>(parent: &SyntaxNode, pattern: &Pattern, index: usize) -> Option<N> {
+        nodes(parent, pattern, index).next()
     }
 
-    pub fn children<N: AstNode>(parent: &SyntaxNode) -> impl Iterator<Item = N> {
-        parent.children().filter_map(N::cast)
-    }
-
-    /// The `nth` direct child token whose kind satisfies `pred`.
-    pub fn token(
+    /// Every node in slot `index`.
+    pub fn nodes<'a, N: AstNode + 'a>(
         parent: &SyntaxNode,
-        pred: impl Fn(SyntaxKind) -> bool,
-        nth: usize,
-    ) -> Option<SyntaxToken> {
-        tokens(parent, pred).nth(nth)
+        pattern: &'a Pattern<'a>,
+        index: usize,
+    ) -> impl Iterator<Item = N> + 'a {
+        assign(parent, pattern)
+            .filter(move |(i, _)| *i == index)
+            .filter_map(|(_, e)| e.into_node().and_then(N::cast))
     }
 
-    pub fn tokens(
+    /// The token in slot `index`, if the tree has one.
+    pub fn token(parent: &SyntaxNode, pattern: &Pattern, index: usize) -> Option<SyntaxToken> {
+        tokens(parent, pattern, index).next()
+    }
+
+    /// Every token in slot `index`.
+    pub fn tokens<'a>(
         parent: &SyntaxNode,
-        pred: impl Fn(SyntaxKind) -> bool,
-    ) -> impl Iterator<Item = SyntaxToken> {
-        parent
-            .children_with_tokens()
-            .filter_map(|e| e.into_token())
-            .filter(move |t| pred(t.kind()))
+        pattern: &'a Pattern<'a>,
+        index: usize,
+    ) -> impl Iterator<Item = SyntaxToken> + 'a {
+        assign(parent, pattern)
+            .filter(move |(i, _)| *i == index)
+            .filter_map(|(_, e)| e.into_token())
     }
 }

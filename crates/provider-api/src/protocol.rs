@@ -1,4 +1,4 @@
-//! Worker protocol v1: length-prefixed frames carrying MessagePack messages.
+//! Worker protocol v2: length-prefixed frames carrying MessagePack messages.
 //!
 //! A frame is a 4-byte little-endian length and that many payload bytes. A message is an
 //! externally tagged enum (rmp-serde's default): a one-entry map from the variant name to a
@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::io::{self, Read, Write};
 
-pub const PROTOCOL_VERSION: u32 = 1;
+pub const PROTOCOL_VERSION: u32 = 2;
 pub const FLOW_GRAPH_FORMAT_VERSION: u32 = 1;
 pub const MAX_FRAME_BYTES: u32 = 512 * 1024 * 1024;
 
@@ -37,6 +37,8 @@ pub struct ParseRequest {
     pub version: u64,
     pub text: String,
     pub language_version: Option<String>,
+    /// Conditional compilation symbols (`#if NAME`); empty for none.
+    pub preprocessor_symbols: Vec<String>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -188,13 +190,13 @@ mod tests {
             b"\x81\xa8Shutdown\x90"
         );
         let hello = Hello {
-            protocol_version: 1,
+            protocol_version: 2,
             grammar_hash: "h".into(),
             flow_graph_format: 1,
             wire_format: 1,
             capabilities: vec![],
         };
         let bytes = rmp_serde::to_vec(&Response::Hello(hello)).unwrap();
-        assert_eq!(bytes, b"\x81\xa5Hello\x95\x01\xa1h\x01\x01\x90");
+        assert_eq!(bytes, b"\x81\xa5Hello\x95\x02\xa1h\x01\x01\x90");
     }
 }

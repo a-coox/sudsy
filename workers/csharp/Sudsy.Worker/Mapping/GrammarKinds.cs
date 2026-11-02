@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using Sudsy.Worker.Generated;
 using CS = Microsoft.CodeAnalysis.CSharp;
 
@@ -8,6 +9,9 @@ public static class GrammarKinds
 {
     public const ushort Unmapped = ushort.MaxValue;
     private const ushort TokenBit = 1 << 11;
+
+    /// <summary>The core <c>ERROR</c> node kind (<c>SyntaxKind::ERROR</c> in core-syntax).</summary>
+    public const ushort Error = 0;
 
     private static readonly ushort[] Table = Build();
 
@@ -27,10 +31,24 @@ public static class GrammarKinds
         return table;
     }
 
-    public static ushort Of(int rawRoslynKind) =>
-        (uint)rawRoslynKind < (uint)Table.Length && Table[rawRoslynKind] != Unmapped
-            ? Table[rawRoslynKind]
-            : throw new MappingException($"Roslyn kind {rawRoslynKind} ({(CS.SyntaxKind)rawRoslynKind}) has no grammar kind");
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ushort Of(int rawRoslynKind)
+    {
+        var table = Table;
+        if ((uint)rawRoslynKind < (uint)table.Length)
+        {
+            var id = table[rawRoslynKind];
+            if (id != Unmapped)
+            {
+                return id;
+            }
+        }
+
+        return Fail(rawRoslynKind);
+    }
+
+    private static ushort Fail(int raw) =>
+        throw new MappingException($"Roslyn kind {raw} ({(CS.SyntaxKind)raw}) has no grammar kind");
 
     public static bool IsToken(ushort kind) => (kind & TokenBit) != 0;
 }

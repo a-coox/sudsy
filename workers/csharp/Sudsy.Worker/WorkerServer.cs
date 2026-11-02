@@ -118,7 +118,7 @@ public sealed class WorkerServer(Stream input, Stream output)
             return Error("bad_request", $"unknown language version '{v}'");
         }
 
-        var options = new CSharpParseOptions(languageVersion);
+        var options = new CSharpParseOptions(languageVersion, preprocessorSymbols: request.PreprocessorSymbols);
         var tree = CSharpSyntaxTree.ParseText(request.Text, options);
         var root = tree.GetRoot();
         var flat = TreeMapper.Map(root, request.Text);

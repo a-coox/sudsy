@@ -120,6 +120,8 @@ pub struct SourceFile {
     pub had_bom: bool,
     /// Provider-specific, e.g. a C# language version.
     pub language_version: Option<String>,
+    /// Conditional compilation symbols (C#); empty for none.
+    pub preprocessor_symbols: Vec<String>,
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -136,6 +138,7 @@ impl SourceFile {
             text: text.into(),
             had_bom: false,
             language_version: None,
+            preprocessor_symbols: Vec::new(),
         }
     }
 
@@ -157,6 +160,7 @@ impl SourceFile {
             text,
             had_bom,
             language_version: None,
+            preprocessor_symbols: Vec::new(),
         })
     }
 }

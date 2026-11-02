@@ -1,43 +1,144 @@
-using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
+using CS = Microsoft.CodeAnalysis.CSharp;
 
 namespace Sudsy.Worker.Mapping;
 
 /// <summary>
-/// Roslyn tree to our grammar's tree. The only code that knows Roslyn tree shapes.
-/// Re-attaches trivia to the shared rule (crates/core-syntax/src/trivia.rs):
-/// between two tokens, the trailing trivia of the first is the run up to and
-/// including the first trivia that ends with a line break (the whole run if none);
-/// the rest is leading trivia of the second.
+/// Roslyn red tree to our flat tree. This is the only code that knows Roslyn's tree shapes.
+///
+/// * Trivia are re-attached to the shared rule (trailing: up to and including the first trivia that
+///   ends a line; leading: the rest) and emitted as siblings of their token.
+/// * Doc comments and directives are structured trivia: nodes, mapped recursively as a scope of
+///   their own. Disabled text, whitespace, comments and line ends stay plain trivia tokens.
+/// * Missing tokens become zero-width <c>ERROR</c> nodes; skipped tokens become <c>ERROR</c> nodes
+///   holding the skipped tokens (with their own trivia), so every token is in the tree.
 /// </summary>
 public static class TreeMapper
 {
-    public static FlatTree Map(SyntaxNode root, string sourceText)
+    public static FlatTree Map(SyntaxNode root, string text) => new Mapper(text, forceGeneral: false).Run(root);
+
+    /// <summary>Same output through the general routine for every token; used by tests to cross-check the fast path.</summary>
+    internal static FlatTree MapGeneral(SyntaxNode root, string text) => new Mapper(text, forceGeneral: true).Run(root);
+}
+
+internal sealed class Mapper
+{
+    private struct Frame
     {
-        var text = new Source(sourceText);
-        var tokens = new List<SyntaxToken>();
-        foreach (var t in root.DescendantTokens())
+        public ChildSyntaxList.Enumerator Children;
+        public int Slot;
+        public uint Count;
+    }
+
+    /// <summary>State of one scope: the file, or one structured trivia.</summary>
+    private sealed class Scope
+    {
+        public readonly List<SyntaxTrivia> Carry = [];
+        // Scratch for the general routine; per scope because structured trivia are mapped inside it.
+        public readonly List<Item> Items = [];
+        public readonly List<int> Lexemes = [];
+        public readonly List<int> Cuts = [];
+        /// <summary>Leading trivia of the next token already emitted as trailing trivia of the previous one.</summary>
+        public int Consumed;
+        public int Start;
+        public int End;
+        public Frame[] Frames = new Frame[32];
+    }
+
+    private readonly string _text;
+    private readonly int[]? _byteOffsets;
+    private readonly bool _forceGeneral;
+    private readonly FlatTree _tree;
+    private readonly List<Scope> _scopes = [];
+    /// <summary>The text has disabled text or skipped tokens: check every token's trivia for the latter.</summary>
+    private bool _scanForSkipped;
+
+    public Mapper(string text, bool forceGeneral)
+    {
+        _text = text;
+        _forceGeneral = forceGeneral;
+        _byteOffsets = System.Text.Ascii.IsValid(text) ? null : Utf8Offsets(text);
+        _tree = new FlatTree((text.Length / 4) + 64);
+    }
+
+    public FlatTree Run(SyntaxNode root)
+    {
+        _scanForSkipped = root.ContainsSkippedText;
+        RunScope(root, 0);
+        return _tree;
+    }
+
+    private static int[] Utf8Offsets(string text)
+    {
+        var offsets = new int[text.Length + 1];
+        var bytes = 0;
+        for (var i = 0; i < text.Length; i++)
         {
-            // Missing tokens without text or trivia are not part of the source.
-            if (t.FullSpan.Length > 0 || t.RawKind == (int)Microsoft.CodeAnalysis.CSharp.SyntaxKind.EndOfFileToken)
+            var c = text[i];
+            if (c < 0x80)
             {
-                tokens.Add(t);
+                bytes += 1;
             }
+            else if (c < 0x800)
+            {
+                bytes += 2;
+            }
+            else if (char.IsHighSurrogate(c) && i + 1 < text.Length && char.IsLowSurrogate(text[i + 1]))
+            {
+                bytes += 4;
+                offsets[i + 1] = bytes;
+                i++;
+            }
+            else
+            {
+                bytes += 3;
+            }
+
+            offsets[i + 1] = bytes;
         }
 
-        var cuts = ComputeCuts(tokens, text);
-        var tree = new FlatTree();
-        var stack = new Stack<Frame>();
-        stack.Push(new Frame(root.ChildNodesAndTokens().GetEnumerator(), tree.Add(GrammarKinds.Of(root.RawKind), 0)));
-        var tokenIndex = 0;
+        return offsets;
+    }
 
-        while (stack.Count > 0)
+    private uint Width(TextSpan span) => _byteOffsets is null
+        ? (uint)span.Length
+        : (uint)(_byteOffsets[span.End] - _byteOffsets[span.Start]);
+
+    private Scope ScopeAt(int depth)
+    {
+        while (_scopes.Count <= depth)
         {
-            var frame = stack.Pop();
+            _scopes.Add(new Scope());
+        }
+
+        var scope = _scopes[depth];
+        scope.Carry.Clear();
+        scope.Consumed = 0;
+        return scope;
+    }
+
+    /// <summary>Emits <paramref name="root"/> and everything below it as one element.</summary>
+    private void RunScope(SyntaxNode root, int depth)
+    {
+        var scope = ScopeAt(depth);
+        scope.Start = root.FullSpan.Start;
+        scope.End = root.FullSpan.End;
+        var frames = scope.Frames;
+        var top = 0;
+        frames[0] = new Frame
+        {
+            Children = root.ChildNodesAndTokens().GetEnumerator(),
+            Slot = _tree.Add(GrammarKinds.Of(root.RawKind), 0),
+        };
+
+        while (top >= 0)
+        {
+            ref var frame = ref frames[top];
             if (!frame.Children.MoveNext())
             {
-                tree.SetValue(frame.Slot, frame.Count);
+                _tree.SetValue(frame.Slot, frame.Count);
+                top--;
                 continue;
             }
 
@@ -46,119 +147,396 @@ public static class TreeMapper
             {
                 frame.Count++;
                 var node = child.AsNode()!;
-                stack.Push(frame);
-                stack.Push(new Frame(node.ChildNodesAndTokens().GetEnumerator(), tree.Add(GrammarKinds.Of(node.RawKind), 0)));
+                if (++top == frames.Length)
+                {
+                    Array.Resize(ref frames, frames.Length * 2);
+                    scope.Frames = frames;
+                }
+
+                frames[top] = new Frame
+                {
+                    Children = node.ChildNodesAndTokens().GetEnumerator(),
+                    Slot = _tree.Add(GrammarKinds.Of(node.RawKind), 0),
+                };
                 continue;
             }
 
-            if (tokenIndex < tokens.Count && tokens[tokenIndex] == child.AsToken())
+            var token = child.AsToken();
+            var added = _forceGeneral || token.IsMissing || (_scanForSkipped && HasSkipped(token))
+                ? VisitGeneral(token, scope, depth)
+                : VisitSimple(token, scope, depth);
+            frames[top].Count += added;
+        }
+    }
+
+    private static bool HasSkipped(SyntaxToken token)
+    {
+        foreach (var t in token.LeadingTrivia)
+        {
+            if (t.RawKind == (int)CS.SyntaxKind.SkippedTokensTrivia)
             {
-                frame.Count += 1 + EmitToken(tree, tokens, cuts, tokenIndex, text);
-                tokenIndex++;
+                return true;
+            }
+        }
+
+        foreach (var t in token.TrailingTrivia)
+        {
+            if (t.RawKind == (int)CS.SyntaxKind.SkippedTokensTrivia)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // ---------------------------------------------------------------- fast routine
+
+    /// <summary>A present token with plain trivia only. Returns the number of elements added.</summary>
+    private uint VisitSimple(SyntaxToken token, Scope scope, int depth)
+    {
+        uint added = 0;
+        foreach (var t in scope.Carry)
+        {
+            added += EmitTrivia(t, depth);
+        }
+
+        scope.Carry.Clear();
+
+        var skip = scope.Consumed;
+        scope.Consumed = 0;
+        foreach (var t in token.LeadingTrivia)
+        {
+            if (skip > 0)
+            {
+                skip--;
+                continue;
             }
 
-            stack.Push(frame);
+            added += EmitTrivia(t, depth);
         }
 
-        if (tokenIndex != tokens.Count)
+        _tree.Add(GrammarKinds.Of(token.RawKind), Width(token.Span));
+        added++;
+
+        var open = true;
+        foreach (var t in token.TrailingTrivia)
         {
-            throw new MappingException("token walk and token list disagree");
-        }
-
-        return tree;
-    }
-
-    private struct Frame(ChildSyntaxList.Enumerator children, int slot)
-    {
-        public ChildSyntaxList.Enumerator Children = children;
-        public readonly int Slot = slot;
-        public uint Count;
-    }
-
-    /// <summary>For each token, how many of (its trailing + next token leading) trivia stay trailing.</summary>
-    private static int[] ComputeCuts(List<SyntaxToken> tokens, Source text)
-    {
-        var cuts = new int[tokens.Count];
-        for (var i = 0; i < tokens.Count; i++)
-        {
-            var trailing = tokens[i].TrailingTrivia;
-            var next = i + 1 < tokens.Count ? tokens[i + 1].LeadingTrivia : default;
-            var total = trailing.Count + next.Count;
-            var cut = total;
-            for (var j = 0; j < total; j++)
+            if (!open)
             {
-                if (EndsLine(text, Pick(trailing, next, j)))
+                scope.Carry.Add(t);
+                continue;
+            }
+
+            added += EmitTrivia(t, depth);
+            open = !EndsLine(t);
+        }
+
+        if (open)
+        {
+            added += ExtendRun(token, scope, depth);
+        }
+
+        return added;
+    }
+
+    // ---------------------------------------------------------------- general routine
+
+    private enum ItemKind : byte
+    {
+        Trivia,
+        Lexeme,
+    }
+
+    private struct Item
+    {
+        public ItemKind Kind;
+        public SyntaxTrivia Trivia;
+        public SyntaxToken Token;
+        /// <summary>Skipped tokens of one skipped-tokens trivia share a non-zero group.</summary>
+        public int Group;
+    }
+
+    /// <summary>
+    /// Any token: missing ones, and ones with skipped tokens among their trivia. Lays out the token's
+    /// stretch of the text as a list of trivia and lexemes (the token itself unless it is missing,
+    /// and its skipped tokens), cuts every run between two lexemes by the shared rule, and emits.
+    /// </summary>
+    private uint VisitGeneral(SyntaxToken token, Scope scope, int depth)
+    {
+        var items = scope.Items;
+        items.Clear();
+        foreach (var t in scope.Carry)
+        {
+            items.Add(new Item { Kind = ItemKind.Trivia, Trivia = t });
+        }
+
+        scope.Carry.Clear();
+        var group = 0;
+        var skip = scope.Consumed;
+        scope.Consumed = 0;
+        foreach (var t in token.LeadingTrivia)
+        {
+            if (skip > 0)
+            {
+                skip--;
+                continue;
+            }
+
+            AddExpanded(t, scope.Items, ref group);
+        }
+
+        var missing = token.IsMissing;
+        if (!missing)
+        {
+            items.Add(new Item { Kind = ItemKind.Lexeme, Token = token });
+        }
+
+        foreach (var t in token.TrailingTrivia)
+        {
+            AddExpanded(t, items, ref group);
+        }
+
+        var lexemes = scope.Lexemes;
+        lexemes.Clear();
+        for (var i = 0; i < items.Count; i++)
+        {
+            if (items[i].Kind == ItemKind.Lexeme)
+            {
+                lexemes.Add(i);
+            }
+        }
+
+        uint added = 0;
+        if (lexemes.Count == 0)
+        {
+            // Only trivia of a missing token: they lead whatever comes next.
+            foreach (var item in items)
+            {
+                scope.Carry.Add(item.Trivia);
+            }
+
+            return EmitMissing(missing, ref added);
+        }
+
+        // cuts[k]: where lexeme k's trailing trivia end (exclusive); the last run is open when it has no line break.
+        var cuts = scope.Cuts;
+        cuts.Clear();
+        var lastOpen = true;
+        for (var k = 0; k < lexemes.Count; k++)
+        {
+            var from = lexemes[k] + 1;
+            var to = k + 1 < lexemes.Count ? lexemes[k + 1] : items.Count;
+            var cut = to;
+            var broke = false;
+            for (var i = from; i < to; i++)
+            {
+                if (EndsLine(items[i].Trivia))
                 {
-                    cut = j + 1;
+                    cut = i + 1;
+                    broke = true;
                     break;
                 }
             }
 
-            cuts[i] = cut;
+            cuts.Add(cut);
+            if (k + 1 == lexemes.Count)
+            {
+                lastOpen = !broke;
+            }
         }
 
-        return cuts;
+        // Items after the last cut lead whatever comes next.
+        for (var i = cuts[^1]; i < items.Count; i++)
+        {
+            scope.Carry.Add(items[i].Trivia);
+        }
+
+        var inGroup = 0;
+        var groupSlot = 0;
+        uint groupCount = 0;
+        for (var k = 0; k < lexemes.Count; k++)
+        {
+            var start = k == 0 ? 0 : cuts[k - 1];
+            var lexeme = items[lexemes[k]];
+            if (lexeme.Group != inGroup)
+            {
+                // Leaving one group (if any) and entering another happen at the same cut.
+                if (inGroup != 0)
+                {
+                    _tree.SetValue(groupSlot, groupCount);
+                    added++;
+                }
+
+                inGroup = lexeme.Group;
+                if (inGroup != 0)
+                {
+                    groupSlot = _tree.Add(GrammarKinds.Error, 0);
+                    groupCount = 0;
+                }
+            }
+
+            uint n = 0;
+            for (var i = start; i < lexemes[k]; i++)
+            {
+                n += EmitTrivia(items[i].Trivia, depth);
+            }
+
+            _tree.Add(GrammarKinds.Of(lexeme.Token.RawKind), Width(lexeme.Token.Span));
+            n++;
+            for (var i = lexemes[k] + 1; i < cuts[k]; i++)
+            {
+                n += EmitTrivia(items[i].Trivia, depth);
+            }
+
+            if (inGroup != 0)
+            {
+                groupCount += n;
+            }
+            else
+            {
+                added += n;
+            }
+        }
+
+        if (inGroup != 0)
+        {
+            _tree.SetValue(groupSlot, groupCount);
+            added++;
+        }
+
+        EmitMissing(missing, ref added);
+        if (lastOpen)
+        {
+            added += ExtendRun(token, scope, depth);
+        }
+
+        return added;
     }
 
-    private static SyntaxTrivia Pick(SyntaxTriviaList trailing, SyntaxTriviaList next, int j) =>
-        j < trailing.Count ? trailing[j] : next[j - trailing.Count];
-
-    private static bool EndsLine(Source text, SyntaxTrivia trivia)
+    private uint EmitMissing(bool missing, ref uint added)
     {
-        var span = trivia.FullSpan;
-        return span.Length > 0 && IsLineBreak(text.Text[span.End - 1]);
+        if (missing)
+        {
+            _tree.Add(GrammarKinds.Error, 0);
+            added++;
+        }
+
+        return added;
     }
 
-    private static bool IsLineBreak(char c) => (int)c is 0x0A or 0x0D or 0x85 or 0x2028 or 0x2029;
-
-    /// <summary>Emits leading trivia, the token and trailing trivia; returns the number of trivia siblings added.</summary>
-    private static uint EmitToken(FlatTree tree, List<SyntaxToken> tokens, int[] cuts, int i, Source text)
+    /// <summary>Adds a trivia, or the lexemes (with their trivia) of a skipped-tokens trivia.</summary>
+    private static void AddExpanded(SyntaxTrivia trivia, List<Item> items, ref int group)
     {
-        uint trivia = 0;
-        var token = tokens[i];
-        if (i == 0)
+        if (trivia.RawKind != (int)CS.SyntaxKind.SkippedTokensTrivia)
+        {
+            items.Add(new Item { Kind = ItemKind.Trivia, Trivia = trivia });
+            return;
+        }
+
+        group++;
+        var skipped = (CS.Syntax.SkippedTokensTriviaSyntax)trivia.GetStructure()!;
+        foreach (var token in skipped.Tokens)
         {
             foreach (var t in token.LeadingTrivia)
             {
-                EmitTrivia(tree, t, text);
-                trivia++;
+                items.Add(new Item { Kind = ItemKind.Trivia, Trivia = t });
             }
-        }
-        else
-        {
-            var prevTrailing = tokens[i - 1].TrailingTrivia;
-            var total = prevTrailing.Count + token.LeadingTrivia.Count;
-            for (var j = cuts[i - 1]; j < total; j++)
+
+            items.Add(new Item { Kind = ItemKind.Lexeme, Token = token, Group = group });
+            foreach (var t in token.TrailingTrivia)
             {
-                EmitTrivia(tree, Pick(prevTrailing, token.LeadingTrivia, j), text);
-                trivia++;
+                items.Add(new Item { Kind = ItemKind.Trivia, Trivia = t });
             }
         }
-
-        tree.Add(GrammarKinds.Of(token.RawKind), (uint)Utf8Length(text, token.Span));
-
-        var trailing = token.TrailingTrivia;
-        var nextLeading = i + 1 < tokens.Count ? tokens[i + 1].LeadingTrivia : default;
-        for (var j = 0; j < cuts[i]; j++)
-        {
-            EmitTrivia(tree, Pick(trailing, nextLeading, j), text);
-            trivia++;
-        }
-
-        return trivia;
     }
 
-    private static void EmitTrivia(FlatTree tree, SyntaxTrivia trivia, Source text) =>
-        tree.Add(GrammarKinds.Of(trivia.RawKind), (uint)Utf8Length(text, trivia.FullSpan));
+    // ---------------------------------------------------------------- shared
 
-    private static int Utf8Length(Source text, TextSpan span) =>
-        text.Ascii ? span.Length : Encoding.UTF8.GetByteCount(text.Text.AsSpan(span.Start, span.Length));
-}
+    /// <summary>
+    /// The trailing trivia of <paramref name="token"/> ended without a line break, so the run
+    /// continues into the leading trivia of the next token up to its first line break. Emits those
+    /// as trailing trivia and remembers how many to skip when the next token comes.
+    /// </summary>
+    private uint ExtendRun(SyntaxToken token, Scope scope, int depth)
+    {
+        if (!NextMayStartWithTrivia(token.FullSpan.End))
+        {
+            return 0;
+        }
 
-/// <summary>The source text, with a flag that makes UTF-8 widths free for pure ASCII input.</summary>
-internal readonly struct Source(string text)
-{
-    public string Text { get; } = text;
+        var next = token.GetNextToken(includeZeroWidth: true);
+        if (next.RawKind == 0 || next.FullSpan.Start < scope.Start || next.FullSpan.End > scope.End || next.IsMissing)
+        {
+            return 0;
+        }
 
-    public bool Ascii { get; } = System.Text.Ascii.IsValid(text);
+        uint added = 0;
+        foreach (var t in next.LeadingTrivia)
+        {
+            if (t.RawKind == (int)CS.SyntaxKind.SkippedTokensTrivia)
+            {
+                break;
+            }
+
+            added += EmitTrivia(t, depth);
+            scope.Consumed++;
+            if (EndsLine(t))
+            {
+                break;
+            }
+        }
+
+        return added;
+    }
+
+    /// <summary>
+    /// Roslyn's trailing trivia take every space and comment up to the line break, so in code the
+    /// next token can only start with trivia when it begins with something that is not part of a
+    /// token. Inside doc comments and directives a line break after a token is the next token's
+    /// leading trivia (or a token of its own), so it has to be looked at.
+    /// </summary>
+    private bool NextMayStartWithTrivia(int end)
+    {
+        if (end >= _text.Length)
+        {
+            return false;
+        }
+
+        var c = _text[end];
+        return c is '#' or ' ' or '\t' or '\r' or '\n'
+            || (c == '/' && end + 1 < _text.Length && _text[end + 1] is '/' or '*')
+            || (c > 0x7f && char.IsWhiteSpace(c));
+    }
+
+    private uint EmitTrivia(SyntaxTrivia trivia, int depth)
+    {
+        var kind = GrammarKinds.Of(trivia.RawKind);
+        if (GrammarKinds.IsToken(kind))
+        {
+            _tree.Add(kind, Width(trivia.FullSpan));
+            return 1;
+        }
+
+        RunScope(trivia.GetStructure()!, depth + 1);
+        return 1;
+    }
+
+    private bool EndsLine(SyntaxTrivia trivia)
+    {
+        switch ((CS.SyntaxKind)trivia.RawKind)
+        {
+            case CS.SyntaxKind.EndOfLineTrivia:
+                return true;
+            case CS.SyntaxKind.WhitespaceTrivia:
+            case CS.SyntaxKind.SingleLineCommentTrivia:
+            case CS.SyntaxKind.MultiLineCommentTrivia:
+                return false;
+            default:
+                var span = trivia.FullSpan;
+                return span.Length > 0 && IsLineBreak(_text[span.End - 1]);
+        }
+    }
+
+    private static bool IsLineBreak(char c) => (int)c is 0x0A or 0x0D or 0x85 or 0x2028 or 0x2029;
 }

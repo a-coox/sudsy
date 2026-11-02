@@ -14,8 +14,9 @@
 //! A node body is a list of items `[label:]Ref[?|*]`. `Ref` is a node or token
 //! name, or `#tag` meaning "any kind carrying that tag" (all nodes or all
 //! tokens). Labeled items become typed accessors; unlabeled ones document the
-//! shape. A declaration may continue on following indented lines. Bodies are
-//! descriptive, not enforced against trees.
+//! shape. A declaration may continue on following indented lines. A body is matched against a
+//! node's children in order (see [`crate::ast::assign`]), so the same type may appear in several
+//! items; bodies are not enforced against trees, the conformance suites check them.
 //!
 //! Kind ids are assigned in declaration order, see [`crate::kind`]. The
 //! grammar's version is a SHA-256 over its lexemes (comments and layout do not

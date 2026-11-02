@@ -13,6 +13,7 @@ fn request(text: &str) -> ParseRequest {
         version: 3,
         text: text.into(),
         language_version: None,
+        preprocessor_symbols: vec![],
     }
 }
 
