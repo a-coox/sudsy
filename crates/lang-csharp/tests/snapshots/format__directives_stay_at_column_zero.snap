@@ -1,0 +1,36 @@
+---
+source: crates/lang-csharp/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+class C{
+#region Fields
+int x;
+#endregion
+#if DEBUG
+void Debug(){}
+#else
+void Release(){}
+#endif
+void M(){
+#pragma warning disable CS0168
+int unused;
+#pragma warning restore CS0168
+}}
+-----
+class C
+{
+    #region Fields
+    int x;
+    #endregion
+#if DEBUG
+void Debug(){}
+#else
+    void Release() { }
+#endif
+    void M()
+    {
+#pragma warning disable CS0168
+        int unused;
+#pragma warning restore CS0168
+    }
+}

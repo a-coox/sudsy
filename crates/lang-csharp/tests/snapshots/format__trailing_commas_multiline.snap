@@ -1,0 +1,25 @@
+---
+source: crates/lang-csharp/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+enum E{A,B}
+class C{int[] a=new[]{1,2};int[] b=new[]
+{
+1,
+2
+};}
+-----
+enum E
+{
+    A,
+    B,
+}
+class C
+{
+    int[] a = new[] { 1, 2 };
+    int[] b = new[]
+    {
+        1,
+        2,
+    };
+}

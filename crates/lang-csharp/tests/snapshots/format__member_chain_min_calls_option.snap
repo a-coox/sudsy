@@ -1,0 +1,15 @@
+---
+source: crates/lang-csharp/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+class C{void M(){var a=someObject.SomeMethodWithALongName(argumentNumberOne,argumentNumberTwo).AnotherMethodWithALongName(argumentNumberThree,argumentNumberFour);}}
+-----
+class C
+{
+    void M()
+    {
+        var a = someObject
+            .SomeMethodWithALongName(argumentNumberOne, argumentNumberTwo)
+            .AnotherMethodWithALongName(argumentNumberThree, argumentNumberFour);
+    }
+}

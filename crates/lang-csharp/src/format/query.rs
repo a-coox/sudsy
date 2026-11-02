@@ -1,6 +1,7 @@
 //! LINQ query expressions: `from x in xs where ... select ...` on one line if it fits, else one
 //! clause per line below the `from`.
 
+use crate::generated::kind as k;
 use super::seq::{R, element_doc, seq, sig};
 use core_format::{FormatCtx, doc};
 use core_syntax::{SyntaxElement, SyntaxNode};
@@ -10,9 +11,14 @@ pub fn query_expression(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
     let [SyntaxElement::Node(from), SyntaxElement::Node(body)] = els.as_slice() else {
         return seq(cx, node);
     };
+    // After `=` the assignment's own indentation applies.
+    let clauses = doc::concat(vec![doc::line(), cx.format(body)?]);
+    let after_equals = node.parent().is_some_and(|p| {
+        p.kind() == k::EQUALS_VALUE_CLAUSE || cx.grammar.has_tag(p.kind(), "assignment")
+    });
     Ok(doc::group(doc::concat(vec![
         cx.format(from)?,
-        doc::indent(doc::concat(vec![doc::line(), cx.format(body)?])),
+        if after_equals { clauses } else { doc::indent(clauses) },
     ])))
 }
 

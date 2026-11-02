@@ -1,0 +1,29 @@
+---
+source: crates/lang-csharp/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+class C{void M(){if(aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa!=null&&bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb>100&&cccccccccccccccccccccc.Length>1000){x();}
+var total=firstValueInTheExpression+secondValueInTheExpression*thirdValueInTheExpression-fourthValue+fifth;
+x=firstValueInTheExpression+secondValueInTheExpression+thirdValueInTheExpression+fourthValueInTheExpression;}}
+-----
+class C
+{
+    void M()
+    {
+        if (
+            aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa != null
+            && bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb > 100
+            && cccccccccccccccccccccc.Length > 1000
+        )
+        {
+            x();
+        }
+        var total =
+            firstValueInTheExpression + secondValueInTheExpression * thirdValueInTheExpression - fourthValue + fifth;
+        x =
+            firstValueInTheExpression
+            + secondValueInTheExpression
+            + thirdValueInTheExpression
+            + fourthValueInTheExpression;
+    }
+}

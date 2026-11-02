@@ -1,0 +1,13 @@
+---
+source: crates/lang-csharp/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+class C{void M(){var a=items.Where(x=>x>1).Select(x=>x*2).ToList();}}
+-----
+class C
+{
+    void M()
+    {
+        var a = items.Where(x => x > 1).Select(x => x * 2).ToList();
+    }
+}

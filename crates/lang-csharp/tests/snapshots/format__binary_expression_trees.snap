@@ -1,0 +1,14 @@
+---
+source: crates/lang-csharp/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+class C{bool M(){return aaaaaaaaaaaaaaaaaaaaaaaa!=null&&bbbbbbbbbbbbbbbbbbbbbbbbbbbbb>100||cccccccccccccccccccccccccc.Length>1000&&ddddddddddddddddddddddd<3&&eeeeeeeeeeeeeeeeeeee!=12345;}}
+-----
+class C
+{
+    bool M()
+    {
+        return aaaaaaaaaaaaaaaaaaaaaaaa != null && bbbbbbbbbbbbbbbbbbbbbbbbbbbbb > 100
+            || cccccccccccccccccccccccccc.Length > 1000 && ddddddddddddddddddddddd < 3 && eeeeeeeeeeeeeeeeeeee != 12345;
+    }
+}

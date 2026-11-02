@@ -1,0 +1,15 @@
+---
+source: crates/lang-csharp/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+class C{string M()=>"a long string literal number one "+name+" a long string literal number two "+other+" and a third long one";}
+-----
+class C
+{
+    string M() =>
+        "a long string literal number one "
+        + name
+        + " a long string literal number two "
+        + other
+        + " and a third long one";
+}

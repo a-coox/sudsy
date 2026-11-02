@@ -125,7 +125,10 @@ pub fn accessors_inline(cx: &FormatCtx<'_>, list: &SyntaxNode) -> bool {
     let simple = list.children().all(|a| {
         g.is_trivia(a.kind())
             || a.children()
-                .all(|c| !matches!(c.kind(), k::BLOCK | k::ARROW_EXPRESSION_CLAUSE))
+                .all(|c| !matches!(
+                    c.kind(),
+                    k::BLOCK | k::ARROW_EXPRESSION_CLAUSE | k::ATTRIBUTE_LIST
+                ))
     });
     let has_comment = list
         .descendants_with_tokens()

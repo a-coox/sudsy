@@ -1,0 +1,31 @@
+---
+source: crates/lang-csharp/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+class C{bool M(object o){if(o is int i&&i>0)return true;
+if(o is not null)return false;
+if(o is string{Length:>3 or <1}s)return true;
+if(o is(1,2))return true;
+if(o is [1,2,..])return true;
+if(o is Point{X:0,Y:0})return true;
+return o is { };}}
+-----
+class C
+{
+    bool M(object o)
+    {
+        if (o is int i && i > 0)
+            return true;
+        if (o is not null)
+            return false;
+        if (o is string { Length: > 3 or < 1 } s)
+            return true;
+        if (o is (1, 2))
+            return true;
+        if (o is [1, 2, ..])
+            return true;
+        if (o is Point { X: 0, Y: 0 })
+            return true;
+        return o is { };
+    }
+}

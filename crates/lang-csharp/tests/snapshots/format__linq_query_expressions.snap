@@ -1,0 +1,22 @@
+---
+source: crates/lang-csharp/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+class C{void M(){var a=from x in xs where x>1 select x;
+var b=from customer in customers join order in orders on customer.Id equals order.CustomerId where order.Total>100 orderby customer.Name,order.Total descending select new{customer.Name,order.Total};
+var c=from x in xs group x by x.Key into g select g.Count();}}
+-----
+class C
+{
+    void M()
+    {
+        var a = from x in xs where x > 1 select x;
+        var b =
+            from customer in customers
+            join order in orders on customer.Id equals order.CustomerId
+            where order.Total > 100
+            orderby customer.Name, order.Total descending
+            select new { customer.Name, order.Total };
+        var c = from x in xs group x by x.Key into g select g.Count();
+    }
+}

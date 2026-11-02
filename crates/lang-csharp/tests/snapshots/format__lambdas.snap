@@ -1,0 +1,24 @@
+---
+source: crates/lang-csharp/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+class C{void M(){Func<int,int> a=x=>x+1;Func<int,int,int> b=(x,y)=>x+y;Action c=()=>{Foo();};var d=async()=>await Bar();var e=static(int x)=>x;Func<int> f=delegate(){return 1;};}}
+-----
+class C
+{
+    void M()
+    {
+        Func<int, int> a = x => x + 1;
+        Func<int, int, int> b = (x, y) => x + y;
+        Action c = () =>
+        {
+            Foo();
+        };
+        var d = async () => await Bar();
+        var e = static (int x) => x;
+        Func<int> f = delegate ()
+        {
+            return 1;
+        };
+    }
+}

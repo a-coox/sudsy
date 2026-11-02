@@ -1,0 +1,24 @@
+---
+source: crates/lang-csharp/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+enum E{A,B,}
+class C{int[] a=new[]{1,2,};void M(){var x=y switch{1=>2,_=>3,};}}
+-----
+enum E
+{
+    A,
+    B
+}
+class C
+{
+    int[] a = new[] { 1, 2 };
+    void M()
+    {
+        var x = y switch
+        {
+            1 => 2,
+            _ => 3
+        };
+    }
+}

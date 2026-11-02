@@ -214,10 +214,21 @@ impl<'a> Printer<'a> {
         self.pos = level.width;
     }
 
+    fn current_line_start(&self) -> usize {
+        self.out.rfind('\n').map_or(0, |i| i + 1).max(self.keep)
+    }
+
+    /// Does the current line hold nothing but indentation?
+    fn line_is_blank(&self) -> bool {
+        self.out[self.current_line_start()..]
+            .bytes()
+            .all(|b| b == b' ' || b == b'\t')
+    }
+
     /// See [`Doc::LineStart`].
     fn line_start(&mut self, s: &str) {
-        let line_start = self.out.rfind('\n').map_or(0, |i| i + 1).max(self.keep);
-        if self.out[line_start..].bytes().all(|b| b == b' ' || b == b'\t') {
+        let line_start = self.current_line_start();
+        if self.line_is_blank() {
             self.out.truncate(line_start);
         } else {
             self.newline(0);
@@ -262,6 +273,20 @@ impl<'a> Printer<'a> {
                 self.keep = self.out.len();
             }
             Doc::LineStart(s) => self.line_start(s),
+            Doc::NewlineIfNeeded => {
+                if self.line_is_blank() {
+                    return;
+                }
+                if mode == Mode::Flat {
+                    self.remeasure = true;
+                }
+                if !self.suffixes.is_empty() {
+                    cmds.push(cmd);
+                    cmds.extend(self.suffixes.drain(..).rev());
+                    return;
+                }
+                self.newline(indent);
+            }
             Doc::Concat(parts) => cmds.push(Cmd {
                 indent,
                 mode,
@@ -451,7 +476,7 @@ fn fits<'a>(
                     return answer;
                 }
             }
-            Doc::LineStart(_) => return true,
+            Doc::LineStart(_) | Doc::NewlineIfNeeded => return true,
             Doc::Concat(parts) => m.stack.push((mode, Item::Seq(parts))),
             Doc::Indent(d) | Doc::Align(_, d) => m.stack.push((mode, Item::Doc(d))),
             Doc::IfBreak { broken, flat } => m.stack.push((

@@ -1,0 +1,21 @@
+---
+source: crates/lang-csharp/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+class C{void M(){RegisterTheThing("a very long first argument that takes room","a second very long argument that takes more room","third",x=>{Foo();});}}
+-----
+class C
+{
+    void M()
+    {
+        RegisterTheThing(
+            "a very long first argument that takes room",
+            "a second very long argument that takes more room",
+            "third",
+            x =>
+            {
+                Foo();
+            }
+        );
+    }
+}

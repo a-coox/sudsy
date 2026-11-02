@@ -1,0 +1,19 @@
+---
+source: crates/lang-csharp/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+class C{
+#if NEVER
+   weird   text   {{{ not   valid
+   int   x;
+#endif
+int   y;}
+-----
+class C
+{
+#if NEVER
+   weird   text   {{{ not   valid
+   int   x;
+#endif
+    int y;
+}

@@ -1,0 +1,32 @@
+---
+source: crates/lang-csharp/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+class C{void M(){list.ForEach(x=>{Console.WriteLine(x);Foo(x);});
+Task.Run(async()=>{await Foo();});
+services.AddSingleton<IFoo>(provider=>{return new Foo(provider);});
+Test("name",first,second,(a,b)=>{return a+b;});}}
+-----
+class C
+{
+    void M()
+    {
+        list.ForEach(x =>
+        {
+            Console.WriteLine(x);
+            Foo(x);
+        });
+        Task.Run(async () =>
+        {
+            await Foo();
+        });
+        services.AddSingleton<IFoo>(provider =>
+        {
+            return new Foo(provider);
+        });
+        Test("name", first, second, (a, b) =>
+        {
+            return a + b;
+        });
+    }
+}

@@ -11,18 +11,42 @@ fn shape(msg: &str) -> FormatError {
     FormatError::Shape(msg.into())
 }
 
+/// Does a line comment follow this token on its line? Whatever comes next must then start a
+/// new line, or the comment would move to the end of a later line (and change owner).
+fn ends_in_line_comment(cx: &FormatCtx<'_>, t: &SyntaxToken) -> bool {
+    core_format::comments::trailing_comments(cx.grammar, t)
+        .iter()
+        .any(|c| c.kind != core_format::comments::CommentKind::Block)
+}
+
+/// The space after an operator, or a line break when its comment ends the line.
+fn after_operator(cx: &FormatCtx<'_>, op: &SyntaxToken) -> Doc {
+    if ends_in_line_comment(cx, op) {
+        doc::hardline()
+    } else {
+        doc::lit(" ")
+    }
+}
+
 // ---------------------------------------------------------------- assignment
 
 /// Does the right-hand side of `=` move to its own line when it does not fit?
 fn breaks_after_operator(cx: &FormatCtx<'_>, rhs: &SyntaxNode) -> bool {
-    cx.grammar.has_tag(rhs.kind(), "binary-chain")
+    // A comment on its own line before the value keeps the value on the next line.
+    core_format::comments::node_leading(cx.grammar, rhs).has_comment
+        || cx.grammar.has_tag(rhs.kind(), "binary-chain")
         || matches!(rhs.kind(), k::CONDITIONAL_EXPRESSION | k::QUERY_EXPRESSION)
 }
 
 /// `lead rhs`, where `lead` ends with the operator.
-fn with_rhs(cx: &FormatCtx<'_>, lead: Doc, rhs: &SyntaxNode) -> R {
+fn with_rhs(cx: &FormatCtx<'_>, lead: Doc, op: &SyntaxToken, rhs: &SyntaxNode) -> R {
     let rhs_doc = cx.format(rhs)?;
-    Ok(if breaks_after_operator(cx, rhs) {
+    Ok(if ends_in_line_comment(cx, op) {
+        doc::concat(vec![
+            lead,
+            doc::indent(doc::concat(vec![doc::hardline(), rhs_doc])),
+        ])
+    } else if breaks_after_operator(cx, rhs) {
         doc::concat(vec![
             lead,
             doc::group(doc::indent(doc::concat(vec![doc::line(), rhs_doc]))),
@@ -42,7 +66,7 @@ pub fn assignment(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
         return Err(shape("assignment: expected left, operator and right"));
     };
     let lead = doc::concat(vec![cx.format(left)?, doc::lit(" "), cx.token(op)]);
-    with_rhs(cx, lead, right)
+    with_rhs(cx, lead, op, right)
 }
 
 fn operator_and_value(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
@@ -50,7 +74,7 @@ fn operator_and_value(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
     let [SyntaxElement::Token(op), SyntaxElement::Node(value)] = els.as_slice() else {
         return Err(shape("expected an operator token and a value"));
     };
-    with_rhs(cx, cx.token(op), value)
+    with_rhs(cx, cx.token(op), op, value)
 }
 
 pub fn equals_value_clause(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
@@ -79,11 +103,11 @@ pub fn conditional(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
         doc::indent(doc::concat(vec![
             doc::line(),
             cx.token(q),
-            doc::lit(" "),
+            after_operator(cx, q),
             cx.format(yes)?,
             doc::line(),
             cx.token(c),
-            doc::lit(" "),
+            after_operator(cx, c),
             cx.format(no)?,
         ])),
     ])))
@@ -217,7 +241,7 @@ fn layout(
     for (op, operand) in rest {
         tail.push(doc::line());
         tail.push(cx.token(op));
-        tail.push(doc::lit(" "));
+        tail.push(after_operator(cx, op));
         tail.push(cx.format(operand)?);
     }
     let tail = doc::concat(tail);
@@ -235,6 +259,8 @@ enum Link {
     Index(SyntaxNode),
     Bang(SyntaxToken),
     Question(SyntaxToken),
+    /// What follows `?` when it is not a chain: `a?.b = c`.
+    Tail(SyntaxNode),
 }
 
 /// Collects the links of the chain `node` ends with, in source order, and returns the head: the
@@ -285,7 +311,11 @@ fn walk(
         ) => {
             let head = inner(cx, e, links)?;
             links.push(Link::Question(q.clone()));
-            inner(cx, w, links)?;
+            if cx.grammar.has_tag(w.kind(), "member-chain") {
+                walk(cx, w, links)?;
+            } else {
+                links.push(Link::Tail(w.clone()));
+            }
             Ok(head)
         }
         (k::MEMBER_BINDING_EXPRESSION, [SyntaxElement::Token(dot), SyntaxElement::Node(name)]) => {
@@ -303,8 +333,27 @@ fn walk(
 fn link_doc(cx: &FormatCtx<'_>, link: &Link) -> R {
     Ok(match link {
         Link::Dot(op, name) => doc::concat(vec![cx.token(op), cx.format(name)?]),
-        Link::Call(a) | Link::Index(a) => cx.format(a)?,
+        Link::Call(a) | Link::Index(a) | Link::Tail(a) => cx.format(a)?,
         Link::Bang(t) | Link::Question(t) => cx.token(t),
+    })
+}
+
+/// Does a line comment sit between the parts of the chain? Then every call goes on its own
+/// line, or two comments would end up on one line.
+fn has_line_comment(cx: &FormatCtx<'_>, links: &[Link]) -> bool {
+    let g = cx.grammar;
+    let line = |t: &SyntaxToken| {
+        core_format::comments::trailing_comments(g, t)
+            .iter()
+            .chain(core_format::comments::leading_comments(g, t).iter())
+            .any(|c| c.kind != core_format::comments::CommentKind::Block)
+    };
+    links.iter().any(|l| match l {
+        Link::Dot(op, name) => line(op) || cx.last_token(name).is_some_and(|t| line(&t)),
+        Link::Call(a) | Link::Index(a) | Link::Tail(a) => {
+            cx.last_token(a).is_some_and(|t| line(&t))
+        }
+        Link::Bang(t) | Link::Question(t) => line(t),
     })
 }
 
@@ -327,7 +376,14 @@ fn merges_first_group(cx: &FormatCtx<'_>, head: &SyntaxNode) -> bool {
 /// with fewer calls than `member_chain_min_calls` are never broken at the dots.
 pub fn member_chain(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
     let mut links = Vec::new();
-    let head = walk(cx, node, &mut links)?.ok_or_else(|| shape("member chain without a head"))?;
+    let Some(head) = walk(cx, node, &mut links)? else {
+        // `.name` or `[i]` after a `?`: the part of the chain that follows the head.
+        let docs = links
+            .iter()
+            .map(|l| link_doc(cx, l))
+            .collect::<Result<Vec<_>, _>>()?;
+        return Ok(doc::concat(docs));
+    };
     let calls = links.iter().filter(|l| matches!(l, Link::Call(_))).count();
 
     // Split into the part that stays with the head and the groups that start at a dot.
@@ -351,7 +407,8 @@ pub fn member_chain(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
     let mut head_parts = vec![cx.format(&head)?];
     head_parts.extend(prefix);
     let min_calls = cx.options.int(super::options::MEMBER_CHAIN_MIN_CALLS) as usize;
-    if calls < min_calls || groups.is_empty() {
+    let commented = has_line_comment(cx, &links);
+    if (calls < min_calls && !commented) || groups.is_empty() {
         for g in groups {
             head_parts.extend(g);
         }
@@ -377,5 +434,8 @@ pub fn member_chain(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
         tail.extend(g);
     }
     broken.push(doc::indent(doc::concat(tail)));
+    if commented {
+        return Ok(doc::concat(broken));
+    }
     Ok(doc::conditional_group(vec![flat, doc::concat(broken)]))
 }

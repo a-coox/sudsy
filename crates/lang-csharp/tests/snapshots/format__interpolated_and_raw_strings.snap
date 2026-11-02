@@ -1,0 +1,20 @@
+---
+source: crates/lang-csharp/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+class C{void M(){var a=$"x{y}z {a+b,5:N2}";var b=$@"{x}";var c=@"verbatim
+  text";var d="""raw "quoted" text""";var e=$$"""{{x}}""";var f="bytes"u8;}}
+-----
+class C
+{
+    void M()
+    {
+        var a = $"x{y}z {a+b,5:N2}";
+        var b = $@"{x}";
+        var c = @"verbatim
+  text";
+        var d = """raw "quoted" text""";
+        var e = $$"""{{x}}""";
+        var f = "bytes"u8;
+    }
+}

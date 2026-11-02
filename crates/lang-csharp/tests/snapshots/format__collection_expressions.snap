@@ -1,0 +1,16 @@
+---
+source: crates/lang-csharp/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+class C{void M(){int[] a=[1,2,3];List<int> b=[..a,4];var c=[];int[][] d=[[1],[2,3]];}}
+-----
+class C
+{
+    void M()
+    {
+        int[] a = [1, 2, 3];
+        List<int> b = [..a, 4];
+        var c = [];
+        int[][] d = [[1], [2, 3]];
+    }
+}

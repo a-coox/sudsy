@@ -89,9 +89,13 @@ fn element_text(e: &SyntaxElement) -> Cow<'_, str> {
 fn ends_line(e: &SyntaxElement) -> bool {
     match e {
         SyntaxElement::Token(t) => t.text().chars().next_back().is_some_and(is_line_break),
+        // A structured trivia ends with a zero-width token; its text decides.
         SyntaxElement::Node(n) => n
-            .last_token()
-            .is_some_and(|t| t.text().chars().next_back().is_some_and(is_line_break)),
+            .text()
+            .to_string()
+            .chars()
+            .next_back()
+            .is_some_and(is_line_break),
     }
 }
 

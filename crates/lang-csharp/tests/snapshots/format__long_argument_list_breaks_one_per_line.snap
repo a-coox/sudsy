@@ -1,0 +1,15 @@
+---
+source: crates/lang-csharp/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+class C{void M(){Foo(argumentNumberOne,argumentNumberTwo,argumentNumberThree,argumentNumberFour,argumentNumberFive,six);}
+void LongParameters(int parameterNumberOne,string parameterNumberTwo,double parameterNumberThree,object four){}}
+-----
+class C
+{
+    void M()
+    {
+        Foo(argumentNumberOne, argumentNumberTwo, argumentNumberThree, argumentNumberFour, argumentNumberFive, six);
+    }
+    void LongParameters(int parameterNumberOne, string parameterNumberTwo, double parameterNumberThree, object four) { }
+}

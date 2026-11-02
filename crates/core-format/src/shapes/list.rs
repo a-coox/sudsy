@@ -106,6 +106,7 @@ fn list_of(
     if items.is_empty() && dangling.is_empty() && !open_comments && c.prefix.is_none() {
         return Ok(doc::concat(vec![
             before,
+            if style.leading_line { doc::lit(" ") } else { Doc::Nil },
             opening,
             doc::lit(style.empty),
             closing,

@@ -280,6 +280,11 @@ pub fn leading_comments_doc(cs: &[Comment]) -> Doc {
     }
     let mut parts = Vec::new();
     for c in cs {
+        // A comment that was on its own line starts one, wherever the formatter put the code
+        // before it.
+        if c.kind != CommentKind::Block || c.breaks_after > 0 {
+            parts.push(doc::newline_if_needed());
+        }
         parts.push(comment_doc(c));
         if c.kind == CommentKind::Line || c.breaks_after > 0 {
             parts.push(doc::hardline());

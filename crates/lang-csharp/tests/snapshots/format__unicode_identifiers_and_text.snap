@@ -1,0 +1,14 @@
+---
+source: crates/lang-csharp/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+class C{void M(){var größe="日本語";var ключ=größe+"😀";}}
+-----
+class C
+{
+    void M()
+    {
+        var größe = "日本語";
+        var ключ = größe + "😀";
+    }
+}

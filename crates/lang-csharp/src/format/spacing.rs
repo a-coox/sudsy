@@ -8,7 +8,7 @@ const SPACE_BEFORE_PAREN: &[&str] = &[
     "if", "while", "for", "foreach", "switch", "lock", "using", "catch", "fixed", "when", "return",
     "throw", "await", "in", "is", "and", "or", "not", "case", "yield", "else", "do", "var",
     "delegate", "select", "where", "equals", "by", "on", "group", "orderby", "let", "from",
-    "join", "into", "ref", "out", "with",
+    "join", "into", "ref", "out", "with", "async", "static",
 ];
 
 fn ends_word(text: &str) -> bool {

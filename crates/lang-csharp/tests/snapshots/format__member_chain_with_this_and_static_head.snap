@@ -1,0 +1,20 @@
+---
+source: crates/lang-csharp/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+class C{void M(){this.builder.WithName("a long name here").WithDescription("another long text here").WithOwner(owner).Build();
+var x=Enumerable.Range(0,1000000).Where(i=>i%2==0).Select(i=>i*i).Where(i=>i>100).ToArray().Length;}}
+-----
+class C
+{
+    void M()
+    {
+        this.builder.WithName("a long name here").WithDescription("another long text here").WithOwner(owner).Build();
+        var x = Enumerable.Range(0, 1000000)
+            .Where(i => i % 2 == 0)
+            .Select(i => i * i)
+            .Where(i => i > 100)
+            .ToArray()
+            .Length;
+    }
+}

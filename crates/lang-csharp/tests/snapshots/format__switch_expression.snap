@@ -1,0 +1,23 @@
+---
+source: crates/lang-csharp/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+class C{int M(int x)=>x switch{1=>10,2=>20,_=>0};
+string N(object o)=>o switch{int i when i>0=>"pos",string{Length:>3}=>"long",null=>"null",_=>"other",};}
+-----
+class C
+{
+    int M(int x) => x switch
+    {
+        1 => 10,
+        2 => 20,
+        _ => 0
+    };
+    string N(object o) => o switch
+    {
+        int i when i > 0 => "pos",
+        string { Length: > 3 } => "long",
+        null => "null",
+        _ => "other",
+    };
+}

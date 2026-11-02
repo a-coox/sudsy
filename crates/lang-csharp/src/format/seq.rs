@@ -228,12 +228,17 @@ pub fn paren_group(
     expr: &SyntaxNode,
     close: &SyntaxToken,
 ) -> R {
-    Ok(doc::group(doc::concat(vec![
-        cx.token(open),
-        doc::indent(doc::concat(vec![doc::softline(), cx.format(expr)?])),
-        doc::softline(),
-        cx.token(close),
-    ])))
+    // A comment after the closing parenthesis must not make the group break.
+    Ok(doc::concat(vec![
+        doc::group(doc::concat(vec![
+            cx.token(open),
+            doc::indent(doc::concat(vec![doc::softline(), cx.format(expr)?])),
+            doc::softline(),
+            cx.leading_comments_doc(close),
+            cx.token_text(close),
+        ])),
+        cx.trailing_comments_doc(close),
+    ]))
 }
 
 pub fn seq(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
