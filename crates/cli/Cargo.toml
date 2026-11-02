@@ -1,0 +1,23 @@
+[package]
+name = "cli"
+edition.workspace = true
+license.workspace = true
+version.workspace = true
+publish.workspace = true
+
+[[bin]]
+name = "sudsy"
+path = "src/main.rs"
+
+[dependencies]
+anyhow.workspace = true
+clap.workspace = true
+core-config.workspace = true
+core-syntax.workspace = true
+provider-api.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
+
+[lints]
+workspace = true
