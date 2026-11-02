@@ -171,7 +171,13 @@ impl NodeFormatter for YamlFormatter {
     }
 }
 
-/// The presets are data: `presets.yaml` next to the crate's manifest.
+/// The presets are plain config files in `presets/` next to the crate's manifest.
 fn presets() -> Vec<Preset> {
-    Preset::from_yaml("yaml", include_str!("../../presets.yaml"))
+    vec![
+        Preset::new("yaml/default", include_str!("../../presets/default.yaml")),
+        Preset::new(
+            "yaml/prettier-compat",
+            include_str!("../../presets/prettier-compat.yaml"),
+        ),
+    ]
 }

@@ -1,4 +1,4 @@
-# csharp/google@1 samples
+# csharp/google samples
 
 Source: "C# at Google Style Guide" (<https://google.github.io/styleguide/csharpguide.html>), section
 "Formatting guidelines / Example", text retrieved 2026-11-02.
@@ -14,4 +14,4 @@ Changes to the published example (see `docs/presets.md` for why):
   examples with first-argument alignment or four-space continuation lines. Sudsy lays out an
   argument list that does not fit one item per line, indented one level.
 
-The `.in` file is the `.out` file formatted with `csharp/microsoft@1` (Allman, 4 spaces).
+The `.in` file is the `.out` file formatted with `csharp/microsoft` (Allman, 4 spaces).

@@ -1,4 +1,4 @@
-# csharp/dotnet-runtime@1 samples
+# csharp/dotnet-runtime samples
 
 Source: dotnet/runtime, `docs/coding-guidelines/coding-style.md`
 (<https://github.com/dotnet/runtime/blob/main/docs/coding-guidelines/coding-style.md>), section
@@ -9,4 +9,4 @@ Source: dotnet/runtime, `docs/coding-guidelines/coding-style.md`
 
 Changes to make the examples parse and keep their layout: the guide's `...` placeholders are
 `// ...` comments. Nothing else differs. The `.in` files are the `.out` files formatted with
-`csharp/google@1`.
+`csharp/google`.

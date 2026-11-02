@@ -167,6 +167,52 @@ pub(crate) fn check_shared(options: &Options) -> Result<(), ConfigError> {
     Ok(())
 }
 
+/// Applies preset `name`, a config file of its own: first the presets it extends, then its shared
+/// and language `format` settings. `stack` holds the presets being applied, to catch cycles.
+pub(crate) fn apply_preset(
+    name: &str,
+    schema: &OptionSchema,
+    language: &str,
+    options: &mut ResolvedOptions,
+    sources: &mut BTreeMap<String, Source>,
+    stack: &mut Vec<String>,
+) -> Result<(), ConfigError> {
+    if stack.iter().any(|n| n == name) {
+        return Err(ConfigError::new(format!(
+            "preset {name} extends itself (through {})",
+            stack.join(" -> ")
+        )));
+    }
+    let preset = schema
+        .find_preset(name)
+        .ok_or_else(|| ConfigError::new(format!("unknown preset `{name}`")))?;
+    let in_preset = |e: ConfigError| ConfigError::new(format!("preset {name}: {e}"));
+    let config = crate::load::parse_str(preset.text).map_err(in_preset)?;
+    stack.push(name.to_string());
+    for entry in &config.extends {
+        match entry.value.strip_prefix(crate::PRESET_PREFIX) {
+            Some(n) if language_of(n) == language => {
+                apply_preset(n, schema, language, options, sources, stack)?;
+            }
+            Some(_) => {}
+            None => {
+                return Err(in_preset(ConfigError::new(
+                    "a preset can only extend presets",
+                )));
+            }
+        }
+    }
+    stack.pop();
+    let mut record = |option: &str, _: &Spanned<OptionValue>| {
+        sources.insert(option.into(), Source::Preset(name.into()));
+    };
+    apply_shared(&config.format, schema, options, &mut record).map_err(in_preset)?;
+    if let Some(section) = config.language_section(language) {
+        apply_options(&section.format, schema, options, &mut record).map_err(in_preset)?;
+    }
+    Ok(())
+}
+
 fn language_of(preset: &str) -> &str {
     preset.split('/').next().unwrap_or_default()
 }
@@ -217,12 +263,14 @@ impl ConfigChain {
                 )
                 .in_file(preset_ref.file.as_ref())
             })?;
-            for (option, value) in &preset.values {
-                schema
-                    .apply(&mut options, option, value)
-                    .map_err(|e| ConfigError::new(format!("preset {}: {e}", preset.name)))?;
-                sources.insert(option.clone(), Source::Preset(preset.name.clone()));
-            }
+            apply_preset(
+                &preset.name,
+                schema,
+                input.language,
+                &mut options,
+                &mut sources,
+                &mut Vec::new(),
+            )?;
         }
 
         for loaded in &self.files {

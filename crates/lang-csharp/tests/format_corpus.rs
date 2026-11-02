@@ -68,10 +68,10 @@ fn failure_kind(message: &str) -> &'static str {
     }
 }
 
-/// The options of the preset `csharp/csharpier-compat@1`.
+/// The options of the preset `csharp/csharpier-compat`.
 fn compat_options() -> core_config::ResolvedOptions {
     core_config::ConfigChain::parse(
-        "extends: [\"preset:csharp/csharpier-compat@1\"]
+        "extends: [\"preset:csharp/csharpier-compat\"]
 ",
     )
     .unwrap()

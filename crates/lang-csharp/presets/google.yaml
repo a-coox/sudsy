@@ -1,0 +1,11 @@
+# Google's C# style guide: two spaces, 100 columns, braces on the line of the header, `} else {`,
+# `{}` for an empty body, trailing commas in multi-line lists.
+csharp:
+  format:
+    line_width: 100
+    indent_size: 2
+    brace_newline: none
+    trailing_commas: multiline
+    wrapped_brace_line: none
+    clause_keyword_line: same_line
+    empty_braces: tight

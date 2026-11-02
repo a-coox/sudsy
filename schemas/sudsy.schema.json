@@ -281,17 +281,17 @@
       "type": "array"
     },
     "extends": {
-      "description": "Presets (`preset:<language>/<name>@<version>`) or config files, applied in order.",
+      "description": "Presets (`preset:<language>/<name>`) or config files, applied in order.",
       "items": {
         "examples": [
-          "preset:csharp/csharpier-compat@1",
-          "preset:csharp/dotnet-runtime@1",
-          "preset:csharp/google@1",
-          "preset:csharp/microsoft@1",
-          "preset:json/default@1",
-          "preset:json/prettier-compat@1",
-          "preset:yaml/default@1",
-          "preset:yaml/prettier-compat@1"
+          "preset:csharp/csharpier-compat",
+          "preset:csharp/dotnet-runtime",
+          "preset:csharp/google",
+          "preset:csharp/microsoft",
+          "preset:json/default",
+          "preset:json/prettier-compat",
+          "preset:yaml/default",
+          "preset:yaml/prettier-compat"
         ],
         "type": "string"
       },

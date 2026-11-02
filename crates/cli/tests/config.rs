@@ -163,9 +163,9 @@ fn config_errors_name_the_file_and_position_and_suggest() {
     assert!(message.contains("sudsy.yaml:1:1"), "{message}");
     assert!(message.contains("did you mean `format`"), "{message}");
 
-    write(t.path(), "sudsy.yaml", "extends: [preset:json/nope@1]\n");
+    write(t.path(), "sudsy.yaml", "extends: [preset:json/nope]\n");
     let message = stderr(&sudsy(t.path(), &["format"]));
-    assert!(message.contains("json/prettier-compat@1"), "{message}");
+    assert!(message.contains("json/prettier-compat"), "{message}");
 
     write(t.path(), "sudsy.yaml", "extends: [base/missing.yaml]\n");
     let message = stderr(&sudsy(t.path(), &["format"]));
@@ -190,7 +190,7 @@ fn extends_a_file_in_another_directory() {
     write(
         t.path(),
         "team/base.yaml",
-        "extends: [preset:json/default@1]\njson:\n  format:\n    collapse: never\n    indent_size: 8\n",
+        "extends: [preset:json/default]\njson:\n  format:\n    collapse: never\n    indent_size: 8\n",
     );
     write(
         t.path(),
@@ -208,7 +208,7 @@ fn config_print_shows_the_value_and_where_it_came_from() {
     write(
         t.path(),
         "sudsy.yaml",
-        "extends: [preset:yaml/prettier-compat@1]\nformat:\n  line_width: 90\nlint:\n  rules:\n    max-line-length: warn\nyaml:\n  format:\n    indent_size: 4\n  lint:\n    rules:\n      ambiguous-booleans: error\noverrides:\n  - files: [\"ci/**\"]\n    yaml:\n      format:\n        indent_size: 3\n",
+        "extends: [preset:yaml/prettier-compat]\nformat:\n  line_width: 90\nlint:\n  rules:\n    max-line-length: warn\nyaml:\n  format:\n    indent_size: 4\n  lint:\n    rules:\n      ambiguous-booleans: error\noverrides:\n  - files: [\"ci/**\"]\n    yaml:\n      format:\n        indent_size: 3\n",
     );
     write(
         t.path(),
@@ -228,7 +228,7 @@ fn config_print_shows_the_value_and_where_it_came_from() {
         "{text}"
     );
     assert!(text.contains("(sudsy.yaml:3:15 (format))"), "{text}");
-    assert!(text.contains("(preset yaml/prettier-compat@1)"), "{text}");
+    assert!(text.contains("(preset yaml/prettier-compat)"), "{text}");
     assert!(
         text.contains("(.editorconfig:3 (insert_final_newline))"),
         "{text}"
@@ -260,8 +260,8 @@ fn init_writes_a_starter_config_and_will_not_overwrite() {
     let out = sudsy(t.path(), &["init"]);
     assert_eq!(out.status.code(), Some(0), "{}", stderr(&out));
     let text = read(t.path(), "sudsy.yaml");
-    assert!(text.contains("preset:csharp/microsoft@1"), "{text}");
-    assert!(text.contains("preset:yaml/default@1"), "{text}");
+    assert!(text.contains("preset:csharp/microsoft"), "{text}");
+    assert!(text.contains("preset:yaml/default"), "{text}");
     // The starter loads.
     write(t.path(), "a.json", JSON);
     assert_eq!(sudsy(t.path(), &["format"]).status.code(), Some(0));
@@ -275,18 +275,18 @@ fn init_writes_a_starter_config_and_will_not_overwrite() {
             "--preset",
             "csharp/google",
             "--preset",
-            "json/prettier-compat@1",
+            "json/prettier-compat",
         ],
     );
     assert_eq!(out.status.code(), Some(0), "{}", stderr(&out));
     assert_eq!(
         read(t.path(), "sudsy.yaml"),
-        "# https://github.com/a-coox/sudsy\nextends:\n  - preset:csharp/google@1\n  - preset:json/prettier-compat@1\n"
+        "# https://github.com/a-coox/sudsy\nextends:\n  - preset:csharp/google\n  - preset:json/prettier-compat\n"
     );
     let t = tempfile::tempdir().unwrap();
     let out = sudsy(t.path(), &["init", "--preset", "csharp/nope"]);
     assert_eq!(out.status.code(), Some(2));
-    assert!(stderr(&out).contains("csharp/google@1"), "{}", stderr(&out));
+    assert!(stderr(&out).contains("csharp/google"), "{}", stderr(&out));
     assert!(!t.path().join("sudsy.yaml").exists());
 }
 

@@ -98,21 +98,18 @@ fn validate(config: &Config) -> Result<(), ConfigError> {
     Ok(())
 }
 
-/// `language/name@version`, e.g. `csharp/microsoft@1` (`@version` optional).
+/// `language/name`; presets are unversioned, so an `@version` is an error.
 fn check_preset_name(entry: &Spanned<String>, name: &str) -> Result<(), ConfigError> {
-    let (path, version) = match name.split_once('@') {
-        Some((p, v)) => (p, Some(v)),
-        None => (name, None),
-    };
-    let valid_path = matches!(path.split_once('/'), Some((l, n))
-        if !l.is_empty() && !n.is_empty() && !n.contains('/'));
-    let valid_version = version.is_none_or(|v| v.parse::<u32>().is_ok());
-    if valid_path && valid_version {
+    let valid = matches!(name.split_once('/'), Some((l, n))
+        if !l.is_empty() && !n.is_empty() && !n.contains(['/', '@']));
+    if valid {
         Ok(())
     } else {
         Err(at(
             entry,
-            format!("`{name}` is not a preset name; expected `preset:<language>/<name>@<version>`"),
+            format!(
+                "`{name}` is not a preset name; expected `preset:<language>/<name>` (presets have no versions)"
+            ),
         ))
     }
 }

@@ -28,7 +28,7 @@ fn diff_dir() -> PathBuf {
 }
 
 fn compat_options() -> ResolvedOptions {
-    core_config::ConfigChain::parse("extends:\n  - preset:csharp/csharpier-compat@1\n")
+    core_config::ConfigChain::parse("extends:\n  - preset:csharp/csharpier-compat\n")
         .expect("valid config")
         .format_options(
             &core_config::FileInput::language("csharp"),

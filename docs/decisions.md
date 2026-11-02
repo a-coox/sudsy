@@ -756,15 +756,15 @@ a chain or argument list nested in a hugged lambda doubles the size of its docum
 ## M2c: CSharpier compatibility and speed
 
 ### Presets (`core-config::presets`, `lang-csharp::format::options`)
-* `extends: [preset:csharp/csharpier-compat@1]` works for C#. A provider declares its presets next
+* `extends: [preset:csharp/csharpier-compat]` works for C#. A provider declares its presets next
   to its option schema (`OptionSchema::with_presets`); a preset is a name `language/name@version`
   and a list of option values. Resolution: schema defaults, then the presets of the file's language
   in `extends` order, then the shared `format:` section, then the language section. A name without
   `@version` means the newest version; an unknown name of the file's language is a config error
   listing the known ones; entries for other languages and non-preset entries (config files, M3)
-  are skipped. (Superseded in M3a: presets are data in `presets.yaml`, all eight of the plan's
+  are skipped. (Superseded in M3a: presets are plain config files in `presets/`, all eight of the plan's
   presets exist, and there are no internal option values.)
-* `csharpier-compat@1` sets only public options; see "M3a: Configuration".
+* `csharpier-compat` sets only public options; see "M3a: Configuration".
 
 ### Differential test against CSharpier 1.3.0
 * `dotnet-tools.json` pins CSharpier. `tests/conformance/csharpier-baseline.sh` copies the corpus
@@ -891,7 +891,7 @@ with the release one. Run-to-run noise on this machine is about 10 %.
 
 ### Other changes
 * The corpus gate (`format_corpus`) now formats the corpus twice, with the default options and with
-  `csharp/csharpier-compat@1`: format, safety check and idempotency must hold for both (0 failures
+  `csharp/csharpier-compat`: format, safety check and idempotency must hold for both (0 failures
   each; the preset found three idempotency problems: a trailing comma added in front of a line
   comment, which then belongs to the comma the next time, and a comment after the `:` of a base
   list). A comma is no longer added after a last list element that ends in a line comment.
@@ -908,8 +908,12 @@ with the release one. Run-to-run noise on this machine is about 10 %.
 
 ## M3a: Configuration
 
-* **Presets are pure data.** Each provider has a `presets.yaml` (`name@version: {option: value}`);
-  `Preset::from_yaml` loads it. Formatter code never branches on a preset or tool name. The old
+* **Presets are plain, unversioned config files** (user decision; deviates from plan.md's `@1`
+  versioning). Each preset is a `sudsy.yaml` under `crates/lang-*/presets/`, embedded with
+  `include_str!` and parsed by the same loader as user configs (unknown keys error, its `extends`
+  of other presets works, cycles are caught). `preset:csharp/google@1` is a config error. Only
+  `format:` and the language's `format:` sections of a preset are applied.
+* **Presets are pure data.** Formatter code never branches on a preset or tool name. The old
   hidden `layout: csharpier` value and the `csharpier()` helper are deleted; their effects are 18
   named C# options (`blank_lines_between_members`, `assignment_layout`, `indent_nested_binary`,
   ...), JSON `collapse: opening_break`, YAML `quote_style: prefer_double` and

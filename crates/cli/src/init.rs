@@ -7,14 +7,14 @@ use std::path::Path;
 
 #[derive(Args)]
 pub struct InitArgs {
-    /// A preset to extend, e.g. `csharp/google@1`; repeat for several languages. Without it the
+    /// A preset to extend, e.g. `csharp/google`; repeat for several languages. Without it the
     /// starter extends the default preset of each language.
     #[arg(long = "preset")]
     presets: Vec<String>,
 }
 
 /// The preset each language gets when none is named.
-const DEFAULT_PRESETS: [&str; 3] = ["csharp/microsoft@1", "json/default@1", "yaml/default@1"];
+const DEFAULT_PRESETS: [&str; 3] = ["csharp/microsoft", "json/default", "yaml/default"];
 
 pub fn run(args: InitArgs) -> Result<()> {
     let path = Path::new("sudsy.yaml");
@@ -38,26 +38,16 @@ extends:
 ",
     );
     for preset in &presets {
-        // A name without a version means the newest one.
-        let versioned = if preset.contains('@') {
-            Some(preset.as_str())
-        } else {
-            known
-                .iter()
-                .filter(|k| k.split('@').next() == Some(preset.as_str()))
-                .max()
-                .copied()
-        };
-        match versioned.filter(|v| known.contains(v)) {
-            Some(v) => text.push_str(&format!(
-                "  - preset:{v}
-"
-            )),
-            None => bail!(
+        if !known.contains(&preset.as_str()) {
+            bail!(
                 "unknown preset `{preset}`; known presets: {}",
                 known.join(", ")
-            ),
+            );
         }
+        text.push_str(&format!(
+            "  - preset:{preset}
+"
+        ));
     }
     std::fs::write(path, text)?;
     eprintln!("wrote sudsy.yaml");

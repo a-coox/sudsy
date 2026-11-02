@@ -1,7 +1,7 @@
 //! The C# format options: `brace_newline`, `trailing_commas` and `member_chain_min_calls` of
 //! plan.md "Configuration and presets", the shared ones, and the layout choices the presets of
 //! the plan's table differ in. Every option has a documented default; the defaults are
-//! `csharp/microsoft`. Presets are data (`presets.yaml`): they only set these options, and
+//! `csharp/microsoft`. Presets are config files (`presets/`): they only set these options, and
 //! nothing in the formatter knows which preset is in use.
 
 use core_config::{OptionDef, OptionSchema, Preset, ResolvedOptions, shared};
@@ -197,9 +197,23 @@ pub fn option_schema() -> OptionSchema {
     .with_presets(presets())
 }
 
-/// The presets are data: `presets.yaml` next to the crate's manifest.
+/// The presets are plain config files in `presets/` next to the crate's manifest.
 fn presets() -> Vec<Preset> {
-    Preset::from_yaml("csharp", include_str!("../../presets.yaml"))
+    vec![
+        Preset::new(
+            "csharp/microsoft",
+            include_str!("../../presets/microsoft.yaml"),
+        ),
+        Preset::new(
+            "csharp/dotnet-runtime",
+            include_str!("../../presets/dotnet-runtime.yaml"),
+        ),
+        Preset::new("csharp/google", include_str!("../../presets/google.yaml")),
+        Preset::new(
+            "csharp/csharpier-compat",
+            include_str!("../../presets/csharpier-compat.yaml"),
+        ),
+    ]
 }
 
 fn is(options: &ResolvedOptions, name: &str, value: &str) -> bool {

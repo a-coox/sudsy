@@ -1,4 +1,4 @@
-# csharp/csharpier-compat@1 samples
+# csharp/csharpier-compat samples
 
 `orders.out.cs` is the output of CSharpier 1.3.0 (`dotnet csharpier format`, the version pinned in
 `dotnet-tools.json`) for `orders.in.cs`, a hand-written file that covers member bodies, accessors,

@@ -1,0 +1,5 @@
+# The dotnet/runtime coding style: Microsoft's layout, except that a short accessor body stays on
+# the accessor's line (`get { return _count; }`).
+csharp:
+  format:
+    inline_accessor_bodies: true
