@@ -1,5 +1,5 @@
 //! Repository automation. `cargo xtask codegen` regenerates checked-in files from
-//! the grammars; `cargo xtask codegen --check` (and the `codegen_is_fresh` test)
+//! the grammars and the JSON Schema of the config; `cargo xtask codegen --check` (and the `codegen_is_fresh` test)
 //! fails when they are stale.
 
 use anyhow::{Context, Result};
@@ -26,6 +26,7 @@ pub fn generate() -> Result<Vec<(PathBuf, String)>> {
     let csharp = load("csharp")?;
     let yaml = load("yaml")?;
     Ok(vec![
+        ("schemas/sudsy.schema.json".into(), config_schema()?),
         (
             "crates/lang-json/src/generated.rs".into(),
             codegen::rust_module(&json, "grammars/json.grammar", "core_syntax")?,
@@ -43,6 +44,20 @@ pub fn generate() -> Result<Vec<(PathBuf, String)>> {
             codegen::csharp_constants(&csharp, "grammars/csharp.grammar")?,
         ),
     ])
+}
+
+/// The JSON Schema of `sudsy.yaml`, from the option declarations of the providers (plan.md
+/// "Option schema"); editors register it for completion and validation of the config.
+fn config_schema() -> Result<String> {
+    let (json, yaml, csharp) = (
+        lang_json::option_schema(),
+        lang_yaml::option_schema(),
+        lang_csharp::option_schema(),
+    );
+    let schema = core_config::json_schema(&[("csharp", &csharp), ("json", &json), ("yaml", &yaml)]);
+    Ok(serde_json::to_string_pretty(&schema)?
+        + "
+")
 }
 
 /// Paths of generated files whose checked-in content differs from fresh output.

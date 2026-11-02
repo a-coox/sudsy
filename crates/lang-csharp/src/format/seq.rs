@@ -1,7 +1,11 @@
 //! The generic layout: a node's significant children one after the other, separated by the
 //! space, line break or nothing that [`Sep`] decides.
 
-use super::options::{brace_on_new_line, csharpier, cuddled_clauses, same_line_initializers};
+use super::options::{
+    brace_on_new_line, clauses_on_closing_line, constructor_initializer_on_new_line,
+    creation_brace_on_new_line, do_while_on_closing_line, hanging_base_list,
+    nested_brace_on_new_line,
+};
 use super::spacing;
 use super::tags::{self, Tag};
 use crate::generated::kind as k;
@@ -126,7 +130,7 @@ pub fn separator(
     let pk = parent.kind();
     if let SyntaxElement::Node(n) = next {
         let nk = n.kind();
-        if csharpier(cx.options)
+        if constructor_initializer_on_new_line(cx.options)
             && matches!(
                 nk,
                 k::BASE_CONSTRUCTOR_INITIALIZER | k::THIS_CONSTRUCTOR_INITIALIZER
@@ -137,8 +141,9 @@ pub fn separator(
         let bare_property_pattern = nk == k::RECURSIVE_PATTERN
             && pk == k::IS_PATTERN_EXPRESSION
             && matches!(n.children().next(), Some(c) if c.kind() == k::PROPERTY_PATTERN_CLAUSE);
-        if csharpier(cx.options)
-            && (matches!(nk, k::BASE_LIST | k::PROPERTY_PATTERN_CLAUSE) || bare_property_pattern)
+        let property_pattern = nk == k::PROPERTY_PATTERN_CLAUSE || bare_property_pattern;
+        if (hanging_base_list(cx.options) && nk == k::BASE_LIST)
+            || (nested_brace_on_new_line(cx.options) && property_pattern)
         {
             return Sep::None; // these start with a `line` of their own
         }
@@ -158,7 +163,7 @@ pub fn separator(
                 | k::STACK_ALLOC_ARRAY_CREATION_EXPRESSION
                 | k::IMPLICIT_STACK_ALLOC_ARRAY_CREATION_EXPRESSION
                 | k::WITH_EXPRESSION => {
-                    if same_line_initializers(cx.options) {
+                    if !creation_brace_on_new_line(cx.options) {
                         Sep::Space
                     } else {
                         Sep::None
@@ -181,7 +186,7 @@ pub fn separator(
             return Sep::Embedded;
         }
         if matches!(nk, k::ELSE_CLAUSE | k::CATCH_CLAUSE | k::FINALLY_CLAUSE) {
-            return if cuddled_clauses(cx.options) && clause_can_cuddle(cx, prev, n) {
+            return if clauses_on_closing_line(cx.options) && clause_can_cuddle(cx, prev, n) {
                 Sep::Space
             } else {
                 Sep::Hard
@@ -206,8 +211,8 @@ pub fn separator(
     if pk == k::DO_STATEMENT
         && matches!(next, SyntaxElement::Token(t) if t.kind() == k::WHILE_KEYWORD)
     {
-        // CSharpier keeps `} while (...)` on one line.
-        return if csharpier(cx.options) {
+        // `do_while_line: same_line` keeps `} while (...)` on one line.
+        return if do_while_on_closing_line(cx.options) {
             Sep::Space
         } else {
             Sep::Hard

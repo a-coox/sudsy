@@ -1,9 +1,9 @@
 //! Presets (plan.md "Configuration and presets"): named, versioned sets of option values that
-//! `extends: [preset:csharp/csharpier-compat@1]` applies below the shared and language sections.
+//! `extends: [preset:csharp/google@1]` applies below the shared and language sections.
 //!
-//! A provider declares its presets next to its option schema. A preset may also set internal
-//! values: names the schema does not declare, which users cannot set and which only the
-//! provider's formatting code reads (how a preset picks between layout variants).
+//! A preset is plain data: option values the provider declares, in a YAML file shipped with the
+//! provider ([`Preset::from_yaml`]). Formatting code never looks at which preset is in use, so a
+//! `sudsy.yaml` that writes the same options by hand formats exactly the same.
 
 use crate::model::OptionValue;
 
@@ -13,18 +13,47 @@ pub const PRESET_PREFIX: &str = "preset:";
 #[derive(Clone, Debug, PartialEq)]
 pub struct Preset {
     /// `language/name@version`, e.g. `csharp/microsoft@1`.
-    pub name: &'static str,
-    pub values: Vec<(&'static str, OptionValue)>,
+    pub name: String,
+    pub values: Vec<(String, OptionValue)>,
 }
 
 impl Preset {
     pub fn new(name: &'static str, values: Vec<(&'static str, OptionValue)>) -> Self {
         debug_assert!(name.contains('/') && name.contains('@'), "{name}");
-        Preset { name, values }
+        Preset {
+            name: name.to_string(),
+            values: values
+                .into_iter()
+                .map(|(k, v)| (k.to_string(), v))
+                .collect(),
+        }
+    }
+
+    /// The presets of one language from the text of its data file: a YAML mapping of
+    /// `name@version` to a mapping of option names to values. The text is part of the program, so
+    /// a malformed one is a bug and panics; the provider tests resolve every preset.
+    pub fn from_yaml(language: &str, text: &str) -> Vec<Preset> {
+        let mut options = serde_saphyr::Options::default();
+        options.strict_booleans = true;
+        let sets: std::collections::BTreeMap<
+            String,
+            std::collections::BTreeMap<String, OptionValue>,
+        > = serde_saphyr::from_str_with_options(text, options)
+            .unwrap_or_else(|e| panic!("{language} presets: {e}"));
+        sets.into_iter()
+            .map(|(name, values)| {
+                let name = format!("{language}/{name}");
+                debug_assert!(name.contains('@'), "{name}");
+                Preset {
+                    name,
+                    values: values.into_iter().collect(),
+                }
+            })
+            .collect()
     }
 
     pub(crate) fn unversioned(&self) -> &str {
-        self.name.split('@').next().unwrap_or(self.name)
+        self.name.split('@').next().unwrap_or(&self.name)
     }
 
     pub(crate) fn version(&self) -> u32 {

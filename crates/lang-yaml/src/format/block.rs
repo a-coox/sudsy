@@ -215,7 +215,7 @@ pub(crate) fn node_after(
             let body = cx.format(value)?;
             Ok(match ctx {
                 Ctx::Mapping { key_col } => {
-                    let blank = if st.tight_values {
+                    let blank = if st.drop_blank_after_key {
                         0
                     } else {
                         blank_lines_before(cx, &first, st)

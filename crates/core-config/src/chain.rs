@@ -322,7 +322,7 @@ impl ConfigChain {
                         schema
                             .presets()
                             .iter()
-                            .map(|p| p.name)
+                            .map(|p| p.name.as_str())
                             .collect::<Vec<_>>()
                             .join(", ")
                     )));

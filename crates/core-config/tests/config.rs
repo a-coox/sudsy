@@ -290,10 +290,7 @@ fn schema() -> OptionSchema {
         Preset::new("json/narrow@1", vec![("line_width", OptionValue::Int(60))]),
         Preset::new(
             "json/modal@1",
-            vec![
-                ("mode", OptionValue::String("b".into())),
-                ("hidden", OptionValue::Bool(true)),
-            ],
+            vec![("mode", OptionValue::String("b".into()))],
         ),
     ])
 }
@@ -316,7 +313,6 @@ fn language_section_beats_shared_beats_preset_beats_default() {
     assert_eq!(r.options.int("line_width"), 100);
     assert_eq!(r.options.int("indent_size"), 4);
     assert_eq!(r.options.str("mode"), "b");
-    assert_eq!(r.options.get("hidden"), Some(&OptionValue::Bool(true)));
     assert_eq!(r.sources["mode"], Source::Preset("json/modal@1".into()));
 
     // The language section is `x:` for a language called x; csharp/json/yaml are the real ones.
@@ -471,4 +467,37 @@ fn include_and_exclude_filter_paths() {
     assert!(excluded("docs/a.cs"));
     assert!(!excluded("package.json"));
     assert!(!excluded("deep/dir/x.json"));
+}
+
+#[test]
+fn a_preset_is_a_data_file_of_declared_options() {
+    let mut presets = Preset::from_yaml(
+        "json",
+        "data@1:\n  line_width: 70\n  mode: c\nundeclared@1:\n  no_such_option: true\n",
+    );
+    let undeclared = presets.pop().unwrap();
+    let preset = presets.pop().unwrap();
+    assert_eq!(preset.name, "json/data@1");
+    assert_eq!(
+        preset.values,
+        [
+            ("line_width".to_string(), OptionValue::Int(70)),
+            ("mode".to_string(), OptionValue::String("c".into()))
+        ]
+    );
+    let with_data = schema().with_presets(vec![preset, undeclared]);
+    let chain = ConfigChain::parse("extends: [preset:json/data@1]\n").unwrap();
+    let r = chain
+        .format_options(&FileInput::language("json"), &with_data)
+        .unwrap();
+    assert_eq!(
+        (r.options.int("line_width"), r.options.str("mode")),
+        (70, "c")
+    );
+    // Values the provider does not declare are an error, not a hidden setting.
+    let chain = ConfigChain::parse("extends: [preset:json/undeclared@1]\n").unwrap();
+    let e = chain
+        .format_options(&FileInput::language("json"), &with_data)
+        .unwrap_err();
+    assert!(e.message.contains("no_such_option"), "{e}");
 }

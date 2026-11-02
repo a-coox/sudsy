@@ -89,8 +89,8 @@ pub(crate) fn restyle(text: &str, kind: SyntaxKind, quotes: Quotes) -> Option<St
     if text.contains(['\n', '\r']) {
         return None;
     }
-    if quotes == Quotes::Prettier {
-        return prettier_restyle(text, kind);
+    if quotes == Quotes::PreferDouble {
+        return prefer_double_restyle(text, kind);
     }
     match (kind, quotes) {
         (k::DOUBLE_QUOTED, Quotes::Single) => {
@@ -125,10 +125,10 @@ pub(crate) fn restyle(text: &str, kind: SyntaxKind, quotes: Quotes) -> Option<St
     }
 }
 
-/// Prettier's quote rule: a quoted scalar with escapes other than `\"` (double) or any backslash
+/// The `prefer_double` quote rule: a quoted scalar with escapes other than `\"` (double) or any backslash
 /// (single) is kept; else one with a `"` in it is single-quoted, one with only a `'` is
 /// double-quoted, and the rest are double-quoted.
-fn prettier_restyle(text: &str, kind: SyntaxKind) -> Option<String> {
+fn prefer_double_restyle(text: &str, kind: SyntaxKind) -> Option<String> {
     let raw = text.get(1..text.len().checked_sub(1)?)?;
     let double = kind == k::DOUBLE_QUOTED;
     let single = kind == k::SINGLE_QUOTED;

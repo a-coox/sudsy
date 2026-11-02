@@ -218,14 +218,10 @@ impl ConfigChain {
                 .in_file(preset_ref.file.as_ref())
             })?;
             for (option, value) in &preset.values {
-                if schema.get(option).is_some() {
-                    schema
-                        .apply(&mut options, option, value)
-                        .map_err(|e| ConfigError::new(format!("preset {}: {e}", preset.name)))?;
-                    sources.insert((*option).into(), Source::Preset(preset.name.into()));
-                } else {
-                    options.set(option, value.clone());
-                }
+                schema
+                    .apply(&mut options, option, value)
+                    .map_err(|e| ConfigError::new(format!("preset {}: {e}", preset.name)))?;
+                sources.insert(option.clone(), Source::Preset(preset.name.clone()));
             }
         }
 

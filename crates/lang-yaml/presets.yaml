@@ -1,0 +1,17 @@
+# The presets of the YAML provider: `extends: [preset:yaml/<name>]`. A preset only sets options of
+# the provider, so a sudsy.yaml that spells the same options out formats identically.
+
+# Conservative, style-preserving YAML: two spaces, every quote style and sequence indentation kept
+# as written. The defaults of every option, so the preset sets nothing.
+default@1: {}
+
+# Formats like Prettier's YAML output: 80 columns, sequences indented below their key, double
+# quotes unless the text contains one, no blank line between a key and its block value.
+prettier-compat@1:
+  line_width: 80
+  indent_size: 2
+  sequence_indent: indented
+  quote_style: prefer_double
+  document_start: preserve
+  max_blank_lines: 1
+  blank_lines_after_key: remove

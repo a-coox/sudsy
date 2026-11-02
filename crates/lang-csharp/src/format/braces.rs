@@ -2,7 +2,9 @@
 //! statements and expressions, enums, accessor lists.
 
 use super::lists::list_trailing_comma;
-use super::options::{csharpier, empty_braces};
+use super::options::{
+    empty_braces, indent_switch_section_block, remove_accessor_blank_lines, separate_members,
+};
 use super::seq::{R, Sep, direct_tokens, is_empty_braces, sep_doc, separator, seq_of, sig};
 use super::tags::{self, Tag};
 use crate::generated::kind as k;
@@ -121,7 +123,7 @@ fn block_style(cx: &FormatCtx<'_>) -> BlockStyle {
     }
 }
 
-/// A method with a body, or a type: whatever CSharpier sets apart with blank lines.
+/// A method with a body, or a type: what `blank_lines_between_members: separate` sets apart.
 fn has_body_or_members(member: &SyntaxNode) -> bool {
     let kind = member.kind();
     if matches!(
@@ -172,7 +174,7 @@ fn member_rule(cx: &FormatCtx<'_>, node: &SyntaxNode) -> Option<BlankRule> {
     let members = tags::has(g, node.kind(), Tag::Namespace)
         || tags::has(g, node.kind(), Tag::TypeDeclaration)
         || node.kind() == k::COMPILATION_UNIT;
-    (csharpier(cx.options) && members).then_some(blank_between_members as BlankRule)
+    (separate_members(cx.options) && members).then_some(blank_between_members as BlankRule)
 }
 
 /// Blocks, namespaces, types and switch statements.
@@ -214,9 +216,13 @@ pub fn accessors_inline(cx: &FormatCtx<'_>, list: &SyntaxNode) -> bool {
 pub fn accessor_list(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
     let els = sig(cx, node);
     if !accessors_inline(cx, node) {
-        // CSharpier drops the blank lines between accessors.
+        // `accessor_blank_lines: remove` drops the blank lines between accessors.
         let style = BlockStyle {
-            max_blank_lines: if csharpier(cx.options) { 0 } else { 1 },
+            max_blank_lines: if remove_accessor_blank_lines(cx.options) {
+                0
+            } else {
+                1
+            },
             ..block_style(cx)
         };
         return with_braces(cx, node, |open, close| {
@@ -233,9 +239,9 @@ pub fn accessor_list(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
     Ok(doc::concat(parts))
 }
 
-/// `get { return x; }`: CSharpier keeps the body of an accessor on its line when it is a single
-/// simple statement without comments and everything fits; otherwise the braces get their own
-/// lines. `None` for any accessor this does not apply to.
+/// `get { return x; }`: with `inline_accessor_bodies` the body of an accessor stays on its line
+/// when it is a single simple statement without comments and everything fits; otherwise the
+/// braces get their own lines. `None` for any accessor this does not apply to.
 pub fn accessor_declaration(cx: &FormatCtx<'_>, accessor: &SyntaxNode) -> Option<R> {
     let g = cx.grammar;
     let els = sig(cx, accessor);
@@ -292,7 +298,7 @@ pub fn accessor_declaration(cx: &FormatCtx<'_>, accessor: &SyntaxNode) -> Option
 }
 
 /// `: A, B` after a type: on the line of the type when it fits, else on the next line, one
-/// further type per line (CSharpier).
+/// further type per line (`base_list_layout: hanging`).
 pub fn base_list(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
     let mut els = sig(cx, node).into_iter();
     let Some(SyntaxElement::Token(colon)) = els.next() else {
@@ -341,8 +347,10 @@ pub fn switch_section(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
         }
         parts.push(cx.format(label)?);
     }
-    // CSharpier does not indent a block that is the only statement of a section.
-    if csharpier(cx.options) && matches!(statements.as_slice(), [only] if only.kind() == k::BLOCK) {
+    // `indent_switch_section_block: false`: a block that is the only statement of a section is not indented.
+    if !indent_switch_section_block(cx.options)
+        && matches!(statements.as_slice(), [only] if only.kind() == k::BLOCK)
+    {
         parts.push(doc::hardline());
         parts.push(cx.format(&statements[0])?);
     } else if !statements.is_empty() {
@@ -359,7 +367,7 @@ fn arms_style(cx: &FormatCtx<'_>, node: &SyntaxNode, close: &SyntaxToken) -> Lis
         layout: ListLayout::Break,
         trailing_comma: list_trailing_comma(cx, node, close),
         empty: empty_braces(cx.options),
-        force_blank: (csharpier(cx.options) && node.kind() == k::ENUM_DECLARATION)
+        force_blank: (separate_members(cx.options) && node.kind() == k::ENUM_DECLARATION)
             .then_some(blank_between_members as BlankRule),
         ..ListStyle::default()
     }

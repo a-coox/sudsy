@@ -57,7 +57,7 @@ pub struct MemberChain {
     /// Break at the dots whatever the width (a line comment sits between the links).
     pub force_break: bool,
     /// Break at the dots when a group other than the last has a forced break inside it (a call
-    /// with a block lambda), as Prettier does.
+    /// with a block lambda).
     pub break_on_inner_break: bool,
 }
 

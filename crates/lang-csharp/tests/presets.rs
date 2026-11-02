@@ -65,28 +65,9 @@ csharp:
         error.message.contains("csharp/csharpier-compat@1"),
         "{error}"
     );
-    // What a preset sets internally is not an option users can set.
-    assert!(
-        resolve(
-            "csharp:
-  format:
-    layout: csharpier
-"
-        )
-        .is_err()
-    );
-    // Every preset of the table in plan.md resolves, and the layout variants stay internal.
+    // Every preset of the table in plan.md resolves.
     for name in ["microsoft", "dotnet-runtime", "google", "csharpier-compat"] {
-        let r = resolve(&format!(
-            "extends: [\"preset:csharp/{name}@1\"]
-"
-        ))
-        .unwrap();
-        assert_eq!(
-            r.options.get("layout").is_some(),
-            name != "microsoft",
-            "{name}"
-        );
+        resolve(&format!("extends: [\"preset:csharp/{name}@1\"]\n")).unwrap();
     }
 }
 

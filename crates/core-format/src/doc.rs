@@ -46,8 +46,8 @@ pub enum Doc {
     LineSuffix(Box<Doc>),
     /// Forces every enclosing group to break.
     BreakParent,
-    /// Contents indented one level when the group with this id was printed broken (Prettier's
-    /// `indentIfBreak`).
+    /// Contents indented one level when the group with this id was printed broken (the group
+    /// decides the indentation of a later part of the line).
     IndentIfBreak(GroupId, Box<Doc>),
     /// A subtree that is cloned by reference count: layouts that try several candidates share
     /// the documents the candidates have in common instead of copying them (see [`shared`]).

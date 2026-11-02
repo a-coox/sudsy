@@ -1420,7 +1420,12 @@ name = "xtask"
 version = "0.0.0"
 dependencies = [
  "anyhow",
+ "core-config",
  "core-syntax",
+ "lang-csharp",
+ "lang-json",
+ "lang-yaml",
+ "serde_json",
 ]
 
 [[package]]

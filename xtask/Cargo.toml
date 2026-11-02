@@ -7,7 +7,12 @@ publish.workspace = true
 
 [dependencies]
 anyhow.workspace = true
+core-config.workspace = true
 core-syntax.workspace = true
+lang-csharp.workspace = true
+lang-json.workspace = true
+lang-yaml.workspace = true
+serde_json.workspace = true
 
 [lints]
 workspace = true

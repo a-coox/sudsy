@@ -68,7 +68,8 @@ fn the_schema_declares_what_the_formatter_reads() {
             "sequence_indent",
             "quote_style",
             "document_start",
-            "max_blank_lines"
+            "max_blank_lines",
+            "blank_lines_after_key"
         ]
     );
     // The defaults are the zero-config behavior: nothing is rewritten that need not be.

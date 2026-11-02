@@ -14,7 +14,7 @@ mod scalars;
 
 use crate::generated::kind as k;
 use crate::model;
-use core_config::{OptionDef, OptionSchema, OptionValue, Preset, ResolvedOptions, shared};
+use core_config::{OptionDef, OptionSchema, Preset, ResolvedOptions, shared};
 use core_format::{Doc, FormatCtx, FormatError, NodeFormatter};
 use core_syntax::SyntaxNode;
 
@@ -22,6 +22,7 @@ pub const SEQUENCE_INDENT: &str = "sequence_indent";
 pub const QUOTE_STYLE: &str = "quote_style";
 pub const DOCUMENT_START: &str = "document_start";
 pub const MAX_BLANK_LINES: &str = "max_blank_lines";
+pub const BLANK_LINES_AFTER_KEY: &str = "blank_lines_after_key";
 
 pub fn option_schema() -> OptionSchema {
     OptionSchema::new(vec![
@@ -37,10 +38,12 @@ pub fn option_schema() -> OptionSchema {
         ),
         OptionDef::choice(
             QUOTE_STYLE,
-            &["preserve", "single", "double"],
+            &["preserve", "single", "double", "prefer_double"],
             "preserve",
-            "Quote style of quoted scalars. A scalar keeps its quotes when the other style would \
-             change its value or need more escapes.",
+            "Quote style of quoted scalars. With `single` and `double` a scalar keeps its quotes \
+             when the other style would change its value or need more escapes; `prefer_double` \
+             uses double quotes, except single quotes for text that contains a `\"` (unless it \
+             has other escapes, which keep it as written).",
         ),
         OptionDef::choice(
             DOCUMENT_START,
@@ -54,6 +57,12 @@ pub fn option_schema() -> OptionSchema {
             1,
             (0, 10),
             "Largest number of blank lines kept between entries, comments and documents.",
+        ),
+        OptionDef::choice(
+            BLANK_LINES_AFTER_KEY,
+            &["preserve", "remove"],
+            "preserve",
+            "Blank lines between a key and its block value on the next line: `preserve` keeps \n             them (up to `max_blank_lines`); `remove` drops them.",
         ),
     ])
     .with_presets(presets())
@@ -71,8 +80,8 @@ pub(crate) enum Quotes {
     Preserve,
     Single,
     Double,
-    /// Prettier's rule (`yaml/prettier-compat`): double quotes, single when the text has a `"`.
-    Prettier,
+    /// Double quotes, single when the text has a `"`.
+    PreferDouble,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -90,14 +99,13 @@ pub(crate) struct Style {
     pub document_start: DocumentStart,
     pub max_blank: usize,
     /// Blank lines between `key:` and a block value on the next line are dropped.
-    pub tight_values: bool,
+    pub drop_blank_after_key: bool,
 }
 
 impl Style {
     fn of(options: &ResolvedOptions) -> Style {
-        let prettier = prettier(options);
         Style {
-            tight_values: prettier,
+            drop_blank_after_key: options.str(BLANK_LINES_AFTER_KEY) == "remove",
             indent: options.int(shared::INDENT_SIZE) as usize,
             sequence: match options.str(SEQUENCE_INDENT) {
                 "indented" => SequenceIndent::Indented,
@@ -105,7 +113,7 @@ impl Style {
                 _ => SequenceIndent::Preserve,
             },
             quotes: match options.str(QUOTE_STYLE) {
-                _ if prettier => Quotes::Prettier,
+                "prefer_double" => Quotes::PreferDouble,
                 "single" => Quotes::Single,
                 "double" => Quotes::Double,
                 _ => Quotes::Preserve,
@@ -163,30 +171,7 @@ impl NodeFormatter for YamlFormatter {
     }
 }
 
-/// `yaml/default` is the schema's defaults: conservative, every style kept as written.
-/// `yaml/prettier-compat` pins the values that reproduce Prettier's YAML output.
+/// The presets are data: `presets.yaml` next to the crate's manifest.
 fn presets() -> Vec<Preset> {
-    vec![
-        Preset::new("yaml/default@1", vec![]),
-        Preset::new(
-            "yaml/prettier-compat@1",
-            vec![
-                (shared::LINE_WIDTH, OptionValue::Int(80)),
-                (shared::INDENT_SIZE, OptionValue::Int(2)),
-                (SEQUENCE_INDENT, OptionValue::String("indented".into())),
-                (QUOTE_STYLE, OptionValue::String("double".into())),
-                (DOCUMENT_START, OptionValue::String("preserve".into())),
-                (MAX_BLANK_LINES, OptionValue::Int(1)),
-                (LAYOUT, OptionValue::String("prettier".into())),
-            ],
-        ),
-    ]
-}
-
-/// Preset-internal value (not in the schema, so users cannot set it): `prettier` selects the
-/// layout rules that reproduce Prettier's output beyond the public options.
-const LAYOUT: &str = "layout";
-
-fn prettier(options: &ResolvedOptions) -> bool {
-    matches!(options.get(LAYOUT), Some(OptionValue::String(s)) if s == "prettier")
+    Preset::from_yaml("yaml", include_str!("../../presets.yaml"))
 }
