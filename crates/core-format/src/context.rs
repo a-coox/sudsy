@@ -1,0 +1,232 @@
+//! The context formatting code runs in, and the trait providers implement.
+
+use crate::comments::{self, Comment, CommentKind};
+use crate::directives::{Directive, DirectiveTable, NodeDirectives};
+use crate::doc::{self, Doc};
+use crate::error::FormatError;
+use crate::ignore::{self, IgnoreMark};
+use crate::shapes::{self, BlockStyle, KeyValueStyle, ListStyle};
+use core_config::ResolvedOptions;
+use core_syntax::{Grammar, SyntaxElement, SyntaxNode, SyntaxToken};
+
+/// A provider's formatting code. Nodes it does not handle fall back to the shared shape of their
+/// grammar tag (`#block`, `#delimited-list`, `#key-value`), and else to their children
+/// concatenated.
+pub trait NodeFormatter: Send + Sync {
+    /// Layout for `node`, or `None` to use the tag default. Per-node code builds a style from
+    /// `cx.options` and calls a shape; hooks that try several layouts use `conditional_group`.
+    fn format_node(
+        &self,
+        node: &SyntaxNode,
+        cx: &FormatCtx<'_>,
+    ) -> Result<Option<Doc>, FormatError>;
+
+    /// A provider-specific addition to the generic safety check (YAML compares the loaded data
+    /// model here). `before` and `after` are the source and the formatted output.
+    fn extra_check(&self, _before: &str, _after: &str) -> Result<(), String> {
+        Ok(())
+    }
+}
+
+/// For providers that have no formatting code yet: everything uses tag defaults.
+pub struct DefaultFormatter;
+
+impl NodeFormatter for DefaultFormatter {
+    fn format_node(&self, _: &SyntaxNode, _: &FormatCtx<'_>) -> Result<Option<Doc>, FormatError> {
+        Ok(None)
+    }
+}
+
+/// Everything a formatting decision may read. Any node of a tree can be formatted with
+/// [`FormatCtx::format`]: nothing depends on the root, so a subtree is formatted in its context
+/// (its comments and neighbours are read from the tree around it).
+pub struct FormatCtx<'a> {
+    pub grammar: &'a Grammar,
+    pub options: &'a ResolvedOptions,
+    pub directives: &'a DirectiveTable,
+    formatter: &'a dyn NodeFormatter,
+}
+
+impl<'a> FormatCtx<'a> {
+    pub fn new(
+        grammar: &'a Grammar,
+        options: &'a ResolvedOptions,
+        directives: &'a DirectiveTable,
+        formatter: &'a dyn NodeFormatter,
+    ) -> Self {
+        FormatCtx {
+            grammar,
+            options,
+            directives,
+            formatter,
+        }
+    }
+
+    pub fn directives_of(&self, node: &SyntaxNode) -> NodeDirectives<'a> {
+        self.directives.of(node)
+    }
+
+    /// Formats a child node. Honors `sudsy-ignore` comments before the node and the `Preserve`
+    /// directive; use [`FormatCtx::format_unguarded`] for the node a caller was invoked for.
+    pub fn format(&self, node: &SyntaxNode) -> Result<Doc, FormatError> {
+        if let Some(first) = self.first_token(node) {
+            let leading = comments::leading_comments(self.grammar, &first);
+            if ignore::mark_in(self.grammar, &leading) == Some(IgnoreMark::Ignore) {
+                return Ok(self.verbatim_node(node));
+            }
+        }
+        if self.directives_of(node).has(&Directive::Preserve) {
+            return Ok(self.verbatim_node(node));
+        }
+        self.format_unguarded(node)
+    }
+
+    /// Formatting code for `node` itself, ignoring ignore comments and `Preserve`.
+    pub fn format_unguarded(&self, node: &SyntaxNode) -> Result<Doc, FormatError> {
+        match self.formatter.format_node(node, self)? {
+            Some(doc) => Ok(doc),
+            None => self.format_default(node),
+        }
+    }
+
+    /// The shared shape for the node's grammar tag.
+    pub fn format_default(&self, node: &SyntaxNode) -> Result<Doc, FormatError> {
+        let g = self.grammar;
+        let has = |tag| g.def(node.kind()).is_some_and(|d| d.has_tag(tag));
+        if has("delimited-list") {
+            shapes::delimited_list(self, node, &ListStyle::default())
+        } else if has("block") {
+            shapes::block(self, node, &BlockStyle::default())
+        } else if has("key-value") {
+            shapes::key_value(self, node, &KeyValueStyle::default())
+        } else {
+            self.concat_children(node)
+        }
+    }
+
+    /// Children printed one after the other, with no spacing.
+    pub fn concat_children(&self, node: &SyntaxNode) -> Result<Doc, FormatError> {
+        let mut parts = Vec::new();
+        for e in node.children_with_tokens() {
+            match e {
+                SyntaxElement::Node(n) => parts.push(self.format(&n)?),
+                SyntaxElement::Token(t) if !self.grammar.is_trivia(t.kind()) => {
+                    parts.push(self.token(&t))
+                }
+                SyntaxElement::Token(_) => {}
+            }
+        }
+        Ok(doc::concat(parts))
+    }
+
+    pub fn first_token(&self, node: &SyntaxNode) -> Option<SyntaxToken> {
+        node.descendants_with_tokens()
+            .filter_map(SyntaxElement::into_token)
+            .find(|t| !self.grammar.is_trivia(t.kind()))
+    }
+
+    pub fn last_token(&self, node: &SyntaxNode) -> Option<SyntaxToken> {
+        let mut last = None;
+        for t in node
+            .descendants_with_tokens()
+            .filter_map(SyntaxElement::into_token)
+        {
+            if !self.grammar.is_trivia(t.kind()) {
+                last = Some(t);
+            }
+        }
+        last
+    }
+
+    /// A token with its leading and trailing comments.
+    pub fn token(&self, tok: &SyntaxToken) -> Doc {
+        doc::concat(vec![
+            self.leading_comments_doc(tok),
+            self.token_text(tok),
+            self.trailing_comments_doc(tok),
+        ])
+    }
+
+    pub fn token_text(&self, tok: &SyntaxToken) -> Doc {
+        verbatim_text(tok.text())
+    }
+
+    pub fn leading_comments_doc(&self, tok: &SyntaxToken) -> Doc {
+        leading_comments_doc(&comments::leading_comments(self.grammar, tok))
+    }
+
+    pub fn trailing_comments_doc(&self, tok: &SyntaxToken) -> Doc {
+        trailing_comments_doc(&comments::trailing_comments(self.grammar, tok))
+    }
+
+    /// Source text from the node's first to its last token, plus those tokens' outer comments.
+    pub fn verbatim_node(&self, node: &SyntaxNode) -> Doc {
+        match (self.first_token(node), self.last_token(node)) {
+            (Some(first), Some(last)) => self.verbatim_range(&first, &last),
+            _ => Doc::Nil,
+        }
+    }
+
+    /// Source text from the start of `first` to the end of `last`, exactly as written (including
+    /// the comments between them), with `first`'s leading and `last`'s trailing comments around it.
+    pub fn verbatim_range(&self, first: &SyntaxToken, last: &SyntaxToken) -> Doc {
+        let root = first.parent().map(|p| p.ancestors().last().unwrap_or(p));
+        let raw = root
+            .map(|r| {
+                let start = first.text_range().start() - r.text_range().start();
+                let end = last.text_range().end() - r.text_range().start();
+                r.text()
+                    .slice(core_syntax::TextRange::new(start, end))
+                    .to_string()
+            })
+            .unwrap_or_default();
+        doc::concat(vec![
+            self.leading_comments_doc(first),
+            verbatim_text(&raw),
+            self.trailing_comments_doc(last),
+        ])
+    }
+}
+
+/// Text that may span several lines: a multi-line text breaks the groups around it.
+pub fn verbatim_text(s: &str) -> Doc {
+    if s.contains('\n') || s.contains('\r') {
+        doc::concat(vec![doc::text(s), doc::break_parent()])
+    } else {
+        doc::text(s)
+    }
+}
+
+/// Own-line comments go on their own lines, inline block comments stay inline.
+pub fn leading_comments_doc(cs: &[Comment]) -> Doc {
+    let mut parts = Vec::new();
+    for c in cs {
+        parts.push(verbatim_text(c.text()));
+        if c.kind == CommentKind::Line || c.breaks_after > 0 {
+            parts.push(doc::hardline());
+            if c.breaks_after >= 2 {
+                parts.push(doc::hardline());
+            }
+        } else {
+            parts.push(doc::text(" "));
+        }
+    }
+    doc::concat(parts)
+}
+
+/// Comments after a token on its line: line comments are deferred to the end of the line and
+/// force the enclosing group to break.
+pub fn trailing_comments_doc(cs: &[Comment]) -> Doc {
+    let mut parts = Vec::new();
+    for c in cs {
+        let body = doc::concat(vec![doc::text(" "), verbatim_text(c.text())]);
+        match c.kind {
+            CommentKind::Line => {
+                parts.push(doc::line_suffix(body));
+                parts.push(doc::break_parent());
+            }
+            CommentKind::Block => parts.push(body),
+        }
+    }
+    doc::concat(parts)
+}

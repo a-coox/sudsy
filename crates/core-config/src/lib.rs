@@ -7,10 +7,14 @@
 mod error;
 mod load;
 mod model;
+mod schema;
 
 pub use error::ConfigError;
 pub use load::{CONFIG_FILE_NAMES, discover, load_file, parse_str};
 pub use model::{
     Config, LanguageSection, Level, LintSection, OptionValue, Options, Override, Plugins,
     RuleConfig,
+};
+pub use schema::{
+    OptionDef, OptionError, OptionKind, OptionSchema, ResolvedOptions, resolve_format, shared,
 };
