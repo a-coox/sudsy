@@ -8,7 +8,10 @@ pub mod protocol;
 pub mod provider;
 pub mod proxy;
 
-pub use format::{FileFormatError, format_file, resolve_dialect, select_provider};
+pub use format::{
+    FileFormatError, format_file, format_parsed, resolve_dialect, select_provider,
+    select_provider_index,
+};
 pub use out_of_process::OutOfProcessProvider;
 pub use provider::{
     Capabilities, FileMatcher, FilePattern, LanguageProvider, ParseError, ParseResult,
