@@ -18,7 +18,10 @@ pub use options::{
     BRACE_NEWLINE, MEMBER_CHAIN_MIN_CALLS, PREPROCESSOR_SYMBOLS, TRAILING_COMMAS, option_schema,
 };
 
-use self::options::{csharpier, inline_accessor_bodies};
+use self::options::{
+    constructor_initializer_on_new_line, hanging_base_list, inline_accessor_bodies,
+    switch_arm_as_assignment, unbreakable_single_item_lists,
+};
 use self::tags::Tag;
 use crate::generated::kind as k;
 use core_format::{Doc, FormatCtx, FormatError, NodeFormatter};
@@ -63,7 +66,7 @@ impl NodeFormatter for CSharpFormatter {
             k::INTERPOLATED_STRING_EXPRESSION => cx.verbatim_node(node),
             k::ACCESSOR_LIST => braces::accessor_list(cx, node)?,
             k::BASE_CONSTRUCTOR_INITIALIZER | k::THIS_CONSTRUCTOR_INITIALIZER
-                if csharpier(cx.options) =>
+                if constructor_initializer_on_new_line(cx.options) =>
             {
                 braces::constructor_initializer(cx, node)?
             }
@@ -84,11 +87,14 @@ impl NodeFormatter for CSharpFormatter {
             k::SWITCH_EXPRESSION => braces::switch_expression(cx, node)?,
             k::ENUM_DECLARATION => braces::enum_declaration(cx, node)?,
             k::ARGUMENT_LIST => lists::argument_list(cx, node)?,
-            k::ATTRIBUTE_LIST if csharpier(cx.options) && single_child(node, &[k::ATTRIBUTE]) => {
+            k::ATTRIBUTE_LIST
+                if unbreakable_single_item_lists(cx.options)
+                    && single_child(node, &[k::ATTRIBUTE]) =>
+            {
                 lists::unbreakable_list(cx, node)?
             }
             k::TYPE_ARGUMENT_LIST
-                if csharpier(cx.options)
+                if unbreakable_single_item_lists(cx.options)
                     && single_child(
                         node,
                         &[k::PREDEFINED_TYPE, k::IDENTIFIER_NAME, k::QUALIFIED_NAME],
@@ -96,7 +102,9 @@ impl NodeFormatter for CSharpFormatter {
             {
                 lists::unbreakable_list(cx, node)?
             }
-            k::BRACKETED_ARGUMENT_LIST if csharpier(cx.options) && simple_index(node) => {
+            k::BRACKETED_ARGUMENT_LIST
+                if unbreakable_single_item_lists(cx.options) && simple_index(node) =>
+            {
                 lists::unbreakable_list(cx, node)?
             }
             k::ATTRIBUTE_LIST => lists::plain_list(cx, node)?,
@@ -109,8 +117,10 @@ impl NodeFormatter for CSharpFormatter {
             k::EQUALS_VALUE_CLAUSE => chains::equals_value_clause(cx, node)?,
             k::ARROW_EXPRESSION_CLAUSE => chains::arrow_clause(cx, node)?,
             k::CONDITIONAL_EXPRESSION => chains::conditional(cx, node)?,
-            k::SWITCH_EXPRESSION_ARM if csharpier(cx.options) => chains::switch_arm(cx, node)?,
-            k::BASE_LIST if csharpier(cx.options) => braces::base_list(cx, node)?,
+            k::SWITCH_EXPRESSION_ARM if switch_arm_as_assignment(cx.options) => {
+                chains::switch_arm(cx, node)?
+            }
+            k::BASE_LIST if hanging_base_list(cx.options) => braces::base_list(cx, node)?,
             k::PARENTHESIZED_EXPRESSION => chains::parenthesized(cx, node)?,
             k::QUERY_EXPRESSION => query::query_expression(cx, node)?,
             k::QUERY_BODY => query::query_body(cx, node)?,

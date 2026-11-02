@@ -2,7 +2,8 @@
 //! attribute lists, and the hook that keeps a lambda as the last argument on the call's line.
 
 use super::options::{
-    csharpier, empty_braces, initializer_layout, same_line_initializers, trailing_comma,
+    creation_brace_on_new_line, empty_braces, hug_only_sole_lambda, initializer_layout,
+    nested_brace_on_new_line, trailing_comma,
 };
 use super::seq::{R, Sep, direct_tokens, sep_doc, separator, seq_of, sig};
 use crate::generated::kind as k;
@@ -65,7 +66,8 @@ pub fn plain_list(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
         k::PROPERTY_PATTERN_CLAUSE => ListStyle {
             padding: true,
             empty: empty_braces(cx.options),
-            leading_line: csharpier(cx.options) && property_pattern_follows_something(node),
+            leading_line: nested_brace_on_new_line(cx.options)
+                && property_pattern_follows_something(node),
             ..ListStyle::default()
         },
         _ => ListStyle::default(),
@@ -126,8 +128,8 @@ pub fn initializer(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
         .ok_or_else(|| core_format::FormatError::Shape("initializer without `}`".into()))?;
     let mut style = brace_style(cx, node, &close);
     style.leading_line = (creation_parent(node.parent().map(|p| p.kind()))
-        && !same_line_initializers(cx.options))
-        || (csharpier(cx.options)
+        && creation_brace_on_new_line(cx.options))
+        || (nested_brace_on_new_line(cx.options)
             && node.parent().map(|p| p.kind()) == Some(k::SIMPLE_ASSIGNMENT_EXPRESSION));
     delimited_list(cx, node, &style)
 }
@@ -220,7 +222,7 @@ fn is_lambda(kind: SyntaxKind) -> bool {
     )
 }
 
-/// CSharpier: a call whose one argument is a lambda with an expression body keeps the lambda's
+/// `lambda_argument_hug: sole`: a call whose one argument is a lambda with an expression body keeps the lambda's
 /// head on the call's line and puts the body on its own line when the call does not fit:
 /// `Foo(x =>` / `    body` / `)`. `None` when the argument is anything else.
 fn expression_lambda_hug(cx: &FormatCtx<'_>, arg: &SyntaxNode) -> Result<Option<Doc>, FormatError> {
@@ -280,7 +282,7 @@ pub fn argument_list(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
         .filter_map(SyntaxElement::into_token)
         .filter(|t| !cx.grammar.is_trivia(t.kind()))
         .all(|t| !has_comments(cx, &t));
-    if csharpier(cx.options)
+    if hug_only_sole_lambda(cx.options)
         && args.len() == 1
         && simple_tokens
         && cx
@@ -290,9 +292,9 @@ pub fn argument_list(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
     {
         return Ok(hugged);
     }
-    // CSharpier hugs a lambda only when it is the one argument.
+    // With `lambda_argument_hug: sole` a lambda hugs only when it is the one argument.
     let hug = args.last().is_some_and(block_lambda)
-        && (args.len() == 1 || !csharpier(cx.options))
+        && (args.len() == 1 || !hug_only_sole_lambda(cx.options))
         && simple_tokens
         && args.iter().all(|a| {
             cx.first_token(a)

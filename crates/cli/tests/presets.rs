@@ -100,3 +100,84 @@ fn every_preset_reproduces_its_samples() {
     assert_eq!(presets, 8, "one fixture directory per preset of plan.md");
     assert!(cases >= 8);
 }
+
+/// The `key: value` lines of preset `name@1` in `crates/lang-<language>/presets.yaml`.
+fn preset_options(language: &str, name: &str) -> String {
+    let path =
+        Path::new(env!("CARGO_MANIFEST_DIR")).join(format!("../lang-{language}/presets.yaml"));
+    let text = fs::read_to_string(path).unwrap();
+    let header = format!("{name}@1:");
+    let mut lines = text.lines().skip_while(|l| !l.starts_with(&header));
+    let first = lines.next().expect("preset exists");
+    let mut options = String::new();
+    if first.trim_end().ends_with("{}") {
+        return options;
+    }
+    for line in lines.take_while(|l| l.starts_with(' ') || l.starts_with('#') || l.is_empty()) {
+        if line.starts_with("  ") {
+            options.push_str(&format!("    {}\n", line.trim_start()));
+        }
+    }
+    options
+}
+
+/// A preset is pure data: a sudsy.yaml that writes the preset's option values by hand formats
+/// every sample exactly like `extends: [preset:...]`.
+#[test]
+fn spelled_out_options_equal_the_preset() {
+    let worker = csharp_worker();
+    for entry in fs::read_dir(root()).unwrap() {
+        let dir = entry.unwrap().path();
+        let dir_name = dir.file_name().unwrap().to_string_lossy().into_owned();
+        let (language, preset) = dir_name.split_once('-').unwrap();
+        let by_hand = format!(
+            "{language}:\n  format:\n{}",
+            preset_options(language, preset)
+        );
+        let configs = [
+            format!("extends:\n  - preset:{language}/{preset}@1\n"),
+            by_hand.clone(),
+        ];
+        for file in fs::read_dir(&dir).unwrap() {
+            let file = file.unwrap().file_name().to_string_lossy().into_owned();
+            let Some((name, "in", ext)) = split(&file) else {
+                continue;
+            };
+            let results: Vec<String> = configs
+                .iter()
+                .map(|config| {
+                    let work = tempfile::tempdir().unwrap();
+                    fs::write(work.path().join("sudsy.yaml"), config).unwrap();
+                    fs::copy(dir.join(&file), work.path().join(format!("sample.{ext}"))).unwrap();
+                    let out = format(work.path(), &worker);
+                    assert_eq!(out.status.code(), Some(0), "{dir_name}: {by_hand}");
+                    fs::read_to_string(work.path().join(format!("sample.{ext}"))).unwrap()
+                })
+                .collect();
+            assert_eq!(results[0], results[1], "{dir_name}/{name}");
+        }
+    }
+}
+
+/// Formatter code never names a tool: styles are options, not modes.
+#[test]
+fn no_tool_names_in_formatter_sources() {
+    let crates = Path::new(env!("CARGO_MANIFEST_DIR")).join("..");
+    let mut stack: Vec<PathBuf> = fs::read_dir(&crates)
+        .unwrap()
+        .map(|e| e.unwrap().path())
+        .filter(|p| {
+            let n = p.file_name().unwrap().to_string_lossy().into_owned();
+            n.starts_with("lang-") || n == "core-format"
+        })
+        .map(|p| p.join("src"))
+        .collect();
+    while let Some(path) = stack.pop() {
+        if path.is_dir() {
+            stack.extend(fs::read_dir(&path).unwrap().map(|e| e.unwrap().path()));
+        } else if path.extension().is_some_and(|e| e == "rs") {
+            let text = fs::read_to_string(&path).unwrap().to_lowercase();
+            assert!(!text.contains("csharpier"), "{}", path.display());
+        }
+    }
+}

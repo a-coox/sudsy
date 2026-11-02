@@ -1,7 +1,9 @@
 //! Expressions that lay out as a chain: binary operators, member accesses and calls, assignments
 //! and the conditional operator.
 
-use super::options::csharpier;
+use super::options::{
+    chain_break_on_block, fluid_assignments, indent_nested_binary, keep_accesses_with_call,
+};
 use super::seq::{R, paren_group, sig};
 use super::tags::{self, Tag};
 use crate::generated::kind as k;
@@ -26,11 +28,10 @@ fn breaks_after_operator(cx: &FormatCtx<'_>, rhs: &SyntaxNode) -> bool {
         || matches!(rhs.kind(), k::CONDITIONAL_EXPRESSION | k::QUERY_EXPRESSION)
 }
 
-/// CSharpier's layouts of `lead rhs` (Prettier's assignment layouts): a string, a binary
-/// expression or the initializer of a property moves to its own line when it does not fit, and
-/// anything else moves only when its first line (up to its first possible break) does not fit
-/// after the operator ("fluid").
-fn csharpier_rhs(cx: &FormatCtx<'_>, lead: Doc, rhs: &SyntaxNode, rhs_doc: Doc) -> Doc {
+/// The layout of `lead rhs` for `assignment_layout: fluid`: a string, a binary expression or the
+/// initializer of a property moves to its own line when it does not fit, and anything else moves
+/// only when its first line (up to its first possible break) does not fit after the operator.
+fn fluid_rhs(cx: &FormatCtx<'_>, lead: Doc, rhs: &SyntaxNode, rhs_doc: Doc) -> Doc {
     let has_comment = core_format::comments::node_leading(cx.grammar, rhs).has_comment;
     // The initializer of a property moves as a whole.
     let property_initializer = rhs
@@ -66,8 +67,8 @@ fn csharpier_rhs(cx: &FormatCtx<'_>, lead: Doc, rhs: &SyntaxNode, rhs_doc: Doc) 
 /// `lead rhs`, where `lead` ends with the operator.
 fn with_rhs(cx: &FormatCtx<'_>, lead: Doc, op: &SyntaxToken, rhs: &SyntaxNode) -> R {
     let rhs_doc = cx.format(rhs)?;
-    if csharpier(cx.options) && !ends_in_line_comment(cx, op) {
-        return Ok(csharpier_rhs(cx, lead, rhs, rhs_doc));
+    if fluid_assignments(cx.options) && !ends_in_line_comment(cx, op) {
+        return Ok(fluid_rhs(cx, lead, rhs, rhs_doc));
     }
     Ok(if ends_in_line_comment(cx, op) {
         doc::concat(vec![
@@ -111,7 +112,7 @@ pub fn equals_value_clause(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
 }
 
 pub fn arrow_clause(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
-    if csharpier(cx.options) {
+    if fluid_assignments(cx.options) {
         // `=>` and then the body, which moves to its own line as a whole when it does not fit.
         let els = sig(cx, node);
         if let [SyntaxElement::Token(op), SyntaxElement::Node(value)] = els.as_slice()
@@ -129,7 +130,7 @@ pub fn arrow_clause(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
     operator_and_value(cx, node)
 }
 
-/// `pattern => expr` in a switch expression (CSharpier layouts the arm like an assignment).
+/// `pattern => expr` in a switch expression, laid out like an assignment (`switch_arm_layout`).
 pub fn switch_arm(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
     let els = sig(cx, node);
     let Some((SyntaxElement::Node(value), head)) = els.split_last() else {
@@ -219,8 +220,8 @@ fn parts_of(
 }
 
 /// Is the expression whose parent is `parent` printed inside something that already indents
-/// its continuation lines? (A chain inside a chain of another precedence is indented only by
-/// CSharpier.)
+/// its continuation lines? (A chain inside a chain of another precedence is indented only with
+/// `indent_nested_binary`.)
 fn parent_indents(cx: &FormatCtx<'_>, parent: Option<SyntaxNode>) -> bool {
     let Some(p) = parent else { return false };
     let kind = p.kind();
@@ -235,7 +236,7 @@ fn parent_indents(cx: &FormatCtx<'_>, parent: Option<SyntaxNode>) -> bool {
             | k::LOCK_STATEMENT
             | k::SWITCH_STATEMENT
     ) || tags::has(cx.grammar, kind, Tag::Assignment)
-        || (tags::has(cx.grammar, kind, Tag::BinaryChain) && !csharpier(cx.options))
+        || (tags::has(cx.grammar, kind, Tag::BinaryChain) && !indent_nested_binary(cx.options))
 }
 
 /// `a + b + c`: the operands of one precedence level, one per line (operator first) when the
@@ -441,8 +442,8 @@ pub fn member_chain(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
     let mut groups: Vec<Vec<Doc>> = Vec::new();
     for (i, link) in links.iter().enumerate() {
         let starts = match link {
-            // CSharpier (as Prettier) keeps the accesses before a call with it: `.A.B()`.
-            Link::Dot(..) if csharpier(cx.options) => {
+            // `member_chain_keep_accesses`: the accesses before a call stay with it: `.A.B()`.
+            Link::Dot(..) if keep_accesses_with_call(cx.options) => {
                 !(i > 0 && matches!(links[i - 1], Link::Question(_) | Link::Dot(..)))
             }
             Link::Dot(..) => !(i > 0 && matches!(links[i - 1], Link::Question(_))),
@@ -470,6 +471,6 @@ pub fn member_chain(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
         calls,
         min_calls,
         force_break: has_line_comment(cx, &links),
-        break_on_inner_break: csharpier(cx.options),
+        break_on_inner_break: chain_break_on_block(cx.options),
     }))
 }

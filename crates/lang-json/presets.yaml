@@ -1,0 +1,13 @@
+# The presets of the JSON provider: `extends: [preset:json/<name>]`. A preset only sets options of
+# the provider, so a sudsy.yaml that spells the same options out formats identically.
+
+# Common two-space JSON. The defaults of every option, so the preset sets nothing.
+default@1: {}
+
+# Formats like Prettier's JSON output: 80 columns, an object stays expanded when its first key is
+# on a line of its own, an array is on one line when it fits.
+prettier-compat@1:
+  line_width: 80
+  indent_size: 2
+  collapse: opening_break
+  trailing_commas: never

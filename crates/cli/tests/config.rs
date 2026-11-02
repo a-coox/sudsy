@@ -49,7 +49,10 @@ fn overrides_apply_by_glob_and_beat_the_language_section() {
         read(t.path(), "a.json"),
         "{\n    \"a\": {\n        \"b\": [\n            1,\n            2\n        ]\n    }\n}\n"
     );
-    assert_eq!(read(t.path(), "wide/b.json"), "{ \"a\": { \"b\": [1, 2] } }\n");
+    assert_eq!(
+        read(t.path(), "wide/b.json"),
+        "{ \"a\": { \"b\": [1, 2] } }\n"
+    );
 }
 
 #[test]
@@ -60,7 +63,11 @@ fn editorconfig_is_the_fallback_below_the_config() {
         ".editorconfig",
         "root = true\n[*.json]\nindent_size = 3\n[sub/*.json]\nindent_size = 5\n",
     );
-    write(t.path(), "sudsy.yaml", "json:\n  format:\n    collapse: never\n");
+    write(
+        t.path(),
+        "sudsy.yaml",
+        "json:\n  format:\n    collapse: never\n",
+    );
     write(t.path(), "a.json", "{\"a\":1}");
     write(t.path(), "sub/b.json", "{\"a\":1}");
     let out = sudsy(t.path(), &["format"]);
@@ -86,7 +93,12 @@ fn include_and_exclude_filter_what_is_found_but_not_named_files() {
         "sudsy.yaml",
         "include: [\"src/**\"]\nexclude: [\"src/gen\", \"**/*.skip.json\"]\n",
     );
-    for f in ["src/a.json", "src/gen/b.json", "src/c.skip.json", "other/d.json"] {
+    for f in [
+        "src/a.json",
+        "src/gen/b.json",
+        "src/c.skip.json",
+        "other/d.json",
+    ] {
         write(t.path(), f, JSON);
     }
     let out = sudsy(t.path(), &["format", "--check"]);
@@ -104,21 +116,41 @@ fn paths_print_relative_to_the_working_directory_with_slashes() {
     write(t.path(), "deep/er/bad.json", "{");
     let out = sudsy(t.path(), &["format", "--check"]);
     assert_eq!(out.status.code(), Some(2));
-    assert!(stdout(&out).contains("would reformat deep/er/a.json\n"), "{}", stdout(&out));
-    assert!(stderr(&out).contains("error: deep/er/bad.json:"), "{}", stderr(&out));
+    assert!(
+        stdout(&out).contains("would reformat deep/er/a.json\n"),
+        "{}",
+        stdout(&out)
+    );
+    assert!(
+        stderr(&out).contains("error: deep/er/bad.json:"),
+        "{}",
+        stderr(&out)
+    );
     // From a subdirectory, with a path above it.
     let sub = t.path().join("deep");
     let out = sudsy(&sub, &["format", "--check", "er/a.json"]);
-    assert!(stdout(&out).contains("would reformat er/a.json\n"), "{}", stdout(&out));
+    assert!(
+        stdout(&out).contains("would reformat er/a.json\n"),
+        "{}",
+        stdout(&out)
+    );
     let up = sudsy(&sub.join("er"), &["format", "--check", "../er/a.json"]);
-    assert!(stdout(&up).contains("would reformat a.json\n"), "{}", stdout(&up));
+    assert!(
+        stdout(&up).contains("would reformat a.json\n"),
+        "{}",
+        stdout(&up)
+    );
 }
 
 #[test]
 fn config_errors_name_the_file_and_position_and_suggest() {
     let t = tempfile::tempdir().unwrap();
     write(t.path(), "a.json", JSON);
-    write(t.path(), "sudsy.yaml", "json:\n  format:\n    colapse: never\n");
+    write(
+        t.path(),
+        "sudsy.yaml",
+        "json:\n  format:\n    colapse: never\n",
+    );
     let out = sudsy(t.path(), &["format"]);
     assert_eq!(out.status.code(), Some(2));
     let message = stderr(&out);
@@ -141,7 +173,11 @@ fn config_errors_name_the_file_and_position_and_suggest() {
     assert!(message.contains("not found"), "{message}");
 
     // An error in an extended file names that file.
-    write(t.path(), "base/shared.yaml", "json:\n  format:\n    indent_size: 99\n");
+    write(
+        t.path(),
+        "base/shared.yaml",
+        "json:\n  format:\n    indent_size: 99\n",
+    );
     write(t.path(), "sudsy.yaml", "extends: [base/shared.yaml]\n");
     let message = stderr(&sudsy(t.path(), &["format"]));
     assert!(message.contains("base/shared.yaml:3:"), "{message}");
@@ -156,7 +192,11 @@ fn extends_a_file_in_another_directory() {
         "team/base.yaml",
         "extends: [preset:json/default@1]\njson:\n  format:\n    collapse: never\n    indent_size: 8\n",
     );
-    write(t.path(), "sudsy.yaml", "extends: [team/base.yaml]\njson:\n  format:\n    indent_size: 1\n");
+    write(
+        t.path(),
+        "sudsy.yaml",
+        "extends: [team/base.yaml]\njson:\n  format:\n    indent_size: 1\n",
+    );
     write(t.path(), "a.json", "{\"a\":1}");
     assert_eq!(sudsy(t.path(), &["format"]).status.code(), Some(0));
     assert_eq!(read(t.path(), "a.json"), "{\n \"a\": 1\n}\n");
@@ -170,7 +210,11 @@ fn config_print_shows_the_value_and_where_it_came_from() {
         "sudsy.yaml",
         "extends: [preset:yaml/prettier-compat@1]\nformat:\n  line_width: 90\nlint:\n  rules:\n    max-line-length: warn\nyaml:\n  format:\n    indent_size: 4\n  lint:\n    rules:\n      ambiguous-booleans: error\noverrides:\n  - files: [\"ci/**\"]\n    yaml:\n      format:\n        indent_size: 3\n",
     );
-    write(t.path(), ".editorconfig", "[*.yaml]\nfinal_newline = x\ninsert_final_newline = false\n");
+    write(
+        t.path(),
+        ".editorconfig",
+        "[*.yaml]\nfinal_newline = x\ninsert_final_newline = false\n",
+    );
     write(t.path(), "ci/a.yaml", "a: 1\n");
     write(t.path(), "b.yaml", "a: 1\n");
     let out = sudsy(t.path(), &["config", "print", "ci/a.yaml"]);
@@ -179,20 +223,32 @@ fn config_print_shows_the_value_and_where_it_came_from() {
     assert!(text.contains("config: sudsy.yaml"), "{text}");
     assert!(text.contains("file: ci/a.yaml"), "{text}");
     assert!(text.contains("indent_size") && text.contains("3"), "{text}");
-    assert!(text.contains("(sudsy.yaml:17:22 (overrides[0].yaml.format))"), "{text}");
+    assert!(
+        text.contains("(sudsy.yaml:17:22 (overrides[0].yaml.format))"),
+        "{text}"
+    );
     assert!(text.contains("(sudsy.yaml:3:15 (format))"), "{text}");
     assert!(text.contains("(preset yaml/prettier-compat@1)"), "{text}");
-    assert!(text.contains("(.editorconfig:3 (insert_final_newline))"), "{text}");
+    assert!(
+        text.contains("(.editorconfig:3 (insert_final_newline))"),
+        "{text}"
+    );
     assert!(text.contains("ambiguous-booleans"), "{text}");
     assert!(text.contains("max-line-length"), "{text}");
-    assert!(!text.contains("layout"), "internal values stay hidden: {text}");
+    assert!(
+        !text.contains("layout"),
+        "internal values stay hidden: {text}"
+    );
     // Outside the override the language section wins.
     let other = stdout(&sudsy(t.path(), &["config", "print", "b.yaml"]));
     assert!(other.contains("(sudsy.yaml:9:18 (yaml.format))"), "{other}");
     // Without a file: every language.
     let all = stdout(&sudsy(t.path(), &["config", "print"]));
     for language in ["csharp", "json", "yaml"] {
-        assert!(all.contains(&format!("{language} format options:")), "{all}");
+        assert!(
+            all.contains(&format!("{language} format options:")),
+            "{all}"
+        );
     }
     let bad = sudsy(t.path(), &["config", "print", "notes.txt"]);
     assert_eq!(bad.status.code(), Some(2));
@@ -212,7 +268,16 @@ fn init_writes_a_starter_config_and_will_not_overwrite() {
     assert_eq!(sudsy(t.path(), &["init"]).status.code(), Some(2));
 
     let t = tempfile::tempdir().unwrap();
-    let out = sudsy(t.path(), &["init", "--preset", "csharp/google", "--preset", "json/prettier-compat@1"]);
+    let out = sudsy(
+        t.path(),
+        &[
+            "init",
+            "--preset",
+            "csharp/google",
+            "--preset",
+            "json/prettier-compat@1",
+        ],
+    );
     assert_eq!(out.status.code(), Some(0), "{}", stderr(&out));
     assert_eq!(
         read(t.path(), "sudsy.yaml"),

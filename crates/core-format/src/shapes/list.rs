@@ -24,7 +24,7 @@ pub enum ListLayout {
     /// (nested items included) stays expanded.
     PreserveBreak,
     /// Like `Fit`, but a line break between the opening delimiter and the first item keeps the
-    /// list expanded (Prettier's rule for objects).
+    /// list expanded.
     PreserveOpenBreak,
     /// Always one item per line.
     Break,
