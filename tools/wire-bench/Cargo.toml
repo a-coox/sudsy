@@ -1,5 +1,5 @@
-# M0 wire-encoding benchmark (NOT PRODUCT CODE): Rust decode timings for the candidate encodings.
-# See docs/decisions.md. Pairs with workers/csharp/Sudsy.Bench.
+# Production-path benchmark (NOT PRODUCT CODE): Rust decode and tree build for trees written by
+# workers/csharp/Sudsy.Bench. See docs/decisions.md.
 [package]
 name = "wire-bench"
 edition.workspace = true
@@ -8,7 +8,5 @@ publish.workspace = true
 
 [dependencies]
 core-syntax.workspace = true
-prost.workspace = true
-rmp-serde.workspace = true
-serde.workspace = true
+provider-api.workspace = true
 anyhow.workspace = true
