@@ -14,7 +14,6 @@ clap = { version = "4", features = ["derive"] }
 ignore = "0.4"
 insta = "1"
 unicode-width = "0.2"
-prost = "0.14"
 proptest = "1"
 rmp-serde = "1"
 rowan = "0.16"
