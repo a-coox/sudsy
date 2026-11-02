@@ -143,6 +143,38 @@ mod tests {
         assert!(check_attachment(&build(false), triv).is_err());
     }
 
+    #[test]
+    fn a_structured_trivia_is_one_element_and_follows_the_rule_inside() {
+        // `a /*..*/\n b`, where the comment is a node holding two tokens of its own.
+        const DOC: SyntaxKind = SyntaxKind::new(LanguageId::JSON, false, 2);
+        const TOK: SyntaxKind = SyntaxKind::new(LanguageId::JSON, true, 3);
+        let triv = |k: SyntaxKind| k == WS || k == NL || k == DOC;
+        let build = |inner_trailing_outside: bool| {
+            let mut b = TreeBuilder::new();
+            b.start_node(ROOT);
+            b.token(WORD, "a");
+            b.token(WS, " ");
+            b.start_node(DOC);
+            b.start_node(INNER);
+            b.token(TOK, "x");
+            if !inner_trailing_outside {
+                b.token(WS, " ");
+            }
+            b.finish_node();
+            if inner_trailing_outside {
+                b.token(WS, " ");
+            }
+            b.token(TOK, "y");
+            b.token(NL, "\n");
+            b.finish_node();
+            b.token(WORD, "b");
+            b.finish_node();
+            SyntaxNode::new_root(b.finish())
+        };
+        assert!(check_attachment(&build(false), triv).is_ok());
+        assert!(check_attachment(&build(true), triv).is_err());
+    }
+
     fn print(n: &SyntaxNode) -> String {
         crate::print(n)
     }
