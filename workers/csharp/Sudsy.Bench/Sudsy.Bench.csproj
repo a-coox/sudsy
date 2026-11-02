@@ -1,0 +1,13 @@
+<!-- M0 wire-encoding benchmark. Not part of the product; see docs/decisions.md. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <ServerGarbageCollector>false</ServerGarbageCollector>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Google.Protobuf" Version="3.33.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Sudsy.Worker\Sudsy.Worker.csproj" />
+  </ItemGroup>
+</Project>

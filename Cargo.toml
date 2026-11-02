@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["crates/core-syntax", "xtask"]
+members = ["crates/*", "xtask", "tools/wire-bench"]
 
 [workspace.package]
 edition = "2024"
