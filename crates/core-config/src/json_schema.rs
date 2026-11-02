@@ -108,7 +108,7 @@ pub fn json_schema(languages: &[(&str, &OptionSchema)]) -> Value {
         "extends".into(),
         json!({
             "type": "array",
-            "description": "Presets (`preset:<language>/<name>@<version>`) or config files, applied in order.",
+            "description": "Presets (`preset:<language>/<name>`) or config files, applied in order.",
             "items": { "type": "string", "examples": presets }
         }),
     );
@@ -200,7 +200,7 @@ mod tests {
             shared::line_width(80),
             OptionDef::choice("mode", &["a", "b"], "a", "A mode."),
         ])
-        .with_presets(vec![Preset::new("x/p@1", vec![])]);
+        .with_presets(vec![Preset::new("x/p", "")]);
         let doc = json_schema(&[("x", &schema)]);
         assert_eq!(
             doc["properties"]["format"]["properties"]["line_width"]["default"],
@@ -208,7 +208,7 @@ mod tests {
         );
         assert_eq!(
             doc["properties"]["extends"]["items"]["examples"][0],
-            "preset:x/p@1"
+            "preset:x/p"
         );
         assert!(
             doc["properties"]["format"]["properties"]

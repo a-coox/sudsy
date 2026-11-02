@@ -12,7 +12,7 @@ runs="${2:-3}"
 sudsy="$repo/target/release/sudsy"
 export SUDSY_CSHARP_WORKER="${SUDSY_CSHARP_WORKER:-$repo/workers/csharp/Sudsy.Worker/bin/Release/net10.0/Sudsy.Worker.dll}"
 
-printf 'extends:\n  - preset:csharp/csharpier-compat@1\n' > "$dir/sudsy.yaml"
+printf 'extends:\n  - preset:csharp/csharpier-compat\n' > "$dir/sudsy.yaml"
 
 now() { date +%s.%N; }
 for i in $(seq "$runs"); do

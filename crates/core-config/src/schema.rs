@@ -296,15 +296,9 @@ pub mod shared {
     }
 }
 impl OptionSchema {
-    /// The preset named `language/name@version`; without `@version` the newest version.
+    /// The preset named `language/name`.
     pub fn find_preset(&self, name: &str) -> Option<&Preset> {
-        if name.contains('@') {
-            return self.presets.iter().find(|p| p.name == name);
-        }
-        self.presets
-            .iter()
-            .filter(|p| p.unversioned() == name)
-            .max_by_key(|p| p.version())
+        self.presets.iter().find(|p| p.name == name)
     }
 }
 

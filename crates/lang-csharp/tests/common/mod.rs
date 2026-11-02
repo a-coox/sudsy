@@ -159,7 +159,7 @@ impl CsSubject {
         self
     }
 
-    /// Starts from a preset, e.g. `csharp/csharpier-compat@1`.
+    /// Starts from a preset, e.g. `csharp/csharpier-compat`.
     pub fn with_preset(mut self, preset: &'static str) -> Self {
         self.preset = Some(preset);
         self

@@ -15,7 +15,7 @@ const MAX_DEPTH: usize = 16;
 /// A `preset:` entry of an `extends` list, with where it was written.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct PresetRef {
-    /// `csharp/google@1`, as written (the version may be missing).
+    /// `csharp/google`, as written.
     pub name: String,
     pub file: Option<PathBuf>,
     pub line: u64,
@@ -327,6 +327,16 @@ impl ConfigChain {
                             .join(", ")
                     )));
                 }
+                let mut scratch = schema.defaults();
+                crate::resolve::apply_preset(
+                    &preset.name,
+                    schema,
+                    language,
+                    &mut scratch,
+                    &mut Default::default(),
+                    &mut Vec::new(),
+                )
+                .map_err(|e| at(e.to_string()))?;
             }
             None => {
                 if !LANGUAGES.contains(&language) {

@@ -171,7 +171,7 @@ impl Depth {
 #[derive(Clone, Debug, Default, PartialEq, Deserialize)]
 #[serde(deny_unknown_fields, default)]
 pub struct Config {
-    /// Presets (`preset:csharp/microsoft@1`) or config files (paths relative to this file).
+    /// Presets (`preset:csharp/microsoft`) or config files (paths relative to this file).
     pub extends: Vec<Spanned<String>>,
     /// Files to format and lint (globs relative to this file); everything when empty.
     pub include: Vec<Spanned<String>>,

@@ -1,0 +1,21 @@
+# Formats like CSharpier 1.x, for migrating without reformat churn.
+csharp:
+  format:
+    line_width: 100
+    trailing_commas: multiline
+    blank_lines_between_members: separate
+    accessor_blank_lines: remove
+    inline_accessor_bodies: true
+    indent_switch_section_block: false
+    assignment_layout: fluid
+    switch_arm_layout: assignment
+    indent_nested_binary: true
+    member_chain_keep_accesses: true
+    member_chain_break_on_block: true
+    wrapped_brace_line: all
+    initializer_collapse: always
+    lambda_argument_hug: sole
+    constructor_initializer_line: new_line
+    base_list_layout: hanging
+    unbreakable_single_item_lists: true
+    do_while_line: same_line

@@ -1,11 +1,11 @@
-//! Presets: `csharp/microsoft@1` is the default layout, `csharp/csharpier-compat@1` reproduces
+//! Presets: `csharp/microsoft` is the default layout, `csharp/csharpier-compat` reproduces
 //! CSharpier's. Every case goes through the shared checks of `common::fmt_preset`.
 
 mod common;
 
 use common::fmt_preset;
 
-const COMPAT: &str = "csharp/csharpier-compat@1";
+const COMPAT: &str = "csharp/csharpier-compat";
 
 macro_rules! compat {
     ($name:ident, $input:expr) => {
@@ -22,7 +22,7 @@ macro_rules! compat {
 fn microsoft_preset_is_the_default_layout() {
     let input = "class C : B { int X { get { return 1; } } public C(int a) : base(a) { } }";
     assert_eq!(
-        fmt_preset(input, "csharp/microsoft@1"),
+        fmt_preset(input, "csharp/microsoft"),
         common::fmt(input, &[])
     );
 }
@@ -38,7 +38,7 @@ fn presets_are_resolved_from_extends() {
     };
     let options = resolve(
         "extends:
-  - preset:csharp/csharpier-compat@1
+  - preset:csharp/csharpier-compat
 ",
     )
     .unwrap()
@@ -57,17 +57,14 @@ csharp:
     .options;
     assert_eq!(options.int("line_width"), 80);
     let error = resolve(
-        "extends: [\"preset:csharp/nope@1\"]
+        "extends: [\"preset:csharp/nope\"]
 ",
     )
     .unwrap_err();
-    assert!(
-        error.message.contains("csharp/csharpier-compat@1"),
-        "{error}"
-    );
+    assert!(error.message.contains("csharp/csharpier-compat"), "{error}");
     // Every preset of the table in plan.md resolves.
     for name in ["microsoft", "dotnet-runtime", "google", "csharpier-compat"] {
-        resolve(&format!("extends: [\"preset:csharp/{name}@1\"]\n")).unwrap();
+        resolve(&format!("extends: [\"preset:csharp/{name}\"]\n")).unwrap();
     }
 }
 

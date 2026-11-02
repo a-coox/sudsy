@@ -1,4 +1,4 @@
-# csharp/microsoft@1 samples
+# csharp/microsoft samples
 
 Source: Microsoft Learn, "Common C# code conventions"
 (<https://learn.microsoft.com/dotnet/csharp/fundamentals/coding-style/coding-conventions>),
@@ -13,5 +13,5 @@ text retrieved 2026-11-02 from `dotnet/docs`
 
 The guide's other examples are inline snippets (`:::code` includes, not in the page text) or use
 a one-line method body (`{ return null; }`), which contradicts its own Allman rule, so they are not
-samples. The `.in` files are the `.out` files formatted with `csharp/google@1` (2 spaces, braces on
+samples. The `.in` files are the `.out` files formatted with `csharp/google` (2 spaces, braces on
 the line of the header).

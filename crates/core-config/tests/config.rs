@@ -6,8 +6,8 @@ use std::path::Path;
 
 const PLAN_EXAMPLE: &str = r#"
 extends:
-  - preset:csharp/microsoft@1
-  - preset:yaml/default@1
+  - preset:csharp/microsoft
+  - preset:yaml/default
 
 format:
   line_width: 100
@@ -52,7 +52,7 @@ overrides:
 fn parses_the_structure_from_the_plan() {
     let c = parse_str(PLAN_EXAMPLE).unwrap();
     assert_eq!(c.extends.len(), 2);
-    assert_eq!(c.extends[0].value, "preset:csharp/microsoft@1");
+    assert_eq!(c.extends[0].value, "preset:csharp/microsoft");
     assert_eq!(c.format["line_width"].value, OptionValue::Int(100));
     assert_eq!(c.lint.rules["max-line-length"].value.level, Level::Warn);
     assert_eq!(c.plugins.wasm[0].value, "rules/team-rules.wasm");
@@ -234,7 +234,7 @@ fn extends_loads_files_relative_to_the_extending_file() {
     write(
         d,
         "sudsy.yaml",
-        "extends:\n  - preset:json/narrow@1\n  - base/shared.yaml\nformat:\n  indent_size: 3\n",
+        "extends:\n  - preset:json/narrow\n  - base/shared.yaml\nformat:\n  indent_size: 3\n",
     );
     let chain = ConfigChain::load(&d.join("sudsy.yaml")).unwrap();
     assert_eq!(chain.files.len(), 2);
@@ -287,10 +287,44 @@ fn schema() -> OptionSchema {
         OptionDef::choice("mode", &["a", "b", "c"], "a", "A mode."),
     ])
     .with_presets(vec![
-        Preset::new("json/narrow@1", vec![("line_width", OptionValue::Int(60))]),
         Preset::new(
-            "json/modal@1",
-            vec![("mode", OptionValue::String("b".into()))],
+            "json/narrow",
+            "format:
+  line_width: 60
+",
+        ),
+        Preset::new(
+            "json/modal",
+            "json:
+  format:
+    mode: b
+",
+        ),
+        Preset::new(
+            "json/data",
+            "extends: [preset:json/narrow]
+json:
+  format:
+    line_width: 70
+    mode: c
+",
+        ),
+        Preset::new(
+            "json/undeclared",
+            "json:
+  format:
+    no_such_option: true
+",
+        ),
+        Preset::new(
+            "json/loop-a",
+            "extends: [preset:json/loop-b]
+",
+        ),
+        Preset::new(
+            "json/loop-b",
+            "extends: [preset:json/loop-a]
+",
         ),
     ])
 }
@@ -307,13 +341,13 @@ fn resolve(config: &str, path: Option<&Path>) -> core_config::Resolved {
 #[test]
 fn language_section_beats_shared_beats_preset_beats_default() {
     let r = resolve(
-        "extends: [preset:json/narrow@1, preset:json/modal@1]\nformat:\n  line_width: 100\n  indent_size: 4\n",
+        "extends: [preset:json/narrow, preset:json/modal]\nformat:\n  line_width: 100\n  indent_size: 4\n",
         None,
     );
     assert_eq!(r.options.int("line_width"), 100);
     assert_eq!(r.options.int("indent_size"), 4);
     assert_eq!(r.options.str("mode"), "b");
-    assert_eq!(r.sources["mode"], Source::Preset("json/modal@1".into()));
+    assert_eq!(r.sources["mode"], Source::Preset("json/modal".into()));
 
     // The language section is `x:` for a language called x; csharp/json/yaml are the real ones.
     let chain =
@@ -332,10 +366,7 @@ fn language_section_beats_shared_beats_preset_beats_default() {
 
 #[test]
 fn presets_of_other_languages_are_ignored_and_the_later_preset_wins() {
-    let r = resolve(
-        "extends: [preset:csharp/other@1, preset:json/narrow@1]\n",
-        None,
-    );
+    let r = resolve("extends: [preset:csharp/other, preset:json/narrow]\n", None);
     assert_eq!(r.options.int("line_width"), 60);
 }
 
@@ -372,7 +403,7 @@ fn editorconfig_sits_below_the_config_chain_and_above_defaults() {
         "[*]\nindent_size = 7\nmax_line_length = 77\n",
         &dir.join("a.x"),
     );
-    let chain = ConfigChain::parse("extends: [preset:json/narrow@1]\n").unwrap();
+    let chain = ConfigChain::parse("extends: [preset:json/narrow]\n").unwrap();
     let r = chain
         .format_options(
             &FileInput::language("json").with_editorconfig(&ec),
@@ -406,10 +437,10 @@ fn validation_checks_presets_and_option_names_and_values() {
     let e = check("json:\n  format:\n    mode: z\n").unwrap_err();
     assert!(e.message.contains("one of: a, b, c"), "{e}");
     assert_eq!(e.line, Some(3));
-    let e = check("extends: [preset:json/nope@1]\n").unwrap_err();
-    assert!(e.message.contains("json/narrow@1"), "{e}");
+    let e = check("extends: [preset:json/nope]\n").unwrap_err();
+    assert!(e.message.contains("json/narrow"), "{e}");
     assert_eq!(e.line, Some(1));
-    let e = check("extends: [preset:zzz/nope@1]\n").unwrap_err();
+    let e = check("extends: [preset:zzz/nope]\n").unwrap_err();
     assert!(e.message.contains("preset language"), "{e}");
     let e = check("format:\n  mode: a\n").unwrap_err();
     assert!(
@@ -470,34 +501,40 @@ fn include_and_exclude_filter_paths() {
 }
 
 #[test]
-fn a_preset_is_a_data_file_of_declared_options() {
-    let mut presets = Preset::from_yaml(
-        "json",
-        "data@1:\n  line_width: 70\n  mode: c\nundeclared@1:\n  no_such_option: true\n",
-    );
-    let undeclared = presets.pop().unwrap();
-    let preset = presets.pop().unwrap();
-    assert_eq!(preset.name, "json/data@1");
-    assert_eq!(
-        preset.values,
-        [
-            ("line_width".to_string(), OptionValue::Int(70)),
-            ("mode".to_string(), OptionValue::String("c".into()))
-        ]
-    );
-    let with_data = schema().with_presets(vec![preset, undeclared]);
-    let chain = ConfigChain::parse("extends: [preset:json/data@1]\n").unwrap();
+fn a_preset_is_a_config_file_of_declared_options() {
+    let chain = ConfigChain::parse(
+        "extends: [preset:json/data]
+",
+    )
+    .unwrap();
     let r = chain
-        .format_options(&FileInput::language("json"), &with_data)
+        .format_options(&FileInput::language("json"), &schema())
         .unwrap();
     assert_eq!(
         (r.options.int("line_width"), r.options.str("mode")),
         (70, "c")
     );
     // Values the provider does not declare are an error, not a hidden setting.
-    let chain = ConfigChain::parse("extends: [preset:json/undeclared@1]\n").unwrap();
-    let e = chain
-        .format_options(&FileInput::language("json"), &with_data)
-        .unwrap_err();
-    assert!(e.message.contains("no_such_option"), "{e}");
+    for (name, needle) in [
+        ("undeclared", "no_such_option"),
+        ("loop-a", "extends itself"),
+    ] {
+        let chain = ConfigChain::parse(&format!(
+            "extends: [preset:json/{name}]
+"
+        ))
+        .unwrap();
+        let e = chain
+            .format_options(&FileInput::language("json"), &schema())
+            .unwrap_err();
+        assert!(e.message.contains(needle), "{e}");
+    }
+    // Presets have no versions.
+    assert!(
+        ConfigChain::parse(
+            "extends: [preset:json/data@1]
+"
+        )
+        .is_err()
+    );
 }

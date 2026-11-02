@@ -1,4 +1,4 @@
-# json/prettier-compat@1 samples
+# json/prettier-compat samples
 
 Source: Prettier, `tests/format/json/json/__snapshots__/format.test.js.snap`
 (<https://github.com/prettier/prettier/tree/main/tests/format/json/json>), the entries for

@@ -1,4 +1,4 @@
-# yaml/prettier-compat@1 samples
+# yaml/prettier-compat samples
 
 Source: Prettier's snapshots (<https://github.com/prettier/prettier/tree/main/tests/format/yaml>),
 default options (`printWidth: 80`); input and output are copied from them.

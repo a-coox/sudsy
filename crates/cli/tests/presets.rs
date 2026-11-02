@@ -70,7 +70,7 @@ fn every_preset_reproduces_its_samples() {
             let work = tempfile::tempdir().unwrap();
             fs::write(
                 work.path().join("sudsy.yaml"),
-                format!("extends:\n  - preset:{language}/{preset}@1\n"),
+                format!("extends:\n  - preset:{language}/{preset}\n"),
             )
             .unwrap();
             let sample = format!("sample.{ext}");
@@ -101,27 +101,7 @@ fn every_preset_reproduces_its_samples() {
     assert!(cases >= 8);
 }
 
-/// The `key: value` lines of preset `name@1` in `crates/lang-<language>/presets.yaml`.
-fn preset_options(language: &str, name: &str) -> String {
-    let path =
-        Path::new(env!("CARGO_MANIFEST_DIR")).join(format!("../lang-{language}/presets.yaml"));
-    let text = fs::read_to_string(path).unwrap();
-    let header = format!("{name}@1:");
-    let mut lines = text.lines().skip_while(|l| !l.starts_with(&header));
-    let first = lines.next().expect("preset exists");
-    let mut options = String::new();
-    if first.trim_end().ends_with("{}") {
-        return options;
-    }
-    for line in lines.take_while(|l| l.starts_with(' ') || l.starts_with('#') || l.is_empty()) {
-        if line.starts_with("  ") {
-            options.push_str(&format!("    {}\n", line.trim_start()));
-        }
-    }
-    options
-}
-
-/// A preset is pure data: a sudsy.yaml that writes the preset's option values by hand formats
+/// A preset is pure data: a sudsy.yaml that is a copy of the preset file formats
 /// every sample exactly like `extends: [preset:...]`.
 #[test]
 fn spelled_out_options_equal_the_preset() {
@@ -130,12 +110,14 @@ fn spelled_out_options_equal_the_preset() {
         let dir = entry.unwrap().path();
         let dir_name = dir.file_name().unwrap().to_string_lossy().into_owned();
         let (language, preset) = dir_name.split_once('-').unwrap();
-        let by_hand = format!(
-            "{language}:\n  format:\n{}",
-            preset_options(language, preset)
-        );
+        // The preset file is an ordinary sudsy.yaml: copying it formats the same.
+        let by_hand = fs::read_to_string(
+            Path::new(env!("CARGO_MANIFEST_DIR"))
+                .join(format!("../lang-{language}/presets/{preset}.yaml")),
+        )
+        .unwrap();
         let configs = [
-            format!("extends:\n  - preset:{language}/{preset}@1\n"),
+            format!("extends:\n  - preset:{language}/{preset}\n"),
             by_hand.clone(),
         ];
         for file in fs::read_dir(&dir).unwrap() {
@@ -176,8 +158,16 @@ fn no_tool_names_in_formatter_sources() {
         if path.is_dir() {
             stack.extend(fs::read_dir(&path).unwrap().map(|e| e.unwrap().path()));
         } else if path.extension().is_some_and(|e| e == "rs") {
+            // The provider's list of preset files (`"csharp/<name>"`, `include_str!`) names them; nothing else may.
             let text = fs::read_to_string(&path).unwrap().to_lowercase();
-            assert!(!text.contains("csharpier"), "{}", path.display());
+            let code = text.lines().filter(|l| {
+                !(l.contains("include_str!") || l.trim_start().starts_with("\"csharp/"))
+            });
+            assert!(
+                !code.collect::<String>().contains("csharpier"),
+                "{}",
+                path.display()
+            );
         }
     }
 }

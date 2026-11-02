@@ -104,7 +104,13 @@ fn document(cx: &FormatCtx<'_>, node: &SyntaxNode) -> Result<Doc, FormatError> {
     Ok(doc::concat(parts))
 }
 
-/// The presets are data: `presets.yaml` next to the crate's manifest.
+/// The presets are plain config files in `presets/` next to the crate's manifest.
 fn presets() -> Vec<Preset> {
-    Preset::from_yaml("json", include_str!("../presets.yaml"))
+    vec![
+        Preset::new("json/default", include_str!("../presets/default.yaml")),
+        Preset::new(
+            "json/prettier-compat",
+            include_str!("../presets/prettier-compat.yaml"),
+        ),
+    ]
 }
