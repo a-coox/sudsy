@@ -1,9 +1,10 @@
 //! The database: salsa storage plus the (immutable) provider list.
 
 use crate::inputs::ConfigFile;
+use core_config::{ConfigChain, ConfigError};
 use provider_api::{LanguageProvider, select_provider_index};
 use salsa::Setter;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::sync::Arc;
 
 pub type Providers = Arc<[Box<dyn LanguageProvider>]>;
@@ -55,7 +56,7 @@ impl Database {
             storage: salsa::Storage::new(hook),
             providers: providers.into(),
         };
-        ConfigFile::new(&db, None, None);
+        ConfigFile::new(&db, Ok(ConfigChain::default()));
         db
     }
 
@@ -65,10 +66,8 @@ impl Database {
         select_provider_index(&self.providers, path).is_some()
     }
 
-    /// Replaces the config contents.
-    pub fn set_config(&mut self, path: Option<PathBuf>, text: Option<String>) {
-        let config = ConfigFile::get(self);
-        config.set_path(self).to(path);
-        config.set_text(self).to(text);
+    /// Replaces the config files.
+    pub fn set_config(&mut self, chain: Result<ConfigChain, ConfigError>) {
+        let _previous = ConfigFile::get(self).set_chain(self).to(chain);
     }
 }

@@ -1,6 +1,7 @@
 //! The inputs of the database: the only values that are set from outside. Everything else is a
 //! query over them.
 
+use core_config::{ConfigChain, ConfigError, EditorConfig};
 use std::path::PathBuf;
 
 /// One file's text. An editor edit is `file.set_text(&mut db).to(..)` (plus a new `version`);
@@ -19,15 +20,15 @@ pub struct File {
     pub text: String,
     #[returns(copy)]
     pub had_bom: bool,
+    /// The `.editorconfig` values that apply to the file; the caller reads them (`EditorConfig::for_file`).
+    #[returns(ref)]
+    pub editorconfig: EditorConfig,
 }
 
-/// The contents of the `sudsy.yaml` that applies, or `None` text when there is no such file.
-/// Which config file applies (the walk up from the working directory) is the caller's business;
-/// the engine only sees its contents.
+/// The config files that apply: the `sudsy.yaml` found by the caller and the files it extends, or
+/// the error from reading them. An empty chain is the default config.
 #[salsa::input(singleton, debug)]
 pub struct ConfigFile {
     #[returns(ref)]
-    pub path: Option<PathBuf>,
-    #[returns(ref)]
-    pub text: Option<String>,
+    pub chain: Result<ConfigChain, ConfigError>,
 }

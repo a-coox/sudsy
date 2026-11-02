@@ -49,26 +49,3 @@ fn debug_parse_rejects_other_languages() {
     assert!(!out.status.success());
     assert!(String::from_utf8_lossy(&out.stderr).contains("only .cs"));
 }
-
-#[test]
-fn debug_config_prints_and_reports_errors() {
-    let dir = tempfile::tempdir().unwrap();
-    let good = dir.path().join("sudsy.yaml");
-    std::fs::write(&good, "format:\n  line_width: 90\n").unwrap();
-    let out = sudsy()
-        .args(["debug", "config"])
-        .arg(&good)
-        .output()
-        .unwrap();
-    assert!(out.status.success());
-    assert!(String::from_utf8_lossy(&out.stdout).contains("line_width"));
-
-    std::fs::write(&good, "nope: 1\n").unwrap();
-    let out = sudsy()
-        .args(["debug", "config"])
-        .arg(&good)
-        .output()
-        .unwrap();
-    assert!(!out.status.success());
-    assert!(String::from_utf8_lossy(&out.stderr).contains("sudsy.yaml:1:"));
-}

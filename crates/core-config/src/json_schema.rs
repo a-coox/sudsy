@@ -1,0 +1,219 @@
+//! The JSON Schema of `sudsy.yaml`, generated from the providers' option declarations
+//! (plan.md "Option schema"). Editors register it for completion and validation of the config.
+
+use crate::model::{Depth, LANGUAGES, OptionValue};
+use crate::schema::{OptionDef, OptionKind, OptionSchema, shared};
+use serde_json::{Map, Value, json};
+
+fn value_json(v: &OptionValue) -> Value {
+    match v {
+        OptionValue::Bool(b) => json!(b),
+        OptionValue::Int(n) => json!(n),
+        OptionValue::Float(f) => json!(f),
+        OptionValue::String(s) => json!(s),
+        OptionValue::List(items) => Value::Array(items.iter().map(value_json).collect()),
+        OptionValue::Map(m) => Value::Object(
+            m.iter()
+                .map(|(k, v)| (k.clone(), value_json(v)))
+                .collect::<Map<_, _>>(),
+        ),
+    }
+}
+
+fn option_json(def: &OptionDef) -> Value {
+    let mut out = match &def.kind {
+        OptionKind::Bool => json!({ "type": "boolean" }),
+        OptionKind::Int { min, max } => {
+            json!({ "type": "integer", "minimum": min, "maximum": max })
+        }
+        OptionKind::Enum(values) => json!({ "type": "string", "enum": values }),
+        OptionKind::Words => json!({ "type": "array", "items": { "type": "string" } }),
+    };
+    out["description"] = json!(def.description);
+    out["default"] = value_json(&def.default);
+    out
+}
+
+fn options_object(defs: Vec<&OptionDef>) -> Value {
+    let properties: Map<String, Value> = defs
+        .into_iter()
+        .map(|d| (d.name.to_string(), option_json(d)))
+        .collect();
+    json!({ "type": "object", "additionalProperties": false, "properties": properties })
+}
+
+fn lint_section() -> Value {
+    json!({
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+            "rules": {
+                "type": "object",
+                "description": "Rule id (`no-empty-catch`, or `plugin/rule`) to a level or a level with options.",
+                "additionalProperties": { "$ref": "#/definitions/rule" }
+            }
+        }
+    })
+}
+
+/// The shared options: the first declaration of each name among the languages.
+fn shared_defs<'a>(languages: &[(&str, &'a OptionSchema)]) -> Vec<&'a OptionDef> {
+    shared::NAMES
+        .iter()
+        .filter_map(|name| languages.iter().find_map(|(_, s)| s.get(name)))
+        .collect()
+}
+
+/// The schema for the given languages (`(language, schema)`); languages without a schema get
+/// sections that only accept `lint`.
+pub fn json_schema(languages: &[(&str, &OptionSchema)]) -> Value {
+    let mut presets: Vec<String> = languages
+        .iter()
+        .flat_map(|(_, s)| s.presets().iter().map(|p| format!("preset:{}", p.name)))
+        .collect();
+    presets.sort();
+
+    let language_section = |name: &str| -> Value {
+        let format = match languages.iter().find(|(l, _)| *l == name) {
+            Some((_, schema)) => options_object(schema.defs().iter().collect()),
+            None => json!({ "type": "object" }),
+        };
+        json!({
+            "type": "object",
+            "additionalProperties": false,
+            "properties": { "format": format, "lint": lint_section() }
+        })
+    };
+    let sections: Map<String, Value> = LANGUAGES
+        .iter()
+        .map(|l| ((*l).to_string(), language_section(l)))
+        .collect();
+
+    let mut override_properties = Map::new();
+    override_properties.insert(
+        "files".into(),
+        json!({
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string" },
+            "description": "Globs relative to the config file; the override applies to files that match any."
+        }),
+    );
+    override_properties.insert("format".into(), options_object(shared_defs(languages)));
+    override_properties.insert("lint".into(), lint_section());
+    override_properties.extend(sections.clone());
+
+    let mut properties = Map::new();
+    properties.insert(
+        "extends".into(),
+        json!({
+            "type": "array",
+            "description": "Presets (`preset:<language>/<name>@<version>`) or config files, applied in order.",
+            "items": { "type": "string", "examples": presets }
+        }),
+    );
+    for (key, text) in [
+        (
+            "include",
+            "Globs of the files to format and lint (everything when empty).",
+        ),
+        (
+            "exclude",
+            "Globs of files to leave alone, in addition to ignore files.",
+        ),
+    ] {
+        properties.insert(
+            key.into(),
+            json!({ "type": "array", "items": { "type": "string" }, "description": text }),
+        );
+    }
+    properties.insert(
+        "analysis".into(),
+        json!({
+            "type": "string",
+            "enum": [Depth::Fast.as_str(), Depth::Standard.as_str(), Depth::Deep.as_str()],
+            "default": Depth::Standard.as_str(),
+            "description": "Analysis depth for rules: fast (syntax only), standard (within each file), deep (adds project scope)."
+        }),
+    );
+    properties.insert("format".into(), options_object(shared_defs(languages)));
+    properties.insert("lint".into(), lint_section());
+    properties.insert(
+        "plugins".into(),
+        json!({
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "patterns": { "type": "array", "items": { "type": "string" } },
+                "wasm": { "type": "array", "items": { "type": "string" } }
+            }
+        }),
+    );
+    properties.extend(sections);
+    properties.insert(
+        "overrides".into(),
+        json!({
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": ["files"],
+                "additionalProperties": false,
+                "properties": override_properties
+            }
+        }),
+    );
+
+    json!({
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "title": "sudsy.yaml",
+        "description": "Configuration of Sudsy, the formatter and linter for C#, JSON and YAML.",
+        "type": "object",
+        "additionalProperties": false,
+        "properties": properties,
+        "definitions": {
+            "rule": {
+                "oneOf": [
+                    { "type": "string", "enum": ["off", "warn", "error"] },
+                    {
+                        "type": "object",
+                        "required": ["level"],
+                        "additionalProperties": false,
+                        "properties": {
+                            "level": { "type": "string", "enum": ["off", "warn", "error"] },
+                            "options": { "type": "object" }
+                        }
+                    }
+                ]
+            }
+        }
+    })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::presets::Preset;
+
+    #[test]
+    fn options_and_presets_come_from_the_declarations() {
+        let schema = OptionSchema::new(vec![
+            shared::line_width(80),
+            OptionDef::choice("mode", &["a", "b"], "a", "A mode."),
+        ])
+        .with_presets(vec![Preset::new("x/p@1", vec![])]);
+        let doc = json_schema(&[("x", &schema)]);
+        assert_eq!(
+            doc["properties"]["format"]["properties"]["line_width"]["default"],
+            80
+        );
+        assert_eq!(
+            doc["properties"]["extends"]["items"]["examples"][0],
+            "preset:x/p@1"
+        );
+        assert!(
+            doc["properties"]["format"]["properties"]
+                .get("mode")
+                .is_none()
+        );
+    }
+}

@@ -70,16 +70,17 @@ fn failure_kind(message: &str) -> &'static str {
 
 /// The options of the preset `csharp/csharpier-compat@1`.
 fn compat_options() -> core_config::ResolvedOptions {
-    let schema = lang_csharp::option_schema();
-    let mut options = schema.defaults();
-    core_config::apply_presets(
-        &["preset:csharp/csharpier-compat@1"],
-        "csharp",
-        &schema,
-        &mut options,
+    core_config::ConfigChain::parse(
+        "extends: [\"preset:csharp/csharpier-compat@1\"]
+",
     )
-    .unwrap();
-    options
+    .unwrap()
+    .format_options(
+        &core_config::FileInput::language("csharp"),
+        &lang_csharp::option_schema(),
+    )
+    .unwrap()
+    .options
 }
 
 #[test]

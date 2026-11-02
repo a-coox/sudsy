@@ -11,6 +11,7 @@ publish = false
 [workspace.dependencies]
 anyhow = "1"
 clap = { version = "4", features = ["derive"] }
+globset = "0.4"
 ignore = "0.4"
 insta = "1"
 unicode-width = "0.2"

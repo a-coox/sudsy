@@ -1,15 +1,21 @@
 //! Option schemas: every provider declares its format options once (name, type, default,
 //! allowed values, description). Validation, resolution, docs and tests derive from it.
 
-use crate::model::{LanguageSection, OptionValue, Options};
-use crate::presets::{Preset, apply_presets};
+use crate::error::unknown_name;
+use crate::model::OptionValue;
+use crate::presets::Preset;
 use std::collections::BTreeMap;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum OptionKind {
     Bool,
-    Int { min: i64, max: i64 },
+    Int {
+        min: i64,
+        max: i64,
+    },
     Enum(&'static [&'static str]),
+    /// A list of C# identifiers-like words (preprocessor symbols).
+    Words,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -47,6 +53,16 @@ impl OptionDef {
         }
     }
 
+    /// A list of words (letters, digits, `_`), empty by default.
+    pub fn words(name: &'static str, description: &'static str) -> Self {
+        OptionDef {
+            name,
+            kind: OptionKind::Words,
+            default: OptionValue::List(Vec::new()),
+            description,
+        }
+    }
+
     pub fn choice(
         name: &'static str,
         values: &'static [&'static str],
@@ -71,6 +87,10 @@ impl OptionDef {
                 .iter()
                 .map(|v| OptionValue::String((*v).into()))
                 .collect(),
+            OptionKind::Words => vec![
+                OptionValue::List(Vec::new()),
+                OptionValue::List(vec![OptionValue::String("DEBUG".into())]),
+            ],
             OptionKind::Int { min, max } => {
                 let default = match self.default {
                     OptionValue::Int(d) => d,
@@ -84,7 +104,7 @@ impl OptionDef {
         }
     }
 
-    fn check(&self, value: &OptionValue) -> Result<(), String> {
+    pub(crate) fn check(&self, value: &OptionValue) -> Result<(), String> {
         match (&self.kind, value) {
             (OptionKind::Bool, OptionValue::Bool(_)) => Ok(()),
             (OptionKind::Int { min, max }, OptionValue::Int(n)) if (min..=max).contains(&n) => {
@@ -97,6 +117,10 @@ impl OptionDef {
             (OptionKind::Bool, _) => Err("must be true or false".into()),
             (OptionKind::Enum(values), OptionValue::String(s)) if values.contains(&s.as_str()) => {
                 Ok(())
+            }
+            (OptionKind::Words, OptionValue::List(items)) if items.iter().all(is_word) => Ok(()),
+            (OptionKind::Words, _) => {
+                Err("must be a list of words made of letters, digits and `_`".into())
             }
             (OptionKind::Enum(values), _) => Err(format!("must be one of: {}", values.join(", "))),
         }
@@ -161,13 +185,10 @@ impl OptionSchema {
     ) -> Result<(), OptionError> {
         let def = self.get(name).ok_or_else(|| OptionError {
             option: name.into(),
-            message: format!(
-                "unknown option; known options: {}",
-                self.defs
-                    .iter()
-                    .map(|d| d.name)
-                    .collect::<Vec<_>>()
-                    .join(", ")
+            message: unknown_name("option", name, self.defs.iter().map(|d| d.name)).replacen(
+                &format!("unknown option `{name}`"),
+                "unknown",
+                1,
             ),
         })?;
         def.check(value).map_err(|message| OptionError {
@@ -203,6 +224,20 @@ impl ResolvedOptions {
         match self.0.get(name) {
             Some(OptionValue::Int(n)) => *n,
             other => panic!("option `{name}` is not an integer: {other:?}"),
+        }
+    }
+
+    /// The strings of a list option; empty when the option is absent.
+    pub fn strings(&self, name: &str) -> Vec<String> {
+        match self.0.get(name) {
+            Some(OptionValue::List(items)) => items
+                .iter()
+                .filter_map(|i| match i {
+                    OptionValue::String(s) => Some(s.clone()),
+                    _ => None,
+                })
+                .collect(),
+            _ => Vec::new(),
         }
     }
 
@@ -260,63 +295,22 @@ pub mod shared {
         OptionDef::boolean(FINAL_NEWLINE, default, "End the file with a newline.")
     }
 }
-
-/// Format options for one file from the config: schema defaults, then the shared `format:`
-/// section, then the language section. Shared keys a language does not declare are ignored; an
-/// unknown key in the language section is an error. Overrides and `.editorconfig` extend this in
-/// M3.
-pub fn resolve_format(
-    shared_format: &Options,
-    section: &LanguageSection,
-    schema: &OptionSchema,
-) -> Result<ResolvedOptions, OptionError> {
-    resolve_format_extending(&[], "", shared_format, section, schema)
+impl OptionSchema {
+    /// The preset named `language/name@version`; without `@version` the newest version.
+    pub fn find_preset(&self, name: &str) -> Option<&Preset> {
+        if name.contains('@') {
+            return self.presets.iter().find(|p| p.name == name);
+        }
+        self.presets
+            .iter()
+            .filter(|p| p.unversioned() == name)
+            .max_by_key(|p| p.version())
+    }
 }
 
-/// [`resolve_format`] with the `extends` entries of the config: presets of `language` sit between
-/// the defaults and the shared section.
-pub fn resolve_format_extending(
-    extends: &[&str],
-    language: &str,
-    shared_format: &Options,
-    section: &LanguageSection,
-    schema: &OptionSchema,
-) -> Result<ResolvedOptions, OptionError> {
-    let mut resolved = schema.defaults();
-    apply_presets(extends, language, schema, &mut resolved)?;
-    for (name, value) in shared_format {
-        if !shared::NAMES.contains(&name.as_str()) {
-            return Err(OptionError {
-                option: name.clone(),
-                message: format!(
-                    "not a shared option; put it under a language section (shared options: {})",
-                    shared::NAMES.join(", ")
-                ),
-            });
-        }
-        if schema.get(name).is_some() {
-            schema.apply(&mut resolved, name, value)?;
-        }
-    }
-    for (name, value) in &section.format {
-        schema.apply(&mut resolved, name, value)?;
-    }
-    Ok(resolved)
-}
-
-impl crate::Config {
-    /// Format options for files of `language` (a grammar's language name). This is the one place
-    /// M3 extends with overrides and `.editorconfig`.
-    pub fn format_options(
-        &self,
-        language: &str,
-        schema: &OptionSchema,
-    ) -> Result<ResolvedOptions, OptionError> {
-        let none = LanguageSection::default();
-        let section = self.language_section(language).unwrap_or(&none);
-        let extends: Vec<&str> = self.extends.iter().map(|e| e.value.as_str()).collect();
-        resolve_format_extending(&extends, language, &self.format, section, schema)
-    }
+fn is_word(value: &OptionValue) -> bool {
+    matches!(value, OptionValue::String(s)
+        if !s.is_empty() && s.chars().all(|c| c.is_alphanumeric() || c == '_'))
 }
 
 #[cfg(test)]
@@ -331,74 +325,31 @@ mod tests {
         ])
     }
 
-    fn opts(pairs: &[(&str, OptionValue)]) -> Options {
-        pairs
-            .iter()
-            .map(|(k, v)| (k.to_string(), v.clone()))
-            .collect()
-    }
-
     #[test]
-    fn language_section_beats_shared_beats_default() {
-        let shared = opts(&[
-            ("line_width", OptionValue::Int(100)),
-            ("indent_size", OptionValue::Int(4)),
-        ]);
-        let section = LanguageSection {
-            format: opts(&[("line_width", OptionValue::Int(120))]),
-            ..Default::default()
-        };
-        let r = resolve_format(&shared, &section, &schema()).unwrap();
-        assert_eq!(r.int("line_width"), 120);
-        assert_eq!(r.int("indent_size"), 4);
-        assert_eq!(r.str("mode"), "a");
-    }
-
-    #[test]
-    fn shared_option_the_language_lacks_is_ignored() {
-        let shared = opts(&[("final_newline", OptionValue::Bool(false))]);
-        assert!(resolve_format(&shared, &LanguageSection::default(), &schema()).is_ok());
-    }
-
-    #[test]
-    fn rejects_unknown_and_invalid_values() {
-        let bad_shared = opts(&[("mode", OptionValue::String("b".into()))]);
-        let e = resolve_format(&bad_shared, &LanguageSection::default(), &schema()).unwrap_err();
-        assert!(e.message.contains("not a shared option"));
+    fn defaults_and_checked_values() {
+        let s = schema();
+        let mut r = s.defaults();
+        assert_eq!(r.int("line_width"), 80);
+        s.apply(&mut r, "mode", &OptionValue::String("b".into()))
+            .unwrap();
+        assert_eq!(r.str("mode"), "b");
         for (name, value, needle) in [
-            ("nope", OptionValue::Bool(true), "unknown option"),
+            (
+                "nope",
+                OptionValue::Bool(true),
+                "format option `nope`: unknown",
+            ),
+            (
+                "line_widht",
+                OptionValue::Int(90),
+                "did you mean `line_width`",
+            ),
             ("mode", OptionValue::String("c".into()), "one of: a, b"),
             ("line_width", OptionValue::Int(5), "between 20 and 1000"),
             ("line_width", OptionValue::Bool(true), "integer"),
         ] {
-            let section = LanguageSection {
-                format: opts(&[(name, value)]),
-                ..Default::default()
-            };
-            let e = resolve_format(&Options::new(), &section, &schema()).unwrap_err();
+            let e = s.apply(&mut r, name, &value).unwrap_err();
             assert!(e.to_string().contains(needle), "{e}");
         }
-    }
-
-    #[test]
-    fn config_picks_the_section_of_the_language() {
-        let config = crate::parse_str(
-            "format:
-  line_width: 100
-json:
-  format:
-    line_width: 90
-",
-        )
-        .unwrap();
-        let line_width = |lang| {
-            config
-                .format_options(lang, &schema())
-                .unwrap()
-                .int("line_width")
-        };
-        assert_eq!(line_width("json"), 90);
-        assert_eq!(line_width("yaml"), 100);
-        assert_eq!(line_width("unknown"), 100);
     }
 }

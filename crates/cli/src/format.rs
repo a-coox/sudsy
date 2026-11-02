@@ -1,11 +1,15 @@
 //! `sudsy format [--check] [paths...]`
 
+use crate::project::{Project, providers};
 use anyhow::{Context, Result, anyhow};
 use clap::Args;
-use core_incremental::{Database, File, Stage, config, format};
-use provider_api::{LanguageProvider, SourceFile};
+use core_config::EditorConfig;
+use core_incremental::{Database, File, Stage, format};
+use core_workspace::Filter;
+use provider_api::SourceFile;
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
+use std::sync::Arc;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 #[derive(Args)]
@@ -15,18 +19,6 @@ pub struct FormatArgs {
     check: bool,
     /// Files or directories; the current directory when omitted.
     paths: Vec<PathBuf>,
-}
-
-/// The providers of the languages Sudsy formats. The C# worker is started on the first C# file
-/// only; when it cannot be found, the C# files fail with the reason and the rest are formatted.
-fn providers() -> Vec<Box<dyn LanguageProvider>> {
-    let worker = lang_csharp::locate_worker()
-        .unwrap_or_else(|_| PathBuf::from("csharp-worker/Sudsy.Worker.dll"));
-    vec![
-        Box::new(lang_json::JsonProvider::new()),
-        Box::new(lang_yaml::YamlProvider::new()),
-        Box::new(lang_csharp::provider(&worker)),
-    ]
 }
 
 #[derive(Default)]
@@ -47,13 +39,23 @@ enum Failed {
 /// One database per run: the config is an input, and so is every file, created by the thread
 /// that reads it.
 pub fn run(args: FormatArgs) -> Result<ExitCode> {
-    let mut db = Database::new(providers());
-    load_config(&mut db)?;
-    let paths: Vec<PathBuf> = core_workspace::discover_files(&args.paths)?
+    let providers = providers();
+    let project = Project::load(&providers)?;
+    let mut db = Database::new(providers);
+    db.set_config(Ok(project.chain.clone()));
+    let chain = Arc::new(project.chain.clone());
+    let filter = Filter {
+        exclude: {
+            let chain = chain.clone();
+            Arc::new(move |path| chain.is_excluded(path))
+        },
+        include: Arc::new(move |path| chain.is_included(path)),
+    };
+    let paths: Vec<PathBuf> = core_workspace::discover_files(&args.paths, &filter)?
         .into_iter()
         .filter(|path| db.supports(path))
         .collect();
-    let loaded = load_and_format(&db, &paths);
+    let loaded = load_and_format(&db, &project, &paths);
 
     // Reported in path order, so the output does not depend on thread timing.
     let mut summary = Summary::default();
@@ -64,14 +66,14 @@ pub fn run(args: FormatArgs) -> Result<ExitCode> {
                 if changed {
                     summary.changed += 1;
                     if args.check {
-                        println!("would reformat {}", path.display());
+                        println!("would reformat {}", project.show(path));
                     }
                 }
             }
             Err(Failed::Run(e)) => return Err(e),
             Err(Failed::File(e)) => {
                 summary.failed += 1;
-                eprintln!("error: {}: {e:#}", path.display());
+                eprintln!("error: {}: {e:#}", project.show(path));
             }
         }
     }
@@ -85,27 +87,10 @@ pub fn run(args: FormatArgs) -> Result<ExitCode> {
     })
 }
 
-/// Hands the nearest `sudsy.yaml` to the engine and fails the run if it is invalid.
-fn load_config(db: &mut Database) -> Result<()> {
-    if let Some(path) = core_config::discover(&std::env::current_dir()?)? {
-        let text = std::fs::read_to_string(&path).map_err(|e| core_config::ConfigError {
-            path: Some(path.clone()),
-            line: None,
-            column: None,
-            message: e.to_string(),
-        })?;
-        db.set_config(Some(path), Some(text));
-    }
-    match config(db) {
-        Ok(_) => Ok(()),
-        Err(failure) => Err(anyhow!("{}", failure.message)),
-    }
-}
-
 /// Reads and formats every file in parallel. Inputs are only ever created, never set, while the
 /// workers run: each works through its own handle on the database (a salsa handle shares the
 /// memos) and claims the next path from a shared counter. Results come back in `paths` order.
-fn load_and_format(db: &Database, paths: &[PathBuf]) -> Vec<Result<File>> {
+fn load_and_format(db: &Database, project: &Project, paths: &[PathBuf]) -> Vec<Result<File>> {
     let threads = std::thread::available_parallelism()
         .map_or(1, usize::from)
         .min(paths.len());
@@ -123,7 +108,7 @@ fn load_and_format(db: &Database, paths: &[PathBuf]) -> Vec<Result<File>> {
                         let Some(path) = paths.get(index) else {
                             break done;
                         };
-                        done.push((index, load(&db, path)));
+                        done.push((index, load(&db, project, path)));
                     }
                 })
             })
@@ -147,10 +132,18 @@ fn load_and_format(db: &Database, paths: &[PathBuf]) -> Vec<Result<File>> {
 
 /// Reads one file into the database and runs the format query on it; the result stays memoized
 /// for [`finish`].
-fn load(db: &Database, path: &Path) -> Result<File> {
+fn load(db: &Database, project: &Project, path: &Path) -> Result<File> {
     let bytes = std::fs::read(path).context("reading the file")?;
-    let source = SourceFile::from_bytes(path.to_string_lossy(), 1, bytes)?;
-    let file = File::new(db, path.to_path_buf(), 1, source.text, source.had_bom);
+    let source = SourceFile::from_bytes(project.show(path), 1, bytes)?;
+    let editorconfig = EditorConfig::for_file(path);
+    let file = File::new(
+        db,
+        path.to_path_buf(),
+        1,
+        source.text,
+        source.had_bom,
+        editorconfig,
+    );
     format(db, file);
     Ok(file)
 }

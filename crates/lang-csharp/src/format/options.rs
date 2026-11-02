@@ -7,6 +7,7 @@ use core_format::shapes::{ListLayout, TrailingComma};
 pub const BRACE_NEWLINE: &str = "brace_newline";
 pub const TRAILING_COMMAS: &str = "trailing_commas";
 pub const MEMBER_CHAIN_MIN_CALLS: &str = "member_chain_min_calls";
+pub const PREPROCESSOR_SYMBOLS: &str = "preprocessor_symbols";
 
 /// Defaults are `csharp/microsoft`: Allman braces, four spaces, width 120.
 pub fn option_schema() -> OptionSchema {
@@ -36,6 +37,11 @@ pub fn option_schema() -> OptionSchema {
             (1, 1000),
             "A chain of member accesses and calls with at least this many calls is broken one \
              call per line when it does not fit on a line.",
+        ),
+        OptionDef::words(
+            PREPROCESSOR_SYMBOLS,
+            "Conditional compilation symbols (`DEBUG`, `NET8_0`) defined when parsing, which \
+             decide the active branch of `#if`. Only the active branch is formatted.",
         ),
     ])
     .with_presets(presets())

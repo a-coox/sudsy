@@ -174,6 +174,7 @@ fn presets() -> Vec<Preset> {
                 (shared::LINE_WIDTH, OptionValue::Int(80)),
                 (shared::INDENT_SIZE, OptionValue::Int(2)),
                 (SEQUENCE_INDENT, OptionValue::String("indented".into())),
+                (QUOTE_STYLE, OptionValue::String("double".into())),
                 (DOCUMENT_START, OptionValue::String("preserve".into())),
                 (MAX_BLANK_LINES, OptionValue::Int(1)),
                 (LAYOUT, OptionValue::String("prettier".into())),
