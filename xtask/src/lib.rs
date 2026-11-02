@@ -34,7 +34,7 @@ pub fn generate() -> Result<Vec<(PathBuf, String)>> {
             codegen::rust_module(&csharp, "grammars/csharp.grammar")?,
         ),
         (
-            "workers/csharp/Sudsy.Worker/Generated/CSharpGrammar.g.cs".into(),
+            "workers/csharp/Sudsy.Worker/Generated/CsharpGrammar.g.cs".into(),
             codegen::csharp_constants(&csharp, "grammars/csharp.grammar")?,
         ),
     ])
