@@ -1,0 +1,6 @@
+target/
+bin/
+obj/
+node_modules/
+*.vsix
+.vs/
