@@ -1,0 +1,11 @@
+---
+source: crates/lang-json/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+{"z":[1,2],
+"y":{"k":"v"}}
+-----
+{
+  "z": [1, 2],
+  "y": { "k": "v" }
+}

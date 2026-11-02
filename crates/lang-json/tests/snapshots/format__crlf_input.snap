@@ -9,5 +9,8 @@ expression: "format! (\"{input}\\n-----\\n{out}\")"
 
 -----
 {
-  "a": [1, 2]
+  "a": [
+    1,
+    2
+  ]
 }
