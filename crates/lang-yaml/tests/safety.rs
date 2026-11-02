@@ -7,7 +7,8 @@ use core_format::testing::Subject;
 use lang_yaml::YamlFormatter;
 
 fn check(before: &str, after: &str) -> Result<(), String> {
-    YamlFormatter.extra_check(before, after)
+    let tree = |text: &str| lang_yaml::parse(text).tree;
+    YamlFormatter.extra_check(&tree(before), &tree(after))
 }
 
 #[test]

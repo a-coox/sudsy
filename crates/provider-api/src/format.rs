@@ -79,7 +79,6 @@ pub fn format_file(
         grammar,
         provider.formatter(),
         &parsed.tree,
-        &file.text,
         &output,
         reparse,
     )?;

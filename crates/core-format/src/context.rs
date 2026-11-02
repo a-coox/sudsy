@@ -22,8 +22,9 @@ pub trait NodeFormatter: Send + Sync {
     ) -> Result<Option<Doc>, FormatError>;
 
     /// A provider-specific addition to the generic safety check (YAML compares the loaded data
-    /// model here). `before` and `after` are the source and the formatted output.
-    fn extra_check(&self, _before: &str, _after: &str) -> Result<(), String> {
+    /// model here). `before` and `after` are the trees of the source and of the formatted
+    /// output, both already parsed without errors.
+    fn extra_check(&self, _before: &SyntaxNode, _after: &SyntaxNode) -> Result<(), String> {
         Ok(())
     }
 }

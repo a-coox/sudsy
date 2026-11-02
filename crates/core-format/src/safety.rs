@@ -139,7 +139,6 @@ pub fn verify(
     g: &Grammar,
     formatter: &dyn NodeFormatter,
     before_tree: &SyntaxNode,
-    before: &str,
     after: &str,
     reparse: impl FnOnce(&str) -> Result<SyntaxNode, String>,
 ) -> Result<(), FormatError> {
@@ -147,6 +146,6 @@ pub fn verify(
         .map_err(|e| FormatError::Safety(format!("the output does not parse: {e}")))?;
     equal_ignoring_trivia(g, before_tree, &after_tree).map_err(FormatError::Safety)?;
     formatter
-        .extra_check(before, after)
+        .extra_check(before_tree, &after_tree)
         .map_err(FormatError::Safety)
 }

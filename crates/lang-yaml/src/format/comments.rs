@@ -58,10 +58,10 @@ pub(crate) fn blank_lines_before(cx: &FormatCtx<'_>, t: &SyntaxToken, st: &Style
         n => cs[n - 1].breaks_after.saturating_sub(1),
     };
     // The blank lines after a `keep` block scalar are part of its value.
-    if skip == 0 && after_keep_scalar(t) {
-        blank
-    } else {
+    if blank <= st.max_blank || skip != 0 || !after_keep_scalar(t) {
         blank.min(st.max_blank)
+    } else {
+        blank
     }
 }
 
@@ -109,6 +109,9 @@ fn takers(cs: &[Comment], t: &SyntaxToken) -> Vec<(SyntaxNode, usize, usize)> {
 
 /// How many leading comments of `t` the collections before it took.
 fn taken_before(cs: &[Comment], t: &SyntaxToken) -> usize {
+    if cs.is_empty() {
+        return 0;
+    }
     takers(cs, t).last().map_or(0, |(_, _, end)| *end)
 }
 
@@ -118,6 +121,9 @@ pub(crate) fn dangling(cx: &FormatCtx<'_>, st: &Style, collection: &SyntaxNode) 
         return Doc::Nil;
     };
     let cs = comments::leading_comments(cx.grammar, &next);
+    if cs.is_empty() {
+        return Doc::Nil;
+    }
     let Some((_, start, end)) = takers(&cs, &next)
         .into_iter()
         .find(|(n, _, _)| n == collection)
@@ -130,7 +136,7 @@ pub(crate) fn dangling(cx: &FormatCtx<'_>, st: &Style, collection: &SyntaxNode) 
             0 => comments::blank_lines_before(cx.grammar, &next),
             _ => cs[i - 1].breaks_after.saturating_sub(1),
         };
-        let blank = if i == 0 && after_keep_scalar(&next) {
+        let blank = if blank > st.max_blank && i == 0 && after_keep_scalar(&next) {
             blank
         } else {
             blank.min(st.max_blank)
