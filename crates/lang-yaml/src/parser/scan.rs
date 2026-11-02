@@ -2,7 +2,7 @@
 //! for plain, single-quoted and double-quoted scalars.
 
 use super::{Parser, R};
-use core_syntax::generated::yaml::kind as k;
+use crate::generated::kind as k;
 
 pub(crate) fn is_blank(c: u8) -> bool {
     matches!(c, b' ' | b'\t')

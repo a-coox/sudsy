@@ -4,9 +4,9 @@ mod common;
 
 use common::{JsonSubject, subject};
 use core_format::testing::{Subject, check};
-use core_syntax::generated::json::kind as k;
 use core_syntax::{SyntaxKind, SyntaxNode, print, trivia};
 use lang_json::JsonProvider;
+use lang_json::generated::kind as k;
 use proptest::prelude::*;
 use provider_api::{LanguageProvider, SourceFile};
 

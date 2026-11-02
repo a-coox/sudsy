@@ -1,7 +1,7 @@
 //! The lossless lexer: every byte of the input ends up in exactly one token.
 
+use crate::generated::kind as k;
 use core_syntax::SyntaxKind;
-use core_syntax::generated::json::kind as k;
 
 #[derive(Clone, Copy, Debug)]
 pub struct Token {

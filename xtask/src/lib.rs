@@ -27,16 +27,16 @@ pub fn generate() -> Result<Vec<(PathBuf, String)>> {
     let yaml = load("yaml")?;
     Ok(vec![
         (
-            "crates/core-syntax/src/generated/json.rs".into(),
-            codegen::rust_module(&json, "grammars/json.grammar")?,
+            "crates/lang-json/src/generated.rs".into(),
+            codegen::rust_module(&json, "grammars/json.grammar", "core_syntax")?,
         ),
         (
-            "crates/core-syntax/src/generated/yaml.rs".into(),
-            codegen::rust_module(&yaml, "grammars/yaml.grammar")?,
+            "crates/lang-yaml/src/generated.rs".into(),
+            codegen::rust_module(&yaml, "grammars/yaml.grammar", "core_syntax")?,
         ),
         (
             "crates/core-syntax/src/generated/csharp.rs".into(),
-            codegen::rust_module(&csharp, "grammars/csharp.grammar")?,
+            codegen::rust_module(&csharp, "grammars/csharp.grammar", "crate")?,
         ),
         (
             "workers/csharp/Sudsy.Worker/Generated/CsharpGrammar.g.cs".into(),

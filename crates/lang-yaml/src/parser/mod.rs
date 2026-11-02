@@ -14,8 +14,8 @@ mod builder;
 mod flow;
 mod scan;
 
+use crate::generated::kind as k;
 use builder::{Ev, build};
-use core_syntax::generated::yaml::kind as k;
 use core_syntax::{SyntaxKind, SyntaxNode};
 use provider_api::ParseError;
 

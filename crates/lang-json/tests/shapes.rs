@@ -7,8 +7,8 @@ use core_format::shapes::{self, BlockStyle, KeyValueStyle, ListStyle};
 use core_format::{
     Directive, DirectiveTable, FormatCtx, FormatError, NodeFormatter, doc, format_tree, printer,
 };
-use core_syntax::generated::json::kind as k;
 use core_syntax::{SyntaxKind, SyntaxNode};
+use lang_json::generated::kind as k;
 use lang_json::{JsonFormatter, JsonProvider, option_schema};
 use provider_api::{LanguageProvider, SourceFile};
 

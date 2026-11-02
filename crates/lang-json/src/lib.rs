@@ -1,6 +1,8 @@
 //! The JSON and JSONC provider: a hand-written lossless parser, and formatting that is almost
 //! entirely the shared shapes' tag defaults.
 
+#[rustfmt::skip]
+pub mod generated;
 mod format;
 mod lexer;
 mod parser;

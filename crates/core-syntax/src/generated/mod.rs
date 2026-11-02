@@ -1,7 +1,4 @@
-//! Checked-in output of `cargo xtask codegen`; do not edit by hand.
+//! Checked-in output of `cargo xtask codegen`; do not edit by hand. The JSON and YAML wrappers live
+//! in `lang-json` and `lang-yaml`.
 #[rustfmt::skip]
 pub mod csharp;
-#[rustfmt::skip]
-pub mod json;
-#[rustfmt::skip]
-pub mod yaml;

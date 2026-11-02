@@ -1,7 +1,7 @@
 //! Parser behavior: tree shape, error recovery, and properties that hold for any input.
 
-use core_syntax::generated::yaml::kind as k;
 use core_syntax::{SyntaxKind, SyntaxNode, print, trivia};
+use lang_yaml::generated::kind as k;
 use lang_yaml::parse;
 use proptest::prelude::*;
 
@@ -133,4 +133,13 @@ proptest! {
             }
         }
     }
+}
+
+#[test]
+fn generated_code_matches_the_grammar() {
+    use lang_yaml::generated::GRAMMAR_HASH;
+    let g = core_syntax::grammars::yaml();
+    assert_eq!(g.hash(), GRAMMAR_HASH);
+    assert_eq!(g.kind_by_name("BlockMapping"), Some(k::BLOCK_MAPPING));
+    assert_eq!(g.kind_by_name("Plain"), Some(k::PLAIN));
 }

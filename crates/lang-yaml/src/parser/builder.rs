@@ -3,7 +3,7 @@
 //! the shared attachment rule: the part up to and including the first line break is trailing
 //! trivia of the previous token, the rest is leading trivia of the next one.
 
-use core_syntax::generated::yaml::kind as k;
+use crate::generated::kind as k;
 use core_syntax::trivia::is_line_break;
 use core_syntax::{SyntaxKind, SyntaxNode, TreeBuilder};
 use provider_api::ParseError;
