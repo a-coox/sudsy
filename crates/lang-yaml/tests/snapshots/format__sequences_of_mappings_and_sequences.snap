@@ -1,0 +1,25 @@
+---
+source: crates/lang-yaml/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+- name: a
+  value: 1
+-   - x
+    - y
+- - z
+-
+  k: v
+- k2:   v2
+  list:
+  - 1
+
+-----
+- name: a
+  value: 1
+- - x
+  - y
+- - z
+- k: v
+- k2: v2
+  list:
+  - 1

@@ -1,0 +1,16 @@
+---
+source: crates/lang-yaml/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+m: {a: 1,b: 2}
+s: [1,2,   3]
+e: {}
+n: []
+nested: {a: [1, 2], b: {c: d}}
+
+-----
+m: { a: 1, b: 2 }
+s: [1, 2, 3]
+e: {}
+n: []
+nested: { a: [1, 2], b: { c: d } }

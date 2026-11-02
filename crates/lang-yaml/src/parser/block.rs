@@ -143,13 +143,16 @@ impl Parser<'_> {
     /// The node after an indicator (`-`, `?`, `:`, `---`) on the same line or the lines below.
     /// `compact_ok`: a block collection may start on this line (after `-` and `?`).
     pub(crate) fn block_node(&mut self, n: i64, ctx: Ctx, compact_ok: bool) -> R<()> {
+        self.descend()?;
         let tab = self.skip_inline_ws();
-        if self.at_content() {
+        let result = if self.at_content() {
             let col = self.col(self.pos);
             self.block_content(n, ctx, compact_ok && !tab, col, false, 0)
         } else {
             self.next_line_node(n, ctx, 0)
-        }
+        };
+        self.depth -= 1;
+        result
     }
 
     /// A node that starts on a later line, if there is one indented more than `n`.

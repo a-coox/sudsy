@@ -1,0 +1,28 @@
+---
+source: crates/lang-yaml/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+? a
+: b
+? [x, y]
+: z
+? |
+  block key
+: v
+? only key
+? - s1
+  - s2
+: - s3
+
+-----
+? a
+: b
+? [x, y]
+: z
+? |
+  block key
+: v
+? only key
+? - s1
+  - s2
+: - s3

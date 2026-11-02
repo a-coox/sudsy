@@ -32,6 +32,10 @@ pub fn parse(src: &str) -> Parsed {
     Parsed { tree, errors }
 }
 
+/// Deeper nesting is an error: it bounds the recursion of the parser, the formatter and the
+/// destructor of the tree.
+pub const MAX_DEPTH: usize = 100;
+
 /// A syntax error was recorded; unwind to the document.
 pub(crate) struct Abort;
 pub(crate) type R<T> = Result<T, Abort>;
@@ -48,6 +52,8 @@ pub(crate) struct Parser<'a> {
     pub(crate) open: usize,
     /// Depth of flow collections around the current position.
     pub(crate) in_flow: usize,
+    /// Depth of nested nodes, bounded by [`MAX_DEPTH`].
+    pub(crate) depth: usize,
     /// Smallest column of a continuation line of a flow scalar or flow collection (`n + 1`).
     pub(crate) min_col: usize,
     /// Tag handles declared by `%TAG` directives of the current document.
@@ -65,6 +71,7 @@ impl<'a> Parser<'a> {
             errors: Vec::new(),
             open: 0,
             in_flow: 0,
+            depth: 0,
             min_col: 0,
             handles: Vec::new(),
         }
@@ -92,6 +99,15 @@ impl<'a> Parser<'a> {
         self.events.push(Ev::Tok(kind, start, end));
         self.pos = end;
         self.last_end = end;
+    }
+
+    /// Enters one nesting level.
+    pub(crate) fn descend(&mut self) -> R<()> {
+        self.depth += 1;
+        if self.depth > MAX_DEPTH {
+            return self.fail("too-deep", "nesting is too deep");
+        }
+        Ok(())
     }
 
     pub(crate) fn error_at(&mut self, start: usize, len: usize, code: &str, message: &str) {

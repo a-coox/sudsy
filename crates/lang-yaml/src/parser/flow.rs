@@ -106,6 +106,7 @@ impl Parser<'_> {
         let is_seq = open == b'[';
         let close = if is_seq { b']' } else { b'}' };
         let first_line = self.line_start(self.pos);
+        self.descend()?;
         self.start(if is_seq {
             k::FLOW_SEQUENCE
         } else {
@@ -142,6 +143,7 @@ impl Parser<'_> {
             }
         }
         self.in_flow -= 1;
+        self.depth -= 1;
         self.finish();
         Ok(self.line_start(self.pos) != first_line)
     }

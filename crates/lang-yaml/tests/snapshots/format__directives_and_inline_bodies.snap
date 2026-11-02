@@ -1,0 +1,26 @@
+---
+source: crates/lang-yaml/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+%YAML 1.2
+%TAG !e! tag:example.com,2000:
+--- !e!foo
+k: v
+--- text
+--- |
+  literal
+--- [a, b]
+--- # comment
+z: 1
+
+-----
+%YAML 1.2
+%TAG !e! tag:example.com,2000:
+--- !e!foo
+k: v
+--- text
+--- |
+  literal
+--- [a, b]
+--- # comment
+z: 1
