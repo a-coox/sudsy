@@ -11,6 +11,7 @@ Formatter + linter for C#, JSON and YAML. `plan.md` is the design source of trut
 - Errors: `thiserror` in libraries, `anyhow` only in binaries (`cli`, `lsp`).
 - Snapshot tests use `insta`; fixtures live under `tests/fixtures/<lang>/` or the crate's `tests/`.
 - Every formatter test checks lossless round-trip, idempotency and meaning preservation.
+- Clean up as you go: once a decision is made, delete the losing alternatives (benchmark candidates, prototypes, bootstrap code); once a temporary placement or shim is superseded (code living somewhere "until X exists"), move or remove it in the milestone that makes X exist. Results stay in docs/decisions.md and git history.
 - No speculative features beyond plan.md. When the plan leaves a detail open, pick the simplest option and note it in `docs/decisions.md`.
 
 ## Commands
