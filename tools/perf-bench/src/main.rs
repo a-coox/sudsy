@@ -113,7 +113,7 @@ fn phases(
     let (cmp, compare) =
         timed(|| safety::equal_ignoring_trivia(p.grammar(), &parsed.tree, &re.tree));
     cmp.map_err(|e| anyhow!(e))?;
-    let (extra, extra_t) = timed(|| sites("extra check", || p.formatter().extra_check(text, &out)));
+    let (extra, extra_t) = timed(|| sites("extra check", || p.formatter().extra_check(&parsed.tree, &re.tree)));
     extra.map_err(|e| anyhow!(e))?;
     Ok(vec![
         ("parse", parse),
