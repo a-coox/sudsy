@@ -1,6 +1,7 @@
 //! Expressions that lay out as a chain: binary operators, member accesses and calls, assignments
 //! and the conditional operator.
 
+use super::options::csharpier;
 use super::seq::{R, paren_group, sig};
 use super::tags::{self, Tag};
 use crate::generated::kind as k;
@@ -25,9 +26,44 @@ fn breaks_after_operator(cx: &FormatCtx<'_>, rhs: &SyntaxNode) -> bool {
         || matches!(rhs.kind(), k::CONDITIONAL_EXPRESSION | k::QUERY_EXPRESSION)
 }
 
+/// CSharpier's layouts of `lead rhs` (Prettier's assignment layouts): a string stays after the
+/// operator whatever its length, a binary expression moves to its own line when it does not fit,
+/// and anything else moves only when its first line (up to its first possible break) does not
+/// fit after the operator ("fluid").
+fn csharpier_rhs(cx: &FormatCtx<'_>, lead: Doc, rhs: &SyntaxNode, rhs_doc: Doc) -> Doc {
+    let has_comment = core_format::comments::node_leading(cx.grammar, rhs).has_comment;
+    if matches!(
+        rhs.kind(),
+        k::STRING_LITERAL_EXPRESSION | k::INTERPOLATED_STRING_EXPRESSION
+    ) && !has_comment
+    {
+        return doc::concat(vec![lead, doc::lit(" "), rhs_doc]);
+    }
+    // The initializer of a property moves as a whole.
+    let property_initializer = rhs
+        .parent()
+        .and_then(|clause| clause.parent())
+        .is_some_and(|decl| decl.kind() == k::PROPERTY_DECLARATION);
+    if has_comment || property_initializer || tags::has(cx.grammar, rhs.kind(), Tag::BinaryChain) {
+        return doc::concat(vec![
+            lead,
+            doc::group(doc::indent(doc::concat(vec![doc::line(), rhs_doc]))),
+        ]);
+    }
+    let id = doc::new_group_id();
+    doc::concat(vec![
+        lead,
+        doc::group_with_id(id, doc::indent(doc::line())),
+        doc::indent_if_break(id, rhs_doc),
+    ])
+}
+
 /// `lead rhs`, where `lead` ends with the operator.
 fn with_rhs(cx: &FormatCtx<'_>, lead: Doc, op: &SyntaxToken, rhs: &SyntaxNode) -> R {
     let rhs_doc = cx.format(rhs)?;
+    if csharpier(cx.options) && !ends_in_line_comment(cx, op) {
+        return Ok(csharpier_rhs(cx, lead, rhs, rhs_doc));
+    }
     Ok(if ends_in_line_comment(cx, op) {
         doc::concat(vec![
             lead,
@@ -70,6 +106,21 @@ pub fn equals_value_clause(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
 }
 
 pub fn arrow_clause(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
+    if csharpier(cx.options) {
+        // `=>` and then the body, which moves to its own line as a whole when it does not fit.
+        let els = sig(cx, node);
+        if let [SyntaxElement::Token(op), SyntaxElement::Node(value)] = els.as_slice()
+            && !ends_in_line_comment(cx, op)
+        {
+            return Ok(doc::concat(vec![
+                cx.token(op),
+                doc::group(doc::indent(doc::concat(vec![
+                    doc::line(),
+                    cx.format(value)?,
+                ]))),
+            ]));
+        }
+    }
     operator_and_value(cx, node)
 }
 

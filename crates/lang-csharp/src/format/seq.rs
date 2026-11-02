@@ -1,7 +1,7 @@
 //! The generic layout: a node's significant children one after the other, separated by the
 //! space, line break or nothing that [`Sep`] decides.
 
-use super::options::brace_on_new_line;
+use super::options::{brace_on_new_line, csharpier};
 use super::spacing;
 use super::tags::{self, Tag};
 use crate::generated::kind as k;
@@ -126,6 +126,14 @@ pub fn separator(
     let pk = parent.kind();
     if let SyntaxElement::Node(n) = next {
         let nk = n.kind();
+        if csharpier(cx.options)
+            && matches!(
+                nk,
+                k::BASE_CONSTRUCTOR_INITIALIZER | k::THIS_CONSTRUCTOR_INITIALIZER
+            )
+        {
+            return Sep::None; // the initializer starts its own line
+        }
         if nk == k::BLOCK {
             return if block_is_empty(cx, n) {
                 Sep::Space

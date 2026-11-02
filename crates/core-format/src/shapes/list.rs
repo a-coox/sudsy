@@ -1,5 +1,6 @@
 use super::{
-    container, container_between, dangling_comments, gap, render_slots, separator_comments,
+    BlankRule, container, container_between, dangling_comments, gap, render_slots,
+    separator_comments,
 };
 use crate::FormatCtx;
 use crate::comments;
@@ -41,6 +42,8 @@ pub struct ListStyle {
     pub leading_line: bool,
     /// What stands between the delimiters of an empty list.
     pub empty: &'static str,
+    /// Items between which a blank line is required.
+    pub force_blank: Option<BlankRule>,
 }
 
 impl Default for ListStyle {
@@ -53,6 +56,7 @@ impl Default for ListStyle {
             max_blank_lines: 1,
             leading_line: false,
             empty: "",
+            force_blank: None,
         }
     }
 }
@@ -143,6 +147,7 @@ fn list_of(
                 &items[i],
                 doc::line(),
                 style.max_blank_lines,
+                style.force_blank,
             ));
         }
         inner.push(std::mem::replace(&mut items[i].doc, Doc::Nil));
@@ -153,7 +158,7 @@ fn list_of(
         });
         inner.push(separator_comments(cx, &items[i]));
     }
-    inner.push(dangling_comments(&dangling));
+    inner.push(dangling_comments(&dangling, false));
     let mut body_parts = Vec::new();
     if style.leading_line {
         body_parts.push(doc::line());

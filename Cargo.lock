@@ -657,6 +657,7 @@ dependencies = [
  "core-syntax",
  "insta",
  "provider-api",
+ "similar",
 ]
 
 [[package]]

@@ -73,20 +73,26 @@ pub fn member_chain(chain: MemberChain) -> Doc {
         parts.extend(groups.into_iter().flatten());
         return doc::concat(parts);
     }
+    // Both candidates are built from the same parts: share them, or a chain nested in a chain
+    // would copy its parts once more at every level.
+    let head = doc::shared(doc::concat(head));
+    let groups: Vec<Doc> = groups
+        .into_iter()
+        .map(|g| doc::shared(doc::concat(g)))
+        .collect();
     let flat = (!force_break).then(|| {
-        let mut parts = head.clone();
-        parts.extend(groups.iter().flatten().cloned());
+        let mut parts = vec![head.clone()];
+        parts.extend(groups.iter().cloned());
         doc::concat(parts)
     });
     let mut tail = Vec::new();
     for g in groups {
         tail.push(doc::hardline());
-        tail.extend(g);
+        tail.push(g);
     }
-    let mut broken = head;
-    broken.push(doc::indent(doc::concat(tail)));
+    let broken = doc::concat(vec![head, doc::indent(doc::concat(tail))]);
     match flat {
-        Some(flat) => doc::conditional_group(vec![flat, doc::concat(broken)]),
-        None => doc::concat(broken),
+        Some(flat) => doc::conditional_group(vec![flat, broken]),
+        None => broken,
     }
 }

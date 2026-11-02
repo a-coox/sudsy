@@ -1,7 +1,8 @@
 //! The greedy, language-unaware printer. It follows Prettier's algorithm: a group is printed flat
 //! if the rest of its line (up to the next possible break) fits in the line width, else broken.
 
-use crate::doc::Doc;
+use crate::doc::{Doc, GroupId};
+use std::collections::HashMap;
 use unicode_width::UnicodeWidthChar;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -158,6 +159,7 @@ pub fn print_counting(doc: &mut Doc, opts: &PrintOptions) -> (String, usize, Pri
         pos: 0,
         suffixes: Vec::new(),
         remeasure: false,
+        group_modes: HashMap::new(),
         keep: 0,
         measure: Measure::default(),
     };
@@ -176,6 +178,8 @@ struct Printer<'a> {
     suffixes: Vec<Cmd<'a>>,
     /// Set after a hard line in flat mode: the next group must be measured again.
     remeasure: bool,
+    /// How each group with an id was printed, for `IndentIfBreak`.
+    group_modes: HashMap<GroupId, Mode>,
     /// Output before this length ends with significant blanks (see [`Doc::Verbatim`]).
     keep: usize,
     /// Work list of [`fits`], kept between calls.
@@ -267,6 +271,16 @@ impl<'a> Printer<'a> {
         };
         match doc {
             Doc::Nil | Doc::BreakParent => {}
+            Doc::Shared(s) => push(cmds, indent, mode, &s.doc),
+            Doc::IndentIfBreak(id, d) => {
+                let broken = self.group_modes.get(id) == Some(&Mode::Break);
+                let i = if broken {
+                    self.indents.indent(indent)
+                } else {
+                    indent
+                };
+                push(cmds, i, mode, d);
+            }
             Doc::Text(s) => self.write(s),
             Doc::Verbatim(s) => {
                 self.write(s);
@@ -348,6 +362,9 @@ impl<'a> Printer<'a> {
                         (true, None) => (Mode::Break, &g.contents),
                         (false, _) => (Mode::Flat, &g.contents),
                     };
+                    if let Some(id) = g.id {
+                        self.group_modes.insert(id, m);
+                    }
                     push(cmds, indent, m, d);
                     return;
                 }
@@ -355,6 +372,9 @@ impl<'a> Printer<'a> {
                 let next = flat_cmd(&g.contents);
                 let width = self.width_left();
                 if !g.broken && fits(&mut self.measure, next, cmds, width, false) {
+                    if let Some(id) = g.id {
+                        self.group_modes.insert(id, Mode::Flat);
+                    }
                     cmds.push(next);
                 } else if let Some(most_expanded) = g.states.last() {
                     if g.broken {
@@ -370,6 +390,9 @@ impl<'a> Printer<'a> {
                         None => push(cmds, indent, Mode::Break, most_expanded),
                     }
                 } else {
+                    if let Some(id) = g.id {
+                        self.group_modes.insert(id, Mode::Break);
+                    }
                     push(cmds, indent, Mode::Break, &g.contents);
                 }
             }
@@ -466,6 +489,8 @@ fn fits<'a>(
         };
         match doc {
             Doc::Nil | Doc::BreakParent | Doc::LineSuffix(_) => {}
+            Doc::Shared(s) => m.stack.push((mode, Item::Doc(&s.doc))),
+            Doc::IndentIfBreak(_, d) => m.stack.push((mode, Item::Doc(d))),
             Doc::Text(s) => {
                 if let Some(answer) = measure(s, &mut width) {
                     return answer;

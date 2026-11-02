@@ -1,12 +1,10 @@
 //! Delimited lists: argument and parameter lists, initializers, collection expressions,
 //! attribute lists, and the hook that keeps a lambda as the last argument on the call's line.
 
-use super::options::trailing_comma;
+use super::options::{csharpier, initializer_layout, trailing_comma};
 use super::seq::{R, Sep, direct_tokens, sep_doc, separator, seq_of, sig};
 use crate::generated::kind as k;
-use core_format::shapes::{
-    ListLayout, ListStyle, TrailingComma, delimited_list, delimited_list_between,
-};
+use core_format::shapes::{ListStyle, TrailingComma, delimited_list, delimited_list_between};
 use core_format::{Doc, FormatCtx, comments, doc};
 use core_syntax::{SyntaxElement, SyntaxKind, SyntaxNode, SyntaxToken};
 
@@ -33,6 +31,22 @@ pub fn plain_list(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
     delimited_list(cx, node, &style)
 }
 
+/// A delimited list that is never broken: the items separated by `, ` between the delimiters.
+pub fn unbreakable_list(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
+    let mut parts = Vec::new();
+    for e in sig(cx, node) {
+        match &e {
+            SyntaxElement::Token(t) if t.kind() == k::COMMA_TOKEN => {
+                parts.push(cx.token(t));
+                parts.push(doc::lit(" "));
+            }
+            SyntaxElement::Token(t) => parts.push(cx.token(t)),
+            SyntaxElement::Node(n) => parts.push(cx.format(n)?),
+        }
+    }
+    Ok(doc::concat(parts))
+}
+
 fn creation_parent(kind: Option<SyntaxKind>) -> bool {
     matches!(
         kind,
@@ -51,8 +65,13 @@ fn creation_parent(kind: Option<SyntaxKind>) -> bool {
 fn brace_style(cx: &FormatCtx<'_>, node: &SyntaxNode, close: &SyntaxToken) -> ListStyle {
     ListStyle {
         padding: true,
-        trailing_comma: trailing_comma(cx.options, source_trailing_comma(cx, node, close)),
-        layout: ListLayout::PreserveBreak,
+        // `{ key, value }` as an element of a collection initializer takes no trailing comma.
+        trailing_comma: if node.kind() == k::COMPLEX_ELEMENT_INITIALIZER_EXPRESSION {
+            TrailingComma::Never
+        } else {
+            trailing_comma(cx.options, source_trailing_comma(cx, node, close))
+        },
+        layout: initializer_layout(cx.options),
         empty: " ",
         ..ListStyle::default()
     }
@@ -75,7 +94,7 @@ pub fn collection_expression(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
     let style = ListStyle {
         padding: false,
         trailing_comma: trailing_comma(cx.options, source_trailing_comma(cx, node, &close)),
-        layout: ListLayout::PreserveBreak,
+        layout: initializer_layout(cx.options),
         ..ListStyle::default()
     };
     delimited_list(cx, node, &style)
@@ -159,7 +178,9 @@ pub fn argument_list(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
         .filter_map(SyntaxElement::into_token)
         .filter(|t| !cx.grammar.is_trivia(t.kind()))
         .all(|t| !has_comments(cx, &t));
+    // CSharpier hugs a lambda only when it is the one argument.
     let hug = args.last().is_some_and(block_lambda)
+        && (args.len() == 1 || !csharpier(cx.options))
         && simple_tokens
         && args.iter().all(|a| {
             cx.first_token(a)
@@ -168,9 +189,10 @@ pub fn argument_list(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
     if !hug {
         return delimited_list(cx, node, &ListStyle::default());
     }
+    // The two candidates below are built from the same argument documents: share them.
     let docs = args
         .iter()
-        .map(|a| cx.format(a))
+        .map(|a| cx.format(a).map(doc::shared))
         .collect::<Result<Vec<Doc>, _>>()?;
     let (last, init) = docs.split_last().expect("at least one argument");
     if init.iter().any(|d| d.clone().propagate_breaks()) {

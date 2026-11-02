@@ -16,12 +16,36 @@ mod tags;
 
 pub use options::{BRACE_NEWLINE, MEMBER_CHAIN_MIN_CALLS, TRAILING_COMMAS, option_schema};
 
+use self::options::csharpier;
 use self::tags::Tag;
 use crate::generated::kind as k;
 use core_format::{Doc, FormatCtx, FormatError, NodeFormatter};
 use core_syntax::SyntaxNode;
 
 pub struct CSharpFormatter;
+
+/// Does the list have exactly one child node, of one of these kinds?
+fn single_child(list: &SyntaxNode, kinds: &[core_syntax::SyntaxKind]) -> bool {
+    let mut children = list.children();
+    matches!((children.next(), children.next()), (Some(c), None) if kinds.contains(&c.kind()))
+}
+
+/// `a[0]`, `a[i]`, `a["key"]`: an index that is one name or literal never breaks.
+fn simple_index(list: &SyntaxNode) -> bool {
+    let mut args = list.children();
+    let (Some(arg), None) = (args.next(), args.next()) else {
+        return false;
+    };
+    matches!(
+        arg.children().next().map(|e| e.kind()),
+        Some(
+            k::IDENTIFIER_NAME
+                | k::NUMERIC_LITERAL_EXPRESSION
+                | k::STRING_LITERAL_EXPRESSION
+                | k::CHARACTER_LITERAL_EXPRESSION
+        )
+    )
+}
 
 impl NodeFormatter for CSharpFormatter {
     fn format_node(
@@ -36,10 +60,43 @@ impl NodeFormatter for CSharpFormatter {
             k::FILE_SCOPED_NAMESPACE_DECLARATION => braces::file_scoped_namespace(cx, node)?,
             k::INTERPOLATED_STRING_EXPRESSION => cx.verbatim_node(node),
             k::ACCESSOR_LIST => braces::accessor_list(cx, node)?,
+            k::BASE_CONSTRUCTOR_INITIALIZER | k::THIS_CONSTRUCTOR_INITIALIZER
+                if csharpier(cx.options) =>
+            {
+                braces::constructor_initializer(cx, node)?
+            }
+            k::GET_ACCESSOR_DECLARATION
+            | k::SET_ACCESSOR_DECLARATION
+            | k::INIT_ACCESSOR_DECLARATION
+            | k::ADD_ACCESSOR_DECLARATION
+            | k::REMOVE_ACCESSOR_DECLARATION
+            | k::UNKNOWN_ACCESSOR_DECLARATION
+                if csharpier(cx.options) =>
+            {
+                match braces::accessor_declaration(cx, node) {
+                    Some(doc) => doc?,
+                    None => seq::seq(cx, node)?,
+                }
+            }
             k::SWITCH_SECTION => braces::switch_section(cx, node)?,
             k::SWITCH_EXPRESSION => braces::switch_expression(cx, node)?,
             k::ENUM_DECLARATION => braces::enum_declaration(cx, node)?,
             k::ARGUMENT_LIST => lists::argument_list(cx, node)?,
+            k::ATTRIBUTE_LIST if csharpier(cx.options) && single_child(node, &[k::ATTRIBUTE]) => {
+                lists::unbreakable_list(cx, node)?
+            }
+            k::TYPE_ARGUMENT_LIST
+                if csharpier(cx.options)
+                    && single_child(
+                        node,
+                        &[k::PREDEFINED_TYPE, k::IDENTIFIER_NAME, k::QUALIFIED_NAME],
+                    ) =>
+            {
+                lists::unbreakable_list(cx, node)?
+            }
+            k::BRACKETED_ARGUMENT_LIST if csharpier(cx.options) && simple_index(node) => {
+                lists::unbreakable_list(cx, node)?
+            }
             k::ATTRIBUTE_LIST => lists::plain_list(cx, node)?,
             k::ANONYMOUS_OBJECT_CREATION_EXPRESSION | k::LIST_PATTERN => {
                 lists::list_with_surroundings(cx, node)?

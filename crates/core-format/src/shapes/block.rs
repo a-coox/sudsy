@@ -1,4 +1,6 @@
-use super::{Rendered, Slot, container, container_between, dangling_comments, gap, render_slots};
+use super::{
+    BlankRule, Rendered, Slot, container, container_between, dangling_comments, gap, render_slots,
+};
 use crate::FormatCtx;
 use crate::comments;
 use crate::doc::{self, Doc};
@@ -11,6 +13,8 @@ pub struct BlockStyle {
     pub max_blank_lines: usize,
     /// What stands between the delimiters of an empty block.
     pub empty: &'static str,
+    /// Items between which a blank line is required.
+    pub force_blank: Option<BlankRule>,
 }
 
 impl Default for BlockStyle {
@@ -18,6 +22,7 @@ impl Default for BlockStyle {
         BlockStyle {
             max_blank_lines: 1,
             empty: "",
+            force_blank: None,
         }
     }
 }
@@ -67,8 +72,10 @@ fn block_of(
         cx,
         render_slots(cx, &c.slots)?,
         style.max_blank_lines,
+        style.force_blank,
     )];
-    inner.push(dangling_comments(&dangling));
+    let blank_before = !c.slots.is_empty() && comments::blank_lines_before(g, &c.close) > 0;
+    inner.push(dangling_comments(&dangling, blank_before));
     let first_hardline = if c.slots.is_empty() {
         Doc::Nil
     } else {
@@ -88,6 +95,16 @@ pub fn statement_sequence(
     items: &[SyntaxNode],
     max_blank_lines: usize,
 ) -> Result<Doc, FormatError> {
+    statement_sequence_with(cx, items, max_blank_lines, None)
+}
+
+/// [`statement_sequence`] with a rule for blank lines the source does not have.
+pub fn statement_sequence_with(
+    cx: &FormatCtx<'_>,
+    items: &[SyntaxNode],
+    max_blank_lines: usize,
+    force_blank: Option<BlankRule>,
+) -> Result<Doc, FormatError> {
     let slots: Vec<Slot> = items
         .iter()
         .map(|n| Slot {
@@ -99,10 +116,16 @@ pub fn statement_sequence(
         cx,
         render_slots(cx, &slots)?,
         max_blank_lines,
+        force_blank,
     ))
 }
 
-fn sequence_items(cx: &FormatCtx<'_>, mut items: Vec<Rendered>, max_blank: usize) -> Doc {
+fn sequence_items(
+    cx: &FormatCtx<'_>,
+    mut items: Vec<Rendered>,
+    max_blank: usize,
+    force_blank: Option<BlankRule>,
+) -> Doc {
     let mut parts = Vec::new();
     for i in 0..items.len() {
         if i > 0 {
@@ -112,6 +135,7 @@ fn sequence_items(cx: &FormatCtx<'_>, mut items: Vec<Rendered>, max_blank: usize
                 &items[i],
                 doc::hardline(),
                 max_blank,
+                force_blank,
             ));
         }
         parts.push(std::mem::replace(&mut items[i].doc, Doc::Nil));

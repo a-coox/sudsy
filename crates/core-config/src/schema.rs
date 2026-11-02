@@ -2,6 +2,7 @@
 //! allowed values, description). Validation, resolution, docs and tests derive from it.
 
 use crate::model::{LanguageSection, OptionValue, Options};
+use crate::presets::{Preset, apply_presets};
 use std::collections::BTreeMap;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -113,11 +114,25 @@ pub struct OptionError {
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct OptionSchema {
     defs: Vec<OptionDef>,
+    presets: Vec<Preset>,
 }
 
 impl OptionSchema {
     pub fn new(defs: Vec<OptionDef>) -> Self {
-        OptionSchema { defs }
+        OptionSchema {
+            defs,
+            presets: Vec::new(),
+        }
+    }
+
+    /// The presets (`extends: preset:...`) of this provider.
+    pub fn with_presets(mut self, presets: Vec<Preset>) -> Self {
+        self.presets = presets;
+        self
+    }
+
+    pub fn presets(&self) -> &[Preset] {
+        &self.presets
     }
 
     pub fn defs(&self) -> &[OptionDef] {
@@ -248,14 +263,27 @@ pub mod shared {
 
 /// Format options for one file from the config: schema defaults, then the shared `format:`
 /// section, then the language section. Shared keys a language does not declare are ignored; an
-/// unknown key in the language section is an error. Presets, overrides and `.editorconfig` extend
-/// this in M2.
+/// unknown key in the language section is an error. Overrides and `.editorconfig` extend this in
+/// M3.
 pub fn resolve_format(
     shared_format: &Options,
     section: &LanguageSection,
     schema: &OptionSchema,
 ) -> Result<ResolvedOptions, OptionError> {
+    resolve_format_extending(&[], "", shared_format, section, schema)
+}
+
+/// [`resolve_format`] with the `extends` entries of the config: presets of `language` sit between
+/// the defaults and the shared section.
+pub fn resolve_format_extending(
+    extends: &[&str],
+    language: &str,
+    shared_format: &Options,
+    section: &LanguageSection,
+    schema: &OptionSchema,
+) -> Result<ResolvedOptions, OptionError> {
     let mut resolved = schema.defaults();
+    apply_presets(extends, language, schema, &mut resolved)?;
     for (name, value) in shared_format {
         if !shared::NAMES.contains(&name.as_str()) {
             return Err(OptionError {
@@ -278,7 +306,7 @@ pub fn resolve_format(
 
 impl crate::Config {
     /// Format options for files of `language` (a grammar's language name). This is the one place
-    /// M2 extends with presets, overrides and `.editorconfig`.
+    /// M3 extends with overrides and `.editorconfig`.
     pub fn format_options(
         &self,
         language: &str,
@@ -286,7 +314,8 @@ impl crate::Config {
     ) -> Result<ResolvedOptions, OptionError> {
         let none = LanguageSection::default();
         let section = self.language_section(language).unwrap_or(&none);
-        resolve_format(&self.format, section, schema)
+        let extends: Vec<&str> = self.extends.iter().map(|e| e.value.as_str()).collect();
+        resolve_format_extending(&extends, language, &self.format, section, schema)
     }
 }
 

@@ -5,6 +5,8 @@
 //! `conditional_group`, `line_suffix` and `break_parent`.
 
 use std::borrow::Cow;
+use std::sync::Arc;
+use std::sync::atomic::{AtomicU32, Ordering};
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Doc {
@@ -44,6 +46,28 @@ pub enum Doc {
     LineSuffix(Box<Doc>),
     /// Forces every enclosing group to break.
     BreakParent,
+    /// Contents indented one level when the group with this id was printed broken (Prettier's
+    /// `indentIfBreak`).
+    IndentIfBreak(GroupId, Box<Doc>),
+    /// A subtree that is cloned by reference count: layouts that try several candidates share
+    /// the documents the candidates have in common instead of copying them (see [`shared`]).
+    Shared(Arc<SharedDoc>),
+}
+
+/// Names a group so that [`Doc::IndentIfBreak`] can ask whether it was printed broken.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct GroupId(u32);
+
+pub fn new_group_id() -> GroupId {
+    static NEXT: AtomicU32 = AtomicU32::new(0);
+    GroupId(NEXT.fetch_add(1, Ordering::Relaxed))
+}
+
+/// The contents of [`Doc::Shared`], with whether they force a break (decided once, when shared).
+#[derive(Debug, PartialEq)]
+pub struct SharedDoc {
+    pub doc: Doc,
+    pub forced: bool,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -53,6 +77,7 @@ pub struct Group {
     /// the first candidate). Empty for an ordinary group.
     pub states: Vec<Doc>,
     pub broken: bool,
+    pub id: Option<GroupId>,
 }
 
 impl Doc {
@@ -66,6 +91,8 @@ impl Doc {
         match self {
             Doc::HardLine | Doc::BreakParent | Doc::LineStart(_) | Doc::NewlineIfNeeded => true,
             Doc::Nil | Doc::Text(_) | Doc::Verbatim(_) | Doc::Line | Doc::SoftLine => false,
+            Doc::Shared(s) => s.forced,
+            Doc::IndentIfBreak(_, d) => d.propagate_breaks(),
             Doc::Concat(parts) | Doc::Fill(parts) => parts
                 .iter_mut()
                 .fold(false, |forced, d| d.propagate_breaks() | forced),
@@ -188,7 +215,34 @@ pub fn group(contents: Doc) -> Doc {
         contents,
         states: Vec::new(),
         broken: false,
+        id: None,
     }))
+}
+
+/// A group other documents can ask about with [`indent_if_break`].
+pub fn group_with_id(id: GroupId, contents: Doc) -> Doc {
+    Doc::Group(Box::new(Group {
+        contents,
+        states: Vec::new(),
+        broken: false,
+        id: Some(id),
+    }))
+}
+
+/// `contents`, indented when the group `id` (printed before it) broke.
+pub fn indent_if_break(id: GroupId, contents: Doc) -> Doc {
+    Doc::IndentIfBreak(id, Box::new(contents))
+}
+
+/// Makes `d` cheap to clone. Layouts that offer several candidates (`conditional_group`) build
+/// each from the same parts; without sharing, every nesting level would copy its parts once more
+/// per candidate.
+pub fn shared(mut d: Doc) -> Doc {
+    if matches!(d, Doc::Nil | Doc::Text(_) | Doc::Shared(_)) {
+        return d;
+    }
+    let forced = d.propagate_breaks();
+    Doc::Shared(Arc::new(SharedDoc { doc: d, forced }))
 }
 
 /// A group that is broken regardless of whether it fits.
@@ -197,6 +251,7 @@ pub fn group_broken(contents: Doc) -> Doc {
         contents,
         states: Vec::new(),
         broken: true,
+        id: None,
     }))
 }
 
@@ -208,11 +263,12 @@ pub fn conditional_group(candidates: Vec<Doc>) -> Doc {
         !candidates.is_empty(),
         "conditional_group needs a candidate"
     );
-    let contents = candidates[0].clone();
+    let states: Vec<Doc> = candidates.into_iter().map(shared).collect();
     Doc::Group(Box::new(Group {
-        contents,
-        states: candidates,
+        contents: states[0].clone(),
+        states,
         broken: false,
+        id: None,
     }))
 }
 
