@@ -1,7 +1,7 @@
 //! The derived queries. Dependencies (an arrow reads "reads"):
 //!
 //! ```text
-//! format ──> parse ──> language_version ──> options ──> config ──> ConfigFile
+//! format ──> parse ──> parse_settings ──> options ──> config ──> ConfigFile
 //!    │          │                              │
 //!    │          └──────────────────────────> selection ──> File.path
 //!    └──> options, File.text/version/had_bom
@@ -15,7 +15,7 @@
 use crate::db::Db;
 use crate::failure::{Failure, Stage};
 use crate::inputs::{ConfigFile, File};
-use core_config::{Config, ResolvedOptions};
+use core_config::{ConfigChain, FileInput, ResolvedOptions};
 use core_format::DirectiveTable;
 use core_syntax::{GreenNode, SyntaxNode};
 use provider_api::{
@@ -38,6 +38,15 @@ pub struct FileOptions {
     pub language_version: Option<String>,
 }
 
+/// The part of the options that parsing reads: a separate value so that changing, say,
+/// `indent_size` leaves the parse valid.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct ParseSettings {
+    pub language_version: Option<String>,
+    /// Conditional compilation symbols (C#), from the `preprocessor_symbols` option.
+    pub preprocessor_symbols: Vec<String>,
+}
+
 /// A parse as a query value. The tree is a green node: immutable, reference counted (cloning is
 /// a pointer copy) and `Send + Sync`, unlike the red `SyntaxNode` the formatter wants, which is
 /// rebuilt from it in O(1) wherever it is needed. Equality is structural and, because the tree
@@ -58,17 +67,23 @@ fn unsupported() -> Failure {
     Failure::message(Stage::Unsupported, "no provider handles this file")
 }
 
-/// The config contents, parsed. Errors carry the config path as `core_config::load_file` does.
+/// The config files, checked against the providers' option declarations (preset names, option
+/// names and values in every section). Errors carry the path and position of the offending value.
 #[salsa::tracked(returns(ref))]
-pub fn config(db: &dyn Db) -> Result<Config, Failure> {
-    let input = ConfigFile::get(db);
-    let Some(text) = input.text(db) else {
-        return Ok(Config::default());
-    };
-    core_config::parse_str(text).map_err(|mut e| {
-        e.path = input.path(db).clone();
-        Failure::new(Stage::Config, &e)
-    })
+pub fn config(db: &dyn Db) -> Result<ConfigChain, Failure> {
+    let chain = ConfigFile::get(db)
+        .chain(db)
+        .as_ref()
+        .map_err(|e| Failure::new(Stage::Config, e))?;
+    let schemas: Vec<(&str, &core_config::OptionSchema)> = db
+        .providers()
+        .iter()
+        .map(|p| (p.grammar().language.as_str(), p.option_schema()))
+        .collect();
+    chain
+        .validate(&schemas)
+        .map_err(|e| Failure::new(Stage::Config, &e))?;
+    Ok(chain.clone())
 }
 
 /// Language and dialect selection: depends only on the file's path.
@@ -91,9 +106,13 @@ pub fn options(db: &dyn Db, file: File) -> Result<FileOptions, Failure> {
     };
     let config = config(db).as_ref().map_err(Clone::clone)?;
     let provider = &db.providers()[sel.provider];
+    let input = FileInput::language(&provider.grammar().language)
+        .with_path(file.path(db))
+        .with_editorconfig(file.editorconfig(db));
     let mut resolved = config
-        .format_options(&provider.grammar().language, provider.option_schema())
-        .map_err(|e| Failure::new(Stage::Options, &e))?;
+        .format_options(&input, provider.option_schema())
+        .map_err(|e| Failure::new(Stage::Options, &e))?
+        .options;
     let language_version = resolve_dialect(&mut resolved, sel.matcher_dialect.clone());
     Ok(FileOptions {
         resolved,
@@ -101,25 +120,27 @@ pub fn options(db: &dyn Db, file: File) -> Result<FileOptions, Failure> {
     })
 }
 
-/// The only part of the options that parsing reads. A separate query so that changing, say,
-/// `indent_size` leaves the parse valid.
+/// The only part of the options that parsing reads.
 #[salsa::tracked(returns(clone))]
-pub fn language_version(db: &dyn Db, file: File) -> Option<String> {
-    options(db, file)
-        .as_ref()
-        .ok()
-        .and_then(|o| o.language_version.clone())
+pub fn parse_settings(db: &dyn Db, file: File) -> Option<ParseSettings> {
+    options(db, file).as_ref().ok().map(|o| ParseSettings {
+        language_version: o.language_version.clone(),
+        preprocessor_symbols: o.resolved.strings("preprocessor_symbols"),
+    })
 }
 
 /// The file as the provider sees it.
-fn source_file(db: &dyn Db, file: File, language_version: Option<String>) -> SourceFile {
+fn source_file(db: &dyn Db, file: File, settings: Option<ParseSettings>) -> SourceFile {
+    let (language_version, preprocessor_symbols) = settings
+        .map(|s| (s.language_version, s.preprocessor_symbols))
+        .unwrap_or_default();
     SourceFile {
         id: file.path(db).to_string_lossy().into_owned(),
         version: file.version(db),
         text: file.text(db).clone(),
         had_bom: file.had_bom(db),
         language_version,
-        preprocessor_symbols: Vec::new(),
+        preprocessor_symbols,
     }
 }
 
@@ -139,7 +160,7 @@ fn provider_of(db: &dyn Db, file: File) -> Result<&dyn LanguageProvider, Failure
 #[salsa::tracked(returns(ref))]
 pub fn parse(db: &dyn Db, file: File) -> Result<Parsed, Failure> {
     let provider = provider_of(db, file)?;
-    let source = source_file(db, file, language_version(db, file));
+    let source = source_file(db, file, parse_settings(db, file));
     match provider.parse(&source) {
         Ok(result) => Ok(Parsed {
             green: result.tree.green().into_owned(),
@@ -158,7 +179,7 @@ pub fn format(db: &dyn Db, file: File) -> Result<String, Failure> {
     let provider = provider_of(db, file)?;
     let parsed = parse(db, file).as_ref().map_err(Clone::clone)?;
     let options = options(db, file).as_ref().map_err(Clone::clone)?;
-    let source = source_file(db, file, options.language_version.clone());
+    let source = source_file(db, file, parse_settings(db, file));
     let result = ParseResult {
         tree: parsed.root(),
         errors: parsed.errors.clone(),

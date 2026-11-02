@@ -6,7 +6,8 @@ mod format;
 pub mod generated;
 
 pub use format::{
-    BRACE_NEWLINE, CSharpFormatter, MEMBER_CHAIN_MIN_CALLS, TRAILING_COMMAS, option_schema,
+    BRACE_NEWLINE, CSharpFormatter, MEMBER_CHAIN_MIN_CALLS, PREPROCESSOR_SYMBOLS, TRAILING_COMMAS,
+    option_schema,
 };
 
 use core_syntax::{LanguageId, grammars};

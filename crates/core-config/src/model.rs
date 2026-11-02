@@ -1,11 +1,14 @@
+//! The structure of `sudsy.yaml` (plan.md "Configuration and presets"), read with source
+//! locations so later checks can point at the offending value.
+
 use serde::de::{self, MapAccess, Visitor};
 use serde::{Deserialize, Deserializer};
 use serde_saphyr::Spanned;
 use std::collections::BTreeMap;
 use std::fmt;
 
-/// A format or rule option value. Option names and types are declared by providers (M2), so the
-/// config layer keeps them untyped.
+/// A format or rule option value. Format options are checked against a provider's declaration
+/// ([`crate::OptionSchema`]); rule options are stored as data for the rule engine.
 #[derive(Clone, Debug, PartialEq, Deserialize)]
 #[serde(untagged)]
 pub enum OptionValue {
@@ -14,9 +17,11 @@ pub enum OptionValue {
     Float(f64),
     String(String),
     List(Vec<OptionValue>),
+    Map(BTreeMap<String, OptionValue>),
 }
 
-pub type Options = BTreeMap<String, OptionValue>;
+/// Option values by name, each with the position of its value in the file.
+pub type Options = BTreeMap<String, Spanned<OptionValue>>;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize)]
 #[serde(rename_all = "lowercase")]
@@ -26,11 +31,22 @@ pub enum Level {
     Error,
 }
 
-/// `rule: warn` or `rule: { level: warn, options: { .. } }`.
+impl Level {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Level::Off => "off",
+            Level::Warn => "warn",
+            Level::Error => "error",
+        }
+    }
+}
+
+/// `rule: warn` or `rule: { level: warn, options: { .. } }`. The options are data until the rule
+/// engine (which knows each rule's option struct) checks them.
 #[derive(Clone, Debug, PartialEq)]
 pub struct RuleConfig {
     pub level: Level,
-    pub options: Options,
+    pub options: BTreeMap<String, OptionValue>,
 }
 
 impl<'de> Deserialize<'de> for RuleConfig {
@@ -54,12 +70,12 @@ impl<'de> Deserialize<'de> for RuleConfig {
                 };
                 Ok(RuleConfig {
                     level,
-                    options: Options::new(),
+                    options: BTreeMap::new(),
                 })
             }
 
             fn visit_map<A: MapAccess<'de>>(self, mut map: A) -> Result<RuleConfig, A::Error> {
-                let (mut level, mut options) = (None, Options::new());
+                let (mut level, mut options) = (None, BTreeMap::new());
                 while let Some(key) = map.next_key::<String>()? {
                     match key.as_str() {
                         "level" => level = Some(map.next_value::<Level>()?),
@@ -80,14 +96,17 @@ impl<'de> Deserialize<'de> for RuleConfig {
 #[derive(Clone, Debug, Default, PartialEq, Deserialize)]
 #[serde(deny_unknown_fields, default)]
 pub struct LintSection {
-    pub rules: BTreeMap<String, RuleConfig>,
+    /// Rule id (`no-empty-catch`, or `plugin/rule`) to level and options.
+    pub rules: BTreeMap<String, Spanned<RuleConfig>>,
 }
 
 #[derive(Clone, Debug, Default, PartialEq, Deserialize)]
 #[serde(deny_unknown_fields, default)]
 pub struct Plugins {
-    pub patterns: Vec<String>,
-    pub wasm: Vec<String>,
+    /// Globs of pattern-rule files, relative to the config file.
+    pub patterns: Vec<Spanned<String>>,
+    /// Wasm plugin files, relative to the config file.
+    pub wasm: Vec<Spanned<String>>,
 }
 
 /// The `csharp:`, `json:` and `yaml:` sections.
@@ -101,8 +120,8 @@ pub struct LanguageSection {
 #[derive(Clone, Debug, PartialEq, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Override {
-    /// Glob patterns; must not be empty. Spanned so validation can point at it.
-    pub files: Spanned<Vec<String>>,
+    /// Glob patterns, at least one.
+    pub files: Spanned<Vec<Spanned<String>>>,
     #[serde(default)]
     pub format: Options,
     #[serde(default)]
@@ -115,11 +134,51 @@ pub struct Override {
     pub yaml: LanguageSection,
 }
 
+impl Override {
+    pub fn language_section(&self, language: &str) -> Option<&LanguageSection> {
+        match language {
+            "csharp" => Some(&self.csharp),
+            "json" => Some(&self.json),
+            "yaml" => Some(&self.yaml),
+            _ => None,
+        }
+    }
+}
+
+/// Analysis depth (plan.md "Analysis depth"): what rules may use. Formatting ignores it.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum Depth {
+    /// Syntax only.
+    Fast,
+    /// Binding, types, values and flow within each file.
+    #[default]
+    Standard,
+    /// Adds project-scope rules.
+    Deep,
+}
+
+impl Depth {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Depth::Fast => "fast",
+            Depth::Standard => "standard",
+            Depth::Deep => "deep",
+        }
+    }
+}
+
 #[derive(Clone, Debug, Default, PartialEq, Deserialize)]
 #[serde(deny_unknown_fields, default)]
 pub struct Config {
-    /// Presets or config files, e.g. `preset:csharp/microsoft@1`. Resolved in M2.
+    /// Presets (`preset:csharp/microsoft@1`) or config files (paths relative to this file).
     pub extends: Vec<Spanned<String>>,
+    /// Files to format and lint (globs relative to this file); everything when empty.
+    pub include: Vec<Spanned<String>>,
+    /// Files to leave alone (globs relative to this file), in addition to ignore files.
+    pub exclude: Vec<Spanned<String>>,
+    /// Analysis depth for rules; `standard` when unset.
+    pub analysis: Option<Depth>,
     /// Shared format options (every language).
     pub format: Options,
     pub lint: LintSection,
@@ -129,6 +188,9 @@ pub struct Config {
     pub yaml: LanguageSection,
     pub overrides: Vec<Override>,
 }
+
+/// The languages that have a section, as their grammar names.
+pub const LANGUAGES: [&str; 3] = ["csharp", "json", "yaml"];
 
 impl Config {
     /// The `csharp:`, `json:` or `yaml:` section for a grammar's language name.

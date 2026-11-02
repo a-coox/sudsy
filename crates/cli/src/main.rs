@@ -1,5 +1,8 @@
+mod config_cmd;
 mod debug;
 mod format;
+mod init;
+mod project;
 
 use clap::{Parser, Subcommand};
 use std::process::ExitCode;
@@ -26,6 +29,11 @@ enum Command {
     Debug(debug::DebugCommand),
     /// Format C#, JSON, JSONC and YAML files.
     Format(format::FormatArgs),
+    /// Inspect the configuration.
+    #[command(subcommand)]
+    Config(config_cmd::ConfigCommand),
+    /// Write a starter sudsy.yaml.
+    Init(init::InitArgs),
 }
 
 fn main() -> ExitCode {
@@ -33,6 +41,8 @@ fn main() -> ExitCode {
     let result = match cli.command {
         Command::Debug(c) => debug::run(c).map(|()| ExitCode::SUCCESS),
         Command::Format(args) => format::run(args),
+        Command::Config(c) => config_cmd::run(c).map(|()| ExitCode::SUCCESS),
+        Command::Init(args) => init::run(args).map(|()| ExitCode::SUCCESS),
     };
     match result {
         Ok(code) => code,

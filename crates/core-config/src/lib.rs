@@ -1,23 +1,32 @@
-//! `sudsy.yaml` loading: parsing and validation with source locations.
+//! Configuration (plan.md "Configuration and presets"): `sudsy.yaml` and the files it extends,
+//! presets, `.editorconfig`, and the resolution of both into the format options and rule levels of
+//! one file, with the source of every value.
 //!
-//! `.editorconfig` mapping and the full resolution order are M3 (presets are in `presets`); this crate only reads the
-//! file into the structure of plan.md "Configuration and presets". YAML is read with 1.2
-//! semantics (via `serde-saphyr`), so `yes`, `no`, `on` and `off` are plain strings.
+//! The config is read with `serde-saphyr` with YAML 1.2 semantics (`yes`, `no`, `on` and `off` are
+//! plain strings), which gives every value its line and column for error messages; see
+//! docs/decisions.md "M3a: Configuration" for why Sudsy's own YAML parser is not used here.
 
+mod chain;
+mod editorconfig;
 mod error;
+mod glob;
+mod json_schema;
 mod load;
 mod model;
 mod presets;
+mod resolve;
 mod schema;
 
-pub use error::ConfigError;
-pub use load::{CONFIG_FILE_NAMES, discover, load_file, parse_str};
+pub use chain::{ConfigChain, Loaded, PluginEntry, PluginKind, PresetRef};
+pub use editorconfig::{EditorConfig, EditorConfigValue};
+pub use error::{ConfigError, suggest};
+pub use glob::Matcher;
+pub use json_schema::json_schema;
+pub use load::{CONFIG_FILE_NAMES, discover, is_rule_id, load_file, parse_str};
 pub use model::{
-    Config, LanguageSection, Level, LintSection, OptionValue, Options, Override, Plugins,
-    RuleConfig,
+    Config, Depth, LANGUAGES, LanguageSection, Level, LintSection, OptionValue, Options, Override,
+    Plugins, RuleConfig,
 };
-pub use presets::{PRESET_PREFIX, Preset, apply_presets};
-pub use schema::{
-    OptionDef, OptionError, OptionKind, OptionSchema, ResolvedOptions, resolve_format,
-    resolve_format_extending, shared,
-};
+pub use presets::{PRESET_PREFIX, Preset};
+pub use resolve::{FileInput, Resolved, ResolvedRule, Source};
+pub use schema::{OptionDef, OptionError, OptionKind, OptionSchema, ResolvedOptions, shared};

@@ -30,32 +30,64 @@ fn microsoft_preset_is_the_default_layout() {
 #[test]
 fn presets_are_resolved_from_extends() {
     let schema = lang_csharp::option_schema();
-    let config =
-        core_config::parse_str("extends:\n  - preset:csharp/csharpier-compat@1\n").unwrap();
-    let options = config.format_options("csharp", &schema).unwrap();
+    let schemas = [("csharp", &schema)];
+    let resolve = |text: &str| -> Result<core_config::Resolved, core_config::ConfigError> {
+        let chain = core_config::ConfigChain::parse(text)?;
+        chain.validate(&schemas)?;
+        chain.format_options(&core_config::FileInput::language("csharp"), &schema)
+    };
+    let options = resolve(
+        "extends:
+  - preset:csharp/csharpier-compat@1
+",
+    )
+    .unwrap()
+    .options;
     assert_eq!(options.int("line_width"), 100);
     assert_eq!(options.str("trailing_commas"), "multiline");
     // The user's sections still win over the preset.
-    let config = core_config::parse_str(
-        "extends: [\"preset:csharp/csharpier-compat\"]\ncsharp:\n  format:\n    line_width: 80\n",
+    let options = resolve(
+        "extends: [\"preset:csharp/csharpier-compat\"]
+csharp:
+  format:
+    line_width: 80
+",
     )
-    .unwrap();
-    assert_eq!(
-        config
-            .format_options("csharp", &schema)
-            .unwrap()
-            .int("line_width"),
-        80
-    );
-    let unknown = core_config::parse_str("extends: [\"preset:csharp/nope@1\"]\n").unwrap();
-    let error = unknown.format_options("csharp", &schema).unwrap_err();
+    .unwrap()
+    .options;
+    assert_eq!(options.int("line_width"), 80);
+    let error = resolve(
+        "extends: [\"preset:csharp/nope@1\"]
+",
+    )
+    .unwrap_err();
     assert!(
         error.message.contains("csharp/csharpier-compat@1"),
         "{error}"
     );
     // What a preset sets internally is not an option users can set.
-    let internal = core_config::parse_str("csharp:\n  format:\n    layout: csharpier\n").unwrap();
-    assert!(internal.format_options("csharp", &schema).is_err());
+    assert!(
+        resolve(
+            "csharp:
+  format:
+    layout: csharpier
+"
+        )
+        .is_err()
+    );
+    // Every preset of the table in plan.md resolves, and the layout variants stay internal.
+    for name in ["microsoft", "dotnet-runtime", "google", "csharpier-compat"] {
+        let r = resolve(&format!(
+            "extends: [\"preset:csharp/{name}@1\"]
+"
+        ))
+        .unwrap();
+        assert_eq!(
+            r.options.get("layout").is_some(),
+            name != "microsoft",
+            "{name}"
+        );
+    }
 }
 
 compat!(

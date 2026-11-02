@@ -1,6 +1,7 @@
 //! Memoization, backdating and failure behaviour of the query engine, asserted on salsa's
 //! execution events rather than on timing.
 
+use core_config::{ConfigChain, EditorConfig};
 use core_incremental::{ConfigFile, Database, Db, File, Stage, config, format, options, parse};
 use core_syntax::grammars;
 use provider_api::{FileMatcher, LanguageProvider, OutOfProcessProvider, WorkerConfig};
@@ -39,7 +40,14 @@ impl Harness {
     }
 
     fn file(&self, path: &str, text: &str) -> File {
-        File::new(&self.db, PathBuf::from(path), 1, text.to_string(), false)
+        File::new(
+            &self.db,
+            PathBuf::from(path),
+            1,
+            text.to_string(),
+            false,
+            EditorConfig::default(),
+        )
     }
 
     /// How many times each query ran since the last call, e.g. `["parse", "parse", "format"]`
@@ -75,7 +83,7 @@ fn query_names_are_stable() {
         "config",
         "selection",
         "options",
-        "language_version",
+        "parse_settings",
         "parse",
         "format",
     ] {
@@ -101,7 +109,7 @@ fn editing_one_file_reparses_only_that_file() {
     let names = h.executed();
     assert_eq!(Harness::count(&names, "parse"), 1, "{names:?}");
     assert_eq!(Harness::count(&names, "format"), 1, "{names:?}");
-    for untouched in ["config", "selection", "options", "language_version"] {
+    for untouched in ["config", "selection", "options", "parse_settings"] {
         assert_eq!(Harness::count(&names, untouched), 0, "{names:?}");
     }
 }
@@ -115,7 +123,7 @@ fn config_change_re_resolves_options_without_reparsing() {
     h.format_ok(y);
     h.executed();
 
-    h.db.set_config(None, Some("json:\n  format:\n    indent_size: 4\n".into()));
+    h.db.set_config(ConfigChain::parse("json:\n  format:\n    indent_size: 4\n"));
     let after_a = h.format_ok(a);
     h.format_ok(y);
     let names = h.executed();
@@ -131,22 +139,22 @@ fn config_change_re_resolves_options_without_reparsing() {
 fn equal_options_and_equal_config_are_backdated() {
     let mut h = Harness::standard();
     let a = h.file("a.json", UGLY_JSON);
-    h.db.set_config(None, Some("yaml:\n  format:\n    indent_size: 4\n".into()));
+    h.db.set_config(ConfigChain::parse("yaml:\n  format:\n    indent_size: 4\n"));
     h.format_ok(a);
     h.executed();
 
-    // A comment-only edit parses to an equal config: options are not re-resolved.
-    h.db.set_config(
-        None,
-        Some("# note\nyaml:\n  format:\n    indent_size: 4\n".into()),
-    );
+    // A comment-only edit moves every value down a line, so the config is not equal: options
+    // are resolved again, to an equal value, and nothing downstream of them runs.
+    h.db.set_config(ConfigChain::parse(
+        "# note\nyaml:\n  format:\n    indent_size: 4\n",
+    ));
     h.format_ok(a);
     let names = h.executed();
-    assert_eq!(names, ["config"], "{names:?}");
+    assert_eq!(names, ["config", "options"], "{names:?}");
 
     // A change to another language re-resolves this file's options to an equal value: nothing
     // downstream of `options` runs.
-    h.db.set_config(None, Some("yaml:\n  format:\n    indent_size: 3\n".into()));
+    h.db.set_config(ConfigChain::parse("yaml:\n  format:\n    indent_size: 3\n"));
     h.format_ok(a);
     let names = h.executed();
     assert_eq!(names, ["config", "options"], "{names:?}");
@@ -192,17 +200,22 @@ fn a_new_version_of_equal_text_backdates_the_parse() {
 fn config_errors_and_option_errors_are_values() {
     let mut h = Harness::standard();
     let a = h.file("a.json", UGLY_JSON);
-    h.db.set_config(Some(PathBuf::from("sudsy.yaml")), Some("json: [".into()));
+    h.db.set_config(ConfigChain::parse("json: ["));
     let failure = config(&h.db).as_ref().unwrap_err();
     assert_eq!(failure.stage, Stage::Config);
-    assert!(failure.message.starts_with("sudsy.yaml:"), "{failure}");
+    assert!(failure.message.starts_with("1:"), "{failure}");
     assert_eq!(format(&h.db, a).as_ref().unwrap_err().stage, Stage::Config);
 
-    h.db.set_config(None, Some("json:\n  format:\n    nope: 1\n".into()));
-    assert_eq!(
-        options(&h.db, a).as_ref().unwrap_err().stage,
-        Stage::Options
+    // Option names and values are checked together with the config.
+    h.db.set_config(ConfigChain::parse("json:\n  format:\n    nope: 1\n"));
+    let failure = config(&h.db).as_ref().unwrap_err();
+    assert_eq!(failure.stage, Stage::Config);
+    assert!(failure.message.starts_with("3:11:"), "{failure}");
+    assert!(
+        failure.message.contains("format option `nope`: unknown"),
+        "{failure}"
     );
+    assert_eq!(options(&h.db, a).as_ref().unwrap_err().stage, Stage::Config);
 }
 
 #[test]

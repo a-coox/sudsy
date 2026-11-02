@@ -14,7 +14,9 @@ mod seq;
 mod spacing;
 mod tags;
 
-pub use options::{BRACE_NEWLINE, MEMBER_CHAIN_MIN_CALLS, TRAILING_COMMAS, option_schema};
+pub use options::{
+    BRACE_NEWLINE, MEMBER_CHAIN_MIN_CALLS, PREPROCESSOR_SYMBOLS, TRAILING_COMMAS, option_schema,
+};
 
 use self::options::{csharpier, inline_accessor_bodies};
 use self::tags::Tag;

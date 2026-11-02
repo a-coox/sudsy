@@ -1,4 +1,8 @@
-use core_config::{ConfigError, Level, OptionValue, discover, load_file, parse_str};
+use core_config::{
+    ConfigChain, ConfigError, FileInput, Level, OptionDef, OptionSchema, OptionValue, Preset,
+    Source, discover, load_file, parse_str, shared,
+};
+use std::path::Path;
 
 const PLAN_EXAMPLE: &str = r#"
 extends:
@@ -49,26 +53,52 @@ fn parses_the_structure_from_the_plan() {
     let c = parse_str(PLAN_EXAMPLE).unwrap();
     assert_eq!(c.extends.len(), 2);
     assert_eq!(c.extends[0].value, "preset:csharp/microsoft@1");
-    assert_eq!(c.format["line_width"], OptionValue::Int(100));
-    assert_eq!(c.lint.rules["max-line-length"].level, Level::Warn);
-    assert_eq!(c.plugins.wasm, ["rules/team-rules.wasm"]);
-    assert_eq!(c.csharp.format["line_width"], OptionValue::Int(120));
+    assert_eq!(c.format["line_width"].value, OptionValue::Int(100));
+    assert_eq!(c.lint.rules["max-line-length"].value.level, Level::Warn);
+    assert_eq!(c.plugins.wasm[0].value, "rules/team-rules.wasm");
+    assert_eq!(c.csharp.format["line_width"].value, OptionValue::Int(120));
     assert_eq!(
-        c.csharp.format["brace_newline"],
+        c.csharp.format["brace_newline"].value,
         OptionValue::String("all".into())
     );
-    assert_eq!(c.csharp.lint.rules["max-line-length"].level, Level::Off);
-    let plugin = &c.csharp.lint.rules["team/no-direct-datetime"];
+    assert_eq!(
+        c.csharp.lint.rules["max-line-length"].value.level,
+        Level::Off
+    );
+    let plugin = &c.csharp.lint.rules["team/no-direct-datetime"].value;
     assert_eq!(plugin.level, Level::Error);
     assert_eq!(
         plugin.options["allowed_in"],
         OptionValue::List(vec![OptionValue::String("**/SystemClock.cs".into())])
     );
-    assert_eq!(c.overrides[0].files.value, ["tests/**"]);
+    assert_eq!(c.overrides[0].files.value[0].value, "tests/**");
     assert_eq!(
-        c.overrides[0].csharp.lint.rules["async-suffix"].level,
+        c.overrides[0].csharp.lint.rules["async-suffix"].value.level,
         Level::Off
     );
+}
+
+#[test]
+fn every_top_level_key_parses() {
+    let c = parse_str(
+        "extends: [base.yaml]\ninclude: [\"src/**\"]\nexclude: [\"**/*.g.cs\"]\nanalysis: deep\n",
+    )
+    .unwrap();
+    assert_eq!(c.include[0].value, "src/**");
+    assert_eq!(c.exclude[0].value, "**/*.g.cs");
+    assert_eq!(c.depth(), core_config::Depth::Deep);
+    assert_eq!(parse_str("").unwrap().depth(), core_config::Depth::Standard);
+}
+
+#[test]
+fn rule_options_are_stored_as_data() {
+    let c = parse_str(
+        "lint:\n  rules:\n    x:\n      level: warn\n      options:\n        n: 3\n        nested:\n          a: [1, two]\n",
+    )
+    .unwrap();
+    let options = &c.lint.rules["x"].value.options;
+    assert_eq!(options["n"], OptionValue::Int(3));
+    assert!(matches!(options["nested"], OptionValue::Map(_)));
 }
 
 #[test]
@@ -77,15 +107,18 @@ fn yaml_1_2_keeps_yes_no_on_off_as_strings() {
         parse_str("format:\n  a: yes\n  b: no\n  c: on\n  d: off\n  e: true\n  f: [yes, off]\n")
             .unwrap();
     let s = |v: &str| OptionValue::String(v.into());
-    assert_eq!(c.format["a"], s("yes"));
-    assert_eq!(c.format["b"], s("no"));
-    assert_eq!(c.format["c"], s("on"));
-    assert_eq!(c.format["d"], s("off"));
-    assert_eq!(c.format["e"], OptionValue::Bool(true));
-    assert_eq!(c.format["f"], OptionValue::List(vec![s("yes"), s("off")]));
+    assert_eq!(c.format["a"].value, s("yes"));
+    assert_eq!(c.format["b"].value, s("no"));
+    assert_eq!(c.format["c"].value, s("on"));
+    assert_eq!(c.format["d"].value, s("off"));
+    assert_eq!(c.format["e"].value, OptionValue::Bool(true));
+    assert_eq!(
+        c.format["f"].value,
+        OptionValue::List(vec![s("yes"), s("off")])
+    );
     // An unquoted `off` is a valid rule level precisely because it is a string.
     let c = parse_str("lint:\n  rules:\n    x: off\n").unwrap();
-    assert_eq!(c.lint.rules["x"].level, Level::Off);
+    assert_eq!(c.lint.rules["x"].value.level, Level::Off);
 }
 
 #[test]
@@ -122,6 +155,35 @@ fn errors_carry_locations() {
 
     let e = error_of("format: [unclosed\n");
     assert!(e.line.is_some(), "{e}");
+
+    let e = error_of("exclude:\n  - \"[unclosed\"\n");
+    assert_eq!(e.line, Some(2), "{e}");
+    assert!(e.message.contains("glob"), "{e}");
+
+    let e = error_of("lint:\n  rules:\n    Not_A_Rule: warn\n");
+    assert_eq!(e.line, Some(3), "{e}");
+    assert!(e.message.contains("rule id"), "{e}");
+
+    let e = error_of("extends:\n  - preset:csharp\n");
+    assert_eq!(e.line, Some(2), "{e}");
+    assert!(e.message.contains("preset name"), "{e}");
+
+    let e = error_of("analysis: thorough\n");
+    assert_eq!(e.line, Some(1), "{e}");
+}
+
+#[test]
+fn unknown_keys_get_a_suggestion() {
+    let e = error_of("formt:\n  line_width: 100\n");
+    assert!(e.message.contains("did you mean `format`"), "{e}");
+    assert_eq!((e.line, e.column), (Some(1), Some(1)), "{e}");
+    let e = error_of("csharp:\n  lnt: {}\n");
+    assert!(e.message.contains("did you mean `lint`"), "{e}");
+    assert_eq!(e.line, Some(2), "{e}");
+    // Nothing close: the known keys are listed, without a guess.
+    let e = error_of("zzzzzz: 1\n");
+    assert!(!e.message.contains("did you mean"), "{e}");
+    assert!(e.message.contains("known keys"), "{e}");
 }
 
 #[test]
@@ -154,4 +216,259 @@ fn discovery_walks_up_and_rejects_ambiguity() {
 fn duplicate_keys_are_rejected() {
     let e = parse_str("format:\n  a: 1\n  a: 2\n").unwrap_err();
     assert_eq!(e.line, Some(3), "{e}");
+}
+
+// ---------------------------------------------------------------- chains of files
+
+fn write(dir: &Path, name: &str, text: &str) {
+    let path = dir.join(name);
+    std::fs::create_dir_all(path.parent().unwrap()).unwrap();
+    std::fs::write(path, text).unwrap();
+}
+
+#[test]
+fn extends_loads_files_relative_to_the_extending_file() {
+    let dir = tempfile::tempdir().unwrap();
+    let d = dir.path();
+    write(d, "base/shared.yaml", "format:\n  line_width: 90\n");
+    write(
+        d,
+        "sudsy.yaml",
+        "extends:\n  - preset:json/narrow@1\n  - base/shared.yaml\nformat:\n  indent_size: 3\n",
+    );
+    let chain = ConfigChain::load(&d.join("sudsy.yaml")).unwrap();
+    assert_eq!(chain.files.len(), 2);
+    assert!(
+        chain.files[0]
+            .file
+            .as_ref()
+            .unwrap()
+            .ends_with("shared.yaml")
+    );
+    assert_eq!(chain.presets.len(), 1);
+    let resolved = chain
+        .format_options(&FileInput::language("json"), &schema())
+        .unwrap();
+    // The extending file's `format` beats the base's; the base's beats the preset.
+    assert_eq!(resolved.options.int("indent_size"), 3);
+    assert_eq!(resolved.options.int("line_width"), 90);
+    assert!(
+        matches!(&resolved.sources["line_width"], Source::Config { section, .. } if section == "format")
+    );
+}
+
+#[test]
+fn extends_errors_point_at_the_entry() {
+    let dir = tempfile::tempdir().unwrap();
+    let d = dir.path();
+    write(d, "sudsy.yaml", "extends:\n  - missing.yaml\n");
+    let e = ConfigChain::load(&d.join("sudsy.yaml")).unwrap_err();
+    assert_eq!(e.line, Some(2), "{e}");
+    assert!(e.message.contains("not found"), "{e}");
+    assert!(e.path.is_some());
+
+    write(d, "a.yaml", "extends: [b.yaml]\n");
+    write(d, "b.yaml", "extends: [a.yaml]\n");
+    let e = ConfigChain::load(&d.join("a.yaml")).unwrap_err();
+    assert!(e.message.contains("extends itself"), "{e}");
+
+    write(d, "bad.yaml", "format: {}\nbogus: 1\n");
+    write(d, "top.yaml", "extends: [bad.yaml]\n");
+    let e = ConfigChain::load(&d.join("top.yaml")).unwrap_err();
+    assert!(e.path.unwrap().ends_with("bad.yaml"));
+}
+
+// ---------------------------------------------------------------- resolution
+
+fn schema() -> OptionSchema {
+    OptionSchema::new(vec![
+        shared::line_width(80),
+        shared::indent_size(2),
+        OptionDef::choice("mode", &["a", "b", "c"], "a", "A mode."),
+    ])
+    .with_presets(vec![
+        Preset::new("json/narrow@1", vec![("line_width", OptionValue::Int(60))]),
+        Preset::new(
+            "json/modal@1",
+            vec![
+                ("mode", OptionValue::String("b".into())),
+                ("hidden", OptionValue::Bool(true)),
+            ],
+        ),
+    ])
+}
+
+fn resolve(config: &str, path: Option<&Path>) -> core_config::Resolved {
+    let chain = ConfigChain::parse(config).unwrap();
+    let mut input = FileInput::language("json");
+    if let Some(p) = path {
+        input = input.with_path(p);
+    }
+    chain.format_options(&input, &schema()).unwrap()
+}
+
+#[test]
+fn language_section_beats_shared_beats_preset_beats_default() {
+    let r = resolve(
+        "extends: [preset:json/narrow@1, preset:json/modal@1]\nformat:\n  line_width: 100\n  indent_size: 4\n",
+        None,
+    );
+    assert_eq!(r.options.int("line_width"), 100);
+    assert_eq!(r.options.int("indent_size"), 4);
+    assert_eq!(r.options.str("mode"), "b");
+    assert_eq!(r.options.get("hidden"), Some(&OptionValue::Bool(true)));
+    assert_eq!(r.sources["mode"], Source::Preset("json/modal@1".into()));
+
+    // The language section is `x:` for a language called x; csharp/json/yaml are the real ones.
+    let chain =
+        ConfigChain::parse("format:\n  line_width: 100\njson:\n  format:\n    line_width: 90\n")
+            .unwrap();
+    let line_width = |language| {
+        chain
+            .format_options(&FileInput::language(language), &schema())
+            .unwrap()
+            .options
+            .int("line_width")
+    };
+    assert_eq!(line_width("json"), 90);
+    assert_eq!(line_width("yaml"), 100);
+}
+
+#[test]
+fn presets_of_other_languages_are_ignored_and_the_later_preset_wins() {
+    let r = resolve(
+        "extends: [preset:csharp/other@1, preset:json/narrow@1]\n",
+        None,
+    );
+    assert_eq!(r.options.int("line_width"), 60);
+}
+
+#[test]
+fn overrides_apply_by_glob_and_beat_the_language_section() {
+    let dir = tempfile::tempdir().unwrap();
+    write(
+        dir.path(),
+        "sudsy.yaml",
+        "format:\n  line_width: 100\njson:\n  format:\n    line_width: 90\noverrides:\n  - files: [\"tests/**\"]\n    format:\n      line_width: 50\n  - files: [\"**/*.snap.json\"]\n    json:\n      format:\n        indent_size: 8\n",
+    );
+    let chain = ConfigChain::load(&dir.path().join("sudsy.yaml")).unwrap();
+    let at = |language: &str, rel: &str| {
+        let path = dir.path().join(rel);
+        chain
+            .format_options(&FileInput::language(language).with_path(&path), &schema())
+            .unwrap()
+    };
+    // Shared option in an override beats the language section.
+    assert_eq!(at("json", "tests/a.json").options.int("line_width"), 50);
+    assert_eq!(at("json", "src/a.json").options.int("line_width"), 90);
+    assert_eq!(at("json", "src/a.snap.json").options.int("indent_size"), 8);
+    // A language section in an override only applies to that language.
+    assert_eq!(at("yaml", "src/a.snap.json").options.int("indent_size"), 2);
+    let source = at("json", "tests/a.json").sources["line_width"].to_string();
+    assert!(source.contains("overrides[0].format"), "{source}");
+}
+
+#[test]
+fn editorconfig_sits_below_the_config_chain_and_above_defaults() {
+    let dir = Path::new("/repo");
+    let ec = core_config::EditorConfig::from_text(
+        dir,
+        "[*]\nindent_size = 7\nmax_line_length = 77\n",
+        &dir.join("a.x"),
+    );
+    let chain = ConfigChain::parse("extends: [preset:json/narrow@1]\n").unwrap();
+    let r = chain
+        .format_options(
+            &FileInput::language("json").with_editorconfig(&ec),
+            &schema(),
+        )
+        .unwrap();
+    assert_eq!(r.options.int("indent_size"), 7);
+    assert!(matches!(
+        r.sources["indent_size"],
+        Source::EditorConfig { .. }
+    ));
+    // The preset beats .editorconfig.
+    assert_eq!(r.options.int("line_width"), 60);
+    // A value the option rejects is ignored.
+    let ec =
+        core_config::EditorConfig::from_text(dir, "[*]\nmax_line_length = 5\n", &dir.join("a.x"));
+    let r = ConfigChain::default()
+        .format_options(
+            &FileInput::language("json").with_editorconfig(&ec),
+            &schema(),
+        )
+        .unwrap();
+    assert_eq!(r.options.int("line_width"), 80);
+}
+
+#[test]
+fn validation_checks_presets_and_option_names_and_values() {
+    let schemas = [("json", &schema())];
+    let check = |config: &str| ConfigChain::parse(config).unwrap().validate(&schemas);
+    assert!(check("format: {}\n").is_ok());
+    let e = check("json:\n  format:\n    mode: z\n").unwrap_err();
+    assert!(e.message.contains("one of: a, b, c"), "{e}");
+    assert_eq!(e.line, Some(3));
+    let e = check("extends: [preset:json/nope@1]\n").unwrap_err();
+    assert!(e.message.contains("json/narrow@1"), "{e}");
+    assert_eq!(e.line, Some(1));
+    let e = check("extends: [preset:zzz/nope@1]\n").unwrap_err();
+    assert!(e.message.contains("preset language"), "{e}");
+    let e = check("format:\n  mode: a\n").unwrap_err();
+    assert!(
+        e.message.contains("not a shared option") || e.message.contains("unknown shared"),
+        "{e}"
+    );
+    assert_eq!(e.line, Some(2));
+    let e = check("format:\n  line_width: 5\n").unwrap_err();
+    assert!(e.message.contains("between 20 and 1000"), "{e}");
+    assert_eq!(e.line, Some(2));
+    let e = check("overrides:\n  - files: [a]\n    format:\n      line_widht: 90\n").unwrap_err();
+    assert!(e.message.contains("shared option"), "{e}");
+    assert_eq!(e.line, Some(4));
+    assert!(check("format:\n  line_width: 100\n  final_newline: false\n").is_ok());
+}
+
+#[test]
+fn rules_merge_by_tier_and_keep_options_when_only_the_level_changes() {
+    let chain = ConfigChain::parse(
+        "lint:\n  rules:\n    a: warn\n    b:\n      level: error\n      options: { n: 1 }\nx:\n  lint: {}\n",
+    );
+    // `x` is not a language section: the config is rejected, not silently ignored.
+    assert!(chain.is_err());
+
+    let chain = ConfigChain::parse(
+        "lint:\n  rules:\n    a: warn\n    b:\n      level: error\n      options: { n: 1 }\ncsharp:\n  lint:\n    rules:\n      a: \"off\"\n      b: warn\noverrides:\n  - files: [\"tests/**\"]\n    csharp:\n      lint:\n        rules:\n          a: error\n",
+    )
+    .unwrap();
+    let rules = chain.rules(&FileInput::language("csharp"));
+    assert_eq!(rules["a"].level, Level::Off);
+    assert_eq!(rules["b"].level, Level::Warn);
+    assert_eq!(rules["b"].options["n"], OptionValue::Int(1));
+    assert!(rules["a"].source.to_string().contains("csharp.lint.rules"));
+    let json = chain.rules(&FileInput::language("json"));
+    assert_eq!(json["a"].level, Level::Warn);
+    let path = Path::new("tests/x.cs");
+    let in_tests = chain.rules(&FileInput::language("csharp").with_path(path));
+    // Relative paths without a config directory are matched as written.
+    assert_eq!(in_tests["a"].level, Level::Error);
+}
+
+#[test]
+fn include_and_exclude_filter_paths() {
+    let dir = tempfile::tempdir().unwrap();
+    write(
+        dir.path(),
+        "sudsy.yaml",
+        "include: [\"src/**\", \"*.json\"]\nexclude: [\"**/*.g.cs\", \"src/gen\"]\n",
+    );
+    let chain = ConfigChain::load(&dir.path().join("sudsy.yaml")).unwrap();
+    let excluded = |rel: &str| chain.excludes(&dir.path().join(rel));
+    assert!(!excluded("src/a.cs"));
+    assert!(excluded("src/a.g.cs"));
+    assert!(excluded("src/gen/a.cs"));
+    assert!(excluded("docs/a.cs"));
+    assert!(!excluded("package.json"));
+    assert!(!excluded("deep/dir/x.json"));
 }

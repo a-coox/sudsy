@@ -14,8 +14,6 @@ pub enum DebugCommand {
         #[arg(long)]
         language_version: Option<String>,
     },
-    /// Print the parsed sudsy.yaml (the given file, or the nearest one above the current directory).
-    Config { file: Option<PathBuf> },
 }
 
 pub fn run(command: DebugCommand) -> Result<()> {
@@ -24,7 +22,6 @@ pub fn run(command: DebugCommand) -> Result<()> {
             file,
             language_version,
         } => parse(&file, language_version),
-        DebugCommand::Config { file } => config(file),
     }
 }
 
@@ -61,19 +58,5 @@ fn parse(file: &Path, language_version: Option<String>) -> Result<()> {
         "round-trip ok ({} bytes), trivia attachment ok",
         source.text.len()
     );
-    Ok(())
-}
-
-fn config(file: Option<PathBuf>) -> Result<()> {
-    let path = match file {
-        Some(p) => p,
-        None => match core_config::discover(&std::env::current_dir()?)? {
-            Some(p) => p,
-            None => bail!("no sudsy.yaml or sudsy.yml found in the current directory or above"),
-        },
-    };
-    let config = core_config::load_file(&path)?;
-    eprintln!("{}", path.display());
-    println!("{config:#?}");
     Ok(())
 }

@@ -28,11 +28,14 @@ fn diff_dir() -> PathBuf {
 }
 
 fn compat_options() -> ResolvedOptions {
-    let config = core_config::parse_str("extends:\n  - preset:csharp/csharpier-compat@1\n")
-        .expect("valid config");
-    config
-        .format_options("csharp", &lang_csharp::option_schema())
+    core_config::ConfigChain::parse("extends:\n  - preset:csharp/csharpier-compat@1\n")
+        .expect("valid config")
+        .format_options(
+            &core_config::FileInput::language("csharp"),
+            &lang_csharp::option_schema(),
+        )
         .expect("the preset resolves")
+        .options
 }
 
 /// One run of changed lines: CSharpier's lines and Sudsy's lines, and where they start.

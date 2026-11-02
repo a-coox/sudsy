@@ -167,16 +167,18 @@ impl CsSubject {
 
     pub fn resolved(&self) -> ResolvedOptions {
         let schema = lang_csharp::option_schema();
-        let mut options = schema.defaults();
-        if let Some(preset) = self.preset {
-            core_config::apply_presets(
-                &[&format!("preset:{preset}")],
-                "csharp",
-                &schema,
-                &mut options,
-            )
-            .unwrap();
-        }
+        let text = match self.preset {
+            Some(preset) => format!(
+                "extends: [\"preset:{preset}\"]
+"
+            ),
+            None => String::new(),
+        };
+        let mut options = core_config::ConfigChain::parse(&text)
+            .unwrap()
+            .format_options(&core_config::FileInput::language("csharp"), &schema)
+            .unwrap()
+            .options;
         for (k, v) in &self.options {
             schema.apply(&mut options, k, v).unwrap();
         }
