@@ -24,10 +24,15 @@ pub fn generate() -> Result<Vec<(PathBuf, String)>> {
     };
     let json = load("json")?;
     let csharp = load("csharp")?;
+    let yaml = load("yaml")?;
     Ok(vec![
         (
             "crates/core-syntax/src/generated/json.rs".into(),
             codegen::rust_module(&json, "grammars/json.grammar")?,
+        ),
+        (
+            "crates/core-syntax/src/generated/yaml.rs".into(),
+            codegen::rust_module(&yaml, "grammars/yaml.grammar")?,
         ),
         (
             "crates/core-syntax/src/generated/csharp.rs".into(),

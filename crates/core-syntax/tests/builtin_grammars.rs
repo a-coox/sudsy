@@ -1,11 +1,12 @@
 use core_syntax::ast::AstNode;
-use core_syntax::generated::{csharp, json};
+use core_syntax::generated::{csharp, json, yaml};
 use core_syntax::{LanguageId, SyntaxNode, TreeBuilder, grammars, print, trivia};
 
 #[test]
 fn builtin_grammars_load_and_match_generated_hashes() {
     assert_eq!(grammars::json().hash(), json::GRAMMAR_HASH);
     assert_eq!(grammars::csharp().hash(), csharp::GRAMMAR_HASH);
+    assert_eq!(grammars::yaml().hash(), yaml::GRAMMAR_HASH);
     assert_eq!(grammars::json().language_id, LanguageId::JSON);
     assert_eq!(grammars::csharp().language_id, LanguageId::CSHARP);
 }

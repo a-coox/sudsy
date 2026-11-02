@@ -3,3 +3,5 @@
 pub mod csharp;
 #[rustfmt::skip]
 pub mod json;
+#[rustfmt::skip]
+pub mod yaml;
