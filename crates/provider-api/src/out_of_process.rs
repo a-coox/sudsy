@@ -13,7 +13,7 @@ pub struct OutOfProcessProvider {
     grammar: &'static Grammar,
     matchers: Vec<FileMatcher>,
     proxy: WorkerProxy,
-    /// No format options until `lang-csharp` exists (M4).
+    /// No format options until the C# formatter exists (M2b).
     schema: OptionSchema,
 }
 

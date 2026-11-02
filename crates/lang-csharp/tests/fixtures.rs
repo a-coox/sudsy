@@ -85,7 +85,8 @@ fn fixtures_hold_with_crlf_line_endings() {
 #[test]
 fn a_byte_order_mark_is_stripped_before_parsing() {
     let provider = provider(&common::worker_dll());
-    let source = SourceFile::from_bytes("bom.cs", 1, b"\xEF\xBB\xBFclass A { }\n".to_vec()).unwrap();
+    let source =
+        SourceFile::from_bytes("bom.cs", 1, b"\xEF\xBB\xBFclass A { }\n".to_vec()).unwrap();
     assert!(source.had_bom);
     let result = provider.parse(&source).unwrap();
     assert_eq!(print(&result.tree), "class A { }\n");
