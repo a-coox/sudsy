@@ -240,7 +240,10 @@ dependencies = [
  "anyhow",
  "clap",
  "core-config",
+ "core-format",
  "core-syntax",
+ "core-workspace",
+ "lang-json",
  "provider-api",
  "tempfile",
 ]
