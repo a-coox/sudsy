@@ -14,6 +14,7 @@ pub mod directives;
 pub mod doc;
 mod error;
 pub mod ignore;
+mod lines;
 pub mod printer;
 pub mod safety;
 pub mod shapes;
@@ -61,13 +62,37 @@ impl LineEnding {
     }
 }
 
+impl LineEnding {
+    /// Like [`LineEnding::detect`] for the text of a tree, without making the text.
+    pub fn of_tree(root: &SyntaxNode) -> Self {
+        let mut after_cr = false;
+        for token in root
+            .descendants_with_tokens()
+            .filter_map(|e| e.into_token())
+        {
+            let text = token.text();
+            if let Some(i) = text.find('\n') {
+                let cr = text[..i].ends_with('\r') || i == 0 && after_cr;
+                return if cr { LineEnding::CrLf } else { LineEnding::Lf };
+            }
+            after_cr = text.ends_with('\r');
+        }
+        LineEnding::Lf
+    }
+}
+
 /// Formats `root` (and everything below it) to text. The file's line ending style is kept and
 /// the `final_newline` option, when the provider declares it, decides how the text ends.
 pub fn format_tree(root: &SyntaxNode, cx: &FormatCtx<'_>) -> Result<String, FormatError> {
     let mut doc = cx.format_unguarded(root)?;
     let (printed, keep) = printer::print_protected(&mut doc, &print_options(cx.options));
-    let keep = printed[..keep].replace("\r\n", "\n").len();
-    let mut out = printed.replace("\r\n", "\n");
+    // Copies of the whole output only when verbatim text brought `\r\n` into it.
+    let (mut out, keep) = if printed.contains("\r\n") {
+        let keep = printed[..keep].replace("\r\n", "\n").len();
+        (printed.replace("\r\n", "\n"), keep)
+    } else {
+        (printed, keep)
+    };
     out.truncate(out.trim_end_matches(['\n', ' ', '\t']).len().max(keep));
     let final_newline = !matches!(
         cx.options.get(core_config::shared::FINAL_NEWLINE),
@@ -76,7 +101,7 @@ pub fn format_tree(root: &SyntaxNode, cx: &FormatCtx<'_>) -> Result<String, Form
     if final_newline && !out.is_empty() && !out.ends_with('\n') {
         out.push('\n');
     }
-    Ok(match LineEnding::detect(&root.text().to_string()) {
+    Ok(match LineEnding::of_tree(root) {
         LineEnding::Lf => out,
         LineEnding::CrLf => out.replace('\n', "\r\n"),
     })

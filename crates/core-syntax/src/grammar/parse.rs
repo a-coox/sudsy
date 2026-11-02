@@ -429,6 +429,8 @@ fn resolve(
         language_id,
         comments,
         suppressions,
+        token_flags: super::hot_flags(&tokens),
+        node_flags: super::hot_flags(&nodes),
         nodes,
         tokens,
         by_name,

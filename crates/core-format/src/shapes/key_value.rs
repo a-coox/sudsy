@@ -20,10 +20,12 @@ impl Default for KeyValueStyle {
     }
 }
 
-fn significant(cx: &FormatCtx<'_>, node: &SyntaxNode) -> Vec<SyntaxElement> {
+fn significant<'a>(
+    cx: &'a FormatCtx<'_>,
+    node: &SyntaxNode,
+) -> impl Iterator<Item = SyntaxElement> + use<'a> {
     node.children_with_tokens()
-        .filter(|e| e.as_token().is_none_or(|t| !cx.grammar.is_trivia(t.kind())))
-        .collect()
+        .by_kind(|k| !cx.grammar.is_trivia(k))
 }
 
 fn element_doc(cx: &FormatCtx<'_>, e: &SyntaxElement) -> Result<Doc, FormatError> {
@@ -35,7 +37,7 @@ fn element_doc(cx: &FormatCtx<'_>, e: &SyntaxElement) -> Result<Doc, FormatError
 
 /// Source width of a key, without its comments.
 fn key_width(cx: &FormatCtx<'_>, node: &SyntaxNode) -> usize {
-    let key = significant(cx, node).into_iter().next();
+    let key = significant(cx, node).next();
     let text = match key {
         Some(SyntaxElement::Token(t)) => t.text().to_string(),
         Some(SyntaxElement::Node(n)) => cx
@@ -63,16 +65,17 @@ pub fn key_value(
     style: &KeyValueStyle,
 ) -> Result<Doc, FormatError> {
     let name = cx.grammar.name(node.kind());
-    let parts = significant(cx, node);
-    let [key, SyntaxElement::Token(sep), value @ ..] = parts.as_slice() else {
+    let mut parts = significant(cx, node);
+    let (Some(key), Some(SyntaxElement::Token(sep))) = (parts.next(), parts.next()) else {
         return Err(FormatError::Shape(format!(
             "{name}: expected key, separator token and value"
         )));
     };
-    if value.is_empty() {
+    let mut value = parts.peekable();
+    if value.peek().is_none() {
         return Err(FormatError::Shape(format!("{name}: missing value")));
     }
-    let mut out = vec![element_doc(cx, key)?];
+    let mut out = vec![element_doc(cx, &key)?];
     if let Some(parent) = node.parent()
         && cx.directives_of(&parent).has(&Directive::Align)
     {
@@ -93,14 +96,14 @@ pub fn key_value(
         }
     }
     if style.space_before_separator {
-        out.push(doc::text(" "));
+        out.push(doc::lit(" "));
     }
-    out.push(cx.token(sep));
+    out.push(cx.token(&sep));
     if style.space_after_separator {
-        out.push(doc::text(" "));
+        out.push(doc::lit(" "));
     }
     for v in value {
-        out.push(element_doc(cx, v)?);
+        out.push(element_doc(cx, &v)?);
     }
     Ok(doc::concat(out))
 }

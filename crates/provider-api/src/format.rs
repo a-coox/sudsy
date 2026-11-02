@@ -76,10 +76,13 @@ pub fn format_parsed(
     let cx = FormatCtx::new(grammar, options, directives, provider.formatter());
     let output = format_tree(&parsed.tree, &cx)?;
     let reparse = |text: &str| {
+        // Not `..file.clone()`: that would copy the whole source text just to replace it.
         let again = SourceFile {
-            text: text.to_string(),
+            id: file.id.clone(),
             version: file.version + 1,
-            ..file.clone()
+            text: text.to_string(),
+            had_bom: file.had_bom,
+            language_version: file.language_version.clone(),
         };
         let result = provider.parse(&again).map_err(|e| e.to_string())?;
         match result.errors.first() {
@@ -91,7 +94,6 @@ pub fn format_parsed(
         grammar,
         provider.formatter(),
         &parsed.tree,
-        &file.text,
         &output,
         reparse,
     )?;
