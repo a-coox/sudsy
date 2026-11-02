@@ -1,4 +1,4 @@
-use super::{container, dangling_comments, gap, render_slots, separator_comments};
+use super::{container, container_between, dangling_comments, gap, render_slots, separator_comments};
 use crate::FormatCtx;
 use crate::comments;
 use crate::directives::Directive;
@@ -33,6 +33,12 @@ pub struct ListStyle {
     pub layout: ListLayout,
     /// Blank lines between items kept from the source.
     pub max_blank_lines: usize,
+    /// A `line` before the opening delimiter, inside the group: a space when the list is on one
+    /// line and a line break (at the current indentation) when it is expanded. Braces that sit
+    /// on their own line only when the list breaks.
+    pub leading_line: bool,
+    /// What stands between the delimiters of an empty list.
+    pub empty: &'static str,
 }
 
 impl Default for ListStyle {
@@ -43,6 +49,8 @@ impl Default for ListStyle {
             trailing_comma: TrailingComma::Never,
             layout: ListLayout::Fit,
             max_blank_lines: 1,
+            leading_line: false,
+            empty: "",
         }
     }
 }
@@ -55,8 +63,33 @@ pub fn delimited_list(
     node: &SyntaxNode,
     style: &ListStyle,
 ) -> Result<Doc, FormatError> {
+    list_of(cx, node, container(cx, node)?, style)
+}
+
+/// [`delimited_list`] for the delimiters `open` and `close` among the children of `node`; the
+/// other children are the caller's business.
+pub fn delimited_list_between(
+    cx: &FormatCtx<'_>,
+    node: &SyntaxNode,
+    open: &SyntaxToken,
+    close: &SyntaxToken,
+    style: &ListStyle,
+) -> Result<Doc, FormatError> {
+    list_of(
+        cx,
+        node,
+        container_between(cx, node, Some((open, close)))?,
+        style,
+    )
+}
+
+fn list_of(
+    cx: &FormatCtx<'_>,
+    node: &SyntaxNode,
+    c: super::Container,
+    style: &ListStyle,
+) -> Result<Doc, FormatError> {
     let g = cx.grammar;
-    let c = container(cx, node)?;
     let mut items = render_slots(cx, &c.slots)?;
     let dangling = comments::leading_comments(g, &c.close);
     let open_comments = !comments::trailing_comments(g, &c.open).is_empty();
@@ -70,8 +103,14 @@ pub fn delimited_list(
     ]);
     let closing = cx.token_text(&c.close);
 
-    if items.is_empty() && dangling.is_empty() && !open_comments {
-        return Ok(doc::concat(vec![before, opening, closing, after]));
+    if items.is_empty() && dangling.is_empty() && !open_comments && c.prefix.is_none() {
+        return Ok(doc::concat(vec![
+            before,
+            opening,
+            doc::lit(style.empty),
+            closing,
+            after,
+        ]));
     }
 
     let pad = if style.padding {
@@ -82,8 +121,12 @@ pub fn delimited_list(
     let sep = doc::lit(style.separator);
     let last = items.len().saturating_sub(1);
     let mut inner = Vec::new();
-    if !items.is_empty() {
+    if !items.is_empty() || c.prefix.is_some() {
         inner.push(pad.clone());
+    }
+    if let Some(prefix) = &c.prefix {
+        inner.push(cx.format(prefix)?);
+        inner.push(doc::lit(" "));
     }
     for i in 0..items.len() {
         if i > 0 {
@@ -104,7 +147,12 @@ pub fn delimited_list(
         inner.push(separator_comments(cx, &items[i]));
     }
     inner.push(dangling_comments(&dangling));
-    let body = doc::concat(vec![opening, doc::indent(doc::concat(inner)), pad, closing]);
+    let mut body_parts = Vec::new();
+    if style.leading_line {
+        body_parts.push(doc::line());
+    }
+    body_parts.extend([opening, doc::indent(doc::concat(inner)), pad, closing]);
+    let body = doc::concat(body_parts);
 
     let d = cx.directives_of(node);
     let broken = if d.has(&Directive::BreakAll) {

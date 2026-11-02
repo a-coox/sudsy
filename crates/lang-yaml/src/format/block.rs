@@ -366,6 +366,7 @@ pub(crate) fn flow_collection(cx: &FormatCtx<'_>, st: &Style, node: &SyntaxNode)
         trailing_comma: TrailingComma::Never,
         layout: ListLayout::PreserveBreak,
         max_blank_lines: st.max_blank,
+        ..ListStyle::default()
     };
     delimited_list(cx, node, &style)
 }
