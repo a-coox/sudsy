@@ -70,7 +70,12 @@ fn json_work_is_linear_in_the_input() {
 
 #[test]
 fn json_work_is_linear_in_the_nesting_depth() {
-    assert_linear(&lang_json::JsonProvider::new(), "a.json", inputs::json_nested, 30);
+    assert_linear(
+        &lang_json::JsonProvider::new(),
+        "a.json",
+        inputs::json_nested,
+        30,
+    );
 }
 
 #[test]
@@ -80,5 +85,10 @@ fn yaml_work_is_linear_in_the_input() {
 
 #[test]
 fn yaml_work_is_linear_in_the_nesting_depth() {
-    assert_linear(&lang_yaml::YamlProvider::new(), "a.yaml", inputs::yaml_nested, 10);
+    assert_linear(
+        &lang_yaml::YamlProvider::new(),
+        "a.yaml",
+        inputs::yaml_nested,
+        10,
+    );
 }

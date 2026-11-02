@@ -181,7 +181,10 @@ fn walk_back<B>(
 }
 
 /// Like [`walk_back`], for the tokens after `tok`.
-fn walk_forward<B>(tok: &SyntaxToken, mut visit: impl FnMut(SyntaxKind, &str) -> ControlFlow<B>) -> Option<B> {
+fn walk_forward<B>(
+    tok: &SyntaxToken,
+    mut visit: impl FnMut(SyntaxKind, &str) -> ControlFlow<B>,
+) -> Option<B> {
     fn down<B>(
         node: &rowan::GreenNodeData,
         visit: &mut impl FnMut(SyntaxKind, &str) -> ControlFlow<B>,
@@ -398,7 +401,11 @@ pub fn trailing_comments(g: &Grammar, tok: &SyntaxToken) -> Vec<Comment> {
 pub fn blank_lines_before(g: &Grammar, tok: &SyntaxToken) -> usize {
     let scan = scan_before(g, tok);
     if !scan.has_comment {
-        return if scan.has_prev { scan.leading_breaks() } else { 0 };
+        return if scan.has_prev {
+            scan.leading_breaks()
+        } else {
+            0
+        };
     }
     let (_, has_prev) = run_before(g, tok);
     if !has_prev {

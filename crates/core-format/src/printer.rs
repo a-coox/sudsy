@@ -422,7 +422,8 @@ fn fits<'a>(
         let doc = match item {
             Item::Doc(d) => d,
             Item::Seq(parts) | Item::Fill(parts) => {
-                m.stack.extend(parts.iter().rev().map(|d| (mode, Item::Doc(d))));
+                m.stack
+                    .extend(parts.iter().rev().map(|d| (mode, Item::Doc(d))));
                 continue;
             }
         };
@@ -468,4 +469,3 @@ fn fits<'a>(
     }
     false
 }
-

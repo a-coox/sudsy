@@ -40,9 +40,7 @@ pub(crate) fn container(cx: &FormatCtx<'_>, node: &SyntaxNode) -> Result<Contain
     let g = cx.grammar;
     let name = g.name(node.kind());
     let shape = |m: &str| FormatError::Shape(format!("{name}: {m}"));
-    let mut elements = node
-        .children_with_tokens()
-        .by_kind(|k| !g.is_trivia(k));
+    let mut elements = node.children_with_tokens().by_kind(|k| !g.is_trivia(k));
     let Some(SyntaxElement::Token(open)) = elements.next() else {
         return Err(shape("expected an opening and a closing token"));
     };
@@ -125,7 +123,8 @@ pub(crate) fn render_slots(
         let (blank_before, mark) = leading_info(cx, &slots[i].node)?;
         if mark == Some(IgnoreMark::Start) {
             let mut j = i;
-            while j + 1 < slots.len() && leading_info(cx, &slots[j + 1].node)?.1 != Some(IgnoreMark::End)
+            while j + 1 < slots.len()
+                && leading_info(cx, &slots[j + 1].node)?.1 != Some(IgnoreMark::End)
             {
                 j += 1;
             }

@@ -71,7 +71,9 @@ pub fn report(top: usize) {
                 || f.contains("core_syntax")
                 || f.contains("provider_api")
         };
-        let Some(i) = frames.iter().position(ours) else { continue };
+        let Some(i) = frames.iter().position(ours) else {
+            continue;
+        };
         let key = format!("{} <- {}", frames[i], frames.get(i + 1).unwrap_or(&"?"));
         *sites.entry(key).or_default() += 1;
     }

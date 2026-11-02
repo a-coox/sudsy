@@ -5,9 +5,9 @@ use crate::directives::{Directive, DirectiveTable, NodeDirectives};
 use crate::doc::{self, Doc};
 use crate::error::FormatError;
 use crate::ignore::{self, IgnoreMark};
+use crate::lines::LineBreaks;
 use crate::shapes::{self, BlockStyle, KeyValueStyle, ListStyle};
 use core_config::ResolvedOptions;
-use crate::lines::LineBreaks;
 use core_syntax::{Grammar, SyntaxElement, SyntaxNode, SyntaxToken, TextRange};
 use std::sync::Mutex;
 
