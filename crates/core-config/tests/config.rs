@@ -658,3 +658,120 @@ fn the_command_line_depth_replaces_the_configured_one() {
     let none = ConfigChain::default().with_depth(core_config::Depth::Fast);
     assert_eq!(none.depth(), core_config::Depth::Fast);
 }
+
+#[test]
+fn extends_diamond_reads_each_file_once() {
+    let dir = tempfile::tempdir().unwrap();
+    let d = dir.path();
+    // 20 levels, each extending the next one 20 times: exponential without a visited set.
+    for i in 0..20 {
+        let next = format!("l{}.yaml", i + 1);
+        write(
+            d,
+            &format!("l{i}.yaml"),
+            &format!(
+                "extends: [{}]
+",
+                vec![next; 20].join(", ")
+            ),
+        );
+    }
+    write(
+        d,
+        "l20.yaml",
+        "format:
+  line_width: 90
+",
+    );
+    // Depth is still capped, so shorten to what the cap allows.
+    let e = ConfigChain::load(&d.join("l0.yaml")).unwrap_err();
+    assert!(e.message.contains("extend each other"), "{e}");
+}
+
+#[test]
+fn extends_wide_diamond_dedupes() {
+    let dir = tempfile::tempdir().unwrap();
+    let d = dir.path();
+    write(
+        d,
+        "leaf.yaml",
+        "format:
+  line_width: 90
+",
+    );
+    write(
+        d,
+        "a.yaml",
+        "extends: [leaf.yaml, leaf.yaml]
+",
+    );
+    write(
+        d,
+        "b.yaml",
+        "extends: [leaf.yaml]
+",
+    );
+    write(
+        d,
+        "sudsy.yaml",
+        "extends: [a.yaml, b.yaml]
+",
+    );
+    assert_eq!(
+        ConfigChain::load(&d.join("sudsy.yaml"))
+            .unwrap()
+            .files
+            .len(),
+        4
+    );
+}
+
+#[test]
+fn extends_total_file_count_is_capped() {
+    let dir = tempfile::tempdir().unwrap();
+    let d = dir.path();
+    let names: Vec<String> = (0..70).map(|i| format!("f{i}.yaml")).collect();
+    for n in &names {
+        write(d, n, "");
+    }
+    write(
+        d,
+        "sudsy.yaml",
+        &format!(
+            "extends: [{}]
+",
+            names.join(", ")
+        ),
+    );
+    let e = ConfigChain::load(&d.join("sudsy.yaml")).unwrap_err();
+    assert!(
+        e.message.contains("config files in one extends chain"),
+        "{e}"
+    );
+}
+
+#[test]
+fn oversized_config_is_refused_and_outside_errors_withhold_text() {
+    let dir = tempfile::tempdir().unwrap();
+    let d = dir.path();
+    write(d, "big.yaml", &"#".repeat(2 << 20));
+    let e = ConfigChain::load(&d.join("big.yaml")).unwrap_err();
+    assert!(e.message.contains("limit"), "{e}");
+    write(
+        d,
+        "outside/shared.yaml",
+        "secretkey: 1
+",
+    );
+    write(
+        d,
+        "proj/sudsy.yaml",
+        "extends: [../outside/shared.yaml]
+",
+    );
+    let e = ConfigChain::load(&d.join("proj/sudsy.yaml")).unwrap_err();
+    assert!(
+        !e.message.contains("secretkey") && e.message.contains("withheld"),
+        "{e}"
+    );
+}
