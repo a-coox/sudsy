@@ -1,4 +1,5 @@
-//! `cargo run --release -p perf-bench -- [json|yaml|all] [--phases-only]`
+//! `cargo run --release -p perf-bench -- [json|yaml|all] [--phases-only]`, or `-- --write DIR` to
+//! write the headline-size inputs (bench.json, bench.yaml) to disk for other tools.
 //!
 //! Generates the benchmark inputs and times every phase of `format_file` separately, then the
 //! whole call at 1x, 4x and 16x sizes to show the scaling. The 4x row is the headline size
@@ -181,6 +182,13 @@ fn main() -> Result<()> {
         .iter()
         .find(|a| !a.starts_with("--"))
         .map_or("all", String::as_str);
+    if let Some(i) = args.iter().position(|a| a == "--write") {
+        let dir = std::path::Path::new(args.get(i + 1).ok_or_else(|| anyhow!("--write DIR"))?);
+        std::fs::create_dir_all(dir)?;
+        std::fs::write(dir.join("bench.json"), inputs::json(JSON_OBJECTS))?;
+        std::fs::write(dir.join("bench.yaml"), inputs::yaml(YAML_ITEMS))?;
+        return Ok(());
+    }
     let scaling = !args.iter().any(|a| a == "--phases-only");
     if matches!(which, "json" | "all") {
         report(
