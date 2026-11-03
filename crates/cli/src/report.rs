@@ -270,7 +270,7 @@ mod tests {
 
     #[test]
     fn control_characters_are_shown_as_escapes() {
-        assert_eq!(clean("a\u{1b}[31m\n::x\tb"), "a\u{1b}[31m\n::x\tb");
+        assert_eq!(clean("a\u{1b}[31m\n::x\tb"), "a\\u{1b}[31m\\n::x\tb");
         assert_eq!(clean("plain"), "plain");
     }
 }
