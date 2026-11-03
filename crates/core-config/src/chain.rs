@@ -4,7 +4,9 @@ use crate::PRESET_PREFIX;
 use crate::error::ConfigError;
 use crate::glob::Matcher;
 use crate::load::{load_file, parse_str};
-use crate::model::{Config, Depth, LANGUAGES};
+use crate::model::{Config, Depth, LANGUAGES, Plugins};
+use crate::presets::language_of;
+use crate::resolve::Source;
 use crate::schema::OptionSchema;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
@@ -30,6 +32,8 @@ pub struct Loaded {
     /// Directory of the file: the globs in it are relative to this.
     pub dir: Option<PathBuf>,
     pub config: Config,
+    /// `Some(name)` when this is a preset (`csharp/google`), whose text stands in for a file.
+    pub preset: Option<String>,
     pub(crate) globs: Arc<Globs>,
 }
 
@@ -70,8 +74,30 @@ impl Loaded {
             file,
             dir,
             config,
+            preset: None,
             globs: Arc::new(globs),
         })
+    }
+
+    /// Where a value written at `line`/`column` in `section` of this config came from.
+    pub(crate) fn source(&self, line: u64, column: u64, section: &str) -> Source {
+        match &self.preset {
+            Some(name) => Source::Preset(name.clone()),
+            None => Source::Config {
+                file: self.file.clone(),
+                line,
+                column,
+                section: section.into(),
+            },
+        }
+    }
+
+    /// `e` as an error of this config: pointing at its file, or at the preset's name.
+    pub(crate) fn attribute(&self, e: ConfigError) -> ConfigError {
+        match &self.preset {
+            Some(name) => ConfigError::new(format!("preset {name}: {e}")),
+            None => e.in_file(self.file.as_ref()),
+        }
     }
 
     /// `path` as the globs of this file see it: relative to its directory, `/` separated.
@@ -271,38 +297,89 @@ impl ConfigChain {
                 .map_err(|e| e.in_file(preset.file.as_ref()))?;
         }
         for loaded in &self.files {
-            let check = |e: ConfigError| e.in_file(loaded.file.as_ref());
-            crate::resolve::check_shared(&loaded.config.format).map_err(check)?;
-            for o in &loaded.config.overrides {
-                crate::resolve::check_shared(&o.format).map_err(check)?;
-            }
-            for (language, schema) in schemas {
-                let mut scratch = schema.defaults();
-                let sections = loaded.config.language_section(language).into_iter().chain(
-                    loaded
-                        .config
-                        .overrides
-                        .iter()
-                        .filter_map(|o| o.language_section(language)),
-                );
-                for section in sections {
-                    crate::resolve::apply_options(&section.format, schema, &mut scratch, |_, _| {})
-                        .map_err(check)?;
-                }
-                // Shared options the language declares must hold valid values too.
-                crate::resolve::apply_shared(
-                    &loaded.config.format,
-                    schema,
-                    &mut scratch,
-                    |_, _| {},
+            check_loaded(loaded, schemas)?;
+        }
+        Ok(())
+    }
+
+    /// The presets of `language` the chain names, as configs of their own (a preset is read
+    /// like an `extends` file whose text is embedded), each after the presets it extends. They
+    /// sit below every file of the chain; their globs are relative to the root config's directory.
+    pub(crate) fn preset_files(
+        &self,
+        language: &str,
+        schema: &OptionSchema,
+    ) -> Result<Vec<Loaded>, ConfigError> {
+        let mut out = Vec::new();
+        for r in self
+            .presets
+            .iter()
+            .filter(|r| language_of(&r.name) == language)
+        {
+            if schema.find_preset(&r.name).is_none() {
+                return Err(ConfigError::at(
+                    r.line,
+                    r.column,
+                    format!("unknown preset `{}`", r.name),
                 )
-                .map_err(check)?;
-                for o in &loaded.config.overrides {
-                    crate::resolve::apply_shared(&o.format, schema, &mut scratch, |_, _| {})
-                        .map_err(check)?;
+                .in_file(r.file.as_ref()));
+            }
+            self.read_preset(&r.name, schema, language, &mut Vec::new(), &mut out)
+                .map_err(|e| e.in_file(r.file.as_ref()))?;
+        }
+        Ok(out)
+    }
+
+    /// Reads preset `name` and the presets it extends into `out`. `stack` holds the presets being
+    /// read, to catch cycles. A preset can extend presets only, not files, and cannot set the
+    /// keys that are about the project (`include`, `exclude`, `analysis`, `plugins`).
+    fn read_preset(
+        &self,
+        name: &str,
+        schema: &OptionSchema,
+        language: &str,
+        stack: &mut Vec<String>,
+        out: &mut Vec<Loaded>,
+    ) -> Result<(), ConfigError> {
+        if stack.iter().any(|n| n == name) {
+            return Err(ConfigError::new(format!(
+                "preset {name} extends itself (through {})",
+                stack.join(" -> ")
+            )));
+        }
+        let in_preset = |e: ConfigError| ConfigError::new(format!("preset {name}: {e}"));
+        let preset = schema
+            .find_preset(name)
+            .ok_or_else(|| ConfigError::new(format!("unknown preset `{name}`")))?;
+        let config = parse_str(preset.text).map_err(in_preset)?;
+        if !config.include.is_empty()
+            || !config.exclude.is_empty()
+            || config.analysis.is_some()
+            || config.plugins != Plugins::default()
+        {
+            return Err(in_preset(ConfigError::new(
+                "a preset cannot set include, exclude, analysis or plugins",
+            )));
+        }
+        stack.push(name.to_string());
+        for entry in &config.extends {
+            match entry.value.strip_prefix(PRESET_PREFIX) {
+                Some(n) if language_of(n) == language => {
+                    self.read_preset(n, schema, language, stack, out)?;
+                }
+                Some(_) => {}
+                None => {
+                    return Err(in_preset(ConfigError::new(
+                        "a preset can only extend presets",
+                    )));
                 }
             }
         }
+        stack.pop();
+        let mut loaded = Loaded::new(None, config).map_err(in_preset)?;
+        loaded.preset = Some(name.to_string());
+        loaded.dir = self.root_dir().map(Path::to_path_buf);
+        out.push(loaded);
         Ok(())
     }
 
@@ -311,7 +388,7 @@ impl ConfigChain {
         preset: &PresetRef,
         schemas: &[(&str, &OptionSchema)],
     ) -> Result<(), ConfigError> {
-        let language = preset.name.split('/').next().unwrap_or_default();
+        let language = language_of(&preset.name);
         let at = |message: String| ConfigError::at(preset.line, preset.column, message);
         match schemas.iter().find(|(l, _)| *l == language) {
             Some((_, schema)) => {
@@ -327,16 +404,12 @@ impl ConfigChain {
                             .join(", ")
                     )));
                 }
-                let mut scratch = schema.defaults();
-                crate::resolve::apply_preset(
-                    &preset.name,
-                    schema,
-                    language,
-                    &mut scratch,
-                    &mut Default::default(),
-                    &mut Vec::new(),
-                )
-                .map_err(|e| at(e.to_string()))?;
+                let mut files = Vec::new();
+                self.read_preset(&preset.name, schema, language, &mut Vec::new(), &mut files)
+                    .map_err(|e| at(e.to_string()))?;
+                for loaded in &files {
+                    check_loaded(loaded, schemas).map_err(|e| at(e.to_string()))?;
+                }
             }
             None => {
                 if !LANGUAGES.contains(&language) {
@@ -350,6 +423,37 @@ impl ConfigChain {
         }
         Ok(())
     }
+}
+
+/// Checks one config's format options against the declarations of the languages in `schemas`.
+fn check_loaded(loaded: &Loaded, schemas: &[(&str, &OptionSchema)]) -> Result<(), ConfigError> {
+    let check = |e: ConfigError| loaded.attribute(e);
+    crate::resolve::check_shared(&loaded.config.format).map_err(check)?;
+    for o in &loaded.config.overrides {
+        crate::resolve::check_shared(&o.format).map_err(check)?;
+    }
+    for (language, schema) in schemas {
+        let mut scratch = schema.defaults();
+        let sections = loaded.config.language_section(language).into_iter().chain(
+            loaded
+                .config
+                .overrides
+                .iter()
+                .filter_map(|o| o.language_section(language)),
+        );
+        for section in sections {
+            crate::resolve::apply_options(&section.format, schema, &mut scratch, |_, _| {})
+                .map_err(check)?;
+        }
+        // Shared options the language declares must hold valid values too.
+        crate::resolve::apply_shared(&loaded.config.format, schema, &mut scratch, |_, _| {})
+            .map_err(check)?;
+        for o in &loaded.config.overrides {
+            crate::resolve::apply_shared(&o.format, schema, &mut scratch, |_, _| {})
+                .map_err(check)?;
+        }
+    }
+    Ok(())
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

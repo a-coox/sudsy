@@ -6,7 +6,7 @@
 //! Across tiers the order above holds regardless of which file wrote the value: a base file's
 //! language section still beats the extending file's shared section.
 
-use crate::chain::ConfigChain;
+use crate::chain::{ConfigChain, Loaded};
 use crate::editorconfig::EditorConfig;
 use crate::error::{ConfigError, unknown_name};
 use crate::model::{Level, OptionValue, Options};
@@ -167,56 +167,6 @@ pub(crate) fn check_shared(options: &Options) -> Result<(), ConfigError> {
     Ok(())
 }
 
-/// Applies preset `name`, a config file of its own: first the presets it extends, then its shared
-/// and language `format` settings. `stack` holds the presets being applied, to catch cycles.
-pub(crate) fn apply_preset(
-    name: &str,
-    schema: &OptionSchema,
-    language: &str,
-    options: &mut ResolvedOptions,
-    sources: &mut BTreeMap<String, Source>,
-    stack: &mut Vec<String>,
-) -> Result<(), ConfigError> {
-    if stack.iter().any(|n| n == name) {
-        return Err(ConfigError::new(format!(
-            "preset {name} extends itself (through {})",
-            stack.join(" -> ")
-        )));
-    }
-    let preset = schema
-        .find_preset(name)
-        .ok_or_else(|| ConfigError::new(format!("unknown preset `{name}`")))?;
-    let in_preset = |e: ConfigError| ConfigError::new(format!("preset {name}: {e}"));
-    let config = crate::load::parse_str(preset.text).map_err(in_preset)?;
-    stack.push(name.to_string());
-    for entry in &config.extends {
-        match entry.value.strip_prefix(crate::PRESET_PREFIX) {
-            Some(n) if language_of(n) == language => {
-                apply_preset(n, schema, language, options, sources, stack)?;
-            }
-            Some(_) => {}
-            None => {
-                return Err(in_preset(ConfigError::new(
-                    "a preset can only extend presets",
-                )));
-            }
-        }
-    }
-    stack.pop();
-    let mut record = |option: &str, _: &Spanned<OptionValue>| {
-        sources.insert(option.into(), Source::Preset(name.into()));
-    };
-    apply_shared(&config.format, schema, options, &mut record).map_err(in_preset)?;
-    if let Some(section) = config.language_section(language) {
-        apply_options(&section.format, schema, options, &mut record).map_err(in_preset)?;
-    }
-    Ok(())
-}
-
-fn language_of(preset: &str) -> &str {
-    preset.split('/').next().unwrap_or_default()
-}
-
 impl ConfigChain {
     /// Format options for one file: defaults, `.editorconfig`, presets, shared settings, the
     /// language section, matching overrides.
@@ -251,80 +201,45 @@ impl ConfigChain {
             }
         }
 
-        for preset_ref in &self.presets {
-            if language_of(&preset_ref.name) != input.language {
-                continue;
-            }
-            let preset = schema.find_preset(&preset_ref.name).ok_or_else(|| {
-                ConfigError::at(
-                    preset_ref.line,
-                    preset_ref.column,
-                    format!("unknown preset `{}`", preset_ref.name),
-                )
-                .in_file(preset_ref.file.as_ref())
-            })?;
-            apply_preset(
-                &preset.name,
-                schema,
-                input.language,
-                &mut options,
-                &mut sources,
-                &mut Vec::new(),
-            )?;
-        }
-
-        for loaded in &self.files {
-            let source = |at: &Spanned<OptionValue>, section: &str| Source::Config {
-                file: loaded.file.clone(),
-                line: at.referenced.line(),
-                column: at.referenced.column(),
-                section: section.into(),
-            };
-            apply_shared(&loaded.config.format, schema, &mut options, |name, at| {
-                sources.insert(name.into(), source(at, "format"));
-            })
-            .map_err(|e| e.in_file(loaded.file.as_ref()))?;
-        }
-        for loaded in &self.files {
-            let Some(section) = loaded.config.language_section(input.language) else {
-                continue;
-            };
-            let label = format!("{}.format", input.language);
-            apply_options(&section.format, schema, &mut options, |name, at| {
-                sources.insert(
-                    name.into(),
-                    Source::Config {
-                        file: loaded.file.clone(),
-                        line: at.referenced.line(),
-                        column: at.referenced.column(),
-                        section: label.clone(),
-                    },
-                );
-            })
-            .map_err(|e| e.in_file(loaded.file.as_ref()))?;
-        }
-        for (loaded, index, o) in self.matching_overrides(input) {
-            let record = |label: String| {
-                let file = loaded.file.clone();
-                move |at: &Spanned<OptionValue>| Source::Config {
-                    file: file.clone(),
-                    line: at.referenced.line(),
-                    column: at.referenced.column(),
-                    section: label.clone(),
-                }
-            };
-            let shared_source = record(format!("overrides[{index}].format"));
-            apply_shared(&o.format, schema, &mut options, |name, at| {
-                sources.insert(name.into(), shared_source(at));
-            })
-            .map_err(|e| e.in_file(loaded.file.as_ref()))?;
-            if let Some(section) = o.language_section(input.language) {
-                let language_source =
-                    record(format!("overrides[{index}].{}.format", input.language));
-                apply_options(&section.format, schema, &mut options, |name, at| {
-                    sources.insert(name.into(), language_source(at));
+        let presets = self.preset_files(input.language, schema)?;
+        // Presets are a base layer: all their tiers sit below those of the chain's files.
+        let label = format!("{}.format", input.language);
+        for files in [
+            presets.iter().collect::<Vec<_>>(),
+            self.files.iter().collect(),
+        ] {
+            for loaded in &files {
+                apply_shared(&loaded.config.format, schema, &mut options, |name, at| {
+                    let (line, column) = (at.referenced.line(), at.referenced.column());
+                    sources.insert(name.into(), loaded.source(line, column, "format"));
                 })
-                .map_err(|e| e.in_file(loaded.file.as_ref()))?;
+                .map_err(|e| loaded.attribute(e))?;
+            }
+            for loaded in &files {
+                let Some(section) = loaded.config.language_section(input.language) else {
+                    continue;
+                };
+                apply_options(&section.format, schema, &mut options, |name, at| {
+                    let (line, column) = (at.referenced.line(), at.referenced.column());
+                    sources.insert(name.into(), loaded.source(line, column, &label));
+                })
+                .map_err(|e| loaded.attribute(e))?;
+            }
+            for (loaded, index, o) in Self::matching_overrides(&files, input) {
+                let shared_label = format!("overrides[{index}].format");
+                apply_shared(&o.format, schema, &mut options, |name, at| {
+                    let (line, column) = (at.referenced.line(), at.referenced.column());
+                    sources.insert(name.into(), loaded.source(line, column, &shared_label));
+                })
+                .map_err(|e| loaded.attribute(e))?;
+                if let Some(section) = o.language_section(input.language) {
+                    let label = format!("overrides[{index}].{}.format", input.language);
+                    apply_options(&section.format, schema, &mut options, |name, at| {
+                        let (line, column) = (at.referenced.line(), at.referenced.column());
+                        sources.insert(name.into(), loaded.source(line, column, &label));
+                    })
+                    .map_err(|e| loaded.attribute(e))?;
+                }
             }
         }
         Ok(Resolved { options, sources })
@@ -333,14 +248,14 @@ impl ConfigChain {
     /// The overrides whose `files` match the file, in application order, with their position in
     /// their file.
     fn matching_overrides<'a>(
-        &'a self,
+        files: &[&'a Loaded],
         input: &FileInput<'_>,
-    ) -> Vec<(&'a crate::chain::Loaded, usize, &'a crate::model::Override)> {
+    ) -> Vec<(&'a Loaded, usize, &'a crate::model::Override)> {
         let Some(path) = input.path else {
             return Vec::new();
         };
         let mut out = Vec::new();
-        for loaded in &self.files {
+        for &loaded in files {
             let Some(relative) = loaded.relative(path) else {
                 continue;
             };
@@ -355,54 +270,60 @@ impl ConfigChain {
 
     /// Rule levels and options for one file (stored as data; the rule engine checks them): the
     /// shared `lint:` section, the language section, matching overrides.
-    pub fn rules(&self, input: &FileInput<'_>) -> BTreeMap<String, ResolvedRule> {
+    /// language count as configs below the chain's files.
+    pub fn rules(
+        &self,
+        input: &FileInput<'_>,
+        schema: &OptionSchema,
+    ) -> Result<BTreeMap<String, ResolvedRule>, ConfigError> {
+        let presets = self.preset_files(input.language, schema)?;
         let mut out: BTreeMap<String, ResolvedRule> = BTreeMap::new();
-        let mut put =
-            |lint: &crate::model::LintSection, loaded: &crate::chain::Loaded, section: &str| {
-                for (id, rule) in &lint.rules {
-                    let previous = out.remove(id);
-                    let options = if rule.value.options.is_empty() {
-                        previous.map(|p| p.options).unwrap_or_default()
-                    } else {
-                        rule.value.options.clone()
-                    };
-                    out.insert(
-                        id.clone(),
-                        ResolvedRule {
-                            level: rule.value.level,
-                            options,
-                            source: Source::Config {
-                                file: loaded.file.clone(),
-                                line: rule.referenced.line(),
-                                column: rule.referenced.column(),
-                                section: section.into(),
-                            },
-                        },
+        let mut put = |lint: &crate::model::LintSection, loaded: &Loaded, section: &str| {
+            for (id, rule) in &lint.rules {
+                let previous = out.remove(id);
+                let options = if rule.value.options.is_empty() {
+                    previous.map(|p| p.options).unwrap_or_default()
+                } else {
+                    rule.value.options.clone()
+                };
+                let (line, column) = (rule.referenced.line(), rule.referenced.column());
+                out.insert(
+                    id.clone(),
+                    ResolvedRule {
+                        level: rule.value.level,
+                        options,
+                        source: loaded.source(line, column, section),
+                    },
+                );
+            }
+        };
+        for files in [
+            presets.iter().collect::<Vec<_>>(),
+            self.files.iter().collect(),
+        ] {
+            for loaded in &files {
+                put(&loaded.config.lint, loaded, "lint.rules");
+            }
+            for loaded in &files {
+                if let Some(section) = loaded.config.language_section(input.language) {
+                    put(
+                        &section.lint,
+                        loaded,
+                        &format!("{}.lint.rules", input.language),
                     );
                 }
-            };
-        for loaded in &self.files {
-            put(&loaded.config.lint, loaded, "lint.rules");
-        }
-        for loaded in &self.files {
-            if let Some(section) = loaded.config.language_section(input.language) {
-                put(
-                    &section.lint,
-                    loaded,
-                    &format!("{}.lint.rules", input.language),
-                );
+            }
+            for (loaded, index, o) in Self::matching_overrides(&files, input) {
+                put(&o.lint, loaded, &format!("overrides[{index}].lint.rules"));
+                if let Some(section) = o.language_section(input.language) {
+                    put(
+                        &section.lint,
+                        loaded,
+                        &format!("overrides[{index}].{}.lint.rules", input.language),
+                    );
+                }
             }
         }
-        for (loaded, index, o) in self.matching_overrides(input) {
-            put(&o.lint, loaded, &format!("overrides[{index}].lint.rules"));
-            if let Some(section) = o.language_section(input.language) {
-                put(
-                    &section.lint,
-                    loaded,
-                    &format!("overrides[{index}].{}.lint.rules", input.language),
-                );
-            }
-        }
-        out
+        Ok(out)
     }
 }

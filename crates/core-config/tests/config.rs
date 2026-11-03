@@ -280,6 +280,22 @@ fn extends_errors_point_at_the_entry() {
 
 // ---------------------------------------------------------------- resolution
 
+const FULL: &str = "extends: [preset:json/narrow]
+lint:
+  rules:
+    r1: { level: warn, options: { n: 2 } }
+json:
+  format:
+    mode: c
+overrides:
+  - files: [\"tests/**\"]
+    lint:
+      rules:
+        r1: error
+    format:
+      line_width: 40
+";
+
 fn schema() -> OptionSchema {
     OptionSchema::new(vec![
         shared::line_width(80),
@@ -293,6 +309,7 @@ fn schema() -> OptionSchema {
   line_width: 60
 ",
         ),
+        Preset::new("json/full", FULL),
         Preset::new(
             "json/modal",
             "json:
@@ -469,15 +486,21 @@ fn rules_merge_by_tier_and_keep_options_when_only_the_level_changes() {
         "lint:\n  rules:\n    a: warn\n    b:\n      level: error\n      options: { n: 1 }\ncsharp:\n  lint:\n    rules:\n      a: \"off\"\n      b: warn\noverrides:\n  - files: [\"tests/**\"]\n    csharp:\n      lint:\n        rules:\n          a: error\n",
     )
     .unwrap();
-    let rules = chain.rules(&FileInput::language("csharp"));
+    let rules = chain
+        .rules(&FileInput::language("csharp"), &schema())
+        .unwrap();
     assert_eq!(rules["a"].level, Level::Off);
     assert_eq!(rules["b"].level, Level::Warn);
     assert_eq!(rules["b"].options["n"], OptionValue::Int(1));
     assert!(rules["a"].source.to_string().contains("csharp.lint.rules"));
-    let json = chain.rules(&FileInput::language("json"));
+    let json = chain
+        .rules(&FileInput::language("json"), &schema())
+        .unwrap();
     assert_eq!(json["a"].level, Level::Warn);
     let path = Path::new("tests/x.cs");
-    let in_tests = chain.rules(&FileInput::language("csharp").with_path(path));
+    let in_tests = chain
+        .rules(&FileInput::language("csharp").with_path(path), &schema())
+        .unwrap();
     // Relative paths without a config directory are matched as written.
     assert_eq!(in_tests["a"].level, Level::Error);
 }
@@ -537,4 +560,46 @@ fn a_preset_is_a_config_file_of_declared_options() {
         )
         .is_err()
     );
+}
+
+#[test]
+fn a_preset_resolves_exactly_like_the_same_text_in_sudsy_yaml() {
+    let preset = ConfigChain::parse(
+        "extends: [preset:json/full]
+",
+    )
+    .unwrap();
+    let by_hand = ConfigChain::parse(&FULL.replace(
+        "extends: [preset:json/narrow]",
+        "format:
+  line_width: 60",
+    ))
+    .unwrap();
+    for path in ["a.json", "tests/a.json"] {
+        let path = Path::new(path);
+        let input = FileInput::language("json").with_path(path);
+        let (a, b) = (
+            preset.format_options(&input, &schema()).unwrap(),
+            by_hand.format_options(&input, &schema()).unwrap(),
+        );
+        assert_eq!(a.options, b.options);
+        let (ra, rb) = (
+            preset.rules(&input, &schema()).unwrap(),
+            by_hand.rules(&input, &schema()).unwrap(),
+        );
+        assert_eq!(ra.len(), 1);
+        for (id, rule) in &ra {
+            assert_eq!((rule.level, &rule.options), (rb[id].level, &rb[id].options));
+        }
+        assert_eq!(
+            a.options.int("line_width"),
+            if path.starts_with("tests") { 40 } else { 60 }
+        );
+        assert_eq!(a.options.str("mode"), "c");
+    }
+    let input = FileInput::language("json").with_path(Path::new("tests/a.json"));
+    let rules = preset.rules(&input, &schema()).unwrap();
+    assert_eq!(rules["r1"].level, Level::Error);
+    assert_eq!(rules["r1"].options["n"], OptionValue::Int(2));
+    assert_eq!(rules["r1"].source.to_string(), "preset json/full");
 }

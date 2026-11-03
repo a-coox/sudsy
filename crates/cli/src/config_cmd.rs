@@ -115,7 +115,10 @@ fn language(
         .map_err(|e| anyhow!("{}", crate::project::describe_error(&e, &project.cwd)))?;
     let _ = writeln!(out, "{name} format options:");
     options_table(out, project, provider.option_schema(), &resolved);
-    let rules = project.chain.rules(&input);
+    let rules = project
+        .chain
+        .rules(&input, provider.option_schema())
+        .map_err(|e| anyhow!("{}", crate::project::describe_error(&e, &project.cwd)))?;
     if !rules.is_empty() {
         let _ = writeln!(out, "{name} rules:");
         rules_table(out, project, &rules);

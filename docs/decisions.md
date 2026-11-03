@@ -911,8 +911,13 @@ with the release one. Run-to-run noise on this machine is about 10 %.
 * **Presets are plain, unversioned config files** (user decision; deviates from plan.md's `@1`
   versioning). Each preset is a `sudsy.yaml` under `crates/lang-*/presets/`, embedded with
   `include_str!` and parsed by the same loader as user configs (unknown keys error, its `extends`
-  of other presets works, cycles are caught). `preset:csharp/google@1` is a config error. Only
-  `format:` and the language's `format:` sections of a preset are applied.
+  of other presets works, cycles are caught). `preset:csharp/google@1` is a config error. A preset goes through the same
+  merge as an `extends` file (`ConfigChain::preset_files` turns its embedded text into `Loaded`
+  configs below the chain's files), so `lint`, `overrides` and the language sections all apply;
+  `config print` shows `preset <name>` as the source. A preset can extend presets only (not
+  relative files) and cannot set `include`, `exclude`, `analysis` or `plugins` (error). Its
+  override globs are relative to the root config's directory. Presets sit below all files, not
+  interleaved at the position of the `extends` entry.
 * **Presets are pure data.** Formatter code never branches on a preset or tool name. The old
   hidden `layout: csharpier` value and the `csharpier()` helper are deleted; their effects are 18
   named C# options (`blank_lines_between_members`, `assignment_layout`, `indent_nested_binary`,
