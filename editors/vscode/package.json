@@ -1,0 +1,95 @@
+{
+  "name": "sudsy",
+  "displayName": "Sudsy",
+  "description": "Formatter and linter for C#, JSON and YAML.",
+  "version": "0.0.0",
+  "publisher": "sudsy",
+  "license": "MIT",
+  "private": true,
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Formatters",
+    "Linters"
+  ],
+  "extensionDependencies": [
+    "redhat.vscode-yaml"
+  ],
+  "activationEvents": [
+    "onLanguage:csharp",
+    "onLanguage:json",
+    "onLanguage:jsonc",
+    "onLanguage:yaml",
+    "workspaceContains:**/sudsy.{yaml,yml}"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "yamlValidation": [
+      {
+        "fileMatch": [
+          "sudsy.yaml",
+          "sudsy.yml"
+        ],
+        "url": "./schemas/sudsy.schema.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "sudsy.restartServer",
+        "title": "Sudsy: Restart Server"
+      },
+      {
+        "command": "sudsy.showOutput",
+        "title": "Sudsy: Show Output"
+      }
+    ],
+    "configuration": {
+      "title": "Sudsy",
+      "properties": {
+        "sudsy.serverPath": {
+          "type": "string",
+          "scope": "machine-overridable",
+          "description": "Path of the `sudsy` executable (`${workspaceFolder}` is the first workspace folder). Empty: the one bundled with the extension, else `sudsy` from PATH."
+        },
+        "sudsy.csharpWorkerPath": {
+          "type": "string",
+          "scope": "machine-overridable",
+          "description": "Path of `Sudsy.Worker.dll`, the C# worker. Empty: the one next to the executable."
+        },
+        "sudsy.trace.server": {
+          "type": "string",
+          "enum": [
+            "off",
+            "messages",
+            "verbose"
+          ],
+          "default": "off",
+          "description": "Traces the messages between VS Code and the server in the Sudsy output channel."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "prepare-schema": "node scripts/copy-schema.mjs",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "build": "npm run prepare-schema && node scripts/build.mjs",
+    "test": "tsc -p tsconfig.test.json && node --test \"out/test/*.test.js\"",
+    "stage-server": "node scripts/stage-server.mjs",
+    "package": "npm run build && vsce package --no-dependencies --allow-missing-repository --skip-license"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.0.0",
+    "@types/node": "^22.0.0",
+    "@types/vscode": "^1.90.0",
+    "@vscode/vsce": "^3.0.0",
+    "esbuild": "^0.25.0",
+    "eslint": "^9.0.0",
+    "typescript": "^5.6.0",
+    "typescript-eslint": "^8.0.0"
+  }
+}
