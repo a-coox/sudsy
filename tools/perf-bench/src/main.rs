@@ -1,5 +1,6 @@
 //! `cargo run --release -p perf-bench -- [json|yaml|all] [--phases-only]`, or `-- --write DIR` to
-//! write the headline-size inputs (bench.json, bench.yaml) to disk for other tools.
+//! write the headline-size inputs (bench.json, bench.yaml) to disk for other tools, or
+//! `-- csharp DIR [PASSES]` for the warm-worker C# measurement (see `warm.rs`).
 //!
 //! Generates the benchmark inputs and times every phase of `format_file` separately, then the
 //! whole call at 1x, 4x and 16x sizes to show the scaling. The 4x row is the headline size
@@ -14,6 +15,8 @@ mod counting;
 #[cfg(feature = "count")]
 #[global_allocator]
 static A: counting::Counting = counting::Counting;
+
+mod warm;
 
 use anyhow::{Result, anyhow};
 use core_format::{DirectiveTable, FormatCtx, safety};
@@ -188,6 +191,16 @@ fn main() -> Result<()> {
         std::fs::write(dir.join("bench.json"), inputs::json(JSON_OBJECTS))?;
         std::fs::write(dir.join("bench.yaml"), inputs::yaml(YAML_ITEMS))?;
         return Ok(());
+    }
+    if which == "csharp" {
+        let rest: Vec<&String> = args
+            .iter()
+            .filter(|a| !a.starts_with("--"))
+            .skip(1)
+            .collect();
+        let dir = rest.first().ok_or_else(|| anyhow!("csharp DIR [PASSES]"))?;
+        let passes = rest.get(1).map_or(Ok(3), |n| n.parse())?;
+        return warm::run(std::path::Path::new(dir), passes);
     }
     let scaling = !args.iter().any(|a| a == "--phases-only");
     if matches!(which, "json" | "all") {

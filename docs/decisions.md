@@ -124,8 +124,9 @@ M0.
   Roslyn's UTF-16 offsets are converted to UTF-8 byte offsets in the worker.
 * The worker runs on a thread with a 256 MB stack, because deeply nested expressions recurse deep
   inside Roslyn.
-* Crash or hang policy: the proxy restarts the worker once per run (`max_restarts = 1`) and
-  retries the request; a second failure makes it unavailable for the rest of the run. A hang is a
+* Crash or hang policy: the proxy restarts the worker once (`max_restarts = 1`) and retries the
+  request; a second failure in a row makes it unavailable for the rest of the process (a reply
+  gives the allowance back, see "M4: Editor"). A hang is a
   request without an answer within `request_timeout` (120 s default). Failing to start the process
   or being refused at the handshake is final immediately.
 * Worker discovery for now: `SUDSY_CSHARP_WORKER` (path to `Sudsy.Worker.dll`), else
@@ -823,7 +824,7 @@ a chain or argument list nested in a hugged lambda doubles the size of its docum
 `sudsy format --check` with the preset against `csharpier check --no-cache` (CSharpier 1.3.0,
 multithreaded). Cold means a new process for every run (JIT, file cache as the previous run left
 it). The worker of this CLI lives for one run, so there is no warm CLI number until M4 has a
-long-lived worker; warm worker numbers are the second pass of the phase table below.
+long-lived worker (the warm numbers are in "M4: Editor").
 
 | | CSharpier | Sudsy before | Sudsy now |
 | --- | --- | --- | --- |
@@ -1057,4 +1058,129 @@ a check-only run could not skip it. No optimization was done here; proposals 2 a
   language crates snapshot with it. plan.md's inline-annotation fixtures and a plugin SDK copy of
   the harness come with M6.
 * **Not done (later milestones):** Wasm and pattern rules (M6), body-scope rules with flow graphs and
-  the semantic rules (M5), an LSP code action per fix (M4), SARIF `fixes`, an output file option.
+  the semantic rules (M5), an LSP code action per fix (done in M4), SARIF `fixes`, an output file option.
+
+## M4: Editor
+
+### Layout
+* **One binary.** The server is `sudsy lsp` (stdio). `crates/lsp` is a library that `cli` calls, so
+  the extension bundles one executable; plan.md's `lsp/` exists as a crate, not as a second
+  binary. It is built on `lsp-server` and `lsp-types` (rust-analyzer's synchronous scaffold)
+  rather than `tower-lsp`: one thread owns the one database and handles one message at a time,
+  with no async runtime, and `Connection::memory()` lets the tests drive the real server with an
+  in-process client (`crates/lsp/tests`); `cli/tests/lsp.rs` checks the stdio wiring.
+* **`crates/languages`** (new, not in plan.md's layout): the built-in provider list, their option
+  schemas and rule lists, and `Project` (the config found from a directory, validated against the
+  providers), which `cli` had in `project.rs`. `cli`, `lsp` and `xtask` all need exactly this.
+* `core_incremental::fix_text` and `transient` are the fix loop over the `lint` query and the
+  "same file, other text" input that `sudsy fix` had inline; `fix` and the editor's fix-all use
+  the same code.
+
+### Server behaviour (what plan.md left open is marked)
+* **Sync:** incremental, positions in UTF-16 (the LSP default; no position-encoding negotiation).
+* **Diagnostics are pulled** (`textDocument/diagnostic`, full reports, no result ids, no
+  workspace diagnostics), as plan.md says; a client without pull support gets none. Every rule is
+  syntactic today, so every pull runs the rules on the current text (memoized per version); the
+  debounce plan.md wants for semantic rules and analyzers belongs to M5. Project-scope rules
+  (`analysis: deep`) are not reported in the editor: they need every file of the project.
+* **Quick fixes:** one action per fix of a diagnostic touching the range (unsafe ones titled
+  "(unsafe)" and never preferred); "Fix all `rule` problems in this file" (**decision:** when two
+  or more problems of the rule have a safe or unsafe fix, one round of non-overlapping fixes,
+  offered only when the result still parses); and `source.fixAll.sudsy` for
+  `editor.codeActionsOnSave` (the `fix` command's loop, safe fixes only, offered only when it
+  changes the text).
+* **Formatting:** the result as one edit between the common prefix and suffix, so cursors and
+  folds stay put. **Decision:** a file that cannot be formatted (syntax errors, unavailable
+  worker) gets no edits and a log message, not a protocol error, so format on save while typing
+  does not pop up errors. Range formatting stays a stretch goal.
+* **Config:** one config for the workspace (first folder, else the working directory), loaded as
+  the CLI does. It is reloaded when the client reports a change of a `sudsy.yaml`/`.yml`,
+  `.editorconfig` or a file the chain extends (the server registers watchers for `**/*.yaml`,
+  `**/*.yml` and `**/.editorconfig` dynamically and filters), and the client is asked to refresh
+  its diagnostics. An invalid config puts the same error on every file and is shown once as a
+  message; a missing worker or .NET is shown once, as a warning, and JSON and YAML keep working.
+  Opened files are processed like explicit CLI arguments: `include`/`exclude` do not apply.
+  Documents that are not `file:` URIs are ignored. Unsaved edits of a config file take effect
+  when it is saved.
+
+### The long-lived worker
+* The worker handles one `Parse` at a time statelessly, so a worker that lives for the whole
+  session needed no new messages: `OpenWorkspace`, `UpdateText` and `Query` arrive with the
+  semantic model in M5. What changed is the failure policy: `max_restarts` counts failures in a
+  row and any reply resets it, so a worker that crashes now and then over a day of editing is
+  restarted each time instead of being abandoned after the second crash of the session. After
+  two failures in a row it stays unavailable until the server is restarted (the extension's
+  "Restart Server" command); the failure is shown once. A missing `dotnet` says "C# needs the
+  .NET runtime (10 or newer)" (`WorkerConfig::install_hint`).
+* `DOTNET_TC_CallCountingDelayMs=0` stays: it costs nothing in a long session and the first file
+  of every session is a batch of one. Nothing else in the worker or the proxy existed only for the
+  per-run lifetime (comments that said "run" were reworded).
+* The pool opens a second worker only when a request finds the first busy; the server handles one
+  request at a time, so a session runs one worker process.
+
+### VS Code extension (`editors/vscode`)
+* TypeScript, `vscode-languageclient` 9 (pull diagnostics included), bundled with esbuild into
+  `dist/extension.js`; it only starts `<server> lsp` and restarts it when `sudsy.serverPath` or
+  `sudsy.csharpWorkerPath` change. Documents: C#, JSON, JSONC and YAML files (`.cs` also by
+  pattern, so a missing C# extension does not matter). Commands: restart server, show output.
+  `sudsy.trace.server` is the client's own trace setting.
+* **Config schema:** the extension *depends on* `redhat.vscode-yaml` (plan.md's other option was a
+  completion provider in our server) and contributes `yamlValidation` for `sudsy.yaml`/`.yml`
+  with a copy of `schemas/sudsy.schema.json` made at build time (`npm run build`, not checked
+  in), so the generated file stays the only source. The schema now has the rules and their
+  options.
+* **Format on save** is the user's choice of `editor.defaultFormatter: sudsy.sudsy` per language
+  (plan.md); the extension sets no defaults. This repository's `.vscode/settings.json` does, and
+  points the extension at `target/debug/sudsy` and the debug worker; `.vscode/launch.json` starts
+  an extension host.
+* **Tests:** the pure part (which executable and worker to start) runs under `node --test`
+  (`npm test`); the language client is a thin wrapper around `vscode-languageclient`, and the
+  protocol behaviour it relies on is what `crates/lsp/tests` drive. No test starts a VS Code
+  instance (it would download one on every CI run); the "used daily" gate is a manual one.
+
+### Packaging and worker discovery
+* `sudsy` finds the worker as before: `SUDSY_CSHARP_WORKER`, else
+  `csharp-worker/Sudsy.Worker.dll` beside the executable. A package is therefore
+  `server/sudsy[.exe]` plus `server/csharp-worker/` (the framework-dependent `dotnet publish`
+  output, English resources only via `SatelliteResourceLanguages`), made by
+  `editors/vscode/scripts/stage-server.mjs`; a setting is needed only for a development tree.
+  `npm run package -- --target <platform>` makes the platform's `.vsix` (about 7 MB).
+* CI has two new jobs: `vscode` (typecheck, lint, test, build on Linux) and `package` (release
+  `sudsy`, published worker, staged server, `.vsix` as an artifact for `linux-x64` and
+  `win32-x64`, after a smoke test that the staged binary formats a C# file without
+  `SUDSY_CSHARP_WORKER`). macOS and arm64 packages and Marketplace publishing wait for the
+  release work; the Marketplace needs the GitHub org and publisher decisions that plan.md still
+  lists as open.
+
+### Speed with a warm worker (same machine and method as "M2c", release builds)
+`tests/conformance/speed.sh` for CSharpier and the cold CLI (a new process per run, 3 runs), and
+`perf-bench csharp DIR [PASSES]` (`tools/perf-bench/src/warm.rs`) for the warm worker: it formats
+the same files with the `csharpier-compat` preset and the safety check on all 12 cores, several
+times in one process on one worker pool, which is what a session of `sudsy lsp` sees after its
+first file. The machine ran about 15% slower than on the M2c day (CSharpier took 42 - 43 s on the
+corpus instead of 37 - 38 s), so compare ratios.
+
+| | CSharpier | Sudsy CLI, cold | Sudsy, warm worker |
+| --- | --- | --- | --- |
+| CoreLib (1679 files, 27.8 MB) | 17.3 - 17.8 s | 3.8 - 3.9 s | 2.4 - 2.6 s (first pass 3.7 s) |
+| full corpus (7659 files, 89.8 MB) | 42.3 - 43.3 s | 9.7 - 10.3 s | 8.0 - 8.1 s (first pass 9.8 s) |
+
+Against CSharpier that is 4.5x (CoreLib) and 4.3x (corpus) cold, as in M2c, and 7.3x and 5.3x
+warm. The first pass in the process is the worker's JIT warming up. A warm worker gains 30% on
+CoreLib and 20% on the whole corpus: Roslyn's parse, the mapping and the formatter's own work
+dominate, not start-up.
+
+What an editor sees (one thread, one file at a time, warm; 4 files with syntax errors count):
+
+| | files | total | per file, median | p95 | p99 |
+| --- | --- | --- | --- | --- | --- |
+| CoreLib | 1679 | 12.4 s | 1.5 ms | 25 ms | 117 ms |
+| full corpus | 7659 | 38.0 s | 1.4 ms | 15 ms | 67 ms |
+
+This includes the worker round trip, the safety re-parse and the layout, but not the editor's own
+round trip. An ordinary file takes a few milliseconds; the slowest 1% are large generated files.
+
+### Not done
+* Range formatting; project-scope (`deep`) diagnostics in the editor; pull-diagnostic result ids
+  (every pull recomputes from the memoized queries); `UpdateText` and the Roslyn workspace (M5);
+  Marketplace publishing, macOS and arm64 packages; a self-contained worker.
