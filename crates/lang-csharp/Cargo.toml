@@ -16,7 +16,7 @@ provider-api.workspace = true
 
 [dev-dependencies]
 insta.workspace = true
-similar = "2"
+similar = "3"
 
 [lints]
 workspace = true
