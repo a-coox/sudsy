@@ -18,7 +18,7 @@
 Publishing is manual: the workflow publishes nothing by itself. The `marketplace` job runs only from a hand-started run on a tag with its input ticked, using the `VSCE_PAT` secret. Nothing goes to crates.io (every crate is `publish = false`; the SDK is used by path until the plugin API is stable) or NuGet (the worker ships inside the packages).
 
 ## Still placeholder
-- GitHub organization and VS Code Marketplace publisher id (`package.json` says `sudsy`; the `sudsy` GitHub username is taken).
+- Marketplace publisher is `Coox` (extension id `Coox.sudsy`); the repo stays under the owner's GitHub account.
 - Contributor sign-off (DCO or CLA); `LICENSE` is MIT with "The Sudsy authors" as the copyright placeholder.
 - macOS and arm64 builds are untested on real hardware until the first release run.
 - Release is prepared, not performed (`CHANGELOG.md` `0.1.0` is "unreleased").

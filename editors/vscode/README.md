@@ -7,10 +7,10 @@ To format on save, choose Sudsy as the formatter of each language in your settin
 
 ```json
 {
-  "[csharp]": { "editor.defaultFormatter": "sudsy.sudsy", "editor.formatOnSave": true },
-  "[json]": { "editor.defaultFormatter": "sudsy.sudsy", "editor.formatOnSave": true },
-  "[jsonc]": { "editor.defaultFormatter": "sudsy.sudsy", "editor.formatOnSave": true },
-  "[yaml]": { "editor.defaultFormatter": "sudsy.sudsy", "editor.formatOnSave": true },
+  "[csharp]": { "editor.defaultFormatter": "Coox.sudsy", "editor.formatOnSave": true },
+  "[json]": { "editor.defaultFormatter": "Coox.sudsy", "editor.formatOnSave": true },
+  "[jsonc]": { "editor.defaultFormatter": "Coox.sudsy", "editor.formatOnSave": true },
+  "[yaml]": { "editor.defaultFormatter": "Coox.sudsy", "editor.formatOnSave": true },
   "editor.codeActionsOnSave": { "source.fixAll.sudsy": "explicit" }
 }
 ```
