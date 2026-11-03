@@ -1,7 +1,7 @@
 //! The database: salsa storage plus the (immutable) provider list.
 
-use crate::inputs::ConfigFile;
-use core_config::{ConfigChain, ConfigError};
+use crate::inputs::{ConfigFile, File};
+use core_config::{ConfigChain, ConfigError, EditorConfig};
 use provider_api::{LanguageProvider, select_provider_index};
 use salsa::Setter;
 use std::path::Path;
@@ -64,6 +64,17 @@ impl Database {
     /// reading them.
     pub fn supports(&self, path: &Path) -> bool {
         select_provider_index(&self.providers, path).is_some()
+    }
+
+    /// An editor edit: the new text of `file` at the editor's document `version`.
+    pub fn set_file_text(&mut self, file: File, version: u64, text: String) {
+        file.set_text(self).to(text);
+        file.set_version(self).to(version);
+    }
+
+    /// The `.editorconfig` values of `file` changed.
+    pub fn set_file_editorconfig(&mut self, file: File, editorconfig: EditorConfig) {
+        file.set_editorconfig(self).to(editorconfig);
     }
 
     /// Replaces the config files.

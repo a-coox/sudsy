@@ -47,6 +47,8 @@ enum Command {
     Config(config_cmd::ConfigCommand),
     /// Write a starter sudsy.yaml.
     Init(init::InitArgs),
+    /// Run the language server on stdin and stdout.
+    Lsp,
 }
 
 fn main() -> ExitCode {
@@ -60,6 +62,7 @@ fn main() -> ExitCode {
         Command::Rules(args) => rules_cmd::run(args).map(|()| ExitCode::SUCCESS),
         Command::Config(c) => config_cmd::run(c).map(|()| ExitCode::SUCCESS),
         Command::Init(args) => init::run(args).map(|()| ExitCode::SUCCESS),
+        Command::Lsp => lsp::run_stdio().map(|()| ExitCode::SUCCESS),
     };
     match result {
         Ok(code) => code,

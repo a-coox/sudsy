@@ -54,11 +54,14 @@ fn mismatched_hello_reply_is_rejected() {
 
 #[test]
 fn missing_executable_is_unavailable() {
-    let config = provider_api::WorkerConfig::new(vec!["definitely-not-a-real-program".into()], "h");
+    let mut config =
+        provider_api::WorkerConfig::new(vec!["definitely-not-a-real-program".into()], "h");
+    config.install_hint = "; install it".into();
     let e = provider_api::WorkerProxy::new(config)
         .parse(request("x"))
         .unwrap_err();
     assert!(e.to_string().contains("cannot start the worker"), "{e}");
+    assert!(e.to_string().ends_with("; install it"), "{e}");
 }
 
 #[test]
@@ -72,6 +75,19 @@ fn crash_is_retried_once_on_a_fresh_worker() {
     );
     assert!(marker.exists());
     assert!(proxy.parse(request("abc")).is_ok());
+}
+
+#[test]
+fn a_reply_gives_the_restart_allowance_back() {
+    let dir = tempfile::tempdir().unwrap();
+    let marker = dir.path().join("crashed");
+    let proxy = fake_proxy("crash-once", Some(&marker), Duration::from_secs(10));
+    for _ in 0..3 {
+        // Each parse finds the worker crashing once and is saved by its one restart; without the
+        // reset the second round would find the allowance spent.
+        std::fs::remove_file(&marker).ok();
+        assert!(proxy.parse(request("abc")).is_ok());
+    }
 }
 
 #[test]

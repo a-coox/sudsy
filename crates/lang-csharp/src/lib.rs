@@ -59,6 +59,9 @@ pub fn provider(worker_dll: &Path) -> OutOfProcessProvider {
     let command: Vec<OsString> = vec!["dotnet".into(), worker_dll.into()];
     let mut config = WorkerConfig::new(command, grammar.hash());
     config.pool_size = pool_size();
+    config.install_hint =
+        "; C# needs the .NET runtime (10 or newer), see https://dotnet.microsoft.com/download"
+            .into();
     // The worker is a batch process: start counting calls at once, so that its hot methods
     // reach optimized code in the first second instead of after the default 100 ms of quiet.
     config.env = vec![("DOTNET_TC_CallCountingDelayMs".into(), "0".into())];
