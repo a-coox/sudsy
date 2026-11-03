@@ -68,6 +68,24 @@ pub fn count(files: &[FileDiagnostics]) -> (usize, usize) {
     (errors, all.count() - errors)
 }
 
+/// Control characters (ANSI escapes, newlines that would fake a line such as a `::` workflow
+/// command) shown as escapes: diagnostic text comes from repo-supplied rules and file names.
+fn clean(s: &str) -> std::borrow::Cow<'_, str> {
+    let bad = |c: char| c.is_control() && c != '\t';
+    if !s.chars().any(bad) {
+        return s.into();
+    }
+    let mut out = String::with_capacity(s.len());
+    for c in s.chars() {
+        if bad(c) {
+            out.extend(c.escape_default());
+        } else {
+            out.push(c);
+        }
+    }
+    out.into()
+}
+
 fn human(files: &[FileDiagnostics]) -> String {
     let mut out = String::new();
     for file in files {
@@ -77,19 +95,19 @@ fn human(files: &[FileDiagnostics]) -> String {
             let _ = writeln!(
                 out,
                 "{}:{}:{}: {}[{}]: {}",
-                file.path,
+                clean(&file.path),
                 at.line,
                 at.column,
                 d.severity.as_str(),
                 d.rule,
-                d.message
+                clean(&d.message)
             );
             for r in &d.related {
                 let at = position(file, &lines, r.range.start());
-                let _ = writeln!(out, "    note: {} ({}:{})", r.message, at.line, at.column);
+                let _ = writeln!(out, "    note: {} ({}:{})", clean(&r.message), at.line, at.column);
             }
             for fix in &d.fixes {
-                let _ = writeln!(out, "    fix ({}): {}", fix.kind.as_str(), fix.title);
+                let _ = writeln!(out, "    fix ({}): {}", fix.kind.as_str(), clean(&fix.title));
             }
         }
     }
@@ -222,15 +240,26 @@ fn github(files: &[FileDiagnostics]) -> String {
                 out,
                 "::{} file={},line={},col={},endLine={},endColumn={},title={}::{}",
                 d.severity.as_str(),
-                escape(&file.path, true),
+                clean(&escape(&file.path, true)),
                 start.line,
                 start.column,
                 end.line,
                 end.column,
                 escape(&d.rule, true),
-                escape(&d.message, false),
+                clean(&escape(&d.message, false)),
             );
         }
     }
     out
+}
+
+#[cfg(test)]
+mod tests {
+    use super::clean;
+
+    #[test]
+    fn control_characters_are_shown_as_escapes() {
+        assert_eq!(clean("a\u{1b}[31m\n::x\tb"), "a\u{1b}[31m\n::x\tb");
+        assert_eq!(clean("plain"), "plain");
+    }
 }
