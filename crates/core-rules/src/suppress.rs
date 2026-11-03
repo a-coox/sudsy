@@ -4,7 +4,7 @@
 
 use crate::diagnostic::Diagnostic;
 use crate::rule::FileContext;
-use core_syntax::Grammar;
+use core_syntax::{Grammar, TextSize};
 
 /// The role name in `suppress disable-next-line "..."`.
 const ROLE: &str = "disable-next-line";
@@ -67,10 +67,15 @@ impl Suppressions {
     }
 
     pub fn suppresses(&self, file: &FileContext<'_>, d: &Diagnostic) -> bool {
-        let line = file.lines.line(d.range.start());
+        self.suppresses_at(file, &d.rule, d.range.start())
+    }
+
+    /// Does a directive silence `rule` on the line `at` is on?
+    pub fn suppresses_at(&self, file: &FileContext<'_>, rule: &str, at: TextSize) -> bool {
+        let line = file.lines.line(at);
         self.0
             .iter()
-            .any(|s| s.line == line && (s.rules.is_empty() || s.rules.contains(&d.rule)))
+            .any(|s| s.line == line && (s.rules.is_empty() || s.rules.iter().any(|r| r == rule)))
     }
 }
 

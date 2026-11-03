@@ -6,6 +6,7 @@
 //! * [`engine`]: the single traversal per file and the project phase.
 //! * [`configure`]: which rules run on a file, with which options.
 //! * [`fixes`]: fix selection and application, and the loop around them.
+//! * [`layout`]: layout directives that rules attach for the formatter.
 //! * `suppress`: `sudsy-disable-next-line`.
 
 pub mod configure;
@@ -13,6 +14,7 @@ pub mod diagnostic;
 pub mod engine;
 pub mod extension;
 pub mod fixes;
+pub mod layout;
 pub mod lines;
 pub mod options;
 pub mod project;
@@ -28,6 +30,7 @@ pub use diagnostic::{
 pub use engine::{ActiveRule, FileReport, layers_needed, run_file, run_project, run_rules};
 pub use extension::{ALL_LANGUAGES, ExtensionRule, Extensions};
 pub use fixes::{Analysis, FixOutcome, fix_loop};
+pub use layout::{Attach, LayoutRole, attached, run_layout};
 pub use lines::LineIndex;
 pub use options::{Opt, OptionDecl, RuleOptions};
 pub use project::{Fact, ProjectContext, ProjectFacts};

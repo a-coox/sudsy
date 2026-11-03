@@ -302,3 +302,35 @@ fn suppress_quick_fix_inserts_a_comment_and_silences_the_diagnostic() {
     assert!(suppress(&mut client, &uri, text).is_none());
     client.shutdown();
 }
+
+#[test]
+fn formatting_honors_layout_rules_and_follows_the_config() {
+    let t = tempfile::tempdir().unwrap();
+    std::fs::create_dir(t.path().join("rules")).unwrap();
+    write(
+        t.path(),
+        "rules/arrays.yaml",
+        "id: arrays-one-per-line\nlanguage: json\nlayout: [break-all]\nrule: { kind: Array }\n",
+    );
+    write(
+        t.path(),
+        "sudsy.yaml",
+        "plugins:\n  patterns: [\"rules/*.yaml\"]\n",
+    );
+    let mut client = Client::start(t.path(), providers());
+    let text = "{ \"a\": [1, 2] }\n";
+    let uri = client.open("a.json", "json", text);
+    assert_eq!(
+        apply(text, &client.format(&uri)),
+        "{\n  \"a\": [\n    1,\n    2\n  ]\n}\n"
+    );
+
+    write(
+        t.path(),
+        "sudsy.yaml",
+        "plugins:\n  patterns: [\"rules/*.yaml\"]\nlint:\n  rules:\n    arrays-one-per-line: \"off\"\n",
+    );
+    client.file_changed("sudsy.yaml");
+    assert!(client.format(&uri).is_empty());
+    client.shutdown();
+}

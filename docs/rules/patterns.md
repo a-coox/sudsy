@@ -29,6 +29,30 @@ fix-kind: unsafe                    # safe | unsafe (default: a template is not 
 ```
 Also `description` and `example`. Unknown keys are errors.
 
+## Layout
+`layout:` asks the formatter for a layout; each entry is `<directive> [argument] [on $NAME]`:
+
+```yaml
+# rules/service-chains.yaml: every call of a builder chain on `services` on its own line
+id: services-chain
+language: csharp
+layout: [break-all]
+rule:
+  kind: InvocationExpression
+  regex: '^services\s*\.'          # the node's text changes once it is broken: allow whitespace
+---
+id: items-one-per-line
+language: json
+layout:
+  - break-all on $V                 # a metavariable: the node it captured
+  - blank-line-before 1
+rule:
+  pattern: '"items": $V'
+```
+- Directives: `break-all`, `keep-together`, `break-before`, `break-after`, `blank-line-before N`, `align`, `preserve`, `style NAME` (what each does and where it is honored: [../formatting/engine.md](../formatting/engine.md)). The target is the matched node, or with `on $NAME` the single node that metavariable captured (a token or a run captures no node: nothing is attached). `$NAME` must be captured by a pattern outside `inside`/`has`/`not`.
+- Without `message` the rule is layout-only: no diagnostic, not run when linting, `fix` not allowed; with `message` it reports and attaches. A layout-only rule has an id like any other: `sudsy rules` lists it, `lint.rules` sets its level (`off` attaches nothing), `sudsy-disable-next-line <id>` silences the node on the next line.
+- Layout rules see syntax only. Two rules asking for conflicting layouts of one node (`break-all` + `keep-together`, ...) make that file fail to format, naming both. A bad directive is a config error naming the file.
+
 ## Matching
 - A pattern is a snippet of the language, parsed by its own provider. Metavariables are first written as identifiers (`__SUDSY_S_X__`, `__SUDSY_M_X__`), or as strings when that does not parse (JSON). The snippet is tried as is, with a `;` after it, and inside `{ }` (a JSON member); the node spanning all of it is the pattern.
 - `$X` matches one node or token; `$$$ARGS` any run of siblings (also none, separators included, by backtracking); the same name twice must capture equal text; `$_X` captures nothing. In statement position write `$$$BODY;`.

@@ -24,5 +24,7 @@ pub use inputs::{ConfigFile, ExtensionSet, File};
 pub use queries::{
     FileOptions, Parsed, Selection, config, format, options, parse, parse_settings, selection,
 };
-pub use rules::{LintSettings, Linted, lint, lint_settings, project_diagnostics, semantics};
+pub use rules::{
+    LintSettings, Linted, layout, lint, lint_settings, project_diagnostics, semantics,
+};
 pub use salsa::Cancelled;

@@ -1,6 +1,6 @@
 //! `perf-bench fixed LANG PHASE [--inputs DIR]`: one fixed, deterministic workload for scripts/bench.sh,
 //! which runs it under callgrind (instruction counts) and with `--features count` (allocations).
-//! LANG is json, yaml or cs; PHASE is parse, format, lint, patterns or plugins. Inputs are the
+//! LANG is json, yaml or cs; PHASE is parse, format, format-query, lint, patterns or plugins. Inputs are the
 //! committed files under DIR (default bench/inputs/<lang>) plus generated JSON and YAML. Only the
 //! work inside `measured` is counted; callgrind is told to collect between its entry and exit.
 
@@ -22,7 +22,7 @@ fn measured(f: &mut dyn FnMut() -> usize) -> (usize, u64) {
     (std::hint::black_box(work), crate::allocs() - before)
 }
 
-fn texts(lang: &str, dir: &Path) -> Result<Vec<(String, String)>> {
+pub(crate) fn texts(lang: &str, dir: &Path) -> Result<Vec<(String, String)>> {
     let ext = if lang == "cs" { "cs" } else { lang };
     let mut out = Vec::new();
     let mut names: Vec<_> = std::fs::read_dir(dir.join(lang))?
@@ -61,15 +61,19 @@ fn pattern_source(lang: &str) -> String {
     }
 }
 
-pub fn run(lang: &str, phase: &str, dir: &Path) -> Result<()> {
-    let provider: Box<dyn LanguageProvider> = match lang {
+pub(crate) fn make_provider(lang: &str) -> Result<Box<dyn LanguageProvider>> {
+    Ok(match lang {
         "json" => Box::new(lang_json::JsonProvider::new()),
         "yaml" => Box::new(lang_yaml::YamlProvider::new()),
         "cs" => Box::new(lang_csharp::provider(
             &lang_csharp::locate_worker().map_err(|e| anyhow!(e))?,
         )),
         _ => bail!("LANG is json, yaml or cs"),
-    };
+    })
+}
+
+pub fn run(lang: &str, phase: &str, dir: &Path) -> Result<()> {
+    let provider = make_provider(lang)?;
     let p = provider.as_ref();
     let texts = texts(lang, dir)?;
     let bytes: usize = texts.iter().map(|t| t.1.len()).sum();
@@ -96,6 +100,31 @@ pub fn run(lang: &str, phase: &str, dir: &Path) -> Result<()> {
                     .count()
             });
             (texts.len(), w, a)
+        }
+        "format-query" => {
+            // The production path: the `format` query of the incremental engine (parse, options,
+            // the layout rules' directives, format, safety check), one file after the other.
+            let db = core_incremental::Database::new(vec![make_provider(lang)?]);
+            let files: Vec<_> = texts
+                .iter()
+                .map(|(n, t)| {
+                    core_incremental::File::new(
+                        &db,
+                        std::path::PathBuf::from(n),
+                        1,
+                        t.clone(),
+                        false,
+                        core_config::EditorConfig::default(),
+                    )
+                })
+                .collect();
+            let (w, a) = measured(&mut || {
+                files
+                    .iter()
+                    .filter(|f| core_incremental::format(&db, **f).is_ok())
+                    .count()
+            });
+            (files.len(), w, a)
         }
         "lint" => {
             let files = parsed();
@@ -133,7 +162,7 @@ pub fn run(lang: &str, phase: &str, dir: &Path) -> Result<()> {
             });
             (files.len(), w, a)
         }
-        _ => bail!("PHASE is parse, format, lint, patterns or plugins"),
+        _ => bail!("PHASE is parse, format, format-query, lint, patterns or plugins"),
     };
     let allocs = if cfg!(feature = "count") {
         format!(" allocs={allocs}")

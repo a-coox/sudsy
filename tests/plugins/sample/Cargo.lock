@@ -117,6 +117,7 @@ name = "core-patterns"
 version = "0.1.0"
 dependencies = [
  "core-config",
+ "core-format",
  "core-rules",
  "core-syntax",
  "regex",
@@ -130,6 +131,7 @@ name = "core-rules"
 version = "0.1.0"
 dependencies = [
  "core-config",
+ "core-format",
  "core-semantics",
  "core-syntax",
 ]
@@ -404,6 +406,7 @@ version = "0.1.0"
 dependencies = [
  "core-config",
  "core-flow",
+ "core-format",
  "core-patterns",
  "core-rules",
  "core-semantics",

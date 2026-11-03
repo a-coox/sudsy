@@ -8,7 +8,7 @@
 ///
 /// A plugin gets a fuel and a time limit per call; one that traps or runs out of either is
 /// disabled for the rest of the run and reported. It has no files, network, clock or environment.
-package sudsy:rules@0.1.0;
+package sudsy:rules@0.2.0;
 
 interface rules {
     variant option-value {
@@ -23,6 +23,17 @@ interface rules {
         description: string,
         /// The type of an option is the type of its default.
         default-value: option-value,
+    }
+
+    /// What a rule does with layout. A rule that attaches layout is also run when a file is
+    /// formatted (`layout`); `only` rules are not run when linting.
+    enum layout-role {
+        /// Reports diagnostics only.
+        none,
+        /// Reports diagnostics and attaches layout directives.
+        also,
+        /// Attaches layout directives and reports nothing.
+        only,
     }
 
     record rule-info {
@@ -43,11 +54,12 @@ interface rules {
         requires: list<string>,
         uses: list<string>,
         options: list<option-decl>,
+        layout: layout-role,
     }
 
     record plugin-info {
         name: string,
-        /// The version of this interface the plugin was built against: `rules@0.1`.
+        /// The version of this interface the plugin was built against: `rules@0.2`.
         api: string,
         rules: list<rule-info>,
     }
@@ -97,6 +109,21 @@ interface rules {
         semantics: option<list<u8>>,
     }
 
+    /// A layout directive a rule attaches to a node. The node is named by its kind (the number
+    /// the tree encoding uses) and byte range, trivia included, as in the tree sent with the file.
+    record layout-request {
+        kind: u16,
+        start: u32,
+        end: u32,
+        /// Where the node starts, trivia excluded: a `sudsy-disable-next-line` comment on the
+        /// line before it silences the request.
+        at: u32,
+        /// `break-all`, `keep-together`, `break-before`, `break-after`, `align`, `preserve`,
+        /// `blank-line-before N` or `style NAME`. The meaning of each is `core-format`'s
+        /// layout directives; conflicting requests on one node make formatting fail.
+        directive: string,
+    }
+
     /// A fact a rule gathered from a file for the project phase.
     record fact {
         file: string,
@@ -114,6 +141,10 @@ interface rules {
 
     /// Node, body and file scope of one rule on one file.
     check: func(rule: string, options: list<tuple<string, option-value>>, file: file) -> result<list<diagnostic>, string>;
+
+    /// Layout scope: what the rule attaches to the file's nodes, for the formatter. Called for
+    /// rules whose `layout` is not `none`; the diagnostics the rule would report are dropped.
+    layout: func(rule: string, options: list<tuple<string, option-value>>, file: file) -> result<list<layout-request>, string>;
 
     /// Project scope, phase 1.
     collect: func(rule: string, options: list<tuple<string, option-value>>, file: file) -> result<list<fact>, string>;

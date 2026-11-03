@@ -4,7 +4,8 @@
 //! format ──> parse ──> parse_settings ──> options ──> config ──> ConfigFile
 //!    │          │                              │
 //!    │          └──────────────────────────> selection ──> File.path
-//!    └──> options, File.text/version/had_bom
+//!    ├──> options, File.text/version/had_bom
+//!    └──> layout (the layout rules' directives; see [`crate::rules`])
 //! ```
 //!
 //! Rule results are two more queries over `parse` (see [`crate::rules`]): `lint_settings(file)`
@@ -16,7 +17,6 @@ use crate::db::Db;
 use crate::failure::{Failure, Stage};
 use crate::inputs::{ConfigFile, File};
 use core_config::{ConfigChain, FileInput, ResolvedOptions};
-use core_format::DirectiveTable;
 use core_syntax::{GreenNode, SyntaxNode};
 use provider_api::{
     LanguageProvider, ParseError, ParseResult, SourceFile, format_parsed, resolve_dialect,
@@ -179,17 +179,14 @@ pub fn format(db: &dyn Db, file: File) -> Result<String, Failure> {
     let provider = provider_of(db, file)?;
     let parsed = parse(db, file).as_ref().map_err(Clone::clone)?;
     let options = options(db, file).as_ref().map_err(Clone::clone)?;
+    let directives = crate::rules::layout(db, file)
+        .as_ref()
+        .map_err(Clone::clone)?;
     let source = source_file(db, file, parse_settings(db, file));
     let result = ParseResult {
         tree: parsed.root(),
         errors: parsed.errors.clone(),
     };
-    format_parsed(
-        provider,
-        &source,
-        &result,
-        &options.resolved,
-        &DirectiveTable::default(),
-    )
-    .map_err(|e| Failure::new(Stage::Format, &e))
+    format_parsed(provider, &source, &result, &options.resolved, directives)
+        .map_err(|e| Failure::new(Stage::Format, &e))
 }

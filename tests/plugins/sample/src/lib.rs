@@ -1,11 +1,12 @@
-//! A sample rule plugin, built to Wasm by the plugin host's tests. Three rules, one per kind of
+//! A sample rule plugin, built to Wasm by the plugin host's tests. Rules, one per kind of
 //! thing a plugin can do: a node-scope rule with options and a fix, a body-scope rule on the
-//! flow graph, and a project-scope rule.
+//! flow graph, a project-scope rule and a layout-only rule.
 
 use plugin_sdk::tree::significant_range;
 use plugin_sdk::{
-    BodyContext, Category, Edit, FileContext, Fix, FixKind, Layer, Level, Opt, OptionDecl,
-    ProjectContext, ProjectFacts, Rule, RuleContext, RuleMeta, SyntaxKind, SyntaxNode, kind_of,
+    BodyContext, Category, Directive, Edit, FileContext, Fix, FixKind, Layer, LayoutRole, Level,
+    Opt, OptionDecl, ProjectContext, ProjectFacts, Rule, RuleContext, RuleMeta, SyntaxKind,
+    SyntaxNode, kind_of,
 };
 use std::collections::HashMap;
 use std::sync::OnceLock;
@@ -198,6 +199,47 @@ impl Rule for TodoMarker {
     }
 }
 
+/// Arrays with more than `min_items` items are laid out one item per line: a layout-only rule,
+/// so it reports nothing and is not run when linting.
+pub struct BreakArrays;
+
+static BREAK_ARRAYS: RuleMeta = RuleMeta {
+    id: "break-arrays",
+    category: Category::Style,
+    description: "Arrays with many items are laid out one item per line.",
+    example: "[1, 2, 3]   // formatted one item per line when min_items is 2",
+    default_level: Level::Warn,
+    fix: None,
+    requires: &[],
+    uses: &[],
+    options: &[OptionDecl {
+        name: "min_items",
+        default: Opt::Int(2),
+        description: "Arrays with more items than this break.",
+    }],
+};
+
+impl Rule for BreakArrays {
+    fn meta(&self) -> &'static RuleMeta {
+        &BREAK_ARRAYS
+    }
+
+    fn layout_role(&self) -> LayoutRole {
+        LayoutRole::Only
+    }
+
+    fn kinds(&self) -> &[SyntaxKind] {
+        static KINDS: OnceLock<[SyntaxKind; 1]> = OnceLock::new();
+        KINDS.get_or_init(|| [kind_of("json", "Array")])
+    }
+
+    fn check(&self, node: &SyntaxNode, ctx: &mut RuleContext<'_>) {
+        if node.children().count() as i64 > ctx.options.int("min_items") {
+            ctx.attach(node, Directive::BreakAll);
+        }
+    }
+}
+
 /// Misbehaves on purpose, for the host's tests of its limits. Off unless the config turns it on.
 pub struct Misbehave;
 
@@ -249,6 +291,7 @@ plugin_sdk::export_plugin!(
         ("csharp", &BranchyBody),
         ("json", &DuplicateName),
         ("json", &Misbehave),
-        ("*", &TodoMarker)
+        ("*", &TodoMarker),
+        ("json", &BreakArrays)
     ]
 );

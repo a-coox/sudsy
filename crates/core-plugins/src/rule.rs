@@ -4,13 +4,14 @@
 
 use crate::host::{Plugin, PluginError, w};
 use core_config::Level;
-use core_rules::FileContext;
+use core_format::{Directive, NodeKey};
 use core_rules::{
     Category, Edit, Fix, FixKind, Layer, Opt, OptionDecl, ProjectContext, ProjectFacts, Rule,
     RuleContext, RuleMeta, RuleOptions,
 };
+use core_rules::{FileContext, LayoutRole};
 use core_syntax::wire::FlatTree;
-use core_syntax::{TextRange, TextSize};
+use core_syntax::{SyntaxKind, TextRange, TextSize};
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
@@ -20,6 +21,7 @@ pub struct WasmRule {
     /// The id inside the plugin; the host-side id (`meta().id`) has the plugin's name in front.
     local_id: String,
     meta: &'static RuleMeta,
+    role: LayoutRole,
 }
 
 fn leak(s: String) -> &'static str {
@@ -123,6 +125,11 @@ pub(crate) fn make_rules(
             other => return Err(bad(&info.name, &r.id, "language", other)),
         };
         let local_id = r.id.clone();
+        let role = match r.layout {
+            w::LayoutRole::None => LayoutRole::None,
+            w::LayoutRole::Also => LayoutRole::Also,
+            w::LayoutRole::Only => LayoutRole::Only,
+        };
         let meta = meta_of(&info.name, r)?;
         out.push((
             language,
@@ -130,6 +137,7 @@ pub(crate) fn make_rules(
                 plugin: plugin.clone(),
                 local_id,
                 meta,
+                role,
             })),
         ));
     }
@@ -202,7 +210,13 @@ fn fix_of(text: &str, f: &w::Fix) -> Result<Fix, String> {
 impl WasmRule {
     /// Reports what went wrong with the plugin, once per run, and switches it off.
     fn fail(&self, ctx: &mut RuleContext<'_>, reason: String) {
-        if self.plugin.disable(reason.clone()) {
+        if ctx.laying_out() {
+            self.plugin.disable(reason.clone());
+            ctx.layout_failed(format!(
+                "plugin `{}` is disabled for this run: {reason}",
+                self.plugin.name
+            ));
+        } else if self.plugin.disable(reason.clone()) {
             ctx.report(
                 TextRange::empty(TextSize::from(0)),
                 format!(
@@ -211,6 +225,40 @@ impl WasmRule {
                 ),
             );
         }
+    }
+
+    /// The plugin's layout requests, checked like diagnostics (a bad plugin attaches nothing).
+    fn attach(
+        &self,
+        ctx: &mut RuleContext<'_>,
+        found: Vec<w::LayoutRequest>,
+    ) -> Result<(), String> {
+        let text = ctx.file.text;
+        let mut checked = Vec::new();
+        for r in &found {
+            let span = range(
+                text,
+                &w::Span {
+                    start: r.start,
+                    end: r.end,
+                },
+            )?;
+            let at = range(
+                text,
+                &w::Span {
+                    start: r.at,
+                    end: r.at,
+                },
+            )?;
+            let directive = Directive::parse(&r.directive)
+                .map_err(|e| format!("it requested a layout: {e}"))?;
+            let key = NodeKey::new(SyntaxKind(r.kind), span.start().into(), span.end().into());
+            checked.push((key, at.start(), directive));
+        }
+        for (key, at, directive) in checked {
+            ctx.attach_at(key, at, directive);
+        }
+        Ok(())
     }
 
     fn report(&self, ctx: &mut RuleContext<'_>, found: Vec<w::Diagnostic>) -> Result<(), String> {
@@ -248,12 +296,25 @@ impl Rule for WasmRule {
         self.meta
     }
 
+    fn layout_role(&self) -> LayoutRole {
+        self.role
+    }
+
     fn check_file(&self, file: &FileContext<'_>, ctx: &mut RuleContext<'_>) {
         if self.plugin.disabled().is_some() {
             return;
         }
         let options = option_list(ctx.options, self.meta.options);
         let input = file_input(file);
+        if ctx.laying_out() {
+            let result = self
+                .plugin
+                .call(|guest, store| guest.call_layout(store, &self.local_id, &options, &input));
+            if let Err(reason) = result.and_then(|found| self.attach(ctx, found)) {
+                self.fail(ctx, reason);
+            }
+            return;
+        }
         let result = self
             .plugin
             .call(|guest, store| guest.call_check(store, &self.local_id, &options, &input));

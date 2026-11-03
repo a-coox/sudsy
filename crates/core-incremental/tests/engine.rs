@@ -353,7 +353,10 @@ fn rule_config_errors_and_syntax_errors_are_lint_values() {
 }
 
 mod extension {
-    use core_rules::{Category, ExtensionRule, Extensions, Rule, RuleContext, RuleMeta};
+    use core_format::Directive;
+    use core_rules::{
+        Category, ExtensionRule, Extensions, LayoutRole, Rule, RuleContext, RuleMeta,
+    };
     use core_syntax::{SyntaxKind, SyntaxNode, TextRange};
 
     static META: RuleMeta = RuleMeta {
@@ -379,6 +382,50 @@ mod extension {
         }
         fn check(&self, node: &SyntaxNode, ctx: &mut RuleContext<'_>) {
             ctx.report(TextRange::empty(node.text_range().start()), "an array");
+        }
+    }
+
+    static SPREAD: RuleMeta = RuleMeta {
+        id: "spread-arrays",
+        ..META_LAYOUT
+    };
+    const META_LAYOUT: RuleMeta = RuleMeta {
+        id: "",
+        category: Category::Style,
+        description: "Lays every array out one item per line.",
+        example: "",
+        default_level: core_config::Level::Warn,
+        fix: None,
+        requires: &[],
+        uses: &[],
+        options: &[],
+    };
+
+    /// A layout-only rule.
+    pub struct SpreadArrays(pub Vec<SyntaxKind>);
+
+    impl Rule for SpreadArrays {
+        fn meta(&self) -> &'static RuleMeta {
+            &SPREAD
+        }
+        fn layout_role(&self) -> LayoutRole {
+            LayoutRole::Only
+        }
+        fn kinds(&self) -> &[SyntaxKind] {
+            &self.0
+        }
+        fn check(&self, node: &SyntaxNode, ctx: &mut RuleContext<'_>) {
+            ctx.attach(node, Directive::BreakAll);
+        }
+    }
+
+    pub fn layout_set(rule: &'static SpreadArrays) -> Extensions {
+        Extensions {
+            rules: vec![ExtensionRule {
+                language: "json",
+                rule,
+            }],
+            files: Vec::new(),
         }
     }
 
@@ -428,4 +475,65 @@ fn extension_rules_run_with_the_providers_and_reload_only_when_they_change() {
         "lint:\n  rules:\n    every-array: \"off\"\n",
     ));
     assert_eq!(fired(&h), 0);
+}
+
+#[test]
+fn format_depends_on_the_layout_rules_and_not_on_the_rest_of_lint() {
+    let mut h = Harness::standard();
+    let f = h.file(
+        "a.json",
+        "{\"a\": [1, 2]}
+",
+    );
+    let array = grammars::json()
+        .kind_by_name("Array")
+        .expect("an Array kind");
+    let rule: &'static extension::SpreadArrays =
+        Box::leak(Box::new(extension::SpreadArrays(vec![array])));
+    assert_eq!(
+        h.format_ok(f),
+        "{ \"a\": [1, 2] }
+"
+    );
+
+    h.db.set_extensions(extension::layout_set(rule));
+    assert_eq!(
+        h.format_ok(f),
+        "{
+  \"a\": [
+    1,
+    2
+  ]
+}
+"
+    );
+    h.executed();
+
+    // A rule level that is no layout rule's: the layout is re-read but unchanged, so `format`
+    // does not run again.
+    h.db.set_config(ConfigChain::parse(
+        "lint:
+  rules:
+    sorted-keys: warn
+",
+    ));
+    h.format_ok(f);
+    let names = h.executed();
+    assert_eq!(Harness::count(&names, "format"), 0, "{names:?}");
+    assert_eq!(Harness::count(&names, "lint"), 0, "{names:?}");
+
+    // The layout rule's own level does.
+    h.db.set_config(ConfigChain::parse(
+        "lint:
+  rules:
+    spread-arrays: \"off\"
+",
+    ));
+    assert_eq!(
+        h.format_ok(f),
+        "{ \"a\": [1, 2] }
+"
+    );
+    let names = h.executed();
+    assert_eq!(Harness::count(&names, "format"), 1, "{names:?}");
 }
