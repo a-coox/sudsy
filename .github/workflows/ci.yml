@@ -56,7 +56,7 @@ jobs:
           BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: |
           case "$BASE" in 0000000*|"") BASE=$(git rev-parse HEAD^) ;; esac
-          scripts/bench.sh --base "$BASE" --no-record
+          bash scripts/bench.sh --base "$BASE" --no-record
 
   dotnet:
     strategy:
