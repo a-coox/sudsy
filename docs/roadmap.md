@@ -23,7 +23,7 @@ One line each; none is committed.
 ## Extensibility
 - Plugin SDKs for languages other than Rust (the WIT is documented); freezing the plugin API at v1.
 - Host import for parsing snippets so plugins can compile patterns; sharing one decoded tree across the rule calls of a plugin; options schema for plugin rules.
-- A separate plugin-host binary or LTO to shrink the 28.9 MB binary.
+- A separate plugin-host binary to shrink the 28.3 MB binary (LTO measured: 7-12% smaller for 2-3x build time, see performance/numbers.md).
 - Pattern rule options; captures kept through `inside`/`has`.
 
 ## Tooling and editor

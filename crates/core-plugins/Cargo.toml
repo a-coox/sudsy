@@ -14,7 +14,7 @@ rmp-serde.workspace = true
 sha2.workspace = true
 thiserror.workspace = true
 wasmtime = { version = "50", default-features = false, features = ["cranelift", "component-model", "runtime", "std", "parallel-compilation", "cache"] }
-wasmtime-wasi = "50"
+wasmtime-wasi = { version = "50", default-features = false, features = ["p2"] }
 
 [dev-dependencies]
 lang-csharp.workspace = true

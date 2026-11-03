@@ -56,7 +56,19 @@ C# cost structure: on CoreLib Roslyn parse ~0.94 s and the mapping walk ~0.83 s 
 | Plugin load: cache off / empty / warm / same process | 178 / 183 / 6.8 ms / 0.6 ms |
 | Empty-file plugin call | 7 us |
 | `sudsy lint .`, 20 small JSON files: none / pattern / Wasm warm | 38 / 37 / 62 ms |
-| Binary size with the Wasm host | 28.9 MB (9.5 MB gz) vs 8.8 MB without |
+| Binary size with the Wasm host (Windows x64 release) | 28.3 MB (9.3 MB gz) vs 8.8 MB without; options tried: [Binary size](#binary-size) |
+
+## Binary size
+`sudsy.exe`, Windows x64, 12 threads, clean release build of `cli` + `perf-bench`; gz = `gzip -9`. Throughput: best of 5 `format --check` on the generated 11 MB JSON / 5 MB YAML and 100 small files, noise 10-15% (first runs of a new exe are slower from the virus scanner).
+
+| Variant | Size | gz | Clean build | Format speed |
+|---|---|---|---|---|
+| Before (`wasmtime-wasi` default features) | 28.99 MB | 9.50 MB | 5.0 min | 1.75-1.85 s JSON, 2.3 s YAML |
+| `wasmtime-wasi` with `p2` only (**kept**) | 28.31 MB | 9.28 MB | 5.2 min | same within noise |
+| `lto = "thin"`, `codegen-units = 1`, `strip = true` | 26.92 MB | 9.17 MB | 11.6 min | same within noise |
+| `lto = "fat"`, same | 25.63 MB | 9.01 MB | 14.5 min | same or slower (one run 2x on JSON), startup not better |
+
+`wasmtime` itself already has default features off, with only what the host uses. The ~20 MB Wasm host is Cranelift, so LTO saves 7-12% for 2-3x the build time on every CI platform job: not taken. `strip` changes nothing with the MSVC toolchain (symbols are in the pdb). Reconsider fat LTO only if the size matters more than release build time.
 
 ## Editor (`lsp-latency`, 300 corpus files as workspace, 20 KB file open, six semantic rules)
 | | Number |
