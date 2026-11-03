@@ -50,10 +50,6 @@ jobs:
         with:
           dotnet-version: 10.0.x
       - uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: |
-            . -> target/bench/cand
-            target/bench/base-src -> target/bench/base
       - run: sudo apt-get update && sudo apt-get install -y valgrind
       - name: Benchmark against the base
         env:
