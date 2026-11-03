@@ -46,7 +46,7 @@ fn us(d: Duration, n: usize) -> f64 {
     d.as_secs_f64() * 1e6 / n.max(1) as f64
 }
 
-fn plugin_path() -> PathBuf {
+pub(crate) fn plugin_path() -> PathBuf {
     std::env::var_os("PERF_PLUGIN")
         .map(PathBuf::from)
         .unwrap_or_else(|| {
@@ -58,13 +58,13 @@ fn plugin_path() -> PathBuf {
 }
 
 /// A parsed file and everything a `FileContext` borrows.
-struct Parsed {
-    text: String,
-    tree: core_syntax::SyntaxNode,
-    lines: LineIndex,
+pub(crate) struct Parsed {
+    pub(crate) text: String,
+    pub(crate) tree: core_syntax::SyntaxNode,
+    pub(crate) lines: LineIndex,
 }
 
-fn parse_all(provider: &dyn LanguageProvider, texts: Vec<String>) -> Vec<Parsed> {
+pub(crate) fn parse_all(provider: &dyn LanguageProvider, texts: Vec<String>) -> Vec<Parsed> {
     texts
         .into_iter()
         .filter_map(|text| {
@@ -80,7 +80,7 @@ fn parse_all(provider: &dyn LanguageProvider, texts: Vec<String>) -> Vec<Parsed>
         .collect()
 }
 
-fn context<'a>(provider: &'a dyn LanguageProvider, p: &'a Parsed) -> FileContext<'a> {
+pub(crate) fn context<'a>(provider: &'a dyn LanguageProvider, p: &'a Parsed) -> FileContext<'a> {
     FileContext {
         path: Path::new("bench"),
         text: &p.text,
@@ -92,7 +92,7 @@ fn context<'a>(provider: &'a dyn LanguageProvider, p: &'a Parsed) -> FileContext
     }
 }
 
-fn active(rule: &'static dyn Rule) -> ActiveRule<'static> {
+pub(crate) fn active(rule: &'static dyn Rule) -> ActiveRule<'static> {
     ActiveRule {
         rule,
         severity: Severity::Warning,
@@ -134,7 +134,10 @@ fn time_rules(
     (best, counts[0])
 }
 
-fn wasm_rule(rules: &[(&'static str, &'static dyn Rule)], id: &str) -> &'static dyn Rule {
+pub(crate) fn wasm_rule(
+    rules: &[(&'static str, &'static dyn Rule)],
+    id: &str,
+) -> &'static dyn Rule {
     rules
         .iter()
         .find(|(_, r)| r.meta().id == id)
@@ -280,7 +283,7 @@ fn clone(p: &Parsed) -> Parsed {
 /// `n` pattern rules, all starting at the same node kind and none matching: `Foo<i>($$$A)`,
 /// which the first token rules out at once, or `$X.Foo<i>($$$A)`, which starts with a metavariable
 /// and is matched down to the callee's name.
-fn call_rules(n: usize, with_receiver: bool) -> String {
+pub(crate) fn call_rules(n: usize, with_receiver: bool) -> String {
     let callee = if with_receiver { "$X.Foo" } else { "Foo" };
     (0..n)
         .map(|i| {
@@ -291,7 +294,7 @@ fn call_rules(n: usize, with_receiver: bool) -> String {
         .collect()
 }
 
-fn load_rules(provider: &dyn LanguageProvider, source: &str) -> Result<Extensions> {
+pub(crate) fn load_rules(provider: &dyn LanguageProvider, source: &str) -> Result<Extensions> {
     let snippets = ProviderSnippets(provider);
     let loaded = core_patterns::load(source.trim_end_matches("---\n"), &|_| {
         Some(&snippets as &dyn SnippetParser)
