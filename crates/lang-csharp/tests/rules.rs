@@ -72,3 +72,52 @@ fn suppression_comment() {
     let text = "class A { void F() {\n // sudsy-disable-next-line no-empty-catch\n try { } catch { }\n try { } catch { }\n} }\n";
     assert_snapshot!(report(text, ""));
 }
+
+const LEXICAL: &str = "comment-space: warn\nno-empty-comment: warn\ndoc-comment-space: warn\ndirective-keyword-space: warn\nno-regions: warn\nno-empty-statement: warn\nno-comment-before-block: warn\nuse-string-empty: warn\nseparate-attributes: warn\nno-empty-attribute-parens: warn\nno-empty-delegate-parens: warn";
+
+#[test]
+fn comment_rules_follow_stylecop() {
+    let text = "class A {\n //no space\n //\n // paragraph\n //\n // text\n //\n int a; //tail\n /// <summary>x</summary>\n ///<summary>y</summary>\n ///   <summary>z</summary>\n /* */\n int b;\n}\n";
+    let rules = "comment-space: warn\nno-empty-comment: warn\ndoc-comment-space: warn";
+    assert_snapshot!(report(text, rules));
+    assert_snapshot!(fixed(text, rules, false));
+}
+
+#[test]
+fn directives_and_regions() {
+    let text = "class A {\n# region R\n int a;\n#  endregion\n# if X\n int b;\n#endif\n}\n";
+    let rules = "directive-keyword-space: warn\nno-regions: warn";
+    assert_snapshot!(report(text, rules));
+    assert_snapshot!(fixed(text, rules, false));
+}
+
+#[test]
+fn empty_statements_and_comments_before_blocks() {
+    let text = "class A { void F(bool x, int y) {\n ;\n if (x); else { }\n while (x) /* c */ { }\n switch (y) { case 1: ; break; default: ; }\n L: ;\n int z = 1;;\n} }\n";
+    let rules = "no-empty-statement: warn\nno-comment-before-block: warn";
+    assert_snapshot!(report(text, rules));
+    assert_snapshot!(fixed(text, rules, false));
+}
+
+#[test]
+fn string_empty_skips_constant_positions() {
+    let text = "class A {\n const string C = \"\";\n string F(string s = \"\") {\n  if (s is \"\") { }\n  switch (s) { case \"\": break; }\n  return s ?? @\"\";\n }\n [System.Obsolete(\"\")] void G() { }\n}\n";
+    assert_snapshot!(report(text, "use-string-empty: warn"));
+    assert_snapshot!(fixed(text, "use-string-empty: warn", false));
+}
+
+#[test]
+fn attribute_forms() {
+    let text = "[assembly: A, B]\nclass C {\n [A(), B]\n void F([A, B] int p) { }\n [A, // why\n  B]\n int x;\n Action a = delegate() { };\n}\n";
+    let rules = "separate-attributes: warn\nno-empty-attribute-parens: warn\nno-empty-delegate-parens: warn";
+    assert_snapshot!(report(text, rules));
+    assert_snapshot!(fixed(text, rules, false));
+    assert_snapshot!(fixed(text, rules, true));
+}
+
+#[test]
+fn lexical_rules_are_off_by_default() {
+    let text = "class A { void F() { ; } //x\n}\n";
+    assert_eq!(report(text, ""), "");
+    assert!(!report(text, LEXICAL).is_empty());
+}

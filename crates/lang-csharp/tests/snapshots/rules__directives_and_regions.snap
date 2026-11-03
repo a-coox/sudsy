@@ -1,0 +1,11 @@
+---
+source: crates/lang-csharp/tests/rules.rs
+expression: "report(text, rules)"
+---
+2:1 warning[no-regions] do not use regions
+2:3 warning[directive-keyword-space] the directive keyword should follow `#` directly
+  fix (safe): Remove the space after `#`
+4:4 warning[directive-keyword-space] the directive keyword should follow `#` directly
+  fix (safe): Remove the space after `#`
+5:3 warning[directive-keyword-space] the directive keyword should follow `#` directly
+  fix (safe): Remove the space after `#`

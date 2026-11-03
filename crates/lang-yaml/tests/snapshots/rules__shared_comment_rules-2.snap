@@ -1,0 +1,13 @@
+---
+source: crates/lang-yaml/tests/rules.rs
+expression: "fixed(text, rules, false)"
+---
+#!/bin/sh
+# no space
+## fine
+a: 1 # tail
+#
+b: 2
+#
+# x
+#

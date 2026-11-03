@@ -1,12 +1,13 @@
 //! Rules that apply to every language. A language-specific rule cannot reuse a shared rule's name.
 
+use crate::comments::{CommentSpace, NoEmptyComment};
 use crate::diagnostic::Category;
 use crate::options::{Opt, OptionDecl};
 use crate::rule::{FileContext, Rule, RuleContext, RuleMeta};
 use core_config::Level;
 use core_syntax::{TextRange, TextSize};
 
-pub static RULES: &[&dyn Rule] = &[&MaxLineLength];
+pub static RULES: &[&dyn Rule] = &[&MaxLineLength, &CommentSpace, &NoEmptyComment];
 
 struct MaxLineLength;
 

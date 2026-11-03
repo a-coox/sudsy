@@ -5,6 +5,8 @@
 | Rule | Language | Category | Default | Fix | Notes |
 |---|---|---|---|---|---|
 | `max-line-length` | all | style | off | none | shared; options `max`, `allow_non_breakable_words` (default true: a line with no space after its indentation, a leading `#` run or `- `, such as a URL, is not reported) |
+| `comment-space` | all | style | off | safe | shared; line comment needs a space after the marker; `////`, `--` lines, whitespace-only and a first-line `#!` are exempt; SA1005, yamllint `require-starting-space` |
+| `no-empty-comment` | all | style | off | none | shared; empty block comments, and an empty line comment at the start or end of a comment run; SA1120 |
 | `no-duplicate-keys` | json | correctness | error | none | keys compared as written between quotes |
 | `sorted-keys` | json | style | off | unsafe | option `order` |
 | `no-duplicate-keys` | yaml | correctness | error | none | scalars compared after unquoting; `<<` skipped |
@@ -21,6 +23,15 @@
 | `remove-unused-usings` | csharp | cleanup | off | safe | overlaps compiler CS8019 and IDE0005; silent when the file has errors or `#if` |
 | `possible-null-dereference` | csharp | correctness | off | none | maybe-null receivers; off because it repeats the compiler's CS8602 |
 | `unused-private-member` | csharp | cleanup | warn | none | project scope, `analysis: deep` only; overlaps IDE0051 and IDE0052 |
+| `doc-comment-space` | csharp | style | off | safe | `///` followed by exactly one space on the first line of a doc comment; SA1004 |
+| `directive-keyword-space` | csharp | style | off | safe | `# if` -> `#if`; SA1006 |
+| `no-regions` | csharp | style | off | none | every `#region`; SA1124 |
+| `no-empty-statement` | csharp | suspicious | off | safe | lone `;` (not after a label); embedded bodies become `{ }`; SA1106 |
+| `no-comment-before-block` | csharp | style | off | none | comment between a statement head and its `{`; SA1108 |
+| `use-string-empty` | csharp | style | off | safe | `""` -> `string.Empty` outside constant positions; SA1122 |
+| `separate-attributes` | csharp | style | off | safe | `[A, B]` -> `[A]` `[B]` (not on parameters, type parameters, lists with comments); SA1133 |
+| `no-empty-attribute-parens` | csharp | style | off | safe | `[A()]` -> `[A]`; SA1411 |
+| `no-empty-delegate-parens` | csharp | style | off | unsafe | `delegate() { }` -> `delegate { }`; unsafe because overload resolution can change; SA1410 |
 
 Rules that repeat a compiler or SDK diagnostic say so in `sudsy rules <id>`; those that fire as compiler warnings anyway are off by default. Sudsy does not reimplement SDK style rules such as IDE0161 (file-scoped namespaces) or IDE0029/IDE0030 (null coalescing).
 

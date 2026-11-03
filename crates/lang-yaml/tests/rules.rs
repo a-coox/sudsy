@@ -137,3 +137,12 @@ fn max_line_length_allows_non_breakable_words() {
         3
     );
 }
+
+#[test]
+fn shared_comment_rules() {
+    let text = "#!/bin/sh\n#no space\n## fine\na: 1 #tail\n#\nb: 2\n#\n# x\n#\n";
+    let rules = "comment-space: warn\nno-empty-comment: warn";
+    assert_snapshot!(report(text, rules));
+    assert_snapshot!(fixed(text, rules, false));
+    assert_eq!(report(text, ""), "");
+}

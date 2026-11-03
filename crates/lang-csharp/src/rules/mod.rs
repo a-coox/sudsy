@@ -4,8 +4,12 @@
 
 mod async_suffix;
 mod binding;
+mod directives;
+mod doc_comment_space;
 mod empty_catch;
 mod flow;
+mod statements;
+mod syntax_forms;
 mod usings;
 
 use crate::generated::kind;
@@ -22,6 +26,15 @@ pub static RULES: &[&dyn Rule] = &[
     &binding::RemoveUnusedUsings,
     &binding::PossibleNullDereference,
     &binding::UnusedPrivateMember,
+    &doc_comment_space::DocCommentSpace,
+    &directives::NoRegions,
+    &directives::DirectiveKeywordSpace,
+    &statements::NoEmptyStatement,
+    &statements::NoCommentBeforeBlock,
+    &syntax_forms::UseStringEmpty,
+    &syntax_forms::SeparateAttributes,
+    &syntax_forms::NoEmptyAttributeParens,
+    &syntax_forms::NoEmptyDelegateParens,
 ];
 
 /// Methods, constructors, local functions, lambdas and anonymous methods: what body-scope rules

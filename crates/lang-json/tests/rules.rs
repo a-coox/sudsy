@@ -87,3 +87,11 @@ fn shared_rule_max_line_length() {
     ));
     assert_eq!(report(text, ""), "");
 }
+
+#[test]
+fn shared_comment_rules() {
+    let text = "{\n  //no space\n  /// fine\n  \"a\": 1, //tail\n  /**/\n  \"b\": 2\n}\n";
+    let rules = "comment-space: warn\nno-empty-comment: warn";
+    assert_snapshot!(report_at("a.jsonc", text, rules));
+    assert_eq!(report_at("a.jsonc", text, ""), "");
+}

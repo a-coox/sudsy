@@ -4,6 +4,7 @@ Usage: parity_compare.py <tool> <version> <sudsy-binary>
 """
 import json
 import re
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -13,14 +14,23 @@ import yaml
 ROOT = Path(__file__).resolve().parent.parent
 
 
+def catalog_entries(tool):
+    catalog = yaml.safe_load((ROOT / "docs/parity" / f"{tool}.yaml").read_text(encoding="utf-8"))
+    return [e for e in catalog["entries"] if "." not in e["id"]]
+
+
 def rule_map(tool):
     """Upstream rule name -> Sudsy rule id, from the catalog's top-level entries."""
-    catalog = yaml.safe_load((ROOT / "docs/parity" / f"{tool}.yaml").read_text(encoding="utf-8"))
     return {
         e["id"]: e["sudsy"][len("rule: "):]
-        for e in catalog["entries"]
-        if e["sudsy"].startswith("rule: ") and "." not in e["id"]
+        for e in catalog_entries(tool)
+        if e["sudsy"].startswith("rule: ")
     }
+
+
+def formatter_ids(tool):
+    """Upstream rule names the catalog says the formatter fully covers; `partial` entries state a gap."""
+    return {e["id"] for e in catalog_entries(tool) if e["sudsy"] == "formatter" and e["coverage"] == "covered"}
 
 
 def yamllint(fixture, cwd):
@@ -37,7 +47,8 @@ def yamllint(fixture, cwd):
     return found
 
 
-def sudsy_lint(sudsy, fixture, cwd):
+def sudsy_lint(sudsy, fixture, cwd, only=None):
+    """`{(rule, line, column)}`; with `only`, the diagnostics of those rules."""
     out = subprocess.run(
         [sudsy, "lint", "--format", "json", fixture.name],
         cwd=cwd, capture_output=True, text=True, check=False,
@@ -46,32 +57,89 @@ def sudsy_lint(sudsy, fixture, cwd):
     return {
         (d["rule"], d["range"]["start"]["line"], d["range"]["start"]["column"])
         for d in report["diagnostics"]
+        if only is None or d["rule"] in only
     }
 
 
-TOOLS = {"yamllint": yamllint}
+def compare(label, upstream, ours, tool):
+    """Prints the differences between two `{(rule, line, column)}` sets; returns their count."""
+    only_upstream, only_ours = sorted(upstream - ours), sorted(ours - upstream)
+    status = "ok" if not (only_upstream or only_ours) else "MISMATCH"
+    print(f"{label}: {len(upstream)} {tool}, {len(ours)} sudsy: {status}")
+    for rule, line, col in only_upstream:
+        print(f"  only {tool}: {rule} {line}:{col}")
+    for rule, line, col in only_ours:
+        print(f"  only sudsy:  {rule} {line}:{col}")
+    return len(only_upstream) + len(only_ours)
+
+
+def stylecop_build(directory, ids, version):
+    """`{(file name, rule, line, column)}` of the StyleCop diagnostics `dotnet build` reports for the
+    fixture project in `directory`, restricted to `ids` (each enabled as a warning; the other
+    StyleCop rules are noise for the comparison)."""
+    (directory / ".editorconfig").write_text(
+        "root = true\n[*.cs]\n" + "".join(f"dotnet_diagnostic.{i}.severity = warning\n" for i in sorted(ids)),
+        encoding="utf-8",
+    )
+    log = directory / "build.sarif"
+    run = subprocess.run(
+        ["dotnet", "build", "--no-incremental", "-nologo", "-v:q", f"-p:StyleCopVersion={version}",
+         f"-p:ErrorLog={log}"],
+        cwd=directory, capture_output=True, text=True, check=False,
+    )
+    if not log.exists():
+        sys.exit(f"dotnet build produced no error log:\n{run.stdout}\n{run.stderr}")
+    found = set()
+    for result in json.loads(log.read_text(encoding="utf-8"))["runs"][0]["results"]:
+        if result["ruleId"] not in ids:
+            continue
+        location = result["locations"][0]
+        location = location.get("physicalLocation") or location.get("resultFile")
+        uri = (location.get("artifactLocation") or location)["uri"]
+        region = location["region"]
+        name = Path(uri.replace("%20", " ")).name
+        found.add((name, result["ruleId"], region["startLine"], region["startColumn"]))
+    return found
+
+
+def stylecop(sudsy, version):
+    """Two builds of the fixtures. Plain: every `rule:` id StyleCop reports is reported by `sudsy
+    lint` at the same place, and nothing else. After `sudsy fix` (which formats): no `formatter` id
+    remains, and what StyleCop still reports is what `sudsy lint` still reports."""
+    mapping = rule_map("stylecop")
+    formatter = formatter_ids("stylecop")
+    mismatches = 0
+    for name in ("plain", "fixed"):
+        work = ROOT / "target/parity" / f"stylecop-{name}"
+        shutil.rmtree(work, ignore_errors=True)
+        shutil.copytree(ROOT / "tests/parity/stylecop", work)
+        if name == "fixed":
+            subprocess.run([sudsy, "fix", "--unsafe", "."], cwd=work, capture_output=True, text=True, check=False)
+        built = stylecop_build(work, set(mapping) | formatter, version)
+        for fixture in sorted(work.glob("*.cs")):
+            upstream = {(mapping[r], l, c) for f, r, l, c in built if f == fixture.name and r in mapping}
+            mismatches += compare(f"{fixture.name} ({name})", upstream, sudsy_lint(sudsy, fixture, work, set(mapping.values())), "stylecop")
+        if name == "fixed":
+            for f, r, l, c in sorted(built):
+                if r in formatter:
+                    print(f"  formatter id left after fix: {f}: {r} {l}:{c}")
+                    mismatches += 1
+    print(f"stylecop {version}: {mismatches} mismatch(es)")
+    return 1 if mismatches else 0
 
 
 def main():
     tool, version, sudsy = sys.argv[1:4]
+    if tool == "stylecop":
+        return stylecop(sudsy, version)
     mapping = rule_map(tool)
     folder = ROOT / "tests/parity" / tool
     fixtures = sorted(p for p in folder.iterdir() if p.suffix in (".yaml", ".yml") and p.name != "sudsy.yaml")
     mismatches = 0
     for fixture in fixtures:
-        upstream = set()
-        for rule, line, col in TOOLS[tool](fixture, folder):
-            # An upstream rule with no mapping can never match: report it.
-            upstream.add((mapping.get(rule, f"<unmapped {tool} rule {rule}>"), line, col))
-        ours = sudsy_lint(sudsy, fixture, folder)
-        only_upstream, only_ours = sorted(upstream - ours), sorted(ours - upstream)
-        status = "ok" if not (only_upstream or only_ours) else "MISMATCH"
-        print(f"{fixture.name}: {len(upstream)} {tool}, {len(ours)} sudsy: {status}")
-        for rule, line, col in only_upstream:
-            print(f"  only {tool}: {rule} {line}:{col}")
-        for rule, line, col in only_ours:
-            print(f"  only sudsy:  {rule} {line}:{col}")
-        mismatches += len(only_upstream) + len(only_ours)
+        # An upstream rule with no mapping can never match: report it.
+        upstream = {(mapping.get(r, f"<unmapped {tool} rule {r}>"), l, c) for r, l, c in yamllint(fixture, folder)}
+        mismatches += compare(fixture.name, upstream, sudsy_lint(sudsy, fixture, folder), tool)
     print(f"{len(fixtures)} fixtures, {mismatches} mismatch(es) ({tool} {version})")
     return 1 if mismatches else 0
 

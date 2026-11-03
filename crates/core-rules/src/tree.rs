@@ -75,3 +75,16 @@ pub fn reorder_edits(text: &str, items: &[TextRange], sorted: &[usize]) -> Vec<c
         })
         .collect()
 }
+
+/// The structured trivia node (documentation comment, directive) around `token`; its children
+/// need not be trivia themselves (a documentation comment's XML).
+pub fn structured_trivia(token: &SyntaxToken, grammar: &Grammar) -> Option<SyntaxNode> {
+    token
+        .parent_ancestors()
+        .find(|n| grammar.is_trivia(n.kind()))
+}
+
+/// Is `token` code: neither trivia nor inside a structured trivia node?
+pub fn is_code(token: &SyntaxToken, grammar: &Grammar) -> bool {
+    !grammar.is_trivia(token.kind()) && structured_trivia(token, grammar).is_none()
+}

@@ -1,0 +1,9 @@
+---
+source: crates/lang-json/tests/rules.rs
+expression: "report_at(\"a.jsonc\", text, rules)"
+---
+2:3 warning[comment-space] a comment should start with a space after `//`
+  fix (safe): Insert a space
+4:11 warning[comment-space] a comment should start with a space after `//`
+  fix (safe): Insert a space
+5:3 warning[no-empty-comment] the comment has no text

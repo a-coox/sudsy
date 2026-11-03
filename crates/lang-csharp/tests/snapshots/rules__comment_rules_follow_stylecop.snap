@@ -1,0 +1,12 @@
+---
+source: crates/lang-csharp/tests/rules.rs
+expression: "report(text, rules)"
+---
+2:2 warning[comment-space] a comment should start with a space after `//`
+  fix (safe): Insert a space
+7:2 warning[no-empty-comment] the comment has no text
+8:9 warning[comment-space] a comment should start with a space after `//`
+  fix (safe): Insert a space
+10:5 warning[doc-comment-space] a documentation line should start with a single space
+  fix (safe): Use a single space
+12:2 warning[no-empty-comment] the comment has no text

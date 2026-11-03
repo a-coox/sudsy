@@ -1,0 +1,14 @@
+# The Sudsy side of the comparison with StyleCop: the rules the catalog maps to `rule:` ids.
+lint:
+  rules:
+    comment-space: warn
+    directive-keyword-space: warn
+    doc-comment-space: warn
+    no-comment-before-block: warn
+    no-empty-attribute-parens: warn
+    no-empty-comment: warn
+    no-empty-delegate-parens: warn
+    no-empty-statement: warn
+    no-regions: warn
+    separate-attributes: warn
+    use-string-empty: warn

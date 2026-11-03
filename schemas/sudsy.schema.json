@@ -62,6 +62,18 @@
               "$ref": "#/definitions/rule",
               "description": "An async method returning Task or ValueTask has a name that does not end in `Async`. Overrides, explicit interface implementations and `Main` are left alone (their names are not the method's to choose). Renaming needs the binding layer, so there is no fix."
             },
+            "comment-space": {
+              "$ref": "#/definitions/rule",
+              "description": "A line comment has text right after its marker. Exempt: nothing but whitespace after the marker, a marker repeated (`////`, `##`), `--` separator lines, and a `#!` shebang on the first line. The fix inserts the space. Equivalent to StyleCop SA1005 and yamllint's `comments.require-starting-space`."
+            },
+            "directive-keyword-space": {
+              "$ref": "#/definitions/rule",
+              "description": "No space between `#` and the directive keyword (`#if`, not `# if`). Equivalent to StyleCop SA1006."
+            },
+            "doc-comment-space": {
+              "$ref": "#/definitions/rule",
+              "description": "A documentation line (`///`) starts with a single space. More spaces are allowed to indent continuation lines, not on the first line of the comment; a tab or no space is always reported. Equivalent to StyleCop SA1004."
+            },
             "document-start": {
               "$ref": "#/definitions/rule",
               "description": "The first document does not start with `---`."
@@ -102,13 +114,37 @@
                 }
               ]
             },
+            "no-comment-before-block": {
+              "$ref": "#/definitions/rule",
+              "description": "A comment between the head of an `if`, `else`, `while`, `do`, `for`, `foreach`, `lock`, `try`, `catch`, `finally`, `switch`, `checked` or `unchecked` and its `{`. Put it inside the block or above the statement. Equivalent to StyleCop SA1108."
+            },
             "no-duplicate-keys": {
               "$ref": "#/definitions/rule",
               "description": "An object has the same key twice; parsers disagree on which value wins."
             },
+            "no-empty-attribute-parens": {
+              "$ref": "#/definitions/rule",
+              "description": "An attribute with empty parentheses: `[Foo()]` is `[Foo]`. Equivalent to StyleCop SA1411."
+            },
             "no-empty-catch": {
               "$ref": "#/definitions/rule",
               "description": "A catch block with no statements and no comment swallows the exception silently."
+            },
+            "no-empty-comment": {
+              "$ref": "#/definitions/rule",
+              "description": "A comment has no text. A block comment is reported wherever it is; an empty line comment only when it begins or ends a run of comments, because a bare `//` between two comment lines separates paragraphs. Equivalent to StyleCop SA1120."
+            },
+            "no-empty-delegate-parens": {
+              "$ref": "#/definitions/rule",
+              "description": "An anonymous method with an empty parameter list: `delegate() { }` is `delegate { }`. The fix is unsafe: without a parameter list the method also converts to delegate types that have parameters, which can change which overload is chosen. Equivalent to StyleCop SA1410."
+            },
+            "no-empty-statement": {
+              "$ref": "#/definitions/rule",
+              "description": "A lone `;` is a statement that does nothing. A statement labelled `label: ;` is allowed. The fix removes the statement (its whole line when it is alone on it), or turns an empty loop or `if` body into `{ }`; it is not offered for the only statement of a switch section. Overlaps compiler CS0642 for `if (x);`. Equivalent to StyleCop SA1106."
+            },
+            "no-regions": {
+              "$ref": "#/definitions/rule",
+              "description": "`#region` hides code behind a label. Reported on every `#region`, in disabled `#if` branches too; no fix, because removing a pair is a judgment call. Equivalent to StyleCop SA1124."
             },
             "no-undefined-alias": {
               "$ref": "#/definitions/rule",
@@ -121,6 +157,10 @@
             "remove-unused-usings": {
               "$ref": "#/definitions/rule",
               "description": "A `using` directive that nothing in the file needs (the compiler's hidden CS8019, IDE0005 in the SDK analyzers). Not reported in a file that has compiler errors or `#if` regions, because unresolved or inactive code could be the one using it."
+            },
+            "separate-attributes": {
+              "$ref": "#/definitions/rule",
+              "description": "One attribute per attribute list: `[A, B]` becomes `[A]` and `[B]`. Lists on parameters and type parameters are left alone. The fix is not offered when the list has a comment in it. Equivalent to StyleCop SA1133."
             },
             "sorted-keys": {
               "description": "The keys of an object are not in alphabetical order.",
@@ -198,6 +238,10 @@
             "unused-variable": {
               "$ref": "#/definitions/rule",
               "description": "A local variable or catch variable that is never used (the compiler's CS0168), or is only assigned constants and never read (CS0219). Variables captured by lambdas or local functions count as used. Off by default: the compiler already warns (CS0168, CS0219)."
+            },
+            "use-string-empty": {
+              "$ref": "#/definitions/rule",
+              "description": "`string.Empty` instead of `\"\"` (or `@\"\"`). Not reported where a constant is required: `const`, attribute arguments, default parameter values, `case` labels and patterns. Equivalent to StyleCop SA1122."
             },
             "using-order": {
               "description": "Plain `using` directives of a file or namespace are not in alphabetical order (ordinal). Aliases, `using static` and `global using` stay where they are, and so does a list that has preprocessor directives in it. Comments on lines of their own stay where they are; a comment after a directive moves with it. Overlaps the SDK analyzers' `dotnet_sort_system_directives_first` .editorconfig key.",
