@@ -11,6 +11,7 @@
 pub mod configure;
 pub mod diagnostic;
 pub mod engine;
+pub mod extension;
 pub mod fixes;
 pub mod lines;
 pub mod options;
@@ -25,6 +26,7 @@ pub use diagnostic::{
     Category, Diagnostic, Edit, FORMAT, Fix, FixKind, Related, SYNTAX_ERROR, Severity,
 };
 pub use engine::{ActiveRule, FileReport, layers_needed, run_file, run_project};
+pub use extension::{ALL_LANGUAGES, ExtensionRule, Extensions};
 pub use fixes::{Analysis, FixOutcome, fix_loop};
 pub use lines::LineIndex;
 pub use options::{Opt, OptionDecl, RuleOptions};

@@ -1,6 +1,7 @@
 //! The project a front end works on: its root directory and the config chain found from there.
 
 use core_config::{ConfigChain, ConfigError};
+use core_rules::Extensions;
 use provider_api::LanguageProvider;
 use std::path::{Path, PathBuf};
 
@@ -12,6 +13,8 @@ pub struct ProjectError(pub String);
 pub struct Project {
     pub root: PathBuf,
     pub chain: ConfigChain,
+    /// The pattern and plugin rules the config names.
+    pub extensions: Extensions,
 }
 
 impl Project {
@@ -40,10 +43,15 @@ impl Project {
             None => ConfigChain::default(),
         };
         chain.validate(&crate::schemas(providers)).map_err(fail)?;
-        chain
-            .validate_rule_ids(&crate::rule_ids(providers))
-            .map_err(fail)?;
-        Ok(Project { root, chain })
+        let extensions = crate::load_extensions(&chain, providers, &root).map_err(fail)?;
+        let mut ids = crate::rule_ids(providers);
+        ids.extend(extensions.ids());
+        chain.validate_rule_ids(&ids).map_err(fail)?;
+        Ok(Project {
+            root,
+            chain,
+            extensions,
+        })
     }
 
     /// A path as printed to the user.

@@ -5,11 +5,41 @@
 use crate::provider::{LanguageProvider, SourceFile};
 use core_config::{ConfigChain, FileInput};
 use core_rules::{
-    Analysis, Diagnostic, FileContext, LineIndex, SYNTAX_ERROR, activate, fix_loop, layers_needed,
-    run_file,
+    Analysis, Diagnostic, Extensions, FileContext, LineIndex, SYNTAX_ERROR, activate, fix_loop,
+    layers_needed, run_file,
 };
 use core_semantics::SemanticView;
 use std::path::Path;
+
+/// Why a pattern rule file is refused, if it is.
+pub fn pattern_error(provider: &dyn LanguageProvider, source: &str) -> Option<String> {
+    let snippets = crate::ProviderSnippets(provider);
+    core_patterns::load(source, &|_| {
+        Some(&snippets as &dyn core_patterns::SnippetParser)
+    })
+    .err()
+    .map(|e| e.0)
+}
+
+/// The rules of a pattern rule file for `provider`'s language, as a project would load them.
+/// Panics when the file is invalid.
+pub fn pattern_rules(provider: &dyn LanguageProvider, source: &str) -> Extensions {
+    let snippets = crate::ProviderSnippets(provider);
+    let loaded = core_patterns::load(source, &|_| {
+        Some(&snippets as &dyn core_patterns::SnippetParser)
+    })
+    .unwrap_or_else(|e| panic!("invalid pattern file: {e}"));
+    Extensions {
+        rules: loaded
+            .into_iter()
+            .map(|(language, rule)| core_rules::ExtensionRule {
+                language: Box::leak(language.into_boxed_str()),
+                rule: Box::leak(Box::new(rule)),
+            })
+            .collect(),
+        files: Vec::new(),
+    }
+}
 
 /// The diagnostics of `text`, as `path` would get them with `rules` as the `lint:` section of a
 /// config (for example `"sorted-keys: warn"`, one rule per line).
@@ -19,10 +49,27 @@ pub fn lint(
     text: &str,
     rules: &str,
 ) -> Vec<Diagnostic> {
-    analyze(provider, path, text, rules).diagnostics
+    lint_with(provider, &Extensions::default(), path, text, rules)
 }
 
-fn analyze(provider: &dyn LanguageProvider, path: &str, text: &str, rules: &str) -> Analysis {
+/// [`lint`] with the project's pattern and plugin rules added to the provider's.
+pub fn lint_with(
+    provider: &dyn LanguageProvider,
+    extensions: &Extensions,
+    path: &str,
+    text: &str,
+    rules: &str,
+) -> Vec<Diagnostic> {
+    analyze(provider, extensions, path, text, rules).diagnostics
+}
+
+fn analyze(
+    provider: &dyn LanguageProvider,
+    extensions: &Extensions,
+    path: &str,
+    text: &str,
+    rules: &str,
+) -> Analysis {
     let yaml = format!(
         "lint:\n  rules:\n{}",
         rules
@@ -65,7 +112,8 @@ fn analyze(provider: &dyn LanguageProvider, path: &str, text: &str, rules: &str)
             .rules()
             .iter()
             .chain(core_rules::shared::RULES)
-            .copied(),
+            .copied()
+            .chain(extensions.for_language(&provider.grammar().language)),
         &resolved,
         |l| capabilities.contains(l),
     )
@@ -137,11 +185,30 @@ pub fn fix(
     rules: &str,
     allow_unsafe: bool,
 ) -> String {
+    fix_with(
+        provider,
+        &Extensions::default(),
+        path,
+        text,
+        rules,
+        allow_unsafe,
+    )
+}
+
+/// [`fix`] with the project's pattern and plugin rules added to the provider's.
+pub fn fix_with(
+    provider: &dyn LanguageProvider,
+    extensions: &Extensions,
+    path: &str,
+    text: &str,
+    rules: &str,
+    allow_unsafe: bool,
+) -> String {
     let run = |text: &str| {
         fix_loop(
             text.to_string(),
             |f| f.kind.applies(allow_unsafe),
-            |t| Ok::<_, std::convert::Infallible>(analyze(provider, path, t, rules)),
+            |t| Ok::<_, std::convert::Infallible>(analyze(provider, extensions, path, t, rules)),
         )
         .expect("infallible")
     };
@@ -150,4 +217,89 @@ pub fn fix(
     let second = run(&first.text);
     assert_eq!(second.text, first.text, "fixing is not idempotent");
     first.text
+}
+
+/// An annotated fixture split into the source text and the diagnostics it expects.
+struct Annotated {
+    text: String,
+    /// `(line, column, carets, rule)`, lines and columns from 1.
+    expected: Vec<(usize, usize, usize, String)>,
+}
+
+/// Annotation lines hold the language's line-comment marker, carets under the reported span and
+/// the rule id: `// ^^^ no-empty-catch` (`#` in YAML) points at the line above. They are removed
+/// before the rules run, so they never shift a position.
+fn split_annotations(marker: &str, annotated: &str) -> Annotated {
+    let mut text = String::new();
+    let mut expected = Vec::new();
+    let mut lines = 0;
+    for line in annotated.split_inclusive('\n') {
+        let body = line.trim_end_matches(['\r', '\n']);
+        let rest = body.trim_start().strip_prefix(marker).map(str::trim_start);
+        match rest {
+            Some(rest) if rest.starts_with('^') => {
+                let column = body.chars().count() - rest.chars().count() + 1;
+                let carets = rest.chars().take_while(|&c| c == '^').count();
+                let rule = rest[carets..].trim().to_string();
+                assert!(lines > 0, "annotation `{body}` has no line above it");
+                expected.push((lines, column, carets, rule));
+            }
+            _ => {
+                text.push_str(line);
+                lines += 1;
+            }
+        }
+    }
+    Annotated { text, expected }
+}
+
+/// Runs `rules` on a fixture whose expected diagnostics are written under the lines they point
+/// at (see [`split_annotations`]) and panics when the diagnostics differ in position, length
+/// (single-line spans) or rule. Returns the text without the annotations.
+pub fn expect(
+    provider: &dyn LanguageProvider,
+    extensions: &Extensions,
+    path: &str,
+    annotated: &str,
+    rules: &str,
+) -> String {
+    let marker = provider
+        .grammar()
+        .comments
+        .line
+        .clone()
+        .unwrap_or_else(|| "//".into());
+    let Annotated { text, expected } = split_annotations(&marker, annotated);
+    let index = LineIndex::new(&text);
+    let mut actual: Vec<(usize, usize, usize, String)> =
+        lint_with(provider, extensions, path, &text, rules)
+            .iter()
+            .map(|d| {
+                let (line, column) = index.line_col(&text, d.range.start());
+                let (end_line, end_column) = index.line_col(&text, d.range.end());
+                let carets = if end_line == line {
+                    end_column - column
+                } else {
+                    0
+                };
+                (line, column, carets, d.rule.clone())
+            })
+            .collect();
+    let mut expected = expected;
+    // A multi-line span has no caret count to compare.
+    for e in &mut expected {
+        if actual
+            .iter()
+            .any(|a| (a.0, a.1, &a.3) == (e.0, e.1, &e.3) && a.2 == 0)
+        {
+            e.2 = 0;
+        }
+    }
+    actual.sort();
+    expected.sort();
+    assert_eq!(
+        actual, expected,
+        "diagnostics (line, column, length, rule) differ from the annotations in:\n{text}"
+    );
+    text
 }

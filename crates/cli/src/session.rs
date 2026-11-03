@@ -27,6 +27,7 @@ impl Session {
         }
         let mut db = Database::new(providers);
         db.set_config(Ok(project.chain.clone()));
+        db.set_extensions(project.extensions.clone());
         // The files semantic rules bind against: what was named on the command line, else the
         // working directory.
         let roots = if args.is_empty() {

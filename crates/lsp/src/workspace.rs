@@ -53,12 +53,14 @@ impl Workspace {
         let error = match loaded {
             Ok(project) => {
                 self.db.set_config(Ok(project.chain.clone()));
+                self.db.set_extensions(project.extensions.clone());
                 self.project = Some(project);
                 None
             }
             Err(e) => {
                 self.project = None;
                 self.db.set_config(Err(ConfigError::new(e.0.clone())));
+                self.db.set_extensions(Default::default());
                 Some(e.0)
             }
         };
@@ -81,6 +83,7 @@ impl Workspace {
                     .files
                     .iter()
                     .any(|f| f.file.as_deref() == Some(path))
+                    || p.extensions.files.iter().any(|f| f == path)
             })
     }
 

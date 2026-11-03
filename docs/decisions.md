@@ -1328,3 +1328,50 @@ requests in parallel (or one workspace per core) is the lever if CI time matters
   implemented; closed-file watching for deep diagnostics in the editor; call-graph rules and
   point queries (`symbol_of`); the flow-graph wire encoding of the syntax tree is plain
   MessagePack; the Wasm flow API is M6.
+
+## M6: Extensibility
+
+### Pattern rules (`core-patterns`)
+* **A pattern rule is a `core_rules::Rule`.** `core-patterns` compiles an ast-grep-style YAML file
+  into `PatternRule`, which implements the same trait as a built-in rule, so levels, options
+  checks, suppression comments, the fix loop, `sudsy rules`, SARIF and the editor need no second
+  path. Rules from pattern files and plugins reach the engine as `core_rules::Extensions` (rules
+  plus the language each runs on), which `languages::Project::load` builds from the config's
+  `plugins:` and the front ends hand to the database as one salsa input (`set_extensions`; an
+  unchanged set invalidates nothing). `active_rules` chains the language's extension rules after
+  the provider's and the shared ones.
+* **Rules are leaked.** `Rule::meta` returns `&'static RuleMeta` and the engine holds
+  `&'static dyn Rule`; loaded rules are leaked once per distinct file text (a cache keyed by the
+  text), so reloading an unchanged config in the editor costs nothing and keeps rule objects equal.
+* **File format.** One rule or several (`---`) per file: `id`, `language`, `message`, optional
+  `severity` (the default level, `warn`), `category` (`style`), `description`, `example`, `rule`,
+  `constraints`, `fix`, `fix-title`, `fix-kind` (`unsafe` when omitted: a template is not known to
+  preserve meaning; `safe` and `suggestion` are opt-in). Unknown keys are errors. The `rule` has
+  `pattern`, `kind` (node kinds of the grammar), `regex` (on the node's text without trivia),
+  `inside`, `not-inside`, `has`, `not-has`, `all`, `any`, `not`; keys at one level all must hold.
+  `constraints` check what a metavariable captured (`regex`, `not-regex`, `kind`). Messages and
+  fixes substitute `$X` / `$$$ARGS` with the captured source text.
+* **Rule ids** are used as written in the file (`team/x` is allowed). An id that is a built-in
+  rule's, or one defined twice for a language, is a config error naming the file. Because pattern
+  ids are now known when the config is validated, `validate_rule_ids` checks `a/b` ids too
+  (M3b skipped them).
+* **Patterns are parsed by the language's own provider** (`provider_api::ProviderSnippets`). A
+  metavariable is first written as an identifier (`__SUDSY_S_X__`, `__SUDSY_M_X__`), or as a string
+  when that does not parse (JSON). The snippet is tried as it is, with a `;` after it, and inside
+  `{ }` (a JSON member), and the node spanning all of it is the pattern. The pattern tree is then
+  converted to a small matcher tree without trivia. A node whose text is only a metavariable
+  (optionally with its `;`) is the metavariable, so in statement position a run of statements is
+  written `$$$BODY;`. A repeated name must capture equal text; `$$$` matches any run of siblings,
+  separators included, by backtracking. Patterns are compiled when the config loads, so a C#
+  pattern file starts the worker then, and a bad pattern is a config error with its file.
+* **Dispatch.** The rule's `kinds()` is the root kind of its pattern (or the union for `any`, or
+  `kind:`); an expression that pins nothing down is offered every node kind.
+* **Not done.** `type_matches` (plan.md's semantic predicate): the worker answers file-wide
+  enumerations, not point type queries, so it needs a protocol addition (`type_of(span)`); it waits
+  for a milestone that adds point queries. `inside`/`has` drop their captures, and a pattern rule
+  has no options.
+* **Test harness** (`provider_api::testing`): `lint_with` / `fix_with` take the extension rules,
+  `pattern_rules` / `pattern_error` load a pattern file, and `expect` checks a fixture whose
+  expected diagnostics are written under the line they point at (`// ^^^ rule-id`, `#` in YAML;
+  carets give the span's length when it is on one line). plan.md's "inline annotations" fixtures
+  from M3b's not-done list.
