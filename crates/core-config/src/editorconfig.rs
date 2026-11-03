@@ -304,6 +304,20 @@ mod tests {
     }
 
     #[test]
+    fn end_of_line_maps_lf_and_crlf_only() {
+        let at = |v: &str| values(&format!("[*]\nend_of_line = {v}\n"), "/repo/a.json");
+        assert_eq!(
+            at("crlf"),
+            [("end_of_line", OptionValue::String("crlf".into()))]
+        );
+        assert_eq!(
+            at("lf"),
+            [("end_of_line", OptionValue::String("lf".into()))]
+        );
+        assert!(at("cr").is_empty());
+    }
+
+    #[test]
     fn tab_width_stands_in_for_indent_size() {
         assert_eq!(
             values("[*]\nindent_style = tab\ntab_width = 8\n", "/repo/a.json"),
