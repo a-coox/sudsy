@@ -95,8 +95,10 @@ pub fn load_extensions(
                 e
             };
             // Errors of the loaders quote the file; not for one outside the project.
+            let inside = std::fs::canonicalize(&path)
+                .is_ok_and(|p| p.starts_with(std::fs::canonicalize(root).unwrap_or(root.into())));
             let quiet = |message: String| {
-                at(if path.starts_with(root) {
+                at(if inside {
                     message
                 } else {
                     "invalid (details withheld: the file is outside the project)".to_string()
