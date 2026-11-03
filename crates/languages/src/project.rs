@@ -15,6 +15,18 @@ pub struct Project {
 }
 
 impl Project {
+    /// The config's `include` and `exclude` as a file discovery filter.
+    pub fn filter(&self) -> core_workspace::Filter {
+        let chain = std::sync::Arc::new(self.chain.clone());
+        core_workspace::Filter {
+            exclude: {
+                let chain = chain.clone();
+                std::sync::Arc::new(move |path| chain.is_excluded(path))
+            },
+            include: std::sync::Arc::new(move |path| chain.is_included(path)),
+        }
+    }
+
     /// The config found from `root` (the default config when there is none), checked against the
     /// providers' option declarations and rule ids.
     pub fn load(

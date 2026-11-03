@@ -188,9 +188,9 @@ impl Server {
                 MessageType::WARNING,
                 format!("{}: {}", uri.as_str(), failure.message),
             ),
-            Stage::Config | Stage::Options | Stage::Parse => {
+            Stage::Config | Stage::Options | Stage::Parse | Stage::Semantics => {
                 if self.shown.insert(message.clone()) {
-                    let level = if failure.stage == Stage::Parse {
+                    let level = if matches!(failure.stage, Stage::Parse | Stage::Semantics) {
                         MessageType::WARNING
                     } else {
                         MessageType::ERROR
@@ -229,7 +229,17 @@ impl Server {
 
     fn diagnostic(&mut self, params: DocumentDiagnosticParams) -> DocumentDiagnosticReportResult {
         let uri = params.text_document.uri;
-        let items = match path_of(&uri).map(|p| self.workspace.diagnostics(&p, &uri)) {
+        let path = path_of(&uri);
+        if self.workspace.is_deep() {
+            self.workspace.load_project();
+        }
+        if let Some(failure) = path
+            .as_deref()
+            .and_then(|p| self.workspace.semantic_warning(p))
+        {
+            self.failed(&uri, &failure);
+        }
+        let items = match path.map(|p| self.workspace.diagnostics(&p, &uri)) {
             Some(Ok(items)) => items,
             Some(Err(failure)) => {
                 self.failed(&uri, &failure);

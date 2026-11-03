@@ -19,6 +19,8 @@ pub enum Stage {
     Unsupported,
     /// The provider could not parse the file: for C# the worker is missing, crashed or refused.
     Parse,
+    /// The provider's semantic model could not answer: rules that need it are skipped.
+    Semantics,
     /// The file has syntax errors, formatting failed, or the output failed the safety check.
     Format,
 }

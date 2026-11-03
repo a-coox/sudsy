@@ -48,6 +48,7 @@ static NO_DUPLICATE_KEYS: RuleMeta = RuleMeta {
     default_level: Level::Error,
     fix: None,
     requires: &[],
+    uses: &[],
     options: &[],
 };
 
@@ -100,6 +101,7 @@ static AMBIGUOUS_BOOLEANS: RuleMeta = RuleMeta {
     default_level: Level::Off,
     fix: Some(FixKind::Unsafe),
     requires: &[],
+    uses: &[],
     options: &[],
 };
 
@@ -154,6 +156,7 @@ static DOCUMENT_START: RuleMeta = RuleMeta {
     default_level: Level::Off,
     fix: Some(FixKind::Safe),
     requires: &[],
+    uses: &[],
     options: &[],
 };
 
@@ -202,6 +205,7 @@ static SORTED_KEYS: RuleMeta = RuleMeta {
     default_level: Level::Off,
     fix: Some(FixKind::Unsafe),
     requires: &[],
+    uses: &[],
     options: &[OptionDecl {
         name: "order",
         default: Opt::List(&[]),

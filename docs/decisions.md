@@ -1181,6 +1181,150 @@ This includes the worker round trip, the safety re-parse and the layout, but not
 round trip. An ordinary file takes a few milliseconds; the slowest 1% are large generated files.
 
 ### Not done
-* Range formatting; project-scope (`deep`) diagnostics in the editor; pull-diagnostic result ids
-  (every pull recomputes from the memoized queries); `UpdateText` and the Roslyn workspace (M5);
+* Range formatting; pull-diagnostic result ids
+  (every pull recomputes from the memoized queries); (`UpdateText`, the workspace and deep diagnostics in the editor: see M5);
   Marketplace publishing, macOS and arm64 packages; a self-contained worker.
+
+## M5: Semantics and flow
+
+### Crates and layering
+* `core-flow` (new): the flow graph model, the generic worklist solver (forward or backward, any
+  lattice, with a hook for what flows along an edge) and the analyses reachability, liveness (dead
+  stores), reaching definitions and definite assignment. `core-semantics` (new): capability
+  layers (`Layer`, `Layers`; `provider_api::Capabilities` is now an alias of `Layers`), the facts
+  a provider answers about a file (`Answers`, `Declaration`, `Reference`), symbol-id helpers and
+  `BehaviorSummaries`. Both are language neutral and are also the worker's wire payload, so each
+  message body has one definition on the Rust side.
+* The provider trait gained `open_workspace`, `semantics(file, layers)`, `summaries()` and
+  `compiler_diagnostics` (the last only for the compiler-agreement gate). plan.md's separate
+  `semantic()` and `flow()` accessors became these methods: with one worker behind both, two
+  oracle objects would only forward to the same proxy.
+* `RuleMeta` has `uses` next to `requires`: layers a rule works better with but does not need.
+  `unreachable-code` uses `Flow` and falls back to the statement after a jump at `fast`, so plan.md's
+  "reports statements after `return` in fast mode and adds constant conditions and non-returning
+  calls in standard mode, without duplicates" is one rule with one code path per mode.
+* `FileContext.semantics` and `BodyContext.flow` carry the data. `lint(file)` reads a new
+  `semantics(file)` query, which asks the provider for exactly the layers the file's active rules
+  `require` or `use` that the depth allows. `fast` therefore never touches the worker's model
+  (tested), a `standard` run with no semantic rule enabled asks for nothing, and the query is keyed
+  on text and version so an edit re-asks only for that file.
+
+### Worker protocol v3
+* `Query` is typed now (`items` plus `diagnostic_ids`) instead of an opaque batch. Each layer is
+  answered by one item: Binding -> `unused_imports`, Types -> `declarations` (async, task-returning,
+  implements, override ... flags), Values -> `maybe_null`, Project -> `references`. Answers are
+  file-wide enumerations, not point queries (`symbol_of(span)`): no rule needs a point query, and
+  enumerating avoids a round trip per node. `FlowGraphs` returns `BodyGraph`s. The plan's
+  "encoded like the syntax tree" was not done: graphs are plain MessagePack arrays of small structs.
+* The proxy sends `UpdateText` with every semantic request (`WorkerProxy::analyze`: update, query
+  and flow graphs are one uninterrupted exchange on the first worker). The worker ignores an update
+  whose text it already has, so the CLI and the editor use the same path, and a restarted worker
+  needs no replay except `OpenWorkspace`, which the proxy remembers and resends.
+* Semantic state lives in the first worker only; parsing still uses the pool. Semantic requests
+  therefore run one at a time.
+
+### The workspace (the main simplification)
+* **Not `MSBuildWorkspace`.** The worker builds one `CSharpCompilation` from the `.cs` files under
+  the opened roots (a directory, the directory of a project, or the project directories listed in
+  a solution; `bin`, `obj`, `node_modules`, `.git` skipped) plus the text it was sent, against the
+  runtime's own reference assemblies. No project references, NuGet packages, target frameworks,
+  source generators or `#if` symbols are evaluated. Reasons: MSBuild loading is the plan's own
+  risk for this layer, needs the SDK at run time and fails on many setups, and the rules built now
+  need little of it. What degrades without a real project: package types do not resolve, so the
+  compiler reports errors and `remove-unused-usings` stays silent for the file (its answer is
+  withheld whenever the file has errors or `#if` regions, because unresolved or inactive code
+  might be the user). Flow graphs hardly depend on resolution. `MSBuildWorkspace` with the
+  syntax-only fallback of plan.md can replace `Workspace.cs` without changing the protocol.
+* CLI: the workspace is the paths on the command line (else the working directory). LSP: the
+  workspace folder. Files outside it are still analyzed on their own.
+
+### Flow export and analyses
+* The exporter converts Roslyn's `ControlFlowGraph`: blocks of simple operations (local read,
+  write, read-write, declare; calls with the callee's symbol id and attribute flags; one `Other`
+  mark per root operation so that every statement is placed), edges (always, true, false) and the
+  constant value of a branch condition. Exception flow: every block of a `try` gets an edge to each
+  handler start. Locals used by lambdas or local functions are flagged `CAPTURED` and left out of
+  dead-store analysis, as are locals whose address is taken. Parameters are not tracked (`out` and
+  `ref` parameters are visible to the caller).
+* Unreachable blocks stay in the export (Roslyn keeps them and marks `IsReachable`); the core
+  recomputes reachability from the edges, constants and summaries.
+* Rules. `unreachable-code` reports the first statement of a run, and only when none of the
+  statement's operations can run (so `return c ? throw e : 0;` and the condition of a `do` that
+  always returns are not reported); the fix is suggestion-only. `unused-variable` is the compiler's
+  CS0168 (nothing refers to the variable) and CS0219 (only constants stored, never read) for
+  declaration-statement and catch variables, with a safe fix that removes the declaration or the
+  catch name. `unused-assignment` is the dead-store rule on liveness (off by default).
+  `remove-unused-usings` uses the compiler's CS8019 (off by default, safe fix).
+  `possible-null-dereference` reports receivers whose nullable flow state is maybe-null (off by
+  default: it repeats CS8602). `unused-private-member` is the first project-scope rule (deep).
+  `async-suffix` now asks the type layer whether the method really returns a `Task`/`ValueTask`
+  and whether it implements an interface member; at `fast` it keeps the name-based judgment.
+  `no-empty-catch` stays syntactic: nothing about it depends on binding.
+* Not built: `var-preference` and `prefer-collection-expression` (in plan.md's rule table but not in
+  the M5 row), and a rename fix for `async-suffix` (a fix is a set of edits in one file; a rename
+  changes every file that uses the method).
+* **Summaries.** `does_not_return` comes from `[DoesNotReturn]` (the exporter flags it), a
+  built-in list (`Environment.Exit`, `Environment.FailFast`) and `csharp: semantics:
+  does_not_return:` in the config (qualified names, every overload; in the JSON Schema). The
+  compiler uses none of these, so `unreachable-code` has the option `non_returning_calls` (default
+  true); false reports exactly what the compiler does, which is how the agreement gate runs.
+  `pure` is read from `[Pure]` and the config and offered as `BehaviorSummaries::is_pure`, but no
+  fix uses it yet (no built-in fix deletes a call); `must_use_result` is not implemented.
+* `core-flow` also has reaching definitions and definite assignment with unit tests, as plan.md
+  lists them; no rule uses them (the compiler already reports CS0165).
+
+### Depths and the editor
+* `fast`: syntax only. `standard` (the default): binding, types, values and flow within the file,
+  against the workspace's other files. `deep`: adds the `Project` layer (references) and the
+  project phase.
+* CLI: `lint`, `fix` and `check` print one stderr warning per distinct reason when the semantic
+  model is unavailable (worker crash, refusal) and run the other rules.
+* LSP: the workspace folder is the worker's workspace; diagnostics are pulled as before (the
+  client's own debounce is the idle trigger, the server adds none, and a pull re-sends only changed
+  text). With `analysis: deep` the first pull reads the project's other files from disk (the
+  config's include and exclude, once per session or config reload) and the project phase runs over
+  all of them; a pull returns the project-scope findings for that file. Closed files are not
+  watched, so an on-disk edit of one is seen after the next config reload or restart. The reason
+  the semantic model is unavailable is shown once.
+
+### Gate: flow rules against the compiler
+* `crates/lang-csharp/tests/compiler_agreement.rs` runs both on a 36-method fixture (jumps, loops,
+  switches, try/finally, labels, lambdas, local functions, iterators, patterns, `using`,
+  deconstruction, out variables) and requires the same set of CS0162, CS0168 and CS0219 positions.
+  Writing it found two bugs (statements with no tracked operation; `do { return } while (b)`).
+* The corpora are warning-clean code, so they contain almost no CS0162/CS0168/CS0219 for the rules
+  to agree on: the corpus run mainly shows that the rules produce no false positives.
+  `perf-bench semantic DIR [LIMIT]` runs it and prints the cost per depth.
+* Corpus result (the three conformance corpora, standard depth, rules `unreachable-code` with
+  `non_returning_calls: false` and `unused-variable`): 0 differences in aspnetcore (3122 files) and
+  Roslyn (2858 files); in CoreLib (1679 files) one CS0219 the compiler reports and we do not
+  (`PortableThreadPool.GateThread.cs`: a struct local assigned `default` whose only use is reading
+  a property of it; the compiler does not count that as a use, our graph does). Known and left.
+  Two behaviors came from the corpus: the compiler never reports an unreachable `throw` (a
+  defensive guard) or an empty statement, and a body for which Roslyn cannot build a graph (it
+  has unresolved symbols) falls back to the syntactic check, which now makes the same exceptions.
+
+### Cost of the semantic layers (release build, 12-core machine, one file at a time, `perf-bench semantic`)
+All rules of this milestone on; the whole tree is one workspace; "first file" includes reading and
+parsing every file of the tree and the first compilation. Semantic requests run one at a time in
+one worker (parsing still uses the pool), so these are single-thread numbers.
+
+| tree | files | fast | standard | deep | first file | standard median / p95 per file |
+| --- | --- | --- | --- | --- | --- | --- |
+| CoreLib | 1679, 27.8 MB | 5.1 s | 56.1 s | 57.1 s | 2.5 s | 16 ms / 110 ms |
+| Roslyn | 2858, 39.6 MB | 6.1 s | 77.3 s | 82.6 s | 3.2 s | 11 ms / 72 ms |
+| aspnetcore | 3122, 22.4 MB | 4.5 s | 74.1 s | 85.4 s | 3.6 s | 12 ms / 42 ms |
+
+`standard` costs 10 - 15 times `fast`: Roslyn's binding and its flow analysis of every body dominate;
+the exchange itself (text out, graphs and answers back) is a small part. `deep` adds 2 - 15% for
+the references and the project phase (134, 143 and 265 project-scope findings). For the editor
+the per-file median of 10 - 16 ms is what a pull after an edit costs once the workspace is loaded.
+A CLI run does one request at a time on the first worker; making the worker answer semantic
+requests in parallel (or one workspace per core) is the lever if CI time matters.
+
+### Not done
+* `MSBuildWorkspace` and project/NuGet-aware binding; `var-preference`,
+  `prefer-collection-expression`; the `pure` summary has no consumer and `must_use_result` is not
+  implemented; closed-file watching for deep diagnostics in the editor; call-graph rules and
+  point queries (`symbol_of`); the flow-graph wire encoding of the syntax tree is plain
+  MessagePack; the Wasm flow API is M6.

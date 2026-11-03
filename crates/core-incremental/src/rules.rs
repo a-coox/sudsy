@@ -4,13 +4,14 @@
 use crate::db::Db;
 use crate::failure::{Failure, Stage};
 use crate::inputs::File;
-use crate::queries::{config, parse, provider_of, selection};
+use crate::queries::{config, parse, parse_settings, provider_of, selection, source_file};
 use core_config::{Depth, FileInput, ResolvedRule};
 use core_rules::engine::{ActiveRule, FileReport};
 use core_rules::{
     Category, Diagnostic, FileContext, Layer, LineIndex, ProjectFacts, SYNTAX_ERROR, Severity,
-    activate, run_file, run_project,
+    activate, layers_needed, run_file, run_project,
 };
+use core_semantics::{BehaviorSummaries, FileSemantics, Layers, SemanticView};
 use core_syntax::{TextRange, TextSize};
 use provider_api::{Capabilities, ParseError};
 use std::collections::BTreeMap;
@@ -24,6 +25,9 @@ pub struct Linted {
     /// False when the file has syntax errors: they are the only diagnostics, since rules do not
     /// run on a tree that is not trustworthy, and fixes must not be applied.
     pub parses: bool,
+    /// Why the semantic model could not answer, when the file's rules needed it: those rules
+    /// had nothing to look at.
+    pub semantics_unavailable: Option<String>,
 }
 
 fn syntax_error(e: &ParseError) -> Diagnostic {
@@ -58,6 +62,8 @@ fn has_layer(depth: Depth, caps: Capabilities, layer: Layer) -> bool {
 pub struct LintSettings {
     pub rules: BTreeMap<String, ResolvedRule>,
     pub depth: Depth,
+    /// The user's `semantics:` facts; the provider's built-in ones are added at lint time.
+    pub summaries: BehaviorSummaries,
 }
 
 #[salsa::tracked(returns(ref))]
@@ -68,9 +74,11 @@ pub fn lint_settings(db: &dyn Db, file: File) -> Result<LintSettings, Failure> {
     let rules = config
         .rules(&input, provider.option_schema())
         .map_err(|e| Failure::new(Stage::Config, &e))?;
+    let semantics = config.semantics(&input);
     Ok(LintSettings {
         rules,
         depth: config.depth(),
+        summaries: BehaviorSummaries::new(&semantics.does_not_return, &semantics.pure),
     })
 }
 
@@ -90,6 +98,38 @@ fn active_rules(db: &dyn Db, file: File) -> Result<(Vec<ActiveRule<'static>>, De
     Ok((active, depth))
 }
 
+/// The layers a file's rules ask the provider for, as far as the analysis depth and the
+/// provider's capabilities allow.
+fn wanted_layers(db: &dyn Db, file: File) -> Result<Layers, Failure> {
+    let provider = provider_of(db, file)?;
+    let (active, depth) = active_rules(db, file)?;
+    let (needed, caps) = (layers_needed(&active), provider.capabilities());
+    let allowed = |layer| has_layer(depth, caps, layer);
+    Ok(Layers {
+        binding: needed.binding && allowed(Layer::Binding),
+        types: needed.types && allowed(Layer::Types),
+        values: needed.values && allowed(Layer::Values),
+        flow: needed.flow && allowed(Layer::Flow),
+        project: needed.project && allowed(Layer::Project),
+    })
+}
+
+/// What the provider's semantic model says about the file, for the layers its rules ask for
+/// (`None` when they ask for none: `fast` analysis never reaches the worker's model). Depends on
+/// the text and its version, which the worker's workspace is keyed on, like `parse`.
+#[salsa::tracked(returns(ref))]
+pub fn semantics(db: &dyn Db, file: File) -> Result<Option<FileSemantics>, Failure> {
+    let layers = wanted_layers(db, file)?;
+    if layers.is_empty() {
+        return Ok(None);
+    }
+    let provider = provider_of(db, file)?;
+    let source = source_file(db, file, parse_settings(db, file));
+    provider
+        .semantics(&source, layers)
+        .map_err(|e| Failure::new(Stage::Semantics, &e))
+}
+
 /// Runs the rules on a file. A file with syntax errors reports those instead.
 #[salsa::tracked(returns(ref))]
 pub fn lint(db: &dyn Db, file: File) -> Result<Linted, Failure> {
@@ -100,9 +140,21 @@ pub fn lint(db: &dyn Db, file: File) -> Result<Linted, Failure> {
             diagnostics: parsed.errors.iter().map(syntax_error).collect(),
             facts: ProjectFacts::default(),
             parses: false,
+            semantics_unavailable: None,
         });
     }
     let (active, depth) = active_rules(db, file)?;
+    let (data, semantics_unavailable) = match semantics(db, file) {
+        Ok(data) => (data.as_ref(), None),
+        Err(failure) => (None, Some(failure.message.clone())),
+    };
+    let mut summaries = provider.summaries();
+    summaries.merge(
+        &lint_settings(db, file)
+            .as_ref()
+            .map_err(Clone::clone)?
+            .summaries,
+    );
     let text = file.text(db);
     let root = parsed.root();
     let lines = LineIndex::new(text);
@@ -112,6 +164,10 @@ pub fn lint(db: &dyn Db, file: File) -> Result<Linted, Failure> {
         root: &root,
         grammar: provider.grammar(),
         lines: &lines,
+        semantics: data.map(|data| SemanticView {
+            data,
+            summaries: &summaries,
+        }),
     };
     let FileReport { diagnostics, facts } = run_file(
         &context,
@@ -123,6 +179,7 @@ pub fn lint(db: &dyn Db, file: File) -> Result<Linted, Failure> {
         diagnostics,
         facts,
         parses: true,
+        semantics_unavailable,
     })
 }
 

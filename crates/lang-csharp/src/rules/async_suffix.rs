@@ -1,7 +1,8 @@
 use super::{kind, text_of};
 use crate::generated::MethodDeclaration;
 use core_config::Level;
-use core_rules::{Category, Rule, RuleContext, RuleMeta};
+use core_rules::{Category, Layer, Rule, RuleContext, RuleMeta};
+use core_semantics::DeclarationFlags;
 use core_syntax::ast::AstNode;
 use core_syntax::{SyntaxKind, SyntaxNode};
 
@@ -18,6 +19,7 @@ static META: RuleMeta = RuleMeta {
     default_level: Level::Warn,
     fix: None,
     requires: &[],
+    uses: &[Layer::Types],
     options: &[],
 };
 
@@ -48,11 +50,32 @@ impl Rule for AsyncSuffix {
         if name_text.ends_with("Async") || name_text == "Main" {
             return;
         }
-        let returns = text_of(returns.syntax(), ctx);
-        let base = returns.split('<').next().unwrap_or(returns);
-        let base = base.rsplit('.').next().unwrap_or(base).trim();
-        if base != "Task" && base != "ValueTask" {
-            return;
+        let range = name.text_range();
+        let declaration = ctx.file.semantics.as_ref().and_then(|view| {
+            let (start, len) = (u32::from(range.start()), u32::from(range.len()));
+            view.data
+                .answers
+                .declarations
+                .iter()
+                .find(|d| d.start == start && d.len == len)
+        });
+        match declaration {
+            // The binding layer knows the real return type and whether the name is fixed by an
+            // interface.
+            Some(d) => {
+                if !d.has(DeclarationFlags::RETURNS_TASK) || d.has(DeclarationFlags::IMPLEMENTS) {
+                    return;
+                }
+            }
+            // `fast` depth: judge by how the type is written.
+            None => {
+                let returns = text_of(returns.syntax(), ctx);
+                let base = returns.split('<').next().unwrap_or(returns);
+                let base = base.rsplit('.').next().unwrap_or(base).trim();
+                if base != "Task" && base != "ValueTask" {
+                    return;
+                }
+            }
         }
         ctx.report(
             name.text_range(),

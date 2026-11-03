@@ -9,6 +9,8 @@ publish.workspace = true
 core-config.workspace = true
 core-format.workspace = true
 core-rules.workspace = true
+core-flow.workspace = true
+core-semantics.workspace = true
 core-syntax.workspace = true
 provider-api.workspace = true
 

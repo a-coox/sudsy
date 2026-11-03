@@ -30,6 +30,7 @@ static PROBE: RuleMeta = RuleMeta {
     default_level: Level::Warn,
     fix: None,
     requires: &[],
+    uses: &[],
     options: &[OptionDecl {
         name: "word",
         default: Opt::Str("hit"),
@@ -88,6 +89,7 @@ fn run(text: &str, rule: &Probe, collect: bool, bodies: &[SyntaxKind]) -> FileRe
         root: &parsed.tree,
         grammar: provider.grammar(),
         lines: &lines,
+        semantics: None,
     };
     let active = [ActiveRule {
         rule,
@@ -223,6 +225,7 @@ fn activation_follows_level_options_and_layers() {
 fn a_rule_whose_layer_is_missing_is_skipped_not_failed() {
     static NEEDS_BINDING: RuleMeta = RuleMeta {
         requires: &[Layer::Binding],
+        uses: &[],
         ..RuleMeta {
             id: "needs-binding",
             category: Category::Correctness,
@@ -231,6 +234,7 @@ fn a_rule_whose_layer_is_missing_is_skipped_not_failed() {
             default_level: Level::Error,
             fix: None,
             requires: &[],
+            uses: &[],
             options: &[],
         }
     };

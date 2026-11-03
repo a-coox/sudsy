@@ -1,0 +1,17 @@
+---
+source: crates/lang-csharp/tests/semantic_rules.rs
+expression: "report(FLOW, \"\")"
+---
+4:9 warning[unused-variable] variable `unused` is declared but never used
+  fix (safe): Remove `unused`
+5:9 warning[unused-variable] variable `k` is assigned but its value is never used
+  fix (safe): Remove `k`
+7:18 warning[no-empty-catch] empty catch block swallows the exception
+7:35 warning[unused-variable] variable `e` is declared but never used
+  fix (safe): Remove `e`
+8:18 warning[unreachable-code] unreachable code
+  fix (suggestion): Remove the unreachable statement
+11:5 warning[unreachable-code] unreachable code
+  fix (suggestion): Remove the unreachable statement
+15:38 warning[unreachable-code] unreachable code
+  fix (suggestion): Remove the unreachable statement

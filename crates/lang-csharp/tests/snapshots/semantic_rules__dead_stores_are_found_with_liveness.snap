@@ -1,0 +1,7 @@
+---
+source: crates/lang-csharp/tests/semantic_rules.rs
+expression: "report(text, \"unused-assignment: warn\")"
+---
+1:25 warning[unused-assignment] the value assigned to `n` is never read
+1:67 warning[unused-assignment] the value assigned to `m` is never read
+1:74 warning[unused-assignment] the value assigned to `m` is never read

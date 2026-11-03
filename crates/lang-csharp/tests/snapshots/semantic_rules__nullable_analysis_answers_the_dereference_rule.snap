@@ -1,0 +1,5 @@
+---
+source: crates/lang-csharp/tests/semantic_rules.rs
+expression: "report(text, \"possible-null-dereference: warn\")"
+---
+2:33 warning[possible-null-dereference] this expression may be null here

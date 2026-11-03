@@ -2,7 +2,7 @@
 
 use crate::position::Positions;
 use crate::workspace::Workspace;
-use core_incremental::{Failure, lint};
+use core_incremental::{Failure, Stage, lint, project_diagnostics};
 use core_rules::{Diagnostic, Severity};
 use lsp_types::{DiagnosticRelatedInformation, DiagnosticSeverity, Location, NumberOrString, Uri};
 use std::path::Path;
@@ -40,6 +40,18 @@ pub(crate) fn to_lsp(
 }
 
 impl Workspace {
+    /// Why the semantic rules had nothing to look at in an open document, if they did not.
+    pub fn semantic_warning(&self, path: &Path) -> Option<Failure> {
+        let linted = lint(&self.db, self.file(path)?).as_ref().ok()?;
+        Some(Failure {
+            stage: Stage::Semantics,
+            message: format!(
+                "semantic rules are skipped: {}",
+                linted.semantics_unavailable.as_ref()?
+            ),
+        })
+    }
+
     /// The diagnostics of an open document; none for a document that is not open. A failure is
     /// why the rules could not run (config, worker).
     pub fn diagnostics(
@@ -53,10 +65,22 @@ impl Workspace {
         let linted = lint(&self.db, file).as_ref().map_err(Clone::clone)?;
         let text = file.text(&self.db);
         let positions = Positions::new(text);
-        Ok(linted
+        let mut items: Vec<_> = linted
             .diagnostics
             .iter()
             .map(|d| to_lsp(d, &positions, uri))
-            .collect())
+            .collect();
+        // `analysis: deep`: what the project-scope rules found in this file.
+        if self.is_deep() {
+            let files = self.project_files();
+            let project_wide = project_diagnostics(&self.db, &files)?;
+            items.extend(
+                project_wide
+                    .iter()
+                    .filter(|(p, _)| p == path)
+                    .map(|(_, d)| to_lsp(d, &positions, uri)),
+            );
+        }
+        Ok(items)
     }
 }

@@ -24,4 +24,4 @@ pub use inputs::{ConfigFile, File};
 pub use queries::{
     FileOptions, Parsed, Selection, config, format, options, parse, parse_settings, selection,
 };
-pub use rules::{LintSettings, Linted, lint, lint_settings, project_diagnostics};
+pub use rules::{LintSettings, Linted, lint, lint_settings, project_diagnostics, semantics};

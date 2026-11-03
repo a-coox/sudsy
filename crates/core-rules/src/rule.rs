@@ -5,19 +5,11 @@ use crate::lines::LineIndex;
 use crate::options::{OptionDecl, RuleOptions};
 use crate::project::{ProjectContext, ProjectFacts};
 use core_config::{Level, RuleOptionSchema, RuleSchema};
+use core_semantics::{BodyFlow, SemanticView};
 use core_syntax::{Grammar, SyntaxKind, SyntaxNode, TextRange};
 use std::path::Path;
 
-/// The capability layers of plan.md "Capability layers". A rule that needs a layer the provider
-/// does not answer, or the analysis depth does not allow, is skipped.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Layer {
-    Binding,
-    Types,
-    Values,
-    Flow,
-    Project,
-}
+pub use core_semantics::Layer;
 
 /// What `sudsy rules` shows and the engine reads about a rule.
 #[derive(Debug)]
@@ -31,7 +23,11 @@ pub struct RuleMeta {
     pub default_level: Level,
     /// The most trusted kind of fix the rule offers, if any.
     pub fix: Option<FixKind>,
+    /// Layers without which the rule does not run.
     pub requires: &'static [Layer],
+    /// Layers the rule uses when they are available, and does less without (a syntactic
+    /// fallback at `fast`).
+    pub uses: &'static [Layer],
     pub options: &'static [OptionDecl],
 }
 
@@ -61,13 +57,16 @@ pub struct FileContext<'a> {
     pub root: &'a SyntaxNode,
     pub grammar: &'a Grammar,
     pub lines: &'a LineIndex,
+    /// What the provider's semantic model says about the file, when the file's rules need the
+    /// layers and the depth allows them.
+    pub semantics: Option<SemanticView<'a>>,
 }
 
-/// A method, lambda or local function. The flow graph and its analysis results join this context
-/// when the flow layer exists (M5).
+/// A method, lambda or local function, with its flow graph when the flow layer is available.
 pub struct BodyContext<'a> {
     pub file: &'a FileContext<'a>,
     pub node: &'a SyntaxNode,
+    pub flow: Option<BodyFlow<'a>>,
 }
 
 /// Where a rule reports to. The rule id, category and severity come from the rule and its

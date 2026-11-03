@@ -5,10 +5,8 @@ mod common;
 use core_syntax::ast::AstNode;
 use core_syntax::{SyntaxKind, grammars, print, trivia};
 use lang_csharp::generated as csharp;
-use provider_api::protocol::{FlowGraphs, OpenWorkspace, Query, Request, UpdateText};
-use provider_api::{
-    Capabilities, LanguageProvider, ProviderError, ProxyError, SourceFile, WorkerConfig,
-};
+use provider_api::protocol::{Query, Request, UpdateText};
+use provider_api::{LanguageProvider, ProviderError, ProxyError, SourceFile, WorkerConfig};
 use std::ffi::OsString;
 
 fn provider() -> provider_api::OutOfProcessProvider {
@@ -28,7 +26,7 @@ fn parses_losslessly_with_the_shared_trivia_rule() {
         trivia::check_attachment(&result.tree, |k| grammars::csharp().is_trivia(k)),
         Ok(())
     );
-    assert_eq!(p.capabilities(), Capabilities::NONE);
+    assert!(p.capabilities().flow && p.capabilities().binding);
 }
 
 #[test]
@@ -89,33 +87,38 @@ fn grammar_hash_mismatch_is_refused() {
 }
 
 #[test]
-fn later_milestone_messages_are_unsupported() {
+fn semantic_requests_reach_the_workspace() {
     let p = provider();
-    let requests = [
-        Request::OpenWorkspace(OpenWorkspace::default()),
-        Request::UpdateText(UpdateText {
-            file_id: "a".into(),
-            version: 1,
-            text: String::new(),
-        }),
-        Request::Query(Query {
-            file_id: "a".into(),
-            version: 1,
-            batch: vec![],
-        }),
-        Request::FlowGraphs(FlowGraphs {
-            file_id: "a".into(),
-            version: 1,
-        }),
-    ];
-    for r in requests {
-        let e = p.proxy().request(r).unwrap_err();
-        assert!(
-            matches!(&e, ProxyError::Worker(w) if w.code == "unsupported"),
-            "{e}"
-        );
-    }
-    // The worker stays healthy afterwards.
+    let update = UpdateText {
+        file_id: "a.cs".into(),
+        version: 1,
+        text: "class A { int M() { int k = 5; return 0; } }".into(),
+    };
+    let query = Query {
+        file_id: "a.cs".into(),
+        version: 1,
+        items: vec!["diagnostics".into(), "declarations".into()],
+        diagnostic_ids: vec!["CS0219".into()],
+    };
+    let (answers, graphs) = p.proxy().analyze(update, Some(query), true).unwrap();
+    let answers = answers.unwrap();
+    assert_eq!(answers.diagnostics.len(), 1);
+    assert!(answers.declarations.iter().any(|d| d.name == "M"));
+    let graphs = graphs.unwrap();
+    assert_eq!(graphs.bodies.len(), 1);
+    assert_eq!(graphs.bodies[0].locals[0].name, "k");
+    // A query for a file the worker was never given is an error reply; the worker stays healthy.
+    let unknown = Query {
+        file_id: "nope.cs".into(),
+        version: 1,
+        items: vec![],
+        diagnostic_ids: vec![],
+    };
+    let e = p.proxy().request(Request::Query(unknown)).unwrap_err();
+    assert!(
+        matches!(&e, ProxyError::Worker(w) if w.code == "bad_request"),
+        "{e}"
+    );
     assert!(p.parse(&SourceFile::new("a.cs", 1, "class A {}")).is_ok());
 }
 

@@ -12,6 +12,7 @@ static A: mimalloc::MiMalloc = mimalloc::MiMalloc;
 
 #[cfg(feature = "count")]
 mod counting;
+mod semantic;
 #[cfg(feature = "count")]
 #[global_allocator]
 static A: counting::Counting = counting::Counting;
@@ -191,6 +192,18 @@ fn main() -> Result<()> {
         std::fs::write(dir.join("bench.json"), inputs::json(JSON_OBJECTS))?;
         std::fs::write(dir.join("bench.yaml"), inputs::yaml(YAML_ITEMS))?;
         return Ok(());
+    }
+    if which == "semantic" {
+        let rest: Vec<&String> = args
+            .iter()
+            .filter(|a| !a.starts_with("--"))
+            .skip(1)
+            .collect();
+        let dir = rest
+            .first()
+            .ok_or_else(|| anyhow!("semantic DIR [LIMIT]"))?;
+        let limit = rest.get(1).map(|n| n.parse()).transpose()?;
+        return semantic::run(std::path::Path::new(dir), limit);
     }
     if which == "csharp" {
         let rest: Vec<&String> = args

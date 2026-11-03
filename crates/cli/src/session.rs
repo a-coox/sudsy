@@ -4,11 +4,9 @@
 use anyhow::{Context, Result};
 use core_config::{Depth, EditorConfig};
 use core_incremental::{Database, File};
-use core_workspace::Filter;
 use languages::{Project, providers};
 use provider_api::SourceFile;
 use std::path::{Path, PathBuf};
-use std::sync::Arc;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 pub struct Session {
@@ -29,14 +27,15 @@ impl Session {
         }
         let mut db = Database::new(providers);
         db.set_config(Ok(project.chain.clone()));
-        let chain = Arc::new(project.chain.clone());
-        let filter = Filter {
-            exclude: {
-                let chain = chain.clone();
-                Arc::new(move |path| chain.is_excluded(path))
-            },
-            include: Arc::new(move |path| chain.is_included(path)),
+        // The files semantic rules bind against: what was named on the command line, else the
+        // working directory.
+        let roots = if args.is_empty() {
+            vec![std::env::current_dir()?]
+        } else {
+            args.to_vec()
         };
+        db.open_workspace(&roots);
+        let filter = project.filter();
         let paths = core_workspace::discover_files(args, &filter)?
             .into_iter()
             .filter(|path| db.supports(path))
