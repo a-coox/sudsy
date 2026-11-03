@@ -153,18 +153,18 @@ impl NodeFormatter for YamlFormatter {
         node: &SyntaxNode,
         cx: &FormatCtx<'_>,
     ) -> Result<Option<Doc>, FormatError> {
-        let st = Style::of(cx.options);
+        let st = cx.cached(|| Style::of(cx.options));
         let doc = match node.kind() {
-            k::STREAM => document::stream(cx, &st, node)?,
-            k::BLOCK_MAPPING | k::BLOCK_SEQUENCE => block::collection(cx, &st, node)?,
-            k::BLOCK_MAPPING_ENTRY => block::mapping_entry(cx, &st, node)?,
-            k::BLOCK_SEQUENCE_ENTRY => block::sequence_entry(cx, &st, node)?,
-            k::FLOW_MAPPING | k::FLOW_SEQUENCE => block::flow_collection(cx, &st, node)?,
+            k::STREAM => document::stream(cx, st, node)?,
+            k::BLOCK_MAPPING | k::BLOCK_SEQUENCE => block::collection(cx, st, node)?,
+            k::BLOCK_MAPPING_ENTRY => block::mapping_entry(cx, st, node)?,
+            k::BLOCK_SEQUENCE_ENTRY => block::sequence_entry(cx, st, node)?,
+            k::FLOW_MAPPING | k::FLOW_SEQUENCE => block::flow_collection(cx, st, node)?,
             k::FLOW_PAIR => block::flow_pair(cx, node)?,
             k::PROPERTY_NODE => block::property_inline(cx, node)?,
-            k::SCALAR => scalars::scalar(cx, &st, node)?,
+            k::SCALAR => scalars::scalar(cx, st, node)?,
             k::ALIAS_NODE => scalars::alias(cx, node)?,
-            k::BLOCK_SCALAR => scalars::block_scalar(cx, &st, node, 0)?,
+            k::BLOCK_SCALAR => scalars::block_scalar(cx, st, node, 0)?,
             _ => return Ok(None),
         };
         Ok(Some(doc))

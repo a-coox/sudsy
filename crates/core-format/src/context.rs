@@ -57,6 +57,8 @@ pub struct FormatCtx<'a> {
     pub comment_style: CommentStyle,
     /// The line breaks of the tree being formatted, found when first asked for.
     line_breaks: Mutex<Option<LineBreaks>>,
+    /// A provider's per-run data derived from the options (see [`FormatCtx::cached`]).
+    cache: std::sync::OnceLock<Box<dyn std::any::Any + Send + Sync>>,
 }
 
 impl<'a> FormatCtx<'a> {
@@ -73,7 +75,17 @@ impl<'a> FormatCtx<'a> {
             formatter,
             comment_style: formatter.comment_style(options),
             line_breaks: Mutex::new(None),
+            cache: std::sync::OnceLock::new(),
         }
+    }
+
+    /// Data the provider derives from the options once per run instead of once per node. A
+    /// context serves one provider, so `T` is always the same type.
+    pub fn cached<T: std::any::Any + Send + Sync>(&self, make: impl FnOnce() -> T) -> &T {
+        self.cache
+            .get_or_init(|| Box::new(make()))
+            .downcast_ref::<T>()
+            .expect("one cached type per FormatCtx")
     }
 
     /// Does the source contain a line break (`\n` or `\r`) within `range`, which is given in the
