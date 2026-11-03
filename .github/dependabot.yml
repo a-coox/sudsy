@@ -1,14 +1,19 @@
 version: 2
+# One grouped PR per ecosystem per week instead of one PR per package.
 updates:
   - package-ecosystem: cargo
     directory: /
     schedule: { interval: weekly }
+    groups: { cargo: { patterns: ["*"] } }
   - package-ecosystem: npm
     directory: /editors/vscode
     schedule: { interval: weekly }
+    groups: { npm: { patterns: ["*"] } }
   - package-ecosystem: nuget
     directory: /workers/csharp
     schedule: { interval: weekly }
+    groups: { nuget: { patterns: ["*"] } }
   - package-ecosystem: github-actions
     directory: /
     schedule: { interval: weekly }
+    groups: { actions: { patterns: ["*"] } }
