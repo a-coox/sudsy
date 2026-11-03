@@ -606,12 +606,22 @@ fn a_preset_resolves_exactly_like_the_same_text_in_sudsy_yaml() {
 
 #[test]
 fn rule_ids_are_checked_against_the_known_rules() {
-    let known = ["no-empty-catch", "sorted-keys"];
+    let known = ["no-empty-catch", "sorted-keys", "team/own-rule"];
     let ok = ConfigChain::parse(
         "lint:\n  rules:\n    sorted-keys: warn\n    team/own-rule: error\ncsharp:\n  lint:\n    rules:\n      no-empty-catch: error\n",
     )
     .unwrap();
     ok.validate_rule_ids(&known).unwrap();
+
+    // A plugin rule is known once its plugin is loaded; until then it is as unknown as any id.
+    let unloaded = ConfigChain::parse(
+        "lint:
+  rules:
+    team/other: error
+",
+    )
+    .unwrap();
+    assert!(unloaded.validate_rule_ids(&known).is_err());
 
     // The error points at the value of the unknown rule, in every kind of section.
     for (text, line) in [

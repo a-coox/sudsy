@@ -38,14 +38,9 @@ pub fn layers_needed(active: &[ActiveRule<'_>]) -> Layers {
     layers
 }
 
-/// Runs `active` over one file. `body_kinds` are the provider's methods, lambdas and local
-/// functions; `collect` says whether project facts are wanted (analysis depth `deep`).
-pub fn run_file(
-    file: &FileContext<'_>,
-    active: &[ActiveRule<'_>],
-    body_kinds: &[SyntaxKind],
-    collect: bool,
-) -> FileReport {
+/// Runs `active` over one file. `collect` says whether project facts are wanted (analysis depth
+/// `deep`).
+pub fn run_file(file: &FileContext<'_>, active: &[ActiveRule<'_>], collect: bool) -> FileReport {
     let mut diagnostics = Vec::new();
     let mut by_kind: HashMap<SyntaxKind, Vec<usize>> = HashMap::new();
     for (i, a) in active.iter().enumerate() {
@@ -70,7 +65,7 @@ pub fn run_file(
                 run(i, &mut |rule, ctx| rule.check(&node, ctx));
             }
         }
-        if body_kinds.contains(&node.kind()) {
+        if file.body_kinds.contains(&node.kind()) {
             let flow = file.semantics.as_ref().and_then(|view| {
                 let range = crate::tree::significant_range(&node, file.grammar);
                 view.body(range.start().into(), range.len().into())

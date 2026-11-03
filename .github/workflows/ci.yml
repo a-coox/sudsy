@@ -4,6 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_call:
 
 env:
   CARGO_TERM_COLOR: always
@@ -20,6 +21,8 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
+          # The plugin host's tests build tests/plugins/sample to a Wasm component.
+          targets: wasm32-wasip2
       - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 10.0.x
@@ -29,6 +32,8 @@ jobs:
       # Includes the worker contract tests, which build and run the C# worker.
       # The big dotnet/runtime corpus test is #[ignore]d and not fetched here.
       - run: cargo test --workspace
+      - run: cargo fmt --manifest-path tests/plugins/sample/Cargo.toml -- --check
+      - run: cargo test --manifest-path tests/plugins/sample/Cargo.toml
 
   dotnet:
     strategy:

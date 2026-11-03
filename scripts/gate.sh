@@ -21,6 +21,9 @@ gate "cargo clippy" cargo clippy "${ws[@]}" --all-targets -- -D warnings
 gate "cargo test" cargo test "${ws[@]}"
 if [ ${#pkg[@]} -eq 0 ]; then
   gate "cargo xtask codegen --check" cargo xtask codegen --check
+  # The sample plugin is a workspace of its own: format check and its native rule tests.
+  gate "sample plugin fmt" cargo fmt --manifest-path tests/plugins/sample/Cargo.toml -- --check
+  gate "sample plugin tests" cargo test --manifest-path tests/plugins/sample/Cargo.toml
   if [ $rust_only -eq 0 ]; then
     gate "dotnet build" dotnet build workers/csharp
     gate "dotnet test" dotnet test workers/csharp

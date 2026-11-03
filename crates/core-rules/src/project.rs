@@ -40,6 +40,18 @@ impl ProjectFacts {
         });
     }
 
+    /// Facts that were gathered elsewhere (a plugin's project phase gets them back this way).
+    pub fn from_facts(facts: Vec<Fact>) -> Self {
+        ProjectFacts {
+            facts,
+            current: None,
+        }
+    }
+
+    pub fn facts(&self) -> &[Fact] {
+        &self.facts
+    }
+
     pub(crate) fn begin(&mut self, rule: &'static str, file: &Path) {
         self.current = Some((rule, file.to_path_buf()));
     }

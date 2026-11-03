@@ -139,3 +139,66 @@ fn unknown_ids_and_broken_rule_files_are_config_errors() {
     assert_eq!(lint.status.code(), Some(2));
     assert!(err(&lint).contains("missing.yaml"), "{}", err(&lint));
 }
+
+#[test]
+fn a_wasm_plugin_is_listed_runs_and_is_configured_like_any_rule() {
+    let wasm = provider_api::testing::sample_plugin();
+    let t = tempfile::tempdir().unwrap();
+    fs::copy(&wasm, t.path().join("sample.wasm")).unwrap();
+    write(
+        t.path(),
+        "sudsy.yaml",
+        "plugins:
+  wasm: [\"sample.wasm\"]
+json:
+  lint:
+    rules:
+      sample/no-debug-flag: error
+",
+    );
+    write(
+        t.path(),
+        "a.json",
+        "{
+  \"debug\": true
+}
+",
+    );
+
+    let rules = sudsy(t.path(), &["rules"]);
+    assert!(
+        out(&rules).contains("sample/no-debug-flag"),
+        "{}",
+        out(&rules)
+    );
+    let lint = sudsy(t.path(), &["lint", "a.json"]);
+    assert_eq!(lint.status.code(), Some(1), "{}{}", out(&lint), err(&lint));
+    assert!(
+        out(&lint).contains("error[sample/no-debug-flag]"),
+        "{}",
+        out(&lint)
+    );
+
+    let fix = sudsy(t.path(), &["fix", "a.json"]);
+    assert!(fix.status.success(), "{}", err(&fix));
+    assert!(
+        fs::read_to_string(t.path().join("a.json"))
+            .unwrap()
+            .contains("false")
+    );
+
+    // An unknown plugin rule id is a config error like any unknown rule id.
+    write(
+        t.path(),
+        "sudsy.yaml",
+        "plugins:
+  wasm: [\"sample.wasm\"]
+lint:
+  rules:
+    sample/nope: warn
+",
+    );
+    let lint = sudsy(t.path(), &["lint", "a.json"]);
+    assert_eq!(lint.status.code(), Some(2));
+    assert!(err(&lint).contains("sample/nope"), "{}", err(&lint));
+}

@@ -3,9 +3,10 @@
 
 use crate::facts::{FileSemantics, qualified_name};
 use core_flow::{BodyGraph, Op, OpFlags, Reachability, reachability};
+use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
 
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct BehaviorSummaries {
     does_not_return: BTreeSet<String>,
     pure: BTreeSet<String>,

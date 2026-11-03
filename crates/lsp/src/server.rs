@@ -348,7 +348,7 @@ impl Server {
             kind: Some(WatchKind::all()),
         };
         let options = DidChangeWatchedFilesRegistrationOptions {
-            watchers: ["**/*.yaml", "**/*.yml", "**/.editorconfig"]
+            watchers: ["**/*.yaml", "**/*.yml", "**/.editorconfig", "**/*.wasm"]
                 .map(watcher)
                 .into(),
         };

@@ -57,6 +57,9 @@ pub struct FileContext<'a> {
     pub root: &'a SyntaxNode,
     pub grammar: &'a Grammar,
     pub lines: &'a LineIndex,
+    /// The provider's methods, lambdas and local functions: body-scope rules are called once for
+    /// each node of these kinds.
+    pub body_kinds: &'a [SyntaxKind],
     /// What the provider's semantic model says about the file, when the file's rules need the
     /// layers and the depth allows them.
     pub semantics: Option<SemanticView<'a>>,
