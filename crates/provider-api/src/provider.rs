@@ -1,8 +1,9 @@
 use core_config::OptionSchema;
 use core_format::NodeFormatter;
 use core_rules::Rule;
+use core_semantics::{BehaviorSummaries, CompilerDiagnostic, FileSemantics, Layers};
 use core_syntax::{Grammar, LanguageId, SyntaxKind, SyntaxNode};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 /// What a language provider can do. So far: parsing, formatting, format options and rules. Later
 /// milestones add `semantic`, `flow` and `summaries` (plan.md
@@ -38,6 +39,37 @@ pub trait LanguageProvider: Send + Sync {
     /// called once for each.
     fn body_kinds(&self) -> &'static [SyntaxKind] {
         &[]
+    }
+
+    /// What the language's own compiler reports for the file under the given diagnostic ids. Rules
+    /// do not use it; the gate that compares the flow analyses with the compiler does.
+    fn compiler_diagnostics(
+        &self,
+        _file: &SourceFile,
+        _ids: &[&str],
+    ) -> Result<Vec<CompilerDiagnostic>, ProviderError> {
+        Ok(Vec::new())
+    }
+
+    /// The provider's built-in behavior summaries (its standard library); the user's `semantics:`
+    /// config is added to them.
+    fn summaries(&self) -> BehaviorSummaries {
+        BehaviorSummaries::default()
+    }
+
+    /// Tells a provider with a semantic model which files make up the project (directories,
+    /// project or solution files). Providers without one ignore it.
+    fn open_workspace(&self, _paths: &[PathBuf]) {}
+
+    /// The answers of the semantic model for the file's current text, for the layers asked
+    /// (`None` for providers without one, or without the layer). `project` adds the references
+    /// that project-scope rules need.
+    fn semantics(
+        &self,
+        _file: &SourceFile,
+        _layers: Layers,
+    ) -> Result<Option<FileSemantics>, ProviderError> {
+        Ok(None)
     }
 }
 
@@ -91,37 +123,8 @@ impl FileMatcher {
     }
 }
 
-/// The analysis layers of plan.md "Capability layers".
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
-pub struct Capabilities {
-    pub binding: bool,
-    pub types: bool,
-    pub values: bool,
-    pub flow: bool,
-    pub project: bool,
-}
-
-impl Capabilities {
-    pub const NONE: Capabilities = Capabilities {
-        binding: false,
-        types: false,
-        values: false,
-        flow: false,
-        project: false,
-    };
-
-    /// Parses the names used in the worker's `Hello`; unknown names are ignored.
-    pub fn from_names<S: AsRef<str>>(names: &[S]) -> Self {
-        let has = |n: &str| names.iter().any(|x| x.as_ref() == n);
-        Capabilities {
-            binding: has("binding"),
-            types: has("types"),
-            values: has("values"),
-            flow: has("flow"),
-            project: has("project"),
-        }
-    }
-}
+/// The capability layers a provider answers (plan.md "Capability layers").
+pub type Capabilities = Layers;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct SourceFile {

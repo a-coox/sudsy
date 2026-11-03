@@ -49,7 +49,7 @@ internal sealed class Mapper
     }
 
     private readonly string _text;
-    private readonly int[]? _byteOffsets;
+    private readonly Utf8Offsets _offsets;
     private readonly bool _forceGeneral;
     private readonly FlatTree _tree;
     private readonly List<Scope> _scopes = [];
@@ -60,7 +60,7 @@ internal sealed class Mapper
     {
         _text = text;
         _forceGeneral = forceGeneral;
-        _byteOffsets = System.Text.Ascii.IsValid(text) ? null : Utf8Offsets(text);
+        _offsets = new Utf8Offsets(text);
         _tree = new FlatTree((text.Length / 3) + 64);
     }
 
@@ -71,41 +71,7 @@ internal sealed class Mapper
         return _tree;
     }
 
-    private static int[] Utf8Offsets(string text)
-    {
-        var offsets = new int[text.Length + 1];
-        var bytes = 0;
-        for (var i = 0; i < text.Length; i++)
-        {
-            var c = text[i];
-            if (c < 0x80)
-            {
-                bytes += 1;
-            }
-            else if (c < 0x800)
-            {
-                bytes += 2;
-            }
-            else if (char.IsHighSurrogate(c) && i + 1 < text.Length && char.IsLowSurrogate(text[i + 1]))
-            {
-                bytes += 4;
-                offsets[i + 1] = bytes;
-                i++;
-            }
-            else
-            {
-                bytes += 3;
-            }
-
-            offsets[i + 1] = bytes;
-        }
-
-        return offsets;
-    }
-
-    private uint Width(TextSpan span) => _byteOffsets is null
-        ? (uint)span.Length
-        : (uint)(_byteOffsets[span.End] - _byteOffsets[span.Start]);
+    private uint Width(TextSpan span) => _offsets.Width(span);
 
     private Scope ScopeAt(int depth)
     {

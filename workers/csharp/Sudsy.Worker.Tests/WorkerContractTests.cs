@@ -91,24 +91,6 @@ public class WorkerContractTests
         Assert.Equal("handshake_required", Payload<ProtocolError>(responses[0].Frame).Code);
     }
 
-    [Theory]
-    [InlineData("OpenWorkspace")]
-    [InlineData("UpdateText")]
-    [InlineData("Query")]
-    [InlineData("FlowGraphs")]
-    public void LaterMilestoneMessagesAreNotSupported(string variant)
-    {
-        byte[] request = variant switch
-        {
-            "OpenWorkspace" => Envelope.Encode(variant, new OpenWorkspace()),
-            "UpdateText" => Envelope.Encode(variant, new UpdateText()),
-            "Query" => Envelope.Encode(variant, new Query()),
-            _ => Envelope.Encode(variant, new FlowGraphs()),
-        };
-        var (responses, _) = Converse(Envelope.Encode("Hello", ValidHello()), request);
-        Assert.Equal("unsupported", Payload<ProtocolError>(responses[1].Frame).Code);
-    }
-
     [Fact]
     public void UnknownMessageAndBadLanguageVersionAreBadRequests()
     {

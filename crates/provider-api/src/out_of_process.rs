@@ -1,4 +1,4 @@
-use crate::protocol::ParseRequest;
+use crate::protocol::{OpenWorkspace, ParseRequest, Query, UpdateText};
 use crate::provider::{
     Capabilities, FileMatcher, LanguageProvider, ParseError, ParseResult, ProviderError, SourceFile,
 };
@@ -6,6 +6,7 @@ use crate::proxy::{ProxyError, WorkerConfig, WorkerProxy};
 use core_config::OptionSchema;
 use core_format::{DefaultFormatter, NodeFormatter};
 use core_rules::Rule;
+use core_semantics::{BehaviorSummaries, CompilerDiagnostic, FileSemantics, Layers};
 use core_syntax::{Grammar, LanguageId, SyntaxKind, SyntaxNode};
 
 /// A provider whose parser runs in a worker process.
@@ -18,6 +19,7 @@ pub struct OutOfProcessProvider {
     schema: OptionSchema,
     rules: &'static [&'static dyn Rule],
     body_kinds: &'static [SyntaxKind],
+    summaries: BehaviorSummaries,
 }
 
 impl OutOfProcessProvider {
@@ -37,6 +39,7 @@ impl OutOfProcessProvider {
             schema: OptionSchema::default(),
             rules: &[],
             body_kinds: &[],
+            summaries: BehaviorSummaries::default(),
         }
     }
 
@@ -56,6 +59,12 @@ impl OutOfProcessProvider {
     ) -> Self {
         self.rules = rules;
         self.body_kinds = body_kinds;
+        self
+    }
+
+    /// The built-in behavior summaries of the language's standard library.
+    pub fn with_summaries(mut self, summaries: BehaviorSummaries) -> Self {
+        self.summaries = summaries;
         self
     }
 
@@ -105,6 +114,94 @@ impl LanguageProvider for OutOfProcessProvider {
 
     fn body_kinds(&self) -> &'static [SyntaxKind] {
         self.body_kinds
+    }
+
+    fn summaries(&self) -> BehaviorSummaries {
+        self.summaries.clone()
+    }
+
+    fn compiler_diagnostics(
+        &self,
+        file: &SourceFile,
+        ids: &[&str],
+    ) -> Result<Vec<CompilerDiagnostic>, ProviderError> {
+        let update = UpdateText {
+            file_id: file.id.clone(),
+            version: file.version,
+            text: file.text.clone(),
+        };
+        let query = Query {
+            file_id: file.id.clone(),
+            version: file.version,
+            items: vec!["diagnostics".into()],
+            diagnostic_ids: ids.iter().map(|s| s.to_string()).collect(),
+        };
+        let (answers, _) = self
+            .proxy
+            .analyze(update, Some(query), false)
+            .map_err(to_provider_error)?;
+        Ok(answers.map(|a| a.diagnostics).unwrap_or_default())
+    }
+
+    fn open_workspace(&self, paths: &[std::path::PathBuf]) {
+        self.proxy.open_workspace(OpenWorkspace {
+            paths: paths
+                .iter()
+                .map(|p| p.to_string_lossy().into_owned())
+                .collect(),
+            properties: Default::default(),
+        });
+    }
+
+    fn semantics(
+        &self,
+        file: &SourceFile,
+        layers: Layers,
+    ) -> Result<Option<FileSemantics>, ProviderError> {
+        let caps = self.capabilities();
+        let layers = Layers {
+            binding: layers.binding && caps.binding,
+            types: layers.types && caps.types,
+            values: layers.values && caps.values,
+            flow: layers.flow && caps.flow,
+            project: layers.project && caps.project,
+        };
+        if layers.is_empty() {
+            return Ok(None);
+        }
+        // Each layer is answered by one kind of query item (docs/decisions.md, M5).
+        let mut items: Vec<&str> = Vec::new();
+        if layers.binding {
+            items.push("unused_imports");
+        }
+        if layers.types || layers.project {
+            items.push("declarations");
+        }
+        if layers.project {
+            items.push("references");
+        }
+        if layers.values {
+            items.push("maybe_null");
+        }
+        let query = (!items.is_empty()).then(|| Query {
+            file_id: file.id.clone(),
+            version: file.version,
+            items: items.into_iter().map(String::from).collect(),
+            diagnostic_ids: Vec::new(),
+        });
+        let update = UpdateText {
+            file_id: file.id.clone(),
+            version: file.version,
+            text: file.text.clone(),
+        };
+        let (answers, graphs) = self
+            .proxy
+            .analyze(update, query, layers.flow)
+            .map_err(to_provider_error)?;
+        Ok(Some(FileSemantics {
+            answers: answers.unwrap_or_default(),
+            graphs: graphs.map(|g| g.bodies).unwrap_or_default(),
+        }))
     }
 
     fn parse(&self, file: &SourceFile) -> Result<ParseResult, ProviderError> {

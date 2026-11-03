@@ -1,4 +1,4 @@
-//! Worker protocol v2: length-prefixed frames carrying MessagePack messages.
+//! Worker protocol v3: length-prefixed frames carrying MessagePack messages.
 //!
 //! A frame is a 4-byte little-endian length and that many payload bytes. A message is an
 //! externally tagged enum (rmp-serde's default): a one-entry map from the variant name to a
@@ -6,12 +6,14 @@
 //! `workers/csharp/Sudsy.Worker/Protocol/Messages.cs`; change both together and bump
 //! [`PROTOCOL_VERSION`].
 
+use core_flow::BodyGraph;
+use core_semantics::Answers;
 use core_syntax::wire::WireTree;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::io::{self, Read, Write};
 
-pub const PROTOCOL_VERSION: u32 = 2;
+pub const PROTOCOL_VERSION: u32 = 3;
 pub const FLOW_GRAPH_FORMAT_VERSION: u32 = 1;
 pub const MAX_FRAME_BYTES: u32 = 512 * 1024 * 1024;
 
@@ -48,19 +50,29 @@ pub struct UpdateText {
     pub text: String,
 }
 
+/// A batch of binding, type and value questions about one file, answered in one round trip.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Query {
     pub file_id: String,
     pub version: u64,
-    /// Opaque until the semantic layers land.
-    #[serde(with = "serde_bytes")]
-    pub batch: Vec<u8>,
+    /// What to answer: `declarations`, `references`, `unused_imports`, `maybe_null`,
+    /// `diagnostics`.
+    pub items: Vec<String>,
+    /// For `diagnostics`: the compiler diagnostic ids to report.
+    pub diagnostic_ids: Vec<String>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct FlowGraphs {
     pub file_id: String,
     pub version: u64,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Graphs {
+    pub file_id: String,
+    pub version: u64,
+    pub bodies: Vec<BodyGraph>,
 }
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
@@ -105,6 +117,8 @@ pub enum Request {
 pub enum Response {
     Hello(Hello),
     Parsed(Parsed),
+    Answers(Answers),
+    Graphs(Graphs),
     Ok(Empty),
     Error(ProtocolError),
 }
