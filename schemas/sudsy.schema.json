@@ -20,8 +20,43 @@
           "description": "Rule id (`no-empty-catch`, or `plugin/rule`) to a level or a level with options.",
           "properties": {
             "ambiguous-booleans": {
-              "$ref": "#/definitions/rule",
-              "description": "A plain `yes`, `no`, `on` or `off`: a boolean to YAML 1.1 parsers and a string to YAML 1.2 parsers."
+              "description": "A plain `yes`, `no`, `on`, `off`, `True`, `TRUE`, `False` or `FALSE` (in the usual casings): a boolean to YAML 1.1 parsers and a string to YAML 1.2 parsers. Lowercase `true` and `false` are fine.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "allowed": {
+                          "default": [],
+                          "description": "Spellings that are not reported, for example `[\"on\"]`.",
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        },
+                        "check_keys": {
+                          "default": true,
+                          "description": "Also check mapping keys. Turn it off to keep GitHub workflow `on:`.",
+                          "type": "boolean"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
             },
             "async-suffix": {
               "$ref": "#/definitions/rule",
@@ -46,6 +81,11 @@
                     "options": {
                       "additionalProperties": false,
                       "properties": {
+                        "allow_non_breakable_words": {
+                          "default": true,
+                          "description": "Do not report a line that has no space after its indentation (and after a leading `#` run or `- `), such as a long URL.",
+                          "type": "boolean"
+                        },
                         "max": {
                           "default": 120,
                           "description": "Longest allowed line, in characters.",
@@ -486,7 +526,8 @@
           "preset:json/default",
           "preset:json/prettier-compat",
           "preset:yaml/default",
-          "preset:yaml/prettier-compat"
+          "preset:yaml/prettier-compat",
+          "preset:yaml/yamllint"
         ],
         "type": "string"
       },
@@ -1025,6 +1066,13 @@
                     ],
                     "type": "string"
                   },
+                  "comment_spacing": {
+                    "default": 1,
+                    "description": "Spaces between a value and a comment after it on the same line.",
+                    "maximum": 10,
+                    "minimum": 1,
+                    "type": "integer"
+                  },
                   "document_start": {
                     "default": "preserve",
                     "description": "The `---` marker: `always` starts every document with it, `never` leaves it out of the first document when that is possible, `preserve` keeps what is written.",
@@ -1081,6 +1129,11 @@
                       "flush"
                     ],
                     "type": "string"
+                  },
+                  "space_after_comment_marker": {
+                    "default": false,
+                    "description": "Put a space after the `#` of a comment when text follows it directly (`#note`              becomes `# note`). A run of `#` (`###`) and a `#!` on the first line stay as written.",
+                    "type": "boolean"
                   }
                 },
                 "type": "object"
@@ -1153,6 +1206,13 @@
               ],
               "type": "string"
             },
+            "comment_spacing": {
+              "default": 1,
+              "description": "Spaces between a value and a comment after it on the same line.",
+              "maximum": 10,
+              "minimum": 1,
+              "type": "integer"
+            },
             "document_start": {
               "default": "preserve",
               "description": "The `---` marker: `always` starts every document with it, `never` leaves it out of the first document when that is possible, `preserve` keeps what is written.",
@@ -1209,6 +1269,11 @@
                 "flush"
               ],
               "type": "string"
+            },
+            "space_after_comment_marker": {
+              "default": false,
+              "description": "Put a space after the `#` of a comment when text follows it directly (`#note`              becomes `# note`). A run of `#` (`###`) and a `#!` on the first line stay as written.",
+              "type": "boolean"
             }
           },
           "type": "object"
