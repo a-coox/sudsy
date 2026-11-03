@@ -402,6 +402,16 @@
               ],
               "type": "string"
             },
+            "end_of_line": {
+              "default": "auto",
+              "description": "Line break style of the output: `lf`, `crlf`, or `auto` to keep the file's first              line break.",
+              "enum": [
+                "auto",
+                "lf",
+                "crlf"
+              ],
+              "type": "string"
+            },
             "final_newline": {
               "default": true,
               "description": "End the file with a newline.",
@@ -567,6 +577,7 @@
           "preset:csharp/dotnet-runtime",
           "preset:csharp/google",
           "preset:csharp/microsoft",
+          "preset:json/biome",
           "preset:json/default",
           "preset:json/prettier-compat",
           "preset:yaml/default",
@@ -580,6 +591,26 @@
     "format": {
       "additionalProperties": false,
       "properties": {
+        "array_bracket_spacing": {
+          "default": false,
+          "description": "Spaces inside the brackets of a one-line sequence or array: `[ 1, 2 ]` or `[1, 2]`.",
+          "type": "boolean"
+        },
+        "bracket_spacing": {
+          "default": true,
+          "description": "Spaces inside the braces of a one-line mapping or object: `{ a: 1 }` or `{a: 1}`.",
+          "type": "boolean"
+        },
+        "end_of_line": {
+          "default": "auto",
+          "description": "Line break style of the output: `lf`, `crlf`, or `auto` to keep the file's first              line break.",
+          "enum": [
+            "auto",
+            "lf",
+            "crlf"
+          ],
+          "type": "string"
+        },
         "final_newline": {
           "default": true,
           "description": "End the file with a newline.",
@@ -624,6 +655,16 @@
         "format": {
           "additionalProperties": false,
           "properties": {
+            "array_bracket_spacing": {
+              "default": false,
+              "description": "Spaces inside the brackets of a one-line sequence or array: `[ 1, 2 ]` or `[1, 2]`.",
+              "type": "boolean"
+            },
+            "bracket_spacing": {
+              "default": true,
+              "description": "Spaces inside the braces of a one-line mapping or object: `{ a: 1 }` or `{a: 1}`.",
+              "type": "boolean"
+            },
             "collapse": {
               "default": "preserve",
               "description": "Objects and arrays on one line: `preserve` keeps one that has a line break between its brackets expanded and puts the others on one line if they fit; `always` puts every one that fits on one line; `never` puts every non-empty one on several lines; `opening_break` keeps an object expanded when a line break follows its opening brace and puts every array that fits on one line.",
@@ -642,6 +683,16 @@
                 "auto",
                 "json",
                 "jsonc"
+              ],
+              "type": "string"
+            },
+            "end_of_line": {
+              "default": "auto",
+              "description": "Line break style of the output: `lf`, `crlf`, or `auto` to keep the file's first              line break.",
+              "enum": [
+                "auto",
+                "lf",
+                "crlf"
               ],
               "type": "string"
             },
@@ -806,6 +857,16 @@
                     ],
                     "type": "string"
                   },
+                  "end_of_line": {
+                    "default": "auto",
+                    "description": "Line break style of the output: `lf`, `crlf`, or `auto` to keep the file's first              line break.",
+                    "enum": [
+                      "auto",
+                      "lf",
+                      "crlf"
+                    ],
+                    "type": "string"
+                  },
                   "final_newline": {
                     "default": true,
                     "description": "End the file with a newline.",
@@ -967,6 +1028,26 @@
           "format": {
             "additionalProperties": false,
             "properties": {
+              "array_bracket_spacing": {
+                "default": false,
+                "description": "Spaces inside the brackets of a one-line sequence or array: `[ 1, 2 ]` or `[1, 2]`.",
+                "type": "boolean"
+              },
+              "bracket_spacing": {
+                "default": true,
+                "description": "Spaces inside the braces of a one-line mapping or object: `{ a: 1 }` or `{a: 1}`.",
+                "type": "boolean"
+              },
+              "end_of_line": {
+                "default": "auto",
+                "description": "Line break style of the output: `lf`, `crlf`, or `auto` to keep the file's first              line break.",
+                "enum": [
+                  "auto",
+                  "lf",
+                  "crlf"
+                ],
+                "type": "string"
+              },
               "final_newline": {
                 "default": true,
                 "description": "End the file with a newline.",
@@ -1004,6 +1085,16 @@
               "format": {
                 "additionalProperties": false,
                 "properties": {
+                  "array_bracket_spacing": {
+                    "default": false,
+                    "description": "Spaces inside the brackets of a one-line sequence or array: `[ 1, 2 ]` or `[1, 2]`.",
+                    "type": "boolean"
+                  },
+                  "bracket_spacing": {
+                    "default": true,
+                    "description": "Spaces inside the braces of a one-line mapping or object: `{ a: 1 }` or `{a: 1}`.",
+                    "type": "boolean"
+                  },
                   "collapse": {
                     "default": "preserve",
                     "description": "Objects and arrays on one line: `preserve` keeps one that has a line break between its brackets expanded and puts the others on one line if they fit; `always` puts every one that fits on one line; `never` puts every non-empty one on several lines; `opening_break` keeps an object expanded when a line break follows its opening brace and puts every array that fits on one line.",
@@ -1022,6 +1113,16 @@
                       "auto",
                       "json",
                       "jsonc"
+                    ],
+                    "type": "string"
+                  },
+                  "end_of_line": {
+                    "default": "auto",
+                    "description": "Line break style of the output: `lf`, `crlf`, or `auto` to keep the file's first              line break.",
+                    "enum": [
+                      "auto",
+                      "lf",
+                      "crlf"
                     ],
                     "type": "string"
                   },
@@ -1101,6 +1202,11 @@
               "format": {
                 "additionalProperties": false,
                 "properties": {
+                  "array_bracket_spacing": {
+                    "default": false,
+                    "description": "Spaces inside the brackets of a one-line sequence or array: `[ 1, 2 ]` or `[1, 2]`.",
+                    "type": "boolean"
+                  },
                   "blank_lines_after_key": {
                     "default": "preserve",
                     "description": "Blank lines between a key and its block value on the next line: `preserve` keeps \n             them (up to `max_blank_lines`); `remove` drops them.",
@@ -1109,6 +1215,11 @@
                       "remove"
                     ],
                     "type": "string"
+                  },
+                  "bracket_spacing": {
+                    "default": true,
+                    "description": "Spaces inside the braces of a one-line mapping or object: `{ a: 1 }` or `{a: 1}`.",
+                    "type": "boolean"
                   },
                   "comment_spacing": {
                     "default": 1,
@@ -1124,6 +1235,16 @@
                       "preserve",
                       "always",
                       "never"
+                    ],
+                    "type": "string"
+                  },
+                  "end_of_line": {
+                    "default": "auto",
+                    "description": "Line break style of the output: `lf`, `crlf`, or `auto` to keep the file's first              line break.",
+                    "enum": [
+                      "auto",
+                      "lf",
+                      "crlf"
                     ],
                     "type": "string"
                   },
@@ -1241,6 +1362,11 @@
         "format": {
           "additionalProperties": false,
           "properties": {
+            "array_bracket_spacing": {
+              "default": false,
+              "description": "Spaces inside the brackets of a one-line sequence or array: `[ 1, 2 ]` or `[1, 2]`.",
+              "type": "boolean"
+            },
             "blank_lines_after_key": {
               "default": "preserve",
               "description": "Blank lines between a key and its block value on the next line: `preserve` keeps \n             them (up to `max_blank_lines`); `remove` drops them.",
@@ -1249,6 +1375,11 @@
                 "remove"
               ],
               "type": "string"
+            },
+            "bracket_spacing": {
+              "default": true,
+              "description": "Spaces inside the braces of a one-line mapping or object: `{ a: 1 }` or `{a: 1}`.",
+              "type": "boolean"
             },
             "comment_spacing": {
               "default": 1,
@@ -1264,6 +1395,16 @@
                 "preserve",
                 "always",
                 "never"
+              ],
+              "type": "string"
+            },
+            "end_of_line": {
+              "default": "auto",
+              "description": "Line break style of the output: `lf`, `crlf`, or `auto` to keep the file's first              line break.",
+              "enum": [
+                "auto",
+                "lf",
+                "crlf"
               ],
               "type": "string"
             },

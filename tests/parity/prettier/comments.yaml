@@ -1,0 +1,6 @@
+# top
+key:   value   # trailing
+other:
+    nested: 1
+    # inside
+    more: 2

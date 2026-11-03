@@ -367,7 +367,11 @@ pub(crate) fn property_inline(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
 pub(crate) fn flow_collection(cx: &FormatCtx<'_>, st: &Style, node: &SyntaxNode) -> R {
     let style = ListStyle {
         separator: ",",
-        padding: node.kind() == k::FLOW_MAPPING,
+        padding: if node.kind() == k::FLOW_MAPPING {
+            st.brace_padding
+        } else {
+            st.bracket_padding
+        },
         trailing_comma: TrailingComma::Never,
         layout: ListLayout::PreserveBreak,
         max_blank_lines: st.max_blank,

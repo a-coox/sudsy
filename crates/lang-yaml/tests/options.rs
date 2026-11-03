@@ -65,6 +65,9 @@ fn the_schema_declares_what_the_formatter_reads() {
             "line_width",
             "indent_size",
             "final_newline",
+            "end_of_line",
+            "bracket_spacing",
+            "array_bracket_spacing",
             "sequence_indent",
             "quote_style",
             "document_start",
@@ -79,4 +82,23 @@ fn the_schema_declares_what_the_formatter_reads() {
         check(&subject(&[]), INPUTS[2]).unwrap(),
         "anchors: &a\n  k: v\nref: *a\n? complex\n: value\n? [flow, key]\n: *a\nmulti: plain\n  continued\n\"quoted\": \"two\n  lines\"\n"
     );
+}
+
+#[test]
+fn line_ending_and_flow_spacing_options() {
+    use common::{fmt, s};
+    let flow = "a: {x: 1, y: [1, 2]}\n";
+    assert_eq!(fmt(flow, &[]), "a: { x: 1, y: [1, 2] }\n");
+    assert_eq!(
+        fmt(flow, &[("bracket_spacing", OptionValue::Bool(false))]),
+        "a: {x: 1, y: [1, 2]}\n"
+    );
+    assert_eq!(
+        fmt(flow, &[("array_bracket_spacing", OptionValue::Bool(true))]),
+        "a: { x: 1, y: [ 1, 2 ] }\n"
+    );
+    let crlf = "a: 1\r\nb: 2\r\n";
+    assert_eq!(fmt(crlf, &[]), crlf);
+    assert_eq!(fmt(crlf, &[("end_of_line", s("lf"))]), "a: 1\nb: 2\n");
+    assert_eq!(fmt("a: 1\nb: 2\n", &[("end_of_line", s("crlf"))]), crlf);
 }

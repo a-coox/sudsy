@@ -6,10 +6,10 @@ Provider formatting code turns the tree into a layout document using shared shap
 - Primitives: `text`, `line`, `softline`, `hardline`, `group`, `indent`, `align`, `if_break`, `fill`, `conditional_group`, `line_suffix`, `break_parent`, `Verbatim`, `Shared(Arc)` (O(1) clone, so conditional candidates do not copy), `LineStart`, `NewlineIfNeeded`, group ids with `indent_if_break`.
 - Group fits flat if the rest of the line up to the next possible break fits. `conditional_group` takes the first candidate that fits (flat, forced breaks allowed); one whose every candidate has a forced break forces its parents. Line suffixes flush at the next newline; trailing whitespace is trimmed except protected verbatim output.
 - Widths are Unicode display width. Text containing a newline breaks enclosing groups; only its first line counts when measuring.
-- `format_tree` prints LF, then restores the file's line ending (first line break decides) and applies `final_newline`.
+- `format_tree` prints LF, then applies `final_newline` and the line ending: `end_of_line` `lf` or `crlf`, or (`auto`, also for a provider without the option) the file's first line break.
 
 ## Shared options
-`line_width`, `indent_size`, `indent_style` (`space`|`tab`), `final_newline`; providers set their own defaults and may omit some (YAML has no `indent_style`).
+`line_width`, `indent_size`, `indent_style` (`space`|`tab`), `final_newline`, `end_of_line` (`auto`|`lf`|`crlf`), `bracket_spacing`, `array_bracket_spacing`; providers set their own defaults and may omit some (YAML has no `indent_style`).
 
 ## Shapes (`core-format::shapes`)
 Delimited list, block, key-value, statement sequence, verbatim, binary chain (operator first on continuation lines), member chain (one line or one group per line), and `delimited_list_between` / `block_between` for delimiters that are not first/last tokens. A shape finds its structure from the grammar: first/last significant token are delimiters, child nodes are items, `#separator` tokens after an item are its separator. List separators are re-created from `ListStyle`; block separators are kept. A child tagged `#list-prefix` is printed first. Blank lines between items are kept up to `max_blank_lines`; they vanish in a list that fits one line.

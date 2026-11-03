@@ -8,6 +8,8 @@ yaml:
     max_blank_lines: 2
     comment_spacing: 2
     space_after_comment_marker: true
+    end_of_line: lf
+    bracket_spacing: false
   lint:
     rules:
       max-line-length:

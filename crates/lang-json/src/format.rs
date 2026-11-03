@@ -17,6 +17,9 @@ pub fn option_schema() -> OptionSchema {
         shared::indent_size(2),
         shared::indent_style(),
         shared::final_newline(true),
+        shared::end_of_line(),
+        shared::bracket_spacing(true),
+        shared::array_bracket_spacing(false),
         OptionDef::choice(
             COLLAPSE,
             &["preserve", "always", "never", "opening_break"],
@@ -48,7 +51,11 @@ pub struct JsonFormatter;
 fn list_style(options: &ResolvedOptions, is_object: bool) -> ListStyle {
     let jsonc = options.str(DIALECT) == "jsonc";
     ListStyle {
-        padding: is_object,
+        padding: options.bool(if is_object {
+            shared::BRACKET_SPACING
+        } else {
+            shared::ARRAY_BRACKET_SPACING
+        }),
         trailing_comma: if jsonc && options.str(TRAILING_COMMAS) == "multiline" {
             TrailingComma::WhenBroken
         } else {
@@ -110,6 +117,7 @@ fn document(cx: &FormatCtx<'_>, node: &SyntaxNode) -> Result<Doc, FormatError> {
 /// The presets are plain config files in `presets/` next to the crate's manifest.
 fn presets() -> Vec<Preset> {
     vec![
+        Preset::new("json/biome", include_str!("../presets/biome.yaml")),
         Preset::new("json/default", include_str!("../presets/default.yaml")),
         Preset::new(
             "json/prettier-compat",

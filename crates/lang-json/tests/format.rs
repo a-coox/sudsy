@@ -3,7 +3,7 @@
 
 mod common;
 
-use common::{fmt_path, s};
+use common::{fmt, fmt_path, s};
 use core_config::OptionValue;
 
 macro_rules! snap {
@@ -312,4 +312,25 @@ fn deeply_nested_input_is_formatted() {
     let input = format!("{}1{}", "[".repeat(depth), "]".repeat(depth));
     let out = fmt_path("a.json", &input, &[]);
     assert_eq!(out.lines().count(), 2 * depth + 1);
+}
+
+#[test]
+fn line_ending_and_bracket_spacing_options() {
+    let flat = r#"{"a":[1,2],"b":{"c":1}}"#;
+    assert_eq!(fmt(flat, &[]), "{ \"a\": [1, 2], \"b\": { \"c\": 1 } }\n");
+    assert_eq!(
+        fmt(flat, &[("bracket_spacing", flag(false))]),
+        "{\"a\": [1, 2], \"b\": {\"c\": 1}}\n"
+    );
+    assert_eq!(
+        fmt(flat, &[("array_bracket_spacing", flag(true))]),
+        "{ \"a\": [ 1, 2 ], \"b\": { \"c\": 1 } }\n"
+    );
+    let crlf = "[\r\n  1,\r\n  2\r\n]\r\n";
+    assert_eq!(fmt(crlf, &[]), crlf);
+    assert_eq!(fmt(crlf, &[("end_of_line", s("lf"))]), "[\n  1,\n  2\n]\n");
+    assert_eq!(
+        fmt("[\n1\n]\n", &[("end_of_line", s("crlf"))]),
+        "[\r\n  1\r\n]\r\n"
+    );
 }

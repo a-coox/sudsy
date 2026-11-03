@@ -1,0 +1,18 @@
+# Formats like Biome's JSON output with its defaults: tabs, 80 columns, LF, an object stays
+# expanded when a line break follows its opening brace, an array is on one line when it fits.
+# package.json and the lockfiles are printed fully expanded.
+json:
+  format:
+    line_width: 80
+    indent_style: tab
+    indent_size: 2
+    end_of_line: lf
+    bracket_spacing: true
+    array_bracket_spacing: false
+    collapse: opening_break
+    trailing_commas: never
+overrides:
+  - files: ["package.json", "package-lock.json", "composer.json"]
+    json:
+      format:
+        collapse: never

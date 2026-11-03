@@ -1,0 +1,9 @@
+a: {x: 1, y: [1,2,   3]}
+b:   [  one,two ]
+c: {}
+d: []
+list:
+- a
+-   b
+- k: v
+  other: 2

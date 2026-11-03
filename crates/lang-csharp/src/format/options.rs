@@ -37,6 +37,7 @@ pub fn option_schema() -> OptionSchema {
         shared::indent_size(4),
         shared::indent_style(),
         shared::final_newline(true),
+        shared::end_of_line(),
         OptionDef::choice(
             BRACE_NEWLINE,
             &["all", "none"],

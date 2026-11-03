@@ -15,6 +15,7 @@
 //! | `tab_width` | `indent_size`, only for `indent_style = tab` without an `indent_size` |
 //! | `max_line_length` (a number; `off` is ignored) | `line_width` |
 //! | `insert_final_newline` | `final_newline` |
+//! | `end_of_line` (`lf`, `crlf`; `cr` ignored) | `end_of_line` |
 //! | `csharp_new_line_before_open_brace` (`all`, `none`; other lists are ignored) | `brace_newline` (C#) |
 //!
 //! A value that is not valid for the option (a width of 5, `max_line_length = off`) is ignored:
@@ -225,6 +226,11 @@ fn map(props: &Props) -> Vec<EditorConfigValue> {
             "insert_final_newline",
             OptionValue::Bool(v == "true"),
         );
+    }
+    if let Some((v, ..)) = props.get("end_of_line")
+        && matches!(v.as_str(), "lf" | "crlf")
+    {
+        push("end_of_line", "end_of_line", OptionValue::String(v.clone()));
     }
     if let Some((v, ..)) = props.get("csharp_new_line_before_open_brace")
         && matches!(v.as_str(), "all" | "none")

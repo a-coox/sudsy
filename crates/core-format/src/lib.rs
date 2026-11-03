@@ -81,7 +81,8 @@ impl LineEnding {
     }
 }
 
-/// Formats `root` (and everything below it) to text. The file's line ending style is kept and
+/// Formats `root` (and everything below it) to text. The `end_of_line` option decides the line
+/// ending (`auto`, the default and for providers without the option: the file's first one) and
 /// the `final_newline` option, when the provider declares it, decides how the text ends.
 pub fn format_tree(root: &SyntaxNode, cx: &FormatCtx<'_>) -> Result<String, FormatError> {
     let mut doc = cx.format_unguarded(root)?;
@@ -101,7 +102,12 @@ pub fn format_tree(root: &SyntaxNode, cx: &FormatCtx<'_>) -> Result<String, Form
     if final_newline && !out.is_empty() && !out.ends_with('\n') {
         out.push('\n');
     }
-    Ok(match LineEnding::of_tree(root) {
+    let ending = match cx.options.get(core_config::shared::END_OF_LINE) {
+        Some(core_config::OptionValue::String(s)) if s == "lf" => LineEnding::Lf,
+        Some(core_config::OptionValue::String(s)) if s == "crlf" => LineEnding::CrLf,
+        _ => LineEnding::of_tree(root),
+    };
+    Ok(match ending {
         LineEnding::Lf => out,
         LineEnding::CrLf => out.replace('\n', "\r\n"),
     })

@@ -4,6 +4,8 @@ yaml:
   format:
     line_width: 80
     indent_size: 2
+    end_of_line: lf
+    bracket_spacing: true
     sequence_indent: indented
     quote_style: prefer_double
     document_start: preserve

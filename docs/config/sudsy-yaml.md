@@ -24,7 +24,7 @@ overrides:
 
 ## Parsing rules
 - Read by `serde-saphyr` with strict booleans (YAML 1.2 style): only `true`/`false` are booleans, so `off` is a valid unquoted rule level. Duplicate keys and unknown keys are errors with line and column.
-- Shared `format:` keys: `line_width`, `indent_size`, `indent_style`, `final_newline`; a shared key a language does not declare is ignored; any other key there is an error. Unknown keys or invalid values in a language section are errors. Rule levels: `off`, `warn`, `error`; rule options are `{ level, options }`.
+- Shared `format:` keys: `line_width`, `indent_size`, `indent_style`, `final_newline`, `end_of_line`, `bracket_spacing`, `array_bracket_spacing`; a shared key a language does not declare is ignored; any other key there is an error. Unknown keys or invalid values in a language section are errors. Rule levels: `off`, `warn`, `error`; rule options are `{ level, options }`.
 - Explicit file arguments bypass `include`/`exclude`. Paths print relative to the working directory with `/`.
 
 ## Resolution (highest first)

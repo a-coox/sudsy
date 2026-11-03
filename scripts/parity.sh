@@ -4,12 +4,37 @@
 # through docs/parity/<tool>.yaml), line and column. Prints every mismatch; exit 1 on any.
 # Tools: yamllint (installed at the catalog's version into a venv under target/parity/), stylecop
 # (StyleCop.Analyzers at the catalog's version, restored by `dotnet build` of the fixture project).
+# Format mode: scripts/parity.sh format prettier|biome (see docs/development/parity.md).
 set -euo pipefail
 cd "$(dirname "$0")/.."
 tool=${1:-}
+if [ "$tool" = format ]; then
+  # Format mode: `sudsy format` under the matching preset against the tool's own output, on
+  # tests/parity/<tool>/. The tool is installed with npm at the catalog's version.
+  tool=${2:-}
+  case "$tool" in
+    prettier|biome) ;;
+    *) echo "usage: scripts/parity.sh format prettier|biome" >&2; exit 2 ;;
+  esac
+  version=$(sed -nE 's/^version: "([0-9][0-9.]*).*/\1/p' "docs/parity/$tool.yaml" | head -n1)
+  dir="target/parity/$tool-$version"
+  pkg=$tool; [ "$tool" = biome ] && pkg=@biomejs/biome
+  if [ ! -d "$dir/node_modules/$pkg" ]; then
+    mkdir -p "$dir"
+    npm install --silent --no-audit --no-fund --prefix "$dir" "$pkg@$version"
+  fi
+  cargo build --quiet -p cli
+  sudsy=$PWD/target/debug/sudsy; [ -x "$sudsy" ] || sudsy=$sudsy.exe
+  py=
+  for candidate in python3 python; do
+    if "$candidate" -c 'import sys' >/dev/null 2>&1; then py=$candidate; break; fi
+  done
+  [ -n "$py" ] || { echo "parity.sh: python 3 is required" >&2; exit 2; }
+  exec "$py" scripts/parity_format.py "$tool" "$version" "$sudsy" "$dir"
+fi
 case "$tool" in
   yamllint|stylecop) ;;
-  *) echo "usage: scripts/parity.sh yamllint|stylecop" >&2; exit 2 ;;
+  *) echo "usage: scripts/parity.sh yamllint|stylecop | format prettier|biome" >&2; exit 2 ;;
 esac
 
 py=

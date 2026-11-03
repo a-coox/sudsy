@@ -1,0 +1,1 @@
+# Fixtures where Sudsy and Prettier legitimately differ: "<fixture>: <reason>" per line.

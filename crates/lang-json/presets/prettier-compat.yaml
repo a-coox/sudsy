@@ -1,8 +1,17 @@
-# Formats like Prettier's JSON output: 80 columns, an object stays expanded when its first key is
-# on a line of its own, an array is on one line when it fits.
+# Formats like Prettier's JSON output: 80 columns, LF, an object stays expanded when its first key
+# is on a line of its own, an array is on one line when it fits. package.json, package-lock.json
+# and composer.json are printed fully expanded, like JSON.stringify.
 json:
   format:
     line_width: 80
     indent_size: 2
+    end_of_line: lf
+    bracket_spacing: true
+    array_bracket_spacing: false
     collapse: opening_break
     trailing_commas: never
+overrides:
+  - files: ["package.json", "package-lock.json", "composer.json"]
+    json:
+      format:
+        collapse: never

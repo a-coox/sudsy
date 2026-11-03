@@ -32,6 +32,9 @@ pub fn option_schema() -> OptionSchema {
         shared::line_width(80),
         shared::indent_size(2),
         shared::final_newline(true),
+        shared::end_of_line(),
+        shared::bracket_spacing(true),
+        shared::array_bracket_spacing(false),
         OptionDef::choice(
             SEQUENCE_INDENT,
             &["preserve", "indented", "flush"],
@@ -112,6 +115,9 @@ pub(crate) struct Style {
     pub quotes: Quotes,
     pub document_start: DocumentStart,
     pub max_blank: usize,
+    /// Spaces inside `{ }` and `[ ]` of one-line flow collections.
+    pub brace_padding: bool,
+    pub bracket_padding: bool,
     /// Blank lines between `key:` and a block value on the next line are dropped.
     pub drop_blank_after_key: bool,
 }
@@ -138,6 +144,8 @@ impl Style {
                 _ => DocumentStart::Preserve,
             },
             max_blank: options.int(MAX_BLANK_LINES) as usize,
+            brace_padding: options.bool(shared::BRACKET_SPACING),
+            bracket_padding: options.bool(shared::ARRAY_BRACKET_SPACING),
         }
     }
 }

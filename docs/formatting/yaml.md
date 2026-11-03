@@ -16,6 +16,9 @@ Loaded from our tree. Core schema (`yes`, `on`, `0b1`, `1_000` are strings), tag
 | `line_width` | int | 80 |
 | `indent_size` | int | 2 |
 | `final_newline` | bool | true |
+| `end_of_line` | `auto`, `lf`, `crlf` | `auto` (the file's first line break) |
+| `bracket_spacing` | bool | true (`{ a: 1 }`; false `{a: 1}`) |
+| `array_bracket_spacing` | bool | false (`[1, 2]`; true `[ 1, 2 ]`) |
 | `sequence_indent` | `preserve`, `indented`, `flush` | `preserve` |
 | `quote_style` | `preserve`, `single`, `double`, `prefer_double` | `preserve` |
 | `document_start` | `preserve`, `always`, `never` | `preserve` |

@@ -25,14 +25,14 @@ The differential runner [`scripts/parity.sh`](../development/parity.md) compares
 ## Counts
 | Tool | Entries | Covered | Partial | Missing | SDK | Wontfix | Deferred | Planned |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|
-| biome | 34 | 9 | 5 | 7 | 0 | 13 | 0 | 7 |
-| csharpier | 16 | 8 | 6 | 1 | 0 | 1 | 0 | 3 |
-| dotnet-format-editorconfig | 56 | 38 | 11 | 2 | 1 | 4 | 0 | 2 |
-| eslint-plugin-jsonc | 44 | 33 | 5 | 4 | 0 | 2 | 0 | 4 |
-| prettier | 28 | 12 | 5 | 3 | 0 | 8 | 0 | 3 |
+| biome | 34 | 12 | 5 | 4 | 0 | 13 | 0 | 4 |
+| csharpier | 16 | 9 | 6 | 0 | 0 | 1 | 0 | 2 |
+| dotnet-format-editorconfig | 56 | 39 | 11 | 1 | 1 | 4 | 0 | 1 |
+| eslint-plugin-jsonc | 44 | 35 | 5 | 2 | 0 | 2 | 0 | 2 |
+| prettier | 28 | 15 | 4 | 1 | 0 | 8 | 0 | 1 |
 | roslynator | 67 | 23 | 7 | 16 | 18 | 1 | 2 | 16 |
 | stylecop | 197 | 62 | 12 | 31 | 45 | 21 | 26 | 31 |
-| yamllint | 65 | 33 | 12 | 20 | 0 | 0 | 0 | 20 |
+| yamllint | 65 | 38 | 10 | 17 | 0 | 0 | 0 | 17 |
 
 ## Batches
 Planned work is grouped so related entries land together.

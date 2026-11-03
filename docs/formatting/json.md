@@ -13,11 +13,14 @@ Hand-written lexer + recursive descent; strings, numbers, escapes validated by t
 | `indent_size` | int | 2 |
 | `indent_style` | `space`, `tab` | `space` |
 | `final_newline` | bool | true |
+| `end_of_line` | `auto`, `lf`, `crlf` | `auto` (the file's first line break) |
+| `bracket_spacing` | bool | true (`{ "a": 1 }`; false `{"a": 1}`) |
+| `array_bracket_spacing` | bool | false (`[1, 2]`; true `[ 1, 2 ]`) |
 | `dialect` | `auto`, `json`, `jsonc` | `auto` |
 | `trailing_commas` | `never`, `multiline` (JSONC only) | `never` |
 | `collapse` | `preserve`, `always`, `never`, `opening_break` | `preserve` |
 
-`collapse: preserve` keeps an object/array on one line only if the source had no line break between its delimiters (nested items included) and it fits; `always` collapses anything that fits; `never` expands every non-empty one; `opening_break` keeps an object expanded after a line break following `{`. Objects print `{ "a": 1 }`, arrays `[1, 2]` (fixed).
+`collapse: preserve` keeps an object/array on one line only if the source had no line break between its delimiters (nested items included) and it fits; `always` collapses anything that fits; `never` expands every non-empty one; `opening_break` keeps an object expanded after a line break following `{`.
 
 Objects are tagged `#block` but laid out with the list shape.
 

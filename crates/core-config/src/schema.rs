@@ -262,7 +262,18 @@ pub mod shared {
     pub const INDENT_SIZE: &str = "indent_size";
     pub const INDENT_STYLE: &str = "indent_style";
     pub const FINAL_NEWLINE: &str = "final_newline";
-    pub const NAMES: [&str; 4] = [LINE_WIDTH, INDENT_SIZE, INDENT_STYLE, FINAL_NEWLINE];
+    pub const END_OF_LINE: &str = "end_of_line";
+    pub const BRACKET_SPACING: &str = "bracket_spacing";
+    pub const ARRAY_BRACKET_SPACING: &str = "array_bracket_spacing";
+    pub const NAMES: [&str; 7] = [
+        LINE_WIDTH,
+        INDENT_SIZE,
+        INDENT_STYLE,
+        FINAL_NEWLINE,
+        END_OF_LINE,
+        BRACKET_SPACING,
+        ARRAY_BRACKET_SPACING,
+    ];
 
     pub fn line_width(default: i64) -> OptionDef {
         OptionDef::int(
@@ -293,6 +304,31 @@ pub mod shared {
 
     pub fn final_newline(default: bool) -> OptionDef {
         OptionDef::boolean(FINAL_NEWLINE, default, "End the file with a newline.")
+    }
+
+    pub fn end_of_line() -> OptionDef {
+        OptionDef::choice(
+            END_OF_LINE,
+            &["auto", "lf", "crlf"],
+            "auto",
+            "Line break style of the output: `lf`, `crlf`, or `auto` to keep the file's first              line break.",
+        )
+    }
+
+    pub fn bracket_spacing(default: bool) -> OptionDef {
+        OptionDef::boolean(
+            BRACKET_SPACING,
+            default,
+            "Spaces inside the braces of a one-line mapping or object: `{ a: 1 }` or `{a: 1}`.",
+        )
+    }
+
+    pub fn array_bracket_spacing(default: bool) -> OptionDef {
+        OptionDef::boolean(
+            ARRAY_BRACKET_SPACING,
+            default,
+            "Spaces inside the brackets of a one-line sequence or array: `[ 1, 2 ]` or `[1, 2]`.",
+        )
     }
 }
 impl OptionSchema {

@@ -312,3 +312,17 @@ fn every_fixture_formats() {
     }
     assert!(count >= 14, "{count}");
 }
+
+#[test]
+fn end_of_line_option() {
+    let crlf = "class C\r\n{\r\n    int x;\r\n}\r\n";
+    assert_eq!(fmt(crlf, &[]), crlf);
+    assert_eq!(
+        fmt(crlf, &[("end_of_line", s("lf"))]),
+        "class C\n{\n    int x;\n}\n"
+    );
+    assert_eq!(
+        fmt("class C { int x; }\n", &[("end_of_line", s("crlf"))]),
+        crlf
+    );
+}
