@@ -1,6 +1,6 @@
 //! The shared shapes that JSON's tag defaults do not reach (block, statement sequence, verbatim),
 //! layout directives, and formatting a subtree in context. They are exercised on JSON trees with
-//! small test-only formatters; the rule engine that attaches directives is M2.
+//! small test-only formatters.
 
 use core_config::OptionValue;
 use core_format::shapes::{self, BlockStyle, KeyValueStyle, ListStyle};

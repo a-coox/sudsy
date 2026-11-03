@@ -29,7 +29,7 @@ fn parse(file: &Path, language_version: Option<String>) -> Result<()> {
     ensure!(
         file.extension()
             .is_some_and(|e| e.eq_ignore_ascii_case("cs")),
-        "only .cs files can be parsed in M0 (JSON and YAML parsers arrive in M1)"
+        "`debug parse` takes a .cs file"
     );
     let bytes = std::fs::read(file).with_context(|| format!("reading {}", file.display()))?;
     let mut source = SourceFile::from_bytes(file.to_string_lossy(), 1, bytes)?;

@@ -1,6 +1,6 @@
 //! Layout directives: the fixed, versioned set of layout requests that rules can attach to
-//! nodes. Rules never print layout themselves; the rule engine
-//! (M2) fills a [`DirectiveTable`], and shapes read it.
+//! nodes. Rules never print layout themselves; a rule fills a
+//! [`DirectiveTable`], and shapes read it.
 
 use core_syntax::{SyntaxKind, SyntaxNode};
 use std::collections::HashMap;
