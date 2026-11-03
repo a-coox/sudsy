@@ -4,6 +4,7 @@
 
 use crate::diagnostic::Diagnostic;
 use crate::rule::FileContext;
+use core_syntax::Grammar;
 
 /// The role name in `suppress disable-next-line "..."`.
 const ROLE: &str = "disable-next-line";
@@ -66,4 +67,15 @@ impl Suppressions {
             .iter()
             .any(|s| s.line == line && (s.rules.is_empty() || s.rules.contains(&d.rule)))
     }
+}
+
+/// The comment that suppresses `rule` on the next line, in the grammar's comment syntax; `None`
+/// when the grammar has no marker or no comments.
+pub fn directive_comment(grammar: &Grammar, rule: &str) -> Option<String> {
+    let marker = &grammar.suppressions.iter().find(|s| s.role == ROLE)?.marker;
+    if let Some(prefix) = &grammar.comments.line {
+        return Some(format!("{prefix} {marker} {rule}"));
+    }
+    let (open, close) = grammar.comments.block.as_ref()?;
+    Some(format!("{open} {marker} {rule} {close}"))
 }

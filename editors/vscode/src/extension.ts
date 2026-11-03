@@ -45,6 +45,8 @@ async function start(context: vscode.ExtensionContext): Promise<void> {
       { scheme: "file", language: "jsonc" },
       { scheme: "file", language: "yaml" },
     ],
+    // Pull diagnostics for every open tab, not just the visible editor.
+    diagnosticPullOptions: { onChange: true, onSave: true, onTabs: true },
     outputChannelName: "Sudsy",
   };
   client = new LanguageClient(

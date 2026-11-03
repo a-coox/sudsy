@@ -4,8 +4,9 @@
 use crate::diagnostics::to_lsp;
 use crate::position::{Positions, minimal_edit};
 use crate::workspace::Workspace;
-use core_incremental::{Failure, File, fix_text, lint, transient};
+use core_incremental::{Db, Failure, File, fix_text, lint, selection, transient};
 use core_rules::fixes::{apply, select};
+use core_rules::suppress::directive_comment;
 use core_rules::{Diagnostic, Fix, FixKind};
 use lsp_types::{
     CodeAction, CodeActionKind, CodeActionOrCommand, Range, TextEdit, Uri, WorkspaceEdit,
@@ -75,6 +76,13 @@ impl Workspace {
                     actions.push(quick_fix(d, fix, i == 0, &positions, uri));
                 }
             }
+            let mut seen = BTreeSet::new();
+            for d in &touched {
+                let line = text[..d.range.start().into()].matches('\n').count();
+                if seen.insert((line, d.rule.as_str())) {
+                    actions.extend(self.suppress(d, text, &positions, uri, file));
+                }
+            }
             let rules: BTreeSet<&str> = touched
                 .iter()
                 .filter(|d| !d.fixes.is_empty())
@@ -101,6 +109,47 @@ impl Workspace {
             .into_iter()
             .map(CodeActionOrCommand::CodeAction)
             .collect())
+    }
+
+    /// "Suppress `rule` on this line": a `disable-next-line` comment above the diagnostic's line,
+    /// at its indentation. `None` when the language has no such comment, or the file would no
+    /// longer parse with it (plain JSON has no comments).
+    fn suppress(
+        &self,
+        d: &Diagnostic,
+        text: &str,
+        positions: &Positions<'_>,
+        uri: &Uri,
+        file: File,
+    ) -> Option<CodeAction> {
+        let sel = selection(&self.db, file).as_ref()?;
+        let comment = directive_comment(self.db.providers()[sel.provider].grammar(), &d.rule)?;
+        let start = text[..d.range.start().into()]
+            .rfind('\n')
+            .map_or(0, |i| i + 1);
+        let indent = &text[start
+            ..text[start..]
+                .find(|c| c != ' ' && c != '\t')
+                .map_or(text.len(), |i| start + i)];
+        let eol = if text.contains("\r\n") { "\r\n" } else { "\n" };
+        let inserted = format!("{indent}{comment}{eol}");
+        let step = transient(
+            &self.db,
+            file,
+            &format!("{}{inserted}{}", &text[..start], &text[start..]),
+        );
+        if !lint(&self.db, step).as_ref().is_ok_and(|l| l.parses) {
+            return None;
+        }
+        let at = positions.range(start, start);
+        let mut action = edit_action(
+            format!("Suppress `{}` on this line", d.rule),
+            CodeActionKind::QUICKFIX,
+            uri,
+            vec![TextEdit::new(at, inserted)],
+        );
+        action.diagnostics = Some(vec![to_lsp(d, positions, uri)]);
+        Some(action)
     }
 
     /// The first fix of every problem of `rule` in the file, safe or unsafe (the user picked the

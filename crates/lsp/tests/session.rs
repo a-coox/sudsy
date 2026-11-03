@@ -251,3 +251,54 @@ fn editorconfig_changes_reach_open_documents() {
     assert!(four.contains("\n    \"a\""), "{four}");
     client.shutdown();
 }
+
+fn line(n: u32) -> Range {
+    Range::new(Position::new(n, 0), Position::new(n, 99))
+}
+
+#[test]
+fn suppress_quick_fix_inserts_a_comment_and_silences_the_diagnostic() {
+    let t = tempfile::tempdir().unwrap();
+    let mut client = Client::start(t.path(), providers());
+    let title = "Suppress `no-duplicate-keys` on this line";
+    let suppress = |client: &mut Client, uri, text: &str| {
+        let actions = client.code_actions(uri, line(1), Some(vec![CodeActionKind::QUICKFIX]));
+        let found = actions.iter().find(|a| a.title == title);
+        found.map(|a| apply_action(text, uri, a.edit.as_ref().unwrap()))
+    };
+
+    // JSONC and YAML, each in its own comment syntax and at the line's indentation.
+    let text = "{\n  \"a\": 1, \"a\": 2\n}\n";
+    let uri = client.open("a.jsonc", "jsonc", text);
+    let fixed = suppress(&mut client, &uri, text).expect("jsonc has comments");
+    assert_eq!(
+        fixed,
+        "{\n  // sudsy-disable-next-line no-duplicate-keys\n  \"a\": 1, \"a\": 2\n}\n"
+    );
+    client.change(&uri, 2, None, &fixed);
+    assert!(client.diagnostics(&uri).is_empty());
+
+    let text = "a:\n  b: 1\n  b: 2\n";
+    let uri = client.open("d.yaml", "yaml", text);
+    let found = client.diagnostics(&uri);
+    assert_eq!(found.len(), 1, "{found:?}");
+    let rule = code(&found[0]).to_string();
+    let actions = client.code_actions(&uri, line(2), Some(vec![CodeActionKind::QUICKFIX]));
+    let action = actions
+        .iter()
+        .find(|a| a.title == format!("Suppress `{rule}` on this line"))
+        .expect("yaml has comments");
+    let fixed = apply_action(text, &uri, action.edit.as_ref().unwrap());
+    assert_eq!(
+        fixed,
+        format!("a:\n  b: 1\n  # sudsy-disable-next-line {rule}\n  b: 2\n")
+    );
+    client.change(&uri, 2, None, &fixed);
+    assert!(client.diagnostics(&uri).is_empty());
+
+    // Plain JSON has no comments, so no action.
+    let text = "{\n  \"a\": 1, \"a\": 2\n}\n";
+    let uri = client.open("p.json", "json", text);
+    assert!(suppress(&mut client, &uri, text).is_none());
+    client.shutdown();
+}
