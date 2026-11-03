@@ -12,11 +12,17 @@ pub trait Subject {
     /// `Err` with a message when the text has parse errors.
     fn parse(&self, text: &str) -> Result<SyntaxNode, String>;
     fn format(&self, text: &str) -> Result<String, String>;
+    /// A comment as it is compared before and after formatting; a language whose formatter
+    /// rewrites comment text maps both to the same value.
+    fn comment_key(&self, text: &str) -> String {
+        text.to_string()
+    }
 }
 
 /// The comments of a tree in order. Structured trivia (doc comments, directives) count as one,
 /// compared line by line without indentation because the printer re-indents them.
-fn comments(g: &Grammar, tree: &SyntaxNode) -> Vec<String> {
+fn comments(subject: &dyn Subject, tree: &SyntaxNode) -> Vec<String> {
+    let g = subject.grammar();
     let mut out = Vec::new();
     let mut walk = tree.preorder_with_tokens();
     while let Some(event) = walk.next() {
@@ -34,7 +40,7 @@ fn comments(g: &Grammar, tree: &SyntaxNode) -> Vec<String> {
             out.push(if structured {
                 text.lines().map(str::trim).collect::<Vec<_>>().join("\n")
             } else {
-                text.trim_end().to_string()
+                subject.comment_key(text.trim_end())
             });
             if structured {
                 walk.skip_subtree();
@@ -59,11 +65,11 @@ pub fn check(subject: &dyn Subject, input: &str) -> Result<String, String> {
         return Err("the output tree does not print back to the output".into());
     }
     equal_ignoring_trivia(g, &before, &after).map_err(|e| format!("meaning changed: {e}"))?;
-    if comments(g, &before) != comments(g, &after) {
+    if comments(subject, &before) != comments(subject, &after) {
         return Err(format!(
             "comments changed: {:?} became {:?}",
-            comments(g, &before),
-            comments(g, &after)
+            comments(subject, &before),
+            comments(subject, &after)
         ));
     }
     let again = subject

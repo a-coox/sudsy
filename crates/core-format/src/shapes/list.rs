@@ -108,7 +108,11 @@ fn list_of(
     let after = cx.trailing_comments_doc(&c.close);
     let opening = doc::concat(vec![
         cx.token_text(&c.open),
-        open_comments_doc(&comments::trailing_comments(g, &c.open), !items.is_empty()),
+        open_comments_doc(
+            cx,
+            &comments::trailing_comments(g, &c.open),
+            !items.is_empty(),
+        ),
     ]);
     let closing = cx.token_text(&c.close);
 
@@ -161,7 +165,7 @@ fn list_of(
         });
         inner.push(separator_comments(cx, &items[i]));
     }
-    inner.push(dangling_comments(&dangling, false));
+    inner.push(dangling_comments(cx, &dangling, false));
     let mut body_parts = Vec::new();
     if style.leading_line {
         body_parts.push(doc::line());
@@ -196,18 +200,21 @@ fn list_of(
 
 /// Comments after the opening delimiter. A block comment sits against the delimiter and is
 /// followed by a space when items follow it on the same line: `(/* a */ 1)`.
-fn open_comments_doc(cs: &[comments::Comment], items_follow: bool) -> Doc {
+fn open_comments_doc(cx: &FormatCtx<'_>, cs: &[comments::Comment], items_follow: bool) -> Doc {
     let mut parts = Vec::new();
     for c in cs {
         if c.kind == comments::CommentKind::Block {
-            parts.push(crate::context::verbatim_text(&c.text()));
+            parts.push(crate::context::verbatim_text(
+                &c.styled_text(&cx.comment_style),
+            ));
             if items_follow {
                 parts.push(doc::if_break(Doc::Nil, doc::lit(" ")));
             }
         } else {
-            parts.push(crate::context::trailing_comments_doc(std::slice::from_ref(
-                c,
-            )));
+            parts.push(crate::context::trailing_comments_doc(
+                &cx.comment_style,
+                std::slice::from_ref(c),
+            ));
         }
     }
     doc::concat(parts)

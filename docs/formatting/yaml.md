@@ -21,6 +21,8 @@ Loaded from our tree. Core schema (`yes`, `on`, `0b1`, `1_000` are strings), tag
 | `document_start` | `preserve`, `always`, `never` | `preserve` |
 | `max_blank_lines` | int | 1 |
 | `blank_lines_after_key` | `preserve`, `remove` | `preserve` |
+| `comment_spacing` | int 1-10 | 1 |
+| `space_after_comment_marker` | bool | false |
 
 `sequence_indent: preserve` is default because both styles are common (Kubernetes vs GitHub Actions) and the zero-config goal is the smallest diff. No `indent_style`: tabs cannot indent YAML.
 
@@ -28,6 +30,7 @@ Loaded from our tree. Core schema (`yes`, `on`, `0b1`, `1_000` are strings), tag
 - Kept: quotes, key order, flow vs block, comments, blank lines (max one). Normalized: spacing and indentation (`key: value`, `{ a: 1 }`, `[1, 2]`).
 - `quote_style` changes a scalar only if the other style needs no more escapes than the source has; never with control characters or across lines; plain scalars are never quoted.
 - `document_start`: `always` adds `---` to documents with content; `never` omits it from the first document unless it has directives or no content; comments on a removed marker stay.
+- Comments: `comment_spacing` spaces separate a comment from the code before it. With `space_after_comment_marker`, `#text` becomes `# text` (`###` runs, a bare `#` and a `#!` on the first line stay).
 - Block scalars: re-indented, never re-wrapped; trailing blanks kept; indentation indicator rewritten; blank lines after `keep` are exact.
 - Multi-line plain/quoted scalars keep line structure; continuation lines are re-indented.
 - Placement after `key:`, `-`, `?`, `---` (`block::node_after`): scalars stay on their line, a collection after `-` starts on the dash line, a comment after the indicator keeps the value on the next line. A flow collection that does not fit moves under its key; one used as a key prints as written.

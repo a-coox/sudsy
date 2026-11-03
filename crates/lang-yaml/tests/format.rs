@@ -299,3 +299,25 @@ fn formatted_output_is_a_fixed_point_for_the_config_file_itself() {
     let once = fmt(sample, &[]);
     assert_eq!(fmt(&once, &[]), once);
 }
+
+// Comment spacing --------------------------------------------------------------------------------
+
+snap!(
+    comment_marker_space_and_inline_gap,
+    "#!shebang-like but not first\n#no space\n### run\n#\na: 1 # one\nb: 2   #two\nc:\n  - x #y\n  #z\nd: {k: v} #f\n",
+    [
+        ("comment_spacing", n(2)),
+        ("space_after_comment_marker", flag(true))
+    ]
+);
+
+snap!(
+    shebang_on_the_first_line_is_kept,
+    "#!/usr/bin/env tool\na: 1 #c\n",
+    [("space_after_comment_marker", flag(true))]
+);
+
+snap!(
+    comments_are_kept_as_written_by_default,
+    "#nospace\na: 1   #c\n"
+);

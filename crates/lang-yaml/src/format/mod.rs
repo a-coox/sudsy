@@ -15,6 +15,7 @@ mod scalars;
 use crate::generated::kind as k;
 use crate::model;
 use core_config::{OptionDef, OptionSchema, Preset, ResolvedOptions, shared};
+use core_format::comments::CommentStyle;
 use core_format::{Doc, FormatCtx, FormatError, NodeFormatter};
 use core_syntax::SyntaxNode;
 
@@ -23,6 +24,8 @@ pub const QUOTE_STYLE: &str = "quote_style";
 pub const DOCUMENT_START: &str = "document_start";
 pub const MAX_BLANK_LINES: &str = "max_blank_lines";
 pub const BLANK_LINES_AFTER_KEY: &str = "blank_lines_after_key";
+pub const COMMENT_SPACING: &str = "comment_spacing";
+pub const SPACE_AFTER_COMMENT_MARKER: &str = "space_after_comment_marker";
 
 pub fn option_schema() -> OptionSchema {
     OptionSchema::new(vec![
@@ -63,6 +66,17 @@ pub fn option_schema() -> OptionSchema {
             &["preserve", "remove"],
             "preserve",
             "Blank lines between a key and its block value on the next line: `preserve` keeps \n             them (up to `max_blank_lines`); `remove` drops them.",
+        ),
+        OptionDef::int(
+            COMMENT_SPACING,
+            1,
+            (1, 10),
+            "Spaces between a value and a comment after it on the same line.",
+        ),
+        OptionDef::boolean(
+            SPACE_AFTER_COMMENT_MARKER,
+            false,
+            "Put a space after the `#` of a comment when text follows it directly (`#note`              becomes `# note`). A run of `#` (`###`) and a `#!` on the first line stay as written.",
         ),
     ])
     .with_presets(presets())
@@ -153,6 +167,13 @@ impl NodeFormatter for YamlFormatter {
         Ok(Some(doc))
     }
 
+    fn comment_style(&self, options: &ResolvedOptions) -> CommentStyle {
+        CommentStyle {
+            gap: options.int(COMMENT_SPACING) as usize,
+            space_after: options.bool(SPACE_AFTER_COMMENT_MARKER).then_some('#'),
+        }
+    }
+
     /// The data model must be the same before and after: indentation and quoting can change
     /// meaning, and the tree comparison cannot see it.
     fn extra_check(&self, before: &SyntaxNode, after: &SyntaxNode) -> Result<(), String> {
@@ -179,5 +200,6 @@ fn presets() -> Vec<Preset> {
             "yaml/prettier-compat",
             include_str!("../../presets/prettier-compat.yaml"),
         ),
+        Preset::new("yaml/yamllint", include_str!("../../presets/yamllint.yaml")),
     ]
 }

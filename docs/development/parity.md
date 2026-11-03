@@ -5,6 +5,6 @@
 Tools: `yamllint`. The script installs the catalog's `version` into a virtualenv under `target/parity/<tool>-<version>/` on first use (needs Python 3 and network) and builds the debug CLI.
 
 ## Fixtures
-`tests/parity/<tool>/` holds one file per case plus the two configs that make the tools comparable: the upstream config (`.yamllint`) enables only rules Sudsy has an equivalent for, with the parameters Sudsy's rules take, and `sudsy.yaml` enables the matching Sudsy rules. Fixtures where the tools legitimately differ (`key-ordering` reports a different key, `truthy` flags `True`) are not included; those differences are recorded in the catalog entry's `gap`.
+`tests/parity/<tool>/` holds one file per case plus the two configs that make the tools comparable: the upstream config (`.yamllint`) enables only rules Sudsy has an equivalent for, with the parameters Sudsy's rules take, and `sudsy.yaml` enables the matching Sudsy rules. A fixture is one file for every config, so the parameters must be the same for all cases. Fixtures where the tools legitimately differ are not included; those differences are recorded in the catalog entry's `gap`. Rules the formatter covers (yamllint `comments`) are off in `.yamllint`: they are tested as formatter output instead.
 
 To add a case: add the file, enable the rule in both configs, run the script. To add a tool: add a function to `scripts/parity_compare.py` that returns the upstream diagnostics as `{(rule, line, column)}`, list the tool in `scripts/parity.sh`, and add its fixtures.

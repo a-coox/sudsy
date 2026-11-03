@@ -66,6 +66,53 @@ impl Comment {
     }
 }
 
+/// How comments are printed, set by the language through `NodeFormatter::comment_style`.
+#[derive(Clone, Copy, Debug)]
+pub struct CommentStyle {
+    /// Spaces between code and a comment after it on the same line.
+    pub gap: usize,
+    /// The marker character of line comments that get a space after the marker (and after a run
+    /// of it) when text follows directly; `None` keeps the text as written. A first line that
+    /// starts `<marker>!` (a shebang) is left alone.
+    pub space_after: Option<char>,
+}
+
+impl Default for CommentStyle {
+    fn default() -> Self {
+        CommentStyle {
+            gap: 1,
+            space_after: None,
+        }
+    }
+}
+
+impl CommentStyle {
+    pub fn gap_doc(&self) -> crate::Doc {
+        match self.gap {
+            1 => crate::doc::lit(" "),
+            n => crate::doc::text(" ".repeat(n)),
+        }
+    }
+}
+
+impl Comment {
+    /// [`Comment::text`] with the marker spacing of `style` applied.
+    pub fn styled_text(&self, style: &CommentStyle) -> Cow<'_, str> {
+        let text = self.text();
+        let Some(m) = style.space_after.filter(|_| self.kind == CommentKind::Line) else {
+            return text;
+        };
+        let rest = text.trim_start_matches(m);
+        let marks = text.len() - rest.len();
+        let shebang =
+            marks == 1 && rest.starts_with('!') && self.element.text_range().start() == 0.into();
+        if marks == 0 || rest.is_empty() || rest.starts_with(char::is_whitespace) || shebang {
+            return text;
+        }
+        Cow::Owned(format!("{} {rest}", &text[..marks]))
+    }
+}
+
 /// Number of line breaks in `text` (`\r\n` counts once).
 pub fn count_breaks(text: &str) -> usize {
     let mut n = 0;

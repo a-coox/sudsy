@@ -32,7 +32,7 @@ The differential runner [`scripts/parity.sh`](../development/parity.md) compares
 | prettier | 28 | 12 | 5 | 3 | 0 | 8 | 0 | 3 |
 | roslynator | 67 | 23 | 7 | 16 | 18 | 1 | 2 | 16 |
 | stylecop | 197 | 56 | 7 | 42 | 45 | 21 | 26 | 42 |
-| yamllint | 65 | 26 | 13 | 26 | 0 | 0 | 0 | 26 |
+| yamllint | 65 | 33 | 12 | 20 | 0 | 0 | 0 | 20 |
 
 ## Batches
 Planned work is grouped so related entries land together.

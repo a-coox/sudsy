@@ -122,7 +122,7 @@ fn root_body(cx: &FormatCtx<'_>, st: &Style, body: &SyntaxNode) -> R {
 fn dropped_marker(cx: &FormatCtx<'_>, marker: &SyntaxToken) -> Doc {
     let mut out = vec![leading(cx, marker)];
     for c in comments::trailing_comments(cx.grammar, marker) {
-        out.push(cx.token_text(c.token()));
+        out.push(core_format::context::comment_doc(&cx.comment_style, &c));
         out.push(doc::hardline());
     }
     doc::concat(out)

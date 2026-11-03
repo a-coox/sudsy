@@ -1,7 +1,9 @@
 //! YAML rules: `no-duplicate-keys`, `no-undefined-alias`, `ambiguous-booleans`,
 //! `document-start` and the opt-in `sorted-keys`.
 
-use crate::generated::{AnyValue, BlockMapping, BlockMappingEntry, FlowMapping, Scalar, kind};
+use crate::generated::{
+    AnyValue, BlockMapping, BlockMappingEntry, FlowMapping, FlowPair, Scalar, kind,
+};
 use crate::scalar::{double_quoted_value, plain_value, single_quoted_value};
 use core_config::Level;
 use core_rules::tree::{entry_range, reorder_edits, significant_range};
@@ -153,18 +155,31 @@ struct AmbiguousBooleans;
 static AMBIGUOUS_BOOLEANS: RuleMeta = RuleMeta {
     id: "ambiguous-booleans",
     category: Category::Suspicious,
-    description: "A plain `yes`, `no`, `on` or `off`: a boolean to YAML 1.1 parsers and a string to \
-                  YAML 1.2 parsers.",
+    description: "A plain `yes`, `no`, `on`, `off`, `True`, `TRUE`, `False` or `FALSE` (in the usual \
+                  casings): a boolean to YAML 1.1 parsers and a string to YAML 1.2 parsers. \
+                  Lowercase `true` and `false` are fine.",
     example: "enabled: yes   # becomes enabled: \"yes\"",
     default_level: Level::Off,
     fix: Some(FixKind::Unsafe),
     requires: &[],
     uses: &[],
-    options: &[],
+    options: &[
+        OptionDecl {
+            name: "check_keys",
+            default: Opt::Bool(true),
+            description: "Also check mapping keys. Turn it off to keep GitHub workflow `on:`.",
+        },
+        OptionDecl {
+            name: "allowed",
+            default: Opt::List(&[]),
+            description: "Spellings that are not reported, for example `[\"on\"]`.",
+        },
+    ],
 };
 
-const AMBIGUOUS: [&str; 12] = [
-    "yes", "Yes", "YES", "no", "No", "NO", "on", "On", "ON", "off", "Off", "OFF",
+const AMBIGUOUS: [&str; 16] = [
+    "yes", "Yes", "YES", "no", "No", "NO", "on", "On", "ON", "off", "Off", "OFF", "True", "TRUE",
+    "False", "FALSE",
 ];
 
 impl Rule for AmbiguousBooleans {
@@ -180,7 +195,13 @@ impl Rule for AmbiguousBooleans {
         let Some(token) = Scalar::cast(node.clone()).and_then(|s| s.value()) else {
             return;
         };
-        if token.kind() != kind::PLAIN || !AMBIGUOUS.contains(&token.text()) {
+        if token.kind() != kind::PLAIN
+            || !AMBIGUOUS.contains(&token.text())
+            || ctx.options.list("allowed").contains(&token.text())
+        {
+            return;
+        }
+        if !ctx.options.bool("check_keys") && is_key(node) {
             return;
         }
         // `!!str yes` says what it means.
@@ -202,6 +223,23 @@ impl Rule for AmbiguousBooleans {
             vec![Edit::replace(token.text_range(), format!("\"{text}\""))],
         ));
     }
+}
+
+/// Is the scalar (possibly inside a property node) the key of a mapping entry?
+fn is_key(scalar: &SyntaxNode) -> bool {
+    let mut value = scalar.clone();
+    if let Some(p) = value.parent().filter(|p| p.kind() == kind::PROPERTY_NODE) {
+        value = p;
+    }
+    let Some(entry) = value.parent() else {
+        return false;
+    };
+    let key = match entry.kind() {
+        kind::BLOCK_MAPPING_ENTRY => BlockMappingEntry::cast(entry).and_then(|e| e.key()),
+        kind::FLOW_PAIR => FlowPair::cast(entry).and_then(|e| e.key()),
+        _ => None,
+    };
+    key.is_some_and(|k| *k.syntax() == value)
 }
 
 struct DocumentStart;
@@ -298,19 +336,31 @@ impl Rule for SortedKeys {
                 name.to_string(),
             )
         });
-        let Some(first_wrong) = (0..entries.len()).find(|&i| sorted[i] != i) else {
+        if (0..entries.len()).all(|i| sorted[i] == i) {
             return;
-        };
+        }
         let ranges: Vec<TextRange> = entries
             .iter()
             .map(|(e, _)| entry_range(e.syntax(), ctx.file.grammar))
             .collect();
         let edits = reorder_edits(ctx.file.text, &ranges, &sorted);
-        let at = significant_range(entries[first_wrong].1.syntax(), ctx.file.grammar);
-        ctx.report(at, "keys are not sorted").fix(Fix::new(
+        let mut rank = vec![0; sorted.len()];
+        for (r, &i) in sorted.iter().enumerate() {
+            rank[i] = r;
+        }
+        // Every key that sorts before the one above it is reported, like yamllint; the first
+        // report carries the fix for the whole mapping.
+        let mut fix = Some(Fix::new(
             "Sort the keys of this mapping",
             FixKind::Unsafe,
             edits,
         ));
+        for i in (1..entries.len()).filter(|&i| rank[i] < rank[i - 1]) {
+            let at = significant_range(entries[i].1.syntax(), ctx.file.grammar);
+            let report = ctx.report(at, "keys are not sorted");
+            if let Some(f) = fix.take() {
+                report.fix(f);
+            }
+        }
     }
 }

@@ -60,28 +60,6 @@ expression: "serde_json::to_string_pretty(&value).unwrap()"
                   "uri": "b.yaml"
                 },
                 "region": {
-                  "endColumn": 2,
-                  "endLine": 2,
-                  "startColumn": 1,
-                  "startLine": 2
-                }
-              }
-            }
-          ],
-          "message": {
-            "text": "keys are not sorted"
-          },
-          "ruleId": "sorted-keys"
-        },
-        {
-          "level": "warning",
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "b.yaml"
-                },
-                "region": {
                   "endColumn": 7,
                   "endLine": 2,
                   "startColumn": 4,
@@ -94,6 +72,28 @@ expression: "serde_json::to_string_pretty(&value).unwrap()"
             "text": "`yes` is a boolean in YAML 1.1 and a string in YAML 1.2"
           },
           "ruleId": "ambiguous-booleans"
+        },
+        {
+          "level": "warning",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "b.yaml"
+                },
+                "region": {
+                  "endColumn": 2,
+                  "endLine": 3,
+                  "startColumn": 1,
+                  "startLine": 3
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "keys are not sorted"
+          },
+          "ruleId": "sorted-keys"
         }
       ],
       "tool": {

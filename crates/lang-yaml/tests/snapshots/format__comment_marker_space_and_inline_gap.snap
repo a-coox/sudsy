@@ -1,0 +1,27 @@
+---
+source: crates/lang-yaml/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+#!shebang-like but not first
+#no space
+### run
+#
+a: 1 # one
+b: 2   #two
+c:
+  - x #y
+  #z
+d: {k: v} #f
+
+-----
+#!shebang-like but not first
+# no space
+### run
+#
+a: 1  # one
+b: 2  # two
+c:
+  - x  # y
+  # z
+d:
+  { k: v }  # f

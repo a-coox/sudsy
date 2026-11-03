@@ -1,0 +1,10 @@
+---
+source: crates/lang-yaml/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+#nospace
+a: 1   #c
+
+-----
+#nospace
+a: 1 #c

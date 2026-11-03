@@ -1,0 +1,10 @@
+a: True
+b: TRUE
+c: False
+d: FALSE
+e: true
+f: false
+list: [Yes, NO, off]
+On: x
+quoted: "yes"
+tagged: !!str on

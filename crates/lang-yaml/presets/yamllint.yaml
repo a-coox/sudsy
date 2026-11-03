@@ -1,0 +1,23 @@
+# yamllint's default configuration: output that satisfies it (two spaces before an inline comment,
+# a space after `#`, at most two blank lines, sequences indented) and the lint levels it sets.
+yaml:
+  format:
+    line_width: 80
+    indent_size: 2
+    sequence_indent: indented
+    max_blank_lines: 2
+    comment_spacing: 2
+    space_after_comment_marker: true
+  lint:
+    rules:
+      max-line-length:
+        level: error
+        options:
+          max: 80
+          allow_non_breakable_words: true
+      ambiguous-booleans:
+        level: warn
+        options:
+          check_keys: true
+          allowed: []
+      document-start: warn

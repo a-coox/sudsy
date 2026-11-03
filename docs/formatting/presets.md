@@ -13,6 +13,7 @@ Why plain config and unversioned: no hidden values or code paths per tool, and a
 | `json/default` | The defaults. |
 | `json/prettier-compat` | Width 80, objects stay expanded after an opening line break (`collapse: opening_break`). Number arrays not filled, numbers not normalized. |
 | `yaml/default` | The defaults (styles preserved). |
+| `yaml/yamllint` | yamllint's default config: lint levels (line length 80 at error, `ambiguous-booleans` and `document-start` at warn) and output that satisfies it: `comment_spacing: 2`, `space_after_comment_marker`, `max_blank_lines: 2`, `sequence_indent: indented`, width 80. Flow mappings still print `{ a: 1 }` (yamllint wants `{a: 1}`; needs `bracket_spacing`). |
 | `yaml/prettier-compat` | Width 80, `quote_style: prefer_double`, `blank_lines_after_key: remove`. |
 
 ## Mechanics

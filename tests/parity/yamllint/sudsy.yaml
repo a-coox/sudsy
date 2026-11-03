@@ -7,3 +7,4 @@ lint:
       options:
         max: 30
     ambiguous-booleans: warn
+    sorted-keys: warn

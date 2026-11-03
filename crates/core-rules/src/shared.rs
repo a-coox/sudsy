@@ -20,11 +20,19 @@ static MAX_LINE_LENGTH: RuleMeta = RuleMeta {
     fix: None,
     requires: &[],
     uses: &[],
-    options: &[OptionDecl {
-        name: "max",
-        default: Opt::Int(120),
-        description: "Longest allowed line, in characters.",
-    }],
+    options: &[
+        OptionDecl {
+            name: "max",
+            default: Opt::Int(120),
+            description: "Longest allowed line, in characters.",
+        },
+        OptionDecl {
+            name: "allow_non_breakable_words",
+            default: Opt::Bool(true),
+            description: "Do not report a line that has no space after its indentation (and \
+                          after a leading `#` run or `- `), such as a long URL.",
+        },
+    ],
 };
 
 impl Rule for MaxLineLength {
@@ -34,6 +42,7 @@ impl Rule for MaxLineLength {
 
     fn check_file(&self, file: &FileContext<'_>, ctx: &mut RuleContext<'_>) {
         let max = usize::try_from(ctx.options.int("max")).unwrap_or(usize::MAX);
+        let non_breakable = ctx.options.bool("allow_non_breakable_words");
         for line in 0..file.lines.line_count() {
             let (start, end) = file.lines.line_range(file.text, line);
             let text = &file.text[start..end];
@@ -44,6 +53,9 @@ impl Rule for MaxLineLength {
                 TextSize::from((start + offset) as u32),
                 TextSize::from(end as u32),
             );
+            if non_breakable && is_non_breakable(text) {
+                continue;
+            }
             let length = text.chars().count();
             ctx.report(
                 range,
@@ -51,4 +63,18 @@ impl Rule for MaxLineLength {
             );
         }
     }
+}
+
+/// Does the line have no space after its indentation, a leading `#` run and the character after
+/// it, or a leading `-` and the character after it? (yamllint's `allow-non-breakable-words`.)
+fn is_non_breakable(line: &str) -> bool {
+    let body = line.trim_start_matches(' ');
+    let skip = |s: &str| s.chars().skip(1).collect::<String>();
+    let rest = match body.chars().next() {
+        None => return false,
+        Some('#') => skip(body.trim_start_matches('#')),
+        Some('-') => body.chars().skip(2).collect(),
+        Some(_) => return !body.contains(' '),
+    };
+    !rest.contains(' ')
 }

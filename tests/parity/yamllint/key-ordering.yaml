@@ -1,0 +1,6 @@
+alpha: 1
+gamma: 2
+beta: 3
+nested:
+  y: 1
+  x: 2
