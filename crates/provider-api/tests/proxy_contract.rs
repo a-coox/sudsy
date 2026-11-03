@@ -53,15 +53,26 @@ fn mismatched_hello_reply_is_rejected() {
 }
 
 #[test]
-fn missing_executable_is_unavailable() {
-    let mut config =
-        provider_api::WorkerConfig::new(vec!["definitely-not-a-real-program".into()], "h");
-    config.install_hint = "; install it".into();
-    let e = provider_api::WorkerProxy::new(config)
-        .parse(request("x"))
-        .unwrap_err();
-    assert!(e.to_string().contains("cannot start the worker"), "{e}");
-    assert!(e.to_string().ends_with("; install it"), "{e}");
+fn missing_executable_is_a_missing_runtime() {
+    let config = provider_api::WorkerConfig::new(vec!["definitely-not-a-real-program".into()], "h");
+    let proxy = provider_api::WorkerProxy::new(config);
+    for _ in 0..2 {
+        let e = proxy.parse(request("x")).unwrap_err();
+        assert!(
+            matches!(&e, ProxyError::RuntimeMissing(r) if r.contains("definitely-not-a-real-program")),
+            "{e}"
+        );
+    }
+}
+
+#[test]
+fn host_without_its_framework_is_a_missing_runtime() {
+    let proxy = fake_proxy("missing-framework", None, Duration::from_secs(10));
+    let e = proxy.parse(request("x")).unwrap_err();
+    assert!(
+        matches!(&e, ProxyError::RuntimeMissing(r) if r.contains("'Microsoft.NETCore.App'")),
+        "{e}"
+    );
 }
 
 #[test]

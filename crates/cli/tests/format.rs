@@ -315,3 +315,25 @@ fn csharp_without_a_worker_fails_the_file_and_formats_the_rest() {
     assert_eq!(read(t.path(), "Program.cs"), "class A{}");
     assert_eq!(read(t.path(), "a.json"), CLEAN);
 }
+
+#[test]
+fn missing_dotnet_is_one_clear_error_and_other_languages_continue() {
+    let t = tempfile::tempdir().unwrap();
+    write(t.path(), "a.json", MESSY);
+    write(t.path(), "a.cs", "class A{}");
+    write(t.path(), "worker.dll", "");
+    let out = Command::new(env!("CARGO_BIN_EXE_sudsy"))
+        .arg("format")
+        .env("SUDSY_CSHARP_WORKER", t.path().join("worker.dll"))
+        .env("PATH", t.path().join("empty"))
+        .current_dir(t.path())
+        .output()
+        .unwrap();
+    let stderr = String::from_utf8_lossy(&out.stderr);
+    assert_eq!(out.status.code(), Some(2), "{stderr}");
+    assert!(
+        stderr.contains("Sudsy needs the .NET 10 runtime to format and lint C#. JSON and YAML keep working. Download it from https://dotnet.microsoft.com/download/dotnet/10.0"),
+        "{stderr}"
+    );
+    assert_eq!(read(t.path(), "a.json"), CLEAN);
+}

@@ -39,6 +39,8 @@ pub struct Client {
     pub notes: Vec<(String, serde_json::Value)>,
     /// Requests the server made (registrations, refreshes), as method names.
     pub server_requests: Vec<String>,
+    /// The same requests with their parameters.
+    pub server_request_params: Vec<(String, serde_json::Value)>,
     pub root: PathBuf,
 }
 
@@ -58,6 +60,7 @@ impl Client {
             next_id: 0,
             notes: Vec::new(),
             server_requests: Vec::new(),
+            server_request_params: Vec::new(),
             root: root.to_path_buf(),
         };
         let params = InitializeParams {
@@ -83,6 +86,15 @@ impl Client {
         client.request::<Initialize>(params);
         client.notify::<Initialized>(InitializedParams {});
         client
+    }
+
+    /// Records a request of the server and answers it: a prompt gets its first action chosen,
+    /// everything else null.
+    fn answer(&mut self, r: Request) {
+        let result = r.params["actions"][0].clone();
+        self.server_requests.push(r.method.clone());
+        self.server_request_params.push((r.method, r.params));
+        self.send(Response::new_ok(r.id, result));
     }
 
     fn send(&self, message: impl Into<Message>) {
@@ -123,10 +135,7 @@ impl Client {
                 }
                 Message::Response(_) => {}
                 Message::Notification(n) => self.notes.push((n.method, n.params)),
-                Message::Request(r) => {
-                    self.server_requests.push(r.method);
-                    self.send(Response::new_ok(r.id, serde_json::Value::Null));
-                }
+                Message::Request(r) => self.answer(r),
             }
         }
     }
@@ -170,10 +179,7 @@ impl Client {
                 }
                 Message::Response(_) => {}
                 Message::Notification(n) => self.notes.push((n.method, n.params)),
-                Message::Request(r) => {
-                    self.server_requests.push(r.method);
-                    self.send(Response::new_ok(r.id, serde_json::Value::Null));
-                }
+                Message::Request(r) => self.answer(r),
             }
         }
     }
@@ -192,10 +198,7 @@ impl Client {
             {
                 Message::Notification(n) if n.method == method => return n.params,
                 Message::Notification(n) => self.notes.push((n.method, n.params)),
-                Message::Request(r) => {
-                    self.server_requests.push(r.method);
-                    self.send(Response::new_ok(r.id, serde_json::Value::Null));
-                }
+                Message::Request(r) => self.answer(r),
                 Message::Response(_) => {}
             }
         }

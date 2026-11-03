@@ -1,6 +1,6 @@
 # C# worker (`workers/csharp`, net10.0, roll-forward)
 
-Roslyn parse and mapping to our grammar, semantic queries, flow-graph export. Framework-dependent: needs the .NET 10+ runtime; without it C# files fail with an install hint and JSON/YAML keep working.
+Roslyn parse and mapping to our grammar, semantic queries, flow-graph export. Framework-dependent: needs the .NET 10+ runtime; a missing or too-old runtime is one typed condition (`ProxyError::RuntimeMissing` / `ProviderError::RuntimeMissing` / `Stage::Runtime`), detected when the program cannot be spawned (not found) or when the `dotnet` host exits before the handshake reporting a missing framework (exit code 0x80008096 or its "You must install ..." / "framework ... was not found" message on stderr, which is also forwarded to our stderr). The editor shows a "Download .NET" popup once; the CLI prints, per C# file, `error: <file>: Sudsy needs the .NET 10 runtime to format and lint C#. JSON and YAML keep working. Download it from https://dotnet.microsoft.com/download/dotnet/10.0 (<reason>)` and continues with other languages (exit code 2 as for any failed file). Other failures stay generic.
 
 ## Layout
 `Sudsy.Worker` (`Mapping/` Roslyn to our kinds, `Protocol/`, `Semantics/`), `Sudsy.Worker.Tests`, `Sudsy.Bench` (production-path parse/mapping/serialize benchmark).

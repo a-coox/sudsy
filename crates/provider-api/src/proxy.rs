@@ -35,8 +35,6 @@ pub struct WorkerConfig {
     /// with more of them, threads that parse at once do not queue behind each other. They start
     /// when a request finds all the others busy.
     pub pool_size: usize,
-    /// Added to the message when the worker's program cannot be started, to say what to install.
-    pub install_hint: String,
     /// Source parsed once by each prestarted worker, so that the first real request does not pay
     /// for JIT compilation; empty for none.
     pub warmup_source: String,
@@ -52,7 +50,6 @@ impl WorkerConfig {
             max_restarts: 1,
             env: Vec::new(),
             pool_size: 1,
-            install_hint: String::new(),
             warmup_source: String::new(),
         }
     }
@@ -63,6 +60,10 @@ pub enum ProxyError {
     /// No further requests can succeed in this process.
     #[error("{0}")]
     Unavailable(String),
+    /// The runtime the worker needs is not installed (program not found, or the `dotnet` host
+    /// reports a missing framework); the reason says which. No further requests can succeed.
+    #[error("the worker's runtime is missing: {0}")]
+    RuntimeMissing(String),
     /// The worker answered with a protocol-level error; it is still running.
     #[error("worker error {}: {}", .0.code, .0.message)]
     Worker(ProtocolError),
@@ -72,6 +73,8 @@ pub enum ProxyError {
 enum Transport {
     /// Could not even start the process; restarting will not help.
     Spawn(String),
+    /// The runtime is missing, see [`ProxyError::RuntimeMissing`].
+    Runtime(String),
     /// Refused the handshake; restarting will not help.
     Refused(String),
     /// Crashed, closed its pipes, hung, or sent garbage.
@@ -91,6 +94,7 @@ enum State {
     NotStarted,
     Running(Running),
     Unavailable(String),
+    RuntimeMissing(String),
 }
 
 struct Inner {
@@ -305,7 +309,14 @@ impl WorkerProxy {
         let mut busy = false;
         for slot in &self.slots {
             match slot.try_lock() {
-                Ok(guard) if !matches!(guard.state, State::Unavailable(_)) => return guard,
+                Ok(guard)
+                    if !matches!(
+                        guard.state,
+                        State::Unavailable(_) | State::RuntimeMissing(_)
+                    ) =>
+                {
+                    return guard;
+                }
                 Err(std::sync::TryLockError::Poisoned(e)) => return e.into_inner(),
                 Err(std::sync::TryLockError::WouldBlock) => busy = true,
                 Ok(_) => {}
@@ -336,10 +347,17 @@ impl WorkerProxy {
             match inner.state {
                 State::Running(_) => break,
                 State::Unavailable(ref why) => return Err(ProxyError::Unavailable(why.clone())),
+                State::RuntimeMissing(ref why) => {
+                    return Err(ProxyError::RuntimeMissing(why.clone()));
+                }
                 State::NotStarted => {}
             }
             match self.start() {
                 Ok(r) => inner.state = State::Running(r),
+                Err(Transport::Runtime(why)) => {
+                    inner.state = State::RuntimeMissing(why.clone());
+                    return Err(ProxyError::RuntimeMissing(why));
+                }
                 Err(Transport::Spawn(why) | Transport::Refused(why)) => {
                     inner.state = State::Unavailable(why.clone());
                     return Err(ProxyError::Unavailable(why));
@@ -381,15 +399,17 @@ impl WorkerProxy {
             .envs(self.config.env.iter().map(|(k, v)| (k, v)))
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
-            .stderr(Stdio::inherit())
+            .stderr(Stdio::piped())
             .spawn()
             .map_err(|e| {
-                Transport::Spawn(format!(
-                    "cannot start the worker ({}): {e}{}",
-                    program.to_string_lossy(),
-                    self.config.install_hint
-                ))
+                let name = program.to_string_lossy();
+                if e.kind() == std::io::ErrorKind::NotFound {
+                    Transport::Runtime(format!("cannot start `{name}`: {e}"))
+                } else {
+                    Transport::Spawn(format!("cannot start the worker ({name}): {e}"))
+                }
             })?;
+        let stderr = tee_stderr(child.stderr.take().expect("stderr is piped"));
         let stdin = child.stdin.take().expect("stdin is piped");
         let mut stdout = child.stdout.take().expect("stdout is piped");
         let (tx, frames) = mpsc::channel();
@@ -425,6 +445,16 @@ impl WorkerProxy {
             kill(&mut r.child);
             t
         };
+        // A host that cannot find its runtime prints why and exits before the handshake.
+        let died = |mut r: Running, why: String| {
+            kill(&mut r.child);
+            let code = r.child.wait().ok().and_then(|s| s.code());
+            let text = stderr.join().unwrap_or_default();
+            match missing_runtime(code, &text) {
+                Some(reason) => Transport::Runtime(reason),
+                None => Transport::Broken(why),
+            }
+        };
         match reply {
             Ok(Response::Hello(theirs)) => {
                 let same = theirs.protocol_version == ours.protocol_version
@@ -448,7 +478,7 @@ impl WorkerProxy {
                 running,
                 Transport::Broken(format!("unexpected handshake reply: {other:?}")),
             )),
-            Err(why) => Err(fail(running, Transport::Broken(why))),
+            Err(why) => Err(died(running, why)),
         }
     }
 }
@@ -461,6 +491,43 @@ impl Drop for WorkerProxy {
             }
         }
     }
+}
+
+/// The exit code of the .NET host when no matching framework is installed (0x80008096).
+const HOST_FRAMEWORK_MISSING: i32 = 0x8000_8096_u32 as i32;
+
+/// Forwards the worker's stderr to ours and keeps the first part of it.
+fn tee_stderr(stderr: std::process::ChildStderr) -> std::thread::JoinHandle<String> {
+    std::thread::spawn(move || {
+        use std::io::{BufRead, BufReader};
+        let mut kept = String::new();
+        for line in BufReader::new(stderr).split(10).map_while(Result::ok) {
+            let line = String::from_utf8_lossy(&line);
+            eprintln!("{line}");
+            if kept.len() < 8192 {
+                kept.push_str(&line);
+                kept.extend(['\x0a']);
+            }
+        }
+        kept
+    })
+}
+
+/// Why the `dotnet` host exited without a runtime, from its exit code (on Windows) or its
+/// message (everywhere; other platforms truncate the code), if that is why.
+fn missing_runtime(code: Option<i32>, stderr: &str) -> Option<String> {
+    let by_text = stderr.contains("You must install")
+        || (stderr.contains("framework") && stderr.contains("was not found"));
+    if code != Some(HOST_FRAMEWORK_MISSING) && !by_text {
+        return None;
+    }
+    let line = |needle: &str| stderr.lines().find(|l| l.contains(needle));
+    Some(
+        line("was not found")
+            .or_else(|| line("You must install"))
+            .map_or("the .NET host found no matching runtime", str::trim)
+            .to_string(),
+    )
 }
 
 fn kill(child: &mut Child) {

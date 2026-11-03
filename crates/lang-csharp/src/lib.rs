@@ -96,13 +96,14 @@ public enum Kind { A = 1, B, C }
 
 /// A C# provider that runs the framework-dependent worker through the `dotnet` host.
 pub fn provider(worker_dll: &Path) -> OutOfProcessProvider {
+    provider_with_command(vec!["dotnet".into(), worker_dll.into()])
+}
+
+/// A C# provider whose worker is started with `command` (tests use a host that cannot run).
+pub fn provider_with_command(command: Vec<OsString>) -> OutOfProcessProvider {
     let grammar = grammars::csharp();
-    let command: Vec<OsString> = vec!["dotnet".into(), worker_dll.into()];
     let mut config = WorkerConfig::new(command, grammar.hash());
     config.pool_size = pool_size();
-    config.install_hint =
-        "; C# needs the .NET runtime (10 or newer), see https://dotnet.microsoft.com/download"
-            .into();
     // The worker is a batch process: start counting calls at once, so that its hot methods
     // reach optimized code in the first second instead of after the default 100 ms of quiet.
     config.warmup_source = WARMUP_SOURCE.into();

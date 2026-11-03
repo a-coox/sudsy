@@ -244,7 +244,7 @@ fn a_worker_failure_is_an_error_value_and_is_memoized() {
     let f = h.file("Program.cs", "class C { }");
 
     let failure = parse(&h.db, f).as_ref().unwrap_err();
-    assert_eq!(failure.stage, Stage::Parse);
+    assert_eq!(failure.stage, Stage::Runtime);
     assert!(!failure.message.is_empty());
     let formatted = format(&h.db, f).as_ref().unwrap_err();
     assert_eq!(formatted, failure, "format reports the parse failure");

@@ -142,3 +142,42 @@ fn deep_diagnostics_use_every_file_of_the_project_not_only_the_open_ones() {
         "{messages:?}"
     );
 }
+
+#[test]
+fn a_missing_runtime_is_prompted_once_and_the_action_opens_the_download() {
+    let t = tempfile::tempdir().unwrap();
+    let missing = lang_csharp::provider_with_command(vec!["definitely-not-a-real-program".into()]);
+    let mut client = Client::start(t.path(), vec![Box::new(missing)]);
+    let first = client.open("A.cs", "csharp", "class A { }");
+    let second = client.open("B.cs", "csharp", "class B { }");
+    assert!(client.diagnostics(&first).is_empty());
+    assert!(client.diagnostics(&second).is_empty());
+    // The harness chooses the first action of a prompt; the server then opens the page.
+    // Any later round trip collects the server's follow-up request.
+    assert!(client.format(&second).is_empty());
+
+    let params = |method: &str| -> Vec<serde_json::Value> {
+        client
+            .server_request_params
+            .iter()
+            .filter(|(m, _)| m == method)
+            .map(|(_, p)| p.clone())
+            .collect()
+    };
+    let prompts = params("window/showMessageRequest");
+    assert_eq!(prompts.len(), 1, "{prompts:?}");
+    assert_eq!(prompts[0]["type"], 2);
+    assert_eq!(
+        prompts[0]["message"],
+        "Sudsy needs the .NET 10 runtime to format and lint C#. JSON and YAML keep working."
+    );
+    assert_eq!(prompts[0]["actions"][0]["title"], "Download .NET");
+    let documents = params("window/showDocument");
+    assert_eq!(documents.len(), 1, "{documents:?}");
+    assert_eq!(
+        documents[0]["uri"],
+        "https://dotnet.microsoft.com/download/dotnet/10.0"
+    );
+    assert_eq!(documents[0]["external"], true);
+    assert!(client.notes.iter().all(|(m, _)| m != "window/showMessage"));
+}

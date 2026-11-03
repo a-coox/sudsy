@@ -198,11 +198,21 @@ pub struct ParseResult {
     pub errors: Vec<ParseError>,
 }
 
+/// What the user is told when the .NET runtime is missing (editor popup text; the CLI appends
+/// where to get it).
+pub const RUNTIME_MISSING: &str =
+    "Sudsy needs the .NET 10 runtime to format and lint C#. JSON and YAML keep working.";
+/// Where to download the runtime.
+pub const RUNTIME_URL: &str = "https://dotnet.microsoft.com/download/dotnet/10.0";
+
 #[derive(Debug, thiserror::Error)]
 pub enum ProviderError {
     /// The worker cannot be used any more in this process (not installed, crashed twice in a row, refused).
     #[error("{0}")]
     Unavailable(String),
+    /// The runtime the worker needs is not installed; the string says what was found missing.
+    #[error("the worker's runtime is missing: {0}")]
+    RuntimeMissing(String),
     #[error("worker error {code}: {message}")]
     Worker { code: String, message: String },
     #[error("invalid tree from worker: {0}")]

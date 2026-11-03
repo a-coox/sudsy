@@ -3,7 +3,8 @@
 //! Usage: fake_worker <mode> [marker file]
 //! Modes: echo (healthy), refuse (version_mismatch error), bad-hash (replies a different grammar
 //! hash), crash-on-parse, crash-once (crashes on the first Parse across restarts, using the marker
-//! file), hang-on-parse.
+//! file), hang-on-parse, missing-framework (the message and exit code of the .NET host without its
+//! runtime, before any handshake).
 
 use core_syntax::LanguageId;
 use core_syntax::SyntaxKind;
@@ -17,6 +18,11 @@ fn main() {
     let args: Vec<String> = std::env::args().collect();
     let mode = args.get(1).map(String::as_str).unwrap_or("echo");
     let marker = args.get(2);
+    if mode == "missing-framework" {
+        eprintln!("You must install or update .NET to run this application.");
+        eprintln!("The framework 'Microsoft.NETCore.App', version '10.0.0' was not found.");
+        std::process::exit(0x8000_8096_u32 as i32);
+    }
     let (mut input, mut output) = (stdin().lock(), stdout().lock());
     while let Ok(Some(frame)) = read_frame(&mut input) {
         let reply = match decode::<Request>(&frame).expect("valid request") {

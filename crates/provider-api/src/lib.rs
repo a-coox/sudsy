@@ -16,7 +16,7 @@ pub use format::{
 pub use out_of_process::OutOfProcessProvider;
 pub use provider::{
     Capabilities, FileMatcher, FilePattern, LanguageProvider, ParseError, ParseResult,
-    ProviderError, SourceError, SourceFile,
+    ProviderError, RUNTIME_MISSING, RUNTIME_URL, SourceError, SourceFile,
 };
 pub use proxy::{ProxyError, WorkerConfig, WorkerProxy};
 pub use snippets::ProviderSnippets;
