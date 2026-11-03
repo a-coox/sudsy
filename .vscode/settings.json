@@ -1,9 +1,10 @@
 {
+  "terminal.integrated.defaultProfile.windows": "Git Bash",
   "[csharp]": { "editor.defaultFormatter": "sudsy.sudsy", "editor.formatOnSave": true },
   "[json]": { "editor.defaultFormatter": "sudsy.sudsy", "editor.formatOnSave": true },
   "[jsonc]": { "editor.defaultFormatter": "sudsy.sudsy", "editor.formatOnSave": true },
   "[yaml]": { "editor.defaultFormatter": "sudsy.sudsy", "editor.formatOnSave": true },
   "editor.codeActionsOnSave": { "source.fixAll.sudsy": "explicit" },
-  "sudsy.serverPath": "${workspaceFolder}/target/debug/sudsy",
-  "sudsy.csharpWorkerPath": "${workspaceFolder}/workers/csharp/Sudsy.Worker/bin/Debug/net10.0/Sudsy.Worker.dll"
+  "sudsy.serverPath": "${workspaceFolder}/target/dogfood/sudsy",
+  "sudsy.csharpWorkerPath": "${workspaceFolder}/target/dogfood/worker/Sudsy.Worker.dll"
 }
