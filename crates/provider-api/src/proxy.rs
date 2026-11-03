@@ -55,7 +55,7 @@ impl WorkerConfig {
 
 #[derive(Debug, thiserror::Error)]
 pub enum ProxyError {
-    /// No further requests can succeed in this run.
+    /// No further requests can succeed in this process.
     #[error("{0}")]
     Unavailable(String),
     /// The worker answered with a protocol-level error; it is still running.

@@ -194,7 +194,7 @@ pub struct ParseResult {
 
 #[derive(Debug, thiserror::Error)]
 pub enum ProviderError {
-    /// The worker cannot be used for the rest of this run (not installed, crashed twice, refused).
+    /// The worker cannot be used any more in this process (not installed, crashed twice in a row, refused).
     #[error("{0}")]
     Unavailable(String),
     #[error("worker error {code}: {message}")]
