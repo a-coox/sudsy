@@ -23,9 +23,9 @@ core-workspace.workspace = true
 lang-csharp.workspace = true
 core-syntax.workspace = true
 provider-api.workspace = true
+tempfile.workspace = true
 
 [dev-dependencies]
-tempfile.workspace = true
 insta.workspace = true
 
 [lints]

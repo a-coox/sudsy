@@ -10,6 +10,8 @@ Machine unless noted: AMD Ryzen 5 3600 (6 cores / 12 threads), 32 GB, Windows 11
 | YAML 5.0 MB phases: parse / layout / print / re-parse / compare / data model | 522 / 1655 / 202 / 499 / 194 / 732 ms; whole 1.6 MB/s at 4x |
 | Allocations per fixed workload | json.format 851312, yaml.format 2113939, cs.format 140247 |
 
+`format` writing 1500 small JSON files that all change (`scripts/bench-write.sh`, NTFS): 0.9 s with `fs::write`, 3.4 s with the temp file + fsync + rename of `format`/`fix` (about 1.7 ms per rewritten file, all of it the sync); files that do not change are not written, so check mode and clean trees are unaffected.
+
 Time is linear in file size (guards: `core-format/tests/scaling.rs`, `tools/perf-bench/tests/scaling.rs`). Remaining cost is spread over phases: layout is ~7 allocations per node (rowan red nodes), parse is mostly rowan's node builder, the safety check re-parses and re-compares (about a third of the run). Allocator: mimalloc gives 1.3-1.4x over the system allocator.
 
 ## JSON / YAML against other formatters (`speed-json-yaml.sh`, check mode, caches off, new process per run, best of 3, seconds)

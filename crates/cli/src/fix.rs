@@ -77,7 +77,7 @@ fn fix_file(
             bytes.extend_from_slice("\u{feff}".as_bytes());
         }
         bytes.extend_from_slice(text.as_bytes());
-        std::fs::write(path, bytes)
+        crate::atomic::write(path, &bytes)
             .context("writing the file")
             .map_err(Failed::File)?;
     }

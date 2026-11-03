@@ -1,3 +1,4 @@
+mod atomic;
 mod check;
 mod config_cmd;
 mod debug;
