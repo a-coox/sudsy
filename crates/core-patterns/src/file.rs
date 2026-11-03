@@ -17,7 +17,7 @@
 //!   - break-all on $CHAIN         # `<directive> [argument] [on $METAVARIABLE]`
 //! ```
 
-use crate::expr::{Ctx, Expr, Spec};
+use crate::expr::{Ctx, Expr, STEP_BUDGET, Spec};
 use crate::matcher::{Captures, SnippetParser};
 use crate::metavar::rewrite;
 use core_config::Level;
@@ -27,6 +27,7 @@ use core_rules::{Category, Edit, Fix, FixKind, LayoutRole, Rule, RuleContext, Ru
 use core_syntax::{SyntaxKind, SyntaxNode};
 use regex::Regex;
 use serde::Deserialize;
+use std::cell::Cell;
 use std::collections::BTreeMap;
 
 #[derive(Debug, thiserror::Error)]
@@ -299,6 +300,9 @@ fn substitute(template: &str, captures: &Captures, text: &str) -> String {
     })
 }
 
+/// Reported once per file, after which the rule skips the rest of the file.
+const OVER_BUDGET: &str = "the pattern took too many steps on this node (several `$$$` in one pattern?); \nthis rule is off for the rest of the file";
+
 impl PatternRule {
     /// Attaches the rule's directives: to the matched node, or to the single node a metavariable
     /// captured (a metavariable that captured a token or a run gets nothing).
@@ -351,11 +355,22 @@ impl Rule for PatternRule {
 
     fn check(&self, node: &SyntaxNode, ctx: &mut RuleContext<'_>) {
         let file = ctx.file;
+        if ctx.has_reported(OVER_BUDGET) {
+            return; // the rule is off for this file
+        }
         let cx = Ctx {
             grammar: file.grammar,
             text: file.text,
+            budget: Cell::new(STEP_BUDGET),
         };
-        let Some(captures) = self.expr.matches(node, &cx) else {
+        let found = self.expr.matches(node, &cx);
+        if cx.budget.get() == 0 {
+            if !ctx.laying_out() {
+                ctx.report(significant_range(node, file.grammar), OVER_BUDGET);
+            }
+            return;
+        }
+        let Some(captures) = found else {
             return;
         };
         if !self.constraints_hold(&captures, file.text) {

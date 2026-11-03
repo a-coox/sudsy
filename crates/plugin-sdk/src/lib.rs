@@ -18,7 +18,7 @@
 //!
 //! The host reports the rule as `team/no-direct-datetime`. Rules see the syntax tree, the file's
 //! semantic answers and flow graphs ([`flow`], [`core_semantics`]) and may use the pattern
-//! matcher ([`patterns`]); they cannot touch files, the network, the clock or the environment.
+//! matcher ([`patterns`]); they cannot touch files, the network or the environment, or wait on the host.
 //! `plugin_sdk::testing` (feature `testing`, native only) runs a rule against a real language
 //! provider with the same harness the built-in rules use.
 

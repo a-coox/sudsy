@@ -7,7 +7,7 @@
 /// flow graphs as MessagePack. Diagnostics come back with byte spans into the text.
 ///
 /// A plugin gets a fuel and a time limit per call; one that traps or runs out of either is
-/// disabled for the rest of the run and reported. It has no files, network, clock or environment.
+/// disabled for the rest of the run and reported. It has no files, network or environment, and cannot wait on the host (sleeping traps).
 package sudsy:rules@0.2.0;
 
 interface rules {

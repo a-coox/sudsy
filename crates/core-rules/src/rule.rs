@@ -102,6 +102,13 @@ impl<'a> RuleContext<'a> {
         }
     }
 
+    /// Has this rule already reported exactly `message` in this context?
+    pub fn has_reported(&self, message: &str) -> bool {
+        self.out
+            .iter()
+            .any(|d| d.rule == self.meta.id && d.message == message)
+    }
+
     /// Reports a diagnostic; add related spans and fixes to the returned value.
     pub fn report(&mut self, range: TextRange, message: impl Into<String>) -> &mut Diagnostic {
         self.out.push(Diagnostic {

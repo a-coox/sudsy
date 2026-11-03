@@ -54,7 +54,7 @@ pub fn run(args: FormatArgs) -> Result<ExitCode> {
             Err(Failed::Run(e)) => return Err(e),
             Err(Failed::File(e)) => {
                 summary.failed += 1;
-                eprintln!("error: {}: {e:#}", project.show(path));
+                crate::report::file_error(&project.show(path), &format!("{e:#}"));
             }
         }
     }

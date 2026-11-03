@@ -7,6 +7,7 @@
 use crate::metavar::{self, Meta, Style};
 use core_rules::tree::significant_range;
 use core_syntax::{Grammar, SyntaxElement, SyntaxKind, SyntaxNode, TextRange, TextSize};
+use std::cell::Cell;
 use std::collections::BTreeMap;
 
 /// Parses snippets of one language. `Ok(None)` means the text has syntax errors.
@@ -171,7 +172,13 @@ impl Pattern {
     }
 
     /// The captures when the pattern matches `node`. `text` is the file's source.
-    pub fn matches(&self, node: &SyntaxNode, grammar: &Grammar) -> Option<Captures> {
+    /// `budget` is the steps left to the whole evaluation; at 0 nothing matches any more.
+    pub fn matches(
+        &self,
+        node: &SyntaxNode,
+        grammar: &Grammar,
+        budget: &Cell<u32>,
+    ) -> Option<Captures> {
         if node.kind() != self.kind {
             return None;
         }
@@ -191,14 +198,16 @@ impl Pattern {
             grammar,
             repeated: &self.repeated,
             env: Vec::new(),
+            budget: budget.get(),
         };
-        cx.matches(&self.root, &SyntaxElement::Node(node.clone()))
-            .then(|| {
-                cx.env
-                    .into_iter()
-                    .map(|(name, capture)| (name.to_string(), capture))
-                    .collect()
-            })
+        let found = cx.matches(&self.root, &SyntaxElement::Node(node.clone()));
+        budget.set(cx.budget);
+        found.then(|| {
+            cx.env
+                .into_iter()
+                .map(|(name, capture)| (name.to_string(), capture))
+                .collect()
+        })
     }
 }
 
@@ -207,6 +216,8 @@ struct Cx<'p> {
     repeated: &'p [String],
     /// Bindings in the order they were made; backtracking cuts the list back.
     env: Vec<(&'p str, Capture)>,
+    /// Steps left; `$$$` runs make matching O(n^k), so this bounds repo-supplied patterns.
+    budget: u32,
 }
 
 /// The kind a pattern node requires of its target, when it requires one.
@@ -218,6 +229,12 @@ fn required_kind(p: &Pat) -> Option<SyntaxKind> {
 }
 
 impl<'p> Cx<'p> {
+    /// Spends a step; true when none are left.
+    fn step(&mut self) -> bool {
+        self.budget = self.budget.saturating_sub(1);
+        self.budget == 0
+    }
+
     fn capture(&self, run: &[SyntaxElement], at: TextSize, with_text: bool) -> Capture {
         let g = self.grammar;
         let range = match (run.first(), run.last()) {
@@ -262,6 +279,9 @@ impl<'p> Cx<'p> {
     }
 
     fn matches(&mut self, p: &'p Pat, t: &SyntaxElement) -> bool {
+        if self.step() {
+            return false;
+        }
         match (p, t) {
             (Pat::Meta(meta), _) => {
                 let at = element_range(t, self.grammar).start();
@@ -305,6 +325,9 @@ impl<'p> Cx<'p> {
             && meta.multi
         {
             for take in 0..=ts.len() {
+                if self.step() {
+                    return false;
+                }
                 let saved = self.env.len();
                 let here = ts
                     .get(take)

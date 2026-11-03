@@ -148,3 +148,22 @@ fn invalid_files_are_refused_with_a_reason() {
     );
     assert!(load(&format!("{base}rule: {{ kind: Array }}\nbogus: 1")).is_some());
 }
+
+#[test]
+fn a_pattern_that_runs_away_is_switched_off_for_the_file() {
+    let ext = rules(
+        r#"
+id: many-runs
+language: json
+message: "found"
+rule:
+  pattern: '[$$$A, 1, $$$B, 1, $$$C, 1, $$$D, 1, $$$E, 2]'
+"#,
+    );
+    let text = format!("[{}]", vec!["1"; 150].join(", "));
+    let start = std::time::Instant::now();
+    let found = lint_with(&JsonProvider::new(), &ext, "a.json", &text, "");
+    assert_eq!(found.len(), 1, "{found:?}");
+    assert!(found[0].message.contains("too many steps"), "{found:?}");
+    assert!(start.elapsed().as_secs() < 10, "{:?}", start.elapsed());
+}

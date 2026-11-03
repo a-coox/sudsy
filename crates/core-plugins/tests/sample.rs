@@ -219,6 +219,13 @@ fn a_spinning_plugin_runs_out_of_fuel_or_time() {
 }
 
 #[test]
+fn a_sleeping_plugin_is_stopped_not_waited_for() {
+    let start = std::time::Instant::now();
+    disabled_by("sleep", "blocking");
+    assert!(start.elapsed().as_secs() < 30, "{:?}", start.elapsed());
+}
+
+#[test]
 fn a_span_outside_the_file_disables_the_plugin() {
     disabled_by("span", "not inside the file");
 }

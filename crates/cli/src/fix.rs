@@ -127,7 +127,7 @@ pub fn run(args: FixArgs) -> Result<ExitCode> {
             Err(Failed::Run(e)) => return Err(e),
             Err(Failed::File(e)) => {
                 collected.failed += 1;
-                eprintln!("error: {}: {e:#}", project.show(path));
+                crate::report::file_error(&project.show(path), &format!("{e:#}"));
             }
         }
     }

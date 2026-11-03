@@ -246,8 +246,8 @@ pub struct Misbehave;
 static MISBEHAVE: RuleMeta = RuleMeta {
     id: "misbehave",
     category: Category::Correctness,
-    description: "Test fixture: traps, spins or reports a span outside the file, as `mode` says.",
-    example: "mode: trap | spin | span",
+    description: "Test fixture: traps, spins, sleeps or reports a span outside the file, as `mode` says.",
+    example: "mode: trap | spin | sleep | span",
     default_level: Level::Off,
     fix: None,
     requires: &[],
@@ -255,7 +255,7 @@ static MISBEHAVE: RuleMeta = RuleMeta {
     options: &[OptionDecl {
         name: "mode",
         default: Opt::Str("trap"),
-        description: "trap | spin | span",
+        description: "trap | spin | sleep | span",
     }],
 };
 
@@ -267,6 +267,7 @@ impl Rule for Misbehave {
     fn check_file(&self, file: &FileContext<'_>, ctx: &mut RuleContext<'_>) {
         match ctx.options.string("mode") {
             "trap" => panic!("misbehave: on purpose"),
+            "sleep" => std::thread::sleep(std::time::Duration::from_secs(60)),
             "spin" => {
                 let mut n = 0u64;
                 loop {

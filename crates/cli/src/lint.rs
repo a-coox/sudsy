@@ -91,7 +91,7 @@ pub fn collect(session: &Session, loaded: &[anyhow::Result<File>]) -> Result<Col
             }
             Err(failure) => {
                 out.failed += 1;
-                eprintln!("error: {}: {}", project.show(path), failure.message);
+                report::file_error(&project.show(path), &failure.message);
             }
         }
     }

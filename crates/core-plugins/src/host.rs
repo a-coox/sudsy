@@ -25,7 +25,10 @@ const FUEL: u64 = 20_000_000_000;
 const TIMEOUT_TICKS: u64 = 200;
 const TICK: Duration = Duration::from_millis(50);
 /// The most memory a plugin may grow to.
-const MEMORY: usize = 512 << 20;
+const MEMORY: usize = 64 << 20;
+
+/// The most elements a plugin's tables may grow to.
+const TABLE_ELEMENTS: usize = 100_000;
 
 #[derive(Debug, thiserror::Error)]
 #[error("{0}")]
@@ -132,7 +135,10 @@ impl Plugin {
             State {
                 wasi: WasiCtx::builder().build(),
                 table: ResourceTable::new(),
-                limits: StoreLimitsBuilder::new().memory_size(MEMORY).build(),
+                limits: StoreLimitsBuilder::new()
+                    .memory_size(MEMORY)
+                    .table_elements(TABLE_ELEMENTS)
+                    .build(),
             },
         );
         store.limiter(|state| &mut state.limits);
@@ -196,6 +202,30 @@ fn describe(store: &Store<State>, trap: &wasmtime::Error) -> String {
     }
 }
 
+/// Replaces the two WASI calls that wait on the host (`poll` and `pollable.block`, which is what
+/// a sleep ends in) with traps: fuel and the epoch only count while Wasm runs, so a plugin
+/// blocked inside the host could otherwise hang the run. The clocks stay readable.
+fn deny_blocking(linker: &mut Linker<State>) -> wasmtime::Result<()> {
+    use wasmtime::component::Resource;
+    use wasmtime_wasi::p2::DynPollable;
+    linker.allow_shadowing(true);
+    let mut poll = linker.instance("wasi:io/poll@0.2.12")?;
+    poll.func_wrap(
+        "poll",
+        |_, (_,): (Vec<Resource<DynPollable>>,)| -> wasmtime::Result<(Vec<u32>,)> {
+            wasmtime::bail!("blocking calls are not allowed")
+        },
+    )?;
+    poll.func_wrap(
+        "[method]pollable.block",
+        |_, (_,): (Resource<DynPollable>,)| -> wasmtime::Result<()> {
+            wasmtime::bail!("blocking calls are not allowed")
+        },
+    )?;
+    linker.allow_shadowing(false);
+    Ok(())
+}
+
 /// Compiled components by the hash of their bytes: compiling is the expensive part of loading a
 /// plugin, and each `load` still gets a plugin of its own (with its own disabled state).
 static COMPONENTS: LazyLock<Mutex<HashMap<[u8; 32], Component>>> = LazyLock::new(Mutex::default);
@@ -235,6 +265,7 @@ pub fn load(
     };
     let mut linker = Linker::<State>::new(&ENGINE);
     wasmtime_wasi::p2::add_to_linker_sync(&mut linker).map_err(|e| err("linking WASI", e))?;
+    deny_blocking(&mut linker).map_err(|e| err("linking WASI", e))?;
     let pre = linker
         .instantiate_pre(&component)
         .and_then(bindings::PluginPre::new)

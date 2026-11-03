@@ -44,7 +44,7 @@ pub fn run(args: ReportArgs) -> Result<ExitCode> {
             }
             Err(failure) => {
                 collected.failed += 1;
-                eprintln!("error: {}: {}", entry.path, failure.message);
+                crate::report::file_error(&entry.path, &failure.message);
             }
         }
     }

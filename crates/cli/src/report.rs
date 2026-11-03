@@ -59,6 +59,21 @@ pub fn render(format: OutputFormat, files: &[FileDiagnostics], catalog: &Catalog
 }
 
 /// `(errors, warnings)`.
+/// Prints `error: path: message` for a file that could not be processed. The missing-runtime
+/// message is the same for every C# file, so it is printed in full once per run; later files
+/// only say they were skipped.
+pub fn file_error(path: &str, message: &dyn std::fmt::Display) {
+    static RUNTIME_SHOWN: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+    let message = message.to_string();
+    if message.starts_with(provider_api::RUNTIME_MISSING)
+        && RUNTIME_SHOWN.swap(true, std::sync::atomic::Ordering::Relaxed)
+    {
+        eprintln!("error: {path}: skipped (the .NET runtime is missing)");
+    } else {
+        eprintln!("error: {path}: {message}");
+    }
+}
+
 pub fn count(files: &[FileDiagnostics]) -> (usize, usize) {
     let all = files.iter().flat_map(|f| &f.diagnostics);
     let errors = all

@@ -8,6 +8,7 @@ use core_rules::tree::significant_range;
 use core_syntax::{Grammar, SyntaxKind, SyntaxNode};
 use regex::Regex;
 use serde::Deserialize;
+use std::cell::Cell;
 
 /// The rule as written in the file.
 #[derive(Debug, Default, Deserialize)]
@@ -31,7 +32,13 @@ pub struct Spec {
 pub struct Ctx<'a> {
     pub grammar: &'a Grammar,
     pub text: &'a str,
+    /// Matching steps left for this evaluation (see [`STEP_BUDGET`]); 0 means it ran out and
+    /// the result is not to be trusted.
+    pub budget: Cell<u32>,
 }
+
+/// Steps one rule may spend on one node (its `inside`/`has` walks included): about 10 ms.
+pub const STEP_BUDGET: u32 = 1_000_000;
 
 #[derive(Debug)]
 pub enum Expr {
@@ -100,7 +107,7 @@ impl Expr {
     /// The captures when the expression holds for `node`.
     pub fn matches(&self, node: &SyntaxNode, cx: &Ctx<'_>) -> Option<Captures> {
         match self {
-            Expr::Pattern(p) => p.matches(node, cx.grammar),
+            Expr::Pattern(p) => p.matches(node, cx.grammar, &cx.budget),
             Expr::Kind(k) => (node.kind() == *k).then(Captures::new),
             Expr::Regex(re) => {
                 let range = significant_range(node, cx.grammar);

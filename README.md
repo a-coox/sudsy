@@ -87,4 +87,4 @@ Any editor with an LSP client can start `sudsy lsp` (stdio). See [docs/editor/vs
 
 ## License and contributing
 
-MIT, copyright Maia Coox ([LICENSE](LICENSE)). Contributions need a DCO sign-off; see [CONTRIBUTING.md](CONTRIBUTING.md).
+MIT, copyright Maia Coox ([LICENSE](LICENSE)); test and benchmark inputs from other projects are listed in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md). Contributions need a DCO sign-off; see [CONTRIBUTING.md](CONTRIBUTING.md).

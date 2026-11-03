@@ -321,6 +321,7 @@ fn missing_dotnet_is_one_clear_error_and_other_languages_continue() {
     let t = tempfile::tempdir().unwrap();
     write(t.path(), "a.json", MESSY);
     write(t.path(), "a.cs", "class A{}");
+    write(t.path(), "b.cs", "class B{}");
     write(t.path(), "worker.dll", "");
     let out = Command::new(env!("CARGO_BIN_EXE_sudsy"))
         .arg("format")
@@ -335,5 +336,11 @@ fn missing_dotnet_is_one_clear_error_and_other_languages_continue() {
         stderr.contains("Sudsy needs the .NET 10 runtime to format and lint C#. JSON and YAML keep working. Download it from https://dotnet.microsoft.com/download/dotnet/10.0"),
         "{stderr}"
     );
+    assert_eq!(
+        stderr.matches("Sudsy needs the .NET").count(),
+        1,
+        "{stderr}"
+    );
+    assert!(stderr.contains("skipped"), "{stderr}");
     assert_eq!(read(t.path(), "a.json"), CLEAN);
 }
