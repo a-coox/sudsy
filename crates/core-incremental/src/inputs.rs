@@ -25,6 +25,29 @@ pub struct File {
     pub editorconfig: EditorConfig,
 }
 
+impl File {
+    /// A file from its bytes as read from disk or sent by an editor: UTF-8 without the BOM, and
+    /// the `.editorconfig` values that apply to `path`. `label` names the file in the error.
+    pub fn from_bytes(
+        db: &dyn crate::Db,
+        path: PathBuf,
+        label: impl Into<String>,
+        version: u64,
+        bytes: Vec<u8>,
+    ) -> Result<File, provider_api::SourceError> {
+        let source = provider_api::SourceFile::from_bytes(label, version, bytes)?;
+        let editorconfig = EditorConfig::for_file(&path);
+        Ok(File::new(
+            db,
+            path,
+            version,
+            source.text,
+            source.had_bom,
+            editorconfig,
+        ))
+    }
+}
+
 /// The config files that apply: the `sudsy.yaml` found by the caller and the files it extends, or
 /// the error from reading them. An empty chain is the default config.
 #[salsa::input(singleton, debug)]

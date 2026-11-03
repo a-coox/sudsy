@@ -35,6 +35,19 @@ impl Extensions {
             .map(|r| r.rule)
     }
 
+    /// Every rule that runs on files of `language`: the language's `own`, the shared ones and
+    /// the project's extension rules for it.
+    pub fn with_own<'a>(
+        &'a self,
+        own: &'a [&'static dyn Rule],
+        language: &'a str,
+    ) -> impl Iterator<Item = &'static dyn Rule> + 'a {
+        own.iter()
+            .chain(crate::shared::RULES)
+            .copied()
+            .chain(self.for_language(language))
+    }
+
     pub fn ids(&self) -> impl Iterator<Item = &'static str> + '_ {
         self.rules.iter().map(|r| r.rule.meta().id)
     }

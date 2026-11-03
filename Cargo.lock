@@ -311,15 +311,12 @@ dependencies = [
  "anyhow",
  "clap",
  "core-config",
- "core-format",
  "core-incremental",
  "core-rules",
  "core-syntax",
  "core-workspace",
  "insta",
  "lang-csharp",
- "lang-json",
- "lang-yaml",
  "languages",
  "lsp",
  "mimalloc",
@@ -418,7 +415,6 @@ version = "0.1.0"
 dependencies = [
  "core-config",
  "core-rules",
- "core-semantics",
  "core-syntax",
  "lang-csharp",
  "lang-json",
@@ -435,10 +431,8 @@ name = "core-rules"
 version = "0.1.0"
 dependencies = [
  "core-config",
- "core-flow",
  "core-semantics",
  "core-syntax",
- "insta",
  "lang-json",
  "provider-api",
 ]
@@ -1683,7 +1677,6 @@ dependencies = [
  "core-syntax",
  "rmp-serde",
  "serde",
- "serde_bytes",
  "tempfile",
  "thiserror 2.0.21",
 ]

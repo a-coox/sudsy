@@ -31,7 +31,7 @@ impl LineIndex {
     pub fn line_col(&self, text: &str, offset: TextSize) -> (usize, usize) {
         let line = self.line(offset);
         let start = self.starts[line] as usize;
-        let end = (u32::from(offset) as usize).min(text.len());
+        let end = text.floor_char_boundary((u32::from(offset) as usize).min(text.len()));
         (line + 1, text[start..end].chars().count() + 1)
     }
 

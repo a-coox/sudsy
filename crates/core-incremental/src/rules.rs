@@ -90,12 +90,7 @@ fn active_rules(db: &dyn Db, file: File) -> Result<(Vec<ActiveRule<'static>>, De
     let depth = settings.depth;
     let caps = provider.capabilities();
     let extensions = ExtensionSet::get(db).extensions(db);
-    let rules = provider
-        .rules()
-        .iter()
-        .chain(core_rules::shared::RULES)
-        .copied()
-        .chain(extensions.for_language(&provider.grammar().language));
+    let rules = extensions.with_own(provider.rules(), &provider.grammar().language);
     let active = activate(rules, &settings.rules, |l| has_layer(depth, caps, l))
         .map_err(|e| Failure::new(Stage::Config, &e))?;
     Ok((active, depth))

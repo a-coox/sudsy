@@ -109,17 +109,11 @@ pub fn collect(session: &Session, loaded: &[anyhow::Result<File>]) -> Result<Col
 /// The rule table SARIF carries: every rule, plus the two ids that are not rules.
 pub fn catalog(session: &Session) -> Catalog {
     use core_incremental::Db;
-    let mut rules: Vec<(String, String)> = session
-        .db
-        .providers()
-        .iter()
-        .flat_map(|p| p.rules())
-        .chain(core_rules::shared::RULES)
-        .copied()
-        .chain(session.project.extensions.rules.iter().map(|r| r.rule))
-        .map(|r| (r.meta().id.to_string(), r.meta().description.to_string()))
-        .collect();
-    rules.sort();
+    let mut rules: Vec<(String, String)> =
+        languages::rules(session.db.providers(), &session.project.extensions)
+            .iter()
+            .map(|(_, r)| (r.meta().id.to_string(), r.meta().description.to_string()))
+            .collect();
     rules.dedup();
     rules.push((SYNTAX_ERROR.into(), "The file does not parse.".into()));
     rules.push((

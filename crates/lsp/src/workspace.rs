@@ -7,7 +7,7 @@ use core_config::{ConfigError, EditorConfig};
 use core_incremental::{Database, File};
 use languages::Project;
 use lsp_types::TextDocumentContentChangeEvent;
-use provider_api::{LanguageProvider, SourceFile};
+use provider_api::LanguageProvider;
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
@@ -97,18 +97,11 @@ impl Workspace {
         if !self.db.supports(&path) {
             return false;
         }
-        let Ok(source) = SourceFile::from_bytes(path.to_string_lossy(), 1, text.into_bytes())
+        let label = path.to_string_lossy().into_owned();
+        let Ok(file) = File::from_bytes(&self.db, path.clone(), label, version as u64, text.into())
         else {
             return false;
         };
-        let file = File::new(
-            &self.db,
-            path.clone(),
-            version as u64,
-            source.text,
-            source.had_bom,
-            EditorConfig::for_file(&path),
-        );
         if let Some(background) = &mut self.background {
             Arc::make_mut(background).remove(&path);
         }
@@ -188,15 +181,14 @@ impl Workspace {
 
     fn read(&self, path: &Path) -> Option<File> {
         let bytes = std::fs::read(path).ok()?;
-        let source = SourceFile::from_bytes(path.to_string_lossy(), 1, bytes).ok()?;
-        Some(File::new(
+        File::from_bytes(
             &self.db,
             path.to_path_buf(),
+            path.to_string_lossy(),
             1,
-            source.text,
-            source.had_bom,
-            EditorConfig::for_file(path),
-        ))
+            bytes,
+        )
+        .ok()
     }
 
     /// Every file the project-scope rules see: the open documents and the loaded rest.
@@ -211,10 +203,6 @@ impl Workspace {
     /// The input of an open document.
     pub(crate) fn file(&self, path: &Path) -> Option<File> {
         self.docs.get(path).map(|d| d.file)
-    }
-
-    pub fn is_open(&self, path: &Path) -> bool {
-        self.docs.contains_key(path)
     }
 
     pub fn text(&self, path: &Path) -> Option<String> {

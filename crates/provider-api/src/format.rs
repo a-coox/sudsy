@@ -30,11 +30,7 @@ fn more(count: usize) -> String {
 
 /// 1-based line and column (in characters) of a byte offset.
 fn position(text: &str, offset: u32) -> (usize, usize) {
-    let end = (offset as usize).min(text.len());
-    let before = &text[..text.floor_char_boundary(end)];
-    let line = before.matches('\n').count() + 1;
-    let column = before.rsplit('\n').next().map_or(0, |l| l.chars().count()) + 1;
-    (line, column)
+    core_rules::LineIndex::new(text).line_col(text, offset.into())
 }
 
 fn syntax_error(text: &str, errors: &[ParseError]) -> FileFormatError {

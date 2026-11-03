@@ -108,12 +108,7 @@ fn analyze(
     }
     let capabilities = provider.capabilities();
     let active = activate(
-        provider
-            .rules()
-            .iter()
-            .chain(core_rules::shared::RULES)
-            .copied()
-            .chain(extensions.for_language(&provider.grammar().language)),
+        extensions.with_own(provider.rules(), &provider.grammar().language),
         &resolved,
         |l| capabilities.contains(l),
     )
