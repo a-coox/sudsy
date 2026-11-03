@@ -1,0 +1,9 @@
+{
+  "private": true,
+  "description": "Pinned formatters for speed-json-yaml.sh",
+  "devDependencies": {
+    "prettier": "3.9.10",
+    "@biomejs/biome": "2.6.4",
+    "dprint": "0.64.3"
+  }
+}
