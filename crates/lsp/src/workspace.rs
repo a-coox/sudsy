@@ -47,6 +47,7 @@ impl Workspace {
             background: None,
         };
         workspace.db.open_workspace(&[workspace.root.clone()]);
+        workspace.db.prestart();
         let error = workspace.reload_config();
         (workspace, error)
     }

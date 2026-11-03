@@ -56,6 +56,10 @@ pub trait LanguageProvider: Send + Sync {
         BehaviorSummaries::default()
     }
 
+    /// Starts the provider's background processes ahead of the first request (long-running
+    /// servers only; a one-shot CLI run starts them on demand). Providers without any ignore it.
+    fn prestart(&self) {}
+
     /// Tells a provider with a semantic model which files make up the project (directories,
     /// project or solution files). Providers without one ignore it.
     fn open_workspace(&self, _paths: &[PathBuf]) {}

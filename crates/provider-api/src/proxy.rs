@@ -37,6 +37,9 @@ pub struct WorkerConfig {
     pub pool_size: usize,
     /// Added to the message when the worker's program cannot be started, to say what to install.
     pub install_hint: String,
+    /// Source parsed once by each prestarted worker, so that the first real request does not pay
+    /// for JIT compilation; empty for none.
+    pub warmup_source: String,
 }
 
 impl WorkerConfig {
@@ -50,6 +53,7 @@ impl WorkerConfig {
             env: Vec::new(),
             pool_size: 1,
             install_hint: String::new(),
+            warmup_source: String::new(),
         }
     }
 }
@@ -119,6 +123,33 @@ impl WorkerProxy {
             slots,
             next: AtomicUsize::new(0),
             workspace: Mutex::new(None),
+        }
+    }
+
+    /// Starts the first two workers in the background, so that a format request that arrives while
+    /// the first is busy with a build finds the second already running.
+    pub fn prestart(self: &std::sync::Arc<Self>) {
+        for i in 0..self.slots.len().min(2) {
+            let proxy = self.clone();
+            std::thread::spawn(move || {
+                let mut inner = Self::lock(&proxy.slots[i]);
+                let timeout = proxy.config.request_timeout;
+                if let Ok(worker) = proxy.ensure_running(&mut inner)
+                    && !proxy.config.warmup_source.is_empty()
+                {
+                    let _ = exchange(
+                        worker,
+                        &Request::Parse(ParseRequest {
+                            file_id: "warmup".into(),
+                            version: 1,
+                            text: proxy.config.warmup_source.clone(),
+                            language_version: None,
+                            preprocessor_symbols: Vec::new(),
+                        }),
+                        timeout,
+                    );
+                }
+            });
         }
     }
 

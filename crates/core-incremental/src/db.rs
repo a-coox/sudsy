@@ -67,6 +67,13 @@ impl Database {
         select_provider_index(&self.providers, path).is_some()
     }
 
+    /// Lets the providers start their background processes ahead of the first request.
+    pub fn prestart(&self) {
+        for provider in self.providers.iter() {
+            provider.prestart();
+        }
+    }
+
     /// Tells the providers with a semantic model which directories, projects or solutions make up
     /// the project; their files are part of every file's binding.
     pub fn open_workspace(&self, paths: &[std::path::PathBuf]) {
