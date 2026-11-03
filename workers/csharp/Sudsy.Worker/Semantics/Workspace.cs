@@ -133,6 +133,11 @@ internal sealed class Workspace
         {
             try
             {
+                if (new FileInfo(files[i]).Length > MaxFileBytes)
+                {
+                    return; // Not read: a huge file would exhaust memory.
+                }
+
                 var text = new UTF8Encoding(false, true).GetString(File.ReadAllBytes(files[i]));
                 if (text.StartsWith('﻿'))
                 {
@@ -155,6 +160,21 @@ internal sealed class Workspace
         _compilation = null;
     }
 
+    /// <summary>Largest source file read from disk.</summary>
+    public const long MaxFileBytes = 4 * 1024 * 1024;
+
+    private static bool IsLink(string path)
+    {
+        try
+        {
+            return File.GetAttributes(path).HasFlag(FileAttributes.ReparsePoint);
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            return true; // Gone or unreadable: skipped.
+        }
+    }
+
     private static readonly string[] Skipped = ["bin", "obj", "node_modules", ".git"];
 
     /// <summary>The C# files a root stands for: a directory, the directory of a project, or the
@@ -167,10 +187,11 @@ internal sealed class Workspace
             var dir = Path.GetDirectoryName(root) ?? ".";
             if (extension is ".sln" or ".slnx")
             {
-                var text = File.ReadAllText(root);
+                var text = new FileInfo(root).Length > MaxFileBytes ? "" : File.ReadAllText(root);
                 var projects = System.Text.RegularExpressions.Regex
                     .Matches(text, "[\"'](?<p>[^\"']+?\\.csproj)[\"']")
-                    .Select(m => Path.GetFullPath(Path.Combine(dir, m.Groups["p"].Value.Replace('\\', Path.DirectorySeparatorChar))));
+                    .Select(m => Path.GetFullPath(Path.Combine(dir, m.Groups["p"].Value.Replace('\\', Path.DirectorySeparatorChar))))
+                    .Where(p => IsUnder(Path.GetFullPath(dir), p));
                 return projects.SelectMany(p => Sources(p));
             }
 
@@ -180,16 +201,24 @@ internal sealed class Workspace
         return Directory.Exists(root) ? Walk(root) : [];
     }
 
+    /// <summary>Does <paramref name="path"/> lie inside <paramref name="root"/>? A solution may not
+    /// pull in projects outside its own directory.</summary>
+    internal static bool IsUnder(string root, string path) =>
+        Path.GetRelativePath(root, path) is var r && r != ".." && !r.StartsWith(".." + Path.DirectorySeparatorChar) && !Path.IsPathRooted(r);
+
     private static IEnumerable<string> Walk(string dir)
     {
         foreach (var file in Directory.EnumerateFiles(dir, "*.cs"))
         {
-            yield return file;
+            if (!IsLink(file))
+            {
+                yield return file;
+            }
         }
 
         foreach (var sub in Directory.EnumerateDirectories(dir))
         {
-            if (!Skipped.Contains(Path.GetFileName(sub), StringComparer.OrdinalIgnoreCase))
+            if (!IsLink(sub) && !Skipped.Contains(Path.GetFileName(sub), StringComparer.OrdinalIgnoreCase))
             {
                 foreach (var file in Walk(sub))
                 {
