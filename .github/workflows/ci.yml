@@ -1,9 +1,9 @@
 name: CI
 
+# Manual only while the repo is private (Actions minutes are limited); restore push: [main] and
+# pull_request when it goes public. The local gate (scripts/gate.sh) is the check until then.
 on:
-  push:
-    branches: [main]
-  pull_request:
+  workflow_dispatch:
   workflow_call:
 
 permissions:

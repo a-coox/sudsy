@@ -7,7 +7,7 @@
 | Script | Use |
 |---|---|
 | `gate.sh [--rust-only] [-p crate]` | The pre-commit gate: fmt, build, clippy, tests, codegen check, sample plugin fmt+tests, dotnet build+test, vscode typecheck/lint/test/build. `-p` limits to one crate. Must pass before committing. |
-| `ship.sh` | Push the current branch, then watch the CI run for HEAD (`gh run watch`); refuses with staged changes |
+| `ship.sh` | Push the current branch, then watch the CI run for HEAD (`gh run watch`); refuses with staged changes; CI is manual for now (see ci-release.md), so it stops after the push |
 | `dogfood.sh` | Build debug CLI + worker into `target/dogfood/` for the editor |
 | `bench.sh`, `bench-time.sh`, `bench-measure.sh`, `bench-setup-wsl.sh` | [performance/tooling.md](../performance/tooling.md) |
 | `parity.sh <tool>` | Differential test against an upstream tool on `tests/parity/<tool>/` fixtures: [parity.md](parity.md) |

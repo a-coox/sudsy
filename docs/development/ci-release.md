@@ -1,6 +1,7 @@
 # CI and release
 
 ## CI (`.github/workflows/ci.yml`, reusable via `workflow_call`)
+Runs only on demand (`gh workflow run ci.yml`) and from the release workflow while the repo is private, to stay inside the free Actions minutes; `scripts/gate.sh` is the pre-merge check. `ship.sh` therefore finds no run and stops after pushing.
 | Job | Does |
 |---|---|
 | `dco` | pull requests only: every commit signed off by its author (`scripts/check-dco.sh`) |
