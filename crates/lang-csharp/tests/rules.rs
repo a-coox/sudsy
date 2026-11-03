@@ -33,6 +33,24 @@ fn async_suffix_applies_to_task_returning_methods_only() {
 }
 
 #[test]
+fn async_suffix_asks_the_binding_layer() {
+    // The `Task` here is the file's own type, and `Run` implements an interface member whose name
+    // the class does not choose.
+    let text = "using System.Threading.Tasks;
+interface I { Task Run(); }
+class A : I {
+ public async Task Run() { }
+ public async Task Other() { }
+}
+class B {
+ class Task { }
+ async Task Mine() { }
+}
+";
+    assert_snapshot!(report(text, ""));
+}
+
+#[test]
 fn using_order_sorts_plain_usings_and_leaves_the_rest() {
     let text = "using Zeta;\nusing System.Linq; // linq\nusing static Foo.Bar;\nusing Alpha;\nusing System;\nusing X = Y.Z;\n\nclass A { }\n";
     let rules = "using-order: warn";

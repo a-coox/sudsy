@@ -15,6 +15,7 @@ static META: RuleMeta = RuleMeta {
     default_level: Level::Warn,
     fix: None,
     requires: &[],
+    uses: &[],
     options: &[],
 };
 

@@ -20,6 +20,7 @@ static META: RuleMeta = RuleMeta {
     default_level: Level::Off,
     fix: Some(FixKind::Unsafe),
     requires: &[],
+    uses: &[],
     options: &[],
 };
 

@@ -2,7 +2,4 @@
 source: crates/lang-csharp/tests/rules.rs
 expression: "report(text, \"\")"
 ---
-2:13 warning[async-suffix] async method `A1` should be named `A1Async`
-3:18 warning[async-suffix] async method `B1` should be named `B1Async`
-4:18 warning[async-suffix] async method `C1` should be named `C1Async`
 5:36 warning[async-suffix] async method `D1` should be named `D1Async`

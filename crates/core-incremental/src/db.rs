@@ -66,6 +66,14 @@ impl Database {
         select_provider_index(&self.providers, path).is_some()
     }
 
+    /// Tells the providers with a semantic model which directories, projects or solutions make up
+    /// the project; their files are part of every file's binding.
+    pub fn open_workspace(&self, paths: &[std::path::PathBuf]) {
+        for provider in self.providers.iter() {
+            provider.open_workspace(paths);
+        }
+    }
+
     /// An editor edit: the new text of `file` at the editor's document `version`.
     pub fn set_file_text(&mut self, file: File, version: u64, text: String) {
         file.set_text(self).to(text);

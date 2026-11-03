@@ -1,8 +1,11 @@
-//! C# syntactic rules (plan.md "Initial built-in rules"). The semantic ones (`remove-unused-usings`,
-//! `var-preference`, `prefer-collection-expression`) need the binding and type layers of M5.
+//! C# rules (plan.md "Initial built-in rules"): syntactic ones, and the semantic ones over the
+//! binding, type, value and flow layers. `var-preference` and `prefer-collection-expression` are
+//! not in M5's scope.
 
 mod async_suffix;
+mod binding;
 mod empty_catch;
+mod flow;
 mod namespace;
 mod null_coalescing;
 mod usings;
@@ -17,6 +20,12 @@ pub static RULES: &[&dyn Rule] = &[
     &namespace::FileScopedNamespace,
     &usings::UsingOrder,
     &null_coalescing::PreferNullCoalescing,
+    &flow::UnreachableCode,
+    &flow::UnusedVariable,
+    &flow::UnusedAssignment,
+    &binding::RemoveUnusedUsings,
+    &binding::PossibleNullDereference,
+    &binding::UnusedPrivateMember,
 ];
 
 /// Methods, constructors, local functions, lambdas and anonymous methods: what body-scope rules
@@ -28,7 +37,20 @@ pub static BODY_KINDS: &[SyntaxKind] = &[
     kind::SIMPLE_LAMBDA_EXPRESSION,
     kind::PARENTHESIZED_LAMBDA_EXPRESSION,
     kind::ANONYMOUS_METHOD_EXPRESSION,
+    kind::OPERATOR_DECLARATION,
+    kind::CONVERSION_OPERATOR_DECLARATION,
+    kind::DESTRUCTOR_DECLARATION,
+    kind::GET_ACCESSOR_DECLARATION,
+    kind::SET_ACCESSOR_DECLARATION,
+    kind::INIT_ACCESSOR_DECLARATION,
+    kind::ADD_ACCESSOR_DECLARATION,
+    kind::REMOVE_ACCESSOR_DECLARATION,
 ];
+
+/// A text range from a provider's byte offset and length.
+fn range_of(start: u32, len: u32) -> core_syntax::TextRange {
+    core_syntax::TextRange::at(start.into(), len.into())
+}
 
 /// The source text of a node without the comments and blank space around it.
 fn text_of<'a>(node: &SyntaxNode, ctx: &core_rules::RuleContext<'a>) -> &'a str {

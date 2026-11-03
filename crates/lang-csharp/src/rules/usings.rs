@@ -21,6 +21,7 @@ static META: RuleMeta = RuleMeta {
     default_level: Level::Off,
     fix: Some(FixKind::Safe),
     requires: &[],
+    uses: &[],
     options: &[OptionDecl {
         name: "system_first",
         default: Opt::Bool(true),

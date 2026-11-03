@@ -10,6 +10,11 @@ use std::process::Command;
 
 /// The C# worker, built once for the test process.
 fn worker_dll() -> PathBuf {
+    static BUILT: std::sync::OnceLock<PathBuf> = std::sync::OnceLock::new();
+    BUILT.get_or_init(build_worker).clone()
+}
+
+fn build_worker() -> PathBuf {
     let project = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../workers/csharp/Sudsy.Worker");
     let status = Command::new("dotnet")
         .args(["build", "-c", "Debug", "--nologo", "-v", "q"])
@@ -80,4 +85,60 @@ fn a_missing_worker_is_reported_once_and_other_languages_keep_working() {
     let json = client.open("a.json", "json", "{\"a\": 1, \"a\": 2}");
     assert_eq!(client.diagnostics(&json).len(), 1);
     client.shutdown();
+}
+
+#[test]
+fn semantic_rules_run_in_the_editor_and_follow_edits() {
+    let t = tempfile::tempdir().unwrap();
+    let mut client = Client::start(t.path(), providers(&worker_dll()));
+    let text = "class A { int F() { int k = 5; return 1; } }";
+    let uri = client.open("A.cs", "csharp", text);
+    let found = client.diagnostics(&uri);
+    assert!(
+        found.iter().any(|d| d.message.contains("variable `k`")),
+        "{found:?}"
+    );
+    // Using the variable lifts the diagnostic: the worker's workspace saw the edit.
+    let at = text.find("return 1").unwrap() as u32;
+    client.change(
+        &uri,
+        2,
+        Some(Range::new(Position::new(0, at), Position::new(0, at + 8))),
+        "return k",
+    );
+    assert!(client.diagnostics(&uri).is_empty());
+}
+
+#[test]
+fn deep_diagnostics_use_every_file_of_the_project_not_only_the_open_ones() {
+    let t = tempfile::tempdir().unwrap();
+    std::fs::write(t.path().join("sudsy.yaml"), "analysis: deep\n").unwrap();
+    std::fs::write(
+        t.path().join("A.cs"),
+        "partial class P { private int used; private int lonely; }\n",
+    )
+    .unwrap();
+    std::fs::write(
+        t.path().join("B.cs"),
+        "partial class P { int Get() { return used; } }\n",
+    )
+    .unwrap();
+    let mut client = Client::start(t.path(), providers(&worker_dll()));
+    let uri = client.open(
+        "A.cs",
+        "csharp",
+        "partial class P { private int used; private int lonely; }\n",
+    );
+    let found = client.diagnostics(&uri);
+    let messages: Vec<_> = found.iter().map(|d| d.message.as_str()).collect();
+    assert!(
+        messages
+            .iter()
+            .any(|m| m.contains("`lonely` is never used")),
+        "{messages:?}"
+    );
+    assert!(
+        !messages.iter().any(|m| m.contains("`used`")),
+        "{messages:?}"
+    );
 }

@@ -11,6 +11,7 @@ pub use format::{
     option_schema,
 };
 
+use core_semantics::BehaviorSummaries;
 use core_syntax::{LanguageId, grammars};
 use provider_api::{FileMatcher, OutOfProcessProvider, WorkerConfig};
 use std::ffi::OsString;
@@ -73,4 +74,9 @@ pub fn provider(worker_dll: &Path) -> OutOfProcessProvider {
     )
     .with_format(Box::new(CSharpFormatter), option_schema())
     .with_rules(rules::RULES, rules::BODY_KINDS)
+    .with_summaries(BehaviorSummaries::new(DOES_NOT_RETURN, &[]))
 }
+
+/// Methods of the .NET standard library that never return normally and carry no
+/// `[DoesNotReturn]` attribute the worker could see (qualified names; every overload).
+const DOES_NOT_RETURN: &[&str] = &["System.Environment.Exit", "System.Environment.FailFast"];

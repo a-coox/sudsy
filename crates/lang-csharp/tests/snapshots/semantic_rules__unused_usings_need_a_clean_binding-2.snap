@@ -1,0 +1,6 @@
+---
+source: crates/lang-csharp/tests/semantic_rules.rs
+expression: "fix(&csharp(), \"a.cs\", clean, \"remove-unused-usings: warn\", false)"
+---
+using System;
+class A { Exception e; }

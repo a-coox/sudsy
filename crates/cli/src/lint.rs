@@ -62,6 +62,7 @@ pub fn collect(session: &Session, loaded: &[anyhow::Result<File>]) -> Result<Col
         failed: 0,
     };
     let mut ok_files = Vec::new();
+    let mut warned = std::collections::HashSet::new();
     for (path, file) in session.paths.iter().zip(loaded) {
         let file = match file {
             Ok(file) => *file,
@@ -73,6 +74,11 @@ pub fn collect(session: &Session, loaded: &[anyhow::Result<File>]) -> Result<Col
         };
         match lint(db, file) {
             Ok(linted) => {
+                if let Some(why) = &linted.semantics_unavailable
+                    && warned.insert(why.clone())
+                {
+                    eprintln!("warning: semantic rules are skipped: {why}");
+                }
                 ok_files.push(file);
                 out.files.push(FileDiagnostics {
                     path: project.show(path),

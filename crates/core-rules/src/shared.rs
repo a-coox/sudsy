@@ -20,6 +20,7 @@ static MAX_LINE_LENGTH: RuleMeta = RuleMeta {
     default_level: Level::Off,
     fix: None,
     requires: &[],
+    uses: &[],
     options: &[OptionDecl {
         name: "max",
         default: Opt::Int(120),

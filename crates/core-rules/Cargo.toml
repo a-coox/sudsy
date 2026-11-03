@@ -7,6 +7,8 @@ publish.workspace = true
 
 [dependencies]
 core-config.workspace = true
+core-flow.workspace = true
+core-semantics.workspace = true
 core-syntax.workspace = true
 
 [dev-dependencies]

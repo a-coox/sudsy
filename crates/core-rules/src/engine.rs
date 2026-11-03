@@ -6,6 +6,7 @@ use crate::options::RuleOptions;
 use crate::project::{ProjectContext, ProjectFacts};
 use crate::rule::{BodyContext, FileContext, Rule, RuleContext};
 use crate::suppress::Suppressions;
+use core_semantics::Layers;
 use core_syntax::SyntaxKind;
 use std::collections::HashMap;
 use std::path::PathBuf;
@@ -23,6 +24,18 @@ pub struct FileReport {
     pub diagnostics: Vec<Diagnostic>,
     /// What the rules collected for the project phase.
     pub facts: ProjectFacts,
+}
+
+/// The layers the active rules need: what the provider is asked to answer for the file.
+pub fn layers_needed(active: &[ActiveRule<'_>]) -> Layers {
+    let mut layers = Layers::default();
+    for a in active {
+        let meta = a.rule.meta();
+        for &layer in meta.requires.iter().chain(meta.uses) {
+            layers.insert(layer);
+        }
+    }
+    layers
 }
 
 /// Runs `active` over one file. `body_kinds` are the provider's methods, lambdas and local
@@ -58,7 +71,15 @@ pub fn run_file(
             }
         }
         if body_kinds.contains(&node.kind()) {
-            let body = BodyContext { file, node: &node };
+            let flow = file.semantics.as_ref().and_then(|view| {
+                let range = crate::tree::significant_range(&node, file.grammar);
+                view.body(range.start().into(), range.len().into())
+            });
+            let body = BodyContext {
+                file,
+                node: &node,
+                flow,
+            };
             for i in 0..active.len() {
                 run(i, &mut |rule, ctx| rule.check_body(&body, ctx));
             }

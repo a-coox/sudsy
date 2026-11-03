@@ -21,6 +21,10 @@ pub struct Workspace {
     /// The project of the last successful config load.
     project: Option<Project>,
     docs: HashMap<PathBuf, Doc>,
+    /// The project's other files, read from disk when the first `deep` diagnostics are asked for
+    /// (`None` before that). They give the project-scope rules every file; an edit in the editor
+    /// takes a file out of here and into `docs`.
+    background: Option<HashMap<PathBuf, File>>,
 }
 
 impl Workspace {
@@ -35,7 +39,9 @@ impl Workspace {
             root,
             project: None,
             docs: HashMap::new(),
+            background: None,
         };
+        workspace.db.open_workspace(&[workspace.root.clone()]);
         let error = workspace.reload_config();
         (workspace, error)
     }
@@ -56,6 +62,7 @@ impl Workspace {
                 Some(e.0)
             }
         };
+        self.background = None;
         for (path, doc) in &self.docs {
             self.db
                 .set_file_editorconfig(doc.file, EditorConfig::for_file(path));
@@ -94,6 +101,9 @@ impl Workspace {
             source.had_bom,
             EditorConfig::for_file(&path),
         );
+        if let Some(background) = &mut self.background {
+            background.remove(&path);
+        }
         self.docs.insert(path, Doc { file });
         true
     }
@@ -117,7 +127,62 @@ impl Workspace {
     }
 
     pub fn close(&mut self, path: &Path) {
-        self.docs.remove(path);
+        if self.docs.remove(path).is_some()
+            && let Some(file) = self.background.is_some().then(|| self.read(path)).flatten()
+            && let Some(background) = &mut self.background
+        {
+            background.insert(path.to_path_buf(), file);
+        }
+    }
+
+    /// Does the config ask for `analysis: deep`?
+    pub fn is_deep(&self) -> bool {
+        self.project
+            .as_ref()
+            .is_some_and(|p| p.chain.depth() == core_config::Depth::Deep)
+    }
+
+    /// Reads the project's files that are not open, once, for the project-scope rules.
+    pub fn load_project(&mut self) {
+        if self.background.is_some() {
+            return;
+        }
+        let Some(project) = &self.project else { return };
+        let paths =
+            core_workspace::discover_files(std::slice::from_ref(&self.root), &project.filter())
+                .unwrap_or_default();
+        let mut background = HashMap::new();
+        for path in paths {
+            if self.db.supports(&path)
+                && !self.docs.contains_key(&path)
+                && let Some(file) = self.read(&path)
+            {
+                background.insert(path, file);
+            }
+        }
+        self.background = Some(background);
+    }
+
+    fn read(&self, path: &Path) -> Option<File> {
+        let bytes = std::fs::read(path).ok()?;
+        let source = SourceFile::from_bytes(path.to_string_lossy(), 1, bytes).ok()?;
+        Some(File::new(
+            &self.db,
+            path.to_path_buf(),
+            1,
+            source.text,
+            source.had_bom,
+            EditorConfig::for_file(path),
+        ))
+    }
+
+    /// Every file the project-scope rules see: the open documents and the loaded rest.
+    pub(crate) fn project_files(&self) -> Vec<File> {
+        self.docs
+            .values()
+            .map(|d| d.file)
+            .chain(self.background.iter().flat_map(|b| b.values().copied()))
+            .collect()
     }
 
     /// The input of an open document.

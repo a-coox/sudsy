@@ -8,9 +8,9 @@
 //! ```
 //!
 //! Rule results are two more queries over `parse` (see [`crate::rules`]): `lint_settings(file)`
-//! reads the config and the selection, and `lint(file)` reads `parse` and `lint_settings`. Semantic
-//! requests will read the worker session as a versioned input, and `flow_graph(file, body)` those
-//! answers (M5); neither exists yet.
+//! reads the config and the selection, and `lint(file)` reads `parse`, `lint_settings` and
+//! `semantics(file)`, the provider's answers for the layers the file's rules ask for (empty at
+//! `fast`, so syntax-only runs never touch the semantic model).
 
 use crate::db::Db;
 use crate::failure::{Failure, Stage};
@@ -130,7 +130,7 @@ pub fn parse_settings(db: &dyn Db, file: File) -> Option<ParseSettings> {
 }
 
 /// The file as the provider sees it.
-fn source_file(db: &dyn Db, file: File, settings: Option<ParseSettings>) -> SourceFile {
+pub(crate) fn source_file(db: &dyn Db, file: File, settings: Option<ParseSettings>) -> SourceFile {
     let (language_version, preprocessor_symbols) = settings
         .map(|s| (s.language_version, s.preprocessor_symbols))
         .unwrap_or_default();
