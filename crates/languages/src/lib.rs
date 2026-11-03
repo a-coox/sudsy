@@ -34,25 +34,24 @@ pub fn schemas(providers: &[Box<dyn LanguageProvider>]) -> Vec<(&str, &OptionSch
 }
 
 /// `(language, rule)` of every rule, the project's pattern and plugin rules included; the
-/// language is `all` for the shared rules. Sorted by rule id.
+/// language is `all` for rules that apply to every language. Sorted by rule id.
 pub fn rules(
     providers: &[Box<dyn LanguageProvider>],
     extensions: &Extensions,
 ) -> Vec<(String, &'static dyn Rule)> {
+    const ALL: &str = "all";
     let mut out: Vec<(String, &'static dyn Rule)> = core_rules::shared::RULES
         .iter()
-        .map(|r| ("all".to_string(), *r))
+        .map(|r| (ALL.to_string(), *r))
         .collect();
     for provider in providers {
         let language = provider.grammar().language.clone();
         out.extend(provider.rules().iter().map(|r| (language.clone(), *r)));
     }
-    out.extend(
-        extensions
-            .rules
-            .iter()
-            .map(|r| (r.language.to_string(), r.rule)),
-    );
+    out.extend(extensions.rules.iter().map(|r| match r.language {
+        core_rules::ALL_LANGUAGES => (ALL.to_string(), r.rule),
+        language => (language.to_string(), r.rule),
+    }));
     out.sort_by_key(|(language, r)| (r.meta().id, language.clone()));
     out
 }
