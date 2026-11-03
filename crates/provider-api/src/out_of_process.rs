@@ -152,6 +152,8 @@ impl LanguageProvider for OutOfProcessProvider {
         self.proxy.open_workspace(OpenWorkspace {
             paths: paths
                 .iter()
+                // Absolute: the worker does not run in the caller's working directory.
+                .map(|p| std::path::absolute(p).unwrap_or_else(|_| p.clone()))
                 .map(|p| p.to_string_lossy().into_owned())
                 .collect(),
             properties: Default::default(),
