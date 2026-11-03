@@ -17,13 +17,10 @@ serde_json.workspace = true
 core-config.workspace = true
 languages.workspace = true
 lsp.workspace = true
-core-format.workspace = true
 core-incremental.workspace = true
 core-rules.workspace = true
 core-workspace.workspace = true
 lang-csharp.workspace = true
-lang-json.workspace = true
-lang-yaml.workspace = true
 core-syntax.workspace = true
 provider-api.workspace = true
 

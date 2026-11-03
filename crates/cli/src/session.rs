@@ -2,10 +2,9 @@
 //! the files to process (discovered, filtered by the config's include and exclude).
 
 use anyhow::{Context, Result};
-use core_config::{Depth, EditorConfig};
+use core_config::Depth;
 use core_incremental::{Database, File};
 use languages::{Project, providers};
-use provider_api::SourceFile;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicUsize, Ordering};
 
@@ -59,15 +58,13 @@ impl Session {
 /// Reads one file into the database.
 pub fn load(db: &Database, project: &Project, path: &Path) -> Result<File> {
     let bytes = std::fs::read(path).context("reading the file")?;
-    let source = SourceFile::from_bytes(project.show(path), 1, bytes)?;
-    Ok(File::new(
+    Ok(File::from_bytes(
         db,
         path.to_path_buf(),
+        project.show(path),
         1,
-        source.text,
-        source.had_bom,
-        EditorConfig::for_file(path),
-    ))
+        bytes,
+    )?)
 }
 
 /// Runs `work` on every path on all cores. Inputs are only ever created, never set, while the
