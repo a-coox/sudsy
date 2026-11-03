@@ -104,10 +104,21 @@ fn human(files: &[FileDiagnostics]) -> String {
             );
             for r in &d.related {
                 let at = position(file, &lines, r.range.start());
-                let _ = writeln!(out, "    note: {} ({}:{})", clean(&r.message), at.line, at.column);
+                let _ = writeln!(
+                    out,
+                    "    note: {} ({}:{})",
+                    clean(&r.message),
+                    at.line,
+                    at.column
+                );
             }
             for fix in &d.fixes {
-                let _ = writeln!(out, "    fix ({}): {}", fix.kind.as_str(), clean(&fix.title));
+                let _ = writeln!(
+                    out,
+                    "    fix ({}): {}",
+                    fix.kind.as_str(),
+                    clean(&fix.title)
+                );
             }
         }
     }
