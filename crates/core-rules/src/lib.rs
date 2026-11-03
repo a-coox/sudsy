@@ -25,7 +25,7 @@ pub use configure::activate;
 pub use diagnostic::{
     Category, Diagnostic, Edit, FORMAT, Fix, FixKind, Related, SYNTAX_ERROR, Severity,
 };
-pub use engine::{ActiveRule, FileReport, layers_needed, run_file, run_project};
+pub use engine::{ActiveRule, FileReport, layers_needed, run_file, run_project, run_rules};
 pub use extension::{ALL_LANGUAGES, ExtensionRule, Extensions};
 pub use fixes::{Analysis, FixOutcome, fix_loop};
 pub use lines::LineIndex;

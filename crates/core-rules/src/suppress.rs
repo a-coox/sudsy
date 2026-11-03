@@ -29,6 +29,11 @@ impl Suppressions {
         else {
             return Suppressions(Vec::new());
         };
+        // Most files have no directive: finding the marker in the text is much cheaper than
+        // walking every token for comments.
+        if !file.text.contains(marker) {
+            return Suppressions(Vec::new());
+        }
         let mut out = Vec::new();
         for token in file
             .root

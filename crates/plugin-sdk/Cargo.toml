@@ -17,10 +17,12 @@ rmp-serde.workspace = true
 wit-bindgen = "0.63"
 # Only for `plugin_sdk::testing`, which runs a rule natively against a real provider.
 provider-api = { workspace = true, optional = true }
-languages = { workspace = true, optional = true }
+lang-csharp = { workspace = true, optional = true }
+lang-json = { workspace = true, optional = true }
+lang-yaml = { workspace = true, optional = true }
 
 [features]
-testing = ["dep:provider-api", "dep:languages"]
+testing = ["dep:provider-api", "dep:lang-csharp", "dep:lang-json", "dep:lang-yaml"]
 
 # wit-bindgen's generated glue is unsafe; everything else in the crate is not.
 [lints.rust]

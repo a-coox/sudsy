@@ -34,6 +34,12 @@ pub struct Pattern {
     root: Pat,
     kind: SyntaxKind,
     metas: Vec<Meta>,
+    /// Capturing names that occur more than once: only their captures are compared, so only
+    /// theirs need the text.
+    repeated: Vec<String>,
+    /// The text of the pattern's first token when it is not a metavariable: a node that starts
+    /// with anything else cannot match, which most nodes of the right kind show at once.
+    first: Option<String>,
 }
 
 /// What a metavariable matched.
@@ -42,8 +48,9 @@ pub struct Capture {
     pub range: TextRange,
     /// The node kind when exactly one node was captured.
     pub kind: Option<SyntaxKind>,
-    /// The significant tokens joined by a space: what repeated metavariables are compared by.
-    normalized: String,
+    /// The significant tokens joined by a space: what repeated metavariables are compared by
+    /// (only computed for those).
+    normalized: Option<String>,
 }
 
 pub type Captures = BTreeMap<String, Capture>;
@@ -100,6 +107,14 @@ fn convert(e: &SyntaxElement, g: &Grammar) -> Pat {
 /// statement) or an object around it (a JSON member).
 const CONTEXTS: [(&str, &str); 3] = [("", ""), ("", ";"), ("{", "}")];
 
+fn first_leaf(p: &Pat) -> Option<&str> {
+    match p {
+        Pat::Meta(_) => None,
+        Pat::Token { text, .. } => Some(text),
+        Pat::Node { children, .. } => children.first().and_then(first_leaf),
+    }
+}
+
 impl Pattern {
     /// Parses `text` as a snippet of the language and keeps the node that spans all of it. A
     /// pattern that is not a complete construct on its own is retried in [`CONTEXTS`].
@@ -124,7 +139,15 @@ impl Pattern {
                     if matches!(root, Pat::Meta(_)) {
                         return Err("a pattern cannot be only a metavariable".into());
                     }
+                    let repeated = metas
+                        .iter()
+                        .filter(|m| m.captures())
+                        .filter(|m| metas.iter().filter(|o| o.name == m.name).count() > 1)
+                        .map(|m| m.name.clone())
+                        .collect();
                     return Ok(Pattern {
+                        repeated,
+                        first: first_leaf(&root).map(String::from),
                         root,
                         kind: node.kind(),
                         metas,
@@ -149,22 +172,53 @@ impl Pattern {
 
     /// The captures when the pattern matches `node`. `text` is the file's source.
     pub fn matches(&self, node: &SyntaxNode, grammar: &Grammar) -> Option<Captures> {
+        if node.kind() != self.kind {
+            return None;
+        }
+        if let Some(first) = &self.first {
+            let mut token = node.first_token();
+            while let Some(t) = &token {
+                if !grammar.is_trivia(t.kind()) && !t.text().is_empty() {
+                    break;
+                }
+                token = t.next_token();
+            }
+            if token.is_none_or(|t| t.text() != first.as_str()) {
+                return None;
+            }
+        }
         let mut cx = Cx {
             grammar,
-            env: Captures::new(),
+            repeated: &self.repeated,
+            env: Vec::new(),
         };
         cx.matches(&self.root, &SyntaxElement::Node(node.clone()))
-            .then_some(cx.env)
+            .then(|| {
+                cx.env
+                    .into_iter()
+                    .map(|(name, capture)| (name.to_string(), capture))
+                    .collect()
+            })
     }
 }
 
-struct Cx<'a> {
-    grammar: &'a Grammar,
-    env: Captures,
+struct Cx<'p> {
+    grammar: &'p Grammar,
+    repeated: &'p [String],
+    /// Bindings in the order they were made; backtracking cuts the list back.
+    env: Vec<(&'p str, Capture)>,
 }
 
-impl Cx<'_> {
-    fn capture(&self, run: &[SyntaxElement], at: TextSize) -> Capture {
+/// The kind a pattern node requires of its target, when it requires one.
+fn required_kind(p: &Pat) -> Option<SyntaxKind> {
+    match p {
+        Pat::Meta(_) => None,
+        Pat::Token { kind, .. } | Pat::Node { kind, .. } => Some(*kind),
+    }
+}
+
+impl<'p> Cx<'p> {
+    fn capture(&self, run: &[SyntaxElement], at: TextSize, with_text: bool) -> Capture {
         let g = self.grammar;
         let range = match (run.first(), run.last()) {
             (Some(first), Some(last)) => TextRange::new(
@@ -173,12 +227,13 @@ impl Cx<'_> {
             ),
             _ => TextRange::empty(at),
         };
-        let normalized = run
-            .iter()
-            .flat_map(|e| tokens(e, g))
-            .map(|t| t.text().to_string())
-            .collect::<Vec<_>>()
-            .join(" ");
+        let normalized = with_text.then(|| {
+            run.iter()
+                .flat_map(|e| tokens(e, g))
+                .map(|t| t.text().to_string())
+                .collect::<Vec<_>>()
+                .join(" ")
+        });
         let kind = match run {
             [SyntaxElement::Node(n)] => Some(n.kind()),
             _ => None,
@@ -191,38 +246,58 @@ impl Cx<'_> {
     }
 
     /// Binds `meta` to `run`; false when the name is already bound to different text.
-    fn bind(&mut self, meta: &Meta, run: &[SyntaxElement], at: TextSize) -> bool {
+    fn bind(&mut self, meta: &'p Meta, run: &[SyntaxElement], at: TextSize) -> bool {
         if !meta.captures() {
             return true;
         }
-        let capture = self.capture(run, at);
-        match self.env.get(&meta.name) {
-            Some(bound) => bound.normalized == capture.normalized,
+        let repeated = self.repeated.contains(&meta.name);
+        let capture = self.capture(run, at, repeated);
+        match self.env.iter().find(|(name, _)| *name == meta.name) {
+            Some((_, bound)) => bound.normalized == capture.normalized,
             None => {
-                self.env.insert(meta.name.clone(), capture);
+                self.env.push((&meta.name, capture));
                 true
             }
         }
     }
 
-    fn matches(&mut self, p: &Pat, t: &SyntaxElement) -> bool {
-        let at = element_range(t, self.grammar).start();
+    fn matches(&mut self, p: &'p Pat, t: &SyntaxElement) -> bool {
         match (p, t) {
-            (Pat::Meta(meta), _) => self.bind(meta, std::slice::from_ref(t), at),
+            (Pat::Meta(meta), _) => {
+                let at = element_range(t, self.grammar).start();
+                self.bind(meta, std::slice::from_ref(t), at)
+            }
             (Pat::Token { kind, text }, SyntaxElement::Token(t)) => {
                 *kind == t.kind() && text == t.text()
             }
             (Pat::Node { kind, children }, SyntaxElement::Node(n)) => {
-                *kind == n.kind() && {
+                *kind == n.kind() && self.first_child_fits(children, n) && {
                     let targets = significant_children(n, self.grammar);
-                    self.sequence(children, &targets, at)
+                    // Only an empty capture at the end uses the position.
+                    self.sequence(children, &targets, n.text_range().end())
                 }
             }
             _ => false,
         }
     }
 
-    fn sequence(&mut self, ps: &[Pat], ts: &[SyntaxElement], at: TextSize) -> bool {
+    /// Does the first significant child of `n` have the kind the pattern's first child needs?
+    /// Most nodes of the right kind are ruled out here, before their children are listed.
+    fn first_child_fits(&self, children: &[Pat], n: &SyntaxNode) -> bool {
+        let Some(wanted) = children.first().and_then(required_kind) else {
+            return true;
+        };
+        n.children_with_tokens()
+            .find(|e| match e {
+                SyntaxElement::Token(t) => {
+                    !self.grammar.is_trivia(t.kind()) && !t.text().is_empty()
+                }
+                SyntaxElement::Node(_) => true,
+            })
+            .is_some_and(|first| first.kind() == wanted)
+    }
+
+    fn sequence(&mut self, ps: &'p [Pat], ts: &[SyntaxElement], at: TextSize) -> bool {
         let Some((first, rest)) = ps.split_first() else {
             return ts.is_empty();
         };
@@ -230,25 +305,25 @@ impl Cx<'_> {
             && meta.multi
         {
             for take in 0..=ts.len() {
-                let saved = self.env.clone();
+                let saved = self.env.len();
                 let here = ts
                     .get(take)
                     .map_or(at, |e| element_range(e, self.grammar).start());
                 if self.bind(meta, &ts[..take], here) && self.sequence(rest, &ts[take..], here) {
                     return true;
                 }
-                self.env = saved;
+                self.env.truncate(saved);
             }
             return false;
         }
         let Some((head, tail)) = ts.split_first() else {
             return false;
         };
-        let saved = self.env.clone();
+        let saved = self.env.len();
         if self.matches(first, head) && self.sequence(rest, tail, at) {
             return true;
         }
-        self.env = saved;
+        self.env.truncate(saved);
         false
     }
 }

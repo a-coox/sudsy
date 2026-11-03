@@ -165,6 +165,39 @@ impl Rule for DuplicateName {
     }
 }
 
+/// Every `TODO` in the text: a file-scope rule that is cheap to run, so that running it in a
+/// plugin instead of built in measures the plugin boundary (the tree and text copied into the
+/// plugin, the call) rather than the rule.
+pub struct TodoMarker;
+
+static TODO_MARKER: RuleMeta = RuleMeta {
+    id: "todo-marker",
+    category: Category::Style,
+    description: "A TODO left in the file.",
+    example: "// TODO: remove",
+    default_level: Level::Off,
+    fix: None,
+    requires: &[],
+    uses: &[],
+    options: &[],
+};
+
+impl Rule for TodoMarker {
+    fn meta(&self) -> &'static RuleMeta {
+        &TODO_MARKER
+    }
+
+    fn check_file(&self, file: &FileContext<'_>, ctx: &mut RuleContext<'_>) {
+        for (at, _) in file.text.match_indices("TODO") {
+            let start = plugin_sdk::TextSize::from(at as u32);
+            ctx.report(
+                plugin_sdk::TextRange::at(start, 4.into()),
+                "a TODO is left here",
+            );
+        }
+    }
+}
+
 /// Misbehaves on purpose, for the host's tests of its limits. Off unless the config turns it on.
 pub struct Misbehave;
 
@@ -215,6 +248,7 @@ plugin_sdk::export_plugin!(
         ("json", &NoDebugFlag),
         ("csharp", &BranchyBody),
         ("json", &DuplicateName),
-        ("json", &Misbehave)
+        ("json", &Misbehave),
+        ("*", &TodoMarker)
     ]
 );

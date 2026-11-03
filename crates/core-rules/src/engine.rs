@@ -38,9 +38,20 @@ pub fn layers_needed(active: &[ActiveRule<'_>]) -> Layers {
     layers
 }
 
-/// Runs `active` over one file. `collect` says whether project facts are wanted (analysis depth
-/// `deep`).
+/// Runs `active` over one file and drops what a suppression comment silences. `collect` says
+/// whether project facts are wanted (analysis depth `deep`).
 pub fn run_file(file: &FileContext<'_>, active: &[ActiveRule<'_>], collect: bool) -> FileReport {
+    let mut report = run_rules(file, active, collect);
+    let suppressions = Suppressions::scan(file);
+    report
+        .diagnostics
+        .retain(|d| !suppressions.suppresses(file, d));
+    report
+}
+
+/// [`run_file`] without the suppressions: for a caller whose own caller applies them to the
+/// result (a plugin, whose host does).
+pub fn run_rules(file: &FileContext<'_>, active: &[ActiveRule<'_>], collect: bool) -> FileReport {
     let mut diagnostics = Vec::new();
     let mut by_kind: HashMap<SyntaxKind, Vec<usize>> = HashMap::new();
     for (i, a) in active.iter().enumerate() {
@@ -83,8 +94,6 @@ pub fn run_file(file: &FileContext<'_>, active: &[ActiveRule<'_>], collect: bool
     for i in 0..active.len() {
         run(i, &mut |rule, ctx| rule.check_file(file, ctx));
     }
-    let suppressions = Suppressions::scan(file);
-    diagnostics.retain(|d| !suppressions.suppresses(file, d));
     diagnostics.sort_by(|a, b| {
         (a.range.start(), a.range.end(), &a.rule).cmp(&(b.range.start(), b.range.end(), &b.rule))
     });
