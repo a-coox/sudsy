@@ -143,9 +143,34 @@ fn check_lint(lint: &LintSection) -> Result<(), ConfigError> {
 }
 
 pub fn load_file(path: &Path) -> Result<Config, ConfigError> {
-    let source = std::fs::read_to_string(path)
-        .map_err(|e| ConfigError::new(e.to_string()).with_path(path.to_path_buf()))?;
+    let source = read_source(path)?;
     parse_str(&source).map_err(|e| e.with_path(path.to_path_buf()))
+}
+
+/// The text of a config file, size-capped.
+pub(crate) fn read_source(path: &Path) -> Result<String, ConfigError> {
+    let bytes = read_capped(path, MAX_CONFIG_BYTES)
+        .map_err(|e| ConfigError::new(e).with_path(path.to_path_buf()))?;
+    String::from_utf8(bytes)
+        .map_err(|_| ConfigError::new("not valid UTF-8").with_path(path.to_path_buf()))
+}
+
+/// Largest config or pattern file read (bytes); a repo-supplied file is never read whole beyond it.
+pub const MAX_CONFIG_BYTES: u64 = 1 << 20;
+
+/// Reads `path`, refusing before the read when it is larger than `max` bytes.
+pub fn read_capped(path: &Path, max: u64) -> Result<Vec<u8>, String> {
+    use std::io::Read;
+    let file = std::fs::File::open(path).map_err(|e| e.to_string())?;
+    let mut bytes = Vec::new();
+    // Read one byte past the cap so a file that grows (or lies about its size) is still caught.
+    file.take(max + 1)
+        .read_to_end(&mut bytes)
+        .map_err(|e| e.to_string())?;
+    if bytes.len() as u64 > max {
+        return Err(format!("larger than the {} KiB limit", max / 1024));
+    }
+    Ok(bytes)
 }
 
 /// Looks for the config file in `dir` and its ancestors. `Ok(None)` when there is none.

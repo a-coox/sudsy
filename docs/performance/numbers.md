@@ -47,6 +47,8 @@ C# cost structure: on CoreLib Roslyn parse ~0.94 s and the mapping walk ~0.83 s 
 | Traversal with no rule, per C# file | 90-96 us |
 | Default built-in C# rules, per file | 177 us |
 | Pattern rules, 100 rules, token start / `$X` start | 504 / 3970 us per file (4.4 / 22.7 us per rule) |
+| Layout rules, `format` query on the bench inputs (json 1.1 MB / yaml 0.5 MB), 0 / 1 / 10 / 100 pattern layout rules | json 225 / 235 / 313 / 687 ms, yaml 322 / 337 / 417 / 837 ms (`perf-bench layout`: ~4.6 ms per rule per MB, one syntax-only traversal; C# 12 files within worker noise) |
+| `format` query with no layout rule, against the commit before | instructions json +0.07%, yaml -0.01%; allocations +0.01% (`bench.sh`, tier 1) |
 | Pattern compile | 0.2-0.4 ms per rule after a first worker round trip of 11-12 ms |
 | Plugin vs built in, `todo-marker` per C# file (14 KB) | 1170 vs 134 us (~0.07-0.1 ms per KB per rule: tree encode on host 23-30 us/KB, decode and walk in Wasm ~5x native) |
 | Plugin load: cache off / empty / warm / same process | 178 / 183 / 6.8 ms / 0.6 ms |

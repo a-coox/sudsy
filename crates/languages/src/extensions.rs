@@ -8,6 +8,9 @@ use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 
+/// Largest plugin `.wasm` read and compiled (bytes).
+const MAX_WASM_BYTES: u64 = 32 << 20;
+
 type Loaded = Vec<(&'static str, &'static dyn Rule)>;
 
 /// Rules read from a pattern file, by the file's text. A rule is leaked once for as long as the
@@ -91,16 +94,26 @@ pub fn load_extensions(
                 e.path = Some(path.clone());
                 e
             };
+            // Errors of the loaders quote the file; not for one outside the project.
+            let quiet = |message: String| {
+                at(if path.starts_with(root) {
+                    message
+                } else {
+                    "invalid (details withheld: the file is outside the project)".to_string()
+                })
+            };
             let rules = match entry.kind {
                 PluginKind::Pattern => {
-                    let source = std::fs::read_to_string(&path)
+                    let bytes = core_config::read_capped(&path, core_config::MAX_CONFIG_BYTES)
                         .map_err(|e| at(format!("cannot read the pattern file: {e}")))?;
-                    load_patterns(&source, providers).map_err(at)?
+                    let source = String::from_utf8(bytes)
+                        .map_err(|_| at("cannot read the pattern file: not valid UTF-8".into()))?;
+                    load_patterns(&source, providers).map_err(quiet)?
                 }
                 PluginKind::Wasm => {
-                    let bytes = std::fs::read(&path)
+                    let bytes = core_config::read_capped(&path, MAX_WASM_BYTES)
                         .map_err(|e| at(format!("cannot read the plugin: {e}")))?;
-                    load_wasm(&path, bytes).map_err(at)?
+                    load_wasm(&path, bytes).map_err(quiet)?
                 }
             };
             extensions.files.push(path.clone());

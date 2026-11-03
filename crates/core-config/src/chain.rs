@@ -3,16 +3,24 @@
 use crate::PRESET_PREFIX;
 use crate::error::ConfigError;
 use crate::glob::Matcher;
-use crate::load::{load_file, parse_str};
+use crate::load::{parse_str, read_source};
 use crate::model::{Config, Depth, LANGUAGES, Plugins};
 use crate::presets::language_of;
 use crate::resolve::Source;
 use crate::schema::OptionSchema;
+use std::collections::HashSet;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 /// Longest chain of config files extending each other.
 const MAX_DEPTH: usize = 16;
+
+/// Most config files one chain reads in total.
+const MAX_FILES: usize = 64;
+
+fn canonical(path: &Path) -> PathBuf {
+    std::fs::canonicalize(path).unwrap_or_else(|_| path.to_path_buf())
+}
 
 /// A `preset:` entry of an `extends` list, with where it was written.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -161,12 +169,35 @@ impl ConfigChain {
         let mut chain = ConfigChain::default();
         let path = std::path::absolute(path)
             .map_err(|e| ConfigError::new(e.to_string()).with_path(path.to_path_buf()))?;
-        chain.read(&path, &mut vec![path.clone()])?;
+        let mut seen = HashSet::from([canonical(&path)]);
+        let root = path.parent().unwrap_or(Path::new("")).to_path_buf();
+        chain.read(&path, &root, &mut vec![path.clone()], &mut seen)?;
         Ok(chain)
     }
 
-    fn read(&mut self, path: &Path, stack: &mut Vec<PathBuf>) -> Result<(), ConfigError> {
-        let config = load_file(path)?;
+    /// `root` is the directory of the first file: a parse error of a file outside it is reported
+    /// without the parser's message, which quotes the file's text. `seen` holds the files already
+    /// read, so a file extended along several paths is read once.
+    fn read(
+        &mut self,
+        path: &Path,
+        root: &Path,
+        stack: &mut Vec<PathBuf>,
+        seen: &mut HashSet<PathBuf>,
+    ) -> Result<(), ConfigError> {
+        let source = read_source(path)?;
+        let config = parse_str(&source).map_err(|e| {
+            if path.starts_with(root) {
+                return e.with_path(path.to_path_buf());
+            }
+            let (line, column) = (e.line.unwrap_or(0), e.column.unwrap_or(0));
+            ConfigError::at(
+                line,
+                column,
+                "invalid config (details withheld: the file is outside the project)",
+            )
+            .with_path(path.to_path_buf())
+        })?;
         let dir = path.parent().unwrap_or(Path::new(""));
         for entry in &config.extends {
             let (line, column) = (entry.referenced.line(), entry.referenced.column());
@@ -204,8 +235,16 @@ impl ConfigChain {
             if !target.is_file() {
                 return Err(here(format!("extended config `{}` not found", entry.value)));
             }
+            if !seen.insert(canonical(&target)) {
+                continue;
+            }
+            if seen.len() > MAX_FILES {
+                return Err(here(format!(
+                    "more than {MAX_FILES} config files in one extends chain"
+                )));
+            }
             stack.push(target.clone());
-            self.read(&target, stack)?;
+            self.read(&target, root, stack, seen)?;
             stack.pop();
         }
         self.files
