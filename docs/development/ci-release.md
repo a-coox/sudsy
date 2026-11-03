@@ -18,6 +18,8 @@
 
 Publishing is manual: the workflow publishes nothing by itself. The `marketplace` job runs only from a hand-started run on a tag with its input ticked, using the `VSCE_PAT` secret. Nothing goes to crates.io (every crate is `publish = false`; the SDK is used by path until the plugin API is stable) or NuGet (the worker ships inside the packages).
 
+Supply chain: third-party actions are pinned by commit SHA (version in a comment; Dependabot bumps them weekly along with cargo, npm and nuget), workflows default to `contents: read` (only `release` writes), the tag name reaches scripts through `env`, and the `marketplace` job runs `vsce` from the `package-lock.json` install, not an unpinned download.
+
 ## Identity and contributions
 - Marketplace publisher `Coox` (extension id `Coox.sudsy`); the repo stays under the owner's GitHub account.
 - MIT, copyright Maia Coox; the `.vsix` ships the root `LICENSE` (copied at build).
