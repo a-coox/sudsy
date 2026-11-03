@@ -170,7 +170,7 @@ impl ConfigChain {
         let path = std::path::absolute(path)
             .map_err(|e| ConfigError::new(e.to_string()).with_path(path.to_path_buf()))?;
         let mut seen = HashSet::from([canonical(&path)]);
-        let root = path.parent().unwrap_or(Path::new("")).to_path_buf();
+        let root = canonical(path.parent().unwrap_or(Path::new("")));
         chain.read(&path, &root, &mut vec![path.clone()], &mut seen)?;
         Ok(chain)
     }
@@ -187,7 +187,8 @@ impl ConfigChain {
     ) -> Result<(), ConfigError> {
         let source = read_source(path)?;
         let config = parse_str(&source).map_err(|e| {
-            if path.starts_with(root) {
+            // Compared canonically: `..` is not resolved in a lexical path on every platform.
+            if canonical(path).starts_with(root) {
                 return e.with_path(path.to_path_buf());
             }
             let (line, column) = (e.line.unwrap_or(0), e.column.unwrap_or(0));
