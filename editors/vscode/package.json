@@ -2,7 +2,7 @@
   "name": "sudsy",
   "displayName": "Sudsy",
   "description": "Formatter and linter for C#, JSON and YAML.",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "publisher": "sudsy",
   "license": "MIT",
   "private": true,
