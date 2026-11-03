@@ -3,6 +3,7 @@
 ## CI (`.github/workflows/ci.yml`, reusable via `workflow_call`)
 | Job | Does |
 |---|---|
+| `dco` | pull requests only: every commit signed off by its author (`scripts/check-dco.sh`) |
 | `rust` | fmt check, clippy `-D warnings`, `cargo test --workspace`, sample plugin fmt + tests (installs `wasm32-wasip2`) |
 | `bench` | `scripts/bench.sh` tier 1 on ubuntu-latest against the PR base (installs valgrind) |
 | `dotnet` | `dotnet build` / `dotnet test workers/csharp` |
@@ -17,8 +18,11 @@
 
 Publishing is manual: the workflow publishes nothing by itself. The `marketplace` job runs only from a hand-started run on a tag with its input ticked, using the `VSCE_PAT` secret. Nothing goes to crates.io (every crate is `publish = false`; the SDK is used by path until the plugin API is stable) or NuGet (the worker ships inside the packages).
 
-## Still placeholder
-- Marketplace publisher is `Coox` (extension id `Coox.sudsy`); the repo stays under the owner's GitHub account.
-- Contributor sign-off (DCO or CLA); `LICENSE` is MIT with "The Sudsy authors" as the copyright placeholder.
+## Identity and contributions
+- Marketplace publisher `Coox` (extension id `Coox.sudsy`); the repo stays under the owner's GitHub account.
+- MIT, copyright Maia Coox; the `.vsix` ships the root `LICENSE` (copied at build).
+- Contributions need a DCO sign-off (`git commit -s`, see `CONTRIBUTING.md`); the `dco` CI job runs `scripts/check-dco.sh` on pull requests. No CLA.
+
+## Still open
 - macOS and arm64 builds are untested on real hardware until the first release run.
 - Release is prepared, not performed (`CHANGELOG.md` `0.1.0` is "unreleased").
