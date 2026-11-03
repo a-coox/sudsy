@@ -187,3 +187,51 @@ public class FixtureExportTests
         Assert.NotEmpty(bytes);
     }
 }
+
+public class WorkspaceLimitsTests
+{
+    [Fact]
+    public void OpeningARootSkipsLinksOversizedFilesAndSolutionProjectsOutsideIt()
+    {
+        var top = Directory.CreateTempSubdirectory("sudsy-ws").FullName;
+        try
+        {
+            var root = Path.Combine(top, "repo");
+            var outside = Path.Combine(top, "outside");
+            Directory.CreateDirectory(root);
+            Directory.CreateDirectory(outside);
+            File.WriteAllText(Path.Combine(root, "ok.cs"), "class Ok {}");
+            File.WriteAllText(Path.Combine(root, "big.cs"), "//" + new string('x', (int)Sudsy.Worker.Semantics.Workspace.MaxFileBytes));
+            File.WriteAllText(Path.Combine(outside, "out.cs"), "class Out {}");
+
+            try
+            {
+                Directory.CreateSymbolicLink(Path.Combine(root, "link"), outside);
+            }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+            {
+                // Symlinks need privileges on Windows; the test then covers the other limits only.
+            }
+
+            var workspace = new Sudsy.Worker.Semantics.Workspace();
+            workspace.Open([root]);
+            var names = workspace.Documents.Select(d => Path.GetFileName(d.Id)).ToList();
+            _ = workspace.Get(Path.Combine(root, "ok.cs"));
+            names = workspace.Documents.Select(d => Path.GetFileName(d.Id)).ToList();
+            Assert.Contains("ok.cs", names);
+            Assert.DoesNotContain("big.cs", names);
+            Assert.DoesNotContain("out.cs", names);
+
+
+            File.WriteAllText(Path.Combine(root, "x.sln"), "Project(\"{1}\") = \"x\", \"..\\outside\\x.csproj\", \"{2}\"");
+            File.WriteAllText(Path.Combine(outside, "x.csproj"), "<Project/>");
+            workspace.Open([Path.Combine(root, "x.sln")]);
+            _ = workspace.Get(Path.Combine(root, "ok.cs"));
+            Assert.DoesNotContain("out.cs", workspace.Documents.Select(d => Path.GetFileName(d.Id)));
+        }
+        finally
+        {
+            Directory.Delete(top, true);
+        }
+    }
+}
