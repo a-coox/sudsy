@@ -40,8 +40,8 @@ echo "candidate: ${head:0:9}$([ $dirty = 1 ] && echo '+working tree')   baseline
 # --- baseline worktree, with the candidate's harness so both sides run the same workload -----------
 work=$root/target/bench; src_base=$work/base-src; out=$work/out
 mkdir -p "$out"
-if [ -d "$src_base/.git" ] || [ -f "$src_base/.git" ]; then git -C "$src_base" checkout -q -f --detach "$base"
-else git worktree add -q --detach "$src_base" "$base"; fi
+# A restored build cache can hold the directory without the worktree registration: start over then.
+[ -e "$src_base/.git" ] && git -C "$src_base" checkout -q -f --detach "$base" 2>/dev/null   || { rm -rf "$src_base"; git worktree prune; git worktree add -q --detach "$src_base" "$base"; }
 rm -rf "$src_base/tools/perf-bench"; cp -r tools/perf-bench "$src_base/tools/perf-bench"
 inputs=$root/bench/inputs
 
