@@ -54,6 +54,46 @@ fn pool_size() -> usize {
 
 const MAX_WORKERS: usize = 4;
 
+/// Parsed by each prestarted worker, so that the parser is compiled before the first request.
+const WARMUP_SOURCE: &str = r#"using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace Warmup;
+
+[Serializable]
+public sealed record Point(int X, int Y);
+
+public interface IShape<T> where T : struct { T Area { get; } }
+
+public abstract class Base<T> : IShape<double>
+{
+    private readonly Dictionary<string, List<int>> _map = new();
+    public event EventHandler? Changed;
+    public double Area => 3.14 * Math.Pow(2, 2);
+    public T? Value { get; set; }
+
+    public async Task<int> RunAsync(string[] args, CancellationToken token = default)
+    {
+        var items = args.Where(a => a.Length > 0).Select((a, i) => $"{i}: {a}").ToList();
+        foreach (var item in items) { Console.WriteLine(item); }
+        for (int i = 0; i < 10; i++) { if (i % 2 == 0) continue; else break; }
+        while (items.Count > 0) items.RemoveAt(0);
+        try { await Task.Delay(1, token); }
+        catch (OperationCanceledException ex) when (ex.CancellationToken == token) { throw; }
+        finally { Changed?.Invoke(this, EventArgs.Empty); }
+        return items switch { { Count: 0 } => 0, _ => 1 };
+    }
+
+    protected virtual int Compute(int a, int b) => a > b ? a - b : b - a;
+    public static bool operator ==(Base<T> l, Base<T> r) => ReferenceEquals(l, r);
+    public static bool operator !=(Base<T> l, Base<T> r) => !(l == r);
+}
+
+public enum Kind { A = 1, B, C }
+"#;
+
 /// A C# provider that runs the framework-dependent worker through the `dotnet` host.
 pub fn provider(worker_dll: &Path) -> OutOfProcessProvider {
     let grammar = grammars::csharp();
@@ -65,6 +105,7 @@ pub fn provider(worker_dll: &Path) -> OutOfProcessProvider {
             .into();
     // The worker is a batch process: start counting calls at once, so that its hot methods
     // reach optimized code in the first second instead of after the default 100 ms of quiet.
+    config.warmup_source = WARMUP_SOURCE.into();
     config.env = vec![("DOTNET_TC_CallCountingDelayMs".into(), "0".into())];
     OutOfProcessProvider::new(
         LanguageId::CSHARP,

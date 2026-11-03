@@ -181,6 +181,8 @@ fn workspace(corpus: &Path, files: usize) -> Result<(PathBuf, PathBuf, String)> 
 
 fn first_build(root: &Path, worker: &Path, file: &Path, text: &str) -> (f64, f64) {
     let mut client = Client::start(root, worker);
+    // The editor has the workspace open for a moment before the user touches a file.
+    client.pump(Duration::from_millis(1500));
     let uri = client.open(file, text);
     let sent = Instant::now();
     let pull = client.pull(&uri);

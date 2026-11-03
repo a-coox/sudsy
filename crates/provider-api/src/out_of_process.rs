@@ -14,7 +14,7 @@ pub struct OutOfProcessProvider {
     id: LanguageId,
     grammar: &'static Grammar,
     matchers: Vec<FileMatcher>,
-    proxy: WorkerProxy,
+    proxy: std::sync::Arc<WorkerProxy>,
     formatter: Box<dyn NodeFormatter>,
     schema: OptionSchema,
     rules: &'static [&'static dyn Rule],
@@ -34,7 +34,7 @@ impl OutOfProcessProvider {
             id,
             grammar,
             matchers,
-            proxy: WorkerProxy::new(worker),
+            proxy: std::sync::Arc::new(WorkerProxy::new(worker)),
             formatter: Box::new(DefaultFormatter),
             schema: OptionSchema::default(),
             rules: &[],
@@ -141,6 +141,10 @@ impl LanguageProvider for OutOfProcessProvider {
             .analyze(update, Some(query), false)
             .map_err(to_provider_error)?;
         Ok(answers.map(|a| a.diagnostics).unwrap_or_default())
+    }
+
+    fn prestart(&self) {
+        self.proxy.prestart();
     }
 
     fn open_workspace(&self, paths: &[std::path::PathBuf]) {
