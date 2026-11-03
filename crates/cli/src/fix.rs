@@ -3,17 +3,14 @@
 
 use crate::lint::{self, Collected, ReportArgs, exit_code};
 use crate::report::FileDiagnostics;
-use crate::session::{Session, par_map};
+use crate::session::{Session, load, par_map};
 use anyhow::{Context, Result, anyhow};
 use clap::Args;
-use core_config::EditorConfig;
-use core_incremental::{Database, File, Stage, format, lint as lint_query};
-use core_rules::{Analysis, Diagnostic, fix_loop};
+use core_incremental::{Database, Stage, fix_text, format, lint as lint_query, transient};
+use core_rules::Diagnostic;
 use languages::Project;
-use provider_api::SourceFile;
 use std::path::Path;
 use std::process::ExitCode;
-use std::sync::atomic::{AtomicU64, Ordering};
 
 #[derive(Args)]
 pub struct FixArgs {
@@ -52,61 +49,31 @@ impl From<core_incremental::Failure> for Failed {
     }
 }
 
-/// A new database input for `text`: the same file at the next version.
-fn input(db: &Database, path: &Path, version: &AtomicU64, text: &str, had_bom: bool) -> File {
-    File::new(
-        db,
-        path.to_path_buf(),
-        version.fetch_add(1, Ordering::Relaxed),
-        text.to_string(),
-        had_bom,
-        EditorConfig::for_file(path),
-    )
-}
-
 fn fix_file(
     db: &Database,
     project: &Project,
     path: &Path,
     allow_unsafe: bool,
 ) -> Result<Fixed, Failed> {
-    let bytes = std::fs::read(path)
-        .context("reading the file")
-        .map_err(Failed::File)?;
-    let source =
-        SourceFile::from_bytes(project.show(path), 1, bytes).map_err(|e| Failed::File(e.into()))?;
-    let version = AtomicU64::new(1);
-    let analyze = |text: &str| -> Result<Analysis, Failed> {
-        let file = input(db, path, &version, text, source.had_bom);
-        let linted = lint_query(db, file)
-            .as_ref()
-            .map_err(|f| Failed::from(f.clone()))?;
-        Ok(Analysis {
-            diagnostics: linted.diagnostics.clone(),
-            parses: linted.parses,
-        })
-    };
-    let outcome = fix_loop(
-        source.text.clone(),
-        |fix| fix.kind.applies(allow_unsafe),
-        analyze,
-    )?;
+    let file = load(db, project, path).map_err(Failed::File)?;
+    let (before, had_bom) = (file.text(db).clone(), file.had_bom(db));
+    let outcome = fix_text(db, file, |fix| fix.kind.applies(allow_unsafe))?;
     let mut text = outcome.text;
     // Then format; a file that does not parse is left as it is.
-    let file = input(db, path, &version, &text, source.had_bom);
-    let linted = lint_query(db, file)
+    let fixed = transient(db, file, &text);
+    let linted = lint_query(db, fixed)
         .as_ref()
         .map_err(|f| Failed::from(f.clone()))?;
     if linted.parses {
-        text = format(db, file)
+        text = format(db, fixed)
             .as_ref()
             .map_err(|f| Failed::from(f.clone()))?
             .clone();
     }
-    let changed = text != source.text;
+    let changed = text != before;
     if changed {
         let mut bytes = Vec::with_capacity(text.len() + 3);
-        if source.had_bom {
+        if had_bom {
             bytes.extend_from_slice("\u{feff}".as_bytes());
         }
         bytes.extend_from_slice(text.as_bytes());
@@ -114,7 +81,7 @@ fn fix_file(
             .context("writing the file")
             .map_err(Failed::File)?;
     }
-    let after = input(db, path, &version, &text, source.had_bom);
+    let after = transient(db, file, &text);
     let diagnostics = lint_query(db, after)
         .as_ref()
         .map_err(|f| Failed::from(f.clone()))?

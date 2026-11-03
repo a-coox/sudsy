@@ -12,12 +12,14 @@
 
 mod db;
 mod failure;
+mod fixing;
 mod inputs;
 mod queries;
 mod rules;
 
 pub use db::{Database, Db, EventHook, Providers};
 pub use failure::{Failure, Stage};
+pub use fixing::{fix_text, transient};
 pub use inputs::{ConfigFile, File};
 pub use queries::{
     FileOptions, Parsed, Selection, config, format, options, parse, parse_settings, selection,

@@ -1,5 +1,7 @@
 //! Out-of-process proxy: spawns the worker lazily, handshakes, forwards requests, and on a
-//! crash or hang restarts it once before reporting it unavailable for the rest of the run.
+//! crash or hang restarts it once before reporting it unavailable. A worker that answers again
+//! has its restart allowance back, so a worker that lives as long as an editor session survives
+//! any number of unrelated crashes.
 
 use crate::protocol::{
     self, Empty, FLOW_GRAPH_FORMAT_VERSION, Hello, PROTOCOL_VERSION, ParseRequest, Parsed,
@@ -23,7 +25,8 @@ pub struct WorkerConfig {
     pub handshake_timeout: Duration,
     /// A request taking longer than this counts as a hang.
     pub request_timeout: Duration,
-    /// How often a crashed or hung worker is restarted before giving up.
+    /// How often a crashed or hung worker is restarted in a row before giving up; a reply resets
+    /// the count.
     pub max_restarts: u32,
     /// Environment variables set for the worker process.
     pub env: Vec<(OsString, OsString)>,
@@ -31,6 +34,8 @@ pub struct WorkerConfig {
     /// with more of them, threads that parse at once do not queue behind each other. They start
     /// when a request finds all the others busy.
     pub pool_size: usize,
+    /// Added to the message when the worker's program cannot be started, to say what to install.
+    pub install_hint: String,
 }
 
 impl WorkerConfig {
@@ -43,6 +48,7 @@ impl WorkerConfig {
             max_restarts: 1,
             env: Vec::new(),
             pool_size: 1,
+            install_hint: String::new(),
         }
     }
 }
@@ -135,8 +141,13 @@ impl WorkerProxy {
         loop {
             let worker = self.ensure_running(&mut inner)?;
             match exchange(worker, &request, timeout) {
-                Ok(Response::Error(e)) => return Err(ProxyError::Worker(e)),
-                Ok(response) => return Ok(response),
+                Ok(response) => {
+                    inner.restarts = 0;
+                    return match response {
+                        Response::Error(e) => Err(ProxyError::Worker(e)),
+                        response => Ok(response),
+                    };
+                }
                 Err(why) => {
                     self.recover(&mut inner, &why)
                         .map_err(ProxyError::Unavailable)?;
@@ -250,8 +261,9 @@ impl WorkerProxy {
             .spawn()
             .map_err(|e| {
                 Transport::Spawn(format!(
-                    "cannot start the worker ({}): {e}",
-                    program.to_string_lossy()
+                    "cannot start the worker ({}): {e}{}",
+                    program.to_string_lossy(),
+                    self.config.install_hint
                 ))
             })?;
         let stdin = child.stdin.take().expect("stdin is piped");
