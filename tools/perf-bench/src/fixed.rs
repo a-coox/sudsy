@@ -1,8 +1,8 @@
 //! `perf-bench fixed LANG PHASE [--inputs DIR]`: one fixed, deterministic workload for scripts/bench.sh,
-//! which runs it under cachegrind (instruction counts) and with `--features count` (allocations).
+//! which runs it under callgrind (instruction counts) and with `--features count` (allocations).
 //! LANG is json, yaml or cs; PHASE is parse, format, lint, patterns or plugins. Inputs are the
 //! committed files under DIR (default bench/inputs/<lang>) plus generated JSON and YAML. Only the
-//! work inside `measured` is counted; cachegrind is told to collect between its entry and exit.
+//! work inside `measured` is counted; callgrind is told to collect between its entry and exit.
 
 use crate::extensions::{self, Parsed};
 use anyhow::{Result, anyhow, bail};

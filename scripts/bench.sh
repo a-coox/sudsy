@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Standard benchmark: run after every feature change (docs/decisions.md, "Benchmarking").
+# Standard benchmark: run after every feature change.
 #   scripts/bench.sh [--base REV] [--time] [--rounds N] [--no-instr] [--record|--no-record]
 # Tier 1 (default, deterministic): per language and phase (parse, format, lint, patterns, plugins) on
 #   fixed inputs (bench/inputs + generated), the candidate (working tree) against the baseline
 #   (--base, default the merge-base with origin/main; HEAD or HEAD^ when that is HEAD), built in a
-#   git worktree: instructions (cachegrind, in WSL on Windows) and allocations. Exit 1 on a
+#   git worktree: instructions (callgrind, in WSL on Windows) and allocations. Exit 1 on a
 #   regression: instructions +1%, allocations +1% (and 10 or more).
 # Tier 2 (--time): interleaved A/B wall time of the CLI, with the C# worker; exit 1 only when the
 #   95% confidence interval of the candidate/baseline ratio lies above 1.03.

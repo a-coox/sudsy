@@ -2,7 +2,7 @@
 # Builds one checkout and measures it; called by scripts/bench.sh (natively and inside WSL).
 #   bench-measure.sh --src DIR --target DIR --inputs DIR --out FILE --mode allocs|instr [--langs "json yaml cs"]
 # Writes "<lang>.<phase>.<allocs|instr|work> <number>" lines. Both modes use the same release
-# perf-bench build (--features count); `instr` runs each phase under cachegrind and reads the
+# perf-bench build (--features count); `instr` runs each phase under callgrind and reads the
 # instructions executed between entry and exit of fixed::measured (the phase, not the set-up).
 set -euo pipefail
 src= target= inputs= out= mode= langs="json yaml cs"
@@ -38,7 +38,7 @@ one() { # one LANG PHASE -> metric lines on stdout
   local lang=$1 phase=$2 res
   if [ "$mode" = instr ]; then
     local log; log=$(mktemp)
-    valgrind --tool=cachegrind --cache-sim=no --smc-check=all-non-file --cachegrind-out-file=/dev/null \
+    valgrind --tool=callgrind --smc-check=all-non-file --callgrind-out-file=/dev/null \
       --toggle-collect='*fixed*measured*' "$bin" fixed "$lang" "$phase" --inputs "$inputs" >"$log.out" 2>"$log"
     res=$(cat "$log.out")
     echo "$lang.$phase.instr $(sed -n 's/.*I *refs: *//p' "$log" | tr -d ',' | head -1)"
