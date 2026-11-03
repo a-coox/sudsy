@@ -35,6 +35,33 @@ jobs:
       - run: cargo fmt --manifest-path tests/plugins/sample/Cargo.toml -- --check
       - run: cargo test --manifest-path tests/plugins/sample/Cargo.toml
 
+  # Tier 1 of scripts/bench.sh against the PR base (or the previous main commit): deterministic
+  # instruction and allocation counts, fails on a regression.
+  bench:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-wasip2
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            . -> target/bench/cand
+            target/bench/base-src -> target/bench/base
+      - run: sudo apt-get update && sudo apt-get install -y valgrind
+      - name: Benchmark against the base
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          case "$BASE" in 0000000*|"") BASE=$(git rev-parse HEAD^) ;; esac
+          scripts/bench.sh --base "$BASE" --no-record
+
   dotnet:
     strategy:
       fail-fast: false

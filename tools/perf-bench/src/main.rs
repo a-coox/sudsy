@@ -15,6 +15,7 @@ static A: mimalloc::MiMalloc = mimalloc::MiMalloc;
 #[cfg(feature = "count")]
 mod counting;
 mod extensions;
+mod fixed;
 mod semantic;
 #[cfg(feature = "count")]
 #[global_allocator]
@@ -39,12 +40,12 @@ struct Cost {
 }
 
 #[cfg(feature = "count")]
-fn allocs() -> u64 {
+pub(crate) fn allocs() -> u64 {
     counting::count()
 }
 
 #[cfg(not(feature = "count"))]
-fn allocs() -> u64 {
+pub(crate) fn allocs() -> u64 {
     0
 }
 
@@ -219,6 +220,23 @@ fn main() -> Result<()> {
             rest.first().map(|d| std::path::Path::new(d.as_str())),
             limit,
         );
+    }
+    if which == "fixed" {
+        let rest: Vec<&String> = args
+            .iter()
+            .filter(|a| !a.starts_with("--"))
+            .skip(1)
+            .collect();
+        let dir = args
+            .iter()
+            .position(|a| a == "--inputs")
+            .and_then(|i| args.get(i + 1))
+            .map_or("bench/inputs", String::as_str);
+        let (lang, phase) = (rest.first(), rest.get(1));
+        let (Some(lang), Some(phase)) = (lang, phase) else {
+            return Err(anyhow!("fixed LANG PHASE [--inputs DIR]"));
+        };
+        return fixed::run(lang, phase, std::path::Path::new(dir));
     }
     if which == "plugin-load" {
         return extensions::plugin_load();
