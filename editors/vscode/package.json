@@ -3,7 +3,7 @@
   "displayName": "Sudsy",
   "description": "Formatter and linter for C#, JSON and YAML.",
   "version": "0.1.0",
-  "publisher": "sudsy",
+  "publisher": "Coox",
   "license": "MIT",
   "private": true,
   "engines": {
