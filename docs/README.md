@@ -27,6 +27,7 @@ Current state only; history is in git. Update the doc for the area you change in
 | [performance/numbers.md](performance/numbers.md) | Current numbers per hot path |
 | [performance/tooling.md](performance/tooling.md) | How to measure: bench.sh, perf-bench, speed scripts |
 | [development/dev-loop.md](development/dev-loop.md) | Build, gate, scripts, Windows/Git Bash/WSL notes |
+| [development/parity.md](development/parity.md) | `parity.sh`: differential tests against upstream tools |
 | [development/testing.md](development/testing.md) | Test layers, corpora, conformance |
 | [development/ci-release.md](development/ci-release.md) | CI jobs, release process, placeholders |
 | [roadmap.md](roadmap.md) | Deliberately not built or deferred |

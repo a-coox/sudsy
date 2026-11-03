@@ -2,7 +2,7 @@
 
 What the tools Sudsy aims to replace do, and where Sudsy stands. One file per tool: `yamllint.yaml`, `prettier.yaml` (YAML and JSON), `biome.yaml` (JSON), `eslint-plugin-jsonc.yaml`, `stylecop.yaml` (StyleCop.Analyzers 1.2.0-beta.556), `csharpier.yaml`, `dotnet-format-editorconfig.yaml` (the IDE0055 formatting options and `.editorconfig` keys), `roslynator.yaml` (overlaps with the others only). Upstream versions are in each file's `version`. Sudsy facts were observed on a debug build; entries without a "Verified" note follow from the documentation of the tool.
 
-A test (`crates/languages/tests/parity.rs`) fails when a `rule:` or `option:` status names something that does not exist, or when the counts below are stale.
+The differential runner [`scripts/parity.sh`](../development/parity.md) compares a tool's output with `sudsy lint` on fixtures. A test (`crates/languages/tests/parity.rs`) fails when a `rule:` or `option:` status names something that does not exist, or when the counts below are stale.
 
 ## Entry fields
 `id`, `name`, `default` (upstream default), `kind` (`lint` or `format-option`), `sudsy` (status), `coverage`, `notes`, `gap` (what is missing), `priority` (`p1` on by default upstream, `p2` popular opt-in, `p3` rare; judgment, not measured), `usage` (judgment), `batch` (planning group, see below). Option-level entries have ids like `line-length.max`, so tools with many sub-options weigh more in the counts.

@@ -1,0 +1,9 @@
+# The Sudsy side of the comparison with .yamllint.
+lint:
+  rules:
+    document-start: warn
+    max-line-length:
+      level: warn
+      options:
+        max: 30
+    ambiguous-booleans: warn

@@ -10,6 +10,7 @@
 | `ship.sh` | Push the current branch, then watch the CI run for HEAD (`gh run watch`); refuses with staged changes |
 | `dogfood.sh` | Build debug CLI + worker into `target/dogfood/` for the editor |
 | `bench.sh`, `bench-time.sh`, `bench-measure.sh`, `bench-setup-wsl.sh` | [performance/tooling.md](../performance/tooling.md) |
+| `parity.sh <tool>` | Differential test against an upstream tool on `tests/parity/<tool>/` fixtures: [parity.md](parity.md) |
 | `check-version.sh [vX.Y.Z]` | Cargo workspace, `editors/vscode/package.json` + lock, tag and `CHANGELOG.md` agree |
 | `package-cli.sh` | CLI archive: executable, `csharp-worker/`, LICENSE, CHANGELOG |
 

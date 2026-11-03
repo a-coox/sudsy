@@ -1,0 +1,8 @@
+a: 1
+b: 2
+a: 3
+nested:
+  x: 1
+  x: 2
+flow: {k: 1, k: 2}
+ok: fine

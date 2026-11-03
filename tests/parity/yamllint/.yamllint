@@ -1,0 +1,17 @@
+# Only the rules Sudsy has an equivalent for (docs/parity/yamllint.yaml), with the parameters
+# Sudsy's rules use. Everything else is off so the comparison sees nothing it cannot map.
+rules:
+  anchors:
+    forbid-undeclared-aliases: true
+    forbid-duplicated-anchors: false
+    forbid-unused-anchors: false
+  document-start:
+    present: true
+  key-duplicates: enable
+  line-length:
+    max: 30
+    allow-non-breakable-words: false
+    allow-non-breakable-inline-mappings: false
+  truthy:
+    allowed-values: ["true", "false"]
+    check-keys: true

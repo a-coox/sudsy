@@ -23,4 +23,5 @@ On Windows run the scripts from Git Bash; `bash` in PowerShell resolves to WSL, 
 - `scripts/gate.sh [--rust-only] [-p <crate>]`: fmt check, build, clippy, test, `cargo xtask codegen --check`, dotnet build/test, extension typecheck/lint/test/build. Must pass before committing.
 - `scripts/ship.sh`: push the branch, watch CI for HEAD (refuses with staged changes).
 - `scripts/bench.sh [--base REV] [--time]`: instruction + allocation counts per language and phase against the merge-base (exit 1 on regression; `--time` adds interleaved wall-clock A/B of the CLI). Run it after every feature change; first time on Windows run `scripts/bench-setup-wsl.sh`. History: `bench/history.jsonl`.
+- `scripts/parity.sh <tool>`: differential test of `sudsy lint` against an upstream tool (yamllint) on `tests/parity/<tool>/`; catalog in `docs/parity/`.
 - `scripts/dogfood.sh`: build debug CLI + worker into `target/dogfood/`, which `.vscode/settings.json` uses so VS Code never locks `target/debug`; restart the server after running it.
