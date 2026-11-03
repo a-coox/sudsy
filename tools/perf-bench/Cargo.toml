@@ -11,12 +11,17 @@ publish.workspace = true
 core-config.workspace = true
 core-format.workspace = true
 core-incremental.workspace = true
+core-patterns.workspace = true
+core-plugins.workspace = true
+core-rules.workspace = true
 core-syntax.workspace = true
 lang-csharp.workspace = true
 lang-json.workspace = true
 lang-yaml.workspace = true
 provider-api.workspace = true
 anyhow.workspace = true
+# The sample plugin's rules, built in, to compare with the same rules as a plugin.
+sample-plugin = { path = "../../tests/plugins/sample" }
 mimalloc = { workspace = true, optional = true }
 
 [features]

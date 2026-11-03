@@ -4,11 +4,11 @@ use crate::rule::make_rules;
 use core_rules::Rule;
 use sha2::{Digest, Sha256};
 use std::collections::HashMap;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::sync::{Arc, LazyLock, Mutex};
 use std::time::Duration;
 use wasmtime::component::{Component, Linker, ResourceTable};
-use wasmtime::{Config, Engine, Store, StoreLimits, StoreLimitsBuilder};
+use wasmtime::{Cache, CacheConfig, Config, Engine, Store, StoreLimits, StoreLimitsBuilder};
 use wasmtime_wasi::{WasiCtx, WasiCtxView, WasiView};
 
 pub(crate) mod bindings {
@@ -17,8 +17,10 @@ pub(crate) mod bindings {
 
 pub(crate) use bindings::exports::sudsy::rules::rules as w;
 
-/// Fuel for one call: about one unit per Wasm instruction, so a few seconds of work.
-const FUEL: u64 = 2_000_000_000;
+/// Fuel for one call: about one unit per Wasm instruction. It is the deterministic cap on a
+/// runaway loop; the time limit below is what bounds the wait. Sized so that a plugin which only
+/// reads a 3 MB file (decoding its tree takes ~1e9) stays far below it.
+const FUEL: u64 = 20_000_000_000;
 /// Wall-clock limit for one call, in epoch ticks of [`TICK`].
 const TIMEOUT_TICKS: u64 = 200;
 const TICK: Duration = Duration::from_millis(50);
@@ -48,11 +50,40 @@ impl WasiView for State {
     }
 }
 
+/// Names the directory of the compiled-plugin cache; `off` disables it.
+pub const CACHE_ENV: &str = "SUDSY_WASM_CACHE";
+
+/// Where compiled plugins are kept between runs: compiling a plugin takes longer than a small
+/// lint run, loading the compiled code does not (see docs/decisions.md, "M6"). `None` when the
+/// user turned the cache off or has no home directory.
+fn cache_dir() -> Option<PathBuf> {
+    if let Some(dir) = std::env::var_os(CACHE_ENV) {
+        return (dir != "off").then(|| PathBuf::from(dir));
+    }
+    let var = |name: &str| std::env::var_os(name).map(PathBuf::from);
+    let base = if cfg!(windows) {
+        var("LOCALAPPDATA")
+    } else if cfg!(target_os = "macos") {
+        var("HOME").map(|h| h.join("Library/Caches"))
+    } else {
+        var("XDG_CACHE_HOME").or_else(|| var("HOME").map(|h| h.join(".cache")))
+    };
+    base.map(|b| b.join("sudsy").join("wasm"))
+}
+
+fn compile_cache() -> Option<Cache> {
+    let mut config = CacheConfig::new();
+    config.with_directory(cache_dir()?);
+    // A cache that cannot be opened (read-only home, say) only costs the speed-up.
+    Cache::new(config).ok()
+}
+
 /// One engine for all plugins. A thread advances its epoch, which is what bounds the time of a
 /// call; it ends with the engine.
 static ENGINE: LazyLock<Engine> = LazyLock::new(|| {
     let mut config = Config::new();
     config.consume_fuel(true).epoch_interruption(true);
+    config.cache(compile_cache());
     let engine = Engine::new(&config).expect("wasmtime engine");
     let weak = engine.weak();
     std::thread::spawn(move || {
@@ -65,15 +96,35 @@ static ENGINE: LazyLock<Engine> = LazyLock::new(|| {
     engine
 });
 
+/// A started instance of the plugin and its store.
+struct Instance {
+    store: Store<State>,
+    plugin: bindings::Plugin,
+}
+
 pub(crate) struct Plugin {
     pub(crate) name: String,
     pre: bindings::PluginPre<State>,
+    /// Instances that finished a call without trouble, for the next call to take. Starting an
+    /// instance costs milliseconds (WASI linking, the module's start-up, the grammar the plugin
+    /// parses on first use) against microseconds for a call, so each thread that works on files
+    /// keeps its own instance. A plugin that traps loses its instance.
+    idle: Mutex<Vec<Instance>>,
     /// Why the plugin is switched off for the rest of the run, once it is.
     disabled: Mutex<Option<String>>,
 }
 
 impl Plugin {
-    fn store() -> Store<State> {
+    fn new(pre: bindings::PluginPre<State>) -> Self {
+        Plugin {
+            name: String::new(),
+            pre,
+            idle: Mutex::default(),
+            disabled: Mutex::default(),
+        }
+    }
+
+    fn start(&self) -> Result<Instance, String> {
         // No preopened directories, environment, arguments or inherited streams: the plugin
         // can compute, and nothing else.
         let mut store = Store::new(
@@ -85,26 +136,36 @@ impl Plugin {
             },
         );
         store.limiter(|state| &mut state.limits);
+        store.epoch_deadline_trap();
+        // Starting the instance runs plugin code too.
         store.set_fuel(FUEL).expect("fuel is enabled");
         store.set_epoch_deadline(TIMEOUT_TICKS);
-        store.epoch_deadline_trap();
-        store
+        let plugin = self
+            .pre
+            .instantiate(&mut store)
+            .map_err(|e| format!("cannot start the plugin: {e}"))?;
+        Ok(Instance { store, plugin })
     }
 
-    /// Runs `f` with a fresh instance and its own fuel and time limits. An error is a trap, an
+    /// Runs `f` on an instance with its own fuel and time limits. An error is a trap, an
     /// exhausted limit or an error the plugin returned.
     pub(crate) fn call<T>(
         &self,
         f: impl FnOnce(&w::Guest, &mut Store<State>) -> wasmtime::Result<Result<T, String>>,
     ) -> Result<T, String> {
-        let mut store = Self::store();
-        let plugin = self
-            .pre
-            .instantiate(&mut store)
-            .map_err(|e| format!("cannot start the plugin: {e}"))?;
-        match f(plugin.sudsy_rules_rules(), &mut store) {
-            Ok(result) => result,
-            Err(trap) => Err(describe(&store, &trap)),
+        let idle = self.idle.lock().expect("plugin instances").pop();
+        let mut instance = match idle {
+            Some(instance) => instance,
+            None => self.start()?,
+        };
+        instance.store.set_fuel(FUEL).expect("fuel is enabled");
+        instance.store.set_epoch_deadline(TIMEOUT_TICKS);
+        match f(instance.plugin.sudsy_rules_rules(), &mut instance.store) {
+            Ok(result) => {
+                self.idle.lock().expect("plugin instances").push(instance);
+                result
+            }
+            Err(trap) => Err(describe(&instance.store, &trap)),
         }
     }
 
@@ -184,11 +245,7 @@ pub fn load(
                 e,
             )
         })?;
-    let mut plugin = Plugin {
-        name: String::new(),
-        pre,
-        disabled: Mutex::new(None),
-    };
+    let mut plugin = Plugin::new(pre);
     let info = plugin
         .call(|guest, store| guest.call_info(store).map(Ok))
         .map_err(|e| err("asking the plugin for its rules", e))?;

@@ -1,20 +1,37 @@
 //! Helpers over the shared tree that several languages' rules need.
 
-use core_syntax::{Grammar, SyntaxNode, TextRange};
+use core_syntax::{Grammar, SyntaxNode, SyntaxToken, TextRange};
 
 /// The span of a node from its first token that is not trivia to the end of its last one:
-/// comments and blank space around the node are not part of it.
+/// comments and blank space around the node are not part of it. Found from the two ends, so it
+/// costs the trivia at the edges rather than the size of the node.
 pub fn significant_range(node: &SyntaxNode, grammar: &Grammar) -> TextRange {
-    let mut tokens = node
-        .descendants_with_tokens()
-        .filter_map(|e| e.into_token())
-        .filter(|t| !grammar.is_trivia(t.kind()) && !t.text_range().is_empty());
-    match tokens.next() {
-        Some(first) => {
-            let last = tokens.last().unwrap_or_else(|| first.clone());
+    let whole = node.text_range();
+    let keep = |t: &SyntaxToken| {
+        whole.contains_range(t.text_range())
+            && !grammar.is_trivia(t.kind())
+            && !t.text_range().is_empty()
+    };
+    let inside = |t: &SyntaxToken| whole.contains_range(t.text_range());
+    let mut first = node.first_token();
+    while let Some(t) = &first {
+        if keep(t) || !inside(t) {
+            break;
+        }
+        first = t.next_token();
+    }
+    let mut last = node.last_token();
+    while let Some(t) = &last {
+        if keep(t) || !inside(t) {
+            break;
+        }
+        last = t.prev_token();
+    }
+    match (first, last) {
+        (Some(first), Some(last)) if keep(&first) && keep(&last) => {
             TextRange::new(first.text_range().start(), last.text_range().end())
         }
-        None => node.text_range(),
+        _ => whole,
     }
 }
 

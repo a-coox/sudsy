@@ -13,12 +13,17 @@ use provider_api::LanguageProvider;
 
 pub use provider_api::testing::{expect, fix, fix_with, lint, lint_with, render};
 
-/// The shipped provider of `language` (`csharp`, `json` or `yaml`).
+/// The shipped provider of `language` (`csharp`, `json` or `yaml`). C# needs the worker, found
+/// as the CLI finds it (`SUDSY_CSHARP_WORKER`, or `csharp-worker/` beside the executable).
 pub fn provider(language: &str) -> Box<dyn LanguageProvider> {
-    languages::providers()
-        .into_iter()
-        .find(|p| p.grammar().language == language)
-        .unwrap_or_else(|| panic!("no provider for `{language}`"))
+    match language {
+        "json" => Box::new(lang_json::JsonProvider::new()),
+        "yaml" => Box::new(lang_yaml::YamlProvider::new()),
+        "csharp" => Box::new(lang_csharp::provider(
+            &lang_csharp::locate_worker().unwrap_or_else(|e| panic!("{e}")),
+        )),
+        other => panic!("no provider for `{other}`"),
+    }
 }
 
 /// A project that has just `rule` for `language`, under its own short id.

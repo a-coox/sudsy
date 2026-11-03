@@ -56,7 +56,8 @@ fn rules_carry_the_plugin_name_and_declare_themselves() {
             "sample/no-debug-flag",
             "sample/branchy-body",
             "sample/duplicate-name",
-            "sample/misbehave"
+            "sample/misbehave",
+            "sample/todo-marker"
         ]
     );
     let flag = ext.rules[0].rule.meta();

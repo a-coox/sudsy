@@ -1364,8 +1364,11 @@ requests in parallel (or one workspace per core) is the lever if CI time matters
   written `$$$BODY;`. A repeated name must capture equal text; `$$$` matches any run of siblings,
   separators included, by backtracking. Patterns are compiled when the config loads, so a C#
   pattern file starts the worker then, and a bad pattern is a config error with its file.
-* **Dispatch.** The rule's `kinds()` is the root kind of its pattern (or the union for `any`, or
-  `kind:`); an expression that pins nothing down is offered every node kind.
+* **Dispatch.** The rule's `kinds()` is the root kind of its pattern (or `kind:`, or the union over
+  `any`), and the engine calls the rule for those kinds only. A rule that pins no kind (a `regex` or
+  a relation alone) is a config error: offered every node it cost 1.6 ms per file per rule
+  (measured, see "Performance" below), and a regex over the text of every node re-reads each
+  ancestor's text.
 * **Not done.** `type_matches` (plan.md's semantic predicate): the worker answers file-wide
   enumerations, not point type queries, so it needs a protocol addition (`type_of(span)`); it waits
   for a milestone that adds point queries. `inside`/`has` drop their captures, and a pattern rule
@@ -1404,9 +1407,14 @@ requests in parallel (or one workspace per core) is the lever if CI time matters
 * **Host.** `wasmtime` with the component model; the guest is built with
   `--target wasm32-wasip2`, which imports a few WASI interfaces for `std`, so the linker has
   `wasmtime-wasi` with an empty context (no preopened directories, environment, arguments or
-  inherited streams: no files, network or clock). Each call gets a fresh instance (the component is
-  compiled once per distinct bytes), 2e9 fuel, 10 s of wall-clock time (an epoch ticker thread
-  advances every 50 ms) and 512 MiB of memory. The tree is encoded and copied once per call, and a
+  inherited streams: no files, network or clock). Calls run on pooled instances (a finished call returns its
+  instance, so there is about one per working thread; a plugin that traps loses its instance),
+  each call with its own 2e10 fuel (about 10 s of work; it exists to stop a runaway loop
+  deterministically), 10 s of wall-clock time (an epoch ticker thread advances every 50 ms) and
+  512 MiB of memory per instance. A fresh instance per call was the first version and cost 3.8 ms
+  a call (see "Performance" below). The compiled component is cached in memory by the hash of its
+  bytes and on disk by wasmtime (`SUDSY_WASM_CACHE`, default `<user cache dir>/sudsy/wasm`, `off`
+  disables). The tree is encoded and copied once per call, and a
   call is one rule on one file; with several rules in a plugin that is several copies of the same
   tree, accepted for v0 to keep the rule interface a plain `Rule`.
 * **Failure.** A trap, an exhausted limit, an error the plugin returns, a span outside the file or
@@ -1431,6 +1439,102 @@ requests in parallel (or one workspace per core) is the lever if CI time matters
 * **Cleanup.** `run_file` lost its `body_kinds` parameter: the kinds are a field of `FileContext`,
   where a plugin also needs them. `Db`'s note that the plugin host "will make the provider set
   dynamic" is replaced by the `ExtensionSet` input.
+
+### Performance (M6)
+Machine: AMD Ryzen 5 3600 (6 cores, 12 threads), 32 GB, Windows 11. Release builds with mimalloc.
+Corpus: the first 500 files of dotnet/runtime (`tests/conformance/corpus/runtime`, 7.0 MB), parsed
+once before timing; every row is the best of three passes in one process, so it is the cost of the
+rules and not of the parse. Run-to-run noise on this machine is about 15% (the same "no rule" row
+read 206, 280 and 299 us/file in three runs of the same code; the fourth, 96, is after the
+suppression fix below). Repeat with `tests/conformance/speed-extensions.sh [tree]
+[limit]` (plugin and pattern rules), `perf-bench extensions-cli <sudsy>` (CLI processes) and
+`tests/conformance/speed-lint.sh` (the unchanged path, compared across two checkouts).
+
+**What the first measurements found, and what was changed** (before -> after, same machine):
+
+| Finding | Before | After |
+| --- | --- | --- |
+| A plugin call on an empty file (a new instance per call: WASI linking, start-up, the guest parsing its grammar) | 3796 us | 7 us (pooled instances) |
+| A cheap file-scope rule as a plugin, per C# file (average 14 KB) | 5335 us | 991 us |
+| Pattern rule starting with a token, per rule per file | 37 - 52 us | 4 us (first-token check before any matching) |
+| Pattern rule starting with `$X`, per rule per file | 37 - 52 us | 22 us (no allocation for a capture nothing compares) |
+| A pattern rule that pins no kind (regex only), per rule per file | 1600 us | refused at load |
+| `run_file` with no rule (traversal + suppression scan), per C# file | 206 - 299 us | 96 us |
+| Fuel of 2e9 on a 2.8 MB JSON file | plugin disabled by running out | limit raised to 2e10 |
+
+The last two follow from the plugin work but help every rule: `significant_range` walked the whole
+subtree (now from the two ends), and `Suppressions::scan` walked every token for comments in every
+file (now skipped when the text does not contain the marker word). The built-in C# rules that are
+on by default went from 266-377 to 177 us/file.
+
+**1. Loading a plugin** (the sample, 0.77 MB of Wasm; one fresh process each):
+
+| | Time |
+| --- | --- |
+| Compile with Cranelift (`SUDSY_WASM_CACHE=off`) | 160 - 260 ms |
+| Compile and store in an empty cache | 180 - 260 ms |
+| Load from the on-disk cache | 8 - 9 ms |
+| Same process, component already in memory | 0.6 ms |
+
+In a CLI run (`sudsy lint .`, 20 small JSON files, median of 7): 29.5 ms with no extension, 30.5 ms
+with one pattern file, 48 ms with the plugin and a warm cache, 237 ms with the cache off, 269 ms
+with an empty cache. Compiling is eight times the whole run, so the on-disk cache is on by
+default (wasmtime's own, in `<user cache dir>/sudsy/wasm`; compiled code is keyed by the bytes and
+the wasmtime build, so a new plugin or Sudsy compiles once). A cache that cannot be opened costs
+only the speed-up. The cache worker is a background thread of the process.
+
+**2. Per-file cost of a plugin rule against the same rule built in** (`todo-marker`, a file-scope
+rule that scans the text, so the logic is negligible; the difference is the boundary):
+
+| Files | Built in | Plugin | Of which the host encodes the tree |
+| --- | --- | --- | --- |
+| 500 C# files, 7.0 MB | 73 us/file | 991 us/file (+918; 66 us per KB of source) | 299 us/file |
+| JSON, 100 objects, 30 KB, `no-debug-flag` (a node-scope rule) | 373 us | 2842 us | 891 us |
+| JSON, 10 000 objects, 2.8 MB, same rule | 39 ms | 335 ms (107 us per KB) | 68 ms |
+
+A call on an empty file is 7 us, so the cost is proportional to the file: encoding the tree on the
+host (23 - 30 us per KB), copying the text, and the plugin decoding the tree and walking it, in
+Wasm at roughly 5 times native speed (rowan's allocator-heavy tree build is the bulk). A plugin
+rule therefore costs about 0.07 - 0.1 ms per KB of source per rule on this machine: 1.4 ms for a
+typical 14 KB file, 0.3 s for a 3 MB one. Not reduced further: each rule of a plugin pays it
+again (the call is per rule), which only matters to a plugin with many rules; sharing one decoded
+tree across the calls of a file is the lever.
+
+**3. Pattern rules** (500 C# files; the traversal with no rule costs 96 us/file, the three
+default built-in C# rules 177 us/file):
+
+| Rules | Starting with a token (`Foo<i>($$$A)`) | Starting with `$X` (`$X.Foo<i>($$$A)`) |
+| --- | --- | --- |
+| 1 | +25 us/file (noise) | +19 us/file |
+| 10 | +41 us/file | +215 us/file |
+| 100 | +443 us/file (4.4 per rule) | +2265 us/file (22.7 per rule) |
+
+Compiling a pattern (parsing the snippet with the worker) takes 0.2 - 0.4 ms per rule after the
+first, which takes 11 - 12 ms (the first round trip to the worker). A rule that matches and
+builds a fix (`$X.ToString()`, 106 matches in 500 files) costs +28 us/file. The matcher scales
+linearly with the number of rules because every rule sees every node of its kind; an index from
+first token to rules would make it flat, and is not built. Realistic sets (5 - 30 rules) add 20 -
+650 us/file, which is the cost of a handful of built-in rules.
+
+**4. Everything else M6 adds**
+* The path of a project that uses no extension: `perf-bench semantic` on the same 500 files, M5's
+  last commit (891ac17) against this one: `fast` 2.2 / 1.6 s against 1.8 s total, median 1.0 / 0.7
+  against 0.9 ms; `standard` 18.1 / 17.9 against 18.2 s, median 11.1 / 11.2 against 10.7 ms. No
+  difference beyond noise, and the suppression and `significant_range` changes are in the new
+  numbers. `sudsy lint .` on 20 small JSON files: 23 ms (M5) against 25 - 27 ms (M6), i.e. about
+  2 ms of start-up for a binary three times the size; nothing of the plugin host runs unless a
+  config names a Wasm plugin (the engine is created on the first load).
+* **The binary is 28.9 MB against 8.8 MB** (9.5 MB against 3.3 MB gzipped): wasmtime with Cranelift
+  and the component model. This is the price of running plugins in the same binary and is
+  paid by every install and every `.vsix`. Levers, not taken: link-time optimization and
+  `opt-level = "s"` for the wasmtime crates, or a separate `sudsy-plugins` host binary that the CLI
+  starts when a config names a plugin.
+* Config loading with a pattern file: patterns are compiled when the config loads (see above), once
+  per process in the CLI and once per config change in the editor; for C# that starts the worker,
+  which a C# project does anyway.
+* Editor: an unchanged config reload keeps the same rule objects (pattern files and plugins are
+  cached by their text and bytes), so no rule result is recomputed; a changed plugin recompiles
+  (with the cache, ~10 ms for an unchanged build).
 
 ### The v0.1 release (prepared, not performed)
 * **Version.** One number for the Cargo workspace, `editors/vscode/package.json` and its lock file

@@ -1,6 +1,8 @@
 //! `cargo run --release -p perf-bench -- [json|yaml|all] [--phases-only]`, or `-- --write DIR` to
 //! write the headline-size inputs (bench.json, bench.yaml) to disk for other tools, or
-//! `-- csharp DIR [PASSES]` for the warm-worker C# measurement (see `warm.rs`).
+//! `-- csharp DIR [PASSES]` for the warm-worker C# measurement (see `warm.rs`), or
+//! `-- extensions [DIR] [LIMIT]` / `-- extensions-cli SUDSY_EXE` for pattern rules and Wasm plugins
+//! (see `extensions.rs`).
 //!
 //! Generates the benchmark inputs and times every phase of `format_file` separately, then the
 //! whole call at 1x, 4x and 16x sizes to show the scaling. The 4x row is the headline size
@@ -12,6 +14,7 @@ static A: mimalloc::MiMalloc = mimalloc::MiMalloc;
 
 #[cfg(feature = "count")]
 mod counting;
+mod extensions;
 mod semantic;
 #[cfg(feature = "count")]
 #[global_allocator]
@@ -204,6 +207,27 @@ fn main() -> Result<()> {
             .ok_or_else(|| anyhow!("semantic DIR [LIMIT]"))?;
         let limit = rest.get(1).map(|n| n.parse()).transpose()?;
         return semantic::run(std::path::Path::new(dir), limit);
+    }
+    if which == "extensions" {
+        let rest: Vec<&String> = args
+            .iter()
+            .filter(|a| !a.starts_with("--"))
+            .skip(1)
+            .collect();
+        let limit = rest.get(1).map(|n| n.parse()).transpose()?;
+        return extensions::run(
+            rest.first().map(|d| std::path::Path::new(d.as_str())),
+            limit,
+        );
+    }
+    if which == "plugin-load" {
+        return extensions::plugin_load();
+    }
+    if which == "extensions-cli" {
+        let exe = args
+            .get(1)
+            .ok_or_else(|| anyhow!("extensions-cli SUDSY_EXE"))?;
+        return extensions::cli(std::path::Path::new(exe));
     }
     if which == "csharp" {
         let rest: Vec<&String> = args

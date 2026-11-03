@@ -4,7 +4,7 @@
 use crate::PluginRule;
 use crate::bindings::exports::sudsy::rules::rules as w;
 use core_config::OptionValue;
-use core_rules::engine::{ActiveRule, run_file, run_project};
+use core_rules::engine::{ActiveRule, run_project, run_rules};
 use core_rules::{Diagnostic, Fact, FileContext, LineIndex, ProjectFacts, RuleOptions, Severity};
 use core_semantics::{BehaviorSummaries, FileSemantics, Layer, SemanticView};
 use core_syntax::wire::{WIRE_VERSION, WireTree};
@@ -146,7 +146,8 @@ fn decode(file: &w::File) -> Result<Decoded, String> {
     })
 }
 
-/// Runs `f` on the decoded file with `rule` as the only active rule.
+/// Runs `f` on the decoded file with `rule` as the only active rule. Suppression comments are
+/// the host's business: it applies them to what the plugin reports.
 fn with_file<T>(
     rules: &[PluginRule],
     id: &str,
@@ -222,7 +223,7 @@ pub fn check(
     file: w::File,
 ) -> Result<Vec<w::Diagnostic>, String> {
     with_file(rules, id, options, &file, |context, active| {
-        run_file(context, active, false)
+        run_rules(context, active, false)
             .diagnostics
             .iter()
             .map(diagnostic)
@@ -237,7 +238,7 @@ pub fn collect(
     file: w::File,
 ) -> Result<Vec<w::Fact>, String> {
     with_file(rules, id, options, &file, |context, active| {
-        run_file(context, active, true)
+        run_rules(context, active, true)
             .facts
             .facts()
             .iter()

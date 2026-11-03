@@ -38,7 +38,8 @@ fix-kind: unsafe                    # safe | unsafe (default) | suggestion
   complete construct on its own is retried with a `;` after it, and inside `{ }` (a JSON member).
 * `rule` holds `pattern`, `kind` (node kind names from `grammars/<language>.grammar`), `regex`
   (on the node's text), `inside`, `not-inside`, `has`, `not-has` (each a nested rule), and
-  `all`, `any`, `not`. Keys at one level all must hold.
+  `all`, `any`, `not`. Keys at one level all must hold. A rule must say where it starts: a `pattern` or `kind`
+  at the top (or in every branch of `any`), so that it runs on nodes of those kinds only.
 * `message` and `fix` may use the captured metavariables. The fix replaces the matched node; the
   fix loop and the formatter do the rest. A rule that fixes without `fix-kind` is `unsafe`.
 * Write the expected diagnostics of a rule in a fixture with `provider_api::testing::expect`

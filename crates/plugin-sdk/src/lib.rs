@@ -69,10 +69,13 @@ pub mod bindings {
     });
 }
 
-/// Exports the plugin: its name (the prefix of its rule ids) and its rules.
+/// Exports the plugin: its name (the prefix of its rule ids) and its rules. Only a build for
+/// `wasm32` exports anything: a native build of the same crate (its tests, a built-in copy of the
+/// rules) has nothing to export, and the component's export names are not valid native symbols.
 #[macro_export]
 macro_rules! export_plugin {
     (name: $name:expr, rules: [$(($language:expr, $rule:expr)),* $(,)?]) => {
+        #[cfg(target_arch = "wasm32")]
         const _: () = {
             use $crate::bindings::exports::sudsy::rules::rules as w;
 

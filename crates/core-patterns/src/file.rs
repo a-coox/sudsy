@@ -155,9 +155,9 @@ fn compile(spec: FileSpec, parser: &dyn SnippetParser) -> Result<PatternRule, St
         }
         constraints.insert(name.clone(), compile_constraint(name, c, parser)?);
     }
-    let mut kinds = expr
-        .kinds()
-        .unwrap_or_else(|| parser.grammar().nodes().iter().map(|d| d.kind).collect());
+    let mut kinds = expr.kinds().ok_or(
+        "the rule must say where it starts: give it a `pattern` or a `kind` (at the top, or in          every branch of `any`), so that it runs on nodes of those kinds only",
+    )?;
     kinds.sort();
     kinds.dedup();
     let fix = spec.fix.map(|template| FixTemplate {
