@@ -315,6 +315,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "core-flow"
+version = "0.0.0"
+dependencies = [
+ "serde",
+]
+
+[[package]]
 name = "core-format"
 version = "0.0.0"
 dependencies = [
@@ -332,6 +339,7 @@ dependencies = [
  "core-config",
  "core-format",
  "core-rules",
+ "core-semantics",
  "core-syntax",
  "lang-json",
  "lang-yaml",
@@ -344,10 +352,20 @@ name = "core-rules"
 version = "0.0.0"
 dependencies = [
  "core-config",
+ "core-flow",
+ "core-semantics",
  "core-syntax",
  "insta",
  "lang-json",
  "provider-api",
+]
+
+[[package]]
+name = "core-semantics"
+version = "0.0.0"
+dependencies = [
+ "core-flow",
+ "serde",
 ]
 
 [[package]]
@@ -820,8 +838,10 @@ name = "lang-csharp"
 version = "0.0.0"
 dependencies = [
  "core-config",
+ "core-flow",
  "core-format",
  "core-rules",
+ "core-semantics",
  "core-syntax",
  "insta",
  "provider-api",
@@ -920,6 +940,7 @@ dependencies = [
  "core-incremental",
  "core-rules",
  "core-syntax",
+ "core-workspace",
  "lang-csharp",
  "lang-json",
  "lang-yaml",
@@ -1116,8 +1137,10 @@ name = "provider-api"
 version = "0.0.0"
 dependencies = [
  "core-config",
+ "core-flow",
  "core-format",
  "core-rules",
+ "core-semantics",
  "core-syntax",
  "rmp-serde",
  "serde",

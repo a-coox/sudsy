@@ -109,12 +109,24 @@ pub struct Plugins {
     pub wasm: Vec<Spanned<String>>,
 }
 
+/// `semantics:` (plan.md "Behavior summaries"): facts about methods the analyses use, as
+/// qualified names without parameter lists (`MyApp.Log.Fatal` covers every overload).
+#[derive(Clone, Debug, Default, PartialEq, Eq, Deserialize)]
+#[serde(deny_unknown_fields, default)]
+pub struct Semantics {
+    /// Methods that never return normally.
+    pub does_not_return: Vec<String>,
+    /// Methods without side effects.
+    pub pure: Vec<String>,
+}
+
 /// The `csharp:`, `json:` and `yaml:` sections.
 #[derive(Clone, Debug, Default, PartialEq, Deserialize)]
 #[serde(deny_unknown_fields, default)]
 pub struct LanguageSection {
     pub format: Options,
     pub lint: LintSection,
+    pub semantics: Semantics,
 }
 
 #[derive(Clone, Debug, PartialEq, Deserialize)]
