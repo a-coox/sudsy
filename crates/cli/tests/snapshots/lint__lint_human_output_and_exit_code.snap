@@ -1,0 +1,12 @@
+---
+source: crates/cli/tests/lint.rs
+expression: out(&o)
+---
+a.json:2:3: warning[sorted-keys]: keys are not sorted
+    fix (unsafe): Sort the keys of this object
+a.json:4:3: error[no-duplicate-keys]: duplicate key `a`
+    note: first defined here (3:3)
+b.yaml:2:1: warning[sorted-keys]: keys are not sorted
+    fix (unsafe): Sort the keys of this mapping
+b.yaml:2:4: warning[ambiguous-booleans]: `yes` is a boolean in YAML 1.1 and a string in YAML 1.2
+    fix (unsafe): Quote it: "yes"

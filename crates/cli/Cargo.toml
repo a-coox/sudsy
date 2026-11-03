@@ -13,9 +13,11 @@ path = "src/main.rs"
 anyhow.workspace = true
 clap.workspace = true
 mimalloc.workspace = true
+serde_json.workspace = true
 core-config.workspace = true
 core-format.workspace = true
 core-incremental.workspace = true
+core-rules.workspace = true
 core-workspace.workspace = true
 lang-csharp.workspace = true
 lang-json.workspace = true
@@ -25,6 +27,7 @@ provider-api.workspace = true
 
 [dev-dependencies]
 tempfile.workspace = true
+insta.workspace = true
 
 [lints]
 workspace = true

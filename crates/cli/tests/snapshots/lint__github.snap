@@ -1,0 +1,8 @@
+---
+source: crates/cli/tests/lint.rs
+expression: text
+---
+::warning file=a.json,line=2,col=3,endLine=2,endColumn=6,title=sorted-keys::keys are not sorted
+::error file=a.json,line=4,col=3,endLine=4,endColumn=6,title=no-duplicate-keys::duplicate key `a`
+::warning file=b.yaml,line=2,col=1,endLine=2,endColumn=2,title=sorted-keys::keys are not sorted
+::warning file=b.yaml,line=2,col=4,endLine=2,endColumn=7,title=ambiguous-booleans::`yes` is a boolean in YAML 1.1 and a string in YAML 1.2

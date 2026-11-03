@@ -232,6 +232,21 @@ impl ConfigChain {
             .unwrap_or_default()
     }
 
+    /// The same chain with analysis depth `depth`: the command line overrides the config files.
+    pub fn with_depth(mut self, depth: Depth) -> Self {
+        match self.files.last_mut() {
+            Some(root) => root.config.analysis = Some(depth),
+            None => {
+                let config = Config {
+                    analysis: Some(depth),
+                    ..Config::default()
+                };
+                self.files
+                    .push(Loaded::new(None, config).expect("a config without globs compiles"));
+            }
+        }
+        self
+    }
     /// Does an `exclude` glob of any file in the chain match `path` (absolute)? Applies to
     /// directories too: nothing below an excluded directory is visited.
     pub fn is_excluded(&self, path: &Path) -> bool {

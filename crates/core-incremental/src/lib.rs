@@ -14,6 +14,7 @@ mod db;
 mod failure;
 mod inputs;
 mod queries;
+mod rules;
 
 pub use db::{Database, Db, EventHook, Providers};
 pub use failure::{Failure, Stage};
@@ -21,3 +22,4 @@ pub use inputs::{ConfigFile, File};
 pub use queries::{
     FileOptions, Parsed, Selection, config, format, options, parse, parse_settings, selection,
 };
+pub use rules::{LintSettings, Linted, lint, lint_settings, project_diagnostics};

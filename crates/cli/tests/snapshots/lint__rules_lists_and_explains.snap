@@ -1,0 +1,17 @@
+---
+source: crates/cli/tests/lint.rs
+expression: out(&one)
+---
+sorted-keys
+  languages:     json, yaml
+  category:      style
+  default level: off
+  fix:           unsafe
+
+The keys of an object are not in alphabetical order.
+
+Options:
+  order (a list of strings, default []): Keys that come first, in this order; the rest follow alphabetically.
+
+Example:
+  { "b": 1, "a": 2 }   // becomes { "a": 2, "b": 1 }

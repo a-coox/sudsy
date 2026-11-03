@@ -1,0 +1,12 @@
+---
+source: crates/lang-csharp/tests/rules.rs
+expression: "fixed(text, rules, false)"
+---
+using System;
+using System.Linq; // linq
+using static Foo.Bar;
+using Alpha;
+using Zeta;
+using X = Y.Z;
+
+class A { }

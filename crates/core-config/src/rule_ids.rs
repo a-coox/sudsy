@@ -1,0 +1,38 @@
+//! Checks that the rules a config names exist.
+
+use crate::chain::ConfigChain;
+use crate::error::{ConfigError, unknown_name};
+use crate::model::{LintSection, Override};
+
+impl ConfigChain {
+    /// Every rule id in a `lint` section of the config files (top level, language sections and
+    /// overrides) must be one of `known`, the ids of the rules of all languages. A plugin rule
+    /// (`plugin/rule`) is not checked: its plugin is not loaded when the config is read.
+    pub fn validate_rule_ids(&self, known: &[&str]) -> Result<(), ConfigError> {
+        for loaded in &self.files {
+            let c = &loaded.config;
+            let sections = std::iter::once(&c.lint)
+                .chain([&c.csharp.lint, &c.json.lint, &c.yaml.lint])
+                .chain(c.overrides.iter().flat_map(|o: &Override| {
+                    [&o.lint, &o.csharp.lint, &o.json.lint, &o.yaml.lint]
+                }));
+            for lint in sections {
+                check_section(lint, known).map_err(|e| loaded.attribute(e))?;
+            }
+        }
+        Ok(())
+    }
+}
+
+fn check_section(lint: &LintSection, known: &[&str]) -> Result<(), ConfigError> {
+    for (id, rule) in &lint.rules {
+        if !id.contains('/') && !known.contains(&id.as_str()) {
+            return Err(ConfigError::at(
+                rule.referenced.line(),
+                rule.referenced.column(),
+                unknown_name("rule", id, known.iter().copied()),
+            ));
+        }
+    }
+    Ok(())
+}

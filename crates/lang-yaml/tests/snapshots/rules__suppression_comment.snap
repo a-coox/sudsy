@@ -1,0 +1,6 @@
+---
+source: crates/lang-yaml/tests/rules.rs
+expression: "report(text, \"\")"
+---
+4:1 error[no-duplicate-keys] duplicate key `a`
+  related 1:1: first defined here

@@ -1,0 +1,12 @@
+---
+source: crates/lang-yaml/tests/rules.rs
+expression: "report(text, \"ambiguous-booleans: warn\")"
+---
+1:1 warning[ambiguous-booleans] `on` is a boolean in YAML 1.1 and a string in YAML 1.2
+  fix (unsafe): Quote it: "on"
+1:5 warning[ambiguous-booleans] `yes` is a boolean in YAML 1.1 and a string in YAML 1.2
+  fix (unsafe): Quote it: "yes"
+2:8 warning[ambiguous-booleans] `no` is a boolean in YAML 1.1 and a string in YAML 1.2
+  fix (unsafe): Quote it: "no"
+2:12 warning[ambiguous-booleans] `Off` is a boolean in YAML 1.1 and a string in YAML 1.2
+  fix (unsafe): Quote it: "Off"

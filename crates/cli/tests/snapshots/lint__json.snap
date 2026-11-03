@@ -1,0 +1,164 @@
+---
+source: crates/cli/tests/lint.rs
+expression: "serde_json::to_string_pretty(&value).unwrap()"
+---
+{
+  "diagnostics": [
+    {
+      "category": "style",
+      "fixes": [
+        {
+          "edits": [
+            {
+              "end": 10,
+              "start": 4,
+              "text": "\"a\": 2"
+            },
+            {
+              "end": 20,
+              "start": 14,
+              "text": "\"a\": 3"
+            },
+            {
+              "end": 30,
+              "start": 24,
+              "text": "\"b\": 1"
+            }
+          ],
+          "kind": "unsafe",
+          "title": "Sort the keys of this object"
+        }
+      ],
+      "message": "keys are not sorted",
+      "path": "a.json",
+      "range": {
+        "end": {
+          "column": 6,
+          "line": 2,
+          "offset": 7
+        },
+        "start": {
+          "column": 3,
+          "line": 2,
+          "offset": 4
+        }
+      },
+      "related": [],
+      "rule": "sorted-keys",
+      "severity": "warning"
+    },
+    {
+      "category": "correctness",
+      "fixes": [],
+      "message": "duplicate key `a`",
+      "path": "a.json",
+      "range": {
+        "end": {
+          "column": 6,
+          "line": 4,
+          "offset": 27
+        },
+        "start": {
+          "column": 3,
+          "line": 4,
+          "offset": 24
+        }
+      },
+      "related": [
+        {
+          "message": "first defined here",
+          "range": {
+            "end": {
+              "column": 6,
+              "line": 3,
+              "offset": 17
+            },
+            "start": {
+              "column": 3,
+              "line": 3,
+              "offset": 14
+            }
+          }
+        }
+      ],
+      "rule": "no-duplicate-keys",
+      "severity": "error"
+    },
+    {
+      "category": "style",
+      "fixes": [
+        {
+          "edits": [
+            {
+              "end": 10,
+              "start": 4,
+              "text": "a: 1"
+            },
+            {
+              "end": 15,
+              "start": 11,
+              "text": "z: yes"
+            }
+          ],
+          "kind": "unsafe",
+          "title": "Sort the keys of this mapping"
+        }
+      ],
+      "message": "keys are not sorted",
+      "path": "b.yaml",
+      "range": {
+        "end": {
+          "column": 2,
+          "line": 2,
+          "offset": 5
+        },
+        "start": {
+          "column": 1,
+          "line": 2,
+          "offset": 4
+        }
+      },
+      "related": [],
+      "rule": "sorted-keys",
+      "severity": "warning"
+    },
+    {
+      "category": "suspicious",
+      "fixes": [
+        {
+          "edits": [
+            {
+              "end": 10,
+              "start": 7,
+              "text": "\"yes\""
+            }
+          ],
+          "kind": "unsafe",
+          "title": "Quote it: \"yes\""
+        }
+      ],
+      "message": "`yes` is a boolean in YAML 1.1 and a string in YAML 1.2",
+      "path": "b.yaml",
+      "range": {
+        "end": {
+          "column": 7,
+          "line": 2,
+          "offset": 10
+        },
+        "start": {
+          "column": 4,
+          "line": 2,
+          "offset": 7
+        }
+      },
+      "related": [],
+      "rule": "ambiguous-booleans",
+      "severity": "warning"
+    }
+  ],
+  "summary": {
+    "errors": 1,
+    "warnings": 3
+  },
+  "version": 1
+}

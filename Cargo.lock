@@ -264,13 +264,16 @@ dependencies = [
  "core-config",
  "core-format",
  "core-incremental",
+ "core-rules",
  "core-syntax",
  "core-workspace",
+ "insta",
  "lang-csharp",
  "lang-json",
  "lang-yaml",
  "mimalloc",
  "provider-api",
+ "serde_json",
  "tempfile",
 ]
 
@@ -320,11 +323,23 @@ version = "0.0.0"
 dependencies = [
  "core-config",
  "core-format",
+ "core-rules",
  "core-syntax",
  "lang-json",
  "lang-yaml",
  "provider-api",
  "salsa",
+]
+
+[[package]]
+name = "core-rules"
+version = "0.0.0"
+dependencies = [
+ "core-config",
+ "core-syntax",
+ "insta",
+ "lang-json",
+ "provider-api",
 ]
 
 [[package]]
@@ -656,6 +671,7 @@ version = "0.0.0"
 dependencies = [
  "core-config",
  "core-format",
+ "core-rules",
  "core-syntax",
  "insta",
  "provider-api",
@@ -668,6 +684,7 @@ version = "0.0.0"
 dependencies = [
  "core-config",
  "core-format",
+ "core-rules",
  "core-syntax",
  "insta",
  "proptest",
@@ -680,6 +697,7 @@ version = "0.0.0"
 dependencies = [
  "core-config",
  "core-format",
+ "core-rules",
  "core-syntax",
  "insta",
  "proptest",
@@ -864,6 +882,7 @@ version = "0.0.0"
 dependencies = [
  "core-config",
  "core-format",
+ "core-rules",
  "core-syntax",
  "rmp-serde",
  "serde",

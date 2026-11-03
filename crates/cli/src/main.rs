@@ -1,8 +1,14 @@
+mod check;
 mod config_cmd;
 mod debug;
+mod fix;
 mod format;
 mod init;
+mod lint;
 mod project;
+mod report;
+mod rules_cmd;
+mod session;
 
 use clap::{Parser, Subcommand};
 use std::process::ExitCode;
@@ -29,6 +35,14 @@ enum Command {
     Debug(debug::DebugCommand),
     /// Format C#, JSON, JSONC and YAML files.
     Format(format::FormatArgs),
+    /// Report rule violations; exit code 1 if there is an error.
+    Lint(lint::ReportArgs),
+    /// Apply fixes, then format.
+    Fix(fix::FixArgs),
+    /// Run ormat --check and lint, for CI.
+    Check(lint::ReportArgs),
+    /// List the rules, or explain one.
+    Rules(rules_cmd::RulesArgs),
     /// Inspect the configuration.
     #[command(subcommand)]
     Config(config_cmd::ConfigCommand),
@@ -41,6 +55,10 @@ fn main() -> ExitCode {
     let result = match cli.command {
         Command::Debug(c) => debug::run(c).map(|()| ExitCode::SUCCESS),
         Command::Format(args) => format::run(args),
+        Command::Lint(args) => lint::run(args),
+        Command::Fix(args) => fix::run(args),
+        Command::Check(args) => check::run(args),
+        Command::Rules(args) => rules_cmd::run(args).map(|()| ExitCode::SUCCESS),
         Command::Config(c) => config_cmd::run(c).map(|()| ExitCode::SUCCESS),
         Command::Init(args) => init::run(args).map(|()| ExitCode::SUCCESS),
     };

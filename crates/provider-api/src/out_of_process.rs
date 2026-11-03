@@ -5,7 +5,8 @@ use crate::provider::{
 use crate::proxy::{ProxyError, WorkerConfig, WorkerProxy};
 use core_config::OptionSchema;
 use core_format::{DefaultFormatter, NodeFormatter};
-use core_syntax::{Grammar, LanguageId, SyntaxNode};
+use core_rules::Rule;
+use core_syntax::{Grammar, LanguageId, SyntaxKind, SyntaxNode};
 
 /// A provider whose parser runs in a worker process.
 pub struct OutOfProcessProvider {
@@ -15,6 +16,8 @@ pub struct OutOfProcessProvider {
     proxy: WorkerProxy,
     formatter: Box<dyn NodeFormatter>,
     schema: OptionSchema,
+    rules: &'static [&'static dyn Rule],
+    body_kinds: &'static [SyntaxKind],
 }
 
 impl OutOfProcessProvider {
@@ -32,6 +35,8 @@ impl OutOfProcessProvider {
             proxy: WorkerProxy::new(worker),
             formatter: Box::new(DefaultFormatter),
             schema: OptionSchema::default(),
+            rules: &[],
+            body_kinds: &[],
         }
     }
 
@@ -40,6 +45,17 @@ impl OutOfProcessProvider {
     pub fn with_format(mut self, formatter: Box<dyn NodeFormatter>, schema: OptionSchema) -> Self {
         self.formatter = formatter;
         self.schema = schema;
+        self
+    }
+
+    /// The provider's own rules and the node kinds that are bodies (for body-scope rules).
+    pub fn with_rules(
+        mut self,
+        rules: &'static [&'static dyn Rule],
+        body_kinds: &'static [SyntaxKind],
+    ) -> Self {
+        self.rules = rules;
+        self.body_kinds = body_kinds;
         self
     }
 
@@ -81,6 +97,14 @@ impl LanguageProvider for OutOfProcessProvider {
 
     fn option_schema(&self) -> &OptionSchema {
         &self.schema
+    }
+
+    fn rules(&self) -> &'static [&'static dyn Rule] {
+        self.rules
+    }
+
+    fn body_kinds(&self) -> &'static [SyntaxKind] {
+        self.body_kinds
     }
 
     fn parse(&self, file: &SourceFile) -> Result<ParseResult, ProviderError> {

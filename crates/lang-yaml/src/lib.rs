@@ -6,6 +6,7 @@ mod format;
 pub mod generated;
 pub mod model;
 mod parser;
+mod rules;
 pub mod scalar;
 mod tree;
 
@@ -16,6 +17,7 @@ pub use parser::{MAX_DEPTH, Parsed, parse};
 
 use core_config::OptionSchema;
 use core_format::NodeFormatter;
+use core_rules::Rule;
 use core_syntax::{Grammar, LanguageId, grammars};
 use provider_api::{
     Capabilities, FileMatcher, LanguageProvider, ParseResult, ProviderError, SourceFile,
@@ -77,5 +79,9 @@ impl LanguageProvider for YamlProvider {
 
     fn option_schema(&self) -> &OptionSchema {
         &self.schema
+    }
+
+    fn rules(&self) -> &'static [&'static dyn Rule] {
+        rules::RULES
     }
 }

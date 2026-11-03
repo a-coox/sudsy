@@ -15,24 +15,10 @@ pub enum IgnoreMark {
 
 /// The comment's text without its delimiters; empty for what is not a plain comment.
 fn body(g: &Grammar, c: &Comment) -> String {
-    let text = c.text();
-    let text: &str = &text;
     match c.kind {
-        CommentKind::Line => {
-            let prefix = g.comments.line.as_deref().unwrap_or("");
-            text.strip_prefix(prefix).unwrap_or(text)
-        }
-        CommentKind::Block => match &g.comments.block {
-            Some((open, close)) => text
-                .strip_prefix(open.as_str())
-                .and_then(|t| t.strip_suffix(close.as_str()))
-                .unwrap_or(text),
-            None => text,
-        },
-        CommentKind::Lines | CommentKind::Directive => "",
+        CommentKind::Line | CommentKind::Block => g.comment_body(&c.text()).to_string(),
+        CommentKind::Lines | CommentKind::Directive => String::new(),
     }
-    .trim()
-    .to_string()
 }
 
 fn marker<'a>(g: &'a Grammar, role: &str) -> Option<&'a str> {

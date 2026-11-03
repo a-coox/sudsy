@@ -2,7 +2,9 @@
 //! execution events rather than on timing.
 
 use core_config::{ConfigChain, EditorConfig};
-use core_incremental::{ConfigFile, Database, Db, File, Stage, config, format, options, parse};
+use core_incremental::{
+    ConfigFile, Database, Db, File, Stage, config, format, lint, options, parse,
+};
 use core_syntax::grammars;
 use provider_api::{FileMatcher, LanguageProvider, OutOfProcessProvider, WorkerConfig};
 use salsa::{EventKind, Setter};
@@ -300,4 +302,52 @@ fn handles_on_other_threads_share_the_memos() {
     format(&h.db, files[3]).as_ref().unwrap();
     assert!(h.executed().is_empty());
     let _ = ConfigFile::get(&h.db);
+}
+
+#[test]
+fn lint_reads_parse_and_rule_settings_only() {
+    let mut h = Harness::standard();
+    let f = h.file("a.json", "{\"b\": 1, \"a\": 2}");
+    let count = |d: &[core_rules::Diagnostic]| d.iter().filter(|d| d.rule == "sorted-keys").count();
+    assert_eq!(count(&lint(&h.db, f).as_ref().unwrap().diagnostics), 0);
+    let names = h.executed();
+    assert_eq!(Harness::count(&names, "lint"), 1, "{names:?}");
+    assert_eq!(Harness::count(&names, "parse"), 1, "{names:?}");
+
+    // Asked again: nothing runs.
+    lint(&h.db, f).as_ref().unwrap();
+    assert!(h.executed().is_empty());
+
+    // A format option changes the config but not the rule settings: the rules do not run again.
+    h.db.set_config(ConfigChain::parse("json:\n  format:\n    indent_size: 4\n"));
+    lint(&h.db, f).as_ref().unwrap();
+    let names = h.executed();
+    assert_eq!(Harness::count(&names, "lint"), 0, "{names:?}");
+
+    // A rule level does.
+    h.db.set_config(ConfigChain::parse(
+        "lint:\n  rules:\n    sorted-keys: warn\n",
+    ));
+    let linted = lint(&h.db, f).as_ref().unwrap();
+    assert_eq!(count(&linted.diagnostics), 1);
+    let names = h.executed();
+    assert_eq!(Harness::count(&names, "lint"), 1, "{names:?}");
+    assert_eq!(Harness::count(&names, "parse"), 0, "{names:?}");
+}
+
+#[test]
+fn rule_config_errors_and_syntax_errors_are_lint_values() {
+    let mut h = Harness::standard();
+    let bad = h.file("bad.json", "{\"a\": }");
+    let linted = lint(&h.db, bad).as_ref().unwrap();
+    assert!(!linted.parses);
+    assert_eq!(linted.diagnostics[0].rule, "syntax-error");
+
+    let good = h.file("a.json", "{}");
+    h.db.set_config(ConfigChain::parse(
+        "lint:\n  rules:\n    sorted-keys:\n      level: warn\n      options:\n        order: 1\n",
+    ));
+    let failure = lint(&h.db, good).as_ref().unwrap_err();
+    assert_eq!(failure.stage, Stage::Config);
+    assert!(failure.message.contains("must be a list of strings"));
 }

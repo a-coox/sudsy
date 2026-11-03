@@ -1,0 +1,13 @@
+---
+source: crates/lang-yaml/tests/rules.rs
+expression: "fixed(text, \"sorted-keys: warn\", true)"
+---
+# head
+a:
+  x: 2
+  y: |
+    text
+b: 1 # one
+z:
+  - 1
+  - 2

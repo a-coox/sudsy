@@ -1,0 +1,9 @@
+---
+source: crates/lang-yaml/tests/rules.rs
+expression: "fixed(text, \"ambiguous-booleans: warn\", true)"
+---
+"on": "yes"
+list: ["no", "Off", true]
+safe: !!str yes
+quoted: "yes"
+word: yesterday

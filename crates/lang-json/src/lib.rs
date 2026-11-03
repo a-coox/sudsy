@@ -6,12 +6,14 @@ pub mod generated;
 mod format;
 mod lexer;
 mod parser;
+mod rules;
 
 pub use format::{COLLAPSE, DIALECT, JsonFormatter, TRAILING_COMMAS, option_schema};
 pub use parser::{Dialect, MAX_DEPTH};
 
 use core_config::OptionSchema;
 use core_format::NodeFormatter;
+use core_rules::Rule;
 use core_syntax::{Grammar, LanguageId, grammars};
 use provider_api::{
     Capabilities, FileMatcher, FilePattern, LanguageProvider, ParseResult, ProviderError,
@@ -107,5 +109,9 @@ impl LanguageProvider for JsonProvider {
 
     fn option_schema(&self) -> &OptionSchema {
         &self.schema
+    }
+
+    fn rules(&self) -> &'static [&'static dyn Rule] {
+        rules::RULES
     }
 }

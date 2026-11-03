@@ -603,3 +603,48 @@ fn a_preset_resolves_exactly_like_the_same_text_in_sudsy_yaml() {
     assert_eq!(rules["r1"].options["n"], OptionValue::Int(2));
     assert_eq!(rules["r1"].source.to_string(), "preset json/full");
 }
+
+#[test]
+fn rule_ids_are_checked_against_the_known_rules() {
+    let known = ["no-empty-catch", "sorted-keys"];
+    let ok = ConfigChain::parse(
+        "lint:\n  rules:\n    sorted-keys: warn\n    team/own-rule: error\ncsharp:\n  lint:\n    rules:\n      no-empty-catch: error\n",
+    )
+    .unwrap();
+    ok.validate_rule_ids(&known).unwrap();
+
+    // The error points at the value of the unknown rule, in every kind of section.
+    for (text, line) in [
+        ("lint:\n  rules:\n    sorted-kyes: warn\n", 3),
+        ("yaml:\n  lint:\n    rules:\n      sorted-kyes: warn\n", 4),
+        (
+            "overrides:\n  - files: [\"a\"]\n    json:\n      lint:\n        rules:\n          sorted-kyes: warn\n",
+            6,
+        ),
+    ] {
+        let e = ConfigChain::parse(text)
+            .unwrap()
+            .validate_rule_ids(&known)
+            .unwrap_err();
+        assert_eq!(e.line, Some(line), "{text}");
+        assert!(
+            e.message.contains("unknown rule `sorted-kyes`")
+                && e.message.contains("did you mean `sorted-keys`"),
+            "{}",
+            e.message
+        );
+    }
+}
+
+#[test]
+fn the_command_line_depth_replaces_the_configured_one() {
+    let chain = ConfigChain::parse("analysis: fast\n").unwrap();
+    assert_eq!(chain.depth(), core_config::Depth::Fast);
+    assert_eq!(
+        chain.with_depth(core_config::Depth::Deep).depth(),
+        core_config::Depth::Deep
+    );
+    // Also without any config file.
+    let none = ConfigChain::default().with_depth(core_config::Depth::Fast);
+    assert_eq!(none.depth(), core_config::Depth::Fast);
+}

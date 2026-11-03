@@ -6,6 +6,7 @@ pub mod out_of_process;
 pub mod protocol;
 pub mod provider;
 pub mod proxy;
+pub mod testing;
 
 pub use format::{
     FileFormatError, format_file, format_parsed, resolve_dialect, select_provider,

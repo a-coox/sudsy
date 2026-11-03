@@ -1,0 +1,12 @@
+---
+source: crates/lang-csharp/tests/rules.rs
+expression: "fixed(text, rules, true)"
+---
+class A { void F() {
+ var a = x ?? y;
+ var b = x ?? y;
+ var c = p.Name ?? "none";
+ var d = x ?? (y + 1);
+ var e = x != null ? z : y;
+ var f = F() != null ? F() : y;
+} }
