@@ -279,9 +279,6 @@ impl<'p> Cx<'p> {
     }
 
     fn matches(&mut self, p: &'p Pat, t: &SyntaxElement) -> bool {
-        if self.step() {
-            return false;
-        }
         match (p, t) {
             (Pat::Meta(meta), _) => {
                 let at = element_range(t, self.grammar).start();

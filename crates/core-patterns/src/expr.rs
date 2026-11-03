@@ -37,6 +37,15 @@ pub struct Ctx<'a> {
     pub budget: Cell<u32>,
 }
 
+impl Ctx<'_> {
+    /// Spends one step; false when none are left.
+    fn spend(&self) -> bool {
+        let left = self.budget.get().saturating_sub(1);
+        self.budget.set(left);
+        left > 0
+    }
+}
+
 /// Steps one rule may spend on one node (its `inside`/`has` walks included): about 10 ms.
 pub const STEP_BUDGET: u32 = 1_000_000;
 
@@ -117,12 +126,12 @@ impl Expr {
             Expr::Inside(e) => node
                 .ancestors()
                 .skip(1)
-                .any(|a| e.matches(&a, cx).is_some())
+                .any(|a| cx.spend() && e.matches(&a, cx).is_some())
                 .then(Captures::new),
             Expr::Has(e) => node
                 .descendants()
                 .skip(1)
-                .any(|d| e.matches(&d, cx).is_some())
+                .any(|d| cx.spend() && e.matches(&d, cx).is_some())
                 .then(Captures::new),
             Expr::All(list) => {
                 let mut captures = Captures::new();
