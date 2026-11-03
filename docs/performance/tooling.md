@@ -1,5 +1,7 @@
 # Measuring
 
+`scripts/bench-write.sh OLD NEW` times `format` rewriting many files with two binaries (the write path, which `bench.sh` does not cover).
+
 Run `scripts/bench.sh` after every feature change; CI runs tier 1 on ubuntu-latest against the PR base. Record method, machine and numbers for any hot path you change in [numbers.md](numbers.md) (latest values only).
 
 ## `scripts/bench.sh [--base REV] [--time] [--rounds N] [--no-instr] [--record|--no-record]`
