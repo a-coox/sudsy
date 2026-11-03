@@ -4,10 +4,11 @@
 //! any number of unrelated crashes.
 
 use crate::protocol::{
-    self, Empty, FLOW_GRAPH_FORMAT_VERSION, Hello, PROTOCOL_VERSION, ParseRequest, Parsed,
-    ProtocolError, Request, Response,
+    self, Empty, FLOW_GRAPH_FORMAT_VERSION, FlowGraphs, Graphs, Hello, OpenWorkspace,
+    PROTOCOL_VERSION, ParseRequest, Parsed, ProtocolError, Query, Request, Response, UpdateText,
 };
 use crate::provider::Capabilities;
+use core_semantics::Answers;
 use core_syntax::wire::WIRE_VERSION;
 use std::ffi::OsString;
 use std::process::{Child, ChildStdin, Command, Stdio};
@@ -78,6 +79,8 @@ struct Running {
     stdin: ChildStdin,
     frames: Receiver<Result<Option<Vec<u8>>, protocol::FrameError>>,
     capabilities: Capabilities,
+    /// Has this process been told the workspace? A restarted worker has not.
+    workspace_sent: bool,
 }
 
 enum State {
@@ -97,6 +100,8 @@ pub struct WorkerProxy {
     slots: Vec<Mutex<Inner>>,
     /// Where the search for a free slot starts, so that waiting requests spread over the pool.
     next: AtomicUsize,
+    /// The workspace the first worker holds its semantic state for; sent again after a restart.
+    workspace: Mutex<Option<OpenWorkspace>>,
 }
 
 impl WorkerProxy {
@@ -113,6 +118,94 @@ impl WorkerProxy {
             config,
             slots,
             next: AtomicUsize::new(0),
+            workspace: Mutex::new(None),
+        }
+    }
+
+    /// Tells the worker which files make up the project. Semantic state lives in the first
+    /// worker only; it is told lazily, before its next semantic request, and again after a restart.
+    pub fn open_workspace(&self, workspace: OpenWorkspace) {
+        *self.workspace.lock().unwrap_or_else(|e| e.into_inner()) = Some(workspace);
+        if let State::Running(r) = &mut Self::lock(&self.slots[0]).state {
+            r.workspace_sent = false;
+        }
+    }
+
+    /// Gives the first worker the file's current text, then asks `items` about it and, if
+    /// `flow`, for its flow graphs. The three are one uninterrupted exchange.
+    pub fn analyze(
+        &self,
+        update: UpdateText,
+        query: Option<Query>,
+        flow: bool,
+    ) -> Result<(Option<Answers>, Option<Graphs>), ProxyError> {
+        let mut requests = vec![Request::UpdateText(update.clone())];
+        requests.extend(query.map(Request::Query));
+        if flow {
+            requests.push(Request::FlowGraphs(FlowGraphs {
+                file_id: update.file_id.clone(),
+                version: update.version,
+            }));
+        }
+        let (mut answers, mut graphs) = (None, None);
+        for response in self.semantic(&requests)? {
+            match response {
+                Response::Answers(a) => answers = Some(a),
+                Response::Graphs(g) => graphs = Some(g),
+                Response::Ok(_) => {}
+                other => {
+                    return Err(ProxyError::Unavailable(format!(
+                        "unexpected semantic reply: {other:?}"
+                    )));
+                }
+            }
+        }
+        Ok((answers, graphs))
+    }
+
+    /// Runs the requests in order on the first worker (which holds the workspace). A crash
+    /// restarts it, replays the workspace and starts the sequence again.
+    fn semantic(&self, requests: &[Request]) -> Result<Vec<Response>, ProxyError> {
+        let timeout = self.config.request_timeout;
+        let mut inner = Self::lock(&self.slots[0]);
+        loop {
+            let worker = self.ensure_running(&mut inner)?;
+            let workspace = self
+                .workspace
+                .lock()
+                .unwrap_or_else(|e| e.into_inner())
+                .clone();
+            let mut run = || -> Result<Vec<Response>, String> {
+                if !worker.workspace_sent {
+                    if let Some(w) = &workspace {
+                        reply_or_error(exchange(
+                            worker,
+                            &Request::OpenWorkspace(w.clone()),
+                            timeout,
+                        )?)?;
+                    }
+                    worker.workspace_sent = true;
+                }
+                requests
+                    .iter()
+                    .map(|r| exchange(worker, r, timeout))
+                    .collect()
+            };
+            match run() {
+                Ok(responses) => {
+                    inner.restarts = 0;
+                    return responses
+                        .into_iter()
+                        .map(|r| match r {
+                            Response::Error(e) => Err(ProxyError::Worker(e)),
+                            r => Ok(r),
+                        })
+                        .collect();
+                }
+                Err(why) => self
+                    .recover(&mut inner, &why)
+                    .map_err(ProxyError::Unavailable)?,
+            }
         }
     }
 
@@ -283,6 +376,7 @@ impl WorkerProxy {
             stdin,
             frames,
             capabilities: Capabilities::NONE,
+            workspace_sent: false,
         };
         let ours = Hello {
             protocol_version: PROTOCOL_VERSION,
@@ -361,5 +455,13 @@ fn exchange(
             Err(format!("the worker did not answer within {timeout:?}"))
         }
         Err(RecvTimeoutError::Disconnected) => Err("the worker exited".into()),
+    }
+}
+
+/// A protocol error reply to a setup request is a broken worker, not a result.
+fn reply_or_error(response: Response) -> Result<(), String> {
+    match response {
+        Response::Error(e) => Err(format!("worker error {}: {}", e.code, e.message)),
+        _ => Ok(()),
     }
 }

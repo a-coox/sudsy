@@ -7,8 +7,10 @@ publish.workspace = true
 
 [dependencies]
 core-config.workspace = true
+core-flow.workspace = true
 core-format.workspace = true
 core-rules.workspace = true
+core-semantics.workspace = true
 core-syntax.workspace = true
 rmp-serde.workspace = true
 serde.workspace = true

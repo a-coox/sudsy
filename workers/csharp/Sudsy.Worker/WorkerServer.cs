@@ -5,13 +5,16 @@ using Microsoft.CodeAnalysis.CSharp;
 using Sudsy.Worker.Generated;
 using Sudsy.Worker.Mapping;
 using Sudsy.Worker.Protocol;
+using Sudsy.Worker.Semantics;
 
 namespace Sudsy.Worker;
 
-/// <summary>Serves protocol v1 on a pair of streams, one request at a time.</summary>
+/// <summary>Serves the worker protocol on a pair of streams, one request at a time.</summary>
 public sealed class WorkerServer(Stream input, Stream output)
 {
-    private static readonly string[] Capabilities = [];
+    private static readonly string[] Capabilities = ["binding", "types", "values", "flow", "project"];
+
+    private readonly Workspace _workspace = new();
 
     private bool _greeted;
 
@@ -55,8 +58,10 @@ public sealed class WorkerServer(Stream input, Stream output)
             {
                 "Parse" => (Parse(Envelope.Payload<ParseRequest>(ref reader)), null),
                 "Shutdown" => (Envelope.Encode("Ok", new Ok()), 0),
-                "OpenWorkspace" or "UpdateText" or "Query" or "FlowGraphs" =>
-                    (Error("unsupported", $"{variant} is not supported by this worker yet"), null),
+                "OpenWorkspace" => (OpenWorkspace(Envelope.Payload<OpenWorkspace>(ref reader)), null),
+                "UpdateText" => (UpdateText(Envelope.Payload<UpdateText>(ref reader)), null),
+                "Query" => (Query(Envelope.Payload<Query>(ref reader)), null),
+                "FlowGraphs" => (FlowGraphs(Envelope.Payload<FlowGraphs>(ref reader)), null),
                 _ => (Error("bad_request", $"unknown message {variant}"), null),
             };
         }
@@ -138,6 +143,43 @@ public sealed class WorkerServer(Stream input, Stream output)
             Version = request.Version,
             Tree = WireEncoder.Encode(flat),
             Errors = errors,
+        });
+    }
+
+    private byte[] OpenWorkspace(OpenWorkspace request)
+    {
+        _workspace.Open(request.Paths);
+        return Envelope.Encode("Ok", new Ok());
+    }
+
+    private byte[] UpdateText(UpdateText request)
+    {
+        _workspace.Update(request.FileId, request.Version, request.Text);
+        return Envelope.Encode("Ok", new Ok());
+    }
+
+    private byte[] Query(Query request)
+    {
+        if (_workspace.Get(request.FileId) is not var (document, model))
+        {
+            return Error("bad_request", $"{request.FileId} is not in the workspace; send UpdateText first");
+        }
+
+        return Envelope.Encode("Answers", FileQueries.Answer(_workspace, document, model, request));
+    }
+
+    private byte[] FlowGraphs(FlowGraphs request)
+    {
+        if (_workspace.Get(request.FileId) is not var (document, model))
+        {
+            return Error("bad_request", $"{request.FileId} is not in the workspace; send UpdateText first");
+        }
+
+        return Envelope.Encode("Graphs", new Graphs
+        {
+            FileId = request.FileId,
+            Version = request.Version,
+            Bodies = FlowExporter.Export(document, model),
         });
     }
 

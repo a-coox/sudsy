@@ -5,8 +5,10 @@
 use crate::provider::{LanguageProvider, SourceFile};
 use core_config::{ConfigChain, FileInput};
 use core_rules::{
-    Analysis, Diagnostic, FileContext, LineIndex, SYNTAX_ERROR, activate, fix_loop, run_file,
+    Analysis, Diagnostic, FileContext, LineIndex, SYNTAX_ERROR, activate, fix_loop, layers_needed,
+    run_file,
 };
+use core_semantics::SemanticView;
 use std::path::Path;
 
 /// The diagnostics of `text`, as `path` would get them with `rules` as the `lint:` section of a
@@ -57,6 +59,7 @@ fn analyze(provider: &dyn LanguageProvider, path: &str, text: &str, rules: &str)
             parses: false,
         };
     }
+    let capabilities = provider.capabilities();
     let active = activate(
         provider
             .rules()
@@ -64,16 +67,29 @@ fn analyze(provider: &dyn LanguageProvider, path: &str, text: &str, rules: &str)
             .chain(core_rules::shared::RULES)
             .copied(),
         &resolved,
-        |_| false,
+        |l| capabilities.contains(l),
     )
     .expect("the test rules are configured correctly");
     let lines = LineIndex::new(text);
+    let needed = layers_needed(&active);
+    let data = if needed.is_empty() {
+        None
+    } else {
+        provider
+            .semantics(&SourceFile::new(path, 1, text), needed)
+            .expect("the provider answers semantic queries")
+    };
+    let summaries = provider.summaries();
     let context = FileContext {
         path: Path::new(path),
         text,
         root: &parsed.tree,
         grammar: provider.grammar(),
         lines: &lines,
+        semantics: data.as_ref().map(|data| SemanticView {
+            data,
+            summaries: &summaries,
+        }),
     };
     let report = run_file(&context, &active, provider.body_kinds(), false);
     Analysis {

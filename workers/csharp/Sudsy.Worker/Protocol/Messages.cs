@@ -8,7 +8,7 @@ namespace Sudsy.Worker.Protocol;
 /// </summary>
 public static class ProtocolInfo
 {
-    public const uint Version = 2;
+    public const uint Version = 3;
     public const uint FlowGraphFormatVersion = 1;
     public const uint WireFormatVersion = 1;
 }
@@ -56,8 +56,10 @@ public sealed class Query
 {
     [Key(0)] public string FileId { get; set; } = "";
     [Key(1)] public ulong Version { get; set; }
-    /// <summary>Opaque until the semantic layers land (M5).</summary>
-    [Key(2)] public byte[] Batch { get; set; } = [];
+    /// <summary>What to answer: declarations, references, unused_imports, maybe_null, diagnostics.</summary>
+    [Key(2)] public string[] Items { get; set; } = [];
+    /// <summary>For the diagnostics item: the compiler diagnostic ids to report (CS0162, ...).</summary>
+    [Key(3)] public string[] DiagnosticIds { get; set; } = [];
 }
 
 [MessagePackObject]
