@@ -29,9 +29,10 @@ Single explicit-stack walk; trivia re-attached to our rule. Missing tokens are z
 One `CSharpCompilation` from the `.cs` files under the opened roots (directory, project directory, or a solution's project directories; `bin`, `obj`, `node_modules`, `.git` skipped) plus sent text, against the runtime's reference assemblies. No project references, NuGet, target frameworks, generators.
 - Why: MSBuild loading needs the SDK at run time and fails on many setups; the rules built need little of it.
 - Degradation: package types do not resolve; `remove-unused-usings` stays silent for files with errors or `#if` regions. Flow graphs barely depend on resolution.
+- Limits (the repo is untrusted): symlinks and junctions are not entered, a `.cs` or `.sln` file over 4 MiB is not read, and a solution's projects are used only when they lie under the solution's directory.
 - CLI: workspace is the command-line paths (else cwd). LSP: the workspace folder. Files outside are analyzed alone.
 
 ## Lifecycle (`provider_api::proxy`)
-- Started lazily on the first C# file that needs it. Discovery: `SUDSY_CSHARP_WORKER` (path to `Sudsy.Worker.dll`), else `csharp-worker/Sudsy.Worker.dll` beside the executable; run via `dotnet`.
+- Started lazily on the first C# file that needs it. Discovery: `SUDSY_CSHARP_WORKER` (path to `Sudsy.Worker.dll`), else `csharp-worker/Sudsy.Worker.dll` beside the executable; run via `dotnet` with the temp directory as its working directory (never the checked repo).
 - Pool: parsing uses up to `min(cores, 4)` workers (`SUDSY_CSHARP_WORKERS` overrides), a new one only when all started are busy. Semantic state lives in the first worker only, so semantic requests serialize.
 - Failure: failures in a row count against `max_restarts = 1`; any reply resets the count. Two in a row: unavailable until restart. Hang = no reply within 120 s. Start failure or handshake refusal is final. Semantic unavailability is warned once (CLI: per distinct reason).
