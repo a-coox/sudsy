@@ -32,4 +32,4 @@ One line each; none is committed.
 - Editor extensions other than VS Code (other editors use `sudsy lsp`).
 - Self-contained C# worker for machines without .NET.
 - Repeatable benchmarks for the paths listed in [performance/numbers.md](performance/numbers.md).
-- Release: Marketplace publishing, GitHub org, DCO/CLA, copyright line ([development/ci-release.md](development/ci-release.md)).
+- Release: first Marketplace publish ([development/ci-release.md](development/ci-release.md)).
