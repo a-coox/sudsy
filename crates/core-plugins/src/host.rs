@@ -54,7 +54,7 @@ impl WasiView for State {
 pub const CACHE_ENV: &str = "SUDSY_WASM_CACHE";
 
 /// Where compiled plugins are kept between runs: compiling a plugin takes longer than a small
-/// lint run, loading the compiled code does not (see docs/decisions.md, "M6"). `None` when the
+/// lint run, loading the compiled code does not. `None` when the
 /// user turned the cache off or has no home directory.
 fn cache_dir() -> Option<PathBuf> {
     if let Some(dir) = std::env::var_os(CACHE_ENV) {

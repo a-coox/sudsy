@@ -53,7 +53,7 @@ one() { # one LANG PHASE -> metric lines on stdout
 : >"$out"
 tmp=$(mktemp -d); n=0; jobs_max=$(( $(nproc 2>/dev/null || echo 4) / 2 )); [ "$jobs_max" -ge 1 ] || jobs_max=1
 for lang in $langs; do
-  [ "$mode" = instr ] && [ "$lang" = cs ] && continue # the worker is not traced; see docs/decisions.md
+  [ "$mode" = instr ] && [ "$lang" = cs ] && continue # the worker is not traced; see docs/performance/tooling.md
   for phase in $(phases "$lang"); do
     one "$lang" "$phase" >"$tmp/$lang.$phase" &
     n=$((n+1)); [ $((n % jobs_max)) -eq 0 ] && wait

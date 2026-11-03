@@ -1,5 +1,5 @@
 //! Layout directives: the fixed, versioned set of layout requests that rules can attach to
-//! nodes (plan.md "Layout directives"). Rules never print layout themselves; the rule engine
+//! nodes. Rules never print layout themselves; the rule engine
 //! (M2) fills a [`DirectiveTable`], and shapes read it.
 
 use core_syntax::{SyntaxKind, SyntaxNode};

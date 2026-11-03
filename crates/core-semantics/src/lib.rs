@@ -1,5 +1,5 @@
 //! Capability layers, symbol ids, the facts a provider's semantic model answers about a file, and
-//! behavior summaries (plan.md "Semantic analysis"). Language neutral: a provider fills these in,
+//! behavior summaries. Language neutral: a provider fills these in,
 //! rules read them.
 
 mod facts;

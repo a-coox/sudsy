@@ -1,5 +1,5 @@
 # Engine throughput benchmark (NOT PRODUCT CODE): generates large JSON and YAML inputs
-# deterministically and times each phase of `format_file` separately. See docs/decisions.md
+# deterministically and times each phase of `format_file` separately. See docs/performance/tooling.md
 # "Performance".
 [package]
 name = "perf-bench"

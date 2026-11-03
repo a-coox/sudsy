@@ -169,7 +169,7 @@ public class FixtureExportTests
     public void TheFlowAgreementFixtureExportsWithoutNullStrings()
     {
         var root = AppContext.BaseDirectory;
-        while (!File.Exists(Path.Combine(root, "plan.md")))
+        while (!File.Exists(Path.Combine(root, "Cargo.toml")))
         {
             root = Path.GetDirectoryName(root)!;
         }

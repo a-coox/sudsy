@@ -1,6 +1,6 @@
 //! The layout document: what formatting code produces and the printer consumes.
 //!
-//! The primitives are those of plan.md "Formatting engine" (after Wadler and Prettier):
+//! The primitives are those of docs/formatting/engine.md (after Wadler and Prettier):
 //! `text`, `line`, `softline`, `hardline`, `group`, `indent`, `align`, `if_break`, `fill`,
 //! `conditional_group`, `line_suffix` and `break_parent`.
 

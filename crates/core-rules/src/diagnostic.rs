@@ -1,9 +1,9 @@
-//! The diagnostics model every rule source reports into (plan.md "Diagnostics and fixes").
+//! The diagnostics model every rule source reports into.
 
 use core_config::Level;
 use core_syntax::{TextRange, TextSize};
 
-/// Rule categories (plan.md "Rule trait"), in fix priority order: when two fixes overlap, the
+/// Rule categories, in fix priority order: when two fixes overlap, the
 /// one of the earlier category wins.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Category {
@@ -50,7 +50,7 @@ impl Severity {
     }
 }
 
-/// How far a fix may be trusted (plan.md "Diagnostics and fixes"). Ordered from least to most
+/// How far a fix may be trusted. Ordered from least to most
 /// trusted.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum FixKind {

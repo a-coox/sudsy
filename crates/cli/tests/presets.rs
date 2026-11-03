@@ -1,4 +1,4 @@
-//! "Presets match their samples" (plan.md M3 gate): every directory under
+//! "Presets match their samples": every directory under
 //! `tests/fixtures/presets/` is named `<language>-<preset>` and holds cases `<name>.in.<ext>` and
 //! `<name>.out.<ext>`, with the sources listed in the directory's `SOURCE.md`. The `.out` file is
 //! the style guide's published example (or the reference tool's output); the `.in` file is the same
@@ -97,7 +97,7 @@ fn every_preset_reproduces_its_samples() {
         "{}",
         all_failures.join("\n=====\n")
     );
-    assert_eq!(presets, 8, "one fixture directory per preset of plan.md");
+    assert_eq!(presets, 8, "one fixture directory per preset");
     assert!(cases >= 8);
 }
 

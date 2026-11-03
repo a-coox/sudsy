@@ -1,5 +1,4 @@
-//! Rules that apply to every language (plan.md: "Shared rules (`max-line-length`) apply to every
-//! language, and a language-specific rule cannot reuse a shared rule's name").
+//! Rules that apply to every language. A language-specific rule cannot reuse a shared rule's name.
 
 use crate::diagnostic::Category;
 use crate::options::{Opt, OptionDecl};

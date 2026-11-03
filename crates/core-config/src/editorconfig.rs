@@ -1,5 +1,4 @@
-//! `.editorconfig` as a fallback source of format options (plan.md "Resolution order": below the
-//! `extends` chain, above the provider defaults).
+//! `.editorconfig` as a fallback source of format options.
 //!
 //! Files are found by walking up from the formatted file until one says `root = true`; a closer
 //! file overrides a farther one, a later section overrides an earlier one. Section globs follow

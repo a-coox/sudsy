@@ -1,4 +1,4 @@
-//! Output formats for diagnostics (plan.md "CLI"): human-readable, JSON, SARIF and GitHub Actions
+//! Output formats for diagnostics: human-readable, JSON, SARIF and GitHub Actions
 //! annotations. Rendering is a pure function of the diagnostics, so the formats are snapshot-tested.
 
 use clap::ValueEnum;

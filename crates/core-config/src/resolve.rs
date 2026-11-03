@@ -1,4 +1,4 @@
-//! Resolution (plan.md "Resolution order", highest first): overrides, the language section,
+//! Resolution: overrides, the language section,
 //! the shared settings, the `extends` chain, `.editorconfig`, the provider defaults. Every value
 //! keeps the place it came from, for `sudsy config print`.
 //!

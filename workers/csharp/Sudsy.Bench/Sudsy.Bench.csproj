@@ -1,4 +1,4 @@
-<!-- Production-path benchmark (parse, mapping walk, serialize). Not part of the product; see docs/decisions.md. -->
+<!-- Production-path benchmark (parse, mapping walk, serialize). Not part of the product; see docs/performance/tooling.md. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>

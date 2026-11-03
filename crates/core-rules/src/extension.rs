@@ -1,5 +1,5 @@
 //! Rules that do not come with a provider: declarative pattern rules and Wasm plugin rules
-//! (plan.md "Rules, diagnostics and fixes"). They are ordinary [`Rule`]s that the project's
+//! They are ordinary [`Rule`]s that the project's
 //! config adds to a language's own, so they run through the same engine, configuration,
 //! suppressions and fix loop.
 

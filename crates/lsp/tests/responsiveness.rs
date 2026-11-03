@@ -1,5 +1,4 @@
-//! The message loop stays free while a diagnostics pull is running (plan.md "LSP server",
-//! docs/decisions.md "Editor responsiveness"). A rule that blocks until the test releases it makes
+//! The message loop stays free while a diagnostics pull is running. A rule that blocks until the test releases it makes
 //! the pull slow without a sleep.
 
 mod common;

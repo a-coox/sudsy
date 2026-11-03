@@ -5,7 +5,7 @@ using Sudsy.Worker.Protocol;
 
 namespace Sudsy.Worker.Semantics;
 
-/// <summary>Binding, type and value answers about one file, in one batch (plan.md "Capability layers").</summary>
+/// <summary>Binding, type and value answers about one file, in one batch.</summary>
 internal static class FileQueries
 {
     public static Answers Answer(Workspace workspace, Document document, SemanticModel model, Query query)

@@ -24,7 +24,7 @@ internal sealed class Document(string id, ulong version, string text, SyntaxTree
 /// The Roslyn workspace: the C# files under the opened project, solution or directory paths plus
 /// the text the editor or CLI sends, as one compilation against the runtime's reference
 /// assemblies. Not MSBuildWorkspace: project references, NuGet packages and conditional
-/// compilation are not evaluated (see docs/decisions.md, M5).
+/// compilation are not evaluated.
 /// </summary>
 internal sealed class Workspace
 {

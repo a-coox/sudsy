@@ -1,4 +1,4 @@
-//! Rule results as queries (plan.md "Incremental engine"): `lint(file)` reads `parse` and the
+//! Rule results as queries: `lint(file)` reads `parse` and the
 //! resolved rule configuration, so an edit of a file or of the config re-runs only what depends on it.
 
 use crate::db::Db;

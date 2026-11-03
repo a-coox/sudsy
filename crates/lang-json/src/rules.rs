@@ -1,4 +1,4 @@
-//! JSON rules (plan.md "Initial built-in rules"): `no-duplicate-keys` and the opt-in
+//! JSON rules: `no-duplicate-keys` and the opt-in
 //! `sorted-keys`.
 
 use crate::generated::{Member, Object, kind};

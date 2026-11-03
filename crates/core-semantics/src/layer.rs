@@ -1,4 +1,4 @@
-/// The capability layers of plan.md "Capability layers". A rule that needs a layer the provider
+/// The capability layers (docs/rules/semantics.md). A rule that needs a layer the provider
 /// does not answer, or the analysis depth does not allow, is skipped.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Layer {

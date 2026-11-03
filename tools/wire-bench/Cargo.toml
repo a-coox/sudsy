@@ -1,5 +1,5 @@
 # Production-path benchmark (NOT PRODUCT CODE): Rust decode and tree build for trees written by
-# workers/csharp/Sudsy.Bench. See docs/decisions.md.
+# workers/csharp/Sudsy.Bench. See docs/performance/tooling.md.
 [package]
 name = "wire-bench"
 edition.workspace = true

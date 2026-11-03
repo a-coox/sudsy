@@ -1,10 +1,10 @@
-//! Configuration (plan.md "Configuration and presets"): `sudsy.yaml` and the files it extends,
+//! Configuration: `sudsy.yaml` and the files it extends,
 //! presets, `.editorconfig`, and the resolution of both into the format options and rule levels of
 //! one file, with the source of every value.
 //!
 //! The config is read with `serde-saphyr` with YAML 1.2 semantics (`yes`, `no`, `on` and `off` are
 //! plain strings), which gives every value its line and column for error messages; see
-//! docs/decisions.md "M3a: Configuration" for why Sudsy's own YAML parser is not used here.
+//! docs/formatting/yaml.md for why Sudsy's own YAML parser is not used here.
 
 mod chain;
 mod editorconfig;

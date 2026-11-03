@@ -1,4 +1,4 @@
-//! The shared formatting engine (plan.md "Formatting engine").
+//! The shared formatting engine.
 //!
 //! * [`doc`]: the layout document; [`printer`]: the greedy, language-unaware printer.
 //! * [`shapes`]: delimited list, block, key-value, statement sequence and verbatim.

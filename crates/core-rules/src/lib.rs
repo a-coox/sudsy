@@ -1,4 +1,4 @@
-//! The rule engine (plan.md "Rules, diagnostics and fixes"): the rule trait with its four scopes,
+//! The rule engine: the rule trait with its four scopes,
 //! the diagnostics and fix model, suppression comments, the fix loop, and the rules every
 //! language shares. Languages contribute their own rules through the provider.
 //!

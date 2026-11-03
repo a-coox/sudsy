@@ -1,5 +1,5 @@
 //! `perf-bench extensions [CS_DIR] [LIMIT]` and `perf-bench extensions-cli SUDSY_EXE`: what M6's
-//! pattern rules and Wasm plugins cost (see docs/decisions.md, "M6: Extensibility, performance").
+//! pattern rules and Wasm plugins cost.
 //!
 //! * `extensions` (in process): loading the sample plugin (cold compile, the compiled component
 //!   reused, and the cost of one call on an empty file); the plugin boundary per file (a cheap

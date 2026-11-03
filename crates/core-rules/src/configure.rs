@@ -9,7 +9,7 @@ use std::collections::BTreeMap;
 
 /// The rules among `rules` that are on for a file: configured or default level not `off`, every
 /// required layer available, options valid. A rule whose layers are missing is skipped rather
-/// than failing the run (plan.md: rules degrade gracefully).
+/// than failing the run.
 pub fn activate<'a>(
     rules: impl IntoIterator<Item = &'a dyn Rule>,
     configured: &BTreeMap<String, ResolvedRule>,

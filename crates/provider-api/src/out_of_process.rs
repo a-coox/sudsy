@@ -169,7 +169,7 @@ impl LanguageProvider for OutOfProcessProvider {
         if layers.is_empty() {
             return Ok(None);
         }
-        // Each layer is answered by one kind of query item (docs/decisions.md, M5).
+        // Each layer is answered by one kind of query item.
         let mut items: Vec<&str> = Vec::new();
         if layers.binding {
             items.push("unused_imports");

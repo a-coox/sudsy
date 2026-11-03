@@ -46,8 +46,7 @@ pub fn generate() -> Result<Vec<(PathBuf, String)>> {
     ])
 }
 
-/// The JSON Schema of `sudsy.yaml`, from the option declarations of the providers (plan.md
-/// "Option schema"); editors register it for completion and validation of the config.
+/// The JSON Schema of `sudsy.yaml`, from the option declarations of the providers; editors register it for completion and validation of the config.
 fn config_schema() -> Result<String> {
     let providers = languages::providers();
     let schema = core_config::json_schema(

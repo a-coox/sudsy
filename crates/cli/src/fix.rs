@@ -1,4 +1,4 @@
-//! `sudsy fix [--unsafe] [paths...]`: applies fixes until none is left (plan.md fix loop), then
+//! `sudsy fix [--unsafe] [paths...]`: applies fixes until none is left, then
 //! formats, and reports what remains.
 
 use crate::lint::{self, Collected, ReportArgs, exit_code};

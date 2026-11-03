@@ -1,5 +1,4 @@
-//! The flow graph of a method body and the dataflow framework that runs over it (plan.md "Flow
-//! graph and analysis framework"). The graph model is language neutral; a provider exports it
+//! The flow graph of a method body and the dataflow framework that runs over it. The graph model is language neutral; a provider exports it
 //! (C#: converted from Roslyn's operation-based control-flow graph in the worker) and the
 //! analyses run here, in the core.
 
