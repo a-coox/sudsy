@@ -106,7 +106,7 @@ impl<'a> RuleContext<'a> {
     pub fn has_reported(&self, message: &str) -> bool {
         self.out
             .iter()
-            .any(|d| d.rule == self.meta.id && d.message == message)
+            .any(|d| d.message == message && d.rule == self.meta.id)
     }
 
     /// Reports a diagnostic; add related spans and fixes to the returned value.
