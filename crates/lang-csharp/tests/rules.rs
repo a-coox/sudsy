@@ -68,37 +68,6 @@ fn using_order_skips_lists_with_directives() {
 }
 
 #[test]
-fn file_scoped_namespace_is_an_unsafe_fix() {
-    let text = "namespace Shop.Orders\n{\n    using System;\n\n    class A\n    {\n        int F() { return 1; }\n    }\n}\n";
-    let rules = "file-scoped-namespace: warn";
-    assert_snapshot!(report(text, rules));
-    assert_eq!(fixed(text, rules, false), text);
-    assert_snapshot!(fixed(text, rules, true));
-}
-
-#[test]
-fn file_scoped_namespace_leaves_files_it_cannot_convert() {
-    let rules = "file-scoped-namespace: warn";
-    for text in [
-        "namespace A { } namespace B { }\n",
-        "namespace A { namespace B { } }\n",
-        "namespace A { }\nclass C { }\n",
-        "namespace A;\nclass C { }\n",
-    ] {
-        assert_eq!(report(text, rules), "", "{text:?}");
-    }
-}
-
-#[test]
-fn prefer_null_coalescing() {
-    let text = "class A { void F() {\n var a = x != null ? x : y;\n var b = x == null ? y : x;\n var c = p.Name != null ? p.Name : \"none\";\n var d = x != null ? x : y + 1;\n var e = x != null ? z : y;\n var f = F() != null ? F() : y;\n} }\n";
-    let rules = "prefer-null-coalescing: warn";
-    assert_snapshot!(report(text, rules));
-    assert_eq!(fixed(text, rules, false), text);
-    assert_snapshot!(fixed(text, rules, true));
-}
-
-#[test]
 fn suppression_comment() {
     let text = "class A { void F() {\n // sudsy-disable-next-line no-empty-catch\n try { } catch { }\n try { } catch { }\n} }\n";
     assert_snapshot!(report(text, ""));

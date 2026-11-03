@@ -14,14 +14,14 @@
 | `sorted-keys` | yaml | style | off | unsafe | block mappings only; moving an anchor below its alias is why it is unsafe |
 | `no-empty-catch` | csharp | suspicious | warn | none | no statements and no comment |
 | `async-suffix` | csharp | style | warn | none | uses the type layer to check Task/ValueTask and interface implementation; name-based at `fast`; overrides, explicit implementations and `Main` skipped; no fix (rename touches other files) |
-| `file-scoped-namespace` | csharp | cleanup | off | unsafe | needs C# 10; formatter re-indents after |
-| `using-order` | csharp | cleanup | off | safe | plain usings, ordinal, `system_first`; lists with `#` directives skipped |
-| `prefer-null-coalescing` | csharp | style | off | unsafe | `a != null ? a : b` on names/member accesses; type can change |
-| `unreachable-code` | csharp | suspicious | warn | suggestion | option `non_returning_calls` (default true) |
-| `unused-variable` | csharp | cleanup | warn | safe | compiler CS0168 and CS0219 for declaration and catch variables |
-| `unused-assignment` | csharp | cleanup | off | none | dead store via liveness |
-| `remove-unused-usings` | csharp | cleanup | off | safe | compiler CS8019; silent when the file has errors or `#if` |
-| `possible-null-dereference` | csharp | correctness | off | none | maybe-null receivers; off because it repeats CS8602 |
-| `unused-private-member` | csharp | cleanup | warn | none | project scope, `analysis: deep` only |
+| `using-order` | csharp | cleanup | off | safe | overlaps the `dotnet_sort_system_directives_first` .editorconfig key; plain usings, ordinal, `system_first`; lists with `#` directives skipped |
+| `unreachable-code` | csharp | suspicious | off | suggestion | option `non_returning_calls` (default true); overlaps CS0162 and IDE0035 |
+| `unused-variable` | csharp | cleanup | off | safe | overlaps compiler CS0168 and CS0219 for declaration and catch variables |
+| `unused-assignment` | csharp | cleanup | off | none | dead store via liveness; overlaps IDE0059 |
+| `remove-unused-usings` | csharp | cleanup | off | safe | overlaps compiler CS8019 and IDE0005; silent when the file has errors or `#if` |
+| `possible-null-dereference` | csharp | correctness | off | none | maybe-null receivers; off because it repeats the compiler's CS8602 |
+| `unused-private-member` | csharp | cleanup | warn | none | project scope, `analysis: deep` only; overlaps IDE0051 and IDE0052 |
+
+Rules that repeat a compiler or SDK diagnostic say so in `sudsy rules <id>`; those that fire as compiler warnings anyway are off by default. Sudsy does not reimplement SDK style rules such as IDE0161 (file-scoped namespaces) or IDE0029/IDE0030 (null coalescing).
 
 Semantic rules' details: [semantics.md](semantics.md). A rule that is a style choice is off by default so zero-config adds no noise.

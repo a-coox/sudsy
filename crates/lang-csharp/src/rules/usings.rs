@@ -16,7 +16,7 @@ static META: RuleMeta = RuleMeta {
     description: "Plain `using` directives of a file or namespace are not in alphabetical order \
                   (ordinal). Aliases, `using static` and `global using` stay where they are, and \
                   so does a list that has preprocessor directives in it. Comments on lines of their \
-                  own stay where they are; a comment after a directive moves with it.",
+                  own stay where they are; a comment after a directive moves with it. Overlaps the SDK analyzers' `dotnet_sort_system_directives_first` .editorconfig key.",
     example: "using Zeta;\nusing Alpha;   // Alpha goes first",
     default_level: Level::Off,
     fix: Some(FixKind::Safe),

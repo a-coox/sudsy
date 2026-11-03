@@ -11,6 +11,9 @@ fn csharp() -> OutOfProcessProvider {
     provider(&common::worker_dll())
 }
 
+/// Both are off by default (the compiler reports the same).
+const FLOW_RULES: &str = "unreachable-code: warn\nunused-variable: warn";
+
 fn report(text: &str, rules: &str) -> String {
     render(text, &lint(&csharp(), "a.cs", text, rules))
 }
@@ -36,14 +39,14 @@ class A {
 
 #[test]
 fn flow_rules_report_what_the_compiler_reports() {
-    assert_snapshot!(report(FLOW, ""));
+    assert_snapshot!(report(FLOW, FLOW_RULES));
 }
 
 #[test]
 fn constant_conditions_and_jumps_both_make_code_unreachable() {
     let text = "class A { int F() { return 1; G(); G(); }
  int H(int x) { if (false) { G(); } throw null; x++; } int G() => 1; }";
-    assert_snapshot!(report(text, ""));
+    assert_snapshot!(report(text, FLOW_RULES));
 }
 
 #[test]
@@ -55,13 +58,13 @@ fn dead_stores_are_found_with_liveness() {
 #[test]
 fn unused_variable_fix_removes_the_declaration_and_the_catch_name() {
     let text = "class A { void F() {\n    int k = 5;\n    int a = 1, b = 2;\n    try { F(); } catch (System.Exception e) { }\n    System.Console.WriteLine(b + a);\n} }\n";
-    assert_snapshot!(fix(&csharp(), "a.cs", text, "", false));
+    assert_snapshot!(fix(&csharp(), "a.cs", text, FLOW_RULES, false));
 }
 
 #[test]
 fn summaries_from_the_attribute_make_code_after_the_call_unreachable() {
     let text = "using System.Diagnostics.CodeAnalysis;\nclass A { [DoesNotReturn] static void Fail() => throw null; void F() { Fail(); F(); } }";
-    assert_snapshot!(report(text, ""));
+    assert_snapshot!(report(text, FLOW_RULES));
 }
 
 #[test]
@@ -90,5 +93,5 @@ fn a_body_without_a_flow_graph_falls_back_to_the_syntactic_check() {
     // `Missing` does not resolve, so Roslyn builds no graph for the body; a guard `throw` or an
     // empty statement after a jump is not reported, a call is.
     let text = "class A { int F() { Missing(); return 1; throw null; } int G() { Missing(); return 1; ; } int H() { Missing(); return 1; Missing(); } }";
-    assert_snapshot!(report(text, ""));
+    assert_snapshot!(report(text, FLOW_RULES));
 }

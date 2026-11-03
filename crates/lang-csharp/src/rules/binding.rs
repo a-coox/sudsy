@@ -16,7 +16,7 @@ static UNUSED_USINGS: RuleMeta = RuleMeta {
     id: "remove-unused-usings",
     category: Category::Cleanup,
     description: "A `using` directive that nothing in the file needs (the compiler's hidden \
-                  CS8019). Not reported in a file that has compiler errors or `#if` regions, \
+                  CS8019, IDE0005 in the SDK analyzers). Not reported in a file that has compiler errors or `#if` regions, \
                   because unresolved or inactive code could be the one using it.",
     example: "using System.Text;   // nothing from System.Text is used",
     default_level: Level::Off,
@@ -102,7 +102,7 @@ static UNUSED_PRIVATE: RuleMeta = RuleMeta {
     category: Category::Cleanup,
     description: "A private field, method, property or event that no file of the project uses \
                   (`analysis: deep`). Members with attributes, overrides, interface \
-                  implementations, `extern` and `partial` methods are left alone.",
+                  implementations, `extern` and `partial` methods are left alone. Overlaps the SDK analyzers IDE0051 (unused private member) and IDE0052 (unread private member).",
     example: "class A { private int cache; }   // cache is never used",
     default_level: Level::Warn,
     fix: None,

@@ -38,7 +38,7 @@ fn project() -> tempfile::TempDir {
     write(
         t.path(),
         "sudsy.yaml",
-        "lint:\n  rules:\n    remove-unused-usings: warn\n",
+        "lint:\n  rules:\n    remove-unused-usings: warn\n    unreachable-code: warn\n    unused-variable: warn\n",
     );
     write(
         t.path(),
@@ -113,12 +113,14 @@ fn deep_depth_adds_project_scope_rules_across_partial_files() {
 fn user_summaries_make_calls_that_do_not_return_end_the_flow() {
     let t = tempfile::tempdir().unwrap();
     let code = "class Log { public static void Fatal(string m) { throw null; } }\nclass A { void F() { Log.Fatal(\"x\"); F(); } }\n";
+    let rules = "lint:\n  rules:\n    unreachable-code: warn\n";
+    write(t.path(), "sudsy.yaml", rules);
     write(t.path(), "A.cs", code);
     assert!(!stdout(&sudsy(t.path(), &["lint"])).contains("unreachable"));
     write(
         t.path(),
         "sudsy.yaml",
-        "csharp:\n  semantics:\n    does_not_return: [\"Log.Fatal\"]\n",
+        &format!("{rules}csharp:\n  semantics:\n    does_not_return: [\"Log.Fatal\"]\n"),
     );
     assert!(stdout(&sudsy(t.path(), &["lint"])).contains("unreachable code"));
 }

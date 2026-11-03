@@ -90,6 +90,12 @@ fn a_missing_worker_is_reported_once_and_other_languages_keep_working() {
 #[test]
 fn semantic_rules_run_in_the_editor_and_follow_edits() {
     let t = tempfile::tempdir().unwrap();
+    // Off by default: the compiler reports the same.
+    std::fs::write(
+        t.path().join("sudsy.yaml"),
+        "lint:\n  rules:\n    unused-variable: warn\n",
+    )
+    .unwrap();
     let mut client = Client::start(t.path(), providers(&worker_dll()));
     let text = "class A { int F() { int k = 5; return 1; } }";
     let uri = client.open("A.cs", "csharp", text);

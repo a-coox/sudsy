@@ -6,8 +6,6 @@ mod async_suffix;
 mod binding;
 mod empty_catch;
 mod flow;
-mod namespace;
-mod null_coalescing;
 mod usings;
 
 use crate::generated::kind;
@@ -17,9 +15,7 @@ use core_syntax::{SyntaxKind, SyntaxNode};
 pub static RULES: &[&dyn Rule] = &[
     &empty_catch::NoEmptyCatch,
     &async_suffix::AsyncSuffix,
-    &namespace::FileScopedNamespace,
     &usings::UsingOrder,
-    &null_coalescing::PreferNullCoalescing,
     &flow::UnreachableCode,
     &flow::UnusedVariable,
     &flow::UnusedAssignment,

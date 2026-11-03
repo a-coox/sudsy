@@ -19,9 +19,9 @@ static UNREACHABLE: RuleMeta = RuleMeta {
                   covers constant conditions and calls that do not return (`does_not_return` in \
                   `semantics:`). Only the first statement of a run is reported. Removing it is \
                   offered as an editor quick fix only, because unreachable code usually signals \
-                  a bug.",
+                  a bug. Off by default: the compiler already reports unreachable code (CS0162) and the SDK analyzers add IDE0035.",
     example: "return x;\nLog(x);   // never runs",
-    default_level: Level::Warn,
+    default_level: Level::Off,
     fix: Some(FixKind::Suggestion),
     requires: &[],
     uses: &[Layer::Flow],
@@ -151,9 +151,9 @@ static UNUSED_VARIABLE: RuleMeta = RuleMeta {
     category: Category::Cleanup,
     description: "A local variable or catch variable that is never used (the compiler's CS0168), \
                   or is only assigned constants and never read (CS0219). Variables captured by \
-                  lambdas or local functions count as used.",
+                  lambdas or local functions count as used. Off by default: the compiler already warns (CS0168, CS0219).",
     example: "int total = 0;   // never read\ntry { Run(); } catch (Exception e) { }   // e is never used",
-    default_level: Level::Warn,
+    default_level: Level::Off,
     fix: Some(FixKind::Safe),
     requires: &[Layer::Flow],
     uses: &[],
@@ -246,7 +246,7 @@ static UNUSED_ASSIGNMENT: RuleMeta = RuleMeta {
     description: "A value is stored in a local variable and no path reads it before it is \
                   overwritten or the variable goes out of scope (a dead store). Variables that \
                   are captured or whose address is taken are not checked; a variable that is \
-                  never read at all is reported by `unused-variable` instead.",
+                  never read at all is reported by `unused-variable` instead. Overlaps the SDK analyzer IDE0059 (unnecessary assignment).",
     example: "int n = 0;\nn = Count();   // the 0 is never read",
     default_level: Level::Off,
     fix: None,

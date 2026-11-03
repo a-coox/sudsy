@@ -204,7 +204,11 @@ fn fix_unsafe_applies_every_fix_and_a_second_run_changes_nothing() {
     let o = sudsy(t.path(), &["fix", "--unsafe"]);
     assert_eq!(o.status.code(), Some(1));
     assert_eq!(read(t.path(), "b.yaml"), "---\na: 1\nz: \"yes\"\n");
-    // Sorted, then formatted (the object was expanded, so it stays expanded).`n    assert_eq!(read(t.path(), "a.json"), "{\n  \"a\": 2,\n  \"a\": 3,\n  \"b\": 1\n}\n");
+    // Sorted, then formatted (the object was expanded, so it stays expanded).
+    assert_eq!(
+        read(t.path(), "a.json"),
+        "{\n  \"a\": 2,\n  \"a\": 3,\n  \"b\": 1\n}\n"
+    );
     let again = sudsy(t.path(), &["fix", "--unsafe"]);
     assert!(err(&again).contains("0 file(s) changed"), "{}", err(&again));
 }
@@ -252,9 +256,7 @@ fn rules_lists_and_explains() {
         "max-line-length",
         "no-empty-catch",
         "async-suffix",
-        "file-scoped-namespace",
         "using-order",
-        "prefer-null-coalescing",
     ] {
         assert!(list.contains(id), "{id}\n{list}");
     }

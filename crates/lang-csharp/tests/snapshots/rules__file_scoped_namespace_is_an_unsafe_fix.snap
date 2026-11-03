@@ -1,6 +1,0 @@
----
-source: crates/lang-csharp/tests/rules.rs
-expression: "report(text, rules)"
----
-1:1 warning[file-scoped-namespace] use a file-scoped namespace
-  fix (unsafe): Convert to a file-scoped namespace
