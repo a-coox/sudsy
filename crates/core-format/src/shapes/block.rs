@@ -15,6 +15,8 @@ pub struct BlockStyle {
     pub empty: &'static str,
     /// Items between which a blank line is required.
     pub force_blank: Option<BlankRule>,
+    /// An empty block puts the closing delimiter on a line of its own instead of `empty`.
+    pub expand_empty: bool,
 }
 
 impl Default for BlockStyle {
@@ -23,6 +25,7 @@ impl Default for BlockStyle {
             max_blank_lines: 1,
             empty: "",
             force_blank: None,
+            expand_empty: false,
         }
     }
 }
@@ -63,7 +66,11 @@ fn block_of(
     if c.slots.is_empty() && dangling.is_empty() {
         return Ok(doc::concat(vec![
             opening,
-            doc::lit(style.empty),
+            if style.expand_empty {
+                doc::hardline()
+            } else {
+                doc::lit(style.empty)
+            },
             cx.token_text(&c.close),
             cx.trailing_comments_doc(&c.close),
         ]));

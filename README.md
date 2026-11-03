@@ -43,6 +43,7 @@ Presets are ordinary config files; writing their options by hand in `sudsy.yaml`
 | `csharp/dotnet-runtime` | Microsoft plus inline accessor bodies |
 | `csharp/google` | 2 spaces, 100 columns, K&R braces |
 | `csharp/csharpier-compat` | CSharpier 1.x layout |
+| `csharp/stylecop` | StyleCop.Analyzers layout (blank lines, `)` placement, empty bodies) and its matching rules |
 | `json/default`, `yaml/default` | The defaults |
 | `json/prettier-compat`, `yaml/prettier-compat` | Prettier-like (width 80) |
 

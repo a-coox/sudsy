@@ -1,0 +1,36 @@
+---
+source: crates/lang-csharp/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+class C { void M() { a();
+// one
+// two
+b();
+/* block */
+c();
+//// code
+d();
+if (x) {
+// first in block
+e(); } } }
+-----
+class C
+{
+    void M()
+    {
+        a();
+
+        // one
+        // two
+        b();
+        /* block */
+        c();
+        //// code
+        d();
+        if (x)
+        {
+            // first in block
+            e();
+        }
+    }
+}

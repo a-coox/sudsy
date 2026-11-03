@@ -1,0 +1,59 @@
+---
+source: crates/lang-csharp/tests/presets.rs
+expression: "format!(\"{input}\\n-----\\n{}\", fmt_preset(input, \"csharp/stylecop\"))"
+---
+using System;
+namespace N
+{
+    // comment
+
+    public class C { private int a; private int b; public C() { }
+        public void M(int first, int second, int third, int fourth, int fifth, int sixth, int seventh, int eighth, int ninth)
+        { if (a == 1) { b++; }
+            b--;
+            for (;;) { break; }
+            Action<int> d = delegate (int v) { };
+        } }
+}
+
+-----
+using System;
+
+namespace N
+{
+    // comment
+    public class C
+    {
+        private int a;
+        private int b;
+
+        public C()
+        {
+        }
+
+        public void M(
+            int first,
+            int second,
+            int third,
+            int fourth,
+            int fifth,
+            int sixth,
+            int seventh,
+            int eighth,
+            int ninth)
+        {
+            if (a == 1)
+            {
+                b++;
+            }
+
+            b--;
+            for (; ;)
+            {
+                break;
+            }
+
+            Action<int> d = delegate(int v) { };
+        }
+    }
+}

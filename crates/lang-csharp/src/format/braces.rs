@@ -3,14 +3,18 @@
 
 use super::lists::list_trailing_comma;
 use super::options::{
-    empty_braces, indent_switch_section_block, remove_accessor_blank_lines, separate_members,
+    blank_after_block, blank_before_comment, empty_braces, expand_empty_bodies,
+    indent_switch_section_block, remove_accessor_blank_lines, separate_all_members,
+    separate_members,
 };
-use super::seq::{R, Sep, direct_tokens, is_empty_braces, sep_doc, separator, seq_of, sig};
+use super::seq::{
+    R, Sep, direct_tokens, is_empty_braces, keeps_empty_inline, sep_doc, separator, seq_of, sig,
+};
 use super::tags::{self, Tag};
 use crate::generated::kind as k;
 use core_format::shapes::{
     BlankRule, BlockStyle, ListLayout, ListStyle, block_between, delimited_list_between,
-    statement_sequence, statement_sequence_with,
+    statement_sequence_with,
 };
 use core_format::{FormatCtx, FormatError, comments, doc};
 use core_syntax::{SyntaxElement, SyntaxNode, SyntaxToken, TextRange};
@@ -33,12 +37,7 @@ fn position(els: &[SyntaxElement], t: &SyntaxToken) -> Option<usize> {
 pub fn compilation_unit(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
     let els = sig(cx, node);
     let items: Vec<SyntaxNode> = nodes_of(&els);
-    let mut parts = vec![statement_sequence_with(
-        cx,
-        &items,
-        1,
-        member_rule(cx, node),
-    )?];
+    let mut parts = vec![statement_sequence_with(cx, &items, 1, blank_rule(cx))?];
     if let Some(SyntaxElement::Token(eof)) = els.last() {
         let trailing = comments::leading_comments(cx.grammar, eof);
         if !trailing.is_empty() {
@@ -68,15 +67,10 @@ pub fn file_scoped_namespace(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
         return Ok(header);
     };
     let mut parts = vec![header, doc::hardline()];
-    if comments::blank_lines_before(cx.grammar, &first) > 0 {
+    if comments::blank_lines_before(cx.grammar, &first) > 0 || separate_all_members(cx.options) {
         parts.push(doc::hardline());
     }
-    parts.push(statement_sequence_with(
-        cx,
-        &rest,
-        1,
-        member_rule(cx, node),
-    )?);
+    parts.push(statement_sequence_with(cx, &rest, 1, blank_rule(cx))?);
     Ok(doc::concat(parts))
 }
 
@@ -99,7 +93,7 @@ fn with_braces(
     let mut parts = Vec::new();
     if oi > 0 {
         parts.push(seq_of(cx, node, &els[..oi])?);
-        let sep = if is_empty_braces(cx, &open, &close) {
+        let sep = if is_empty_braces(cx, &open, &close) && keeps_empty_inline(cx, node) {
             Sep::Space
         } else {
             Sep::Brace
@@ -120,6 +114,7 @@ fn block_style(cx: &FormatCtx<'_>) -> BlockStyle {
         max_blank_lines: 1,
         empty: empty_braces(cx.options),
         force_blank: None,
+        expand_empty: false,
     }
 }
 
@@ -150,9 +145,30 @@ fn has_body_or_members(member: &SyntaxNode) -> bool {
     )
 }
 
-fn blank_between_members(cx: &FormatCtx<'_>, prev: &SyntaxNode, next: &SyntaxNode) -> bool {
-    // A directive in front of the member (`#if`, `#endif`): the blank line, if any, is the
-    // source's, since the member may start after the directive.
+/// Is `member` a field (consecutive fields need no blank line between them) or a `using`?
+fn is_run_member(member: &SyntaxNode) -> bool {
+    matches!(
+        member.kind(),
+        k::FIELD_DECLARATION | k::USING_DIRECTIVE | k::EXTERN_ALIAS_DIRECTIVE
+    )
+}
+
+/// Is `node` a member of a type, a namespace or a compilation unit (not a statement)?
+fn in_member_list(cx: &FormatCtx<'_>, node: &SyntaxNode) -> bool {
+    node.parent().is_some_and(|p| {
+        let kind = p.kind();
+        kind == k::COMPILATION_UNIT
+            || kind == k::FILE_SCOPED_NAMESPACE_DECLARATION
+            || tags::has(cx.grammar, kind, Tag::Namespace)
+            || tags::has(cx.grammar, kind, Tag::TypeDeclaration)
+    })
+}
+
+/// Does a blank line have to stand between two neighbours (the previous item's last node and the
+/// next item's first) although the source has none? The blank line options decide.
+fn blank_between(cx: &FormatCtx<'_>, prev: &SyntaxNode, next: &SyntaxNode) -> bool {
+    // A directive in front of the item (`#if`, `#endif`): the blank line, if any, is the
+    // source's, since the item may start after the directive.
     let leading = cx
         .first_token(next)
         .map(|t| comments::leading_comments(cx.grammar, &t))
@@ -163,24 +179,51 @@ fn blank_between_members(cx: &FormatCtx<'_>, prev: &SyntaxNode, next: &SyntaxNod
     {
         return false;
     }
-    let commented = !leading.is_empty();
-    let decorated = commented || next.children().any(|c| c.kind() == k::ATTRIBUTE_LIST);
-    decorated || has_body_or_members(prev) || has_body_or_members(next)
+    let o = cx.options;
+    let after_block = cx
+        .last_token(prev)
+        .is_some_and(|t| t.kind() == k::CLOSE_BRACE_TOKEN);
+    if after_block
+        && (blank_after_block(o)
+            || (separate_all_members(o)
+                && next.parent().is_some_and(|p| p.kind() == k::ACCESSOR_LIST)))
+    {
+        return true;
+    }
+    if blank_before_comment(o)
+        && leading
+            .first()
+            .is_some_and(|c| c.kind == comments::CommentKind::Line && !c.text().starts_with("////"))
+    {
+        return true;
+    }
+    let enum_member = next.kind() == k::ENUM_MEMBER_DECLARATION;
+    if !separate_members(o) || !(enum_member || in_member_list(cx, next)) {
+        return false;
+    }
+    let decorated = !leading.is_empty() || next.children().any(|c| c.kind() == k::ATTRIBUTE_LIST);
+    decorated
+        || (!enum_member
+            && if separate_all_members(o) {
+                !(is_run_member(prev) && prev.kind() == next.kind())
+            } else {
+                has_body_or_members(prev) || has_body_or_members(next)
+            })
 }
 
-/// The blank line rule of a body whose children are members, if the preset has one.
-fn member_rule(cx: &FormatCtx<'_>, node: &SyntaxNode) -> Option<BlankRule> {
-    let g = cx.grammar;
-    let members = tags::has(g, node.kind(), Tag::Namespace)
-        || tags::has(g, node.kind(), Tag::TypeDeclaration)
-        || node.kind() == k::COMPILATION_UNIT;
-    (separate_members(cx.options) && members).then_some(blank_between_members as BlankRule)
+/// The blank line rule of the sequences of a body (members, statements, switch sections), if an
+/// option needs one.
+fn blank_rule(cx: &FormatCtx<'_>) -> Option<BlankRule> {
+    let o = cx.options;
+    (separate_members(o) || blank_after_block(o) || blank_before_comment(o))
+        .then_some(blank_between as BlankRule)
 }
 
 /// Blocks, namespaces, types and switch statements.
 pub fn braced(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
     let style = BlockStyle {
-        force_blank: member_rule(cx, node),
+        force_blank: blank_rule(cx),
+        expand_empty: expand_empty_bodies(cx.options) && !keeps_empty_inline(cx, node),
         ..block_style(cx)
     };
     with_braces(cx, node, |open, close| {
@@ -223,6 +266,7 @@ pub fn accessor_list(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
             } else {
                 1
             },
+            force_blank: blank_rule(cx),
             ..block_style(cx)
         };
         return with_braces(cx, node, |open, close| {
@@ -356,7 +400,7 @@ pub fn switch_section(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
     } else if !statements.is_empty() {
         parts.push(doc::indent(doc::concat(vec![
             doc::hardline(),
-            statement_sequence(cx, &statements, 1)?,
+            statement_sequence_with(cx, &statements, 1, blank_rule(cx))?,
         ])));
     }
     Ok(doc::concat(parts))
@@ -367,8 +411,8 @@ fn arms_style(cx: &FormatCtx<'_>, node: &SyntaxNode, close: &SyntaxToken) -> Lis
         layout: ListLayout::Break,
         trailing_comma: list_trailing_comma(cx, node, close),
         empty: empty_braces(cx.options),
-        force_blank: (separate_members(cx.options) && node.kind() == k::ENUM_DECLARATION)
-            .then_some(blank_between_members as BlankRule),
+        expand_empty: node.kind() == k::ENUM_DECLARATION && !keeps_empty_inline(cx, node),
+        force_blank: blank_rule(cx).filter(|_| node.kind() == k::ENUM_DECLARATION),
         ..ListStyle::default()
     }
 }

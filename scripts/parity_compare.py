@@ -29,8 +29,19 @@ def rule_map(tool):
 
 
 def formatter_ids(tool):
-    """Upstream rule names the catalog says the formatter fully covers; `partial` entries state a gap."""
-    return {e["id"] for e in catalog_entries(tool) if e["sudsy"] == "formatter" and e["coverage"] == "covered"}
+    """`(covered, partial)`: upstream rule names the formatter handles, from the catalog: status
+    `formatter`, or `option: csharp.format.<name>` for an option the stylecop preset sets (the
+    fixtures format with it). `partial` entries state a gap."""
+    preset = yaml.safe_load((ROOT / "crates/lang-csharp/presets/stylecop.yaml").read_text(encoding="utf-8"))
+    options = set(preset["csharp"]["format"])
+    def ids(coverage):
+        return {
+            e["id"]
+            for e in catalog_entries(tool)
+            if e["coverage"] == coverage
+            and (e["sudsy"] == "formatter" or e["sudsy"].removeprefix("option: csharp.format.") in options)
+        }
+    return ids("covered"), ids("partial")
 
 
 def yamllint(fixture, cwd):
@@ -107,7 +118,7 @@ def stylecop(sudsy, version):
     lint` at the same place, and nothing else. After `sudsy fix` (which formats): no `formatter` id
     remains, and what StyleCop still reports is what `sudsy lint` still reports."""
     mapping = rule_map("stylecop")
-    formatter = formatter_ids("stylecop")
+    formatter, partial = formatter_ids("stylecop")
     mismatches = 0
     for name in ("plain", "fixed"):
         work = ROOT / "target/parity" / f"stylecop-{name}"
@@ -115,13 +126,17 @@ def stylecop(sudsy, version):
         shutil.copytree(ROOT / "tests/parity/stylecop", work)
         if name == "fixed":
             subprocess.run([sudsy, "fix", "--unsafe", "."], cwd=work, capture_output=True, text=True, check=False)
-        built = stylecop_build(work, set(mapping) | formatter, version)
+        built = stylecop_build(work, set(mapping) | formatter | partial, version)
+        if name == "plain":
+            idle = sorted(formatter - {r for _, r, _, _ in built})
+            print(f"formatter ids no fixture violates: {' '.join(idle)}")
         for fixture in sorted(work.glob("*.cs")):
             upstream = {(mapping[r], l, c) for f, r, l, c in built if f == fixture.name and r in mapping}
             mismatches += compare(f"{fixture.name} ({name})", upstream, sudsy_lint(sudsy, fixture, work, set(mapping.values())), "stylecop")
         if name == "fixed":
             for f, r, l, c in sorted(built):
-                if r in formatter:
+                # A `partial` entry's gap is only expected outside the `layout_*` fixtures.
+                if r in formatter or (r in partial and f.startswith("layout_")):
                     print(f"  formatter id left after fix: {f}: {r} {l}:{c}")
                     mismatches += 1
     print(f"stylecop {version}: {mismatches} mismatch(es)")

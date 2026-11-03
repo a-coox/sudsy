@@ -34,7 +34,7 @@ class C
         while (a < 5);
         for (int i = 0; i < 10; i++)
             Foo(i);
-        for (;;)
+        for (; ;)
         {
             break;
         }

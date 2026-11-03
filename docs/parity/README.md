@@ -31,7 +31,7 @@ The differential runner [`scripts/parity.sh`](../development/parity.md) compares
 | eslint-plugin-jsonc | 44 | 35 | 5 | 2 | 0 | 2 | 0 | 2 |
 | prettier | 28 | 15 | 4 | 1 | 0 | 8 | 0 | 1 |
 | roslynator | 67 | 23 | 7 | 16 | 18 | 1 | 2 | 16 |
-| stylecop | 197 | 62 | 12 | 31 | 45 | 21 | 26 | 31 |
+| stylecop | 197 | 73 | 4 | 28 | 45 | 21 | 26 | 28 |
 | yamllint | 65 | 38 | 10 | 17 | 0 | 0 | 0 | 17 |
 
 ## Batches

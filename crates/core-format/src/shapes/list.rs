@@ -45,8 +45,13 @@ pub struct ListStyle {
     pub leading_line: bool,
     /// What stands between the delimiters of an empty list.
     pub empty: &'static str,
+    /// An empty list puts the closing delimiter on a line of its own instead of `empty`.
+    pub expand_empty: bool,
     /// Items between which a blank line is required.
     pub force_blank: Option<BlankRule>,
+    /// The closing delimiter follows the last item on its line when the list breaks (unless
+    /// comments stand in front of it).
+    pub hug_close: bool,
 }
 
 impl Default for ListStyle {
@@ -59,7 +64,9 @@ impl Default for ListStyle {
             max_blank_lines: 1,
             leading_line: false,
             empty: "",
+            expand_empty: false,
             force_blank: None,
+            hug_close: false,
         }
     }
 }
@@ -125,7 +132,11 @@ fn list_of(
                 Doc::Nil
             },
             opening,
-            doc::lit(style.empty),
+            if style.expand_empty {
+                doc::hardline()
+            } else {
+                doc::lit(style.empty)
+            },
             closing,
             after,
         ]));
@@ -170,7 +181,12 @@ fn list_of(
     if style.leading_line {
         body_parts.push(doc::line());
     }
-    body_parts.extend([opening, doc::indent(doc::concat(inner)), pad, closing]);
+    let close_pad = if style.hug_close && dangling.is_empty() {
+        Doc::Nil
+    } else {
+        pad
+    };
+    body_parts.extend([opening, doc::indent(doc::concat(inner)), close_pad, closing]);
     let body = doc::concat(body_parts);
 
     let d = cx.directives_of(node);

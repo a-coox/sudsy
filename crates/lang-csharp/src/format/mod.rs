@@ -19,11 +19,13 @@ pub use options::{
 };
 
 use self::options::{
-    constructor_initializer_on_new_line, hanging_base_list, inline_accessor_bodies,
-    switch_arm_as_assignment, unbreakable_single_item_lists,
+    attach_comments, constructor_initializer_on_new_line, hanging_base_list,
+    inline_accessor_bodies, switch_arm_as_assignment, unbreakable_single_item_lists,
 };
 use self::tags::Tag;
 use crate::generated::kind as k;
+use core_config::ResolvedOptions;
+use core_format::comments::CommentStyle;
 use core_format::{Doc, FormatCtx, FormatError, NodeFormatter};
 use core_syntax::SyntaxNode;
 
@@ -53,6 +55,13 @@ fn simple_index(list: &SyntaxNode) -> bool {
 }
 
 impl NodeFormatter for CSharpFormatter {
+    fn comment_style(&self, options: &ResolvedOptions) -> CommentStyle {
+        CommentStyle {
+            attach_comments: attach_comments(options),
+            ..CommentStyle::default()
+        }
+    }
+
     fn format_node(
         &self,
         node: &SyntaxNode,

@@ -63,7 +63,13 @@ csharp:
     .unwrap_err();
     assert!(error.message.contains("csharp/csharpier-compat"), "{error}");
     // Every preset of the table in docs/formatting/presets.md resolves.
-    for name in ["microsoft", "dotnet-runtime", "google", "csharpier-compat"] {
+    for name in [
+        "microsoft",
+        "dotnet-runtime",
+        "google",
+        "csharpier-compat",
+        "stylecop",
+    ] {
         resolve(&format!("extends: [\"preset:csharp/{name}\"]\n")).unwrap();
     }
 }
@@ -98,4 +104,13 @@ fn nested_hugged_lambdas_do_not_grow_exponentially() {
     let out = common::fmt(&input, &[]);
     assert!(out.contains("Run(() =>"));
     assert!(started.elapsed().as_secs() < 20, "{:?}", started.elapsed());
+}
+
+#[test]
+fn stylecop_preset_lays_out_members_statements_and_lists() {
+    let input = "using System;\nnamespace N\n{\n    // comment\n\n    public class C { private int a; private int b; public C() { }\n        public void M(int first, int second, int third, int fourth, int fifth, int sixth, int seventh, int eighth, int ninth)\n        { if (a == 1) { b++; }\n            b--;\n            for (;;) { break; }\n            Action<int> d = delegate (int v) { };\n        } }\n}\n";
+    insta::assert_snapshot!(format!(
+        "{input}\n-----\n{}",
+        fmt_preset(input, "csharp/stylecop")
+    ));
 }

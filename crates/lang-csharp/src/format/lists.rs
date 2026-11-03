@@ -2,8 +2,8 @@
 //! attribute lists, and the hook that keeps a lambda as the last argument on the call's line.
 
 use super::options::{
-    creation_brace_on_new_line, empty_braces, hug_only_sole_lambda, initializer_layout,
-    nested_brace_on_new_line, trailing_comma,
+    creation_brace_on_new_line, empty_braces, hug_closing_paren, hug_only_sole_lambda,
+    initializer_layout, nested_brace_on_new_line, trailing_comma,
 };
 use super::seq::{R, Sep, direct_tokens, sep_doc, separator, seq_of, sig};
 use crate::generated::kind as k;
@@ -70,9 +70,21 @@ pub fn plain_list(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
                 && property_pattern_follows_something(node),
             ..ListStyle::default()
         },
-        _ => ListStyle::default(),
+        _ => call_style(cx, node),
     };
     delimited_list(cx, node, &style)
+}
+
+/// Parameter and argument lists: `)` follows the last item with `closing_paren_line: same_line`.
+fn call_style(cx: &FormatCtx<'_>, node: &SyntaxNode) -> ListStyle {
+    ListStyle {
+        hug_close: hug_closing_paren(cx.options)
+            && matches!(
+                node.kind(),
+                k::ARGUMENT_LIST | k::PARAMETER_LIST | k::ATTRIBUTE_ARGUMENT_LIST
+            ),
+        ..ListStyle::default()
+    }
 }
 
 /// A delimited list that is never broken: the items separated by `, ` between the delimiters.
@@ -301,7 +313,7 @@ pub fn argument_list(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
                 .is_some_and(|t| comments::leading_comments(cx.grammar, &t).is_empty())
         });
     if !hug {
-        return delimited_list(cx, node, &ListStyle::default());
+        return delimited_list(cx, node, &call_style(cx, node));
     }
     // The two candidates below are built from the same argument documents: share them.
     let docs = args
@@ -328,7 +340,11 @@ pub fn argument_list(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
             doc::softline(),
             doc::join(&doc::concat(vec![doc::lit(","), doc::line()]), docs.clone()),
         ])),
-        doc::softline(),
+        if hug_closing_paren(cx.options) {
+            Doc::Nil
+        } else {
+            doc::softline()
+        },
         doc::lit(")"),
     ]));
     Ok(doc::conditional_group(vec![hugged, expanded]))

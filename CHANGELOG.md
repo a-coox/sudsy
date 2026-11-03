@@ -10,7 +10,7 @@ First release: one tool, as a CLI and a VS Code extension, that formats, lints a
 * C# through a Roslyn-backed .NET worker (framework-dependent, roll-forward); JSON and YAML are
   native Rust and never start .NET.
 * Presets: `csharp/microsoft`, `csharp/dotnet-runtime`, `csharp/google`, `csharp/csharpier-compat`,
-  `json/default`, `json/prettier-compat`, `yaml/default`, `yaml/prettier-compat`.
+  `csharp/stylecop`, `json/default`, `json/prettier-compat`, `yaml/default`, `yaml/prettier-compat`.
 * Every format is checked for an unchanged tree (and unchanged data for YAML) before it is written.
 
 ### Rules and fixes

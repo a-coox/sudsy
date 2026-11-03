@@ -1,0 +1,41 @@
+---
+source: crates/lang-csharp/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+class C { }
+enum E { }
+class D { void M() { } int P { get { } } void N() { if (x) { } else { } while (x) { } var a = new A { }; Action f = () => { }; Action g = delegate { }; } }
+-----
+class C
+{
+}
+enum E
+{
+}
+class D
+{
+    void M()
+    {
+    }
+    int P
+    {
+        get
+        {
+        }
+    }
+    void N()
+    {
+        if (x)
+        {
+        }
+        else
+        {
+        }
+        while (x)
+        {
+        }
+        var a = new A { };
+        Action f = () => { };
+        Action g = delegate { };
+    }
+}

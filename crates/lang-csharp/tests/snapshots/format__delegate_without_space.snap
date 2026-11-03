@@ -1,0 +1,17 @@
+---
+source: crates/lang-csharp/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+class C { void M() { Action<int> a = delegate (int v) { return; }; Action b = delegate { }; } }
+-----
+class C
+{
+    void M()
+    {
+        Action<int> a = delegate(int v)
+        {
+            return;
+        };
+        Action b = delegate { };
+    }
+}

@@ -167,6 +167,7 @@ impl NodeFormatter for YamlFormatter {
     fn comment_style(&self, options: &ResolvedOptions) -> CommentStyle {
         CommentStyle {
             gap: options.int(COMMENT_SPACING) as usize,
+            ..CommentStyle::default()
         }
     }
 

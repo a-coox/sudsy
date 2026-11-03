@@ -1,0 +1,16 @@
+---
+source: crates/lang-csharp/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+class C { void M() { for (;;) { } for (int i = 0;;) { } for (; i < 3;) { } for (int i = 0; i < 3; i++) { } } }
+-----
+class C
+{
+    void M()
+    {
+        for (; ;) { }
+        for (int i = 0; ;) { }
+        for (; i < 3;) { }
+        for (int i = 0; i < 3; i++) { }
+    }
+}

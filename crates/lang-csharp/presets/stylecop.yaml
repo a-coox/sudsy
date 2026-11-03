@@ -1,0 +1,26 @@
+# StyleCop.Analyzers' default layout: the formatter output satisfies its spacing, readability and
+# layout rules (SA1002, SA1008, SA1111, SA1413, SA1500-SA1516), and the Sudsy rules that match
+# StyleCop's style rules are on.
+csharp:
+  format:
+    trailing_commas: multiline
+    closing_paren_line: same_line
+    empty_braces: expanded
+    blank_lines_between_members: always
+    blank_lines_after_block: require
+    blank_line_before_comment: require
+    blank_line_after_comment: remove
+    space_after_delegate: false
+  lint:
+    rules:
+      comment-space: warn
+      directive-keyword-space: warn
+      doc-comment-space: warn
+      no-comment-before-block: warn
+      no-empty-attribute-parens: warn
+      no-empty-comment: warn
+      no-empty-delegate-parens: warn
+      no-empty-statement: warn
+      no-regions: warn
+      separate-attributes: warn
+      use-string-empty: warn

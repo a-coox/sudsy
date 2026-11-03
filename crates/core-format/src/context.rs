@@ -209,7 +209,7 @@ impl<'a> FormatCtx<'a> {
 
     /// A token with its leading and trailing comments.
     pub fn token(&self, tok: &SyntaxToken) -> Doc {
-        let leading = comments::leading_comments(self.grammar, tok);
+        let leading = self.leading(tok);
         let trailing = comments::trailing_comments(self.grammar, tok);
         if leading.is_empty() && trailing.is_empty() {
             return self.token_text(tok);
@@ -226,7 +226,22 @@ impl<'a> FormatCtx<'a> {
     }
 
     pub fn leading_comments_doc(&self, tok: &SyntaxToken) -> Doc {
-        leading_comments_doc(&comments::leading_comments(self.grammar, tok))
+        leading_comments_doc(&self.leading(tok))
+    }
+
+    /// The comments in front of `tok`, as the comment style wants them attached to it.
+    fn leading(&self, tok: &SyntaxToken) -> Vec<Comment> {
+        let mut cs = comments::leading_comments(self.grammar, tok);
+        if self.comment_style.attach_comments
+            && let Some(last) = cs.last_mut()
+            && matches!(last.kind, CommentKind::Line | CommentKind::Lines)
+            && last.breaks_after >= 2
+            && !last.text().starts_with("////")
+            && !comments::starts_file(self.grammar, tok)
+        {
+            last.breaks_after = 1;
+        }
+        cs
     }
 
     pub fn trailing_comments_doc(&self, tok: &SyntaxToken) -> Doc {

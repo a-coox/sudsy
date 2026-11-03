@@ -348,12 +348,40 @@
               ],
               "type": "string"
             },
-            "blank_lines_between_members": {
+            "blank_line_after_comment": {
               "default": "preserve",
-              "description": "Blank lines between the members of a type, namespace or enum: `preserve` keeps the source's (at most one) and never adds one; `separate` also requires one between two members when either has a body, an attribute or a comment above it.",
+              "description": "Blank line between the last `//` or `///` comment in front of code and that code: `preserve` keeps the source's (at most one); `remove` drops it. Comments at the start of a file and `////` comments keep theirs.",
               "enum": [
                 "preserve",
-                "separate"
+                "remove"
+              ],
+              "type": "string"
+            },
+            "blank_line_before_comment": {
+              "default": "preserve",
+              "description": "Blank line between a statement, member or switch section and a `//` comment on the lines before the next one (not `////`): `preserve` keeps the source's; `require` adds one.",
+              "enum": [
+                "preserve",
+                "require"
+              ],
+              "type": "string"
+            },
+            "blank_lines_after_block": {
+              "default": "preserve",
+              "description": "Blank line after a statement, member or switch section that ends with a closing brace: `preserve` keeps the source's (at most one); `require` adds one before the next statement, member or section.",
+              "enum": [
+                "preserve",
+                "require"
+              ],
+              "type": "string"
+            },
+            "blank_lines_between_members": {
+              "default": "preserve",
+              "description": "Blank lines between the members of a type, namespace or enum: `preserve` keeps the source's (at most one) and never adds one; `separate` also requires one between two members when either has a body, an attribute or a comment above it; `always` requires one between any two members of a type or namespace and between the `using` directives and what follows them, except between two fields or two `using` directives (enum members as `separate`).",
+              "enum": [
+                "preserve",
+                "separate",
+                "always"
               ],
               "type": "string"
             },
@@ -371,6 +399,15 @@
               "description": "`else`, `catch` and `finally` after a block: `new_line` starts a line; `same_line` follows the closing brace (`} else {`) unless a comment sits between them.",
               "enum": [
                 "new_line",
+                "same_line"
+              ],
+              "type": "string"
+            },
+            "closing_paren_line": {
+              "default": "own_line",
+              "description": "The `)` of a parameter, argument or attribute argument list that does not fit on one line: `own_line` puts it on a line of its own after the last item; `same_line` right after the last item.",
+              "enum": [
+                "own_line",
                 "same_line"
               ],
               "type": "string"
@@ -395,10 +432,11 @@
             },
             "empty_braces": {
               "default": "space",
-              "description": "Braces with nothing between them: `space` prints `{ }`, `tight` prints `{}`.",
+              "description": "Braces with nothing between them: `space` prints `{ }`, `tight` prints `{}`, `expanded` puts the closing brace of an empty body on the line after the opening one (initializers, and lambdas and anonymous methods, stay `{ }`).",
               "enum": [
                 "space",
-                "tight"
+                "tight",
+                "expanded"
               ],
               "type": "string"
             },
@@ -498,6 +536,11 @@
               },
               "type": "array"
             },
+            "space_after_delegate": {
+              "default": true,
+              "description": "A space between `delegate` and the parameter list of an anonymous method (`delegate (int x) { }`); when false `delegate(int x) { }`.",
+              "type": "boolean"
+            },
             "switch_arm_layout": {
               "default": "inline",
               "description": "Layout of a switch expression arm: `inline` keeps `pattern => value` as one run of tokens; `assignment` lays out the value like the right-hand side of `=` (see `assignment_layout`).",
@@ -577,6 +620,7 @@
           "preset:csharp/dotnet-runtime",
           "preset:csharp/google",
           "preset:csharp/microsoft",
+          "preset:csharp/stylecop",
           "preset:json/biome",
           "preset:json/default",
           "preset:json/prettier-compat",
@@ -803,12 +847,40 @@
                     ],
                     "type": "string"
                   },
-                  "blank_lines_between_members": {
+                  "blank_line_after_comment": {
                     "default": "preserve",
-                    "description": "Blank lines between the members of a type, namespace or enum: `preserve` keeps the source's (at most one) and never adds one; `separate` also requires one between two members when either has a body, an attribute or a comment above it.",
+                    "description": "Blank line between the last `//` or `///` comment in front of code and that code: `preserve` keeps the source's (at most one); `remove` drops it. Comments at the start of a file and `////` comments keep theirs.",
                     "enum": [
                       "preserve",
-                      "separate"
+                      "remove"
+                    ],
+                    "type": "string"
+                  },
+                  "blank_line_before_comment": {
+                    "default": "preserve",
+                    "description": "Blank line between a statement, member or switch section and a `//` comment on the lines before the next one (not `////`): `preserve` keeps the source's; `require` adds one.",
+                    "enum": [
+                      "preserve",
+                      "require"
+                    ],
+                    "type": "string"
+                  },
+                  "blank_lines_after_block": {
+                    "default": "preserve",
+                    "description": "Blank line after a statement, member or switch section that ends with a closing brace: `preserve` keeps the source's (at most one); `require` adds one before the next statement, member or section.",
+                    "enum": [
+                      "preserve",
+                      "require"
+                    ],
+                    "type": "string"
+                  },
+                  "blank_lines_between_members": {
+                    "default": "preserve",
+                    "description": "Blank lines between the members of a type, namespace or enum: `preserve` keeps the source's (at most one) and never adds one; `separate` also requires one between two members when either has a body, an attribute or a comment above it; `always` requires one between any two members of a type or namespace and between the `using` directives and what follows them, except between two fields or two `using` directives (enum members as `separate`).",
+                    "enum": [
+                      "preserve",
+                      "separate",
+                      "always"
                     ],
                     "type": "string"
                   },
@@ -826,6 +898,15 @@
                     "description": "`else`, `catch` and `finally` after a block: `new_line` starts a line; `same_line` follows the closing brace (`} else {`) unless a comment sits between them.",
                     "enum": [
                       "new_line",
+                      "same_line"
+                    ],
+                    "type": "string"
+                  },
+                  "closing_paren_line": {
+                    "default": "own_line",
+                    "description": "The `)` of a parameter, argument or attribute argument list that does not fit on one line: `own_line` puts it on a line of its own after the last item; `same_line` right after the last item.",
+                    "enum": [
+                      "own_line",
                       "same_line"
                     ],
                     "type": "string"
@@ -850,10 +931,11 @@
                   },
                   "empty_braces": {
                     "default": "space",
-                    "description": "Braces with nothing between them: `space` prints `{ }`, `tight` prints `{}`.",
+                    "description": "Braces with nothing between them: `space` prints `{ }`, `tight` prints `{}`, `expanded` puts the closing brace of an empty body on the line after the opening one (initializers, and lambdas and anonymous methods, stay `{ }`).",
                     "enum": [
                       "space",
-                      "tight"
+                      "tight",
+                      "expanded"
                     ],
                     "type": "string"
                   },
@@ -952,6 +1034,11 @@
                       "type": "string"
                     },
                     "type": "array"
+                  },
+                  "space_after_delegate": {
+                    "default": true,
+                    "description": "A space between `delegate` and the parameter list of an anonymous method (`delegate (int x) { }`); when false `delegate(int x) { }`.",
+                    "type": "boolean"
                   },
                   "switch_arm_layout": {
                     "default": "inline",

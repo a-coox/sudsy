@@ -3,8 +3,8 @@
 
 use super::options::{
     brace_on_new_line, clauses_on_closing_line, constructor_initializer_on_new_line,
-    creation_brace_on_new_line, do_while_on_closing_line, hanging_base_list,
-    nested_brace_on_new_line,
+    creation_brace_on_new_line, do_while_on_closing_line, expand_empty_bodies, hanging_base_list,
+    nested_brace_on_new_line, space_after_delegate,
 };
 use super::spacing;
 use super::tags::{self, Tag};
@@ -111,6 +111,20 @@ pub fn direct_tokens(node: &SyntaxNode, kind: SyntaxKind) -> Vec<SyntaxToken> {
         .collect()
 }
 
+/// Does the empty body in braces of `node` stay on the line of its head? Not with
+/// `empty_braces: expanded`, except for the body of a lambda or an anonymous method.
+pub fn keeps_empty_inline(cx: &FormatCtx<'_>, node: &SyntaxNode) -> bool {
+    !expand_empty_bodies(cx.options)
+        || node.parent().is_some_and(|p| {
+            matches!(
+                p.kind(),
+                k::SIMPLE_LAMBDA_EXPRESSION
+                    | k::PARENTHESIZED_LAMBDA_EXPRESSION
+                    | k::ANONYMOUS_METHOD_EXPRESSION
+            )
+        })
+}
+
 fn block_is_empty(cx: &FormatCtx<'_>, block: &SyntaxNode) -> bool {
     let opens = direct_tokens(block, k::OPEN_BRACE_TOKEN);
     let closes = direct_tokens(block, k::CLOSE_BRACE_TOKEN);
@@ -148,7 +162,7 @@ pub fn separator(
             return Sep::None; // these start with a `line` of their own
         }
         if nk == k::BLOCK {
-            return if block_is_empty(cx, n) {
+            return if block_is_empty(cx, n) && keeps_empty_inline(cx, n) {
                 Sep::Space
             } else {
                 Sep::Brace
@@ -217,6 +231,13 @@ pub fn separator(
         } else {
             Sep::Hard
         };
+    }
+    if pk == k::ANONYMOUS_METHOD_EXPRESSION
+        && !space_after_delegate(cx.options)
+        && matches!(prev, SyntaxElement::Token(t) if t.kind() == k::DELEGATE_KEYWORD)
+        && matches!(next, SyntaxElement::Node(n) if n.kind() == k::PARAMETER_LIST)
+    {
+        return Sep::None; // `delegate(int x)`
     }
     match (last_tok(cx, prev), first_tok(cx, next)) {
         (Some(a), Some(b)) => {

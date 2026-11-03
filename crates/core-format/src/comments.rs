@@ -71,11 +71,18 @@ impl Comment {
 pub struct CommentStyle {
     /// Spaces between code and a comment after it on the same line.
     pub gap: usize,
+    /// No blank line between a line comment (or a documentation comment) and what it comments:
+    /// the blank lines after the last comment in front of a token are dropped, except in front
+    /// of the first token of a file and after a `////` comment.
+    pub attach_comments: bool,
 }
 
 impl Default for CommentStyle {
     fn default() -> Self {
-        CommentStyle { gap: 1 }
+        CommentStyle {
+            gap: 1,
+            attach_comments: false,
+        }
     }
 }
 
@@ -558,6 +565,11 @@ pub fn blank_lines_before(g: &Grammar, tok: &SyntaxToken) -> usize {
         .take_while(|t| kind_of(g, t).is_none())
         .map(|t| count_breaks(&element_text(t)))
         .sum()
+}
+
+/// Does no non-trivia token come before `tok`?
+pub fn starts_file(g: &Grammar, tok: &SyntaxToken) -> bool {
+    !run_before(g, tok).1
 }
 
 /// Is there a line break in the trivia between `tok` and the next non-trivia token?

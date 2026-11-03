@@ -1,0 +1,40 @@
+---
+source: crates/lang-csharp/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+class C { void Method(int firstParameter, string secondParameter, double thirdParameter, bool fourth) { Call(firstArgument, secondArgument, thirdArgument, fourthArgumentIsLong, fifth); Call(a => { b(); }); } [Attr("a very long first argument", "a very long second argument", "third", "and fourth")] int F; int G(
+// c
+int a
+) => 1; }
+-----
+class C
+{
+    void Method(
+        int firstParameter,
+        string secondParameter,
+        double thirdParameter,
+        bool fourth)
+    {
+        Call(
+            firstArgument,
+            secondArgument,
+            thirdArgument,
+            fourthArgumentIsLong,
+            fifth);
+        Call(a =>
+        {
+            b();
+        });
+    }
+    [
+        Attr(
+            "a very long first argument",
+            "a very long second argument",
+            "third",
+            "and fourth")
+    ]
+    int F;
+    int G(
+        // c
+        int a) => 1;
+}

@@ -29,6 +29,11 @@ pub const UNBREAKABLE_SINGLE_ITEM_LISTS: &str = "unbreakable_single_item_lists";
 pub const DO_WHILE_LINE: &str = "do_while_line";
 pub const CLAUSE_KEYWORD_LINE: &str = "clause_keyword_line";
 pub const EMPTY_BRACES: &str = "empty_braces";
+pub const CLOSING_PAREN_LINE: &str = "closing_paren_line";
+pub const BLANK_LINES_AFTER_BLOCK: &str = "blank_lines_after_block";
+pub const BLANK_LINE_BEFORE_COMMENT: &str = "blank_line_before_comment";
+pub const BLANK_LINE_AFTER_COMMENT: &str = "blank_line_after_comment";
+pub const SPACE_AFTER_DELEGATE: &str = "space_after_delegate";
 
 /// Defaults are `csharp/microsoft`: Allman braces, four spaces, width 120.
 pub fn option_schema() -> OptionSchema {
@@ -67,11 +72,14 @@ pub fn option_schema() -> OptionSchema {
         ),
         OptionDef::choice(
             BLANK_LINES_BETWEEN_MEMBERS,
-            &["preserve", "separate"],
+            &["preserve", "separate", "always"],
             "preserve",
             "Blank lines between the members of a type, namespace or enum: `preserve` keeps the \
              source's (at most one) and never adds one; `separate` also requires one between two \
-             members when either has a body, an attribute or a comment above it.",
+             members when either has a body, an attribute or a comment above it; `always` \
+             requires one between any two members of a type or namespace and between the \
+             `using` directives and what follows them, except between two fields or two `using` \
+             directives (enum members as `separate`).",
         ),
         OptionDef::choice(
             ACCESSOR_BLANK_LINES,
@@ -190,9 +198,49 @@ pub fn option_schema() -> OptionSchema {
         ),
         OptionDef::choice(
             EMPTY_BRACES,
-            &["space", "tight"],
+            &["space", "tight", "expanded"],
             "space",
-            "Braces with nothing between them: `space` prints `{ }`, `tight` prints `{}`.",
+            "Braces with nothing between them: `space` prints `{ }`, `tight` prints `{}`, \
+             `expanded` puts the closing brace of an empty body on the line after the opening \
+             one (initializers, and lambdas and anonymous methods, stay `{ }`).",
+        ),
+        OptionDef::choice(
+            CLOSING_PAREN_LINE,
+            &["own_line", "same_line"],
+            "own_line",
+            "The `)` of a parameter, argument or attribute argument list that does not fit on \
+             one line: `own_line` puts it on a line of its own after the last item; `same_line` \
+             right after the last item.",
+        ),
+        OptionDef::choice(
+            BLANK_LINES_AFTER_BLOCK,
+            &["preserve", "require"],
+            "preserve",
+            "Blank line after a statement, member or switch section that ends with a closing \
+             brace: `preserve` keeps the source's (at most one); `require` adds one before the \
+             next statement, member or section.",
+        ),
+        OptionDef::choice(
+            BLANK_LINE_BEFORE_COMMENT,
+            &["preserve", "require"],
+            "preserve",
+            "Blank line between a statement, member or switch section and a `//` comment on the \
+             lines before the next one (not `////`): `preserve` keeps the source's; `require` \
+             adds one.",
+        ),
+        OptionDef::choice(
+            BLANK_LINE_AFTER_COMMENT,
+            &["preserve", "remove"],
+            "preserve",
+            "Blank line between the last `//` or `///` comment in front of code and that code: \
+             `preserve` keeps the source's (at most one); `remove` drops it. Comments at the \
+             start of a file and `////` comments keep theirs.",
+        ),
+        OptionDef::boolean(
+            SPACE_AFTER_DELEGATE,
+            true,
+            "A space between `delegate` and the parameter list of an anonymous method \
+             (`delegate (int x) { }`); when false `delegate(int x) { }`.",
         ),
     ])
     .with_presets(presets())
@@ -214,6 +262,10 @@ fn presets() -> Vec<Preset> {
             "csharp/csharpier-compat",
             include_str!("../../presets/csharpier-compat.yaml"),
         ),
+        Preset::new(
+            "csharp/stylecop",
+            include_str!("../../presets/stylecop.yaml"),
+        ),
     ]
 }
 
@@ -227,7 +279,17 @@ pub fn brace_on_new_line(options: &ResolvedOptions) -> bool {
 
 /// Members need a blank line between them when either has a body or something above it.
 pub fn separate_members(options: &ResolvedOptions) -> bool {
-    is(options, BLANK_LINES_BETWEEN_MEMBERS, "separate")
+    !is(options, BLANK_LINES_BETWEEN_MEMBERS, "preserve")
+}
+
+/// Every two members need a blank line between them (but two fields, two `using`s).
+pub fn separate_all_members(options: &ResolvedOptions) -> bool {
+    is(options, BLANK_LINES_BETWEEN_MEMBERS, "always")
+}
+
+/// Empty bodies put the closing brace on their own line.
+pub fn expand_empty_bodies(options: &ResolvedOptions) -> bool {
+    is(options, EMPTY_BRACES, "expanded")
 }
 
 pub fn remove_accessor_blank_lines(options: &ResolvedOptions) -> bool {
@@ -295,6 +357,26 @@ pub fn hanging_base_list(options: &ResolvedOptions) -> bool {
 
 pub fn unbreakable_single_item_lists(options: &ResolvedOptions) -> bool {
     options.bool(UNBREAKABLE_SINGLE_ITEM_LISTS)
+}
+
+pub fn hug_closing_paren(options: &ResolvedOptions) -> bool {
+    is(options, CLOSING_PAREN_LINE, "same_line")
+}
+
+pub fn blank_after_block(options: &ResolvedOptions) -> bool {
+    is(options, BLANK_LINES_AFTER_BLOCK, "require")
+}
+
+pub fn blank_before_comment(options: &ResolvedOptions) -> bool {
+    is(options, BLANK_LINE_BEFORE_COMMENT, "require")
+}
+
+pub fn attach_comments(options: &ResolvedOptions) -> bool {
+    is(options, BLANK_LINE_AFTER_COMMENT, "remove")
+}
+
+pub fn space_after_delegate(options: &ResolvedOptions) -> bool {
+    options.bool(SPACE_AFTER_DELEGATE)
 }
 
 pub fn do_while_on_closing_line(options: &ResolvedOptions) -> bool {

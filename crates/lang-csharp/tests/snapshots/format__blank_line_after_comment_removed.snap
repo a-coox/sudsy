@@ -1,0 +1,41 @@
+---
+source: crates/lang-csharp/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+// header
+
+class C {
+/// <summary>s</summary>
+
+void M() {
+// one
+
+// two
+
+a();
+//// code
+
+b();
+/* block */
+
+c(); } }
+-----
+// header
+
+class C
+{
+    /// <summary>s</summary>
+    void M()
+    {
+        // one
+
+        // two
+        a();
+        //// code
+
+        b();
+        /* block */
+
+        c();
+    }
+}

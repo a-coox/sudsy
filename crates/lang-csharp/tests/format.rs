@@ -5,6 +5,7 @@
 mod common;
 
 use common::{fmt, n, s, subject};
+use core_config::OptionValue;
 use core_format::testing::assert_formats;
 
 macro_rules! snap {
@@ -326,3 +327,61 @@ fn end_of_line_option() {
         crlf
     );
 }
+
+// StyleCop layout options ---------------------------------------------------------------------------------------------
+
+snap!(
+    empty_braces_expanded,
+    "class C { }\nenum E { }\nclass D { void M() { } int P { get { } } void N() { if (x) { } else { } while (x) { } var a = new A { }; Action f = () => { }; Action g = delegate { }; } }",
+    [("empty_braces", s("expanded"))]
+);
+snap!(
+    empty_braces_expanded_without_brace_newline,
+    "class C { void M() { } }",
+    [
+        ("empty_braces", s("expanded")),
+        ("brace_newline", s("none"))
+    ]
+);
+snap!(
+    closing_paren_same_line,
+    "class C { void Method(int firstParameter, string secondParameter, double thirdParameter, bool fourth) { Call(firstArgument, secondArgument, thirdArgument, fourthArgumentIsLong, fifth); Call(a => { b(); }); } [Attr(\"a very long first argument\", \"a very long second argument\", \"third\", \"and fourth\")] int F; int G(\n// c\nint a\n) => 1; }",
+    [
+        ("closing_paren_line", s("same_line")),
+        ("line_width", n(60))
+    ]
+);
+snap!(
+    closing_paren_own_line_is_the_default,
+    "class C { void Method(int firstParameter, string secondParameter, double thirdParameter, bool fourth) { } }",
+    [("line_width", n(60))]
+);
+snap!(
+    blank_lines_between_members_always,
+    "using A;\nusing B;\nnamespace N { class C { int a; int b; [X] int c; event Action E; event Action F; int P { get; } int Q { get; set; }\n/// <summary>d</summary>\nvoid M() { } void N() { } }\nenum E { A, B,\n// c\nC } }",
+    [("blank_lines_between_members", s("always"))]
+);
+snap!(
+    blank_lines_after_block_required,
+    "class C { void M() { if (a) { b(); } c(); { d(); } e(); do { f(); } while (g); h(); switch (x) { case 1: { y(); break; } case 2: break; }\nvoid L() { } l();\n#if X\nz();\n#endif\n} void N() { } int P { get { return 1; } } int Q => 2; }",
+    [("blank_lines_after_block", s("require"))]
+);
+snap!(
+    blank_line_before_comment_required,
+    "class C { void M() { a();\n// one\n// two\nb();\n/* block */\nc();\n//// code\nd();\nif (x) {\n// first in block\ne(); } } }",
+    [("blank_line_before_comment", s("require"))]
+);
+snap!(
+    blank_line_after_comment_removed,
+    "// header\n\nclass C {\n/// <summary>s</summary>\n\nvoid M() {\n// one\n\n// two\n\na();\n//// code\n\nb();\n/* block */\n\nc(); } }",
+    [("blank_line_after_comment", s("remove"))]
+);
+snap!(
+    delegate_without_space,
+    "class C { void M() { Action<int> a = delegate (int v) { return; }; Action b = delegate { }; } }",
+    [("space_after_delegate", OptionValue::Bool(false))]
+);
+snap!(
+    for_semicolons,
+    "class C { void M() { for (;;) { } for (int i = 0;;) { } for (; i < 3;) { } for (int i = 0; i < 3; i++) { } } }"
+);
