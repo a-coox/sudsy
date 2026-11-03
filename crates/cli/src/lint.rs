@@ -115,6 +115,8 @@ pub fn catalog(session: &Session) -> Catalog {
         .iter()
         .flat_map(|p| p.rules())
         .chain(core_rules::shared::RULES)
+        .copied()
+        .chain(session.project.extensions.rules.iter().map(|r| r.rule))
         .map(|r| (r.meta().id.to_string(), r.meta().description.to_string()))
         .collect();
     rules.sort();

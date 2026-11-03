@@ -1,6 +1,6 @@
 //! The database: salsa storage plus the (immutable) provider list.
 
-use crate::inputs::{ConfigFile, File};
+use crate::inputs::{ConfigFile, ExtensionSet, File};
 use core_config::{ConfigChain, ConfigError, EditorConfig};
 use provider_api::{LanguageProvider, select_provider_index};
 use salsa::Setter;
@@ -10,8 +10,8 @@ use std::sync::Arc;
 pub type Providers = Arc<[Box<dyn LanguageProvider>]>;
 
 /// What queries need besides inputs. The providers are part of the environment rather than an
-/// input: the set is fixed for the life of a database (the Wasm plugin host of M6 will make it
-/// dynamic, and then it becomes an input).
+/// input: the set is fixed for the life of a database. Pattern and plugin rules, which change
+/// with the config, are the [`ExtensionSet`] input.
 #[salsa::db]
 pub trait Db: salsa::Database {
     fn providers(&self) -> &[Box<dyn LanguageProvider>];
@@ -57,6 +57,7 @@ impl Database {
             providers: providers.into(),
         };
         ConfigFile::new(&db, Ok(ConfigChain::default()));
+        ExtensionSet::new(&db, core_rules::Extensions::default());
         db
     }
 
@@ -83,6 +84,15 @@ impl Database {
     /// The `.editorconfig` values of `file` changed.
     pub fn set_file_editorconfig(&mut self, file: File, editorconfig: EditorConfig) {
         file.set_editorconfig(self).to(editorconfig);
+    }
+
+    /// Replaces the pattern and plugin rules (see `core_rules::Extensions`).
+    /// An unchanged set (loaders reuse unchanged rule objects) invalidates nothing.
+    pub fn set_extensions(&mut self, extensions: core_rules::Extensions) {
+        if *ExtensionSet::get(self).extensions(self) == extensions {
+            return;
+        }
+        let _previous = ExtensionSet::get(self).set_extensions(self).to(extensions);
     }
 
     /// Replaces the config files.

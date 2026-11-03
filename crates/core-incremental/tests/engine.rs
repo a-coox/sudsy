@@ -351,3 +351,81 @@ fn rule_config_errors_and_syntax_errors_are_lint_values() {
     assert_eq!(failure.stage, Stage::Config);
     assert!(failure.message.contains("must be a list of strings"));
 }
+
+mod extension {
+    use core_rules::{Category, ExtensionRule, Extensions, Rule, RuleContext, RuleMeta};
+    use core_syntax::{SyntaxKind, SyntaxNode, TextRange};
+
+    static META: RuleMeta = RuleMeta {
+        id: "every-array",
+        category: Category::Style,
+        description: "Reports every array.",
+        example: "",
+        default_level: core_config::Level::Warn,
+        fix: None,
+        requires: &[],
+        uses: &[],
+        options: &[],
+    };
+
+    pub struct EveryArray(pub Vec<SyntaxKind>);
+
+    impl Rule for EveryArray {
+        fn meta(&self) -> &'static RuleMeta {
+            &META
+        }
+        fn kinds(&self) -> &[SyntaxKind] {
+            &self.0
+        }
+        fn check(&self, node: &SyntaxNode, ctx: &mut RuleContext<'_>) {
+            ctx.report(TextRange::empty(node.text_range().start()), "an array");
+        }
+    }
+
+    pub fn set(rule: &'static EveryArray) -> Extensions {
+        Extensions {
+            rules: vec![ExtensionRule {
+                language: "json",
+                rule,
+            }],
+            files: Vec::new(),
+        }
+    }
+}
+
+#[test]
+fn extension_rules_run_with_the_providers_and_reload_only_when_they_change() {
+    let mut h = Harness::standard();
+    let f = h.file("a.json", "[1]");
+    let array = grammars::json()
+        .kind_by_name("Array")
+        .expect("an Array kind");
+    let rule: &'static extension::EveryArray =
+        Box::leak(Box::new(extension::EveryArray(vec![array])));
+    let fired = |h: &Harness| {
+        lint(&h.db, f)
+            .as_ref()
+            .unwrap()
+            .diagnostics
+            .iter()
+            .filter(|d| d.rule == "every-array")
+            .count()
+    };
+    assert_eq!(fired(&h), 0);
+    h.executed();
+
+    h.db.set_extensions(extension::set(rule));
+    assert_eq!(fired(&h), 1);
+    assert_eq!(Harness::count(&h.executed(), "lint"), 1);
+
+    // The same rule object again: nothing is invalidated.
+    h.db.set_extensions(extension::set(rule));
+    assert_eq!(fired(&h), 1);
+    assert!(h.executed().is_empty());
+
+    // The config's level reaches it like any rule's.
+    h.db.set_config(ConfigChain::parse(
+        "lint:\n  rules:\n    every-array: \"off\"\n",
+    ));
+    assert_eq!(fired(&h), 0);
+}

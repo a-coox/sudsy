@@ -6,6 +6,7 @@ pub mod out_of_process;
 pub mod protocol;
 pub mod provider;
 pub mod proxy;
+pub mod snippets;
 pub mod testing;
 
 pub use format::{
@@ -18,3 +19,4 @@ pub use provider::{
     ProviderError, SourceFile,
 };
 pub use proxy::{ProxyError, WorkerConfig, WorkerProxy};
+pub use snippets::ProviderSnippets;

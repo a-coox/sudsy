@@ -3,7 +3,7 @@
 
 use crate::db::Db;
 use crate::failure::{Failure, Stage};
-use crate::inputs::File;
+use crate::inputs::{ExtensionSet, File};
 use crate::queries::{config, parse, parse_settings, provider_of, selection, source_file};
 use core_config::{Depth, FileInput, ResolvedRule};
 use core_rules::engine::{ActiveRule, FileReport};
@@ -82,17 +82,20 @@ pub fn lint_settings(db: &dyn Db, file: File) -> Result<LintSettings, Failure> {
     })
 }
 
-/// The rules that run on `file`: the provider's and the shared ones, as configured.
+/// The rules that run on `file`: the provider's, the shared ones and the project's pattern and
+/// plugin rules for its language, as configured.
 fn active_rules(db: &dyn Db, file: File) -> Result<(Vec<ActiveRule<'static>>, Depth), Failure> {
     let provider = provider_of(db, file)?;
     let settings = lint_settings(db, file).as_ref().map_err(Clone::clone)?;
     let depth = settings.depth;
     let caps = provider.capabilities();
+    let extensions = ExtensionSet::get(db).extensions(db);
     let rules = provider
         .rules()
         .iter()
         .chain(core_rules::shared::RULES)
-        .copied();
+        .copied()
+        .chain(extensions.for_language(&provider.grammar().language));
     let active = activate(rules, &settings.rules, |l| has_layer(depth, caps, l))
         .map_err(|e| Failure::new(Stage::Config, &e))?;
     Ok((active, depth))

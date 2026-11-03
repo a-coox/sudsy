@@ -17,7 +17,9 @@ fn fix_text(meta: &RuleMeta) -> &'static str {
 }
 
 pub fn run(args: RulesArgs) -> Result<()> {
-    let rules = languages::rules(&languages::providers());
+    let providers = languages::providers();
+    let project = languages::Project::load(&std::env::current_dir()?, &providers)?;
+    let rules = languages::rules(&providers, &project.extensions);
     let mut out = String::new();
     match args.id {
         None => list(&mut out, &rules),

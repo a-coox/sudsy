@@ -32,3 +32,10 @@ pub struct ConfigFile {
     #[returns(ref)]
     pub chain: Result<ConfigChain, ConfigError>,
 }
+
+/// The rules that pattern files and plugins add to the providers' own (empty by default).
+#[salsa::input(singleton, debug)]
+pub struct ExtensionSet {
+    #[returns(ref)]
+    pub extensions: core_rules::Extensions,
+}

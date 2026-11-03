@@ -138,6 +138,40 @@ fn walk(dir: &Path, filter: &Filter, out: &mut Vec<PathBuf>) -> Result<(), Works
     Ok(())
 }
 
+/// The files `pattern` names, relative to `dir`: the file itself when it has no glob characters
+/// (whether or not it exists), else every file below `dir` that the glob matches, sorted.
+pub fn expand(dir: &Path, pattern: &str) -> Result<Vec<PathBuf>, WorkspaceError> {
+    let glob_chars = ['*', '?', '[', '{'];
+    if !pattern.contains(glob_chars) {
+        return Ok(vec![dir.join(pattern)]);
+    }
+    let matcher = globset::Glob::new(pattern)
+        .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidInput, e.to_string()))?
+        .compile_matcher();
+    // Walk only below the part of the pattern that has no glob characters.
+    let fixed: PathBuf = pattern
+        .split('/')
+        .take_while(|part| !part.contains(glob_chars))
+        .collect();
+    let base = dir.join(fixed);
+    if !base.is_dir() {
+        return Ok(Vec::new());
+    }
+    let mut found = Vec::new();
+    for entry in WalkBuilder::new(&base).standard_filters(false).build() {
+        let path = entry?.into_path();
+        if path.is_file()
+            && path
+                .strip_prefix(dir)
+                .is_ok_and(|relative| matcher.is_match(relative))
+        {
+            found.push(path);
+        }
+    }
+    found.sort();
+    Ok(found)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
