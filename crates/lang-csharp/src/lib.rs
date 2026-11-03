@@ -24,7 +24,8 @@ pub const WORKER_ENV: &str = "SUDSY_CSHARP_WORKER";
 /// next to the executable.
 pub fn locate_worker() -> Result<PathBuf, String> {
     if let Some(p) = std::env::var_os(WORKER_ENV) {
-        return Ok(PathBuf::from(p));
+        // Absolute, because the worker does not run in the caller's directory.
+        return std::path::absolute(&p).map_err(|e| format!("{WORKER_ENV}: {e}"));
     }
     let beside = std::env::current_exe().ok().and_then(|exe| {
         exe.parent()

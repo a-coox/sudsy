@@ -397,6 +397,8 @@ impl WorkerProxy {
         let mut child = Command::new(program)
             .args(args)
             .envs(self.config.env.iter().map(|(k, v)| (k, v)))
+            // Not the repo being checked: a library the worker loads by name must not come from there.
+            .current_dir(std::env::temp_dir())
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
