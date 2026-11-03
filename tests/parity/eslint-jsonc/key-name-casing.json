@@ -1,0 +1,9 @@
+{
+  "camelCase": 1,
+  "snake_case": 2,
+  "kebab-case": 3,
+  "PascalCase": 4,
+  "SCREAMING_SNAKE": 5,
+  "with space": 6,
+  "dotted.key": 7
+}

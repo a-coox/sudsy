@@ -438,6 +438,7 @@ dependencies = [
  "core-syntax",
  "lang-json",
  "provider-api",
+ "regex",
 ]
 
 [[package]]

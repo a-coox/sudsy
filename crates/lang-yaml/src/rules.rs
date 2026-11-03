@@ -6,6 +6,7 @@ use crate::generated::{
 };
 use crate::scalar::{double_quoted_value, plain_value, single_quoted_value};
 use core_config::Level;
+use core_rules::sorting::{self, Sorting};
 use core_rules::tree::{entry_range, reorder_edits, significant_range};
 use core_rules::{
     Category, Edit, FileContext, Fix, FixKind, Opt, OptionDecl, Rule, RuleContext, RuleMeta,
@@ -54,7 +55,11 @@ static NO_DUPLICATE_KEYS: RuleMeta = RuleMeta {
     fix: None,
     requires: &[],
     uses: &[],
-    options: &[],
+    options: &[OptionDecl {
+        name: "merge_keys",
+        default: Opt::Str("allow"),
+        description: "`allow` skips `<<` merge keys; `forbid` reports a second `<<` in a mapping like any other duplicate key.",
+    }],
 };
 
 impl Rule for NoDuplicateKeys {
@@ -74,11 +79,12 @@ impl Rule for NoDuplicateKeys {
         } else {
             return;
         };
+        let forbid_merge_keys = ctx.options.string("merge_keys") == "forbid";
         let mut seen: HashMap<String, TextRange> = HashMap::new();
         for key in &keys {
             let name = key_identity(key, ctx);
             // `<<` merges mappings and may appear more than once in practice.
-            if name == "<<" {
+            if name == "<<" && !forbid_merge_keys {
                 continue;
             }
             let range = significant_range(key.syntax(), ctx.file.grammar);
@@ -302,11 +308,14 @@ static SORTED_KEYS: RuleMeta = RuleMeta {
     fix: Some(FixKind::Unsafe),
     requires: &[],
     uses: &[],
-    options: &[OptionDecl {
-        name: "order",
-        default: Opt::List(&[]),
-        description: "Keys that come first, in this order; the rest follow alphabetically.",
-    }],
+    options: &[
+        sorting::ORDER,
+        sorting::DIRECTION,
+        sorting::COMPARE,
+        sorting::IGNORED_KEYS,
+        sorting::MIN_KEYS,
+        sorting::BLANK_LINE_GROUPS,
+    ],
 };
 
 impl Rule for SortedKeys {
@@ -326,28 +335,18 @@ impl Rule for SortedKeys {
             .entries()
             .filter_map(|e| e.key().map(|k| (e, k)))
             .collect();
-        let order = ctx.options.list("order");
         let names: Vec<String> = entries.iter().map(|(_, k)| key_identity(k, ctx)).collect();
-        let mut sorted: Vec<usize> = (0..entries.len()).collect();
-        sorted.sort_by_cached_key(|&i| {
-            let name = names[i].as_str();
-            (
-                order.iter().position(|o| *o == name).unwrap_or(order.len()),
-                name.to_string(),
-            )
-        });
-        if (0..entries.len()).all(|i| sorted[i] == i) {
-            return;
-        }
+        let keys: Vec<&str> = names.iter().map(String::as_str).collect();
         let ranges: Vec<TextRange> = entries
             .iter()
             .map(|(e, _)| entry_range(e.syntax(), ctx.file.grammar))
             .collect();
-        let edits = reorder_edits(ctx.file.text, &ranges, &sorted);
-        let mut rank = vec![0; sorted.len()];
-        for (r, &i) in sorted.iter().enumerate() {
-            rank[i] = r;
-        }
+        let sorting = Sorting::new(ctx.options, "min_keys");
+        let blank = sorting.blank_before(ctx.file.text, &ranges);
+        let Some(plan) = sorting.plan_keys(&keys, &blank) else {
+            return;
+        };
+        let edits = reorder_edits(ctx.file.text, &ranges, &plan.sorted);
         // Every key that sorts before the one above it is reported, like yamllint; the first
         // report carries the fix for the whole mapping.
         let mut fix = Some(Fix::new(
@@ -355,7 +354,7 @@ impl Rule for SortedKeys {
             FixKind::Unsafe,
             edits,
         ));
-        for i in (1..entries.len()).filter(|&i| rank[i] < rank[i - 1]) {
+        for i in plan.misplaced {
             let at = significant_range(entries[i].1.syntax(), ctx.file.grammar);
             let report = ctx.report(at, "keys are not sorted");
             if let Some(f) = fix.take() {

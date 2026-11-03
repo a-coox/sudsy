@@ -1,0 +1,10 @@
+alpha: 1
+_zeta: 2
+beta: 3
+_alpha: 4
+gamma: 5
+nested:
+  _b: 1
+  y: 2
+  _a: 3
+  x: 4

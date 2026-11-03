@@ -1,0 +1,6 @@
+{
+  "camelCase": 1,
+  "snake_case": 2,
+  "$schema": 3,
+  "Other": 4
+}

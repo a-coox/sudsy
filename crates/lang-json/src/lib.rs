@@ -4,9 +4,12 @@
 #[rustfmt::skip]
 pub mod generated;
 mod format;
+mod key_rules;
 mod lexer;
 mod parser;
 mod rules;
+mod string;
+mod value_rules;
 
 pub use format::{COLLAPSE, DIALECT, JsonFormatter, TRAILING_COMMAS, option_schema};
 pub use parser::{Dialect, MAX_DEPTH};

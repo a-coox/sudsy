@@ -7,13 +7,17 @@
 | `max-line-length` | all | style | off | none | shared; options `max`, `allow_non_breakable_words` (default true: a line with no space after its indentation, a leading `#` run or `- `, such as a URL, is not reported) |
 | `comment-space` | all | style | off | safe | shared; line comment needs a space after the marker; `////`, `--` lines, whitespace-only and a first-line `#!` are exempt; SA1005, yamllint `require-starting-space` |
 | `no-empty-comment` | all | style | off | none | shared; empty block comments, and an empty line comment at the start or end of a comment run; SA1120 |
-| `no-duplicate-keys` | json | correctness | error | none | keys compared as written between quotes |
-| `sorted-keys` | json | style | off | unsafe | option `order` |
-| `no-duplicate-keys` | yaml | correctness | error | none | scalars compared after unquoting; `<<` skipped |
+| `no-duplicate-keys` | json | correctness | error | none | keys compared after decoding escapes |
+| `sorted-keys` | json | style | off | unsafe | sorting options below; reports the keys that would have to move (the fewest, like eslint-plugin-jsonc), the first report carries the fix; keys compared after decoding escapes |
+| `no-empty-keys` | json | suspicious | off | none | empty or whitespace-only key after decoding escapes |
+| `key-name-casing` | json | style | off | none | option `allowed` (default `[camelCase]`; also `PascalCase`, `snake_case`, `kebab-case`, `SCREAMING_SNAKE_CASE`) and `ignored_keys` (regexes); the checks are eslint-plugin-jsonc's, so a key with punctuation or whitespace never matches |
+| `unsafe-numbers` | json | suspicious | off | none | integer beyond 2^53 - 1, or a value that overflows to infinity, underflows to zero or is subnormal as a double; lone surrogates are not checked |
+| `sorted-array-values` | json | style | off | unsafe | arrays of only strings or only numbers (numbers compare as numbers), mixed or other arrays skipped; options `direction`, `compare`, `min_values` (default 2), `blank_line_groups`; reports like `sorted-keys` |
+| `no-duplicate-keys` | yaml | correctness | error | none | scalars compared after unquoting; option `merge_keys` (`allow` default skips `<<`, `forbid` reports a second `<<`) |
 | `no-undefined-alias` | yaml | correctness | error | none | alias without an earlier `&anchor` in its document; the formatter does not need it resolved |
 | `ambiguous-booleans` | yaml | suspicious | off | unsafe | plain `yes`/`no`/`on`/`off` in three casings and `True`/`TRUE`/`False`/`FALSE`; options `check_keys` (default true) and `allowed` (spellings not reported); unsafe because quoting changes meaning for YAML 1.1 parsers; off because every GitHub workflow's `on:` would fire |
 | `document-start` | yaml | style | off | safe | |
-| `sorted-keys` | yaml | style | off | unsafe | block mappings only, every key below a greater one is reported (like yamllint), the first report carries the fix; moving an anchor below its alias is why it is unsafe |
+| `sorted-keys` | yaml | style | off | unsafe | block mappings only, every key that sorts below an earlier key of its mapping is reported (like yamllint), the first report carries the fix; sorting options below; moving an anchor below its alias is why it is unsafe |
 | `no-empty-catch` | csharp | suspicious | warn | none | no statements and no comment |
 | `async-suffix` | csharp | style | warn | none | uses the type layer to check Task/ValueTask and interface implementation; name-based at `fast`; overrides, explicit implementations and `Main` skipped; no fix (rename touches other files) |
 | `using-order` | csharp | cleanup | off | safe | overlaps the `dotnet_sort_system_directives_first` .editorconfig key; plain usings, ordinal, `system_first`; lists with `#` directives skipped |
@@ -36,3 +40,15 @@
 Rules that repeat a compiler or SDK diagnostic say so in `sudsy rules <id>`; those that fire as compiler warnings anyway are off by default. Sudsy does not reimplement SDK style rules such as IDE0161 (file-scoped namespaces) or IDE0029/IDE0030 (null coalescing).
 
 Semantic rules' details: [semantics.md](semantics.md). A rule that is a style choice is off by default so zero-config adds no noise.
+
+## Sorting options
+`sorted-keys` (JSON, YAML) and `sorted-array-values` share one implementation (`core-rules::sorting`) and these options:
+
+| Option | Default | Meaning |
+|---|---|---|
+| `order` | `[]` | `sorted-keys` only: keys that come first, in this order |
+| `direction` | `asc` | `asc` or `desc`; any other value means `asc` |
+| `compare` | `ordinal` | `ordinal` (code points), `case_insensitive`, `natural` (digit runs compare as numbers, the rest by code point); any other value means `ordinal` |
+| `ignored_keys` | `[]` | `sorted-keys` and `key-name-casing`: regexes searched in the key; with `sorted-keys` matching keys are not compared and stay where they are; a pattern that does not compile matches nothing |
+| `min_keys` / `min_values` | `2` | objects or arrays with fewer entries are not checked |
+| `blank_line_groups` | `false` | sort each run of entries between blank lines on its own |

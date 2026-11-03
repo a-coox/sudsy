@@ -7,8 +7,10 @@ rules:
     forbid-unused-anchors: false
   document-start:
     present: true
-  key-duplicates: enable
-  key-ordering: enable
+  key-duplicates:
+    forbid-duplicated-merge-keys: true
+  key-ordering:
+    ignored-keys: ["^_"]
   line-length:
     max: 30
     allow-non-breakable-words: true

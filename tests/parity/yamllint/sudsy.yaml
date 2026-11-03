@@ -7,4 +7,11 @@ lint:
       options:
         max: 30
     ambiguous-booleans: warn
-    sorted-keys: warn
+    no-duplicate-keys:
+      level: error
+      options:
+        merge_keys: forbid
+    sorted-keys:
+      level: warn
+      options:
+        ignored_keys: ["^_"]

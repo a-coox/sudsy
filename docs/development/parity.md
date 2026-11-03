@@ -2,12 +2,15 @@
 
 `scripts/parity.sh <tool>` runs the upstream tool and `sudsy lint` on the fixtures in `tests/parity/<tool>/` and compares the diagnostics as `(rule, line, column)`. The upstream rule name is mapped to a Sudsy rule id through the catalog (`docs/parity/<tool>.yaml`: the top-level entries whose status is `rule: <id>`); an upstream rule with no mapping is a mismatch. Every mismatch is printed (`only <tool>`, `only sudsy`) and the exit code is 1 when there is any. Run it from Git Bash.
 
-Tools: `yamllint` and `stylecop` (lint mode); `prettier` and `biome` (format mode, below). yamllint: the script installs the catalog's `version` into a virtualenv under `target/parity/<tool>-<version>/` on first use (needs Python 3 and network) and builds the debug CLI.
+Tools: `yamllint`, `eslint-jsonc` and `stylecop` (lint mode); `prettier` and `biome` (format mode, below). yamllint: the script installs the catalog's `version` into a virtualenv under `target/parity/<tool>-<version>/` on first use (needs Python 3 and network) and builds the debug CLI.
 
 ## Fixtures
 `tests/parity/<tool>/` holds one file per case plus the two configs that make the tools comparable: the upstream config (`.yamllint`) enables only rules Sudsy has an equivalent for, with the parameters Sudsy's rules take, and `sudsy.yaml` enables the matching Sudsy rules. A fixture is one file for every config, so the parameters must be the same for all cases. Fixtures where the tools legitimately differ are not included; those differences are recorded in the catalog entry's `gap`. Rules the formatter covers (yamllint `comments`) are off in `.yamllint`: they are tested as formatter output instead.
 
 To add a case: add the file, enable the rule in both configs, run the script. To add a tool: add a function to `scripts/parity_compare.py` that returns the upstream diagnostics as `{(rule, line, column)}`, list the tool in `scripts/parity.sh`, and add its fixtures.
+
+## eslint-jsonc
+`scripts/parity.sh eslint-jsonc` installs ESLint 9 and eslint-plugin-jsonc at the catalog's version (`docs/parity/eslint-plugin-jsonc.yaml`) with npm into `target/parity/eslint-jsonc-<version>/` on first use (needs Node and network; PyYAML for the comparison goes into a venv below it), copies `tests/parity/eslint-jsonc/` to `work/` there so that `eslint.config.mjs` finds the plugin, and runs ESLint on every `.json` fixture. A fixture's name selects the rule and options: `eslint.config.mjs` enables one rule per fixture and `sudsy.yaml` enables the matching Sudsy rule through `overrides`, so both sides stay in step. `sorted-keys` and `sorted-array-values` report the entries that would have to move; where several shortest edits exist ESLint's pick can differ from Sudsy's, so fixtures stick to cases both agree on (the catalog `gap` says so).
 
 ## stylecop
 `scripts/parity.sh stylecop` copies `tests/parity/stylecop/` (a net10.0 project referencing StyleCop.Analyzers at the catalog's version, plus `.cs` fixtures) to `target/parity/stylecop-plain/` and `stylecop-fixed/`, enables every catalog SA id of status `rule:` or `formatter`, or `option: csharp.format.<name>` for an option the `csharp/stylecop` preset sets, as a warning through a generated `.editorconfig`, and runs `dotnet build` with an SARIF error log. Two comparisons:

@@ -1,0 +1,34 @@
+# The Sudsy side of the comparison with eslint.config.mjs: the rule and options each fixture's
+# name selects. Everything else is off so the comparison sees nothing it cannot map.
+lint:
+  rules:
+    no-duplicate-keys: "off"
+overrides:
+  - files: ["dupe-keys.json"]
+    lint: { rules: { no-duplicate-keys: error } }
+  - files: ["sort-keys.json"]
+    lint: { rules: { sorted-keys: error } }
+  - files: ["sort-keys-desc.json"]
+    lint: { rules: { sorted-keys: { level: error, options: { direction: desc } } } }
+  - files: ["sort-keys-insensitive.json"]
+    lint: { rules: { sorted-keys: { level: error, options: { compare: case_insensitive } } } }
+  - files: ["sort-keys-natural.json"]
+    lint: { rules: { sorted-keys: { level: error, options: { compare: natural } } } }
+  - files: ["sort-keys-min3.json"]
+    lint: { rules: { sorted-keys: { level: error, options: { min_keys: 3 } } } }
+  - files: ["sort-keys-groups.json"]
+    lint: { rules: { sorted-keys: { level: error, options: { blank_line_groups: true } } } }
+  - files: ["key-name-casing.json"]
+    lint: { rules: { key-name-casing: error } }
+  - files: ["key-name-casing-snake.json"]
+    lint:
+      rules:
+        key-name-casing: { level: error, options: { allowed: [snake_case, kebab-case] } }
+  - files: ["key-name-casing-ignores.json"]
+    lint:
+      rules:
+        key-name-casing: { level: error, options: { ignored_keys: ["^\\$", "^Other$"] } }
+  - files: ["sort-array-values.json"]
+    lint: { rules: { sorted-array-values: error } }
+  - files: ["sort-array-values-desc.json"]
+    lint: { rules: { sorted-array-values: { level: error, options: { direction: desc } } } }

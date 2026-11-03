@@ -1,0 +1,7 @@
+{
+  "camelCase": 1,
+  "snake_case": 2,
+  "kebab-case": 3,
+  "PascalCase": 4,
+  "x_Y": 5
+}

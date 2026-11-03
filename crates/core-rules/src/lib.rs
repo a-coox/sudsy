@@ -21,6 +21,7 @@ pub mod options;
 pub mod project;
 pub mod rule;
 pub mod shared;
+pub mod sorting;
 pub mod suppress;
 pub mod tree;
 

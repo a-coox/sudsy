@@ -78,6 +78,50 @@
               "$ref": "#/definitions/rule",
               "description": "The first document does not start with `---`."
             },
+            "key-name-casing": {
+              "description": "A key does not follow one of the allowed naming conventions. The checks are those of eslint-plugin-jsonc: a key with punctuation or whitespace never matches, `camelCase` also rejects `_` and `-`, `snake_case` and `kebab-case` reject capitals. No fix: renaming a key changes the data.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "allowed": {
+                          "default": [
+                            "camelCase"
+                          ],
+                          "description": "Accepted conventions: `camelCase`, `PascalCase`, `snake_case`, `kebab-case`, `SCREAMING_SNAKE_CASE`. A key is fine when it matches one.",
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        },
+                        "ignored_keys": {
+                          "default": [],
+                          "description": "Regular expressions; matching keys stay where they are and are not compared.",
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
             "max-line-length": {
               "description": "A line is longer than the configured number of characters.",
               "oneOf": [
@@ -120,7 +164,7 @@
             },
             "no-duplicate-keys": {
               "$ref": "#/definitions/rule",
-              "description": "An object has the same key twice; parsers disagree on which value wins."
+              "description": "An object has the same key twice, after decoding escapes; parsers disagree on which value wins."
             },
             "no-empty-attribute-parens": {
               "$ref": "#/definitions/rule",
@@ -137,6 +181,10 @@
             "no-empty-delegate-parens": {
               "$ref": "#/definitions/rule",
               "description": "An anonymous method with an empty parameter list: `delegate() { }` is `delegate { }`. The fix is unsafe: without a parameter list the method also converts to delegate types that have parameters, which can change which overload is chosen. Equivalent to StyleCop SA1410."
+            },
+            "no-empty-keys": {
+              "$ref": "#/definitions/rule",
+              "description": "A key is empty or only whitespace (after decoding escapes); some consumers cannot address such a property."
             },
             "no-empty-statement": {
               "$ref": "#/definitions/rule",
@@ -162,8 +210,8 @@
               "$ref": "#/definitions/rule",
               "description": "One attribute per attribute list: `[A, B]` becomes `[A]` and `[B]`. Lists on parameters and type parameters are left alone. The fix is not offered when the list has a comment in it. Equivalent to StyleCop SA1133."
             },
-            "sorted-keys": {
-              "description": "The keys of an object are not in alphabetical order.",
+            "sorted-array-values": {
+              "description": "The elements of an array of only strings or only numbers are not in order (ascending by default; numbers compare as numbers). Arrays of other or mixed elements are skipped. The elements that would have to move (the fewest) are reported and the first report carries the fix; the fix is unsafe because array order can be data.",
               "oneOf": [
                 {
                   "$ref": "#/definitions/level"
@@ -177,9 +225,83 @@
                     "options": {
                       "additionalProperties": false,
                       "properties": {
+                        "blank_line_groups": {
+                          "default": false,
+                          "description": "Sort each run of entries between blank lines on its own.",
+                          "type": "boolean"
+                        },
+                        "compare": {
+                          "default": "ordinal",
+                          "description": "`ordinal` (code points), `case_insensitive`, or `natural` (digit runs compare as numbers: `a2` before `a10`).",
+                          "type": "string"
+                        },
+                        "direction": {
+                          "default": "asc",
+                          "description": "`asc` or `desc`.",
+                          "type": "string"
+                        },
+                        "min_values": {
+                          "default": 2,
+                          "description": "Arrays with fewer elements are not checked.",
+                          "type": "integer"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            "sorted-keys": {
+              "description": "The keys of an object are not in order (alphabetical by default). The keys that would have to move (the fewest) are reported and the first report carries the fix. Comments on lines of their own stay where they are.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "blank_line_groups": {
+                          "default": false,
+                          "description": "Sort each run of entries between blank lines on its own.",
+                          "type": "boolean"
+                        },
+                        "compare": {
+                          "default": "ordinal",
+                          "description": "`ordinal` (code points), `case_insensitive`, or `natural` (digit runs compare as numbers: `a2` before `a10`).",
+                          "type": "string"
+                        },
+                        "direction": {
+                          "default": "asc",
+                          "description": "`asc` or `desc`.",
+                          "type": "string"
+                        },
+                        "ignored_keys": {
+                          "default": [],
+                          "description": "Regular expressions; matching keys stay where they are and are not compared.",
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        },
+                        "min_keys": {
+                          "default": 2,
+                          "description": "Mappings with fewer keys are not checked.",
+                          "type": "integer"
+                        },
                         "order": {
                           "default": [],
-                          "description": "Keys that come first, in this order; the rest follow alphabetically.",
+                          "description": "Keys that come first, in this order; the rest follow in the configured order.",
                           "items": {
                             "type": "string"
                           },
@@ -226,6 +348,10 @@
                   "type": "object"
                 }
               ]
+            },
+            "unsafe-numbers": {
+              "$ref": "#/definitions/rule",
+              "description": "A number that a double-precision parser (JavaScript, most JSON libraries) cannot hold: an integer beyond 2^53 - 1, a value that overflows to infinity, underflows to zero or is subnormal."
             },
             "unused-assignment": {
               "$ref": "#/definitions/rule",

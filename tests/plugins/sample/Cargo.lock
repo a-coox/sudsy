@@ -134,6 +134,7 @@ dependencies = [
  "core-format",
  "core-semantics",
  "core-syntax",
+ "regex",
 ]
 
 [[package]]

@@ -12,10 +12,11 @@ from pathlib import Path
 import yaml
 
 ROOT = Path(__file__).resolve().parent.parent
+CATALOGS = {"eslint-jsonc": "eslint-plugin-jsonc"}  # tool name -> catalog file, where they differ
 
 
 def catalog_entries(tool):
-    catalog = yaml.safe_load((ROOT / "docs/parity" / f"{tool}.yaml").read_text(encoding="utf-8"))
+    catalog = yaml.safe_load((ROOT / "docs/parity" / f"{CATALOGS.get(tool, tool)}.yaml").read_text(encoding="utf-8"))
     return [e for e in catalog["entries"] if "." not in e["id"]]
 
 
@@ -56,6 +57,28 @@ def yamllint(fixture, cwd):
         if m:
             found.add((m.group(3) or "syntax-error", int(m.group(1)), int(m.group(2))))
     return found
+
+
+def eslint_jsonc(version, folder):
+    """`{fixture name: {(upstream rule, line, column)}}` of the `.json` fixtures. ESLint and the plugin
+    are installed by parity.sh into target/parity/eslint-jsonc-<version>/; the fixtures and the flat
+    config are copied below it so that the config finds the plugin."""
+    install = ROOT / "target/parity" / f"eslint-jsonc-{version}"
+    work = install / "work"
+    shutil.rmtree(work, ignore_errors=True)
+    shutil.copytree(folder, work, ignore=shutil.ignore_patterns("sudsy.yaml"))
+    run = subprocess.run(
+        ["node", str(install / "node_modules/eslint/bin/eslint.js"), "-f", "json", "."],
+        cwd=work, capture_output=True, text=True, check=False,
+    )
+    try:
+        results = json.loads(run.stdout)
+    except json.JSONDecodeError:
+        sys.exit(f"eslint produced no report:\n{run.stdout}\n{run.stderr}")
+    return {
+        Path(r["filePath"]).name: {(m["ruleId"] or "syntax-error", m["line"], m["column"]) for m in r["messages"]}
+        for r in results
+    }
 
 
 def sudsy_lint(sudsy, fixture, cwd, only=None):
@@ -149,11 +172,14 @@ def main():
         return stylecop(sudsy, version)
     mapping = rule_map(tool)
     folder = ROOT / "tests/parity" / tool
-    fixtures = sorted(p for p in folder.iterdir() if p.suffix in (".yaml", ".yml") and p.name != "sudsy.yaml")
+    suffixes = (".json",) if tool == "eslint-jsonc" else (".yaml", ".yml")
+    fixtures = sorted(p for p in folder.iterdir() if p.suffix in suffixes and p.name != "sudsy.yaml")
+    eslint = eslint_jsonc(version, folder) if tool == "eslint-jsonc" else None
     mismatches = 0
     for fixture in fixtures:
+        found = eslint.get(fixture.name, set()) if eslint is not None else yamllint(fixture, folder)
         # An upstream rule with no mapping can never match: report it.
-        upstream = {(mapping.get(r, f"<unmapped {tool} rule {r}>"), l, c) for r, l, c in yamllint(fixture, folder)}
+        upstream = {(mapping.get(r, f"<unmapped {tool} rule {r}>"), l, c) for r, l, c in found}
         mismatches += compare(fixture.name, upstream, sudsy_lint(sudsy, fixture, folder), tool)
     print(f"{len(fixtures)} fixtures, {mismatches} mismatch(es) ({tool} {version})")
     return 1 if mismatches else 0
