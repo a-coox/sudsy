@@ -1,4 +1,4 @@
-//! Differential test (plan.md "Testing strategy"): `csharp/csharpier-compat` against CSharpier on
+//! Differential test: `csharp/csharpier-compat` against CSharpier on
 //! the corpus. Compares Sudsy's output with the pinned CSharpier's (dotnet-tools.json) and reports
 //! how many files are identical and which kinds of difference are left.
 //!

@@ -1,4 +1,4 @@
-//! The Wasm plugin host (plan.md "Wasm plugins"): loads components that implement
+//! The Wasm plugin host: loads components that implement
 //! `wit/rules.wit` and makes their rules ordinary [`core_rules::Rule`]s, so a plugin rule goes
 //! through the same engine, configuration, suppressions and fix loop as a built-in one.
 //!

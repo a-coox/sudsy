@@ -1,4 +1,4 @@
-//! The LSP server (plan.md "LSP server"): pull diagnostics, quick fixes, fix-all actions and
+//! The LSP server: pull diagnostics, quick fixes, fix-all actions and
 //! document formatting, over the same incremental database the CLI uses. One server process keeps
 //! one database and, through the C# provider, one long-lived worker.
 //!

@@ -1,4 +1,4 @@
-//! Declarative pattern rules (plan.md "Declarative pattern rules"): ast-grep-style YAML rule
+//! Declarative pattern rules: ast-grep-style YAML rule
 //! files whose patterns are snippets of the target language with metavariables.
 //!
 //! * [`metavar`]: `$X` and `$$$ARGS`, and how they are written into a snippet the language's own

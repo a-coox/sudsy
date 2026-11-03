@@ -1,4 +1,4 @@
-//! `textDocument/codeAction` (plan.md "LSP server"): a quick fix per fix of a diagnostic in the
+//! `textDocument/codeAction`: a quick fix per fix of a diagnostic in the
 //! range, "fix all of a rule in this file", and "fix all safe problems" as `source.fixAll.sudsy`.
 
 use crate::analysis::Cancel;

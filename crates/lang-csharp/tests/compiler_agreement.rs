@@ -1,4 +1,4 @@
-//! The flow rules report what the compiler reports (plan.md M5 gate: CS0162, CS0168, CS0219).
+//! The flow rules report what the compiler reports.
 //! `tests/data/flow-agreement.cs` has the constructs; the corpus run in
 //! `perf-bench semantic` checks the same on real code.
 

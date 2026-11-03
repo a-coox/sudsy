@@ -1,4 +1,4 @@
-//! C# formatting (plan.md "Formatting engine", "Language providers > C#").
+//! C# formatting.
 //!
 //! Nodes are laid out by kind: statements, declarations and lists have their own code; everything
 //! else is a sequence of its children with the spacing of [`spacing`]. The hooks of the plan

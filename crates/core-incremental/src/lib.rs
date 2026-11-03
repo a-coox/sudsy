@@ -1,4 +1,4 @@
-//! The incremental query engine (plan.md "Incremental engine"), built on `salsa`.
+//! The incremental query engine, built on `salsa`.
 //!
 //! Core computations are queries memoized by what they read, so an edit recomputes only what
 //! depends on it. Today's inputs are file text ([`File`]) and the config files

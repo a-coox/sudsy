@@ -1,5 +1,5 @@
 //! The shared test helper: every formatter test, in every language crate, goes through
-//! [`check`], which enforces the four automatic checks of plan.md "Testing strategy" that
+//! [`check`], which enforces the four automatic checks of docs/development/testing.md that
 //! concern formatting: lossless round-trip, unchanged meaning, idempotency, and (here) that no
 //! comment was lost or reordered.
 

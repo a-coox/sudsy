@@ -1,5 +1,5 @@
 //! `lsp-latency CORPUS_DIR WORKER_DLL [FILES] [REPEATS]`: how responsive the language server is
-//! while it analyses a C# file (docs/decisions.md "Editor responsiveness"). Runs the real server
+//! while it analyses a C# file. Runs the real server
 //! on an in-process connection with the real C# worker, on `FILES` (default 300) files of the
 //! corpus as the workspace and the one of about 20 KB among them as the open document.
 //!

@@ -24,7 +24,7 @@ pub type EventHook = Box<dyn Fn(salsa::Event) + Send + Sync>;
 /// One database per run (CLI) or per workspace (LSP). `Clone` makes a handle that shares the
 /// memos; each thread works through its own handle. Setting an input needs `&mut` access to a
 /// handle and waits until every other handle is dropped, so inputs are set while a single
-/// handle exists (see `docs/decisions.md`, "Incremental engine").
+/// handle exists.
 #[salsa::db]
 #[derive(Clone)]
 pub struct Database {

@@ -1,4 +1,4 @@
-//! Project scope (plan.md "Rule scopes"): rules gather facts from each file, then report across
+//! Project scope: rules gather facts from each file, then report across
 //! files once all files have been seen.
 
 use crate::diagnostic::{Diagnostic, Severity};

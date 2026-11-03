@@ -1,4 +1,4 @@
-//! The structure of `sudsy.yaml` (plan.md "Configuration and presets"), read with source
+//! The structure of `sudsy.yaml`, read with source
 //! locations so later checks can point at the offending value.
 
 use serde::de::{self, MapAccess, Visitor};
@@ -109,7 +109,7 @@ pub struct Plugins {
     pub wasm: Vec<Spanned<String>>,
 }
 
-/// `semantics:` (plan.md "Behavior summaries"): facts about methods the analyses use, as
+/// `semantics:`: facts about methods the analyses use, as
 /// qualified names without parameter lists (`MyApp.Log.Fatal` covers every overload).
 #[derive(Clone, Debug, Default, PartialEq, Eq, Deserialize)]
 #[serde(deny_unknown_fields, default)]
@@ -157,7 +157,7 @@ impl Override {
     }
 }
 
-/// Analysis depth (plan.md "Analysis depth"): what rules may use. Formatting ignores it.
+/// Analysis depth: what rules may use. Formatting ignores it.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum Depth {

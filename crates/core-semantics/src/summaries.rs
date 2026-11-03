@@ -1,4 +1,4 @@
-//! Behavior summaries (plan.md): per-method facts for rules and fix preconditions, from
+//! Behavior summaries: per-method facts for rules and fix preconditions, from
 //! attributes, a provider's built-in list for its standard library, and the user's `semantics:`.
 
 use crate::facts::{FileSemantics, qualified_name};

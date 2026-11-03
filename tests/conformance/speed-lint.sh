@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
-# Lint cost per analysis depth on a C# tree, to compare two checkouts (docs/decisions.md, "M6:
-# Extensibility, performance": the cost of M6 on the path of a project that uses no extension).
+# Lint cost per analysis depth on a C# tree, to compare two checkouts.
 # Builds the release perf-bench and worker of THIS checkout, then runs `perf-bench semantic`.
 # Usage: tests/conformance/speed-lint.sh [C# directory] [file limit]   (PERF_DEPTHS=fast,standard)
 set -euo pipefail

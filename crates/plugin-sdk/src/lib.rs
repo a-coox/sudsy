@@ -1,4 +1,4 @@
-//! SDK for Sudsy rule plugins (plan.md "Wasm plugins"). A plugin is a Rust crate that implements
+//! SDK for Sudsy rule plugins. A plugin is a Rust crate that implements
 //! [`Rule`], the same trait the built-in rules implement, and exports it with
 //! [`export_plugin!`]; it compiles to a Wasm component with
 //! `cargo build --target wasm32-wasip2 --release` and the config lists the `.wasm` file under

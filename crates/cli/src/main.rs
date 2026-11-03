@@ -12,7 +12,7 @@ mod session;
 use clap::{Parser, Subcommand};
 use std::process::ExitCode;
 
-// Measured 25-40% faster than the system allocator on the format path (docs/decisions.md "Performance").
+// Measured 25-40% faster than the system allocator on the format path.
 #[global_allocator]
 static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
 

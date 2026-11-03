@@ -12,7 +12,7 @@
 //! child is the root of a tree of another language.
 //!
 //! [`FlatTree`] is that pair of arrays; [`WireTree`] is its serialized form
-//! (chosen by the M0 benchmark, see `docs/decisions.md`).
+//! (see docs/architecture/syntax-tree.md).
 
 use crate::kind::SyntaxKind;
 use crate::tree::{SyntaxNode, TreeBuilder};

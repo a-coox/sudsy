@@ -1,4 +1,4 @@
-//! The generic safety check (plan.md "Safety checks"): the output must parse and must have the
+//! The generic safety check: the output must parse and must have the
 //! same tree as the input once trivia are ignored.
 //!
 //! Tokens tagged `#separator` are ignored as well. A formatter may legitimately add or remove a

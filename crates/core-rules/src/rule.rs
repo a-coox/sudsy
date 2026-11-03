@@ -1,4 +1,4 @@
-//! The rule trait and the contexts rules run in (plan.md "Rules, diagnostics and fixes").
+//! The rule trait and the contexts rules run in.
 
 use crate::diagnostic::{Category, Diagnostic, FixKind, Severity};
 use crate::lines::LineIndex;

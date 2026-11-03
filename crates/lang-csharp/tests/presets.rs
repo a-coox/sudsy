@@ -62,7 +62,7 @@ csharp:
     )
     .unwrap_err();
     assert!(error.message.contains("csharp/csharpier-compat"), "{error}");
-    // Every preset of the table in plan.md resolves.
+    // Every preset of the table in docs/formatting/presets.md resolves.
     for name in ["microsoft", "dotnet-runtime", "google", "csharpier-compat"] {
         resolve(&format!("extends: [\"preset:csharp/{name}\"]\n")).unwrap();
     }

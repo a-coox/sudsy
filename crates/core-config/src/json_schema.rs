@@ -1,5 +1,5 @@
 //! The JSON Schema of `sudsy.yaml`, generated from the providers' option declarations
-//! (plan.md "Option schema"). Editors register it for completion and validation of the config.
+//! Editors register it for completion and validation of the config.
 
 use crate::model::{Depth, LANGUAGES, OptionValue};
 use crate::schema::{OptionDef, OptionKind, OptionSchema, shared};

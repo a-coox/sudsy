@@ -1,4 +1,4 @@
-//! Presets (plan.md "Configuration and presets"): named config files shipped with a provider,
+//! Presets: named config files shipped with a provider,
 //! applied by `extends: [preset:csharp/google]` below the shared and language sections.
 //!
 //! A preset is the text of an ordinary `sudsy.yaml` (`csharp: format: {...}`), read by the same

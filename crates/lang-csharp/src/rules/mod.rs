@@ -1,4 +1,4 @@
-//! C# rules (plan.md "Initial built-in rules"): syntactic ones, and the semantic ones over the
+//! C# rules: syntactic ones, and the semantic ones over the
 //! binding, type, value and flow layers. `var-preference` and `prefer-collection-expression` are
 //! not in M5's scope.
 

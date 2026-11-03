@@ -6,8 +6,7 @@ use core_syntax::{Grammar, LanguageId, SyntaxKind, SyntaxNode};
 use std::path::{Path, PathBuf};
 
 /// What a language provider can do. So far: parsing, formatting, format options and rules. Later
-/// milestones add `semantic`, `flow` and `summaries` (plan.md
-/// "Provider interface") together with the types they need.
+/// milestones add `semantic`, `flow` and `summaries` together with the types they need.
 pub trait LanguageProvider: Send + Sync {
     fn id(&self) -> LanguageId;
 
@@ -20,7 +19,7 @@ pub trait LanguageProvider: Send + Sync {
     /// Capability layers the provider answers (empty for syntax-only providers).
     fn capabilities(&self) -> Capabilities;
 
-    /// Shared tree plus parse errors. Unlike plan.md's sketch this can fail: an out-of-process
+    /// Shared tree plus parse errors. Unlike a plain value this can fail: an out-of-process
     /// provider may be unavailable.
     fn parse(&self, file: &SourceFile) -> Result<ParseResult, ProviderError>;
 
@@ -123,7 +122,7 @@ impl FileMatcher {
     }
 }
 
-/// The capability layers a provider answers (plan.md "Capability layers").
+/// The capability layers a provider answers.
 pub type Capabilities = Layers;
 
 #[derive(Clone, Debug, PartialEq, Eq)]

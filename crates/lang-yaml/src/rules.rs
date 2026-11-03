@@ -1,4 +1,4 @@
-//! YAML rules (plan.md "Initial built-in rules"): `no-duplicate-keys`, `ambiguous-booleans`,
+//! YAML rules: `no-duplicate-keys`, `ambiguous-booleans`,
 //! `document-start` and the opt-in `sorted-keys`.
 
 use crate::generated::{AnyValue, BlockMapping, BlockMappingEntry, FlowMapping, Scalar, kind};

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# What pattern rules and Wasm plugins cost (docs/decisions.md, "M6: Extensibility, performance").
+# What pattern rules and Wasm plugins cost.
 # Builds the sample plugin (wasm32-wasip2), the release CLI and the release perf-bench, then runs
 # `perf-bench extensions` on a C# tree and `perf-bench extensions-cli` on the CLI.
 # Usage: tests/conformance/speed-extensions.sh [C# directory] [file limit]
