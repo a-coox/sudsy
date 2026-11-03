@@ -123,6 +123,8 @@ pub struct PatternRule {
     meta: &'static RuleMeta,
     kinds: Vec<SyntaxKind>,
     expr: Expr,
+    /// Can matching cost more than linear (see [`STEP_BUDGET`])? Only then is it metered.
+    metered: bool,
     /// `None`: a layout-only rule.
     message: Option<String>,
     constraints: BTreeMap<String, CompiledConstraint>,
@@ -251,6 +253,7 @@ fn compile(spec: FileSpec, parser: &dyn SnippetParser) -> Result<PatternRule, St
     Ok(PatternRule {
         meta,
         kinds,
+        metered: expr.superlinear(),
         expr,
         message: spec.message,
         constraints,
@@ -355,7 +358,7 @@ impl Rule for PatternRule {
 
     fn check(&self, node: &SyntaxNode, ctx: &mut RuleContext<'_>) {
         let file = ctx.file;
-        if ctx.has_reported(OVER_BUDGET) {
+        if self.metered && ctx.has_reported(OVER_BUDGET) {
             return; // the rule is off for this file
         }
         let cx = Ctx {
@@ -364,7 +367,7 @@ impl Rule for PatternRule {
             budget: Cell::new(STEP_BUDGET),
         };
         let found = self.expr.matches(node, &cx);
-        if cx.budget.get() == 0 {
+        if self.metered && cx.budget.get() == 0 {
             if !ctx.laying_out() {
                 ctx.report(significant_range(node, file.grammar), OVER_BUDGET);
             }

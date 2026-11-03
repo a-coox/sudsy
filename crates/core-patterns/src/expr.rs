@@ -147,6 +147,18 @@ impl Expr {
         }
     }
 
+    /// Can evaluating this cost more than linear in the node's size: a `$$$` run (all splits are
+    /// tried) or an `inside`/`has` walk?
+    pub fn superlinear(&self) -> bool {
+        match self {
+            Expr::Pattern(p) => p.metas().iter().any(|m| m.multi),
+            Expr::Inside(_) | Expr::Has(_) => true,
+            Expr::All(list) | Expr::Any(list) => list.iter().any(Expr::superlinear),
+            Expr::Not(e) => e.superlinear(),
+            Expr::Kind(_) | Expr::Regex(_) => false,
+        }
+    }
+
     /// The node kinds a match can start at, when the expression pins them down (the engine then
     /// calls the rule for those kinds only).
     pub fn kinds(&self) -> Option<Vec<SyntaxKind>> {
