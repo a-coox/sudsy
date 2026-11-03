@@ -4,7 +4,5 @@
   "[json]": { "editor.defaultFormatter": "Coox.sudsy", "editor.formatOnSave": true },
   "[jsonc]": { "editor.defaultFormatter": "Coox.sudsy", "editor.formatOnSave": true },
   "[yaml]": { "editor.defaultFormatter": "Coox.sudsy", "editor.formatOnSave": true },
-  "editor.codeActionsOnSave": { "source.fixAll.sudsy": "explicit" },
-  "sudsy.serverPath": "${workspaceFolder}/target/dogfood/sudsy",
-  "sudsy.csharpWorkerPath": "${workspaceFolder}/target/dogfood/worker/Sudsy.Worker.dll"
+  "editor.codeActionsOnSave": { "source.fixAll.sudsy": "explicit" }
 }
