@@ -29,7 +29,7 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Command {
-    /// Developer tools for inspecting the foundations (M0).
+    /// Developer tools: parse a .cs file with the C# worker and print its tree.
     #[command(subcommand)]
     Debug(debug::DebugCommand),
     /// Format C#, JSON, JSONC and YAML files.
@@ -38,7 +38,7 @@ enum Command {
     Lint(lint::ReportArgs),
     /// Apply fixes, then format.
     Fix(fix::FixArgs),
-    /// Run ormat --check and lint, for CI.
+    /// Run `format --check` and `lint`, for CI.
     Check(lint::ReportArgs),
     /// List the rules, or explain one.
     Rules(rules_cmd::RulesArgs),

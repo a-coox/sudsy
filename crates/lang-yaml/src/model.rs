@@ -4,8 +4,8 @@
 
 use crate::generated::kind as k;
 use crate::scalar::{self, block_header, block_value};
-use crate::tree::{blank_lines_after, block_parent_indent, is_trivia};
-use core_syntax::{SyntaxElement, SyntaxKind, SyntaxNode, SyntaxToken};
+use crate::tree::{blank_lines_after, block_parent_indent, is_trivia, token_of};
+use core_syntax::{SyntaxElement, SyntaxNode};
 use std::collections::HashMap;
 
 #[derive(Clone, Debug)]
@@ -266,12 +266,6 @@ impl Loader {
         let text = block_value(header_info, &content, block_parent_indent(n), blank_after);
         Ok(resolve_scalar(text, false, tag.as_deref()))
     }
-}
-
-fn token_of(n: &SyntaxNode, kind: SyntaxKind) -> Option<SyntaxToken> {
-    n.children_with_tokens()
-        .by_kind(|found| found == kind)
-        .find_map(|e| e.into_token())
 }
 
 fn null() -> Node {

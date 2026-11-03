@@ -47,5 +47,5 @@ fn debug_parse_prints_the_tree_and_checks_the_round_trip() {
 fn debug_parse_rejects_other_languages() {
     let out = sudsy().args(["debug", "parse", "a.json"]).output().unwrap();
     assert!(!out.status.success());
-    assert!(String::from_utf8_lossy(&out.stderr).contains("only .cs"));
+    assert!(String::from_utf8_lossy(&out.stderr).contains("takes a .cs file"));
 }

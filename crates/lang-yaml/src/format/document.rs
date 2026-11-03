@@ -4,18 +4,12 @@ use super::block::{Ctx, node_after, property_root};
 use super::comments::{gap, has_remaining_comments, leading, tok};
 use super::{DocumentStart, Style, scalars};
 use crate::generated::kind as k;
-use crate::tree::{blank_lines_after, first_token, prev_significant};
+use crate::tree::{blank_lines_after, first_token, prev_significant, token_of};
 use core_format::comments;
 use core_format::{Doc, FormatCtx, FormatError, doc};
 use core_syntax::{SyntaxElement, SyntaxNode, SyntaxToken};
 
 type R = Result<Doc, FormatError>;
-
-fn token_of(node: &SyntaxNode, kind: core_syntax::SyntaxKind) -> Option<SyntaxToken> {
-    node.children_with_tokens()
-        .filter_map(SyntaxElement::into_token)
-        .find(|t| t.kind() == kind)
-}
 
 /// The documents one under the other, then the comments at the end of the file.
 pub(crate) fn stream(cx: &FormatCtx<'_>, st: &Style, node: &SyntaxNode) -> R {
