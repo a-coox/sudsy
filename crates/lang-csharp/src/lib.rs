@@ -2,6 +2,7 @@
 //! formatter.
 
 mod format;
+mod rules;
 #[rustfmt::skip]
 pub mod generated;
 
@@ -68,4 +69,5 @@ pub fn provider(worker_dll: &Path) -> OutOfProcessProvider {
         config,
     )
     .with_format(Box::new(CSharpFormatter), option_schema())
+    .with_rules(rules::RULES, rules::BODY_KINDS)
 }

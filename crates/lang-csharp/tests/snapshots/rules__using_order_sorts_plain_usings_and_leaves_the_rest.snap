@@ -1,0 +1,6 @@
+---
+source: crates/lang-csharp/tests/rules.rs
+expression: "report(text, rules)"
+---
+1:1 warning[using-order] using directives are not sorted
+  fix (safe): Sort the using directives

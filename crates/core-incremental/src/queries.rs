@@ -7,10 +7,10 @@
 //!    └──> options, File.text/version/had_bom
 //! ```
 //!
-//! Rule results, semantic requests and flow graphs (plan.md "Incremental engine"; M3/M5) plug in
-//! as further queries over `parse`'s tree: `rules(file)` reads `parse` plus the resolved rule
-//! configuration, semantic requests read the worker session as a versioned input, and
-//! `flow_graph(file, body)` reads those answers. None of them exist yet.
+//! Rule results are two more queries over `parse` (see [`crate::rules`]): `lint_settings(file)`
+//! reads the config and the selection, and `lint(file)` reads `parse` and `lint_settings`. Semantic
+//! requests will read the worker session as a versioned input, and `flow_graph(file, body)` those
+//! answers (M5); neither exists yet.
 
 use crate::db::Db;
 use crate::failure::{Failure, Stage};
@@ -144,7 +144,7 @@ fn source_file(db: &dyn Db, file: File, settings: Option<ParseSettings>) -> Sour
     }
 }
 
-fn provider_of(db: &dyn Db, file: File) -> Result<&dyn LanguageProvider, Failure> {
+pub(crate) fn provider_of(db: &dyn Db, file: File) -> Result<&dyn LanguageProvider, Failure> {
     let sel = selection(db, file).as_ref().ok_or_else(unsupported)?;
     Ok(db.providers()[sel.provider].as_ref())
 }

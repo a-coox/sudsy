@@ -1,0 +1,11 @@
+---
+source: crates/lang-csharp/tests/rules.rs
+expression: "fixed(text, rules, true)"
+---
+namespace Shop.Orders;
+    using System;
+
+    class A
+    {
+        int F() { return 1; }
+    }

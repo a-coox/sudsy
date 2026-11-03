@@ -26,6 +26,19 @@ pub fn schemas(providers: &[Box<dyn LanguageProvider>]) -> Vec<(&str, &OptionSch
         .collect()
 }
 
+/// The ids of every rule of every language, shared ones included.
+pub fn rule_ids(providers: &[Box<dyn LanguageProvider>]) -> Vec<&'static str> {
+    let mut ids: Vec<&'static str> = providers
+        .iter()
+        .flat_map(|p| p.rules())
+        .chain(core_rules::shared::RULES)
+        .map(|r| r.meta().id)
+        .collect();
+    ids.sort_unstable();
+    ids.dedup();
+    ids
+}
+
 pub struct Project {
     pub cwd: PathBuf,
     pub chain: ConfigChain,
@@ -42,6 +55,9 @@ impl Project {
             None => ConfigChain::default(),
         };
         chain.validate(&schemas(providers)).map_err(fail)?;
+        chain
+            .validate_rule_ids(&rule_ids(providers))
+            .map_err(fail)?;
         Ok(Project { cwd, chain })
     }
 

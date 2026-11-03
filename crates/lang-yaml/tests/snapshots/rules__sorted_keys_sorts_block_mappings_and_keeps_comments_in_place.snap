@@ -1,0 +1,8 @@
+---
+source: crates/lang-yaml/tests/rules.rs
+expression: "report(text, \"sorted-keys: warn\")"
+---
+2:1 warning[sorted-keys] keys are not sorted
+  fix (unsafe): Sort the keys of this mapping
+7:3 warning[sorted-keys] keys are not sorted
+  fix (unsafe): Sort the keys of this mapping

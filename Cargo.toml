@@ -30,6 +30,7 @@ thiserror = "2"
 
 core-config = { path = "crates/core-config" }
 core-incremental = { path = "crates/core-incremental" }
+core-rules = { path = "crates/core-rules" }
 core-format = { path = "crates/core-format" }
 core-workspace = { path = "crates/core-workspace" }
 lang-csharp = { path = "crates/lang-csharp" }

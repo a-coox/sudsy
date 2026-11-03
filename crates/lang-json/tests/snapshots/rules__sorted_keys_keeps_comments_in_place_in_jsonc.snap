@@ -1,0 +1,9 @@
+---
+source: crates/lang-json/tests/rules.rs
+expression: "fix(&JsonProvider::new(), \"a.jsonc\", text, ALL, true)"
+---
+{
+  // about b
+  "a": 2, // one
+  "b": 1 // two
+}

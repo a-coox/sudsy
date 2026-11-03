@@ -1,10 +1,11 @@
 use core_config::OptionSchema;
 use core_format::NodeFormatter;
-use core_syntax::{Grammar, LanguageId, SyntaxNode};
+use core_rules::Rule;
+use core_syntax::{Grammar, LanguageId, SyntaxKind, SyntaxNode};
 use std::path::Path;
 
-/// What a language provider can do. So far: parsing, formatting and format options. Later
-/// milestones add `presets`, `builtin_rules`, `semantic`, `flow` and `summaries` (plan.md
+/// What a language provider can do. So far: parsing, formatting, format options and rules. Later
+/// milestones add `semantic`, `flow` and `summaries` (plan.md
 /// "Provider interface") together with the types they need.
 pub trait LanguageProvider: Send + Sync {
     fn id(&self) -> LanguageId;
@@ -27,6 +28,17 @@ pub trait LanguageProvider: Send + Sync {
 
     /// The format options this provider understands.
     fn option_schema(&self) -> &OptionSchema;
+
+    /// The language's own rules; the rules every language shares are `core_rules::shared::RULES`.
+    fn rules(&self) -> &'static [&'static dyn Rule] {
+        &[]
+    }
+
+    /// The node kinds that are bodies (methods, lambdas, local functions): body-scope rules are
+    /// called once for each.
+    fn body_kinds(&self) -> &'static [SyntaxKind] {
+        &[]
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]

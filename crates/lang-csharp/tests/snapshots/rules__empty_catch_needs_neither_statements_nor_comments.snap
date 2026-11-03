@@ -1,0 +1,5 @@
+---
+source: crates/lang-csharp/tests/rules.rs
+expression: "report(text, \"\")"
+---
+2:10 warning[no-empty-catch] empty catch block swallows the exception

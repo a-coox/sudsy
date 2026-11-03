@@ -970,3 +970,92 @@ mostly rowan red-node allocations. The safety check adds about a third on JSON (
 tree comparison 135 ms) and a third on YAML (plus 625 ms for the data model), and is always on, so
 a check-only run could not skip it. No optimization was done here; proposals 2 and 3 in
 "Performance" still describe the next steps.
+
+## M3b: Rules
+
+* **Crate and layering.** `core-rules` holds the `Rule` trait with its four scopes, the diagnostics
+  and fix model, suppressions, the single traversal per file, rule activation from the config and
+  the fix loop. Providers hand their rules over through `LanguageProvider::rules()` and
+  `body_kinds()` (default: none), so language crates depend on core, never the reverse. The rules
+  every language shares (`max-line-length`) live in `core_rules::shared`. A language rule that
+  reused a shared id would show up in `sudsy rules` as one id listed for two languages.
+* **`Rule` is object-safe, options are data.** plan.md sketches `type Options: RuleOptions`; an
+  associated type would make rules impossible to store as `&dyn Rule`. A rule instead declares
+  `OptionDecl`s (name, typed default, description) in its `RuleMeta`; `RuleOptions::resolve` checks
+  names and types and the rule reads typed values from `ctx.options`. Rule options are not in the
+  generated JSON Schema (only format options are); they are checked when the rules are activated
+  and documented by `sudsy rules <id>`.
+* **Rules are zero-sized statics** (`&'static [&'static dyn Rule]`). Rules hold no state; options
+  and project facts arrive through the contexts.
+* **Scopes.** Node (`kinds` + `check`), file (`check_file`), body (`check_body`, called for every
+  node whose kind the provider lists in `body_kinds`; `BodyContext` carries the node only, the flow
+  graph joins it in M5) and project (`collect` gathers string facts per file, `finish` reports
+  across files, only at `analysis: deep`). No built-in rule uses body or project scope yet; the
+  engine tests cover them with test rules. A project diagnostic is not subject to suppression
+  comments (it belongs to no single line). Project options are those of the first file of the
+  language.
+* **Layers and depth.** A rule lists the layers it needs (`Layer`); it is skipped, never failed,
+  when the provider does not answer one or the depth does not allow it (`fast` has none, `standard`
+  all but `project`, `deep` all). Every v0.1 rule is syntactic and runs at every depth.
+  `--analysis fast|standard|deep` overrides `analysis:` through `ConfigChain::with_depth`
+  (the key was only stored data in M3a).
+* **Rule results are queries.** `lint_settings(file)` (resolved levels, options, depth) and
+  `lint(file)` (reads `parse` and the settings). A format-option edit leaves the settings equal, so
+  no rule re-runs (tested). A file with syntax errors reports them as `syntax-error` errors and no
+  rule runs on it.
+* **Levels.** `RuleMeta::default_level` applies when the config does not mention the rule:
+  `error` for `no-duplicate-keys`, `warn` for `no-empty-catch` and `async-suffix`, `off` for
+  everything that is a style choice or noisy on existing repositories (`ambiguous-booleans` would
+  flag every GitHub workflow's `on:`; `sorted-keys`, `document-start`, `using-order`,
+  `file-scoped-namespace`, `prefer-null-coalescing`, `max-line-length`).
+* **Unknown rule ids are config errors** with a position and a suggestion
+  (`ConfigChain::validate_rule_ids`, called by `Project::load`), for the top-level, language and
+  override `lint` sections; a `plugin/rule` id is not checked (plugins are M6). A rule named in the
+  wrong language's section is accepted and ignored there, because shared sections cannot know the
+  language. Invalid options are errors when the rule is activated, naming the rule and where the
+  setting came from.
+* **Fixes.** Kinds `Safe`, `Unsafe`, `Suggestion`. Per round `select` takes for each diagnostic the
+  first fix `fix` may apply, in priority order (category, then rule id, then position), and drops
+  a fix when any of its edits overlaps an accepted one; the dropped fix is found again by the next
+  round. The loop stops when nothing applies, nothing changes or after 10 rounds. After applying a
+  round the file is re-parsed: if it no longer parses the round is undone and the rules are named
+  in a warning (`FixOutcome::broke`). `sudsy fix` then formats. "Fixes that delete code check
+  behavior summaries" has no case yet: no built-in fix deletes code with possible side effects.
+* **Suppressions.** `sudsy-disable-next-line [rule[, rule]...]` in a line or block comment (marker
+  from the grammar's `suppress` line; `Grammar::comment_body` is shared with the formatter's
+  ignore marks). No rule names suppresses all rules on that line. Plain JSON has no comments, so
+  there it is config-only (`overrides` with `"off"`). A directive naming a rule that does not fire
+  is not reported.
+* **Built-in rules.** JSON `no-duplicate-keys` (keys compared as written between the quotes, so
+  `"a"` and `"a"` differ), `sorted-keys` (option `order`, unsafe fix). YAML
+  `no-duplicate-keys` (scalar values compared after unquoting; `<<` skipped), `ambiguous-booleans`
+  (`yes|no|on|off` in three cases, not under a tag; unsafe quoting fix because a YAML 1.1 parser
+  reads it differently afterwards), `document-start` (safe), `sorted-keys` (block mappings only,
+  unsafe). C# `no-empty-catch` (no statements and no comment), `async-suffix` (async methods
+  returning `Task`/`ValueTask` by name; overrides, explicit interface implementations and `Main`
+  skipped; no fix since renaming needs binding), `file-scoped-namespace` (only file member, no
+  nested namespace; unsafe because it needs C# 10, and the formatter re-indents afterwards),
+  `using-order` (plain usings only, ordinal, `system_first` option, lists with `#` directives
+  skipped; safe), `prefer-null-coalescing` (`a != null ? a : b` on names and member accesses;
+  unsafe because the type can change; a non-trivial right operand is parenthesized). The semantic C#
+  rules of plan.md's table wait for M5.
+* **Reordering fixes** (`sorted-keys`, `using-order`) move text between the entries' source slots.
+  Comments on lines of their own stay in place; a trailing comment moves with a YAML key or a using
+  directive (`entry_range`), because left behind it could end up inside a block scalar. In JSON
+  comments stay in place, since a trailing comment can come after the entry's comma. Moving a YAML
+  anchor below its alias is why that fix is unsafe.
+* **CLI.** `lint`, `fix [--unsafe]`, `check`, `rules [id]`, each with `--format
+  human|json|sarif|github` where it reports, and `--analysis`. Exit codes: `lint` 1 on any
+  error-level diagnostic; `fix` 1 if errors remain after fixing and formatting; `check` 1 on any
+  error or unformatted file; 2 when a file could not be processed or the config is invalid. A file
+  `format` would change is reported by `check` as an error diagnostic `format` at 1:1, so every
+  output format carries it. JSON output is `{version, summary, diagnostics}` with byte offsets and
+  line/column ranges and the fix edits; SARIF 2.1.0 has results and the rule table but no `fixes`;
+  GitHub output is `::error|warning file=,line=,col=,endLine=,endColumn=,title=::message`.
+  `session.rs` holds the file discovery and parallel loading that `format` already had.
+* **Test harness.** `provider_api::testing` (`lint`, `render`, `fix`) runs a provider's rules
+  with a `lint:` config and checks that every fix keeps the file parseable and is idempotent; the
+  language crates snapshot with it. plan.md's inline-annotation fixtures and a plugin SDK copy of
+  the harness come with M6.
+* **Not done (later milestones):** Wasm and pattern rules (M6), body-scope rules with flow graphs and
+  the semantic rules (M5), an LSP code action per fix (M4), SARIF `fixes`, an output file option.

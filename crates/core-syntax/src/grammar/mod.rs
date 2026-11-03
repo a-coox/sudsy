@@ -177,6 +177,19 @@ impl Grammar {
         list.get(kind.index() as usize).copied().unwrap_or(0)
     }
 
+    /// The text of a comment without its delimiters (`//`, or `/*` and `*/`), trimmed.
+    pub fn comment_body<'a>(&self, text: &'a str) -> &'a str {
+        let body = match (self.comments.line.as_deref(), &self.comments.block) {
+            (Some(prefix), _) if text.starts_with(prefix) => &text[prefix.len()..],
+            (_, Some((open, close))) => text
+                .strip_prefix(open.as_str())
+                .map(|t| t.strip_suffix(close.as_str()).unwrap_or(t))
+                .unwrap_or(text),
+            _ => text,
+        };
+        body.trim()
+    }
+
     pub fn is_trivia(&self, kind: SyntaxKind) -> bool {
         self.flags_of(kind) & 1 != 0
     }
