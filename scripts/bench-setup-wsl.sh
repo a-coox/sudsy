@@ -5,8 +5,7 @@
 set -euo pipefail
 case "$(uname -s)" in
   MINGW*|MSYS*|CYGWIN*)
-    here=$(cd "$(dirname "$0")" && pwd -W | sed 's#\#/#g')
-    wslpath="/mnt/$(echo "${here:0:1}" | tr A-Z a-z)${here:2}"
+    wslpath="/mnt$(cd "$(dirname "$0")" && pwd)"  # Git Bash pwd is /c/...; WSL mounts it at /mnt/c/...
     MSYS_NO_PATHCONV=1 exec wsl -d "${BENCH_WSL_DISTRO:-Ubuntu}" -e bash "$wslpath/bench-setup-wsl.sh" ;;
 esac
 if ! command -v valgrind >/dev/null || ! command -v gcc >/dev/null || ! command -v curl >/dev/null; then
