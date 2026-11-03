@@ -16,6 +16,8 @@ Formatter + linter for C#, JSON and YAML. `plan.md` is the design source of trut
 - No speculative features beyond plan.md (style options needed to express a preset in the plan's preset table are not speculative). When the plan leaves a detail open, pick the simplest option and note it in `docs/decisions.md`.
 
 ## Commands
-- `cargo build --workspace`, `cargo test --workspace`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo fmt --all`
-- `dotnet build workers/csharp` / `dotnet test workers/csharp`
-- All of the above must pass before committing.
+Run scripts in `scripts/` instead of retyping commands; reuse one before writing a new one.
+On Windows run the scripts from Git Bash; `bash` in PowerShell resolves to WSL, which is not supported.
+- `scripts/gate.sh [--rust-only] [-p <crate>]`: fmt check, build, clippy, test, `cargo xtask codegen --check`, dotnet build/test, extension typecheck/lint/test/build. Must pass before committing.
+- `scripts/ship.sh`: push the branch, watch CI for HEAD (refuses with staged changes).
+- `scripts/dogfood.sh`: build debug CLI + worker into `target/dogfood/`, which `.vscode/settings.json` uses so VS Code never locks `target/debug`; restart the server after running it.
