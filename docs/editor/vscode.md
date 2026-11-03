@@ -3,7 +3,7 @@
 TypeScript, `vscode-languageclient` 9 (pull diagnostics), bundled with esbuild into `dist/extension.js`. It only starts `<server> lsp` and restarts it when `sudsy.serverPath` or `sudsy.csharpWorkerPath` change. No logic beyond that.
 
 - Documents: C#, JSON, JSONC, YAML (`.cs` also by pattern, so a missing C# extension does not matter). Commands: restart server, show output.
-- Settings: `sudsy.serverPath` (default: bundled, else `sudsy` on PATH), `sudsy.csharpWorkerPath` (default: beside the executable), `sudsy.trace.server`.
+- Settings: `sudsy.serverPath` (default: bundled, else `sudsy` on PATH), `sudsy.csharpWorkerPath` (default: beside the executable); both have `machine` scope, so a workspace's `.vscode/settings.json` cannot set them (a malicious repo would otherwise run its own executable), `sudsy.trace.server`.
 - Format on save is the user's choice: `editor.defaultFormatter: Coox.sudsy` per language, plus `"editor.codeActionsOnSave": { "source.fixAll.sudsy": "explicit" }`. The extension sets no defaults (see `editors/vscode/README.md`).
 - Missing .NET runtime: the popup and its "Download .NET" button come from the server (`window/showMessageRequest`, `window/showDocument`), which `vscode-languageclient` handles by default; the extension has no code for it.
 - Config schema: `yamlValidation` for `sudsy.yaml`/`.yml` with a copy of `schemas/sudsy.schema.json` made at build time (`npm run build`, not checked in). `redhat.vscode-yaml` reads it when installed; it is not a dependency. Why: C#/JSON users should not need a second YAML extension that also competes as YAML formatter.
@@ -15,4 +15,7 @@ A package is `server/sudsy[.exe]` plus `server/csharp-worker/` (framework-depend
 Pure logic (which executable/worker to start) under `node --test` (`npm test`). Protocol behaviour is covered by `crates/lsp/tests`. No test starts a VS Code instance (it would download one per CI run); "used daily" is a manual gate.
 
 ## Dogfooding
-`.vscode/settings.json` makes Sudsy the formatter for this repo and points the extension at `target/dogfood/sudsy` and `target/dogfood/worker/Sudsy.Worker.dll`; `.vscode/launch.json` starts an extension host. `scripts/dogfood.sh` builds the debug CLI and worker and copies them to `target/dogfood/` so VS Code never locks the build outputs; restart the server with the extension's command afterwards.
+`.vscode/settings.json` makes Sudsy the formatter for this repo. The path settings cannot live there (machine scope); put the two lines `scripts/dogfood.sh` prints (`target/dogfood/sudsy`, `target/dogfood/worker/Sudsy.Worker.dll`) in your user settings; `.vscode/launch.json` starts an extension host. `scripts/dogfood.sh` builds the debug CLI and worker and copies them to `target/dogfood/` so VS Code never locks the build outputs; restart the server with the extension's command afterwards.
+
+## Workspace Trust
+The manifest declares `capabilities.untrustedWorkspaces.supported: false` and `virtualWorkspaces: false`: in Restricted Mode the extension does not activate, because it runs an executable and reads repo-supplied config (patterns, Wasm plugins).

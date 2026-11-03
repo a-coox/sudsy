@@ -20,6 +20,12 @@
     "onLanguage:yaml",
     "workspaceContains:**/sudsy.{yaml,yml}"
   ],
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": false
+    },
+    "virtualWorkspaces": false
+  },
   "main": "./dist/extension.js",
   "contributes": {
     "yamlValidation": [
@@ -46,12 +52,12 @@
       "properties": {
         "sudsy.serverPath": {
           "type": "string",
-          "scope": "machine-overridable",
+          "scope": "machine",
           "description": "Path of the `sudsy` executable (`${workspaceFolder}` is the first workspace folder). Empty: the one bundled with the extension, else `sudsy` from PATH."
         },
         "sudsy.csharpWorkerPath": {
           "type": "string",
-          "scope": "machine-overridable",
+          "scope": "machine",
           "description": "Path of `Sudsy.Worker.dll`, the C# worker. Empty: the one next to the executable."
         },
         "sudsy.trace.server": {
