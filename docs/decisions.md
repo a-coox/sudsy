@@ -1556,3 +1556,104 @@ first token to rules would make it flat, and is not built. Realistic sets (5 - 3
   Marketplace publisher id (`package.json` says `sudsy`), contributor sign-off (DCO or CLA), and
   the copyright line of `LICENSE` ("The Sudsy authors" is a placeholder). The macOS and arm64
   builds are untested on real hardware until the first run of the workflow.
+
+## Editor responsiveness: the analysis thread
+
+vscode-languageclient pulls diagnostics on every keystroke without a debounce; when a pull is in
+flight it sends `$/cancelRequest` and queues a new one, and a cancelled result is discarded. The
+server used to run every request on the message-loop thread, finish cancelled pulls anyway, and
+make formatting wait behind them (the first semantic pull builds the workspace compilation:
+2 - 3.6 s).
+
+* **Design.** `crates/lsp/src/analysis.rs`: one thread runs `textDocument/diagnostic` and
+  `textDocument/codeAction` in the order asked, on a snapshot of the `Workspace` (`Workspace` is
+  `Clone`: a salsa database handle, the document list, the project behind an `Arc`). The message
+  loop answers everything else itself (formatting, which needs only the pooled parse workers, and
+  the notifications), so it never waits for a semantic request. Chosen over a thread per request
+  (the worker's semantic state is on the first worker and serializes anyway) and over a second
+  database (it would parse every version twice).
+* **Worker access.** Unchanged and already safe: `WorkerProxy::semantic` holds the first worker
+  while the analysis runs; `parse` (formatting) takes the first idle worker and starts the next of
+  the pool when the first is busy. So formatting during the first build pays the start of a second
+  worker process (about 1 s, JIT included) instead of the end of the build.
+* **Inputs without waiting.** Setting a salsa input waits until every other database handle is
+  dropped. While the analysis thread holds one, `didChange` therefore gives the document a new
+  `File` input instead of setting the text (`Workspace::change(.., shared)`); the old one stays
+  for the snapshot. It is the same trade `fix_text` makes with `transient` inputs: a few unreferenced
+  inputs per edit made while a request was running, none when idle. A config reload still sets
+  inputs and waits for a running request (salsa cancels its queries at the next query boundary;
+  a worker call in progress cannot be interrupted); the request is answered `ServerCancelled`.
+* **Cancellation.** `$/cancelRequest` for a queued or running request answers `RequestCancelled`
+  (-32800). A `didChange` or `didClose` of the document a request is about answers it
+  `ServerCancelled` (-32802, `retriggerRequest: true`) without waiting for the client's cancel. A
+  queued request is dropped before it starts; a running one stops at its next checkpoint (after
+  the lint query, before the diagnostics are built) and its result is not sent. The worker call
+  that is already running is not interrupted, so a superseded pull that is inside the first
+  build still costs the build once (and memoizes it for the next pull).
+* **Code actions** run on the analysis thread too, behind the pulls: they need the same `lint`
+  result (for C#, the semantic one), which is memoized once the pull has run. A code action
+  therefore does not block formatting, but is not answered before the pull of the same version.
+* Tests: `crates/lsp/tests/responsiveness.rs`, with a rule that blocks until the test releases
+  it (no sleeps): formatting answered during a running pull, also after an edit; a cancelled pull
+  and a queued one; supersession by `didChange`, the queued pull never starts.
+
+### Measured (release build, 12-core machine, C# worker, `lsp-latency`)
+`cargo run --release -p perf-bench --bin lsp-latency -- tests/conformance/corpus/runtime
+WORKER.dll 300 3` (300 corpus files as the workspace, a 20 KB file open, six semantic rules on;
+"before" is commit 7828cec with the same binary source). Typing: 40 edits 30 ms apart; each edit
+cancels the pull in flight and asks for a new one, as the client does.
+
+| | before | after |
+| --- | --- | --- |
+| formatting asked right after the first pull (first workspace build) | 2.1 - 2.7 s (behind the build) | 1.0 - 1.3 s (second worker starting) |
+| first pull, same run | 2.1 - 2.7 s | 3.2 - 3.7 s |
+| typing: last pull answered after the last edit | 0.40, 0.59, 0.79 s | 0.10, 0.25, 0.16 s |
+| typing: pulls that did the full work | 40 of 40 | 1 - 2 of 40 |
+
+The first pull is slower after (by the cost of the second worker starting next to it, on the same
+cores). Formatting could be answered in milliseconds if the second worker were already running;
+the pool starts workers lazily by design, so that was left.
+
+## Benchmarking (`scripts/bench.sh`)
+Run `scripts/bench.sh` after every feature change; CI runs tier 1 on ubuntu-latest against the PR base.
+* **Inputs**: `bench/inputs/` (committed, 12 C# files from dotnet/runtime, 40 JSONTestSuite `y_*` files,
+  60 yaml-test-suite documents; 0.25 MB) plus generated JSON (4k objects) and YAML (6k items) from
+  `perf-bench`. Workload: `perf-bench fixed LANG PHASE`, phases parse, format, lint, patterns, plugins.
+* **Baseline**: merge-base with origin/main (`--base REV`), a git worktree in `target/bench/base-src`
+  with the candidate's `tools/perf-bench` copied in, so both sides run the same workload.
+* **Tier 1** (deterministic): allocations (native, `--features count`) and instructions
+  (cachegrind, `--toggle-collect='*fixed*measured*'` so set-up is excluded; WSL on Windows, own
+  target dir under `~/.cache/sudsy-bench`). Fails on instructions +1% or allocations +1% (and at
+  least 10). C# phases are measured for allocations only: the worker is a separate .NET process
+  that valgrind does not follow. `*.work` lines (files, findings) flag a changed workload.
+* **Tier 2** (`--time`): `scripts/bench-time.sh`, interleaved A/B rounds of `--version`, `format --check`
+  and `lint` on the CLI with the worker; median of per-round ratios with a bootstrap 95% CI; fails only
+  when the CI lower bound exceeds 1.03. With 5 rounds on this machine the CI is +-30%, so use 11+.
+* **History**: `bench/history.jsonl`, one line per run keyed by commit; counts compare across hosts,
+  times only within the `host` they were recorded on.
+* **Setup**: `scripts/bench-setup-wsl.sh` once (apt needs sudo). Not yet run: tier-1 instruction counts are
+  therefore untested here; allocation counts and tier 2 were run (Windows, no `--no-instr` path needs valgrind).
+
+### Baseline at 7828cec (Ryzen 5 3600, Windows 11, release + mimalloc, one run, noise ~10-15%)
+| hot path | number |
+| --- | --- |
+| JSON 11.1 MB phases: parse / layout / print / re-parse / compare | 304 / 1136 / 259 / 408 / 122 ms; whole `format_file` 5.9 MB/s at 4x |
+| JSON one line 1.1 MB, whole `format_file` | 386 ms (2.9 MB/s) |
+| YAML 5.0 MB phases: parse / layout / print / re-parse / compare / data model | 522 / 1655 / 202 / 499 / 194 / 732 ms; whole 1.6 MB/s at 4x |
+| C# warm worker, 1679 files 27.8 MB, 12 threads (3 passes) / one thread | 7.0, 4.1, 3.4 s / 13.5 s (median 1.6 ms, p95 26.9 ms per file) |
+| lint 500 C# files, `fast` / `standard` | 2.2 s (median 1.1 ms) / 30.6 s (median 25.7 ms, p95 178 ms) |
+| plugin load, cache off / empty / warm (fresh process) | 178 / 183 / 6.8 ms |
+| plugin vs built in, C# todo-marker | 1170 vs 134 us/file |
+| pattern rules, 100 rules, token start / `$X` start | 504 / 3970 us/file (no rules: 90) |
+| `sudsy lint .`, 20 small JSON files: no extension / pattern / Wasm warm | 38 / 37 / 62 ms |
+| Allocations per fixed workload (`bench/history.jsonl`) | e.g. json.format 851312, yaml.format 2113939, cs.format 140247 |
+
+The `standard` lint depth and the `$X`-start pattern rules are the largest costs.
+
+### Hot paths with no repeatable measurement yet
+* LSP request latency (completion, hover, formatting, diagnostics publish): the parallel LSP work may add a mode.
+* Config load and discovery (`sudsy.yaml` and `.editorconfig` chain) on a large repository.
+* Cold CLI start of `format` on a C# project (worker spawn): only covered by `bench.sh --time`'s totals.
+* Incremental re-lint after an edit (`core-incremental` cache hit/miss path).
+* `deep` analysis depth: `perf-bench semantic` runs it, but `bench.sh` does not.
+* Instruction counts of the C# phases (the worker's own cost is only in wall-clock tiers).

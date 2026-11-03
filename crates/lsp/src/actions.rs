@@ -1,15 +1,19 @@
 //! `textDocument/codeAction` (plan.md "LSP server"): a quick fix per fix of a diagnostic in the
 //! range, "fix all of a rule in this file", and "fix all safe problems" as `source.fixAll.sudsy`.
 
+use crate::analysis::Cancel;
 use crate::diagnostics::to_lsp;
+use crate::notifier::Notifier;
 use crate::position::{Positions, minimal_edit};
+use crate::server::path_of;
 use crate::workspace::Workspace;
 use core_incremental::{Db, Failure, File, fix_text, lint, selection, transient};
 use core_rules::fixes::{apply, select};
 use core_rules::suppress::directive_comment;
 use core_rules::{Diagnostic, Fix, FixKind};
 use lsp_types::{
-    CodeAction, CodeActionKind, CodeActionOrCommand, Range, TextEdit, Uri, WorkspaceEdit,
+    CodeAction, CodeActionKind, CodeActionOrCommand, CodeActionParams, Range, TextEdit, Uri,
+    WorkspaceEdit,
 };
 use std::collections::{BTreeSet, HashMap};
 use std::path::Path;
@@ -216,4 +220,23 @@ fn quick_fix(
     action.diagnostics = Some(vec![to_lsp(d, positions, uri)]);
     action.is_preferred = Some(first && fix.kind == FixKind::Safe);
     action
+}
+
+/// `textDocument/codeAction` on a snapshot, on the analysis thread.
+pub(crate) fn code_action(
+    workspace: &Workspace,
+    notifier: &Notifier,
+    params: CodeActionParams,
+    _cancel: &Cancel,
+) -> Option<Vec<CodeActionOrCommand>> {
+    let uri = params.text_document.uri;
+    let path = path_of(&uri)?;
+    let only = params.context.only;
+    match workspace.code_actions(&path, &uri, params.range, only.as_deref()) {
+        Ok(actions) => Some(actions),
+        Err(failure) => {
+            notifier.failed(&uri, &failure);
+            None
+        }
+    }
 }

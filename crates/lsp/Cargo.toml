@@ -12,6 +12,7 @@ core-incremental.workspace = true
 core-rules.workspace = true
 core-syntax.workspace = true
 core-workspace.workspace = true
+crossbeam-channel = "0.5"
 languages.workspace = true
 lsp-server = "0.10"
 lsp-types = "0.97"
@@ -21,6 +22,7 @@ serde_json.workspace = true
 url = "2"
 
 [dev-dependencies]
+core-format.workspace = true
 lang-csharp.workspace = true
 lang-json.workspace = true
 lang-yaml.workspace = true

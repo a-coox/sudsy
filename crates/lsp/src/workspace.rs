@@ -10,21 +10,26 @@ use lsp_types::TextDocumentContentChangeEvent;
 use provider_api::{LanguageProvider, SourceFile};
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
+use std::sync::Arc;
 
+#[derive(Clone)]
 struct Doc {
     file: File,
 }
 
+/// `Clone` makes a snapshot for a job on the analysis thread: it shares the database's memos and
+/// the project; the documents are the inputs as they were.
+#[derive(Clone)]
 pub struct Workspace {
     pub(crate) db: Database,
     root: PathBuf,
     /// The project of the last successful config load.
-    project: Option<Project>,
+    project: Option<Arc<Project>>,
     docs: HashMap<PathBuf, Doc>,
     /// The project's other files, read from disk when the first `deep` diagnostics are asked for
     /// (`None` before that). They give the project-scope rules every file; an edit in the editor
     /// takes a file out of here and into `docs`.
-    background: Option<HashMap<PathBuf, File>>,
+    background: Option<Arc<HashMap<PathBuf, File>>>,
 }
 
 impl Workspace {
@@ -54,7 +59,7 @@ impl Workspace {
             Ok(project) => {
                 self.db.set_config(Ok(project.chain.clone()));
                 self.db.set_extensions(project.extensions.clone());
-                self.project = Some(project);
+                self.project = Some(Arc::new(project));
                 None
             }
             Err(e) => {
@@ -105,18 +110,21 @@ impl Workspace {
             EditorConfig::for_file(&path),
         );
         if let Some(background) = &mut self.background {
-            background.remove(&path);
+            Arc::make_mut(background).remove(&path);
         }
         self.docs.insert(path, Doc { file });
         true
     }
 
-    /// Applies the changes of one `didChange`, in order.
+    /// Applies the changes of one `didChange`, in order. `shared`: other threads hold handles of
+    /// the database. Setting an input would then wait for them (a semantic request can take
+    /// seconds), so the document gets a new input instead; the old one stays for them.
     pub fn change(
         &mut self,
         path: &Path,
         version: i32,
         changes: &[TextDocumentContentChangeEvent],
+        shared: bool,
     ) {
         let Some(doc) = self.docs.get(path) else {
             return;
@@ -126,7 +134,19 @@ impl Workspace {
             apply_change(&mut text, change.range, &change.text);
         }
         let file = doc.file;
-        self.db.set_file_text(file, version as u64, text);
+        if shared {
+            let new = File::new(
+                &self.db,
+                path.to_path_buf(),
+                version as u64,
+                text,
+                file.had_bom(&self.db),
+                file.editorconfig(&self.db).clone(),
+            );
+            self.docs.insert(path.to_path_buf(), Doc { file: new });
+        } else {
+            self.db.set_file_text(file, version as u64, text);
+        }
     }
 
     pub fn close(&mut self, path: &Path) {
@@ -134,7 +154,7 @@ impl Workspace {
             && let Some(file) = self.background.is_some().then(|| self.read(path)).flatten()
             && let Some(background) = &mut self.background
         {
-            background.insert(path.to_path_buf(), file);
+            Arc::make_mut(background).insert(path.to_path_buf(), file);
         }
     }
 
@@ -163,7 +183,7 @@ impl Workspace {
                 background.insert(path, file);
             }
         }
-        self.background = Some(background);
+        self.background = Some(Arc::new(background));
     }
 
     fn read(&self, path: &Path) -> Option<File> {

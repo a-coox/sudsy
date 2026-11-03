@@ -1,34 +1,34 @@
 //! The transport side: the initialize handshake, the message loop and the translation between
 //! LSP messages and calls on the [`Workspace`].
 
-use crate::actions::FIX_ALL_KIND;
+use crate::actions::{FIX_ALL_KIND, code_action};
+use crate::analysis::{Analysis, Cancel};
+use crate::diagnostics::diagnostic;
+use crate::notifier::Notifier;
 use crate::workspace::Workspace;
 use anyhow::{Result, anyhow};
-use core_incremental::{Failure, Stage};
 use lsp_server::{Connection, ErrorCode, Message, Notification, Request, RequestId, Response};
 use lsp_types::notification::{
-    DidChangeTextDocument, DidChangeWatchedFiles, DidCloseTextDocument, DidOpenTextDocument,
-    LogMessage, Notification as LspNotification, ShowMessage,
+    Cancel as CancelRequest, DidChangeTextDocument, DidChangeWatchedFiles, DidCloseTextDocument,
+    DidOpenTextDocument, Notification as LspNotification,
 };
 use lsp_types::request::{
     CodeActionRequest, DocumentDiagnosticRequest, Formatting, RegisterCapability,
     Request as LspRequest, WorkspaceDiagnosticRefresh,
 };
 use lsp_types::{
-    CodeActionKind, CodeActionOptions, CodeActionParams, CodeActionProviderCapability,
-    DiagnosticOptions, DiagnosticServerCapabilities, DidChangeTextDocumentParams,
-    DidChangeWatchedFilesParams, DidChangeWatchedFilesRegistrationOptions,
-    DidCloseTextDocumentParams, DidOpenTextDocumentParams, DocumentDiagnosticParams,
-    DocumentDiagnosticReport, DocumentDiagnosticReportResult, DocumentFormattingParams,
-    FileSystemWatcher, FullDocumentDiagnosticReport, GlobPattern, InitializeParams,
-    LogMessageParams, MessageType, OneOf, Registration, RegistrationParams,
-    RelatedFullDocumentDiagnosticReport, ServerCapabilities, ServerInfo, ShowMessageParams,
+    CancelParams, CodeActionKind, CodeActionOptions, CodeActionParams,
+    CodeActionProviderCapability, DiagnosticOptions, DiagnosticServerCapabilities,
+    DidChangeTextDocumentParams, DidChangeWatchedFilesParams,
+    DidChangeWatchedFilesRegistrationOptions, DidCloseTextDocumentParams,
+    DidOpenTextDocumentParams, DocumentDiagnosticParams, DocumentFormattingParams,
+    FileSystemWatcher, GlobPattern, InitializeParams, NumberOrString, OneOf, Registration,
+    RegistrationParams, ServerCapabilities, ServerInfo, TextDocumentIdentifier,
     TextDocumentSyncCapability, TextDocumentSyncKind, Uri, WatchKind,
 };
 use provider_api::LanguageProvider;
 use serde::Serialize;
 use serde::de::DeserializeOwned;
-use std::collections::HashSet;
 use std::path::PathBuf;
 
 /// What the client told us it can do.
@@ -62,7 +62,7 @@ fn capabilities() -> ServerCapabilities {
 }
 
 /// `file:` URIs only: a document that is not a file on disk has no config to find.
-fn path_of(uri: &Uri) -> Option<PathBuf> {
+pub(crate) fn path_of(uri: &Uri) -> Option<PathBuf> {
     url::Url::parse(uri.as_str()).ok()?.to_file_path().ok()
 }
 
@@ -84,8 +84,9 @@ pub struct Server {
     conn: Connection,
     workspace: Workspace,
     support: ClientSupport,
-    /// Failures already shown to the user, so that one broken config is one message.
-    shown: HashSet<String>,
+    notifier: Notifier,
+    /// Runs diagnostics and code actions off the message loop.
+    analysis: Analysis,
     next_request_id: i32,
 }
 
@@ -110,19 +111,24 @@ pub fn serve(conn: Connection, providers: Vec<Box<dyn LanguageProvider>>) -> Res
     });
     conn.initialize_finish(id, result)?;
     let (workspace, config_error) = Workspace::new(root_of(&params), providers);
+    let notifier = Notifier::new(conn.sender.clone());
+    let analysis = Analysis::start(conn.sender.clone());
     let mut server = Server {
         conn,
         workspace,
         support,
-        shown: HashSet::new(),
+        notifier,
+        analysis,
         next_request_id: 0,
     };
     if let Some(error) = config_error {
-        server.config_failed(error);
+        server.notifier.config_failed(error);
     }
     // `initialize_finish` has consumed the client's `initialized` notification.
     server.register_watchers()?;
-    server.run()
+    let result = server.run();
+    server.analysis.finish();
+    result
 }
 
 impl Server {
@@ -151,60 +157,27 @@ impl Server {
             .map_err(|_| anyhow!("the client closed the connection"))
     }
 
-    fn notify<N: LspNotification>(&self, params: N::Params) -> Result<()> {
-        self.send(Notification::new(N::METHOD.to_string(), params))
-    }
-
     fn call<R: LspRequest>(&mut self, params: R::Params) -> Result<()> {
         self.next_request_id += 1;
         let id = RequestId::from(self.next_request_id);
         self.send(Request::new(id, R::METHOD.to_string(), params))
     }
 
-    fn show(&self, typ: MessageType, message: String) {
-        let _ = self.notify::<ShowMessage>(ShowMessageParams { typ, message });
-    }
-
-    fn log(&self, typ: MessageType, message: String) {
-        let _ = self.notify::<LogMessage>(LogMessageParams { typ, message });
-    }
-
-    /// The config could not be loaded. The message is the one every file's failure carries, so it
-    /// counts as shown for them.
-    fn config_failed(&mut self, error: String) {
-        let message = format!("Sudsy: {error}");
-        if self.shown.insert(message.clone()) {
-            self.show(MessageType::ERROR, message);
-        }
-    }
-
-    /// Tells the user why a file could not be processed: once per distinct reason when it is
-    /// something they can fix (config, worker), in the log when it is about one file's content.
-    fn failed(&mut self, uri: &Uri, failure: &Failure) {
-        let message = format!("Sudsy: {}", failure.message);
-        match failure.stage {
-            Stage::Unsupported => {}
-            Stage::Format => self.log(
-                MessageType::WARNING,
-                format!("{}: {}", uri.as_str(), failure.message),
-            ),
-            Stage::Config | Stage::Options | Stage::Parse | Stage::Semantics => {
-                if self.shown.insert(message.clone()) {
-                    let level = if matches!(failure.stage, Stage::Parse | Stage::Semantics) {
-                        MessageType::WARNING
-                    } else {
-                        MessageType::ERROR
-                    };
-                    self.show(level, message);
-                }
-            }
-        }
-    }
-
     fn request(&mut self, req: Request) -> Result<()> {
         let response = match req.method.as_str() {
-            DocumentDiagnosticRequest::METHOD => self.answer(req, Self::diagnostic),
-            CodeActionRequest::METHOD => self.answer(req, Self::code_action),
+            DocumentDiagnosticRequest::METHOD => {
+                if self.workspace.is_deep() {
+                    self.workspace.load_project();
+                }
+                return self.queue(
+                    req,
+                    |p: &DocumentDiagnosticParams| &p.text_document,
+                    diagnostic,
+                );
+            }
+            CodeActionRequest::METHOD => {
+                return self.queue(req, |p: &CodeActionParams| &p.text_document, code_action);
+            }
             Formatting::METHOD => self.answer(req, Self::formatting),
             _ => Response::new_err(
                 req.id,
@@ -227,54 +200,35 @@ impl Server {
         }
     }
 
-    fn diagnostic(&mut self, params: DocumentDiagnosticParams) -> DocumentDiagnosticReportResult {
-        let uri = params.text_document.uri;
-        let path = path_of(&uri);
-        if self.workspace.is_deep() {
-            self.workspace.load_project();
-        }
-        if let Some(failure) = path
-            .as_deref()
-            .and_then(|p| self.workspace.semantic_warning(p))
-        {
-            self.failed(&uri, &failure);
-        }
-        let items = match path.map(|p| self.workspace.diagnostics(&p, &uri)) {
-            Some(Ok(items)) => items,
-            Some(Err(failure)) => {
-                self.failed(&uri, &failure);
-                Vec::new()
-            }
-            None => Vec::new(),
-        };
-        DocumentDiagnosticReportResult::Report(DocumentDiagnosticReport::Full(
-            RelatedFullDocumentDiagnosticReport {
-                related_documents: None,
-                full_document_diagnostic_report: FullDocumentDiagnosticReport {
-                    result_id: None,
-                    items,
-                },
-            },
-        ))
-    }
-
-    fn code_action(
+    /// Hands `req` to the analysis thread with a snapshot of the workspace; the thread sends the
+    /// response.
+    fn queue<P, R>(
         &mut self,
-        params: CodeActionParams,
-    ) -> Option<Vec<lsp_types::CodeActionOrCommand>> {
-        let uri = params.text_document.uri;
-        let path = path_of(&uri)?;
-        let only = params.context.only;
-        match self
-            .workspace
-            .code_actions(&path, &uri, params.range, only.as_deref())
-        {
-            Ok(actions) => Some(actions),
-            Err(failure) => {
-                self.failed(&uri, &failure);
-                None
+        req: Request,
+        document: fn(&P) -> &TextDocumentIdentifier,
+        handler: fn(&Workspace, &Notifier, P, &Cancel) -> R,
+    ) -> Result<()>
+    where
+        P: DeserializeOwned + Send + 'static,
+        R: Serialize + 'static,
+    {
+        let params = match serde_json::from_value::<P>(req.params) {
+            Ok(params) => params,
+            Err(e) => {
+                return self.send(Response::new_err(
+                    req.id,
+                    ErrorCode::InvalidParams as i32,
+                    e.to_string(),
+                ));
             }
-        }
+        };
+        let path = path_of(&document(&params).uri);
+        let (workspace, notifier) = (self.workspace.clone(), self.notifier.clone());
+        self.analysis.submit(req.id, path, move |cancel| {
+            serde_json::to_value(handler(&workspace, &notifier, params, cancel))
+                .unwrap_or(serde_json::Value::Null)
+        });
+        Ok(())
     }
 
     fn formatting(&mut self, params: DocumentFormattingParams) -> Option<Vec<lsp_types::TextEdit>> {
@@ -283,7 +237,7 @@ impl Server {
         match self.workspace.format(&path) {
             Ok(edits) => Some(edits),
             Err(failure) => {
-                self.failed(&uri, &failure);
+                self.notifier.failed(&uri, &failure);
                 None
             }
         }
@@ -301,13 +255,19 @@ impl Server {
             DidChangeTextDocument::METHOD => {
                 let p: DidChangeTextDocumentParams = serde_json::from_value(note.params)?;
                 if let Some(path) = path_of(&p.text_document.uri) {
-                    self.workspace
-                        .change(&path, p.text_document.version, &p.content_changes);
+                    self.analysis.supersede(&path);
+                    self.workspace.change(
+                        &path,
+                        p.text_document.version,
+                        &p.content_changes,
+                        self.analysis.is_busy(),
+                    );
                 }
             }
             DidCloseTextDocument::METHOD => {
                 let p: DidCloseTextDocumentParams = serde_json::from_value(note.params)?;
                 if let Some(path) = path_of(&p.text_document.uri) {
+                    self.analysis.supersede(&path);
                     self.workspace.close(&path);
                 }
             }
@@ -322,15 +282,22 @@ impl Server {
                     self.reload_config()?;
                 }
             }
+            CancelRequest::METHOD => {
+                let p: CancelParams = serde_json::from_value(note.params)?;
+                self.analysis.cancel(&match p.id {
+                    NumberOrString::Number(n) => RequestId::from(n),
+                    NumberOrString::String(s) => RequestId::from(s),
+                });
+            }
             _ => {}
         }
         Ok(())
     }
 
     fn reload_config(&mut self) -> Result<()> {
-        self.shown.clear();
+        self.notifier.reset();
         if let Some(error) = self.workspace.reload_config() {
-            self.config_failed(error);
+            self.notifier.config_failed(error);
         }
         if self.support.diagnostic_refresh {
             self.call::<WorkspaceDiagnosticRefresh>(())?;

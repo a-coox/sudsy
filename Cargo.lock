@@ -1370,10 +1370,12 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "core-config",
+ "core-format",
  "core-incremental",
  "core-rules",
  "core-syntax",
  "core-workspace",
+ "crossbeam-channel",
  "lang-csharp",
  "lang-json",
  "lang-yaml",
@@ -1554,9 +1556,13 @@ dependencies = [
  "lang-csharp",
  "lang-json",
  "lang-yaml",
+ "lsp",
+ "lsp-server",
  "mimalloc",
  "provider-api",
  "sample-plugin",
+ "serde_json",
+ "url",
 ]
 
 [[package]]

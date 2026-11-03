@@ -7,8 +7,10 @@
 //! * `server`: initialize, the message loop and the translation of LSP messages.
 
 mod actions;
+mod analysis;
 mod diagnostics;
 mod formatting;
+mod notifier;
 mod position;
 mod server;
 pub mod workspace;

@@ -131,6 +131,53 @@ impl Client {
         }
     }
 
+    /// Sends a request without waiting for the answer; see [`Client::response`].
+    pub fn send_request<R: lsp_types::request::Request>(&mut self, params: R::Params) -> RequestId
+    where
+        R::Params: Serialize,
+    {
+        self.next_id += 1;
+        let id = RequestId::from(self.next_id);
+        self.send(Request::new(id.clone(), R::METHOD.to_string(), params));
+        id
+    }
+
+    /// `$/cancelRequest` for a request sent with [`Client::send_request`].
+    pub fn cancel(&self, id: &RequestId) {
+        let number: i32 = id.to_string().parse().unwrap();
+        self.notify::<lsp_types::notification::Cancel>(lsp_types::CancelParams {
+            id: lsp_types::NumberOrString::Number(number),
+        });
+    }
+
+    /// The answer to `id`: the result, or the error's code and data.
+    pub fn response(
+        &mut self,
+        id: &RequestId,
+    ) -> Result<serde_json::Value, (i32, Option<serde_json::Value>)> {
+        loop {
+            match self
+                .conn
+                .receiver
+                .recv_timeout(TIMEOUT)
+                .expect("the server answers")
+            {
+                Message::Response(Response {
+                    id: got,
+                    response_result,
+                }) if &got == id => {
+                    return response_result.map_err(|e| (e.code, e.data));
+                }
+                Message::Response(_) => {}
+                Message::Notification(n) => self.notes.push((n.method, n.params)),
+                Message::Request(r) => {
+                    self.server_requests.push(r.method);
+                    self.send(Response::new_ok(r.id, serde_json::Value::Null));
+                }
+            }
+        }
+    }
+
     /// Reads messages until a notification of `method` arrives (or one is waiting already).
     pub fn wait_for(&mut self, method: &str) -> serde_json::Value {
         if let Some(i) = self.notes.iter().position(|(m, _)| m == method) {

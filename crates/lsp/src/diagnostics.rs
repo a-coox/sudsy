@@ -1,10 +1,17 @@
 //! Rule diagnostics as LSP diagnostics.
 
+use crate::analysis::Cancel;
+use crate::notifier::Notifier;
 use crate::position::Positions;
+use crate::server::path_of;
 use crate::workspace::Workspace;
 use core_incremental::{Failure, Stage, lint, project_diagnostics};
 use core_rules::{Diagnostic, Severity};
-use lsp_types::{DiagnosticRelatedInformation, DiagnosticSeverity, Location, NumberOrString, Uri};
+use lsp_types::{
+    DiagnosticRelatedInformation, DiagnosticSeverity, DocumentDiagnosticParams,
+    DocumentDiagnosticReport, DocumentDiagnosticReportResult, FullDocumentDiagnosticReport,
+    Location, NumberOrString, RelatedFullDocumentDiagnosticReport, Uri,
+};
 use std::path::Path;
 
 pub const SOURCE: &str = "sudsy";
@@ -83,4 +90,38 @@ impl Workspace {
         }
         Ok(items)
     }
+}
+
+/// `textDocument/diagnostic` on a snapshot, on the analysis thread.
+pub(crate) fn diagnostic(
+    workspace: &Workspace,
+    notifier: &Notifier,
+    params: DocumentDiagnosticParams,
+    cancel: &Cancel,
+) -> DocumentDiagnosticReportResult {
+    let uri = params.text_document.uri;
+    let path = path_of(&uri);
+    if let Some(failure) = path.as_deref().and_then(|p| workspace.semantic_warning(p)) {
+        notifier.failed(&uri, &failure);
+    }
+    // Checkpoint: the first query above is the long one; a result nobody wants is not built.
+    let items = match path.filter(|_| cancel.error().is_none()) {
+        Some(p) => match workspace.diagnostics(&p, &uri) {
+            Ok(items) => items,
+            Err(failure) => {
+                notifier.failed(&uri, &failure);
+                Vec::new()
+            }
+        },
+        None => Vec::new(),
+    };
+    DocumentDiagnosticReportResult::Report(DocumentDiagnosticReport::Full(
+        RelatedFullDocumentDiagnosticReport {
+            related_documents: None,
+            full_document_diagnostic_report: FullDocumentDiagnosticReport {
+                result_id: None,
+                items,
+            },
+        },
+    ))
 }
