@@ -13,9 +13,6 @@
     "Formatters",
     "Linters"
   ],
-  "extensionDependencies": [
-    "redhat.vscode-yaml"
-  ],
   "activationEvents": [
     "onLanguage:csharp",
     "onLanguage:json",

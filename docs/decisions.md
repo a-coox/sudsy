@@ -1124,11 +1124,11 @@ a check-only run could not skip it. No optimization was done here; proposals 2 a
   `sudsy.csharpWorkerPath` change. Documents: C#, JSON, JSONC and YAML files (`.cs` also by
   pattern, so a missing C# extension does not matter). Commands: restart server, show output.
   `sudsy.trace.server` is the client's own trace setting.
-* **Config schema:** the extension *depends on* `redhat.vscode-yaml` (plan.md's other option was a
-  completion provider in our server) and contributes `yamlValidation` for `sudsy.yaml`/`.yml`
+* **Config schema:** the extension contributes `yamlValidation` for `sudsy.yaml`/`.yml`
   with a copy of `schemas/sudsy.schema.json` made at build time (`npm run build`, not checked
   in), so the generated file stays the only source. The schema now has the rules and their
-  options.
+  options. `redhat.vscode-yaml` reads it when installed; it is not a dependency (user decision:
+  C#/JSON users should not need a second YAML extension that also competes as YAML formatter).
 * **Format on save** is the user's choice of `editor.defaultFormatter: sudsy.sudsy` per language
   (plan.md); the extension sets no defaults. This repository's `.vscode/settings.json` does, and
   points the extension at `target/debug/sudsy` and the debug worker; `.vscode/launch.json` starts
