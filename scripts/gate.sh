@@ -12,11 +12,14 @@ while [ $# -gt 0 ]; do
   esac; shift
 done
 ws=(--workspace); [ ${#pkg[@]} -gt 0 ] && ws=("${pkg[@]}")
-gate() { local name=$1; shift; echo "== $name"; "$@" || { echo "GATE FAILED: $name" >&2; exit 1; }; }
+gate() {
+  local name=$1 t=$SECONDS; shift; echo "== $name"
+  "$@" || { echo "GATE FAILED: $name" >&2; exit 1; }
+  echo "   ($name: $((SECONDS - t))s)"
+}
 vscode() { (cd editors/vscode && npm run "$@"); }
 
 gate "cargo fmt" cargo fmt --all -- --check
-gate "cargo build" cargo build "${ws[@]}"
 gate "cargo clippy" cargo clippy "${ws[@]}" --all-targets -- -D warnings
 gate "cargo test" cargo test "${ws[@]}"
 if [ ${#pkg[@]} -eq 0 ]; then
@@ -34,4 +37,4 @@ if [ ${#pkg[@]} -eq 0 ]; then
     gate "vscode build" vscode build
   fi
 fi
-echo "ALL GATES PASSED"
+echo "ALL GATES PASSED (${SECONDS}s)"
