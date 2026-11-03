@@ -1,0 +1,127 @@
+/// The Wasm plugin interface, version 0.1. UNSTABLE: it changes without notice until v1.
+///
+/// A plugin is a component that exports `rules`. The host (`core-plugins`, wasmtime) copies the
+/// file into the plugin once per call: the text, the syntax tree in the wire encoding of
+/// `core-syntax` (kinds as little-endian u16 and values as varints; token text is not sent, the
+/// plugin has the source), and, for rules that need semantic layers, the file's answers and
+/// flow graphs as MessagePack. Diagnostics come back with byte spans into the text.
+///
+/// A plugin gets a fuel and a time limit per call; one that traps or runs out of either is
+/// disabled for the rest of the run and reported. It has no files, network, clock or environment.
+package sudsy:rules@0.1.0;
+
+interface rules {
+    variant option-value {
+        flag(bool),
+        integer(s64),
+        text(string),
+        texts(list<string>),
+    }
+
+    record option-decl {
+        name: string,
+        description: string,
+        /// The type of an option is the type of its default.
+        default-value: option-value,
+    }
+
+    record rule-info {
+        /// Short id; the host reports the rule as `<plugin name>/<id>`.
+        id: string,
+        /// `csharp`, `json`, `yaml`, or `*` for every language.
+        language: string,
+        /// correctness | suspicious | style | cleanup | performance
+        category: string,
+        description: string,
+        example: string,
+        /// off | warn | error
+        default-level: string,
+        /// The most trusted fix kind the rule offers: safe | unsafe | suggestion.
+        fix: option<string>,
+        /// Layers without which the rule does not run, and layers it uses when present:
+        /// binding | types | values | flow | project.
+        requires: list<string>,
+        uses: list<string>,
+        options: list<option-decl>,
+    }
+
+    record plugin-info {
+        name: string,
+        /// The version of this interface the plugin was built against: `rules@0.1`.
+        api: string,
+        rules: list<rule-info>,
+    }
+
+    record span {
+        start: u32,
+        end: u32,
+    }
+
+    record edit {
+        span: span,
+        text: string,
+    }
+
+    record fix {
+        title: string,
+        /// safe | unsafe | suggestion
+        kind: string,
+        edits: list<edit>,
+    }
+
+    record related {
+        span: span,
+        message: string,
+    }
+
+    record diagnostic {
+        span: span,
+        message: string,
+        related: list<related>,
+        fixes: list<fix>,
+    }
+
+    record file {
+        path: string,
+        language: string,
+        /// Content hash of the language's grammar; a plugin built against another grammar
+        /// refuses the file rather than misread kinds.
+        grammar-hash: string,
+        text: string,
+        tree-kinds: list<u8>,
+        tree-values: list<u8>,
+        /// The node kinds that are bodies (methods, lambdas, local functions).
+        body-kinds: list<u16>,
+        /// MessagePack of the file's semantic answers and the behavior summaries that apply;
+        /// absent when the file's rules need no layer.
+        semantics: option<list<u8>>,
+    }
+
+    /// A fact a rule gathered from a file for the project phase.
+    record fact {
+        file: string,
+        span: span,
+        key: string,
+        value: string,
+    }
+
+    record project-diagnostic {
+        file: string,
+        diagnostic: diagnostic,
+    }
+
+    info: func() -> plugin-info;
+
+    /// Node, body and file scope of one rule on one file.
+    check: func(rule: string, options: list<tuple<string, option-value>>, file: file) -> result<list<diagnostic>, string>;
+
+    /// Project scope, phase 1.
+    collect: func(rule: string, options: list<tuple<string, option-value>>, file: file) -> result<list<fact>, string>;
+
+    /// Project scope, phase 2: the facts of all files.
+    finish: func(rule: string, options: list<tuple<string, option-value>>, facts: list<fact>) -> result<list<project-diagnostic>, string>;
+}
+
+world plugin {
+    export rules;
+}

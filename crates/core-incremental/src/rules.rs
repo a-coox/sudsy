@@ -167,17 +167,13 @@ pub fn lint(db: &dyn Db, file: File) -> Result<Linted, Failure> {
         root: &root,
         grammar: provider.grammar(),
         lines: &lines,
+        body_kinds: provider.body_kinds(),
         semantics: data.map(|data| SemanticView {
             data,
             summaries: &summaries,
         }),
     };
-    let FileReport { diagnostics, facts } = run_file(
-        &context,
-        &active,
-        provider.body_kinds(),
-        depth == Depth::Deep,
-    );
+    let FileReport { diagnostics, facts } = run_file(&context, &active, depth == Depth::Deep);
     Ok(Linted {
         diagnostics,
         facts,

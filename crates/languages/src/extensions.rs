@@ -54,6 +54,19 @@ fn load_patterns(source: &str, providers: &[Box<dyn LanguageProvider>]) -> Resul
     })
 }
 
+/// Plugins by their bytes, for the same reason as patterns: an unchanged plugin stays the same
+/// object (and keeps its state) when the config is read again.
+fn load_wasm(path: &Path, bytes: Vec<u8>) -> Result<Loaded, String> {
+    static PLUGINS: std::sync::LazyLock<Mutex<HashMap<Vec<u8>, Loaded>>> =
+        std::sync::LazyLock::new(Mutex::default);
+    if let Some(found) = PLUGINS.lock().expect("cache").get(&bytes) {
+        return Ok(found.clone());
+    }
+    let loaded = core_plugins::load(path, &bytes).map_err(|e| e.0)?;
+    PLUGINS.lock().expect("cache").insert(bytes, loaded.clone());
+    Ok(loaded)
+}
+
 fn files_of(entry: &PluginEntry, root: &Path) -> Result<Vec<PathBuf>, ConfigError> {
     let dir = entry.dir.as_deref().unwrap_or(root);
     core_workspace::expand(dir, &entry.entry)
@@ -84,7 +97,11 @@ pub fn load_extensions(
                         .map_err(|e| at(format!("cannot read the pattern file: {e}")))?;
                     load_patterns(&source, providers).map_err(at)?
                 }
-                PluginKind::Wasm => Vec::new(),
+                PluginKind::Wasm => {
+                    let bytes = std::fs::read(&path)
+                        .map_err(|e| at(format!("cannot read the plugin: {e}")))?;
+                    load_wasm(&path, bytes).map_err(at)?
+                }
             };
             extensions.files.push(path.clone());
             for (language, rule) in rules {

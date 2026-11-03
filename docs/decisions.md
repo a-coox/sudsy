@@ -1375,3 +1375,80 @@ requests in parallel (or one workspace per core) is the lever if CI time matters
   expected diagnostics are written under the line they point at (`// ^^^ rule-id`, `#` in YAML;
   carets give the span's length when it is on one line). plan.md's "inline annotations" fixtures
   from M3b's not-done list.
+
+### Wasm plugins (`wit/rules.wit`, `core-plugins`, `plugin-sdk`)
+* **Interface.** `sudsy:rules@0.1.0`, one export `rules` with `info`, `check`, `collect`, `finish`
+  (node, body and file scope in `check`; the two project phases). Unstable until v1; the plugin's
+  `info().api` must equal the host's `rules@0.1` or the plugin is refused with a rebuild hint.
+  Everything that is not simple (the tree, semantic answers) crosses as bytes in a format the core
+  already has, so the WIT stays small: the tree is `core_syntax::wire` (kinds and varints, token text
+  not sent), semantic answers are the MessagePack of `(FileSemantics, BehaviorSummaries)`
+  (`core-semantics` types, now `Serialize`/`Deserialize`), options are a typed variant list.
+* **Semantic queries are not host functions.** plan.md says "semantic queries are host functions,
+  batched and cached". The worker already answers a file's layers in one batched exchange
+  (`provider.semantics(file, layers)`), cached by the query engine, so the host sends the answers
+  with the file instead of letting the plugin call back. The plugin therefore needs no imports at
+  all and cannot make the host do work.
+* **The flow API is the core's.** The SDK links `core-flow`: the plugin receives the same graphs the
+  built-in rules read and runs the same solver and analyses (`plugin_sdk::flow`,
+  `BodyContext::flow`). Likewise the pattern matcher is `plugin_sdk::patterns`; compiling a pattern
+  needs a parser for the language, which a plugin does not have for C#, so v0 exposes matching and
+  compilation against a `SnippetParser` the plugin supplies (JSON and YAML parsers do not link into
+  plugins); a host import for parsing snippets is the follow-up if plugin authors ask.
+* **One rule source, built in or Wasm.** `plugin-sdk` re-exports `core_rules::Rule` and its
+  contexts, and the plugin side of the glue (`guest.rs`) runs the file through the core's own
+  `run_file` / `run_project` with the plugin's rule as the only active rule. So a rule written
+  against the SDK compiles natively (tests, or built in) and to Wasm without change, and
+  `export_plugin!(name: "team", rules: [("csharp", &MyRule)])` is all the glue an author writes.
+  `core-rules`, `core-config`, `core-flow` and the grammars compile to `wasm32-wasip2` as they are.
+* **Host.** `wasmtime` with the component model; the guest is built with
+  `--target wasm32-wasip2`, which imports a few WASI interfaces for `std`, so the linker has
+  `wasmtime-wasi` with an empty context (no preopened directories, environment, arguments or
+  inherited streams: no files, network or clock). Each call gets a fresh instance (the component is
+  compiled once per distinct bytes), 2e9 fuel, 10 s of wall-clock time (an epoch ticker thread
+  advances every 50 ms) and 512 MiB of memory. The tree is encoded and copied once per call, and a
+  call is one rule on one file; with several rules in a plugin that is several copies of the same
+  tree, accepted for v0 to keep the rule interface a plain `Rule`.
+* **Failure.** A trap, an exhausted limit, an error the plugin returns, a span outside the file or
+  not on a character boundary, or an unknown fix kind disables the whole plugin for the rest of
+  the run and reports one diagnostic at the start of the file that hit it ("plugin `x` is disabled
+  for this run: ..."), under the rule that was running. A reloaded config keeps the same plugin
+  object when the bytes are unchanged (so the editor keeps it disabled until the file is rebuilt).
+* **Names and ids.** The plugin's name is its prefix: `info().name` plus `/` plus the rule's id,
+  checked for letters, digits, `-`, `_`. A rule's language is `csharp`, `json`, `yaml` or `*`. Rule
+  options come from the plugin's declarations, so `lint.rules.team/x.options` is checked like a
+  built-in's; the options JSON Schema of plugin rules is not in the generated schema (the schema is
+  generated without loading plugins).
+* **Grammar hash.** The host sends the hash of the grammar of the file's language; a plugin built
+  against another grammar returns an error instead of reading kinds that mean something else.
+* **Testing.** `plugin_sdk::testing` (feature `testing`, native) re-exports the harness the built-in
+  rules use (`expect`, `lint_with`, `fix_with`) and gives a real provider. The host is tested
+  against `tests/plugins/sample`, a plugin with a node rule (options, fix), a flow-graph body rule
+  and a project rule, which the tests build with `cargo build --target wasm32-wasip2` (CI installs
+  the target; `provider_api::testing::sample_plugin` builds it once per test process). A fourth rule
+  misbehaves on request to test the limits. The sample is its own workspace (`exclude` in the root
+  manifest) and its own tests run natively with the harness.
+* **Cleanup.** `run_file` lost its `body_kinds` parameter: the kinds are a field of `FileContext`,
+  where a plugin also needs them. `Db`'s note that the plugin host "will make the provider set
+  dynamic" is replaced by the `ExtensionSet` input.
+
+### The v0.1 release (prepared, not performed)
+* **Version.** One number for the Cargo workspace, `editors/vscode/package.json` and its lock file
+  (0.1.0); `scripts/check-version.sh [vX.Y.Z]` fails when they or the tag disagree or
+  `CHANGELOG.md` has no section for the version, and the release workflow runs it first. The sample
+  plugin stays 0.0.0 (it is a test fixture).
+* **Workflow** (`.github/workflows/release.yml`, on a `vX.Y.Z` tag): version check, then all of
+  `ci.yml` (made reusable with `workflow_call`; the "all earlier gates still green" requirement),
+  then one build job per platform on a native runner: linux, macOS and Windows, x64 and arm64.
+  Each makes a CLI archive (`scripts/package-cli.sh`: the executable, `csharp-worker/` beside it,
+  LICENSE, CHANGELOG) and the platform's `.vsix`, after the smoke test that the staged binary finds
+  its worker. Last, a job drafts a GitHub release with the archives and `SHA256SUMS`, notes taken
+  from the changelog section. Pre-release suffixes (`-rc.1`) make a pre-release.
+* **Publishing stays manual.** The workflow publishes nothing by itself. The `marketplace` job runs
+  only from a hand-started run on a tag with its input ticked, with the `VSCE_PAT` secret. There is
+  nothing for crates.io (every crate is `publish = false`; the SDK is used by path until the plugin
+  API is stable) or NuGet (the worker ships inside the packages).
+* **Open before publishing** (plan.md lists them as still open): the GitHub organisation and the
+  Marketplace publisher id (`package.json` says `sudsy`), contributor sign-off (DCO or CLA), and
+  the copyright line of `LICENSE` ("The Sudsy authors" is a placeholder). The macOS and arm64
+  builds are untested on real hardware until the first run of the workflow.

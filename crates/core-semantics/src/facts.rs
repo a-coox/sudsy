@@ -118,7 +118,7 @@ pub struct Answers {
 }
 
 /// Everything a provider answered about a file for the layers its rules need.
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct FileSemantics {
     pub answers: Answers,
     pub graphs: Vec<BodyGraph>,

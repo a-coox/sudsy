@@ -6,8 +6,8 @@ use crate::model::{LintSection, Override};
 
 impl ConfigChain {
     /// Every rule id in a `lint` section of the config files (top level, language sections and
-    /// overrides) must be one of `known`, the ids of the rules of all languages. A plugin rule
-    /// (`plugin/rule`) is not checked: its plugin is not loaded when the config is read.
+    /// overrides) must be one of `known`, the ids of the rules of all languages and of the
+    /// project's pattern and plugin rules (`plugin/rule`).
     pub fn validate_rule_ids(&self, known: &[&str]) -> Result<(), ConfigError> {
         for loaded in &self.files {
             let c = &loaded.config;
@@ -26,7 +26,7 @@ impl ConfigChain {
 
 fn check_section(lint: &LintSection, known: &[&str]) -> Result<(), ConfigError> {
     for (id, rule) in &lint.rules {
-        if !id.contains('/') && !known.contains(&id.as_str()) {
+        if !known.contains(&id.as_str()) {
             return Err(ConfigError::at(
                 rule.referenced.line(),
                 rule.referenced.column(),

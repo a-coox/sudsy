@@ -89,6 +89,7 @@ fn run(text: &str, rule: &Probe, collect: bool, bodies: &[SyntaxKind]) -> FileRe
         root: &parsed.tree,
         grammar: provider.grammar(),
         lines: &lines,
+        body_kinds: bodies,
         semantics: None,
     };
     let active = [ActiveRule {
@@ -96,7 +97,7 @@ fn run(text: &str, rule: &Probe, collect: bool, bodies: &[SyntaxKind]) -> FileRe
         severity: Severity::Warning,
         options: RuleOptions::resolve(rule.meta.options, &BTreeMap::new()).unwrap(),
     }];
-    run_file(&file, &active, bodies, collect)
+    run_file(&file, &active, collect)
 }
 
 fn messages(report: &FileReport) -> Vec<String> {

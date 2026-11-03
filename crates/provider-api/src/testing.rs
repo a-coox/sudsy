@@ -134,12 +134,13 @@ fn analyze(
         root: &parsed.tree,
         grammar: provider.grammar(),
         lines: &lines,
+        body_kinds: provider.body_kinds(),
         semantics: data.as_ref().map(|data| SemanticView {
             data,
             summaries: &summaries,
         }),
     };
-    let report = run_file(&context, &active, provider.body_kinds(), false);
+    let report = run_file(&context, &active, false);
     Analysis {
         diagnostics: report.diagnostics,
         parses: true,
@@ -302,4 +303,30 @@ pub fn expect(
         "diagnostics (line, column, length, rule) differ from the annotations in:\n{text}"
     );
     text
+}
+
+/// Builds the sample plugin (`tests/plugins/sample`) to a Wasm component once per test process
+/// and returns the file. Needs the `wasm32-wasip2` target (`rustup target add wasm32-wasip2`).
+pub fn sample_plugin() -> std::path::PathBuf {
+    static WASM: std::sync::OnceLock<std::path::PathBuf> = std::sync::OnceLock::new();
+    WASM.get_or_init(|| {
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+        let target = std::env::var_os("CARGO_TARGET_DIR")
+            .map(std::path::PathBuf::from)
+            .unwrap_or_else(|| root.join("target"))
+            .join("sample-plugin");
+        let status = std::process::Command::new("cargo")
+            .args(["build", "--release", "--target", "wasm32-wasip2", "--quiet"])
+            .arg("--manifest-path")
+            .arg(root.join("tests/plugins/sample/Cargo.toml"))
+            .env("CARGO_TARGET_DIR", &target)
+            .status()
+            .expect("cargo runs");
+        assert!(
+            status.success(),
+            "building the sample plugin failed (is the wasm32-wasip2 target installed?              `rustup target add wasm32-wasip2`)"
+        );
+        target.join("wasm32-wasip2/release/sample_plugin.wasm")
+    })
+    .clone()
 }
