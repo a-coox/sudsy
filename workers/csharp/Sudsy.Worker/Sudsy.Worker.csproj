@@ -3,6 +3,8 @@
     <OutputType>Exe</OutputType>
     <AssemblyName>Sudsy.Worker</AssemblyName>
     <RootNamespace>Sudsy.Worker</RootNamespace>
+    <!-- Roslyn's localized messages are never shown: keeps the extension package small. -->
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.9.0" />

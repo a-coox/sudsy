@@ -1,0 +1,6 @@
+**
+!dist/**
+!schemas/sudsy.schema.json
+!server/**
+!package.json
+!README.md
