@@ -1,0 +1,21 @@
+# C# formatting (`lang-csharp`)
+
+Parser is Roslyn in the worker ([csharp-worker.md](../architecture/csharp-worker.md)); formatting, options, presets and rules are Rust. Defaults are the `csharp/microsoft` preset: width 120, indent 4, Allman braces, final newline. The full option list with values and defaults is in `schemas/sudsy.schema.json` (generated) and `sudsy config print`.
+
+## Structure (`src/format`)
+`mod.rs` dispatches on kind and grammar tag; nodes with no code are `seq` (children in order, separated by `Sep`). `spacing.rs` (space between two tokens: short exception table, default a space), `braces.rs` (types, namespaces, blocks, switch, enum, accessors), `lists.rs` (delimited lists, lambda hook), `chains.rs` (binary, member, conditional, assignment), `query.rs` (LINQ), `tags.rs` (tag table), `options.rs`. Tag defaults (`#block`, ...) are not used for C#; tags only find kinds.
+
+## Layout rules
+- Blank lines between members/statements are kept (max one), added only by `blank_lines_between_members: separate`. Empty body is `{ }`. Attribute lists: one per line on declarations and statements, inline on parameters/type parameters/lambdas. Expression-bodied members stay on the header line. `where` clauses on their own indented lines. Embedded statements on their own indented line. `else if` stays on one line.
+- Binary chains: one group per precedence level, operator first; no extra indent after `=`, `=>` or inside `if ( )`/`( )`. Conditional operator breaks before `?` and `:`. Query expressions break before each clause.
+- Member chains: with at least `member_chain_min_calls` (3) calls that do not fit, one call per line; the first call stays on the head's line when the head is `this`, `base`, a predefined type, a capitalized name or a name no longer than the indent.
+- Lambda as last argument (block bodies): `conditional_group` of "arguments before it on one line, body hanging" vs one argument per line.
+- Interpolated strings are kept as written (expressions not formatted); raw and verbatim strings are single tokens.
+- A trailing line comment on an operator makes the next operand start a new line; a line comment between chain links breaks the chain at every dot; hooks that print tokens themselves apply only when no delimiter/comma/argument start in the list has a comment.
+- `#if` regions: only the active branch is formatted; other branches stay verbatim. Preprocessor symbols come from the `preprocessor_symbols` option.
+
+## Option groups
+Shared four; `brace_newline` (`all`|`none`; `none` keeps `else`/`catch`/`finally` on new lines unless `clause_keyword_line: same_line`), `trailing_commas` (`preserve`|`never`|`multiline`; only where C# allows them), `member_chain_min_calls`, `preprocessor_symbols`, and the named layout options that express presets (`assignment_layout`, `base_list_layout`, `initializer_collapse`, `lambda_argument_hug`, `switch_arm_layout`, `wrapped_brace_line`, `inline_accessor_bodies`, `blank_lines_between_members`, ...). Every preset difference is one of these; nothing is hidden.
+
+## CSharpier compatibility
+`csharp/csharpier-compat` (CSharpier 1.x) is plain options. Differential test against CSharpier 1.3.0 on the 7659-file corpus: 4952 files identical (65%); aspnetcore 2192/3122, roslyn 1657/2858, runtime 1103/1679. Known differences: `using` sort order (CSharpier sorts; needs a safety check that treats a run of usings as unordered), CSharpier formats every `#if` branch, deeper layout differences (interpolated strings as arguments, chains inside lambdas, casts before `new`, parenthesized operands), trailing commas next to comments, some indentation and blank-line cases after `#region`/comments.

@@ -15,8 +15,7 @@ To format on save, choose Sudsy as the formatter of each language in your settin
 }
 ```
 
-`sudsy.yaml` itself gets completion and validation (through the Red Hat YAML extension, which this
-extension depends on).
+`sudsy.yaml` itself gets completion and validation (through the Red Hat YAML extension, if you have it installed).
 
 C# needs the .NET 10 runtime; JSON and YAML work without it.
 

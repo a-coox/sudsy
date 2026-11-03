@@ -1,9 +1,9 @@
 # Sudsy
 
-Formatter + linter for C#, JSON and YAML. `plan.md` is the design source of truth; read the sections relevant to your task before changing code.
+Formatter + linter for C#, JSON and YAML. `docs/` describes how everything works now (index: `docs/README.md`); read the docs for the area you change before changing code.
 
 ## Layout
-- Cargo workspace in `crates/` (see plan.md "Repository layout"). Language crates depend on core crates, never the reverse.
+- Cargo workspace in `crates/` (see docs/architecture/overview.md). Language crates depend on core crates, never the reverse.
 - .NET worker in `workers/csharp/` (net10.0, roll-forward). Grammars in `grammars/`, WIT in `wit/`, VS Code extension in `editors/vscode/`.
 
 ## Conventions
@@ -11,10 +11,11 @@ Formatter + linter for C#, JSON and YAML. `plan.md` is the design source of trut
 - Errors: `thiserror` in libraries, `anyhow` only in binaries (`cli`, `lsp`).
 - Snapshot tests use `insta`; fixtures live under `tests/fixtures/<lang>/` or the crate's `tests/`.
 - Every formatter test checks lossless round-trip, idempotency and meaning preservation.
-- Clean up as you go: once a decision is made, delete the losing alternatives (benchmark candidates, prototypes, bootstrap code); once a temporary placement or shim is superseded (code living somewhere "until X exists"), move or remove it in the milestone that makes X exist. Results stay in docs/decisions.md and git history.
+- Clean up as you go: once a decision is made, delete the losing alternatives (benchmark candidates, prototypes, bootstrap code); once a temporary placement or shim is superseded (code living somewhere "until X exists"), move or remove it when X exists. Results stay in git history.
 - Presets are pure config data. Formatter and rule code never branches on a preset or tool name (no "csharpier mode", no hidden preset-only values). Each style difference is either default behavior or a named, user-settable option that is documented in the schema, so any preset can be reproduced by writing its options in sudsy.yaml by hand.
-- Measure performance of everything you add or change on a hot path (load, parse, format, lint, plugins, editor requests): record method, machine and numbers in `docs/decisions.md`, behind a script or `perf-bench` mode so it can be re-run. Unmeasured is unfinished.
-- No speculative features beyond plan.md (style options needed to express a preset in the plan's preset table are not speculative). When the plan leaves a detail open, pick the simplest option and note it in `docs/decisions.md`.
+- Measure performance of everything you add or change on a hot path (load, parse, format, lint, plugins, editor requests): record method, machine and numbers in `docs/performance/numbers.md` (latest values only), behind a script or `perf-bench` mode so it can be re-run. Unmeasured is unfinished.
+- No speculative features: build what `docs/roadmap.md` does not defer and the task needs (style options needed to express a preset are not speculative). When a detail is open, pick the simplest option.
+- Docs describe current state, not history: update the relevant `docs/` file in the same commit as the change (behavior, options, numbers, roadmap items). No milestone names or "was/used to" prose.
 
 ## Commands
 Run scripts in `scripts/` instead of retyping commands; reuse one before writing a new one.
