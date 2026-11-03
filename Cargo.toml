@@ -29,6 +29,8 @@ tempfile = "3"
 thiserror = "2"
 
 core-config = { path = "crates/core-config" }
+core-flow = { path = "crates/core-flow" }
+core-semantics = { path = "crates/core-semantics" }
 core-incremental = { path = "crates/core-incremental" }
 core-rules = { path = "crates/core-rules" }
 core-format = { path = "crates/core-format" }

@@ -9,7 +9,7 @@
 use crate::chain::{ConfigChain, Loaded};
 use crate::editorconfig::EditorConfig;
 use crate::error::{ConfigError, unknown_name};
-use crate::model::{Level, OptionValue, Options};
+use crate::model::{Level, OptionValue, Options, Semantics};
 use crate::schema::{OptionError, OptionSchema, ResolvedOptions};
 use crate::shared;
 use serde_saphyr::Spanned;
@@ -263,6 +263,29 @@ impl ConfigChain {
                 if loaded.globs.overrides[index].is_match(&relative) {
                     out.push((loaded, index, o));
                 }
+            }
+        }
+        out
+    }
+
+    /// The `semantics:` facts that apply to a file: its language section in every config file and
+    /// in matching overrides, added together.
+    pub fn semantics(&self, input: &FileInput<'_>) -> Semantics {
+        let mut out = Semantics::default();
+        let mut add = |s: &Semantics| {
+            out.does_not_return
+                .extend(s.does_not_return.iter().cloned());
+            out.pure.extend(s.pure.iter().cloned());
+        };
+        let files: Vec<&Loaded> = self.files.iter().collect();
+        for loaded in &files {
+            if let Some(section) = loaded.config.language_section(input.language) {
+                add(&section.semantics);
+            }
+        }
+        for (_, _, o) in Self::matching_overrides(&files, input) {
+            if let Some(section) = o.language_section(input.language) {
+                add(&section.semantics);
             }
         }
         out

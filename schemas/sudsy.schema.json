@@ -74,9 +74,17 @@
               "$ref": "#/definitions/rule",
               "description": "A catch block with no statements and no comment swallows the exception silently."
             },
+            "possible-null-dereference": {
+              "$ref": "#/definitions/rule",
+              "description": "A member or element access on an expression the compiler's nullable analysis says may be null. Only code under `#nullable enable` is checked. Off by default: the compiler reports the same thing as CS8602."
+            },
             "prefer-null-coalescing": {
               "$ref": "#/definitions/rule",
               "description": "`a != null ? a : b` (or `a == null ? b : a`) for a name or member access `a` is `a ?? b`. The fix is unsafe because the type of the expression can change when `a` is a nullable value type."
+            },
+            "remove-unused-usings": {
+              "$ref": "#/definitions/rule",
+              "description": "A `using` directive that nothing in the file needs (the compiler's hidden CS8019). Not reported in a file that has compiler errors or `#if` regions, because unresolved or inactive code could be the one using it."
             },
             "sorted-keys": {
               "description": "The keys of an object are not in alphabetical order.",
@@ -111,6 +119,49 @@
                   "type": "object"
                 }
               ]
+            },
+            "unreachable-code": {
+              "description": "A statement that can never run. At `fast` depth this is the statement after a `return`, `throw`, `break`, `continue` or `goto`; with the flow layer it also covers constant conditions and calls that do not return (`does_not_return` in `semantics:`). Only the first statement of a run is reported. Removing it is offered as an editor quick fix only, because unreachable code usually signals a bug.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "non_returning_calls": {
+                          "default": true,
+                          "description": "Treat the code after a call that never returns (`[DoesNotReturn]`,                       `does_not_return` in `semantics:`) as unreachable. The compiler does not,                       so turn this off to report exactly what it reports (CS0162).",
+                          "type": "boolean"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            "unused-assignment": {
+              "$ref": "#/definitions/rule",
+              "description": "A value is stored in a local variable and no path reads it before it is overwritten or the variable goes out of scope (a dead store). Variables that are captured or whose address is taken are not checked; a variable that is never read at all is reported by `unused-variable` instead."
+            },
+            "unused-private-member": {
+              "$ref": "#/definitions/rule",
+              "description": "A private field, method, property or event that no file of the project uses (`analysis: deep`). Members with attributes, overrides, interface implementations, `extern` and `partial` methods are left alone."
+            },
+            "unused-variable": {
+              "$ref": "#/definitions/rule",
+              "description": "A local variable or catch variable that is never used (the compiler's CS0168), or is only assigned constants and never read (CS0219). Variables captured by lambdas or local functions count as used."
             },
             "using-order": {
               "description": "Plain `using` directives of a file or namespace are not in alphabetical order (ordinal). Aliases, `using static` and `global using` stay where they are, and so does a list that has preprocessor directives in it. Comments on lines of their own stay where they are; a comment after a directive moves with it.",
@@ -396,6 +447,27 @@
         },
         "lint": {
           "$ref": "#/definitions/lint"
+        },
+        "semantics": {
+          "additionalProperties": false,
+          "description": "Facts about methods that the flow analyses use.",
+          "properties": {
+            "does_not_return": {
+              "description": "Qualified method names without parameter lists; every overload is covered.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "pure": {
+              "description": "Qualified method names without parameter lists; every overload is covered.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          "type": "object"
         }
       },
       "type": "object"
@@ -534,6 +606,27 @@
         },
         "lint": {
           "$ref": "#/definitions/lint"
+        },
+        "semantics": {
+          "additionalProperties": false,
+          "description": "Facts about methods that the flow analyses use.",
+          "properties": {
+            "does_not_return": {
+              "description": "Qualified method names without parameter lists; every overload is covered.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "pure": {
+              "description": "Qualified method names without parameter lists; every overload is covered.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          "type": "object"
         }
       },
       "type": "object"
@@ -757,6 +850,27 @@
               },
               "lint": {
                 "$ref": "#/definitions/lint"
+              },
+              "semantics": {
+                "additionalProperties": false,
+                "description": "Facts about methods that the flow analyses use.",
+                "properties": {
+                  "does_not_return": {
+                    "description": "Qualified method names without parameter lists; every overload is covered.",
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "pure": {
+                    "description": "Qualified method names without parameter lists; every overload is covered.",
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  }
+                },
+                "type": "object"
               }
             },
             "type": "object"
@@ -872,6 +986,27 @@
               },
               "lint": {
                 "$ref": "#/definitions/lint"
+              },
+              "semantics": {
+                "additionalProperties": false,
+                "description": "Facts about methods that the flow analyses use.",
+                "properties": {
+                  "does_not_return": {
+                    "description": "Qualified method names without parameter lists; every overload is covered.",
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "pure": {
+                    "description": "Qualified method names without parameter lists; every overload is covered.",
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  }
+                },
+                "type": "object"
               }
             },
             "type": "object"
@@ -956,6 +1091,27 @@
               },
               "lint": {
                 "$ref": "#/definitions/lint"
+              },
+              "semantics": {
+                "additionalProperties": false,
+                "description": "Facts about methods that the flow analyses use.",
+                "properties": {
+                  "does_not_return": {
+                    "description": "Qualified method names without parameter lists; every overload is covered.",
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "pure": {
+                    "description": "Qualified method names without parameter lists; every overload is covered.",
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  }
+                },
+                "type": "object"
               }
             },
             "type": "object"
@@ -1063,6 +1219,27 @@
         },
         "lint": {
           "$ref": "#/definitions/lint"
+        },
+        "semantics": {
+          "additionalProperties": false,
+          "description": "Facts about methods that the flow analyses use.",
+          "properties": {
+            "does_not_return": {
+              "description": "Qualified method names without parameter lists; every overload is covered.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "pure": {
+              "description": "Qualified method names without parameter lists; every overload is covered.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          "type": "object"
         }
       },
       "type": "object"

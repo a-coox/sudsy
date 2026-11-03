@@ -1,0 +1,13 @@
+[package]
+name = "core-semantics"
+edition.workspace = true
+license.workspace = true
+version.workspace = true
+publish.workspace = true
+
+[dependencies]
+core-flow.workspace = true
+serde.workspace = true
+
+[lints]
+workspace = true

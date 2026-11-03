@@ -122,6 +122,23 @@ fn lint_definition(rules: &[RuleSchema]) -> Value {
     })
 }
 
+fn semantics_section() -> Value {
+    let names = json!({
+        "type": "array",
+        "items": { "type": "string" },
+        "description": "Qualified method names without parameter lists; every overload is covered."
+    });
+    json!({
+        "type": "object",
+        "additionalProperties": false,
+        "description": "Facts about methods that the flow analyses use.",
+        "properties": {
+            "does_not_return": names.clone(),
+            "pure": names
+        }
+    })
+}
+
 fn lint_section() -> Value {
     json!({ "$ref": "#/definitions/lint" })
 }
@@ -151,7 +168,7 @@ pub fn json_schema(languages: &[(&str, &OptionSchema)], rules: &[RuleSchema]) ->
         json!({
             "type": "object",
             "additionalProperties": false,
-            "properties": { "format": format, "lint": lint_section() }
+            "properties": { "format": format, "lint": lint_section(), "semantics": semantics_section() }
         })
     };
     let sections: Map<String, Value> = LANGUAGES
