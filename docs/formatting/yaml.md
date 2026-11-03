@@ -8,7 +8,7 @@ Why own: existing crates are event/value based (not lossless) or bring their own
 - Tree: one node per collection, entry and scalar (`BlockMapping(Entry)`, `BlockSequence(Entry)`, `FlowMapping`, `FlowSequence`, `FlowPair`, `Scalar`, `BlockScalar`, `AliasNode`, `PropertyNode`); an empty node is absent. Indentation is trivia. Multi-line plain/quoted scalars and block scalar content are single tokens. `#restyle` tags scalar tokens and block headers; `#separator` tags `---`.
 
 ## Data model (`model.rs`)
-Loaded from our tree. Core schema (`yes`, `on`, `0b1`, `1_000` are strings), tags, anchors/aliases expanded, scalar folding with chomping and indentation indicators. Used for the safety check (before == after on value, type, tag, structure, document count). The config loader uses `serde-saphyr` instead (core-config cannot depend on a language crate; gives spans and strict booleans).
+Loaded from our tree. Core schema (`yes`, `on`, `0b1`, `1_000` are strings), tags, anchors/aliases expanded (an undefined alias loads as an opaque node, so it formats unchanged; the `no-undefined-alias` rule reports it), scalar folding with chomping and indentation indicators. Used for the safety check (before == after on value, type, tag, structure, document count). The config loader uses `serde-saphyr` instead (core-config cannot depend on a language crate; gives spans and strict booleans).
 
 ## Options
 | Option | Values | Default |

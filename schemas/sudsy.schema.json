@@ -74,6 +74,10 @@
               "$ref": "#/definitions/rule",
               "description": "A catch block with no statements and no comment swallows the exception silently."
             },
+            "no-undefined-alias": {
+              "$ref": "#/definitions/rule",
+              "description": "An alias names an anchor that is not defined earlier in the same document."
+            },
             "possible-null-dereference": {
               "$ref": "#/definitions/rule",
               "description": "A member or element access on an expression the compiler's nullable analysis says may be null. Only code under `#nullable enable` is checked. Off by default: the compiler reports the same thing as CS8602."

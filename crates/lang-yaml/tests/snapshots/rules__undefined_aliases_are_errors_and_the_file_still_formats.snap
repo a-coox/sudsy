@@ -1,0 +1,5 @@
+---
+source: crates/lang-yaml/tests/rules.rs
+expression: "report(text, \"\")"
+---
+1:4 error[no-undefined-alias] undefined alias `nope`

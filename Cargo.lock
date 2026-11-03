@@ -1271,6 +1271,7 @@ dependencies = [
  "core-rules",
  "core-syntax",
  "insta",
+ "memchr",
  "proptest",
  "provider-api",
  "serde_json",

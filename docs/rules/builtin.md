@@ -8,6 +8,7 @@
 | `no-duplicate-keys` | json | correctness | error | none | keys compared as written between quotes |
 | `sorted-keys` | json | style | off | unsafe | option `order` |
 | `no-duplicate-keys` | yaml | correctness | error | none | scalars compared after unquoting; `<<` skipped |
+| `no-undefined-alias` | yaml | correctness | error | none | alias without an earlier `&anchor` in its document; the formatter does not need it resolved |
 | `ambiguous-booleans` | yaml | suspicious | off | unsafe | plain `yes`/`no`/`on`/`off`; unsafe because quoting changes meaning for YAML 1.1 parsers; off because every GitHub workflow's `on:` would fire |
 | `document-start` | yaml | style | off | safe | |
 | `sorted-keys` | yaml | style | off | unsafe | block mappings only; moving an anchor below its alias is why it is unsafe |

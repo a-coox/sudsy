@@ -273,6 +273,21 @@ fn line_endings_are_kept() {
 }
 
 #[test]
+fn undefined_aliases_are_plain_tokens_to_the_formatter() {
+    assert_eq!(
+        fmt(
+            "a:   *nope
+b: [ *x,*y ]
+",
+            &[]
+        ),
+        "a: *nope
+b: [*x, *y]
+"
+    );
+}
+
+#[test]
 fn an_empty_file_stays_empty() {
     assert_eq!(fmt("", &[]), "");
     assert_eq!(fmt("\n\n", &[]), "");

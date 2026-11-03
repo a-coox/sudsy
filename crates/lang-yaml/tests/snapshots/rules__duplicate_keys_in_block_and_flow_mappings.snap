@@ -10,3 +10,5 @@ expression: "report(text, \"\")"
   related 1:1: first defined here
 8:14 error[no-duplicate-keys] duplicate key `k`
   related 8:8: first defined here
+10:7 error[no-undefined-alias] undefined alias `one`
+11:7 error[no-undefined-alias] undefined alias `two`

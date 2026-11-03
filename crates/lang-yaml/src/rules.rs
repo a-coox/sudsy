@@ -1,17 +1,20 @@
-//! YAML rules: `no-duplicate-keys`, `ambiguous-booleans`,
+//! YAML rules: `no-duplicate-keys`, `no-undefined-alias`, `ambiguous-booleans`,
 //! `document-start` and the opt-in `sorted-keys`.
 
 use crate::generated::{AnyValue, BlockMapping, BlockMappingEntry, FlowMapping, Scalar, kind};
 use crate::scalar::{double_quoted_value, plain_value, single_quoted_value};
 use core_config::Level;
 use core_rules::tree::{entry_range, reorder_edits, significant_range};
-use core_rules::{Category, Edit, Fix, FixKind, Opt, OptionDecl, Rule, RuleContext, RuleMeta};
+use core_rules::{
+    Category, Edit, FileContext, Fix, FixKind, Opt, OptionDecl, Rule, RuleContext, RuleMeta,
+};
 use core_syntax::ast::AstNode;
 use core_syntax::{SyntaxKind, SyntaxNode, TextRange, TextSize};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 pub static RULES: &[&dyn Rule] = &[
     &NoDuplicateKeys,
+    &NoUndefinedAlias,
     &AmbiguousBooleans,
     &DocumentStart,
     &SortedKeys,
@@ -85,6 +88,61 @@ impl Rule for NoDuplicateKeys {
                 None => {
                     seen.insert(name, range);
                 }
+            }
+        }
+    }
+}
+
+struct NoUndefinedAlias;
+
+static NO_UNDEFINED_ALIAS: RuleMeta = RuleMeta {
+    id: "no-undefined-alias",
+    category: Category::Correctness,
+    description: "An alias names an anchor that is not defined earlier in the same document.",
+    example: "a: *nope   # no `&nope` before it",
+    default_level: Level::Error,
+    fix: None,
+    requires: &[],
+    uses: &[],
+    options: &[],
+};
+
+impl Rule for NoUndefinedAlias {
+    fn meta(&self) -> &'static RuleMeta {
+        &NO_UNDEFINED_ALIAS
+    }
+
+    /// Looks only at the `&` and `*` bytes of the text and asks the tree what they are, so a file
+    /// without anchors costs one scan and no tree walk.
+    fn check_file(&self, file: &FileContext<'_>, ctx: &mut RuleContext<'_>) {
+        let mut anchors: HashSet<&str> = HashSet::new();
+        let mut document = None;
+        for at in memchr::memchr2_iter(b'&', b'*', file.text.as_bytes()) {
+            let Some(token) = file
+                .root
+                .token_at_offset(TextSize::new(at as u32))
+                .right_biased()
+            else {
+                continue;
+            };
+            let (kind, range) = (token.kind(), token.text_range());
+            if !matches!(kind, kind::ANCHOR | kind::ALIAS) || usize::from(range.start()) != at {
+                continue;
+            }
+            // Anchors do not cross document markers.
+            let doc = token
+                .parent_ancestors()
+                .find(|n| n.kind() == kind::DOCUMENT)
+                .map(|n| n.text_range().start());
+            if doc != document {
+                document = doc;
+                anchors.clear();
+            }
+            let name = &file.text[at + 1..usize::from(range.end())];
+            if kind == kind::ANCHOR {
+                anchors.insert(name);
+            } else if !anchors.contains(name) {
+                ctx.report(range, format!("undefined alias `{name}`"));
             }
         }
     }

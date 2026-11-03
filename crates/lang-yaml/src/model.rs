@@ -125,10 +125,11 @@ impl Loader {
             k::ALIAS_NODE => {
                 let t = token_of(n, k::ALIAS).ok_or("alias without a name")?;
                 let name = &t.text()[1..];
-                self.anchors
-                    .get(name)
-                    .cloned()
-                    .ok_or_else(|| format!("undefined alias `{name}`"))
+                // An undefined alias is a lint error; the model keeps it as an opaque tagged node.
+                Ok(self.anchors.get(name).cloned().unwrap_or_else(|| Node {
+                    tag: Some(format!("*{name}")),
+                    value: Value::Null,
+                }))
             }
             k::SCALAR => self.scalar(n, tag),
             k::BLOCK_SCALAR => self.block_scalar(n, tag),
@@ -442,6 +443,34 @@ mod tests {
             panic!()
         };
         assert_eq!(pairs[0].1, pairs[1].1);
+    }
+
+    #[test]
+    fn undefined_aliases_load_as_opaque_nodes() {
+        assert_eq!(
+            load(
+                "a: *x
+"
+            )
+            .unwrap(),
+            load(
+                "a:   *x
+"
+            )
+            .unwrap()
+        );
+        assert_ne!(
+            load(
+                "a: *x
+"
+            )
+            .unwrap(),
+            load(
+                "a: *y
+"
+            )
+            .unwrap()
+        );
     }
 
     #[test]

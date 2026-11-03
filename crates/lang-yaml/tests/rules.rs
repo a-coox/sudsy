@@ -25,6 +25,33 @@ fn quoted_and_plain_keys_are_the_same_key() {
 }
 
 #[test]
+fn undefined_aliases_are_errors_and_the_file_still_formats() {
+    let text = "a: *nope
+b: &x 1
+c: *x
+";
+    assert_snapshot!(report(text, ""));
+    assert_eq!(
+        report(
+            "a: &x 1
+---
+b: *x
+",
+            ""
+        )
+        .matches("undefined alias")
+        .count(),
+        1
+    );
+}
+
+#[test]
+fn star_and_ampersand_that_are_not_aliases_or_anchors_are_ignored() {
+    let text = "a: '*nope'\nb: \"&x *y\"\n# *c\nd: |\n  *e &f\ng: x*y\n";
+    assert_eq!(report(text, "").matches("undefined alias").count(), 0);
+}
+
+#[test]
 fn ambiguous_booleans_are_opt_in_and_quoted_by_the_unsafe_fix() {
     let text =
         "on: yes\nlist: [no, Off, true]\nsafe: !!str yes\nquoted: \"yes\"\nword: yesterday\n";
