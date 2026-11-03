@@ -15,6 +15,7 @@ clap.workspace = true
 mimalloc.workspace = true
 serde_json.workspace = true
 core-config.workspace = true
+languages.workspace = true
 core-format.workspace = true
 core-incremental.workspace = true
 core-rules.workspace = true

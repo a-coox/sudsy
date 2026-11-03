@@ -49,12 +49,11 @@ pub fn generate() -> Result<Vec<(PathBuf, String)>> {
 /// The JSON Schema of `sudsy.yaml`, from the option declarations of the providers (plan.md
 /// "Option schema"); editors register it for completion and validation of the config.
 fn config_schema() -> Result<String> {
-    let (json, yaml, csharp) = (
-        lang_json::option_schema(),
-        lang_yaml::option_schema(),
-        lang_csharp::option_schema(),
+    let providers = languages::providers();
+    let schema = core_config::json_schema(
+        &languages::schemas(&providers),
+        &languages::rule_schemas(&providers),
     );
-    let schema = core_config::json_schema(&[("csharp", &csharp), ("json", &json), ("yaml", &yaml)]);
     Ok(serde_json::to_string_pretty(&schema)?
         + "
 ")

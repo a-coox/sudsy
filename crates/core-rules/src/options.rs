@@ -36,7 +36,7 @@ impl Opt {
         }
     }
 
-    fn value(self) -> OptionValue {
+    pub fn value(self) -> OptionValue {
         match self {
             Opt::Bool(b) => OptionValue::Bool(b),
             Opt::Int(i) => OptionValue::Int(i),

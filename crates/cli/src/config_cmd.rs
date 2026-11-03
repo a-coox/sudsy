@@ -1,11 +1,11 @@
 //! `sudsy config print [<file>]`: the resolved config and where each value came from.
 
-use crate::project::{Project, providers};
 use anyhow::{Result, anyhow, bail};
 use clap::Subcommand;
 use core_config::{
     EditorConfig, FileInput, OptionSchema, OptionValue, PluginKind, Resolved, ResolvedRule, Source,
 };
+use languages::{Project, providers};
 use provider_api::LanguageProvider;
 use std::fmt::Write;
 use std::path::{Path, PathBuf};
@@ -25,7 +25,7 @@ pub fn run(command: ConfigCommand) -> Result<()> {
 
 fn print(file: Option<&Path>) -> Result<()> {
     let providers = providers();
-    let project = Project::load(&providers)?;
+    let project = Project::load(&std::env::current_dir()?, &providers)?;
     let mut out = String::new();
     header(&mut out, &project);
     match file {
@@ -112,13 +112,13 @@ fn language(
     let resolved = project
         .chain
         .format_options(&input, provider.option_schema())
-        .map_err(|e| anyhow!("{}", crate::project::describe_error(&e, &project.cwd)))?;
+        .map_err(|e| anyhow!("{}", languages::describe_error(&e, &project.root)))?;
     let _ = writeln!(out, "{name} format options:");
     options_table(out, project, provider.option_schema(), &resolved);
     let rules = project
         .chain
         .rules(&input, provider.option_schema())
-        .map_err(|e| anyhow!("{}", crate::project::describe_error(&e, &project.cwd)))?;
+        .map_err(|e| anyhow!("{}", languages::describe_error(&e, &project.root)))?;
     if !rules.is_empty() {
         let _ = writeln!(out, "{name} rules:");
         rules_table(out, project, &rules);

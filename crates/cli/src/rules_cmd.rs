@@ -1,6 +1,5 @@
 //! `sudsy rules [<id>]`: list the rules, or explain one.
 
-use crate::project::providers;
 use anyhow::{Result, bail};
 use clap::Args;
 use core_config::suggest;
@@ -13,26 +12,12 @@ pub struct RulesArgs {
     id: Option<String>,
 }
 
-/// `(language, rule)`; the language is `all` for the shared rules.
-fn all_rules() -> Vec<(String, &'static dyn Rule)> {
-    let mut out: Vec<(String, &'static dyn Rule)> = core_rules::shared::RULES
-        .iter()
-        .map(|r| ("all".to_string(), *r))
-        .collect();
-    for provider in providers() {
-        let language = provider.grammar().language.clone();
-        out.extend(provider.rules().iter().map(|r| (language.clone(), *r)));
-    }
-    out.sort_by_key(|(language, r)| (r.meta().id, language.clone()));
-    out
-}
-
 fn fix_text(meta: &RuleMeta) -> &'static str {
     meta.fix.map_or("none", |k| k.as_str())
 }
 
 pub fn run(args: RulesArgs) -> Result<()> {
-    let rules = all_rules();
+    let rules = languages::rules(&languages::providers());
     let mut out = String::new();
     match args.id {
         None => list(&mut out, &rules),

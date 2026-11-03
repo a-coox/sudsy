@@ -37,6 +37,7 @@ lang-csharp = { path = "crates/lang-csharp" }
 lang-json = { path = "crates/lang-json" }
 lang-yaml = { path = "crates/lang-yaml" }
 core-syntax = { path = "crates/core-syntax" }
+languages = { path = "crates/languages" }
 provider-api = { path = "crates/provider-api" }
 
 [workspace.lints.rust]

@@ -756,6 +756,7 @@ a chain or argument list nested in a hugged lambda doubles the size of its docum
 ## M2c: CSharpier compatibility and speed
 
 ### Presets (`core-config::presets`, `lang-csharp::format::options`)
+* Superseded in M3a: presets are plain unversioned `sudsy.yaml` files, not `language/name@version` lists (see "M3a: Configuration"); the text below is the M2c state.
 * `extends: [preset:csharp/csharpier-compat]` works for C#. A provider declares its presets next
   to its option schema (`OptionSchema::with_presets`); a preset is a name `language/name@version`
   and a list of option values. Resolution: schema defaults, then the presets of the file's language
@@ -982,9 +983,7 @@ a check-only run could not skip it. No optimization was done here; proposals 2 a
 * **`Rule` is object-safe, options are data.** plan.md sketches `type Options: RuleOptions`; an
   associated type would make rules impossible to store as `&dyn Rule`. A rule instead declares
   `OptionDecl`s (name, typed default, description) in its `RuleMeta`; `RuleOptions::resolve` checks
-  names and types and the rule reads typed values from `ctx.options`. Rule options are not in the
-  generated JSON Schema (only format options are); they are checked when the rules are activated
-  and documented by `sudsy rules <id>`.
+  names and types and the rule reads typed values from `ctx.options`. Rule options are in the generated JSON Schema (`languages::rule_schemas`, one entry per rule id under `lint.rules`), and are also checked when the rules are activated and documented by `sudsy rules <id>`.
 * **Rules are zero-sized statics** (`&'static [&'static dyn Rule]`). Rules hold no state; options
   and project facts arrive through the contexts.
 * **Scopes.** Node (`kinds` + `check`), file (`check_file`), body (`check_body`, called for every

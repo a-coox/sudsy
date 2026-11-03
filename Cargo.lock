@@ -271,6 +271,7 @@ dependencies = [
  "lang-csharp",
  "lang-json",
  "lang-yaml",
+ "languages",
  "mimalloc",
  "provider-api",
  "serde_json",
@@ -703,6 +704,20 @@ dependencies = [
  "proptest",
  "provider-api",
  "serde_json",
+]
+
+[[package]]
+name = "languages"
+version = "0.0.0"
+dependencies = [
+ "core-config",
+ "core-rules",
+ "core-workspace",
+ "lang-csharp",
+ "lang-json",
+ "lang-yaml",
+ "provider-api",
+ "thiserror",
 ]
 
 [[package]]
@@ -1441,9 +1456,7 @@ dependencies = [
  "anyhow",
  "core-config",
  "core-syntax",
- "lang-csharp",
- "lang-json",
- "lang-yaml",
+ "languages",
  "serde_json",
 ]
 

@@ -22,7 +22,7 @@ pub use chain::{ConfigChain, Loaded, PluginEntry, PluginKind, PresetRef};
 pub use editorconfig::{EditorConfig, EditorConfigValue};
 pub use error::{ConfigError, suggest, unknown_name};
 pub use glob::Matcher;
-pub use json_schema::json_schema;
+pub use json_schema::{RuleOptionSchema, RuleSchema, json_schema};
 pub use load::{CONFIG_FILE_NAMES, discover, is_rule_id, load_file, parse_str};
 pub use model::{
     Config, Depth, LANGUAGES, LanguageSection, Level, LintSection, OptionValue, Options, Override,

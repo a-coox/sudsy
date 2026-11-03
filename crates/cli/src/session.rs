@@ -1,11 +1,11 @@
 //! What every command that works on files shares: the project, the database with its config and
 //! the files to process (discovered, filtered by the config's include and exclude).
 
-use crate::project::{Project, providers};
 use anyhow::{Context, Result};
 use core_config::{Depth, EditorConfig};
 use core_incremental::{Database, File};
 use core_workspace::Filter;
+use languages::{Project, providers};
 use provider_api::SourceFile;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
@@ -23,7 +23,7 @@ impl Session {
     /// that reads it. `depth` is the command line's `--analysis`, which beats the config.
     pub fn open(args: &[PathBuf], depth: Option<Depth>) -> Result<Session> {
         let providers = providers();
-        let mut project = Project::load(&providers)?;
+        let mut project = Project::load(&std::env::current_dir()?, &providers)?;
         if let Some(depth) = depth {
             project.chain = project.chain.clone().with_depth(depth);
         }
