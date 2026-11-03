@@ -215,7 +215,7 @@ impl<'a> FormatCtx<'a> {
             return self.token_text(tok);
         }
         doc::concat(vec![
-            leading_comments_doc(&self.comment_style, &leading),
+            leading_comments_doc(&leading),
             self.token_text(tok),
             trailing_comments_doc(&self.comment_style, &trailing),
         ])
@@ -226,10 +226,7 @@ impl<'a> FormatCtx<'a> {
     }
 
     pub fn leading_comments_doc(&self, tok: &SyntaxToken) -> Doc {
-        leading_comments_doc(
-            &self.comment_style,
-            &comments::leading_comments(self.grammar, tok),
-        )
+        leading_comments_doc(&comments::leading_comments(self.grammar, tok))
     }
 
     pub fn trailing_comments_doc(&self, tok: &SyntaxToken) -> Doc {
@@ -278,8 +275,8 @@ pub fn verbatim_text(s: &str) -> Doc {
 }
 
 /// One own-line comment (or kept-as-written text) as a document, without the break after it.
-pub fn comment_doc(st: &CommentStyle, c: &Comment) -> Doc {
-    let text = c.styled_text(st);
+pub fn comment_doc(c: &Comment) -> Doc {
+    let text = c.text();
     match c.kind {
         CommentKind::Lines => lines_doc(&text),
         CommentKind::Directive => doc::concat(vec![doc::line_start(text), doc::break_parent()]),
@@ -300,7 +297,7 @@ fn lines_doc(text: &str) -> Doc {
 }
 
 /// Own-line comments go on their own lines, inline block comments stay inline.
-pub fn leading_comments_doc(st: &CommentStyle, cs: &[Comment]) -> Doc {
+pub fn leading_comments_doc(cs: &[Comment]) -> Doc {
     if cs.is_empty() {
         return Doc::Nil;
     }
@@ -311,7 +308,7 @@ pub fn leading_comments_doc(st: &CommentStyle, cs: &[Comment]) -> Doc {
         if c.kind != CommentKind::Block || c.breaks_after > 0 {
             parts.push(doc::newline_if_needed());
         }
-        parts.push(comment_doc(st, c));
+        parts.push(comment_doc(c));
         if c.kind == CommentKind::Line || c.breaks_after > 0 {
             parts.push(doc::hardline());
             if c.breaks_after >= 2 {
@@ -332,7 +329,7 @@ pub fn trailing_comments_doc(st: &CommentStyle, cs: &[Comment]) -> Doc {
     }
     let mut parts = Vec::new();
     for c in cs {
-        let body = doc::concat(vec![st.gap_doc(), verbatim_text(&c.styled_text(st))]);
+        let body = doc::concat(vec![st.gap_doc(), verbatim_text(&c.text())]);
         match c.kind {
             CommentKind::Line | CommentKind::Lines | CommentKind::Directive => {
                 parts.push(doc::line_suffix(body));

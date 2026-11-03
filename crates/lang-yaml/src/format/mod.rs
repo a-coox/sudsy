@@ -25,7 +25,6 @@ pub const DOCUMENT_START: &str = "document_start";
 pub const MAX_BLANK_LINES: &str = "max_blank_lines";
 pub const BLANK_LINES_AFTER_KEY: &str = "blank_lines_after_key";
 pub const COMMENT_SPACING: &str = "comment_spacing";
-pub const SPACE_AFTER_COMMENT_MARKER: &str = "space_after_comment_marker";
 
 pub fn option_schema() -> OptionSchema {
     OptionSchema::new(vec![
@@ -75,11 +74,6 @@ pub fn option_schema() -> OptionSchema {
             1,
             (1, 10),
             "Spaces between a value and a comment after it on the same line.",
-        ),
-        OptionDef::boolean(
-            SPACE_AFTER_COMMENT_MARKER,
-            false,
-            "Put a space after the `#` of a comment when text follows it directly (`#note`              becomes `# note`). A run of `#` (`###`) and a `#!` on the first line stay as written.",
         ),
     ])
     .with_presets(presets())
@@ -173,7 +167,6 @@ impl NodeFormatter for YamlFormatter {
     fn comment_style(&self, options: &ResolvedOptions) -> CommentStyle {
         CommentStyle {
             gap: options.int(COMMENT_SPACING) as usize,
-            space_after: options.bool(SPACE_AFTER_COMMENT_MARKER).then_some('#'),
         }
     }
 

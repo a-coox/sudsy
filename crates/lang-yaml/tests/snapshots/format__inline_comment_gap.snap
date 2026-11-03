@@ -15,13 +15,13 @@ d: {k: v} #f
 
 -----
 #!shebang-like but not first
-# no space
+#no space
 ### run
 #
 a: 1  # one
-b: 2  # two
+b: 2  #two
 c:
-  - x  # y
-  # z
+  - x  #y
+  #z
 d:
-  { k: v }  # f
+  { k: v }  #f

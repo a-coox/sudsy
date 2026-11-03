@@ -59,16 +59,6 @@ impl Subject for YamlSubject {
         }
     }
 
-    /// Spacing after the `#` may change when `space_after_comment_marker` is on.
-    fn comment_key(&self, text: &str) -> String {
-        let rest = text.trim_start_matches('#');
-        let marks = &text[..text.len() - rest.len()];
-        match self.resolved().bool(lang_yaml::SPACE_AFTER_COMMENT_MARKER) {
-            true => format!("{marks}{}", rest.trim_start()),
-            false => text.to_string(),
-        }
-    }
-
     fn format(&self, text: &str) -> Result<String, String> {
         format_file(
             &self.provider,

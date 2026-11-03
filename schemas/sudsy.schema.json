@@ -1294,11 +1294,6 @@
                       "flush"
                     ],
                     "type": "string"
-                  },
-                  "space_after_comment_marker": {
-                    "default": false,
-                    "description": "Put a space after the `#` of a comment when text follows it directly (`#note`              becomes `# note`). A run of `#` (`###`) and a `#!` on the first line stay as written.",
-                    "type": "boolean"
                   }
                 },
                 "type": "object"
@@ -1454,11 +1449,6 @@
                 "flush"
               ],
               "type": "string"
-            },
-            "space_after_comment_marker": {
-              "default": false,
-              "description": "Put a space after the `#` of a comment when text follows it directly (`#note`              becomes `# note`). A run of `#` (`###`) and a `#!` on the first line stay as written.",
-              "type": "boolean"
             }
           },
           "type": "object"

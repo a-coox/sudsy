@@ -12,11 +12,6 @@ pub trait Subject {
     /// `Err` with a message when the text has parse errors.
     fn parse(&self, text: &str) -> Result<SyntaxNode, String>;
     fn format(&self, text: &str) -> Result<String, String>;
-    /// A comment as it is compared before and after formatting; a language whose formatter
-    /// rewrites comment text maps both to the same value.
-    fn comment_key(&self, text: &str) -> String {
-        text.to_string()
-    }
 }
 
 /// The comments of a tree in order. Structured trivia (doc comments, directives) count as one,
@@ -40,7 +35,7 @@ fn comments(subject: &dyn Subject, tree: &SyntaxNode) -> Vec<String> {
             out.push(if structured {
                 text.lines().map(str::trim).collect::<Vec<_>>().join("\n")
             } else {
-                subject.comment_key(text.trim_end())
+                text.trim_end().to_string()
             });
             if structured {
                 walk.skip_subtree();

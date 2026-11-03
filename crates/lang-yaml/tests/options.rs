@@ -73,8 +73,7 @@ fn the_schema_declares_what_the_formatter_reads() {
             "document_start",
             "max_blank_lines",
             "blank_lines_after_key",
-            "comment_spacing",
-            "space_after_comment_marker"
+            "comment_spacing"
         ]
     );
     // The defaults are the zero-config behavior: nothing is rewritten that need not be.

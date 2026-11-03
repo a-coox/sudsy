@@ -48,10 +48,7 @@ pub fn compilation_unit(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
                     parts.push(doc::hardline());
                 }
             }
-            parts.push(core_format::context::leading_comments_doc(
-                &cx.comment_style,
-                &trailing,
-            ));
+            parts.push(core_format::context::leading_comments_doc(&trailing));
         }
     }
     Ok(doc::concat(parts))

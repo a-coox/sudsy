@@ -261,9 +261,7 @@ pub(crate) fn separator_comments(cx: &FormatCtx<'_>, item: &Rendered) -> Doc {
     for c in own {
         if line_comment_open {
             parts.push(doc::hardline());
-            parts.push(crate::context::verbatim_text(
-                &c.styled_text(&cx.comment_style),
-            ));
+            parts.push(crate::context::verbatim_text(&c.text()));
         } else {
             parts.push(crate::context::trailing_comments_doc(
                 &cx.comment_style,
@@ -277,14 +275,14 @@ pub(crate) fn separator_comments(cx: &FormatCtx<'_>, item: &Rendered) -> Doc {
 
 /// Comments in front of a closing delimiter, each on its own line inside the container. Blank
 /// lines between them are kept, and one before the first when `blank_before`.
-pub fn dangling_comments(cx: &FormatCtx<'_>, cs: &[Comment], blank_before: bool) -> Doc {
+pub fn dangling_comments(cs: &[Comment], blank_before: bool) -> Doc {
     let mut parts = Vec::new();
     for (i, c) in cs.iter().enumerate() {
         parts.push(doc::hardline());
         if (i == 0 && blank_before) || (i > 0 && cs[i - 1].breaks_after >= 2) {
             parts.push(doc::hardline());
         }
-        parts.push(crate::context::comment_doc(&cx.comment_style, c));
+        parts.push(crate::context::comment_doc(c));
     }
     doc::concat(parts)
 }

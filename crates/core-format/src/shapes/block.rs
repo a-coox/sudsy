@@ -75,7 +75,7 @@ fn block_of(
         style.force_blank,
     )];
     let blank_before = !c.slots.is_empty() && comments::blank_lines_before(g, &c.close) > 0;
-    inner.push(dangling_comments(cx, &dangling, blank_before));
+    inner.push(dangling_comments(&dangling, blank_before));
     let first_hardline = if c.slots.is_empty() {
         Doc::Nil
     } else {

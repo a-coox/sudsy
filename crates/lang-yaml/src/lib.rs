@@ -11,8 +11,8 @@ pub mod scalar;
 mod tree;
 
 pub use format::{
-    COMMENT_SPACING, DOCUMENT_START, MAX_BLANK_LINES, QUOTE_STYLE, SEQUENCE_INDENT,
-    SPACE_AFTER_COMMENT_MARKER, YamlFormatter, option_schema,
+    COMMENT_SPACING, DOCUMENT_START, MAX_BLANK_LINES, QUOTE_STYLE, SEQUENCE_INDENT, YamlFormatter,
+    option_schema,
 };
 pub use parser::{MAX_DEPTH, Parsed, parse};
 

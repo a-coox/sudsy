@@ -165,7 +165,7 @@ fn list_of(
         });
         inner.push(separator_comments(cx, &items[i]));
     }
-    inner.push(dangling_comments(cx, &dangling, false));
+    inner.push(dangling_comments(&dangling, false));
     let mut body_parts = Vec::new();
     if style.leading_line {
         body_parts.push(doc::line());
@@ -204,9 +204,7 @@ fn open_comments_doc(cx: &FormatCtx<'_>, cs: &[comments::Comment], items_follow:
     let mut parts = Vec::new();
     for c in cs {
         if c.kind == comments::CommentKind::Block {
-            parts.push(crate::context::verbatim_text(
-                &c.styled_text(&cx.comment_style),
-            ));
+            parts.push(crate::context::verbatim_text(&c.text()));
             if items_follow {
                 parts.push(doc::if_break(Doc::Nil, doc::lit(" ")));
             }

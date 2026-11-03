@@ -14,7 +14,7 @@ Why plain config and unversioned: no hidden values or code paths per tool, and a
 | `json/prettier-compat` | Width 80, LF, objects stay expanded after an opening line break (`collapse: opening_break`); `package.json`, `package-lock.json` and `composer.json` fully expanded (`overrides`, `collapse: never`). Number arrays not filled, numbers not normalized. |
 | `json/biome` | Biome's defaults: tab indent, width 80, LF, `collapse: opening_break`; the same `package.json` override. |
 | `yaml/default` | The defaults (styles preserved). |
-| `yaml/yamllint` | yamllint's default config: lint levels (line length 80 at error, `ambiguous-booleans` and `document-start` at warn) and output that satisfies it: `comment_spacing: 2`, `space_after_comment_marker`, `max_blank_lines: 2`, `sequence_indent: indented`, width 80. `bracket_spacing: false` (`{a: 1}`) and `end_of_line: lf`. |
+| `yaml/yamllint` | yamllint's default config: lint levels (line length 80 at error, `ambiguous-booleans`, `document-start` and `comment-space` at warn) and output that satisfies it: `comment_spacing: 2`, `max_blank_lines: 2`, `sequence_indent: indented`, width 80. `bracket_spacing: false` (`{a: 1}`) and `end_of_line: lf`. |
 | `yaml/prettier-compat` | Width 80, LF, `quote_style: prefer_double`, `blank_lines_after_key: remove`. |
 
 ## Mechanics

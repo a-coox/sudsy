@@ -36,7 +36,7 @@ pub(crate) fn leading(cx: &FormatCtx<'_>, t: &SyntaxToken) -> Doc {
         return Doc::Nil;
     }
     let skip = taken_before(&cs, t);
-    leading_comments_doc(&cx.comment_style, &cs[skip..])
+    leading_comments_doc(&cs[skip..])
 }
 
 /// Does the token have leading comments the collections before it have not taken?
@@ -146,7 +146,7 @@ pub(crate) fn dangling(cx: &FormatCtx<'_>, st: &Style, collection: &SyntaxNode) 
             blank.min(st.max_blank)
         };
         parts.push(breaks(1 + blank));
-        parts.push(core_format::context::comment_doc(&cx.comment_style, &cs[i]));
+        parts.push(core_format::context::comment_doc(&cs[i]));
     }
     doc::concat(parts)
 }
