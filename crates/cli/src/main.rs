@@ -5,7 +5,6 @@ mod fix;
 mod format;
 mod init;
 mod lint;
-mod project;
 mod report;
 mod rules_cmd;
 mod session;

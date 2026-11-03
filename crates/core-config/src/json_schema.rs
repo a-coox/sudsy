@@ -42,7 +42,72 @@ fn options_object(defs: Vec<&OptionDef>) -> Value {
     json!({ "type": "object", "additionalProperties": false, "properties": properties })
 }
 
-fn lint_section() -> Value {
+/// A rule as the config schema needs it: its id and the options it accepts.
+#[derive(Clone, Debug)]
+pub struct RuleSchema {
+    pub id: String,
+    pub description: String,
+    pub options: Vec<RuleOptionSchema>,
+}
+
+/// One option of a rule; `default` decides the type (`Bool`, `Int`, `String` or a list of strings).
+#[derive(Clone, Debug)]
+pub struct RuleOptionSchema {
+    pub name: String,
+    pub description: String,
+    pub default: OptionValue,
+}
+
+fn rule_option_json(option: &RuleOptionSchema) -> Value {
+    let mut out = match &option.default {
+        OptionValue::Bool(_) => json!({ "type": "boolean" }),
+        OptionValue::Int(_) => json!({ "type": "integer" }),
+        OptionValue::List(_) => json!({ "type": "array", "items": { "type": "string" } }),
+        _ => json!({ "type": "string" }),
+    };
+    out["description"] = json!(option.description);
+    out["default"] = value_json(&option.default);
+    out
+}
+
+/// One rule's entry under `lint.rules`: a level, or a level with the rule's own options.
+fn rule_json(rule: &RuleSchema) -> Value {
+    let mut out = if rule.options.is_empty() {
+        json!({ "$ref": "#/definitions/rule" })
+    } else {
+        let options: Map<String, Value> = rule
+            .options
+            .iter()
+            .map(|o| (o.name.clone(), rule_option_json(o)))
+            .collect();
+        json!({
+            "oneOf": [
+                { "$ref": "#/definitions/level" },
+                {
+                    "type": "object",
+                    "required": ["level"],
+                    "additionalProperties": false,
+                    "properties": {
+                        "level": { "$ref": "#/definitions/level" },
+                        "options": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": options
+                        }
+                    }
+                }
+            ]
+        })
+    };
+    out["description"] = json!(rule.description);
+    out
+}
+
+/// The `lint` section: the known rules by id (with their options); any other id (`plugin/rule`)
+/// takes a level or a level with untyped options.
+fn lint_definition(rules: &[RuleSchema]) -> Value {
+    let properties: Map<String, Value> =
+        rules.iter().map(|r| (r.id.clone(), rule_json(r))).collect();
     json!({
         "type": "object",
         "additionalProperties": false,
@@ -50,10 +115,15 @@ fn lint_section() -> Value {
             "rules": {
                 "type": "object",
                 "description": "Rule id (`no-empty-catch`, or `plugin/rule`) to a level or a level with options.",
+                "properties": properties,
                 "additionalProperties": { "$ref": "#/definitions/rule" }
             }
         }
     })
+}
+
+fn lint_section() -> Value {
+    json!({ "$ref": "#/definitions/lint" })
 }
 
 /// The shared options: the first declaration of each name among the languages.
@@ -66,7 +136,7 @@ fn shared_defs<'a>(languages: &[(&str, &'a OptionSchema)]) -> Vec<&'a OptionDef>
 
 /// The schema for the given languages (`(language, schema)`); languages without a schema get
 /// sections that only accept `lint`.
-pub fn json_schema(languages: &[(&str, &OptionSchema)]) -> Value {
+pub fn json_schema(languages: &[(&str, &OptionSchema)], rules: &[RuleSchema]) -> Value {
     let mut presets: Vec<String> = languages
         .iter()
         .flat_map(|(_, s)| s.presets().iter().map(|p| format!("preset:{}", p.name)))
@@ -171,15 +241,17 @@ pub fn json_schema(languages: &[(&str, &OptionSchema)]) -> Value {
         "additionalProperties": false,
         "properties": properties,
         "definitions": {
+            "level": { "type": "string", "enum": ["off", "warn", "error"] },
+            "lint": lint_definition(rules),
             "rule": {
                 "oneOf": [
-                    { "type": "string", "enum": ["off", "warn", "error"] },
+                    { "$ref": "#/definitions/level" },
                     {
                         "type": "object",
                         "required": ["level"],
                         "additionalProperties": false,
                         "properties": {
-                            "level": { "type": "string", "enum": ["off", "warn", "error"] },
+                            "level": { "$ref": "#/definitions/level" },
                             "options": { "type": "object" }
                         }
                     }
@@ -201,7 +273,7 @@ mod tests {
             OptionDef::choice("mode", &["a", "b"], "a", "A mode."),
         ])
         .with_presets(vec![Preset::new("x/p", "")]);
-        let doc = json_schema(&[("x", &schema)]);
+        let doc = json_schema(&[("x", &schema)], &[]);
         assert_eq!(
             doc["properties"]["format"]["properties"]["line_width"]["default"],
             80
@@ -215,5 +287,25 @@ mod tests {
                 .get("mode")
                 .is_none()
         );
+    }
+
+    #[test]
+    fn rule_options_are_declared_with_their_types() {
+        let rule = RuleSchema {
+            id: "r".into(),
+            description: "A rule.".into(),
+            options: vec![RuleOptionSchema {
+                name: "order".into(),
+                description: "The order.".into(),
+                default: OptionValue::List(vec![]),
+            }],
+        };
+        let doc = json_schema(&[], &[rule]);
+        let entry = &doc["definitions"]["lint"]["properties"]["rules"]["properties"]["r"];
+        assert_eq!(
+            entry["oneOf"][1]["properties"]["options"]["properties"]["order"]["type"],
+            "array"
+        );
+        assert_eq!(entry["description"], "A rule.");
     }
 }

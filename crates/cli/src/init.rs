@@ -1,8 +1,8 @@
 //! `sudsy init [--preset <name>]`: writes a starter `sudsy.yaml` in the working directory.
 
-use crate::project::{providers, schemas};
 use anyhow::{Result, bail};
 use clap::Args;
+use languages::{providers, schemas};
 use std::path::Path;
 
 #[derive(Args)]

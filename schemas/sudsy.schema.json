@@ -2,26 +2,163 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "additionalProperties": false,
   "definitions": {
+    "level": {
+      "enum": [
+        "off",
+        "warn",
+        "error"
+      ],
+      "type": "string"
+    },
+    "lint": {
+      "additionalProperties": false,
+      "properties": {
+        "rules": {
+          "additionalProperties": {
+            "$ref": "#/definitions/rule"
+          },
+          "description": "Rule id (`no-empty-catch`, or `plugin/rule`) to a level or a level with options.",
+          "properties": {
+            "ambiguous-booleans": {
+              "$ref": "#/definitions/rule",
+              "description": "A plain `yes`, `no`, `on` or `off`: a boolean to YAML 1.1 parsers and a string to YAML 1.2 parsers."
+            },
+            "async-suffix": {
+              "$ref": "#/definitions/rule",
+              "description": "An async method returning Task or ValueTask has a name that does not end in `Async`. Overrides, explicit interface implementations and `Main` are left alone (their names are not the method's to choose). Renaming needs the binding layer, so there is no fix."
+            },
+            "document-start": {
+              "$ref": "#/definitions/rule",
+              "description": "The first document does not start with `---`."
+            },
+            "file-scoped-namespace": {
+              "$ref": "#/definitions/rule",
+              "description": "A file whose only top-level member is a block-scoped namespace can use `namespace X;` and save a level of indentation. The fix needs C# 10, so it is unsafe; the formatter re-indents the body afterwards."
+            },
+            "max-line-length": {
+              "description": "A line is longer than the configured number of characters.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "max": {
+                          "default": 120,
+                          "description": "Longest allowed line, in characters.",
+                          "type": "integer"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            "no-duplicate-keys": {
+              "$ref": "#/definitions/rule",
+              "description": "An object has the same key twice; parsers disagree on which value wins."
+            },
+            "no-empty-catch": {
+              "$ref": "#/definitions/rule",
+              "description": "A catch block with no statements and no comment swallows the exception silently."
+            },
+            "prefer-null-coalescing": {
+              "$ref": "#/definitions/rule",
+              "description": "`a != null ? a : b` (or `a == null ? b : a`) for a name or member access `a` is `a ?? b`. The fix is unsafe because the type of the expression can change when `a` is a nullable value type."
+            },
+            "sorted-keys": {
+              "description": "The keys of an object are not in alphabetical order.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "order": {
+                          "default": [],
+                          "description": "Keys that come first, in this order; the rest follow alphabetically.",
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            "using-order": {
+              "description": "Plain `using` directives of a file or namespace are not in alphabetical order (ordinal). Aliases, `using static` and `global using` stay where they are, and so does a list that has preprocessor directives in it. Comments on lines of their own stay where they are; a comment after a directive moves with it.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "system_first": {
+                          "default": true,
+                          "description": "Put `System` and `System.*` before the other namespaces.",
+                          "type": "boolean"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
+            }
+          },
+          "type": "object"
+        }
+      },
+      "type": "object"
+    },
     "rule": {
       "oneOf": [
         {
-          "enum": [
-            "off",
-            "warn",
-            "error"
-          ],
-          "type": "string"
+          "$ref": "#/definitions/level"
         },
         {
           "additionalProperties": false,
           "properties": {
             "level": {
-              "enum": [
-                "off",
-                "warn",
-                "error"
-              ],
-              "type": "string"
+              "$ref": "#/definitions/level"
             },
             "options": {
               "type": "object"
@@ -258,17 +395,7 @@
           "type": "object"
         },
         "lint": {
-          "additionalProperties": false,
-          "properties": {
-            "rules": {
-              "additionalProperties": {
-                "$ref": "#/definitions/rule"
-              },
-              "description": "Rule id (`no-empty-catch`, or `plugin/rule`) to a level or a level with options.",
-              "type": "object"
-            }
-          },
-          "type": "object"
+          "$ref": "#/definitions/lint"
         }
       },
       "type": "object"
@@ -306,7 +433,7 @@
           "type": "boolean"
         },
         "indent_size": {
-          "default": 4,
+          "default": 2,
           "description": "Columns per indentation level (also the width of a tab).",
           "maximum": 16,
           "minimum": 1,
@@ -322,7 +449,7 @@
           "type": "string"
         },
         "line_width": {
-          "default": 120,
+          "default": 80,
           "description": "Preferred maximum line width in columns.",
           "maximum": 1000,
           "minimum": 20,
@@ -406,33 +533,13 @@
           "type": "object"
         },
         "lint": {
-          "additionalProperties": false,
-          "properties": {
-            "rules": {
-              "additionalProperties": {
-                "$ref": "#/definitions/rule"
-              },
-              "description": "Rule id (`no-empty-catch`, or `plugin/rule`) to a level or a level with options.",
-              "type": "object"
-            }
-          },
-          "type": "object"
+          "$ref": "#/definitions/lint"
         }
       },
       "type": "object"
     },
     "lint": {
-      "additionalProperties": false,
-      "properties": {
-        "rules": {
-          "additionalProperties": {
-            "$ref": "#/definitions/rule"
-          },
-          "description": "Rule id (`no-empty-catch`, or `plugin/rule`) to a level or a level with options.",
-          "type": "object"
-        }
-      },
-      "type": "object"
+      "$ref": "#/definitions/lint"
     },
     "overrides": {
       "items": {
@@ -649,17 +756,7 @@
                 "type": "object"
               },
               "lint": {
-                "additionalProperties": false,
-                "properties": {
-                  "rules": {
-                    "additionalProperties": {
-                      "$ref": "#/definitions/rule"
-                    },
-                    "description": "Rule id (`no-empty-catch`, or `plugin/rule`) to a level or a level with options.",
-                    "type": "object"
-                  }
-                },
-                "type": "object"
+                "$ref": "#/definitions/lint"
               }
             },
             "type": "object"
@@ -681,7 +778,7 @@
                 "type": "boolean"
               },
               "indent_size": {
-                "default": 4,
+                "default": 2,
                 "description": "Columns per indentation level (also the width of a tab).",
                 "maximum": 16,
                 "minimum": 1,
@@ -697,7 +794,7 @@
                 "type": "string"
               },
               "line_width": {
-                "default": 120,
+                "default": 80,
                 "description": "Preferred maximum line width in columns.",
                 "maximum": 1000,
                 "minimum": 20,
@@ -774,33 +871,13 @@
                 "type": "object"
               },
               "lint": {
-                "additionalProperties": false,
-                "properties": {
-                  "rules": {
-                    "additionalProperties": {
-                      "$ref": "#/definitions/rule"
-                    },
-                    "description": "Rule id (`no-empty-catch`, or `plugin/rule`) to a level or a level with options.",
-                    "type": "object"
-                  }
-                },
-                "type": "object"
+                "$ref": "#/definitions/lint"
               }
             },
             "type": "object"
           },
           "lint": {
-            "additionalProperties": false,
-            "properties": {
-              "rules": {
-                "additionalProperties": {
-                  "$ref": "#/definitions/rule"
-                },
-                "description": "Rule id (`no-empty-catch`, or `plugin/rule`) to a level or a level with options.",
-                "type": "object"
-              }
-            },
-            "type": "object"
+            "$ref": "#/definitions/lint"
           },
           "yaml": {
             "additionalProperties": false,
@@ -878,17 +955,7 @@
                 "type": "object"
               },
               "lint": {
-                "additionalProperties": false,
-                "properties": {
-                  "rules": {
-                    "additionalProperties": {
-                      "$ref": "#/definitions/rule"
-                    },
-                    "description": "Rule id (`no-empty-catch`, or `plugin/rule`) to a level or a level with options.",
-                    "type": "object"
-                  }
-                },
-                "type": "object"
+                "$ref": "#/definitions/lint"
               }
             },
             "type": "object"
@@ -995,17 +1062,7 @@
           "type": "object"
         },
         "lint": {
-          "additionalProperties": false,
-          "properties": {
-            "rules": {
-              "additionalProperties": {
-                "$ref": "#/definitions/rule"
-              },
-              "description": "Rule id (`no-empty-catch`, or `plugin/rule`) to a level or a level with options.",
-              "type": "object"
-            }
-          },
-          "type": "object"
+          "$ref": "#/definitions/lint"
         }
       },
       "type": "object"

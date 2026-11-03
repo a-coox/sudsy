@@ -4,7 +4,7 @@ use crate::diagnostic::{Category, Diagnostic, FixKind, Severity};
 use crate::lines::LineIndex;
 use crate::options::{OptionDecl, RuleOptions};
 use crate::project::{ProjectContext, ProjectFacts};
-use core_config::Level;
+use core_config::{Level, RuleOptionSchema, RuleSchema};
 use core_syntax::{Grammar, SyntaxKind, SyntaxNode, TextRange};
 use std::path::Path;
 
@@ -33,6 +33,25 @@ pub struct RuleMeta {
     pub fix: Option<FixKind>,
     pub requires: &'static [Layer],
     pub options: &'static [OptionDecl],
+}
+
+impl RuleMeta {
+    /// The rule as the config's JSON Schema describes it.
+    pub fn schema(&self) -> RuleSchema {
+        RuleSchema {
+            id: self.id.to_string(),
+            description: self.description.to_string(),
+            options: self
+                .options
+                .iter()
+                .map(|o| RuleOptionSchema {
+                    name: o.name.to_string(),
+                    description: o.description.to_string(),
+                    default: o.default.value(),
+                })
+                .collect(),
+        }
+    }
 }
 
 /// One file as rules see it.

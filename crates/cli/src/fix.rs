@@ -2,7 +2,6 @@
 //! formats, and reports what remains.
 
 use crate::lint::{self, Collected, ReportArgs, exit_code};
-use crate::project::Project;
 use crate::report::FileDiagnostics;
 use crate::session::{Session, par_map};
 use anyhow::{Context, Result, anyhow};
@@ -10,6 +9,7 @@ use clap::Args;
 use core_config::EditorConfig;
 use core_incremental::{Database, File, Stage, format, lint as lint_query};
 use core_rules::{Analysis, Diagnostic, fix_loop};
+use languages::Project;
 use provider_api::SourceFile;
 use std::path::Path;
 use std::process::ExitCode;
