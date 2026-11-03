@@ -3,17 +3,30 @@
 
 use core_incremental::{Failure, Stage};
 use crossbeam_channel::Sender;
-use lsp_server::{Message, Notification};
+use lsp_server::{Message, Notification, Request, RequestId};
 use lsp_types::notification::{LogMessage, Notification as LspNotification, ShowMessage};
-use lsp_types::{LogMessageParams, MessageType, ShowMessageParams, Uri};
+use lsp_types::request::{Request as LspRequest, ShowMessageRequest};
+use lsp_types::{
+    LogMessageParams, MessageActionItem, MessageType, ShowMessageParams, ShowMessageRequestParams,
+    Uri,
+};
+use provider_api::RUNTIME_MISSING;
 use std::collections::HashSet;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
+
+/// The id of the "runtime missing" prompt, to recognize its answer.
+pub(crate) const RUNTIME_PROMPT_ID: &str = "sudsy/runtime-missing";
+/// The prompt's action, which opens the download page.
+pub(crate) const DOWNLOAD_ACTION: &str = "Download .NET";
 
 #[derive(Clone)]
 pub(crate) struct Notifier {
     sender: Sender<Message>,
     /// Failures already shown to the user.
     shown: Arc<Mutex<HashSet<String>>>,
+    /// Has the missing runtime been put to the user? Once per session, also across config reloads.
+    runtime_prompted: Arc<AtomicBool>,
 }
 
 impl Notifier {
@@ -21,6 +34,7 @@ impl Notifier {
         Notifier {
             sender,
             shown: Default::default(),
+            runtime_prompted: Default::default(),
         }
     }
 
@@ -53,6 +67,26 @@ impl Notifier {
         self.send::<LogMessage>(LogMessageParams { typ, message });
     }
 
+    fn prompt_runtime_missing(&self) {
+        if self.runtime_prompted.swap(true, Ordering::Relaxed) {
+            return;
+        }
+        let params = ShowMessageRequestParams {
+            typ: MessageType::WARNING,
+            message: RUNTIME_MISSING.into(),
+            actions: Some(vec![MessageActionItem {
+                title: DOWNLOAD_ACTION.into(),
+                properties: Default::default(),
+            }]),
+        };
+        let request = Request::new(
+            RequestId::from(RUNTIME_PROMPT_ID.to_string()),
+            ShowMessageRequest::METHOD.to_string(),
+            params,
+        );
+        let _ = self.sender.send(request.into());
+    }
+
     /// The config could not be loaded. The message is the one every file's failure carries, so it
     /// counts as shown for them.
     pub(crate) fn config_failed(&self, error: String) {
@@ -68,6 +102,13 @@ impl Notifier {
         let message = format!("Sudsy: {}", failure.message);
         match failure.stage {
             Stage::Unsupported => {}
+            Stage::Runtime => {
+                self.log(
+                    MessageType::WARNING,
+                    format!("{}: {}", uri.as_str(), failure.message),
+                );
+                self.prompt_runtime_missing();
+            }
             Stage::Format => self.log(
                 MessageType::WARNING,
                 format!("{}: {}", uri.as_str(), failure.message),

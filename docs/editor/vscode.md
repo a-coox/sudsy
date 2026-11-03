@@ -5,6 +5,7 @@ TypeScript, `vscode-languageclient` 9 (pull diagnostics), bundled with esbuild i
 - Documents: C#, JSON, JSONC, YAML (`.cs` also by pattern, so a missing C# extension does not matter). Commands: restart server, show output.
 - Settings: `sudsy.serverPath` (default: bundled, else `sudsy` on PATH), `sudsy.csharpWorkerPath` (default: beside the executable), `sudsy.trace.server`.
 - Format on save is the user's choice: `editor.defaultFormatter: Coox.sudsy` per language, plus `"editor.codeActionsOnSave": { "source.fixAll.sudsy": "explicit" }`. The extension sets no defaults (see `editors/vscode/README.md`).
+- Missing .NET runtime: the popup and its "Download .NET" button come from the server (`window/showMessageRequest`, `window/showDocument`), which `vscode-languageclient` handles by default; the extension has no code for it.
 - Config schema: `yamlValidation` for `sudsy.yaml`/`.yml` with a copy of `schemas/sudsy.schema.json` made at build time (`npm run build`, not checked in). `redhat.vscode-yaml` reads it when installed; it is not a dependency. Why: C#/JSON users should not need a second YAML extension that also competes as YAML formatter.
 
 ## Packaging

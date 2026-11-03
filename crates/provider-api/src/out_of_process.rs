@@ -76,6 +76,7 @@ impl OutOfProcessProvider {
 fn to_provider_error(e: ProxyError) -> ProviderError {
     match e {
         ProxyError::Unavailable(m) => ProviderError::Unavailable(m),
+        ProxyError::RuntimeMissing(m) => ProviderError::RuntimeMissing(m),
         ProxyError::Worker(p) => ProviderError::Worker {
             code: p.code,
             message: p.message,

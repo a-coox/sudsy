@@ -5,6 +5,7 @@
 //! query that can fail therefore returns `Result<T, Failure>`: the failure is a value that is
 //! memoized, compared and backdated like any other, never a panic.
 
+use provider_api::{ProviderError, RUNTIME_MISSING, RUNTIME_URL};
 use std::error::Error;
 use std::fmt;
 
@@ -21,6 +22,8 @@ pub enum Stage {
     Parse,
     /// The provider's semantic model could not answer: rules that need it are skipped.
     Semantics,
+    /// The runtime the C# worker needs is not installed; the message says where to get it.
+    Runtime,
     /// The file has syntax errors, formatting failed, or the output failed the safety check.
     Format,
 }
@@ -33,7 +36,13 @@ pub struct Failure {
 }
 
 impl Failure {
-    pub(crate) fn new(stage: Stage, error: &dyn Error) -> Self {
+    pub(crate) fn new(stage: Stage, error: &(dyn Error + 'static)) -> Self {
+        if let Some(ProviderError::RuntimeMissing(reason)) = error.downcast_ref() {
+            return Failure {
+                stage: Stage::Runtime,
+                message: format!("{RUNTIME_MISSING} Download it from {RUNTIME_URL} ({reason})"),
+            };
+        }
         let mut message = error.to_string();
         let mut source = error.source();
         while let Some(cause) = source {

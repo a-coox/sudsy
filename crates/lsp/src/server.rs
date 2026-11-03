@@ -4,7 +4,7 @@
 use crate::actions::{FIX_ALL_KIND, code_action};
 use crate::analysis::{Analysis, Cancel};
 use crate::diagnostics::diagnostic;
-use crate::notifier::Notifier;
+use crate::notifier::{DOWNLOAD_ACTION, Notifier, RUNTIME_PROMPT_ID};
 use crate::workspace::Workspace;
 use anyhow::{Result, anyhow};
 use lsp_server::{Connection, ErrorCode, Message, Notification, Request, RequestId, Response};
@@ -14,7 +14,7 @@ use lsp_types::notification::{
 };
 use lsp_types::request::{
     CodeActionRequest, DocumentDiagnosticRequest, Formatting, RegisterCapability,
-    Request as LspRequest, WorkspaceDiagnosticRefresh,
+    Request as LspRequest, ShowDocument, WorkspaceDiagnosticRefresh,
 };
 use lsp_types::{
     CancelParams, CodeActionKind, CodeActionOptions, CodeActionParams,
@@ -23,7 +23,7 @@ use lsp_types::{
     DidChangeWatchedFilesRegistrationOptions, DidCloseTextDocumentParams,
     DidOpenTextDocumentParams, DocumentDiagnosticParams, DocumentFormattingParams,
     FileSystemWatcher, GlobPattern, InitializeParams, NumberOrString, OneOf, Registration,
-    RegistrationParams, ServerCapabilities, ServerInfo, TextDocumentIdentifier,
+    RegistrationParams, ServerCapabilities, ServerInfo, ShowDocumentParams, TextDocumentIdentifier,
     TextDocumentSyncCapability, TextDocumentSyncKind, Uri, WatchKind,
 };
 use provider_api::LanguageProvider;
@@ -144,10 +144,31 @@ impl Server {
                     self.request(req)?;
                 }
                 Message::Notification(note) => self.notification(note)?,
-                Message::Response(_) => {}
+                Message::Response(response) => self.response(response)?,
             }
         }
         Ok(())
+    }
+
+    /// The only answer that matters is the one to the missing-runtime prompt.
+    fn response(&mut self, response: Response) -> Result<()> {
+        let chosen = response.id == RequestId::from(RUNTIME_PROMPT_ID.to_string())
+            && response
+                .response_result
+                .as_ref()
+                .ok()
+                .and_then(|r| r.get("title"))
+                .and_then(|t| t.as_str())
+                == Some(DOWNLOAD_ACTION);
+        if !chosen {
+            return Ok(());
+        }
+        self.call::<ShowDocument>(ShowDocumentParams {
+            uri: provider_api::RUNTIME_URL.parse()?,
+            external: Some(true),
+            take_focus: None,
+            selection: None,
+        })
     }
 
     fn send(&self, message: impl Into<Message>) -> Result<()> {
