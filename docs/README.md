@@ -13,6 +13,7 @@ Current state only; history is in git. Update the doc for the area you change in
 | [formatting/json.md](formatting/json.md) | JSON/JSONC parser, formatter, options |
 | [formatting/yaml.md](formatting/yaml.md) | YAML parser, data model, formatter, options |
 | [formatting/presets.md](formatting/presets.md) | Preset list and notes |
+| [parity/README.md](parity/README.md) | Parity catalog: what yamllint, Prettier, Biome, eslint-plugin-jsonc, StyleCop, CSharpier do and where Sudsy stands |
 | [rules/engine.md](rules/engine.md) | Rule trait, scopes, layers and depth, levels, fixes, suppressions |
 | [rules/builtin.md](rules/builtin.md) | Built-in rules |
 | [rules/semantics.md](rules/semantics.md) | Flow graphs, analyses, summaries, compiler agreement |

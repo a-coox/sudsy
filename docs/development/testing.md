@@ -16,6 +16,7 @@ Every formatter test checks lossless round trip, idempotency, unchanged meaning 
 | LSP | In-process client | `crates/lsp/tests` |
 | Plugins | Host vs built sample | `tests/plugins/sample` (needs `rustup target add wasm32-wasip2`) |
 | Scaling guards | Work counts, not time | `core-format/tests/scaling.rs`, `tools/perf-bench/tests/scaling.rs` |
+| Parity catalog | `docs/parity/*.yaml` only name rules and options that exist; README counts are current | `languages/tests/parity.rs` |
 | Codegen | Generated files are fresh | `xtask/tests/codegen_is_fresh.rs` |
 
 ## Corpora (not fetched in CI)

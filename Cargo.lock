@@ -1290,6 +1290,8 @@ dependencies = [
  "lang-json",
  "lang-yaml",
  "provider-api",
+ "serde",
+ "serde-saphyr",
  "thiserror 2.0.21",
 ]
 

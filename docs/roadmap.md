@@ -8,14 +8,14 @@ One line each; none is committed.
 - Point queries (`symbol_of`, `type_of(span)`) and the pattern predicate `type_matches` that needs them.
 - Taint and resource-state analyses on `core-flow`; call-graph rules; `must_use_result`, ownership and taint summaries; a consumer for `pure`.
 - Embedded-language detection (tree, wire and plugin interface already support the node).
-- Formatting inactive `#if` branches (currently verbatim); `preprocessor_symbols` come from config only, language version is not configurable.
+- `preprocessor_symbols` come from config only, language version is not configurable.
 - Rules: `var-preference`, `prefer-collection-expression`; a rename fix for `async-suffix`; rules using reaching definitions / definite assignment.
 - Semantic requests in parallel (one workspace per core).
 - Migration aid mapping StyleCop / .NET analyzer ids and `.editorconfig` severities to our rules. Hosting Roslyn analyzers is a non-goal.
 
 ## Formatting
 - Range (selection) formatting; the formatter can already format a subtree in context.
-- `using` sort in `csharpier-compat` (needs a safety check treating a run of usings as unordered); other CSharpier differences listed in [formatting/csharp.md](formatting/csharp.md).
+- Other CSharpier differences listed in [formatting/csharp.md](formatting/csharp.md).
 - A rule source that attaches layout directives (pattern `layout:` key, plugin directive output); plugins returning layout documents is deliberately excluded.
 - YAML: re-wrapping long scalars and comments; comments between split properties.
 - Performance levers: green-tree cursor for the formatter instead of rowan red nodes; a token-level or hashed safety check; sharing anchored YAML nodes (`Rc`) for alias-heavy files; first-token index for pattern rules.
