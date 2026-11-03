@@ -13,6 +13,7 @@ Formatter + linter for C#, JSON and YAML. `plan.md` is the design source of trut
 - Every formatter test checks lossless round-trip, idempotency and meaning preservation.
 - Clean up as you go: once a decision is made, delete the losing alternatives (benchmark candidates, prototypes, bootstrap code); once a temporary placement or shim is superseded (code living somewhere "until X exists"), move or remove it in the milestone that makes X exist. Results stay in docs/decisions.md and git history.
 - Presets are pure config data. Formatter and rule code never branches on a preset or tool name (no "csharpier mode", no hidden preset-only values). Each style difference is either default behavior or a named, user-settable option that is documented in the schema, so any preset can be reproduced by writing its options in sudsy.yaml by hand.
+- Measure performance of everything you add or change on a hot path (load, parse, format, lint, plugins, editor requests): record method, machine and numbers in `docs/decisions.md`, behind a script or `perf-bench` mode so it can be re-run. Unmeasured is unfinished.
 - No speculative features beyond plan.md (style options needed to express a preset in the plan's preset table are not speculative). When the plan leaves a detail open, pick the simplest option and note it in `docs/decisions.md`.
 
 ## Commands
