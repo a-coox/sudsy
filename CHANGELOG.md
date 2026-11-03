@@ -14,6 +14,8 @@ First release: one tool, as a CLI and a VS Code extension, that formats, lints a
 * Every format is checked for an unchanged tree (and unchanged data for YAML) before it is written.
 
 ### Rules and fixes
+* Rules can attach layout directives for the formatter: pattern rules with `layout:`, Wasm plugins
+  through `sudsy:rules@0.2.0`; layout-only rules report nothing.
 * Built-in rules for C#, JSON, YAML and every language, with safe, unsafe and suggestion-only
   fixes, suppression comments (`sudsy-disable-next-line`) and the fix loop.
 * Semantic C# rules on Roslyn binding, types and values, and on control and data flow computed in

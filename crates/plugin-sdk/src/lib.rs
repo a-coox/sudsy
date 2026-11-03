@@ -4,7 +4,7 @@
 //! `cargo build --target wasm32-wasip2 --release` and the config lists the `.wasm` file under
 //! `plugins: wasm:`.
 //!
-//! API v0 is UNSTABLE (`wit/rules.wit`, `rules@0.1`): it will change until v1.
+//! API v0 is UNSTABLE (`wit/rules.wit`, `rules@0.2`): it will change until v1.
 //!
 //! ```ignore
 //! use plugin_sdk::*;
@@ -28,11 +28,12 @@ pub mod testing;
 
 pub use core_config::Level;
 pub use core_flow as flow;
+pub use core_format::Directive;
 pub use core_patterns as patterns;
 pub use core_rules::tree;
 pub use core_rules::{
-    BodyContext, Category, Edit, FileContext, Fix, FixKind, Layer, Opt, OptionDecl, ProjectContext,
-    ProjectFacts, Rule, RuleContext, RuleMeta, RuleOptions,
+    BodyContext, Category, Edit, FileContext, Fix, FixKind, Layer, LayoutRole, Opt, OptionDecl,
+    ProjectContext, ProjectFacts, Rule, RuleContext, RuleMeta, RuleOptions,
 };
 pub use core_semantics;
 pub use core_syntax::{self, SyntaxKind, SyntaxNode, TextRange, TextSize};
@@ -96,6 +97,14 @@ macro_rules! export_plugin {
                     file: w::File,
                 ) -> Result<Vec<w::Diagnostic>, String> {
                     $crate::guest::check(RULES, &rule, options, file)
+                }
+
+                fn layout(
+                    rule: String,
+                    options: Vec<(String, w::OptionValue)>,
+                    file: w::File,
+                ) -> Result<Vec<w::LayoutRequest>, String> {
+                    $crate::guest::layout(RULES, &rule, options, file)
                 }
 
                 fn collect(

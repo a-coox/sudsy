@@ -3,7 +3,7 @@
 Run `scripts/bench.sh` after every feature change; CI runs tier 1 on ubuntu-latest against the PR base. Record method, machine and numbers for any hot path you change in [numbers.md](numbers.md) (latest values only).
 
 ## `scripts/bench.sh [--base REV] [--time] [--rounds N] [--no-instr] [--record|--no-record]`
-- Inputs: `bench/inputs/` (committed: 12 C# files from dotnet/runtime, 40 JSONTestSuite `y_*` files, 60 yaml-test-suite documents; 0.25 MB) plus generated JSON (4k objects) and YAML (6k items) from `perf-bench`. Workload: `perf-bench fixed LANG PHASE`, phases parse, format, lint, patterns, plugins.
+- Inputs: `bench/inputs/` (committed: 12 C# files from dotnet/runtime, 40 JSONTestSuite `y_*` files, 60 yaml-test-suite documents; 0.25 MB) plus generated JSON (4k objects) and YAML (6k items) from `perf-bench`. Workload: `perf-bench fixed LANG PHASE`, phases parse, format, format-query (the `format` query of the engine, layout rules included), lint, patterns, plugins.
 - Baseline: merge-base with origin/main (`--base REV`), built in a git worktree at `target/bench/base-src` with the candidate's `tools/perf-bench` copied in, so both sides run the same workload.
 - Tier 1 (deterministic): allocations (native, `--features count`) and instructions (valgrind in WSL on Windows, own target dir under `~/.cache/sudsy-bench`; set-up excluded by toggling collection on the measured function). Fails on instructions +1% or allocations +1% (and at least 10). C# phases: allocations only. `*.work` lines (files, findings) flag a changed workload.
 - Tier 2 (`--time`, `scripts/bench-time.sh`): interleaved A/B rounds of `--version`, `format --check` and `lint` on the CLI with the worker; median of per-round ratios with a bootstrap 95% CI; fails only when the CI lower bound exceeds 1.03. Five rounds gives about +-30%; use 11+.
@@ -14,7 +14,7 @@ Run `scripts/bench.sh` after every feature change; CI runs tier 1 on ubuntu-late
 - `json|yaml|json-flat|all [--phases-only]`: generated inputs (40k pretty JSON objects 11.1 MB; 60k YAML items 5.0 MB; one-line JSON 1.1 MB), per-phase timing, whole `format_file` at 1x/4x/16x. `--features count` adds allocations per phase, `--sites` samples allocation sites, `--features mimalloc` swaps the allocator. `--write DIR` writes the inputs.
 - `csharp DIR [PASSES]`: warm worker pool, same files repeatedly with the safety check.
 - `semantic DIR [LIMIT]`: cost per analysis depth, and the compiler-agreement run.
-- `fixed LANG PHASE`: the `bench.sh` workload.
+- `fixed LANG PHASE`: the `bench.sh` workload. `layout LANG [--inputs DIR]`: the `format` query with 0, 1, 10 and 100 pattern layout rules.
 - `extensions-cli <sudsy>`: CLI processes with extensions. `--bin lsp-latency DIR WORKER.dll FILES RUNS`: server latency while typing.
 - No sampling profiler is available on the dev machine (`samply` needs Administrator): work is found from phase timings, allocation counts and sampled allocation backtraces.
 

@@ -14,6 +14,9 @@ Three rule sources (built-in Rust, pattern files, Wasm plugins) report into one 
 - Body: `check_body`, once per node whose kind the provider lists in `body_kinds`; `BodyContext.flow` carries the flow graph.
 - Project: `collect(file)` gathers string facts, `finish(project)` reports across files; runs only at `analysis: deep`. Project diagnostics ignore suppression comments; project options come from the first file of the language.
 
+## Layout
+A rule can also ask for layout: `Rule::layout_role()` is `None` (default), `Also` (reports and attaches) or `Only` (attaches, reports nothing, is not run when linting), and the rule calls `ctx.attach(node, Directive)` from `check`/`check_file` (ignored when linting). `format` runs the layout rules (`layout_role().attaches()`, at their configured level, syntax only) in a pass of their own through the same traversal (`core_rules::run_layout`), drops directives a suppression silences, and builds the `DirectiveTable`; two rules asking for conflicting layouts of one node is an error. See [../formatting/engine.md](../formatting/engine.md).
+
 ## Layers and depth
 A rule is skipped (never failed) when the provider does not answer a required layer or the depth does not allow it. Depth `fast`: syntax only (no layers); `standard` (default): all layers except `project`; `deep`: all. Rules with `uses` degrade: `unreachable-code` reports the statement after a jump at `fast` and adds constant conditions and non-returning calls at `standard`, one rule with one code path per mode. `--analysis` overrides the config key.
 

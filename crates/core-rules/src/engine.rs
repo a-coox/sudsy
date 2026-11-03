@@ -2,6 +2,7 @@
 //! kind, then the file-scope and body-scope calls, then suppressions.
 
 use crate::diagnostic::{Diagnostic, Severity};
+use crate::layout::LayoutSink;
 use crate::options::RuleOptions;
 use crate::project::{ProjectContext, ProjectFacts};
 use crate::rule::{BodyContext, FileContext, Rule, RuleContext};
@@ -52,6 +53,17 @@ pub fn run_file(file: &FileContext<'_>, active: &[ActiveRule<'_>], collect: bool
 /// [`run_file`] without the suppressions: for a caller whose own caller applies them to the
 /// result (a plugin, whose host does).
 pub fn run_rules(file: &FileContext<'_>, active: &[ActiveRule<'_>], collect: bool) -> FileReport {
+    traverse(file, active, collect, None)
+}
+
+/// The traversal behind [`run_rules`] and [`crate::layout::run_layout`]; `layout` is where the
+/// rules' `attach` calls go (they are ignored without it).
+pub(crate) fn traverse(
+    file: &FileContext<'_>,
+    active: &[ActiveRule<'_>],
+    collect: bool,
+    mut layout: Option<&mut LayoutSink>,
+) -> FileReport {
     let mut diagnostics = Vec::new();
     let mut by_kind: HashMap<SyntaxKind, Vec<usize>> = HashMap::new();
     for (i, a) in active.iter().enumerate() {
@@ -68,6 +80,7 @@ pub fn run_rules(file: &FileContext<'_>, active: &[ActiveRule<'_>], collect: boo
             a.severity,
             &mut diagnostics,
         );
+        ctx.layout = layout.as_deref_mut();
         f(a.rule, &mut ctx);
     };
     for node in file.root.descendants() {

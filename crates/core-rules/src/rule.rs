@@ -1,6 +1,7 @@
 //! The rule trait and the contexts rules run in.
 
 use crate::diagnostic::{Category, Diagnostic, FixKind, Severity};
+use crate::layout::{LayoutRole, LayoutSink};
 use crate::lines::LineIndex;
 use crate::options::{OptionDecl, RuleOptions};
 use crate::project::{ProjectContext, ProjectFacts};
@@ -80,6 +81,7 @@ pub struct RuleContext<'a> {
     pub(crate) meta: &'static RuleMeta,
     pub(crate) severity: Severity,
     pub(crate) out: &'a mut Vec<Diagnostic>,
+    pub(crate) layout: Option<&'a mut LayoutSink>,
 }
 
 impl<'a> RuleContext<'a> {
@@ -96,6 +98,7 @@ impl<'a> RuleContext<'a> {
             meta,
             severity,
             out,
+            layout: None,
         }
     }
 
@@ -118,6 +121,12 @@ impl<'a> RuleContext<'a> {
 /// no state: options arrive through the context, project facts through [`ProjectFacts`].
 pub trait Rule: Send + Sync {
     fn meta(&self) -> &'static RuleMeta;
+
+    /// Whether the rule attaches layout directives (`RuleContext::attach`) and whether it also
+    /// reports. A layout rule is also run when the file is formatted, with its diagnostics dropped.
+    fn layout_role(&self) -> LayoutRole {
+        LayoutRole::None
+    }
 
     /// Node scope: the kinds [`Rule::check`] is called for.
     fn kinds(&self) -> &[SyntaxKind] {

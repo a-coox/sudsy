@@ -14,4 +14,4 @@ pub use host::{PluginError, load};
 pub use rule::WasmRule;
 
 /// The interface version this host speaks; a plugin built against another is refused.
-pub const API: &str = "rules@0.1";
+pub const API: &str = "rules@0.2";

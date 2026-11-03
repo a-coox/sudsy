@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Standard benchmark: run after every feature change.
 #   scripts/bench.sh [--base REV] [--time] [--rounds N] [--no-instr] [--record|--no-record]
-# Tier 1 (default, deterministic): per language and phase (parse, format, lint, patterns, plugins) on
+# Tier 1 (default, deterministic): per language and phase (parse, format, format-query, lint, patterns, plugins) on
 #   fixed inputs (bench/inputs + generated), the candidate (working tree) against the baseline
 #   (--base, default the merge-base with origin/main; HEAD or HEAD^ when that is HEAD), built in a
 #   git worktree: instructions (callgrind, in WSL on Windows) and allocations. Exit 1 on a

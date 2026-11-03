@@ -31,8 +31,8 @@ esac
 "$bin" fixed json plugins --inputs "$inputs" >/dev/null; sleep 1
 
 phases() { # phases LANG
-  case "$1" in json) echo parse format lint patterns plugins ;; yaml) echo parse format lint patterns ;;
-    cs) echo parse format lint patterns plugins ;; esac; }
+  case "$1" in json) echo parse format format-query lint patterns plugins ;; yaml) echo parse format format-query lint patterns ;;
+    cs) echo parse format format-query lint patterns plugins ;; esac; }
 
 one() { # one LANG PHASE -> metric lines on stdout
   local lang=$1 phase=$2 res

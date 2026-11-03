@@ -401,6 +401,7 @@ name = "core-patterns"
 version = "0.1.0"
 dependencies = [
  "core-config",
+ "core-format",
  "core-rules",
  "core-syntax",
  "regex",
@@ -414,6 +415,7 @@ name = "core-plugins"
 version = "0.1.0"
 dependencies = [
  "core-config",
+ "core-format",
  "core-rules",
  "core-syntax",
  "lang-csharp",
@@ -431,6 +433,7 @@ name = "core-rules"
 version = "0.1.0"
 dependencies = [
  "core-config",
+ "core-format",
  "core-semantics",
  "core-syntax",
  "lang-json",
@@ -1577,6 +1580,7 @@ version = "0.1.0"
 dependencies = [
  "core-config",
  "core-flow",
+ "core-format",
  "core-patterns",
  "core-rules",
  "core-semantics",

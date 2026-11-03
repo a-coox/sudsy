@@ -13,14 +13,17 @@
 //!   ARGS: { regex: "^\"" }
 //! fix: _logger.LogInformation($$$ARGS)
 //! fix-kind: unsafe                # safe | unsafe | suggestion; unsafe when omitted
+//! layout:                         # layout directives for the formatter (message becomes optional)
+//!   - break-all on $CHAIN         # `<directive> [argument] [on $METAVARIABLE]`
 //! ```
 
 use crate::expr::{Ctx, Expr, Spec};
 use crate::matcher::{Captures, SnippetParser};
 use crate::metavar::rewrite;
 use core_config::Level;
+use core_format::Directive;
 use core_rules::tree::significant_range;
-use core_rules::{Category, Edit, Fix, FixKind, Rule, RuleContext, RuleMeta};
+use core_rules::{Category, Edit, Fix, FixKind, LayoutRole, Rule, RuleContext, RuleMeta};
 use core_syntax::{SyntaxKind, SyntaxNode};
 use regex::Regex;
 use serde::Deserialize;
@@ -62,7 +65,7 @@ struct Constraint {
 struct FileSpec {
     id: String,
     language: String,
-    message: String,
+    message: Option<String>,
     severity: Option<Level>,
     category: Option<CategorySpec>,
     description: Option<String>,
@@ -75,12 +78,36 @@ struct FileSpec {
     fix_title: Option<String>,
     #[serde(rename = "fix-kind")]
     fix_kind: Option<FixKindSpec>,
+    #[serde(default)]
+    layout: Vec<String>,
 }
 
 struct CompiledConstraint {
     regex: Option<Regex>,
     not_regex: Option<Regex>,
     kind: Option<SyntaxKind>,
+}
+
+/// One `layout:` entry: a directive for the matched node, or for the node a metavariable
+/// captured.
+struct LayoutEntry {
+    directive: Directive,
+    target: Option<String>,
+}
+
+fn layout_entry(text: &str) -> Result<LayoutEntry, String> {
+    let (directive, target) = match text.rsplit_once(" on ") {
+        Some((d, t)) => {
+            let name = t.trim().strip_prefix('$').filter(|n| !n.is_empty());
+            let name = name.ok_or_else(|| {
+                format!("layout `{text}`: `on` takes a metavariable like `$ITEMS`")
+            })?;
+            (d, Some(name.to_string()))
+        }
+        None => (text, None),
+    };
+    let directive = Directive::parse(directive).map_err(|e| format!("layout `{text}`: {e}"))?;
+    Ok(LayoutEntry { directive, target })
 }
 
 struct FixTemplate {
@@ -95,9 +122,11 @@ pub struct PatternRule {
     meta: &'static RuleMeta,
     kinds: Vec<SyntaxKind>,
     expr: Expr,
-    message: String,
+    /// `None`: a layout-only rule.
+    message: Option<String>,
     constraints: BTreeMap<String, CompiledConstraint>,
     fix: Option<FixTemplate>,
+    layout: Vec<LayoutEntry>,
 }
 
 fn leak(s: String) -> &'static str {
@@ -135,7 +164,24 @@ fn compile(spec: FileSpec, parser: &dyn SnippetParser) -> Result<PatternRule, St
     let mut captured = Vec::new();
     expr.metas(&mut captured);
     let known = |name: &str| captured.iter().any(|m| m.name == name);
-    let template_uses = [Some(&spec.message), spec.fix.as_ref()];
+    if spec.message.is_none() && (spec.layout.is_empty() || spec.fix.is_some()) {
+        return Err(
+            "give the rule a `message` (a layout-only rule needs `layout:` and no `fix`)".into(),
+        );
+    }
+    let layout = spec
+        .layout
+        .iter()
+        .map(|t| layout_entry(t))
+        .collect::<Result<Vec<_>, _>>()?;
+    for name in layout.iter().filter_map(|e| e.target.as_deref()) {
+        if !known(name) {
+            return Err(format!(
+                "layout targets `${name}`, which no pattern outside inside/has/not captures"
+            ));
+        }
+    }
+    let template_uses = [spec.message.as_ref(), spec.fix.as_ref()];
     for text in template_uses.into_iter().flatten() {
         for meta in crate::metavar::names(text) {
             if meta.captures() && !known(&meta.name) {
@@ -171,14 +217,18 @@ fn compile(spec: FileSpec, parser: &dyn SnippetParser) -> Result<PatternRule, St
         },
         template,
     });
-    let description = spec.description.unwrap_or_else(|| spec.message.clone());
+    let summary = spec
+        .message
+        .clone()
+        .unwrap_or_else(|| format!("Layout: {}", spec.layout.join(", ")));
+    let description = spec.description.unwrap_or_else(|| summary.clone());
     let example = spec.example.unwrap_or_else(|| {
         let pattern = spec
             .rule
             .pattern
             .as_deref()
             .unwrap_or("(see the rule file)");
-        format!("{pattern}\n{}", spec.message)
+        format!("{pattern}\n{summary}")
     });
     let meta = Box::leak(Box::new(RuleMeta {
         id: leak(spec.id),
@@ -204,6 +254,7 @@ fn compile(spec: FileSpec, parser: &dyn SnippetParser) -> Result<PatternRule, St
         message: spec.message,
         constraints,
         fix,
+        layout,
     })
 }
 
@@ -249,6 +300,25 @@ fn substitute(template: &str, captures: &Captures, text: &str) -> String {
 }
 
 impl PatternRule {
+    /// Attaches the rule's directives: to the matched node, or to the single node a metavariable
+    /// captured (a metavariable that captured a token or a run gets nothing).
+    fn attach_layout(&self, node: &SyntaxNode, captures: &Captures, ctx: &mut RuleContext<'_>) {
+        let grammar = ctx.file.grammar;
+        for entry in &self.layout {
+            let target = match &entry.target {
+                None => Some(node.clone()),
+                Some(name) => captures.get(name).and_then(|c| {
+                    let kind = c.kind?;
+                    node.descendants()
+                        .find(|n| n.kind() == kind && significant_range(n, grammar) == c.range)
+                }),
+            };
+            if let Some(target) = target {
+                ctx.attach(&target, entry.directive.clone());
+            }
+        }
+    }
+
     fn constraints_hold(&self, captures: &Captures, text: &str) -> bool {
         self.constraints.iter().all(|(name, c)| {
             let Some(capture) = captures.get(name) else {
@@ -271,6 +341,14 @@ impl Rule for PatternRule {
         &self.kinds
     }
 
+    fn layout_role(&self) -> LayoutRole {
+        match (&self.message, self.layout.is_empty()) {
+            (None, _) => LayoutRole::Only,
+            (Some(_), false) => LayoutRole::Also,
+            (Some(_), true) => LayoutRole::None,
+        }
+    }
+
     fn check(&self, node: &SyntaxNode, ctx: &mut RuleContext<'_>) {
         let file = ctx.file;
         let cx = Ctx {
@@ -284,15 +362,18 @@ impl Rule for PatternRule {
             return;
         }
         let range = significant_range(node, file.grammar);
-        let message = substitute(&self.message, &captures, file.text);
-        let diagnostic = ctx.report(range, message);
-        if let Some(fix) = &self.fix {
-            let replacement = substitute(&fix.template, &captures, file.text);
-            diagnostic.fix(Fix::new(
-                fix.title.clone(),
-                fix.kind,
-                vec![Edit::replace(range, replacement)],
-            ));
+        if ctx.laying_out() {
+            self.attach_layout(node, &captures, ctx);
+        } else if let Some(message) = &self.message {
+            let diagnostic = ctx.report(range, substitute(message, &captures, file.text));
+            if let Some(fix) = &self.fix {
+                let replacement = substitute(&fix.template, &captures, file.text);
+                diagnostic.fix(Fix::new(
+                    fix.title.clone(),
+                    fix.kind,
+                    vec![Edit::replace(range, replacement)],
+                ));
+            }
         }
     }
 }

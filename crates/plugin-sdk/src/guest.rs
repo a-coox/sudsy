@@ -6,6 +6,7 @@ use crate::bindings::exports::sudsy::rules::rules as w;
 use core_config::OptionValue;
 use core_rules::engine::{ActiveRule, run_project, run_rules};
 use core_rules::{Diagnostic, Fact, FileContext, LineIndex, ProjectFacts, RuleOptions, Severity};
+use core_rules::{LayoutRole, attached};
 use core_semantics::{BehaviorSummaries, FileSemantics, Layer, SemanticView};
 use core_syntax::wire::{WIRE_VERSION, WireTree};
 use core_syntax::{Grammar, SyntaxKind, SyntaxNode, TextRange, TextSize, grammars};
@@ -13,7 +14,7 @@ use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 /// The interface version this SDK was built against.
-pub const API: &str = "rules@0.1";
+pub const API: &str = "rules@0.2";
 
 fn option_value(v: &core_rules::Opt) -> w::OptionValue {
     match *v {
@@ -54,6 +55,11 @@ pub fn info(name: &str, rules: &[PluginRule]) -> w::PluginInfo {
                     fix: m.fix.map(|k| k.as_str().into()),
                     requires: m.requires.iter().map(|&l| layer_name(l)).collect(),
                     uses: m.uses.iter().map(|&l| layer_name(l)).collect(),
+                    layout: match r.rule.layout_role() {
+                        LayoutRole::None => w::LayoutRole::None,
+                        LayoutRole::Also => w::LayoutRole::Also,
+                        LayoutRole::Only => w::LayoutRole::Only,
+                    },
                     options: m
                         .options
                         .iter()
@@ -229,6 +235,29 @@ pub fn check(
             .map(diagnostic)
             .collect()
     })
+}
+
+pub fn layout(
+    rules: &[PluginRule],
+    id: &str,
+    options: Vec<(String, w::OptionValue)>,
+    file: w::File,
+) -> Result<Vec<w::LayoutRequest>, String> {
+    with_file(rules, id, options, &file, |context, active| {
+        Ok(attached(context, active)?
+            .into_iter()
+            .map(|a| {
+                let (start, end) = a.key.range();
+                w::LayoutRequest {
+                    kind: a.key.kind().0,
+                    start,
+                    end,
+                    at: a.at.into(),
+                    directive: a.directive.to_string(),
+                }
+            })
+            .collect())
+    })?
 }
 
 pub fn collect(

@@ -21,7 +21,7 @@ pub mod shapes;
 pub mod testing;
 
 pub use context::{DefaultFormatter, FormatCtx, NodeFormatter};
-pub use directives::{DIRECTIVES_VERSION, Directive, DirectiveConflict, DirectiveTable};
+pub use directives::{DIRECTIVES_VERSION, Directive, DirectiveConflict, DirectiveTable, NodeKey};
 pub use doc::Doc;
 pub use error::FormatError;
 pub use printer::PrintOptions;

@@ -4,6 +4,7 @@
 
 use core_syntax::{SyntaxKind, SyntaxNode};
 use std::collections::HashMap;
+use std::fmt;
 
 /// Bumped when a directive is added, removed or changes meaning.
 pub const DIRECTIVES_VERSION: u32 = 1;
@@ -29,6 +30,38 @@ pub enum Directive {
 }
 
 impl Directive {
+    /// Reads `break-all`, `blank-line-before 2`, `style compact`: the name, then the argument of
+    /// the directives that take one. The text form rules, plugins and pattern files share.
+    pub fn parse(text: &str) -> Result<Directive, String> {
+        let mut words = text.split_whitespace();
+        let (name, arg) = (words.next().unwrap_or(""), words.next());
+        if words.next().is_some() {
+            return Err(format!("`{text}` has more than one argument"));
+        }
+        let no_arg = |d: Directive| match arg {
+            None => Ok(d),
+            Some(a) => Err(format!("`{name}` takes no argument, found `{a}`")),
+        };
+        match name {
+            "break-all" => no_arg(Directive::BreakAll),
+            "keep-together" => no_arg(Directive::KeepTogether),
+            "break-before" => no_arg(Directive::BreakBefore),
+            "break-after" => no_arg(Directive::BreakAfter),
+            "align" => no_arg(Directive::Align),
+            "preserve" => no_arg(Directive::Preserve),
+            "blank-line-before" => arg
+                .and_then(|a| a.parse().ok())
+                .map(Directive::BlankLineBefore)
+                .ok_or_else(|| "`blank-line-before` takes a count, 0 to 255".to_string()),
+            "style" => arg
+                .map(|a| Directive::Style(a.into()))
+                .ok_or_else(|| "`style` takes a name".to_string()),
+            other => Err(format!(
+                "unknown layout directive `{other}`: break-all, keep-together, break-before, break-after, blank-line-before N, align, preserve or style NAME"
+            )),
+        }
+    }
+
     fn conflicts_with(&self, other: &Directive) -> bool {
         use Directive::*;
         match (self, other) {
@@ -37,6 +70,21 @@ impl Directive {
             (BlankLineBefore(a), BlankLineBefore(b)) => a != b,
             (Style(a), Style(b)) => a != b,
             _ => false,
+        }
+    }
+}
+
+impl fmt::Display for Directive {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Directive::BreakAll => f.write_str("break-all"),
+            Directive::KeepTogether => f.write_str("keep-together"),
+            Directive::BreakBefore => f.write_str("break-before"),
+            Directive::BreakAfter => f.write_str("break-after"),
+            Directive::Align => f.write_str("align"),
+            Directive::Preserve => f.write_str("preserve"),
+            Directive::BlankLineBefore(n) => write!(f, "blank-line-before {n}"),
+            Directive::Style(s) => write!(f, "style {s}"),
         }
     }
 }
@@ -50,6 +98,18 @@ pub struct NodeKey {
 }
 
 impl NodeKey {
+    pub fn new(kind: SyntaxKind, start: u32, end: u32) -> Self {
+        NodeKey { kind, start, end }
+    }
+
+    pub fn kind(&self) -> SyntaxKind {
+        self.kind
+    }
+
+    pub fn range(&self) -> (u32, u32) {
+        (self.start, self.end)
+    }
+
     pub fn of(node: &SyntaxNode) -> Self {
         let r = node.text_range();
         NodeKey {
@@ -74,7 +134,7 @@ pub struct DirectiveConflict {
     pub second: Directive,
 }
 
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct DirectiveTable {
     by_node: HashMap<NodeKey, Vec<(String, Directive)>>,
 }
@@ -88,13 +148,22 @@ impl DirectiveTable {
         rule: &str,
         directive: Directive,
     ) -> Result<(), Box<DirectiveConflict>> {
-        let key = NodeKey::of(node);
+        self.add_at(NodeKey::of(node), rule, directive)
+    }
+
+    /// [`DirectiveTable::add`] for a node known by its key (what a rule's layout request carries).
+    pub fn add_at(
+        &mut self,
+        key: NodeKey,
+        rule: &str,
+        directive: Directive,
+    ) -> Result<(), Box<DirectiveConflict>> {
         let entries = self.by_node.entry(key).or_default();
         if let Some((first_rule, first)) =
             entries.iter().find(|(_, d)| d.conflicts_with(&directive))
         {
             return Err(Box::new(DirectiveConflict {
-                kind: format!("{:?}", node.kind()),
+                kind: format!("{:?}", key.kind),
                 start: key.start,
                 end: key.end,
                 first_rule: first_rule.clone(),
@@ -107,6 +176,10 @@ impl DirectiveTable {
             entries.push((rule.into(), directive));
         }
         Ok(())
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.by_node.is_empty()
     }
 
     pub fn of(&self, node: &SyntaxNode) -> NodeDirectives<'_> {
@@ -168,6 +241,21 @@ mod tests {
         assert!(t.of(&n).has(&Directive::BreakAll));
         assert_eq!(t.of(&n).blank_lines_before(), Some(1));
         assert_eq!(t.of(&n).0.len(), 3);
+    }
+
+    #[test]
+    fn text_form_round_trips() {
+        for text in [
+            "break-all",
+            "keep-together",
+            "blank-line-before 2",
+            "style compact",
+        ] {
+            assert_eq!(Directive::parse(text).unwrap().to_string(), text);
+        }
+        for bad in ["", "break-all now", "blank-line-before", "style", "wiggle"] {
+            assert!(Directive::parse(bad).is_err(), "{bad}");
+        }
     }
 
     #[test]

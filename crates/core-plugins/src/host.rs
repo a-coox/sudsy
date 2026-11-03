@@ -240,7 +240,7 @@ pub fn load(
         .and_then(bindings::PluginPre::new)
         .map_err(|e| {
             err(
-                "the component does not implement sudsy:rules/rules@0.1 \
+                "the component does not implement sudsy:rules/rules@0.2 \
                  (rebuild it against this version of the SDK)",
                 e,
             )

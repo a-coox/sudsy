@@ -1,7 +1,7 @@
 //! The sample rules, tested natively with the SDK's harness (the same one the built-in rules use).
 
 use plugin_sdk::testing::{expect, extensions, fix_with, lint_with, provider};
-use sample_plugin::{DuplicateName, NoDebugFlag};
+use sample_plugin::{BreakArrays, DuplicateName, NoDebugFlag};
 
 #[test]
 fn no_debug_flag_reports_and_fixes() {
@@ -38,4 +38,14 @@ fn project_scope_rule_collects_and_finishes() {
         report.is_empty(),
         "project scope reports only in the project phase"
     );
+}
+
+#[test]
+fn break_arrays_attaches_directives_natively() {
+    use plugin_sdk::Rule;
+    // The rule is layout-only: lint runs nothing of it, and the harness sees no diagnostic.
+    assert_eq!(BreakArrays.layout_role(), plugin_sdk::LayoutRole::Only);
+    let p = provider("json");
+    let ext = extensions("json", &BreakArrays);
+    assert!(lint_with(&*p, &ext, "a.json", "[1, 2, 3]", "").is_empty());
 }

@@ -16,6 +16,7 @@ static A: mimalloc::MiMalloc = mimalloc::MiMalloc;
 mod counting;
 mod extensions;
 mod fixed;
+mod layout;
 mod semantic;
 #[cfg(feature = "count")]
 #[global_allocator]
@@ -237,6 +238,17 @@ fn main() -> Result<()> {
             return Err(anyhow!("fixed LANG PHASE [--inputs DIR]"));
         };
         return fixed::run(lang, phase, std::path::Path::new(dir));
+    }
+    if which == "layout" {
+        let lang = args
+            .get(1)
+            .ok_or_else(|| anyhow!("layout LANG [--inputs DIR]"))?;
+        let dir = args
+            .iter()
+            .position(|a| a == "--inputs")
+            .and_then(|i| args.get(i + 1))
+            .map_or("bench/inputs", String::as_str);
+        return layout::run(lang, std::path::Path::new(dir));
     }
     if which == "plugin-load" {
         return extensions::plugin_load();

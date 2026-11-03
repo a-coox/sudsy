@@ -6,10 +6,11 @@ use crate::failure::{Failure, Stage};
 use crate::inputs::{ExtensionSet, File};
 use crate::queries::{config, parse, parse_settings, provider_of, selection, source_file};
 use core_config::{Depth, FileInput, ResolvedRule};
+use core_format::DirectiveTable;
 use core_rules::engine::{ActiveRule, FileReport};
 use core_rules::{
     Category, Diagnostic, FileContext, Layer, LineIndex, ProjectFacts, SYNTAX_ERROR, Severity,
-    activate, layers_needed, run_file, run_project,
+    activate, layers_needed, run_file, run_layout, run_project,
 };
 use core_semantics::{BehaviorSummaries, FileSemantics, Layers, SemanticView};
 use core_syntax::{TextRange, TextSize};
@@ -91,9 +92,50 @@ fn active_rules(db: &dyn Db, file: File) -> Result<(Vec<ActiveRule<'static>>, De
     let caps = provider.capabilities();
     let extensions = ExtensionSet::get(db).extensions(db);
     let rules = extensions.with_own(provider.rules(), &provider.grammar().language);
-    let active = activate(rules, &settings.rules, |l| has_layer(depth, caps, l))
+    let mut active = activate(rules, &settings.rules, |l| has_layer(depth, caps, l))
         .map_err(|e| Failure::new(Stage::Config, &e))?;
+    // A layout-only rule has nothing to report; `layout` runs it.
+    active.retain(|a| a.rule.layout_role().reports());
     Ok((active, depth))
+}
+
+/// The layout directives the file's layout rules attach (see `core_rules::layout`), for
+/// `format`. Syntax-only: a rule that needs semantic layers does not run here. With no layout
+/// rule configured for the language this reads nothing but the extension set, so formatting
+/// pays nothing for the feature. Conflicting directives and failing plugins are errors.
+#[salsa::tracked(returns(ref))]
+pub fn layout(db: &dyn Db, file: File) -> Result<DirectiveTable, Failure> {
+    let provider = provider_of(db, file)?;
+    let extensions = ExtensionSet::get(db).extensions(db);
+    let language = &provider.grammar().language;
+    let layout_rules = || {
+        extensions
+            .with_own(provider.rules(), language)
+            .filter(|r| r.layout_role().attaches())
+    };
+    if layout_rules().next().is_none() {
+        return Ok(DirectiveTable::default());
+    }
+    let parsed = parse(db, file).as_ref().map_err(Clone::clone)?;
+    if !parsed.errors.is_empty() {
+        return Ok(DirectiveTable::default());
+    }
+    let settings = lint_settings(db, file).as_ref().map_err(Clone::clone)?;
+    let active = activate(layout_rules(), &settings.rules, |_| false)
+        .map_err(|e| Failure::new(Stage::Config, &e))?;
+    let text = file.text(db);
+    let root = parsed.root();
+    let lines = LineIndex::new(text);
+    let context = FileContext {
+        path: file.path(db),
+        text,
+        root: &root,
+        grammar: provider.grammar(),
+        lines: &lines,
+        body_kinds: provider.body_kinds(),
+        semantics: None,
+    };
+    run_layout(&context, &active).map_err(|e| Failure::message(Stage::Format, e))
 }
 
 /// The layers a file's rules ask the provider for, as far as the analysis depth and the

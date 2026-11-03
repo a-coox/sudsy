@@ -46,5 +46,5 @@ Each is checked at handshake or load; a mismatch is refused. Why: workers and pl
 | Grammar | SHA-256 over lexemes (comments/layout ignored, declaration order counts) |
 | Tree wire encoding | `WIRE_VERSION = 1` |
 | Worker protocol | `PROTOCOL_VERSION = 3` (+ grammar hash, flow-graph format version) |
-| Layout directives | `DIRECTIVES_VERSION = 1` |
-| Plugin WIT | `sudsy:rules@0.1.0` / API `rules@0.1` |
+| Layout directives | `DIRECTIVES_VERSION = 1` (text form shared by pattern files and the plugin WIT) |
+| Plugin WIT | `sudsy:rules@0.2.0` / API `rules@0.2` (0.2 adds `layout` and `rule-info.layout`) |

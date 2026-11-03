@@ -11,7 +11,7 @@ use core_format::doc::{self, Doc};
 use core_format::shapes::{
     self, MemberChain, ends_in_line_comment, gap_after_operator, member_chain as member_chain_shape,
 };
-use core_format::{FormatCtx, FormatError};
+use core_format::{Directive, FormatCtx, FormatError};
 use core_syntax::{SyntaxElement, SyntaxNode, SyntaxToken};
 
 fn shape(msg: &str) -> FormatError {
@@ -424,7 +424,8 @@ fn merges_first_group(cx: &FormatCtx<'_>, head: &SyntaxNode) -> bool {
 }
 
 /// `a.B().C().D()`: on one line if it fits, else the head and then one `.Call()` per line. Chains
-/// with fewer calls than `member_chain_min_calls` are never broken at the dots.
+/// with fewer calls than `member_chain_min_calls` are never broken at the dots. The directives
+/// `BreakAll` and `KeepTogether` on `node` override the width and that minimum.
 pub fn member_chain(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
     let mut links = Vec::new();
     let Some(head) = walk(cx, node, &mut links)? else {
@@ -461,7 +462,13 @@ pub fn member_chain(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
     }
     let mut head_parts = vec![cx.format(&head)?];
     head_parts.extend(prefix);
-    let min_calls = cx.options.int(super::options::MEMBER_CHAIN_MIN_CALLS) as usize;
+    // `BreakAll` / `KeepTogether` on the chain's outermost node: always / never at the dots.
+    let directives = cx.directives_of(node);
+    let min_calls = if directives.has(&Directive::KeepTogether) {
+        usize::MAX
+    } else {
+        cx.options.int(super::options::MEMBER_CHAIN_MIN_CALLS) as usize
+    };
     if merges_first_group(cx, &head) && !groups.is_empty() {
         head_parts.extend(groups.remove(0));
     }
@@ -470,7 +477,7 @@ pub fn member_chain(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
         groups,
         calls,
         min_calls,
-        force_break: has_line_comment(cx, &links),
+        force_break: has_line_comment(cx, &links) || directives.has(&Directive::BreakAll),
         break_on_inner_break: chain_break_on_block(cx.options),
     }))
 }
