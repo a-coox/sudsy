@@ -6,4 +6,4 @@ Source: Prettier, `tests/format/json/json/__snapshots__/format.test.js.snap`
 (`printWidth: 80`). Input and output are copied from the snapshot.
 
 Not covered: Prettier's `fill` layout of number arrays and its number normalization
-(`docs/presets.md`).
+(`docs/formatting/presets.md`).

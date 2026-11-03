@@ -3,7 +3,7 @@
 Source: "C# at Google Style Guide" (<https://google.github.io/styleguide/csharpguide.html>), section
 "Formatting guidelines / Example", text retrieved 2026-11-02.
 
-Changes to the published example (see `docs/presets.md` for why):
+Changes to the published example (see `docs/formatting/presets.md` for why):
 
 * The example's trailing `//` comments are removed (the guide aligns them in a column; Sudsy
   keeps one space before a trailing comment).
