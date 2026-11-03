@@ -1,7 +1,7 @@
 # JSON / JSONC (`lang-json`)
 
 ## Parser
-Hand-written lexer + recursive descent; strings, numbers, escapes validated by the lexer. Stray tokens become `ERROR` nodes; every token is in the tree. Comments and trailing commas are errors in the `json` dialect (same tree). Nesting beyond 256 is an error (rest of file is one `ERROR` node; bounds recursion in parser, formatter, drop). An empty file is an error.
+Hand-written lexer + recursive descent; strings, numbers, escapes validated by the lexer. Stray tokens become `ERROR` nodes; every token is in the tree. One diagnostic per error site: a report overlapping an earlier one (the lexer already flagged that token) is dropped, and a bad member or element is skipped to the next `,` or closing delimiter without further reports; everything after a stray top-level token is one error. Comments and trailing commas are errors in the `json` dialect (same tree). Nesting beyond 256 is an error (rest of file is one `ERROR` node; bounds recursion in parser, formatter, drop). An empty file is an error.
 
 ## Dialect
 `*.json` is json; `*.jsonc`, `tsconfig.json`, `.vscode/*.json` are jsonc (most specific matcher wins). Override with option `dialect` (`auto`|`json`|`jsonc`). The effective dialect travels in `SourceFile::language_version`.

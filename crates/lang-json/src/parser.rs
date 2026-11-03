@@ -140,7 +140,17 @@ impl<'a> Parser<'a> {
         self.error_at(r, code, message);
     }
 
+    /// One diagnostic per error site: a report that overlaps an earlier one (a lexer error on
+    /// the same token, or a second complaint about the same position) is dropped.
     fn error_at(&mut self, r: Range<usize>, code: &str, message: impl Into<String>) {
+        let (start, end) = (r.start as u32, r.end as u32);
+        if self
+            .errors
+            .iter()
+            .any(|e| e.start == start || (e.start < end && start < e.start + e.len))
+        {
+            return;
+        }
         self.errors.push(ParseError {
             start: r.start as u32,
             len: (r.end - r.start) as u32,
@@ -205,17 +215,16 @@ impl<'a> Parser<'a> {
         } else if self.at_eof() {
             self.error("expected-value", "expected a value");
         }
-        while !self.at_eof() {
+        if !self.at_eof() {
             let message = if self.starts_value() {
                 "unexpected content after the top-level value"
             } else {
                 "unexpected token"
             };
             self.error("unexpected-token", message);
+            // Everything after the first stray token is one error site.
             self.builder.start_node(SyntaxKind::ERROR);
-            if self.starts_value() {
-                self.value();
-            } else {
+            while !self.at_eof() {
                 self.bump();
             }
             self.builder.finish_node();
@@ -273,12 +282,7 @@ impl<'a> Parser<'a> {
                 k::STRING => {
                     self.member();
                     match self.cur() {
-                        k::COMMA => {
-                            self.bump();
-                            if self.cur() == k::R_BRACE {
-                                self.trailing_comma_allowed();
-                            }
-                        }
+                        k::COMMA => self.comma(k::R_BRACE),
                         k::R_BRACE | k::EOF => {}
                         _ => self.error("expected-comma", "expected `,` or `}`"),
                     }
@@ -289,7 +293,7 @@ impl<'a> Parser<'a> {
                 }
                 _ => {
                     self.error("expected-key", "expected a string key or `}`");
-                    self.error_node();
+                    self.recover(k::R_BRACE);
                 }
             }
         }
@@ -297,6 +301,35 @@ impl<'a> Parser<'a> {
             self.bump();
         }
         self.builder.finish_node();
+    }
+
+    /// Consumes the `,` after an item.
+    fn comma(&mut self, closer: SyntaxKind) {
+        self.bump();
+        if self.cur() == closer {
+            self.trailing_comma_allowed();
+        }
+    }
+
+    /// Skips the rest of a bad item without further reports: everything up to the next `,` or
+    /// the closing delimiter at this level (brackets in between are balanced).
+    fn recover(&mut self, closer: SyntaxKind) {
+        self.builder.start_node(SyntaxKind::ERROR);
+        let mut nesting = 0usize;
+        while !self.at_eof() {
+            match self.cur() {
+                k::L_BRACE | k::L_BRACKET => nesting += 1,
+                k::R_BRACE | k::R_BRACKET if nesting > 0 => nesting -= 1,
+                k::COMMA if nesting == 0 => break,
+                kind if kind == closer && nesting == 0 => break,
+                _ => {}
+            }
+            self.bump();
+        }
+        self.builder.finish_node();
+        if self.cur() == k::COMMA {
+            self.comma(closer);
+        }
     }
 
     fn member(&mut self) {
@@ -332,19 +365,14 @@ impl<'a> Parser<'a> {
                 _ if self.starts_value() => {
                     self.value();
                     match self.cur() {
-                        k::COMMA => {
-                            self.bump();
-                            if self.cur() == k::R_BRACKET {
-                                self.trailing_comma_allowed();
-                            }
-                        }
+                        k::COMMA => self.comma(k::R_BRACKET),
                         k::R_BRACKET | k::EOF => {}
                         _ => self.error("expected-comma", "expected `,` or `]`"),
                     }
                 }
                 _ => {
                     self.error("expected-value", "expected a value or `]`");
-                    self.error_node();
+                    self.recover(k::R_BRACKET);
                 }
             }
         }

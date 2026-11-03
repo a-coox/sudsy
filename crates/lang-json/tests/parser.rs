@@ -83,6 +83,41 @@ fn stray_tokens_become_error_nodes() {
 }
 
 #[test]
+fn one_diagnostic_per_error_site() {
+    for (text, codes) in [
+        ("{\"a\": @, \"b\": 1}", &["unexpected-character"][..]),
+        ("[1, 2 @ 3]", &["unexpected-character"]),
+        ("{\"a\": tru, \"b\": 2}", &["unexpected-word"]),
+        (
+            "{'a': 1}",
+            &[
+                "unexpected-character",
+                "unexpected-word",
+                "unexpected-character",
+            ],
+        ),
+        ("{a: 1, b: [1, 2]}", &["unexpected-word", "unexpected-word"]),
+        ("{\"a\": 1,, \"b\": 2}", &["unexpected-comma"]),
+        ("[1 2 3]", &["expected-comma", "expected-comma"]),
+        ("{\"a\" 1}", &["expected-colon"]),
+        ("1 2 3 }", &["unexpected-token"]),
+        ("{\"a\": [1, {\"b\": 2", &["unclosed-object"]),
+        (
+            "{\"a\": 1, @, \"b\": 2, # x}",
+            &[
+                "unexpected-character",
+                "unexpected-character",
+                "unexpected-word",
+            ],
+        ),
+    ] {
+        let (tree, errors) = parse("a.json", text);
+        assert_eq!(errors, codes, "{text}");
+        assert_lossless(&tree, text);
+    }
+}
+
+#[test]
 fn error_positions_point_at_the_problem() {
     let r = JsonProvider::new()
         .parse(&SourceFile::new("a.json", 1, "{\"a\": tru}"))
