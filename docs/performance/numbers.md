@@ -9,8 +9,8 @@ Machine unless noted: AMD Ryzen 5 3600 (6 cores / 12 threads), 32 GB, Windows 11
 | JSON one line 1.1 MB | 386 ms (2.9 MB/s) |
 | YAML 5.0 MB phases: parse / layout / print / re-parse / compare / data model | 522 / 1655 / 202 / 499 / 194 / 732 ms; whole 1.6 MB/s at 4x |
 | TOML (tree-sitter) 5.5 MB generated (`perf-bench toml`) phases: parse / layout / print / re-parse / compare | 2337 / 558 / 142 / 2348 / 69 ms; whole 1.0 MB/s at 4x (parse 2.3 MB/s; 4.1 MB/s on 512 real `Cargo.toml` files in an earlier spike). Tree-sitter is two thirds of the parse, the adapter one third (spike). |
-| Allocations per fixed workload (`scripts/bench.sh`) | json.format 851308, yaml.format 2114000, cs.format 140206 |
-| Instructions per fixed workload (`scripts/bench.sh`, valgrind in WSL) | json.format 1.392 G, yaml.format 1.789 G |
+| Allocations per fixed workload (`scripts/bench.sh`) | json.format 851308, yaml.format 2114000, toml.format 807876, cs.format 140206 |
+| Instructions per fixed workload (`scripts/bench.sh`, valgrind in WSL) | json.format 1.392 G, yaml.format 1.789 G, toml.format 3.189 G (toml.parse 1.215 G; the fixed TOML workload is 22 files, 3 MB generated, so not comparable with the other languages) |
 | C# layout options of `csharp/stylecop` (blank-line rules, `)` placement, expanded empty bodies), `format --check` of the 12 files of `bench/inputs/cs` (0.1 MB), release CLI with worker, cold process, 7 runs x 2 | median 121 ms with `csharp/microsoft`, 122 ms with `csharp/stylecop` (process and worker start dominate; no measurable difference). Default-option allocations are unchanged (the rules are only built when an option asks for them). |
 
 `format` writing 1500 small JSON files that all change (`scripts/bench-write.sh`, NTFS): 0.9 s with `fs::write`, 3.4 s with the temp file + fsync + rename of `format`/`fix` (about 1.7 ms per rewritten file, all of it the sync); files that do not change are not written, so check mode and clean trees are unaffected.
