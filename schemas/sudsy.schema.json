@@ -78,6 +78,52 @@
               "$ref": "#/definitions/rule",
               "description": "The first document does not start with `---`."
             },
+            "float-style": {
+              "description": "Restricts how plain floats are written. Every option is off until set: `.5` without a leading digit, `1e3` scientific notation, `.nan` and `.inf`. Quoted and tagged scalars are not checked. The fix for `.5` is `0.5`. yamllint `float-values`.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "forbid_inf": {
+                          "default": false,
+                          "description": "Report `.inf`, `-.Inf`, `+.INF`.",
+                          "type": "boolean"
+                        },
+                        "forbid_nan": {
+                          "default": false,
+                          "description": "Report `.nan`, `.NaN`, `.NAN`.",
+                          "type": "boolean"
+                        },
+                        "forbid_scientific_notation": {
+                          "default": false,
+                          "description": "Report `1e3`, `1.5E-2`, `.5e3`.",
+                          "type": "boolean"
+                        },
+                        "require_numeral_before_decimal": {
+                          "default": false,
+                          "description": "Report `.5`, `-.5e3`: a digit must come before the decimal point.",
+                          "type": "boolean"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
             "key-name-casing": {
               "description": "A key does not follow one of the allowed naming conventions. The checks are those of eslint-plugin-jsonc: a key with punctuation or whitespace never matches, `camelCase` also rejects `_` and `-`, `snake_case` and `kebab-case` reject capitals. No fix: renaming a key changes the data.",
               "oneOf": [
@@ -99,6 +145,13 @@
                           ],
                           "description": "Accepted conventions: `camelCase`, `PascalCase`, `snake_case`, `kebab-case`, `SCREAMING_SNAKE_CASE`. A key is fine when it matches one.",
                           "items": {
+                            "enum": [
+                              "camelCase",
+                              "PascalCase",
+                              "snake_case",
+                              "kebab-case",
+                              "SCREAMING_SNAKE_CASE"
+                            ],
                             "type": "string"
                           },
                           "type": "array"
@@ -162,6 +215,10 @@
               "$ref": "#/definitions/rule",
               "description": "A comment between the head of an `if`, `else`, `while`, `do`, `for`, `foreach`, `lock`, `try`, `catch`, `finally`, `switch`, `checked` or `unchecked` and its `{`. Put it inside the block or above the statement. Equivalent to StyleCop SA1108."
             },
+            "no-duplicate-anchors": {
+              "$ref": "#/definitions/rule",
+              "description": "An anchor name is defined again in the same document; an alias refers to the latest definition above it, which is easy to misread. yamllint `forbid-duplicated-anchors`."
+            },
             "no-duplicate-keys": {
               "$ref": "#/definitions/rule",
               "description": "An object has the same key twice, after decoding escapes; parsers disagree on which value wins."
@@ -190,6 +247,83 @@
               "$ref": "#/definitions/rule",
               "description": "A lone `;` is a statement that does nothing. A statement labelled `label: ;` is allowed. The fix removes the statement (its whole line when it is alone on it), or turns an empty loop or `if` body into `{ }`; it is not offered for the only statement of a switch section. Overlaps compiler CS0642 for `if (x);`. Equivalent to StyleCop SA1106."
             },
+            "no-empty-values": {
+              "description": "A mapping key or sequence entry without a value (an implicit null). Values with an anchor or tag are not empty. Reported at the `:` or `-`. yamllint `empty-values`.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "block_mappings": {
+                          "default": true,
+                          "description": "Check block mappings.",
+                          "type": "boolean"
+                        },
+                        "block_sequences": {
+                          "default": true,
+                          "description": "Check block sequences.",
+                          "type": "boolean"
+                        },
+                        "flow_mappings": {
+                          "default": true,
+                          "description": "Check flow mappings (`{a: }`).",
+                          "type": "boolean"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            "no-octal-values": {
+              "description": "A plain `0755` (octal to YAML 1.1 parsers, decimal 755 to YAML 1.2) or `0o755` (octal to YAML 1.2, a string to YAML 1.1). Quoted and tagged scalars are not checked. No fix: the intended value is not known. yamllint `octal-values`.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "explicit": {
+                          "default": true,
+                          "description": "Report `0o755`.",
+                          "type": "boolean"
+                        },
+                        "implicit": {
+                          "default": true,
+                          "description": "Report `0755`.",
+                          "type": "boolean"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
             "no-regions": {
               "$ref": "#/definitions/rule",
               "description": "`#region` hides code behind a label. Reported on every `#region`, in disabled `#if` branches too; no fix, because removing a pair is a judgment call. Equivalent to StyleCop SA1124."
@@ -198,9 +332,86 @@
               "$ref": "#/definitions/rule",
               "description": "An alias names an anchor that is not defined earlier in the same document."
             },
+            "no-unused-anchors": {
+              "$ref": "#/definitions/rule",
+              "description": "An anchor that no alias refers to. The fix removes the anchor, which changes nothing about the data. yamllint `forbid-unused-anchors`."
+            },
             "possible-null-dereference": {
               "$ref": "#/definitions/rule",
               "description": "A member or element access on an expression the compiler's nullable analysis says may be null. Only code under `#nullable enable` is checked. Off by default: the compiler reports the same thing as CS8602."
+            },
+            "quoted-strings": {
+              "description": "Which strings are quoted. Plain scalars that are not strings (`12`, `true`, `null`, dates, ...), block scalars and scalars tagged `!!` are never checked. `required: always` wants quotes on every string, `only_when_needed` reports quotes that change nothing (unless `extra_allowed` matches) and plain strings that `extra_required` matches, `optional` only the latter. Fixes: quoting a plain string and switching the quote type keep the value; removing quotes is unsafe because YAML 1.2 parsers read some strings (`1e3`) as numbers. yamllint `quoted-strings`.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "allow_quoted_quotes": {
+                          "default": false,
+                          "description": "Accept the other quote type when the string contains the wanted quote.",
+                          "type": "boolean"
+                        },
+                        "check_keys": {
+                          "default": false,
+                          "description": "Check mapping keys too.",
+                          "type": "boolean"
+                        },
+                        "extra_allowed": {
+                          "default": [],
+                          "description": "Regular expressions; a string they match may be quoted with `only_when_needed`.",
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        },
+                        "extra_required": {
+                          "default": [],
+                          "description": "Regular expressions; a string they match (searched in the value) must be quoted even with `optional` or `only_when_needed`.",
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        },
+                        "quote_type": {
+                          "default": "any",
+                          "description": "The quotes to use. `consistent`: the first quoted string of the file decides.",
+                          "enum": [
+                            "any",
+                            "single",
+                            "double",
+                            "consistent"
+                          ],
+                          "type": "string"
+                        },
+                        "required": {
+                          "default": "always",
+                          "description": "`always`: every string is quoted. `optional`: quotes are free, but must be of `quote_type`. `only_when_needed`: quotes only where the string would otherwise read as something else.",
+                          "enum": [
+                            "always",
+                            "optional",
+                            "only_when_needed"
+                          ],
+                          "type": "string"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
             },
             "remove-unused-usings": {
               "$ref": "#/definitions/rule",
@@ -233,11 +444,20 @@
                         "compare": {
                           "default": "ordinal",
                           "description": "`ordinal` (code points), `case_insensitive`, or `natural` (digit runs compare as numbers: `a2` before `a10`).",
+                          "enum": [
+                            "ordinal",
+                            "case_insensitive",
+                            "natural"
+                          ],
                           "type": "string"
                         },
                         "direction": {
                           "default": "asc",
                           "description": "`asc` or `desc`.",
+                          "enum": [
+                            "asc",
+                            "desc"
+                          ],
                           "type": "string"
                         },
                         "min_values": {
@@ -279,11 +499,20 @@
                         "compare": {
                           "default": "ordinal",
                           "description": "`ordinal` (code points), `case_insensitive`, or `natural` (digit runs compare as numbers: `a2` before `a10`).",
+                          "enum": [
+                            "ordinal",
+                            "case_insensitive",
+                            "natural"
+                          ],
                           "type": "string"
                         },
                         "direction": {
                           "default": "asc",
                           "description": "`asc` or `desc`.",
+                          "enum": [
+                            "asc",
+                            "desc"
+                          ],
                           "type": "string"
                         },
                         "ignored_keys": {

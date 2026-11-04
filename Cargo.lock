@@ -1275,6 +1275,7 @@ dependencies = [
  "memchr",
  "proptest",
  "provider-api",
+ "regex",
  "serde_json",
 ]
 

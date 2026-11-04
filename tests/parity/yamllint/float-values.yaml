@@ -1,0 +1,18 @@
+plain: .5
+neg: -.5e3
+sci: 1e3
+sci2: 1.5E-2
+sci3: .5e3
+sci4: 5E+2
+nan: .nan
+nan2: .NaN
+inf: .inf
+inf2: -.Inf
+inf3: +.INF
+quoted: ".5"
+tagged: !!float .5
+fine: 1.5
+fine2: 0.5
+fine3: 1_000
+list: [.5, 1e3, .inf]
+.5: key

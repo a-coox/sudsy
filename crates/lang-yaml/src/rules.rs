@@ -1,23 +1,31 @@
-//! YAML rules: `no-duplicate-keys`, `no-undefined-alias`, `ambiguous-booleans`,
-//! `document-start` and the opt-in `sorted-keys`.
+//! YAML rules: `no-duplicate-keys`, `ambiguous-booleans`, `document-start` and the opt-in
+//! `sorted-keys`. Anchor rules are in `anchor_rules`, rules on values in `value_rules` and
+//! `quoted_strings`.
 
 use crate::generated::{
     AnyValue, BlockMapping, BlockMappingEntry, FlowMapping, FlowPair, Scalar, kind,
 };
 use crate::scalar::{double_quoted_value, plain_value, single_quoted_value};
+use crate::{anchor_rules, quoted_strings, value_rules};
 use core_config::Level;
 use core_rules::sorting::{self, Sorting};
 use core_rules::tree::{entry_range, reorder_edits, significant_range};
 use core_rules::{
-    Category, Check, Edit, FileContext, Fix, FixKind, Opt, OptionDecl, Rule, RuleContext, RuleMeta,
+    Category, Check, Edit, Fix, FixKind, Opt, OptionDecl, Rule, RuleContext, RuleMeta,
 };
 use core_syntax::ast::AstNode;
 use core_syntax::{SyntaxKind, SyntaxNode, TextRange, TextSize};
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
 pub static RULES: &[&dyn Rule] = &[
     &NoDuplicateKeys,
-    &NoUndefinedAlias,
+    &anchor_rules::NoUndefinedAlias,
+    &anchor_rules::NoDuplicateAnchors,
+    &anchor_rules::NoUnusedAnchors,
+    &value_rules::NoEmptyValues,
+    &value_rules::FloatStyle,
+    &value_rules::NoOctalValues,
+    &quoted_strings::QuotedStrings,
     &AmbiguousBooleans,
     &DocumentStart,
     &SortedKeys,
@@ -102,61 +110,6 @@ impl Rule for NoDuplicateKeys {
     }
 }
 
-struct NoUndefinedAlias;
-
-static NO_UNDEFINED_ALIAS: RuleMeta = RuleMeta {
-    id: "no-undefined-alias",
-    category: Category::Correctness,
-    description: "An alias names an anchor that is not defined earlier in the same document.",
-    example: "a: *nope   # no `&nope` before it",
-    default_level: Level::Error,
-    fix: None,
-    requires: &[],
-    uses: &[],
-    options: &[],
-};
-
-impl Rule for NoUndefinedAlias {
-    fn meta(&self) -> &'static RuleMeta {
-        &NO_UNDEFINED_ALIAS
-    }
-
-    /// Looks only at the `&` and `*` bytes of the text and asks the tree what they are, so a file
-    /// without anchors costs one scan and no tree walk.
-    fn check_file(&self, file: &FileContext<'_>, ctx: &mut RuleContext<'_>) {
-        let mut anchors: HashSet<&str> = HashSet::new();
-        let mut document = None;
-        for at in memchr::memchr2_iter(b'&', b'*', file.text.as_bytes()) {
-            let Some(token) = file
-                .root
-                .token_at_offset(TextSize::new(at as u32))
-                .right_biased()
-            else {
-                continue;
-            };
-            let (kind, range) = (token.kind(), token.text_range());
-            if !matches!(kind, kind::ANCHOR | kind::ALIAS) || usize::from(range.start()) != at {
-                continue;
-            }
-            // Anchors do not cross document markers.
-            let doc = token
-                .parent_ancestors()
-                .find(|n| n.kind() == kind::DOCUMENT)
-                .map(|n| n.text_range().start());
-            if doc != document {
-                document = doc;
-                anchors.clear();
-            }
-            let name = &file.text[at + 1..usize::from(range.end())];
-            if kind == kind::ANCHOR {
-                anchors.insert(name);
-            } else if !anchors.contains(name) {
-                ctx.report(range, format!("undefined alias `{name}`"));
-            }
-        }
-    }
-}
-
 struct AmbiguousBooleans;
 
 static AMBIGUOUS_BOOLEANS: RuleMeta = RuleMeta {
@@ -214,11 +167,7 @@ impl Rule for AmbiguousBooleans {
             return;
         }
         // `!!str yes` says what it means.
-        let tagged = node.parent().is_some_and(|p| {
-            p.kind() == kind::PROPERTY_NODE
-                && p.children_with_tokens().any(|c| c.kind() == kind::TAG)
-        });
-        if tagged {
+        if has_tag(node) {
             return;
         }
         let text = token.text();
@@ -234,8 +183,15 @@ impl Rule for AmbiguousBooleans {
     }
 }
 
+/// Is a tag among the properties of the scalar?
+pub(crate) fn has_tag(scalar: &SyntaxNode) -> bool {
+    scalar.parent().is_some_and(|p| {
+        p.kind() == kind::PROPERTY_NODE && p.children_with_tokens().any(|c| c.kind() == kind::TAG)
+    })
+}
+
 /// Is the scalar (possibly inside a property node) the key of a mapping entry?
-fn is_key(scalar: &SyntaxNode) -> bool {
+pub(crate) fn is_key(scalar: &SyntaxNode) -> bool {
     let mut value = scalar.clone();
     if let Some(p) = value.parent().filter(|p| p.kind() == kind::PROPERTY_NODE) {
         value = p;

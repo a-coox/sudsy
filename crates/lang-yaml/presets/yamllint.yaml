@@ -21,5 +21,6 @@ yaml:
         options:
           check_keys: true
           allowed: []
+      no-undefined-alias: error
       document-start: warn
       comment-space: warn

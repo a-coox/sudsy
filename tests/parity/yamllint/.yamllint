@@ -3,8 +3,27 @@
 rules:
   anchors:
     forbid-undeclared-aliases: true
-    forbid-duplicated-anchors: false
-    forbid-unused-anchors: false
+    forbid-duplicated-anchors: true
+    forbid-unused-anchors: true
+  empty-values:
+    forbid-in-block-mappings: true
+    forbid-in-flow-mappings: true
+    forbid-in-block-sequences: true
+  float-values:
+    require-numeral-before-decimal: true
+    forbid-scientific-notation: true
+    forbid-nan: true
+    forbid-inf: true
+  octal-values:
+    forbid-implicit-octal: true
+    forbid-explicit-octal: true
+  quoted-strings:
+    quote-type: single
+    required: only-when-needed
+    extra-required: ["^http://"]
+    extra-allowed: ["^x-"]
+    allow-quoted-quotes: true
+    check-keys: true
   document-start:
     present: true
   key-duplicates:

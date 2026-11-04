@@ -344,6 +344,7 @@ dependencies = [
  "core-syntax",
  "memchr",
  "provider-api",
+ "regex",
 ]
 
 [[package]]

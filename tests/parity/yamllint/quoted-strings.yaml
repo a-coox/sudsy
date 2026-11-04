@@ -1,0 +1,33 @@
+plain: value
+redundant: 'value'
+dq: "value"
+needed: 'yes'
+needed_dq: "yes"
+num: '123'
+colon: 'a: b'
+url: http://example.com
+quoted_url: 'http://example.com'
+x-extra: x-thing
+x-quoted: 'x-thing'
+it: "it's"
+quote: 'say "hi"'
+quote_dq: "say 'hi'"
+? 'key'
+: v
+'quoted key': v
+list:
+  - 'plain'
+  - "plain2"
+  - '1.0'
+  - yes
+  - 'a #b'
+  - '- a'
+  - ' lead'
+flow: ['a', "b", 'c,d', 'e']
+empty: ''
+tilde: '~'
+tab: "a\tb"
+escaped: "a\nb"
+multi: "line one
+  line two"
+at: '@x'

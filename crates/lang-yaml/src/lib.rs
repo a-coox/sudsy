@@ -4,11 +4,15 @@
 mod format;
 #[rustfmt::skip]
 pub mod generated;
+mod anchor_rules;
 pub mod model;
 mod parser;
+mod quoted_strings;
+mod resolve;
 mod rules;
 pub mod scalar;
 mod tree;
+mod value_rules;
 
 pub use format::{
     COMMENT_SPACING, DOCUMENT_START, MAX_BLANK_LINES, QUOTE_STYLE, SEQUENCE_INDENT, YamlFormatter,

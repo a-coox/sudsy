@@ -32,7 +32,7 @@ The differential runner [`scripts/parity.sh`](../development/parity.md) compares
 | prettier | 28 | 15 | 4 | 1 | 0 | 8 | 0 | 1 |
 | roslynator | 67 | 23 | 7 | 16 | 18 | 1 | 2 | 16 |
 | stylecop | 197 | 73 | 4 | 28 | 45 | 21 | 26 | 28 |
-| yamllint | 65 | 40 | 10 | 15 | 0 | 0 | 0 | 15 |
+| yamllint | 65 | 54 | 6 | 5 | 0 | 0 | 0 | 5 |
 
 ## Batches
 Planned work is grouped so related entries land together.
@@ -41,7 +41,7 @@ Planned work is grouped so related entries land together.
 |---|---|
 | B1 yaml-defaults | yamllint defaults: comment spacing, `truthy` options, `line-length` for unbreakable words, a yamllint-compatible preset |
 | B2 shared-format-options | `end_of_line`, `bracket_spacing`, JSON/YAML options several tools share |
-| B3 yaml-optin-lint | yamllint opt-in rules: anchors, empty values, float and octal values, quoted strings, document end |
+| B3 yaml-optin-lint | yamllint opt-in rules: document end (anchors, empty values, float and octal values, quoted strings are done) |
 | B4 json-optin-lint, sorted-keys-options | JSON opt-in rules and `sorted-keys` parity |
 | B5 stylecop-lexical | comment and preprocessor spacing, empty statements, token checks |
 | B6 stylecop-syntax | syntax-structure checks, one type per file, file name matches type |

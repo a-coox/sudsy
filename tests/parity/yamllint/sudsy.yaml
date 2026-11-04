@@ -7,6 +7,26 @@ lint:
       options:
         max: 30
     ambiguous-booleans: warn
+    no-duplicate-anchors: warn
+    no-unused-anchors: warn
+    no-empty-values: warn
+    float-style:
+      level: warn
+      options:
+        require_numeral_before_decimal: true
+        forbid_scientific_notation: true
+        forbid_nan: true
+        forbid_inf: true
+    no-octal-values: warn
+    quoted-strings:
+      level: warn
+      options:
+        quote_type: single
+        required: only_when_needed
+        extra_required: ["^http://"]
+        extra_allowed: ["^x-"]
+        allow_quoted_quotes: true
+        check_keys: true
     no-duplicate-keys:
       level: error
       options:

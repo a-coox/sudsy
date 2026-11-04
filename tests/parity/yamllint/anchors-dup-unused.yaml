@@ -1,0 +1,13 @@
+- &one 1
+- *one
+- &one 2
+- *one
+- &lonely 3
+- &used [a]
+- *used
+---
+- &other 4
+- *one
+- &tagged !!str x
+- &flow {a: &inner 1}
+...

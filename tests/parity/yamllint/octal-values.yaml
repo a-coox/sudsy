@@ -1,0 +1,10 @@
+implicit: 0755
+explicit: 0o755
+eight: 08
+quoted: '0755'
+tagged: !!int 0755
+zeros: 00
+zero: 0
+bare: 0o
+bad: 0o8
+list: [0644, 0o644]

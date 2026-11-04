@@ -15,16 +15,17 @@ ROOT = Path(__file__).resolve().parent.parent
 CATALOGS = {"eslint-jsonc": "eslint-plugin-jsonc"}  # tool name -> catalog file, where they differ
 
 
-def catalog_entries(tool):
+def catalog_entries(tool, sub=False):
     catalog = yaml.safe_load((ROOT / "docs/parity" / f"{CATALOGS.get(tool, tool)}.yaml").read_text(encoding="utf-8"))
-    return [e for e in catalog["entries"] if "." not in e["id"]]
+    return [e for e in catalog["entries"] if sub or "." not in e["id"]]
 
 
 def rule_map(tool):
-    """Upstream rule name -> Sudsy rule id, from the catalog's top-level entries."""
+    """Upstream rule name (`anchors.forbid-unused-anchors` for an option that is a rule of its own) -> Sudsy
+    rule id, from the catalog."""
     return {
         e["id"]: e["sudsy"][len("rule: "):]
-        for e in catalog_entries(tool)
+        for e in catalog_entries(tool, sub=True)
         if e["sudsy"].startswith("rule: ")
     }
 
@@ -53,9 +54,18 @@ def yamllint(fixture, cwd):
     ).stdout
     found = set()
     for line in out.splitlines():
-        m = re.match(r"^.+?:(\d+):(\d+): \[\w+\] .*?(?: \(([\w-]+)\))?$", line)
+        m = re.match(r"^.+?:(\d+):(\d+): \[\w+\] (.*?)(?: \(([\w-]+)\))?$", line)
         if m:
-            found.add((m.group(3) or "syntax-error", int(m.group(1)), int(m.group(2))))
+            rule, column = m.group(4) or "syntax-error", int(m.group(2))
+            if rule == "anchors":  # one yamllint rule, three Sudsy rules: "found unused anchor ..."
+                rule += {"undeclared": ".forbid-undeclared-aliases", "duplicated": ".forbid-duplicated-anchors", "unused": ".forbid-unused-anchors"}[m.group(3).split()[1]]
+            # yamllint reports these two after the token: Sudsy reports the token (the `:` or `-`,
+            # the octal number).
+            if rule == "empty-values":
+                column -= 1
+            elif rule == "octal-values":
+                column -= len(re.search(r'"(.*)"$', m.group(3)).group(1))
+            found.add((rule, int(m.group(1)), column))
     return found
 
 

@@ -1,0 +1,14 @@
+a:
+b: 1
+c: {x: , y: 2}
+d:
+  -
+  - item
+  -
+e: &anchor
+f: !!null
+g: {z:}
+h:   # comment
+i: {}
+k:
+  l:

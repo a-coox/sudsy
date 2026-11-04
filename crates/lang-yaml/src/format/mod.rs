@@ -11,6 +11,7 @@ mod block;
 mod comments;
 mod document;
 mod scalars;
+pub(crate) use scalars::restyle;
 
 use crate::generated::kind as k;
 use crate::model;
