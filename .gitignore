@@ -6,3 +6,6 @@ node_modules/
 .vs/
 tests/conformance/corpus/
 .claude/worktrees/
+
+# dotnet build logs written to the tests' temp dir (.cargo/config.toml); the dir itself must stay unignored
+.cargo/tmp/*.log
