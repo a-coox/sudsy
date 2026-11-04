@@ -19,10 +19,35 @@ fn listing_the_rules_does_not_start_the_worker() {
 #[test]
 fn every_embedded_pattern_compiles() {
     let p = provider(&common::worker_dll());
-    // `kinds()` compiles a pattern rule and panics naming the rule when it is broken.
+    // `kinds()` compiles a pattern rule; a broken one is unavailable.
     for rule in p.rules() {
         let _ = rule.kinds();
+        assert_eq!(rule.unavailable(), None, "{}", rule.meta().id);
     }
+}
+
+/// A built-in rule with a `pattern:` parses snippets on first use: with the worker down it is
+/// skipped and says why, instead of panicking.
+#[test]
+fn a_rule_that_cannot_compile_is_skipped_not_a_panic() {
+    let source = "id: needs-worker
+language: csharp
+message: m
+description: d
+example: e
+severity: warn
+category: style
+rule:
+  pattern: Foo($A)
+";
+    let p = provider_with_command(vec!["no-such-host".into()]).with_pattern_rules(&[source]);
+    let rule = p
+        .rules()
+        .iter()
+        .find(|r| r.meta().id == "needs-worker")
+        .unwrap();
+    assert!(rule.kinds().is_empty());
+    assert!(rule.unavailable().unwrap().contains("needs-worker"));
 }
 
 /// `cargo test -p lang-csharp --release --test builtin_patterns -- --ignored --nocapture`:

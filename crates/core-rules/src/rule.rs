@@ -154,6 +154,13 @@ pub trait Rule: Send + Sync {
         &[]
     }
 
+    /// Why the rule could not run on the last file, when it was skipped (a built-in pattern rule
+    /// whose patterns need the language's worker and could not compile). Reported once per run
+    /// like any other unavailable analysis.
+    fn unavailable(&self) -> Option<String> {
+        None
+    }
+
     fn check(&self, _node: &SyntaxNode, _ctx: &mut RuleContext<'_>) {}
 
     /// File scope: once per file.

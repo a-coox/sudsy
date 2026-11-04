@@ -26,8 +26,8 @@ pub struct Linted {
     /// False when the file has syntax errors: they are the only diagnostics, since rules do not
     /// run on a tree that is not trustworthy, and fixes must not be applied.
     pub parses: bool,
-    /// Why the semantic model could not answer, when the file's rules needed it: those rules
-    /// had nothing to look at.
+    /// Why the semantic model could not answer, when the file's rules needed it, or why a
+    /// built-in pattern rule could not compile: those rules had nothing to look at.
     pub semantics_unavailable: Option<String>,
 }
 
@@ -213,11 +213,12 @@ pub fn lint(db: &dyn Db, file: File) -> Result<Linted, Failure> {
         }),
     };
     let FileReport { diagnostics, facts } = run_file(&context, &active, depth == Depth::Deep);
+    let skipped = active.iter().find_map(|a| a.rule.unavailable());
     Ok(Linted {
         diagnostics,
         facts,
         parses: true,
-        semantics_unavailable,
+        semantics_unavailable: semantics_unavailable.or(skipped),
     })
 }
 

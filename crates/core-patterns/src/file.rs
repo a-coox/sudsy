@@ -37,7 +37,7 @@ use regex::Regex;
 use serde::Deserialize;
 use std::cell::Cell;
 use std::collections::BTreeMap;
-use std::sync::{Arc, OnceLock};
+use std::sync::{Arc, Mutex, OnceLock};
 
 #[derive(Debug, thiserror::Error)]
 #[error("{0}")]
@@ -276,8 +276,11 @@ pub struct PatternRule {
     message: Option<String>,
     has_layout: bool,
     /// The compiled patterns: at once for a rule of a project's pattern file, on first use for
-    /// a built-in rule (compiling parses snippets, which for C# starts the worker).
-    body: OnceLock<Result<Body, String>>,
+    /// a built-in rule (compiling parses snippets, which for C# starts the worker). A failed
+    /// compile is not kept: the next file tries again, since the worker may be back.
+    body: OnceLock<Body>,
+    /// Why the last attempt to compile failed.
+    failure: Mutex<Option<String>>,
     pending: Option<Pending>,
 }
 
@@ -533,7 +536,8 @@ fn compile_eager(spec: FileSpec, parser: &dyn SnippetParser) -> Result<PatternRu
         meta,
         message: spec.message,
         has_layout: !spec.layout.is_empty(),
-        body: OnceLock::from(Ok(body)),
+        body: OnceLock::from(body),
+        failure: Mutex::default(),
         pending: None,
     })
 }
@@ -561,6 +565,7 @@ pub fn load_lazy(
                 message: spec.message.clone(),
                 has_layout: !spec.layout.is_empty(),
                 body: OnceLock::new(),
+                failure: Mutex::default(),
                 pending: Some(Pending {
                     spec,
                     parser: parser.clone(),
@@ -598,23 +603,25 @@ impl PatternRule {
     /// Compiles the patterns now (a built-in rule does it on first use): the error a broken
     /// built-in file would panic with.
     pub fn compile_now(&self) -> Result<(), String> {
-        self.compiled().as_ref().map(drop).map_err(Clone::clone)
+        self.compiled().map(drop)
     }
 
-    fn compiled(&self) -> &Result<Body, String> {
-        self.body.get_or_init(|| {
-            let p = self
-                .pending
-                .as_ref()
-                .expect("an uncompiled rule is pending");
-            compile_body(&p.spec, &*p.parser, self.meta.options)
-        })
-    }
-
-    fn body(&self) -> &Body {
-        self.compiled()
+    fn compiled(&self) -> Result<&Body, String> {
+        if let Some(body) = self.body.get() {
+            return Ok(body);
+        }
+        let p = self
+            .pending
             .as_ref()
-            .unwrap_or_else(|e| panic!("built-in pattern rule `{}`: {e}", self.meta.id))
+            .expect("an uncompiled rule is pending");
+        let compiled = compile_body(&p.spec, &*p.parser, self.meta.options);
+        *self.failure.lock().unwrap() = compiled.as_ref().err().cloned();
+        compiled.map(|body| self.body.get_or_init(|| body))
+    }
+
+    /// The compiled patterns; callers have checked [`PatternRule::compiled`] succeeded.
+    fn body(&self) -> &Body {
+        self.body.get().expect("the rule compiled before it ran")
     }
 
     /// The span of the diagnostic.
@@ -703,8 +710,18 @@ impl Rule for PatternRule {
         self.meta
     }
 
+    /// Empty when the patterns cannot compile now (the worker is down): the rule is skipped
+    /// for the file and [`Rule::unavailable`] says why.
     fn kinds(&self) -> &[SyntaxKind] {
-        &self.body().kinds
+        self.compiled().map_or(&[], |b| &b.kinds)
+    }
+
+    fn unavailable(&self) -> Option<String> {
+        let why = self.failure.lock().unwrap().clone()?;
+        Some(format!(
+            "pattern rule `{}` could not compile: {why}",
+            self.meta.id
+        ))
     }
 
     fn layout_role(&self) -> LayoutRole {
