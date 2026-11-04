@@ -50,6 +50,21 @@ pub struct Suppressions(Vec<Directive>);
 
 impl Suppressions {
     pub fn scan(file: &FileContext<'_>) -> Suppressions {
+        // Most files have no directive: one search for the prefix every marker shares is much
+        // cheaper than walking every token for comments.
+        let mut shared: Option<&str> = None;
+        for s in &file.grammar.suppressions {
+            if ROLES.iter().any(|r| r.0 == s.role) {
+                let m = s.marker.as_str();
+                shared = Some(match shared {
+                    None => m,
+                    Some(p) => &p[..p.bytes().zip(m.bytes()).take_while(|(x, y)| x == y).count()],
+                });
+            }
+        }
+        if shared.is_none_or(|p| !file.text.contains(p)) {
+            return Suppressions(Vec::new());
+        }
         let markers: Vec<(&str, Kind)> = ROLES
             .iter()
             .filter_map(|&(role, kind)| {
@@ -57,11 +72,6 @@ impl Suppressions {
                 Some((s.marker.as_str(), kind))
             })
             .collect();
-        // Most files have no directive: finding a marker in the text is much cheaper than
-        // walking every token for comments.
-        if !markers.iter().any(|m| file.text.contains(m.0)) {
-            return Suppressions(Vec::new());
-        }
         let mut out = Vec::new();
         for token in file
             .root
