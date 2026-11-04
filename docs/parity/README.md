@@ -16,7 +16,7 @@ The differential runner [`scripts/parity.sh`](../development/parity.md) compares
 | `sdk: <id>` | A .NET SDK diagnostic (IDE, CA, CS) does it. Sudsy never reimplements these; the rules that overlap one say so in `sudsy rules <id>`. |
 | `config: <text>` | Configuration outside rules and formatter options (overrides, ignore files, presets, suppression comments). |
 | `planned` | Accepted for implementation; `coverage` shows today's state. |
-| `deferred` | Wanted eventually, deliberately not scheduled (the StyleCop SA16xx documentation rules need an XML doc-comment parser first). |
+| `deferred` | Wanted eventually, deliberately not scheduled. |
 | `wontfix: <reason>` | Out of scope. |
 
 ## Coverage
@@ -31,7 +31,7 @@ The differential runner [`scripts/parity.sh`](../development/parity.md) compares
 | eslint-plugin-jsonc | 44 | 36 | 6 | 0 | 0 | 2 | 0 | 0 |
 | prettier | 28 | 15 | 4 | 1 | 0 | 8 | 0 | 1 |
 | roslynator | 67 | 23 | 7 | 16 | 18 | 1 | 2 | 16 |
-| stylecop | 197 | 103 | 3 | 1 | 45 | 21 | 24 | 1 |
+| stylecop | 197 | 120 | 10 | 1 | 45 | 21 | 0 | 1 |
 | yamllint | 65 | 54 | 6 | 5 | 0 | 0 | 0 | 5 |
 
 ## Batches
@@ -48,7 +48,7 @@ Planned work is grouped so related entries land together.
 | B7 stylecop-ordering | element and using order |
 | B8 stylecop-layout-formatter | blank-line and closing-parenthesis layout as formatter options |
 | B9 stylecop-semantic | rules that need the type layer |
-| B10 stylecop-docs | documentation-comment rules (deferred) |
+| B10 stylecop-docs | documentation-comment rules (StyleCop's are done; Roslynator's code fixes that add the missing elements are deferred) |
 | B11 csharpier-gaps | using sort, inactive `#if` branches, layout differences |
 | B12 editorconfig-mapping | the `.editorconfig` keys not mapped yet |
 | B13 existing-rule-options | options of rules that exist |

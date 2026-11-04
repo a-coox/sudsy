@@ -1,6 +1,6 @@
 # StyleCop.Analyzers' default layout: the formatter output satisfies its spacing, readability and
 # layout rules (SA1002, SA1008, SA1111, SA1413, SA1500-SA1516), and the Sudsy rules that match
-# StyleCop's style rules are on.
+# StyleCop's style rules, including the SA16xx documentation rules, are on.
 csharp:
   format:
     trailing_commas: multiline
@@ -17,23 +17,47 @@ csharp:
       accessor-order: warn
       comment-space: warn
       constant-on-right: warn
+      constructor-summary-standard-text: warn
       debug-assert-message: warn
       debug-fail-message: warn
+      destructor-summary-standard-text: warn
       directive-keyword-space: warn
       doc-comment-space: warn
+      doc-param-has-name: warn
+      doc-param-has-text: warn
+      doc-partial-required: warn
+      doc-partial-summary-required: warn
+      doc-partial-summary-text: warn
+      doc-partial-typeparams: warn
+      doc-returns-has-text: warn
+      doc-returns-required: warn
+      doc-summary-required: warn
+      doc-summary-text: warn
+      doc-text-ends-with-period: warn
+      doc-text-not-empty: warn
+      doc-typeparam-has-name: warn
+      doc-typeparam-has-text: warn
+      doc-value-text: warn
       file-name-matches-type: warn
       inheritdoc-on-inheriting-member: warn
       member-order: warn
       no-comment-before-block: warn
+      no-default-summary: warn
       no-default-value-type-constructor: warn
+      no-doc-placeholder: warn
+      no-doc-slashes-in-plain-comment: warn
+      no-duplicate-doc-text: warn
       no-empty-attribute-parens: warn
       no-empty-comment: warn
       no-empty-delegate-parens: warn
       no-empty-statement: warn
       no-region-in-body: warn
       no-regions: warn
+      no-returns-on-void: warn
       no-unneeded-base-prefix: warn
       nullable-shorthand: warn
+      property-summary-matches-accessors: warn
+      property-summary-omits-restricted-accessor: warn
       qualify-namespace-usings: warn
       separate-attributes: warn
       separate-field-declarations: warn

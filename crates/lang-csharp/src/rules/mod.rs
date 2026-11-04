@@ -7,6 +7,11 @@ mod binding;
 mod declarations;
 mod directives;
 mod doc_comment_space;
+mod doc_comments;
+mod doc_summary;
+mod doc_tags;
+mod doc_text;
+mod doc_wording;
 mod empty_catch;
 mod expressions;
 mod file_layout;
@@ -36,6 +41,30 @@ pub static RULES: &[&dyn Rule] = &[
     &binding::PossibleNullDereference,
     &binding::UnusedPrivateMember,
     &doc_comment_space::DocCommentSpace,
+    &doc_summary::DocPartialRequired,
+    &doc_summary::DocSummaryRequired,
+    &doc_summary::DocPartialSummaryRequired,
+    &doc_summary::DocSummaryText,
+    &doc_summary::DocPartialSummaryText,
+    &doc_summary::NoDefaultSummary,
+    &doc_tags::DocValueText,
+    &doc_tags::DocParamHasName,
+    &doc_tags::DocParamHasText,
+    &doc_tags::DocReturnsRequired,
+    &doc_tags::DocReturnsHasText,
+    &doc_tags::NoReturnsOnVoid,
+    &doc_tags::DocPartialTypeparams,
+    &doc_tags::DocTypeparamHasName,
+    &doc_tags::DocTypeparamHasText,
+    &doc_wording::PropertySummaryMatchesAccessors,
+    &doc_wording::PropertySummaryOmitsRestrictedAccessor,
+    &doc_wording::ConstructorSummaryStandardText,
+    &doc_wording::DestructorSummaryStandardText,
+    &doc_text::NoDuplicateDocText,
+    &doc_text::NoDocSlashesInPlainComment,
+    &doc_text::DocTextNotEmpty,
+    &doc_text::NoDocPlaceholder,
+    &doc_text::DocTextEndsWithPeriod,
     &directives::DirectiveKeywordSpace,
     &expressions::NullableShorthand,
     &expressions::UseLambda,

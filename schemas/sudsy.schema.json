@@ -74,6 +74,10 @@
               "$ref": "#/definitions/rule",
               "description": "A comparison with the constant on the left: `null == x` is `x == null`, `1 < x` is `x > 1`. Without the type layer a constant is a literal, `nameof`, `int.MaxValue`-style member or an expression of those; a named constant on the left is not recognised."
             },
+            "constructor-summary-standard-text": {
+              "$ref": "#/definitions/rule",
+              "description": "The summary of a constructor starts with \"Initializes a new instance of the <see cref=\"T\"/> class\" (struct), \"Initializes static members of the ...\" for a static constructor, and a private constructor may say \"Prevents a default instance of the ... from being created\". The `<see>` is compared with the name of the type. The fix puts the standard sentence before the text."
+            },
             "debug-assert-message": {
               "$ref": "#/definitions/rule",
               "description": "`Debug.Assert` without a message, or with a constant blank one. With the type layer the call is checked against `System.Diagnostics.Debug`; without it any call written `Debug.Assert` is. No fix."
@@ -82,6 +86,10 @@
               "$ref": "#/definitions/rule",
               "description": "`Debug.Fail` with a constant blank message. With the type layer the call is checked against `System.Diagnostics.Debug`; without it any call written `Debug.Fail` is. No fix."
             },
+            "destructor-summary-standard-text": {
+              "$ref": "#/definitions/rule",
+              "description": "The summary of a finalizer starts with \"Finalizes an instance of the <see cref=\"T\"/> class.\". The `<see>` is compared with the name of the type. The fix puts the standard sentence before the text."
+            },
             "directive-keyword-space": {
               "$ref": "#/definitions/rule",
               "description": "No space between `#` and the directive keyword (`#if`, not `# if`)."
@@ -89,6 +97,66 @@
             "doc-comment-space": {
               "$ref": "#/definitions/rule",
               "description": "A documentation line (`///`) starts with a single space. More spaces are allowed to indent continuation lines, not on the first line of the comment; a tab or no space is always reported."
+            },
+            "doc-param-has-name": {
+              "$ref": "#/definitions/rule",
+              "description": "A `<param>` without a `name` attribute, or with an empty one. No fix."
+            },
+            "doc-param-has-text": {
+              "$ref": "#/definitions/rule",
+              "description": "A `<param>` without text. Skipped when the comment has `<inheritdoc />`. No fix."
+            },
+            "doc-partial-required": {
+              "$ref": "#/definitions/rule",
+              "description": "A partial type or method without a documentation comment (or with an empty one). Each part is checked on its own; StyleCop (SA1601) accepts one documented part, which needs the other parts of the project. Which elements need documentation follows StyleCop's defaults: everything but private members."
+            },
+            "doc-partial-summary-required": {
+              "$ref": "#/definitions/rule",
+              "description": "A documentation comment of a partial type or method without `<summary>` or `<content>` (and without `<inheritdoc />`). Each part is checked on its own. No fix."
+            },
+            "doc-partial-summary-text": {
+              "$ref": "#/definitions/rule",
+              "description": "The `<summary>` (or `<content>`) of a partial type or method has no text. Each part is checked on its own. No fix."
+            },
+            "doc-partial-typeparams": {
+              "$ref": "#/definitions/rule",
+              "description": "A documented partial generic type (with a `<summary>`) that has no `<typeparam>` for one of its type parameters. Each part is checked on its own. No fix."
+            },
+            "doc-returns-has-text": {
+              "$ref": "#/definitions/rule",
+              "description": "A `<returns>` without text. Skipped when the comment has `<inheritdoc />`. No fix."
+            },
+            "doc-returns-required": {
+              "$ref": "#/definitions/rule",
+              "description": "A documented method or delegate that does not return `void` and has no `<returns>` (and no `<inheritdoc />`). Private members are left alone, as in StyleCop's defaults. No fix."
+            },
+            "doc-summary-required": {
+              "$ref": "#/definitions/rule",
+              "description": "A documentation comment without `<summary>` (and without `<inheritdoc />`) on a type, member or field that StyleCop's defaults ask to document: everything but private members. Partial types and methods are `doc-partial-summary-required`. No fix."
+            },
+            "doc-summary-text": {
+              "$ref": "#/definitions/rule",
+              "description": "A `<summary>` without text (`<summary></summary>`; `<summary />` is left alone, as StyleCop does). Partial types and methods are `doc-partial-summary-text`. No fix."
+            },
+            "doc-text-ends-with-period": {
+              "$ref": "#/definitions/rule",
+              "description": "The last text of an element of a documentation comment does not end with a period (`.` or `.)`). Each paragraph of `<para>` and `<note>` is checked, a paragraph that ends in a colon (except the last), `-or-` and `<seealso>` are left alone, and an inline element (`<see />`, `<c>`, ...) at the end counts as not ending with a period. The fix adds the period, or replaces a trailing comma or semicolon with it."
+            },
+            "doc-text-not-empty": {
+              "$ref": "#/definitions/rule",
+              "description": "A `<remarks>`, `<example>`, `<exception>` or `<permission>` element without text, written `<remarks></remarks>` or `<remarks />`. No fix."
+            },
+            "doc-typeparam-has-name": {
+              "$ref": "#/definitions/rule",
+              "description": "A `<typeparam>` without a `name` attribute, or with an empty one, in the documentation of a generic class, struct, interface, method or delegate. No fix."
+            },
+            "doc-typeparam-has-text": {
+              "$ref": "#/definitions/rule",
+              "description": "A `<typeparam>` without text (`<typeparam name=\"T\" />` counts), in the documentation of a generic class, struct, interface, method or delegate. No fix."
+            },
+            "doc-value-text": {
+              "$ref": "#/definitions/rule",
+              "description": "A property's `<value>` without text (`<value></value>`; `<value />` is left alone, as StyleCop does). Skipped when the comment has `<inheritdoc />`. No fix."
             },
             "document-start": {
               "$ref": "#/definitions/rule",
@@ -286,13 +354,29 @@
               "$ref": "#/definitions/rule",
               "description": "A comment between the head of an `if`, `else`, `while`, `do`, `for`, `foreach`, `lock`, `try`, `catch`, `finally`, `switch`, `checked` or `unchecked` and its `{`. Put it inside the block or above the statement."
             },
+            "no-default-summary": {
+              "$ref": "#/definitions/rule",
+              "description": "A `<summary>` that starts with the text Visual Studio generates, \"Summary description for ...\". Skipped when the comment has `<inheritdoc />`. No fix."
+            },
             "no-default-value-type-constructor": {
               "$ref": "#/definitions/rule",
               "description": "`new S()` of a value type with an implicit parameterless constructor and no initializer: write `default(S)` (`Guid.Empty`, `CancellationToken.None`, `IntPtr.Zero`, the enum member with value 0 where they exist). No fix for a target-typed `new()`."
             },
+            "no-doc-placeholder": {
+              "$ref": "#/definitions/rule",
+              "description": "A `<placeholder>` element in a documentation comment. No fix."
+            },
+            "no-doc-slashes-in-plain-comment": {
+              "$ref": "#/definitions/rule",
+              "description": "A `///` comment that holds only text, no XML element: a plain comment written with documentation slashes. The fix writes `//`, unless the comment documents a declaration (it would remove documentation)."
+            },
             "no-duplicate-anchors": {
               "$ref": "#/definitions/rule",
               "description": "An anchor name is defined again in the same document; an alias refers to the latest definition above it, which is easy to misread."
+            },
+            "no-duplicate-doc-text": {
+              "$ref": "#/definitions/rule",
+              "description": "Two elements of one documentation comment with the same text (a copied and pasted `<param>`, for example). Empty elements and \"The parameter is not used.\" are ignored. No fix."
             },
             "no-duplicate-keys": {
               "description": "A mapping has the same key twice (after decoding escapes and quotes); parsers disagree on which value wins.",
@@ -438,6 +522,10 @@
               "$ref": "#/definitions/rule",
               "description": "`#region` hides code behind a label. Reported on every `#region` outside a block (a region inside a block is `no-region-in-body`'s), in disabled `#if` branches too; no fix, because removing a pair is a judgment call."
             },
+            "no-returns-on-void": {
+              "$ref": "#/definitions/rule",
+              "description": "A `<returns>` on a method or delegate that returns `void`. The fix removes the element with its line when it is alone on it."
+            },
             "no-undefined-alias": {
               "$ref": "#/definitions/rule",
               "description": "An alias names an anchor that is not defined earlier in the same document."
@@ -457,6 +545,14 @@
             "possible-null-dereference": {
               "$ref": "#/definitions/rule",
               "description": "A member or element access on an expression the compiler's nullable analysis says may be null. Only code under `#nullable enable` is checked. Off by default: the compiler reports the same thing as CS8602."
+            },
+            "property-summary-matches-accessors": {
+              "$ref": "#/definitions/rule",
+              "description": "A property summary starts with \"Gets\", \"Sets\" or \"Gets or sets\" (\"Gets a value indicating whether\" and so on for `bool`), as the property's accessors reachable from outside the type say. The type is read from the declaration (`bool`, `Boolean`, `System.Boolean`). The fix replaces the start of the text and lower-cases what follows."
+            },
+            "property-summary-omits-restricted-accessor": {
+              "$ref": "#/definitions/rule",
+              "description": "A property summary says \"Gets or sets\" while one of the accessors is not reachable from outside the type (`private set`, `internal get` on a public property). The fix replaces the start of the text with the one that matches the visible accessor."
             },
             "qualify-namespace-usings": {
               "$ref": "#/definitions/rule",
