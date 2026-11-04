@@ -25,6 +25,12 @@ pub trait RuleHooks: Send + Sync {
         Cow::Borrowed(inner.unwrap_or(raw))
     }
 
+    /// The separately named parts of a key that is a path (TOML's `a.b`), which naming conventions
+    /// are checked on one by one; `None` when the key is one name (the default).
+    fn key_parts<'a>(&self, _key: &SyntaxElement, _text: &'a str) -> Option<Vec<Cow<'a, str>>> {
+        None
+    }
+
     /// A key that merges other mappings into its own and may therefore repeat (YAML's `<<`).
     fn merge_key(&self) -> Option<&str> {
         None

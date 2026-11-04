@@ -5,6 +5,11 @@ snake_case = 2
 ^^^^^^^^^^^^ key-name-casing
 inline = { good = 1, not_good = 2 }
 #                    ^^^^^^^^ key-name-casing
+a.goodPart = 1
+b.bad_part = 2
+^^^^^^^^^^ key-name-casing
+"x.y".zed = 3
+^^^^^^^^^ key-name-casing
 [table]
 Bad = 1
 ^^^ key-name-casing

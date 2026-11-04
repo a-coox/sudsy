@@ -74,20 +74,24 @@ impl Rule for NoDuplicateKeys {
         let merge_key = hooks
             .merge_key()
             .filter(|_| ctx.options.string("merge_keys") == "allow");
-        let mut seen: HashMap<Cow<'_, str>, TextRange> = HashMap::new();
-        for (_, key) in entries(node, grammar) {
+        // Ranges are found only for the keys that are reported (finding one reads the tree), so
+        // the first occurrence is kept as its index and looked up again on a duplicate.
+        let mut seen: HashMap<Cow<'_, str>, usize> = HashMap::new();
+        for (index, (_, key)) in entries(node, grammar).enumerate() {
             let name = hooks.key_name(&key, text);
             if merge_key == Some(&*name) {
                 continue;
             }
-            let range = key_range(&key, grammar);
             match seen.get(&name) {
                 Some(&first) => {
-                    ctx.report(range, format!("duplicate key `{name}`"))
+                    let first = entries(node, grammar)
+                        .nth(first)
+                        .map_or_else(|| key_range(&key, grammar), |(_, k)| key_range(&k, grammar));
+                    ctx.report(key_range(&key, grammar), format!("duplicate key `{name}`"))
                         .related(first, "first defined here");
                 }
                 None => {
-                    seen.insert(name, range);
+                    seen.insert(name, index);
                 }
             }
         }
@@ -209,12 +213,21 @@ impl Rule for KeyNameCasing {
             return;
         }
         for (_, key) in entries(node, grammar) {
-            let name = hooks.key_name(&key, text);
-            if ignored.iter().any(|r| r.is_match(&name))
-                || allowed.iter().any(|c| matches_convention(c, &name))
-            {
+            let parts = hooks.key_parts(&key, text);
+            let whole;
+            let names: &[Cow<'_, str>] = match &parts {
+                Some(parts) => parts,
+                None => {
+                    whole = [hooks.key_name(&key, text)];
+                    &whole
+                }
+            };
+            let Some(name) = names.iter().find(|name| {
+                !ignored.iter().any(|r| r.is_match(name))
+                    && !allowed.iter().any(|c| matches_convention(c, name))
+            }) else {
                 continue;
-            }
+            };
             ctx.report(
                 key_range(&key, grammar),
                 format!(
