@@ -18,6 +18,7 @@
 Each parallel agent works in its own git worktree and sets `CARGO_TARGET_DIR=C:/Coding/.sudsy-targets/slot<N>` (outside the repo; N = 1 or 2, at most two agents at once). A slot outlives worktrees, so a new worktree in a slot starts warm (wasmtime and cranelift are not rebuilt). Every script honors `CARGO_TARGET_DIR`: the gate's cargo steps, `parity.sh` (binary and tool installs under `<slot>/parity/`), `bench.sh` (native work dir and base worktree under `<slot>/bench/`; the WSL callgrind cache `~/.cache/sudsy-bench/<slot name>` is keyed by the slot), `dogfood.sh`. The gate builds the sample plugin's own workspace in `<slot>/sample-host/` (two workspaces in one deps directory confuse rustc). Unset, everything uses `target/`.
 - Iterate with `scripts/gate.sh -p <crate>`; run the full `scripts/gate.sh` once before pushing, and again only if the rebase brought conflicts.
 - Run `scripts/bench.sh` once at the end of a batch, not mid-work.
+- Build caches only grow (cargo never deletes incremental data). `scripts/clean-slots.sh` deletes the `incremental/` caches of `target/` and every slot (`--all`: whole `debug/` dirs); the gate warns when the build disk has under 30 GB free.
 
 ## Conventions
 - Errors: `thiserror` in libraries, `anyhow` only in binaries (`cli`, `lsp`). `unsafe_code = "forbid"`.

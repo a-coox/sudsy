@@ -40,3 +40,7 @@ if [ ${#pkg[@]} -eq 0 ]; then
   fi
 fi
 echo "ALL GATES PASSED (${SECONDS}s)"
+# Build caches only grow; warn before the disk fills (it has, mid-build).
+free_gb=$(df -BG --output=avail "${CARGO_TARGET_DIR:-target}" 2>/dev/null | tail -1 | tr -dc 0-9)
+[ -n "$free_gb" ] && [ "$free_gb" -lt 30 ] && echo "warning: ${free_gb} GB free on the build disk; run scripts/clean-slots.sh" >&2
+exit 0
