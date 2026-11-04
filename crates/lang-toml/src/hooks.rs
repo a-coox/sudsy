@@ -4,7 +4,8 @@
 use crate::generated::{Literal, kind};
 use core_rules::{RuleHooks, Scalar};
 use core_syntax::ast::AstNode;
-use core_syntax::{SyntaxElement, SyntaxNode, SyntaxToken};
+use core_syntax::{SyntaxElement, SyntaxKind, SyntaxNode, SyntaxToken};
+use rowan::{GreenNodeData, GreenTokenData, NodeOrToken};
 use std::borrow::Cow;
 
 pub struct TomlHooks;
@@ -78,25 +79,46 @@ fn bare_key<'a>(key: &SyntaxNode, text: &'a str) -> Option<&'a str> {
         .then_some(raw)
 }
 
-/// The decoded parts of a key (`a."b.c".d` has three).
-fn parts<'a>(key: &SyntaxNode, text: &'a str) -> impl Iterator<Item = Cow<'a, str>> {
-    // `a.b.c` is nested keys, `(a.b).c`.
-    key.descendants_with_tokens()
-        .filter_map(|e| e.into_token())
-        .filter(|t| matches!(t.kind(), kind::BARE_KEY | kind::QUOTED_KEY))
-        .map(|t| {
-            let raw = text_of(&t, text);
-            if t.kind() == kind::QUOTED_KEY {
-                unquote(raw)
-            } else {
-                Cow::Borrowed(raw)
+/// The tokens under a green node with their start offsets.
+pub fn leaves(node: &GreenNodeData, start: u32) -> impl Iterator<Item = (u32, &GreenTokenData)> {
+    let (mut stack, mut at) = (vec![node.children()], start);
+    std::iter::from_fn(move || {
+        loop {
+            match stack.last_mut()?.next() {
+                None => {
+                    stack.pop();
+                }
+                Some(NodeOrToken::Node(n)) => stack.push(n.children()),
+                Some(NodeOrToken::Token(t)) => {
+                    at += u32::from(t.text_len());
+                    return Some((at - u32::from(t.text_len()), t));
+                }
             }
-        })
+        }
+    })
 }
 
-/// The decoded parts of a key.
-pub fn key_parts<'a>(key: &SyntaxNode, text: &'a str) -> Vec<Cow<'a, str>> {
-    parts(key, text).collect()
+/// The decoded parts of a key at `start` (`a."b.c".d` has three) and where the last one ends.
+pub fn key_parts<'a>(key: &GreenNodeData, start: u32, text: &'a str) -> (Vec<Cow<'a, str>>, u32) {
+    let mut end = start;
+    let parts = leaves(key, start)
+        .filter_map(|(at, t)| {
+            let to = at + u32::from(t.text_len());
+            let raw = &text[at as usize..to as usize];
+            let part = match SyntaxKind(t.kind().0) {
+                kind::QUOTED_KEY => unquote(raw),
+                kind::BARE_KEY => Cow::Borrowed(raw),
+                _ => return None,
+            };
+            end = to;
+            Some(part)
+        })
+        .collect();
+    (parts, end)
+}
+
+fn parts<'a>(key: &SyntaxNode, text: &'a str) -> Vec<Cow<'a, str>> {
+    key_parts(&key.green(), key.text_range().start().into(), text).0
 }
 
 impl RuleHooks for TomlHooks {
@@ -109,7 +131,7 @@ impl RuleHooks for TomlHooks {
                 .contains('.')
                 .then(|| bare.split('.').map(Cow::Borrowed).collect());
         }
-        Some(parts(key, text).collect())
+        Some(parts(key, text))
     }
 
     fn key_name<'a>(&self, key: &SyntaxElement, text: &'a str) -> Cow<'a, str> {
@@ -119,7 +141,7 @@ impl RuleHooks for TomlHooks {
         if let Some(plain) = bare_key(key, text) {
             return Cow::Borrowed(plain);
         }
-        let mut parts = parts(key, text);
+        let mut parts = parts(key, text).into_iter();
         let (Some(first), second) = (parts.next(), parts.next()) else {
             return Cow::Borrowed("");
         };

@@ -1295,6 +1295,7 @@ dependencies = [
  "core-treesitter",
  "insta",
  "provider-api",
+ "rowan",
  "tree-sitter",
  "tree-sitter-toml-ng",
  "unicode-width",

@@ -3,17 +3,37 @@
 //! ranges, a missing line break between entries, and the table model (duplicate keys, redefined
 //! tables, tables and arrays of tables that conflict, extending an inline table or a value).
 
-use crate::generated::{ArrayTable, Pair, Table, kind};
-use crate::hooks::key_parts;
-use core_syntax::ast::AstNode;
-use core_syntax::{SyntaxKind, SyntaxNode, SyntaxToken, TextRange};
+use crate::generated::kind;
+use crate::hooks::{key_parts, leaves};
+use core_syntax::{SyntaxKind, SyntaxNode, TextRange};
 use provider_api::ParseError;
+use rowan::{GreenNodeData as Green, NodeOrToken};
 use std::borrow::Cow;
 use std::collections::HashMap;
 
 type Err<'a> = dyn FnMut(TextRange, &str, String) + 'a;
 
-/// Every violation in the tree of a document without syntax errors.
+fn kind_of(n: &Green) -> SyntaxKind {
+    SyntaxKind(n.kind().0)
+}
+
+/// The child nodes of `node` (at `start`) with their start offsets.
+fn nodes(node: &Green, start: u32) -> impl Iterator<Item = (u32, &Green)> {
+    let mut at = start;
+    node.children().filter_map(move |c| match c {
+        NodeOrToken::Node(n) => {
+            at += u32::from(n.text_len());
+            Some((at - u32::from(n.text_len()), n))
+        }
+        NodeOrToken::Token(t) => {
+            at += u32::from(t.text_len());
+            None
+        }
+    })
+}
+
+/// Every violation in the tree of a document without syntax errors. Walks the green tree: red
+/// nodes would cost an allocation each.
 pub fn validate(root: &SyntaxNode, text: &str) -> Vec<ParseError> {
     let mut out = Vec::new();
     let mut err = |range: TextRange, code: &str, message: String| {
@@ -24,20 +44,17 @@ pub fn validate(root: &SyntaxNode, text: &str) -> Vec<ParseError> {
             message,
         });
     };
-    for t in root
-        .descendants_with_tokens()
-        .filter_map(|e| e.into_token())
-    {
-        let range = t.text_range();
-        let raw = &text[usize::from(range.start())..usize::from(range.end())];
-        match t.kind() {
+    let green = root.green();
+    for (at, t) in leaves(&green, 0) {
+        let range = TextRange::at(at.into(), t.text_len());
+        match SyntaxKind(t.kind().0) {
             kind::STRING | kind::QUOTED_KEY => {
-                if let Err(m) = string(raw) {
+                if let Err(m) = string(t.text()) {
                     err(range, "invalid-string", m);
                 }
             }
             kind::DATE_TIME => {
-                if let Err(m) = date_time(raw) {
+                if let Err(m) = date_time(t.text()) {
                     err(range, "invalid-date", m);
                 }
             }
@@ -46,34 +63,27 @@ pub fn validate(root: &SyntaxNode, text: &str) -> Vec<ParseError> {
     }
     let mut model = Model::new();
     let mut current = 0;
-    for item in root.children() {
-        match item.kind() {
+    for (at, item) in nodes(&green, 0) {
+        match kind_of(item) {
             kind::PAIR => {
-                line_end(&item, text, &mut err);
-                model.pair(current, &item, text, &mut err);
+                line_end(item, at, text, &mut err);
+                model.pair(current, item, at, text, &mut err);
             }
             kind::TABLE | kind::ARRAY_TABLE => {
-                let array = item.kind() == kind::ARRAY_TABLE;
-                let (key, pairs): (_, Vec<_>) = if array {
-                    let t = ArrayTable::cast(item.clone()).unwrap();
-                    (t.key(), t.entries().collect())
-                } else {
-                    let t = Table::cast(item.clone()).unwrap();
-                    (t.key(), t.entries().collect())
-                };
-                if let Some(close) = item
-                    .children_with_tokens()
-                    .filter_map(|e| e.into_token())
-                    .find(|t| matches!(t.kind(), kind::R_BRACKET | kind::R_BRACKET2))
-                {
-                    line_end_after(&close, text, &mut err);
+                let array = kind_of(item) == kind::ARRAY_TABLE;
+                if let Some((at, t)) = leaves(item, at).find(|(_, t)| {
+                    matches!(SyntaxKind(t.kind().0), kind::R_BRACKET | kind::R_BRACKET2)
+                }) {
+                    line_end_after(TextRange::at(at.into(), t.text_len()), text, &mut err);
                 }
+                let mut inner = nodes(item, at).peekable();
+                let key = inner.next_if(|(_, n)| kind_of(n) == kind::KEY);
                 current = key
-                    .and_then(|k| model.header(k.syntax(), array, text, &mut err))
+                    .and_then(|(s, k)| model.header(k, s, array, text, &mut err))
                     .unwrap_or_else(|| model.scratch());
-                for p in pairs {
-                    line_end(p.syntax(), text, &mut err);
-                    model.pair(current, p.syntax(), text, &mut err);
+                for (s, p) in inner.filter(|(_, n)| kind_of(n) == kind::PAIR) {
+                    line_end(p, s, text, &mut err);
+                    model.pair(current, p, s, text, &mut err);
                 }
             }
             _ => {}
@@ -82,38 +92,44 @@ pub fn validate(root: &SyntaxNode, text: &str) -> Vec<ParseError> {
     out
 }
 
-/// The range of a node without its trailing trivia.
-fn trimmed(node: &SyntaxNode) -> TextRange {
-    let mut last = node.last_token();
-    while let Some(t) = last.as_ref().filter(|t| is_trivia(t.kind())) {
-        last = t.prev_token();
-    }
-    let start = node.text_range().start();
-    last.map_or(node.text_range(), |t| {
-        TextRange::new(start, t.text_range().end().max(start))
-    })
-}
-
 fn is_trivia(k: SyntaxKind) -> bool {
     matches!(k, kind::WHITESPACE | kind::NEWLINE | kind::COMMENT)
 }
 
-/// An entry ends its line: only blanks, a comment or the end of the file may follow it.
-fn line_end(pair: &SyntaxNode, text: &str, err: &mut Err<'_>) {
-    let mut last = pair.last_token();
-    while let Some(t) = last.as_ref().filter(|t| is_trivia(t.kind())) {
-        last = t.prev_token();
+/// The range of the last token under `node` that is not trivia; `end` is where `node` ends.
+fn last_token(node: &Green, mut end: u32) -> Option<TextRange> {
+    for c in node.children().rev() {
+        match c {
+            NodeOrToken::Token(t) if !is_trivia(SyntaxKind(t.kind().0)) => {
+                return Some(TextRange::new(
+                    (end - u32::from(t.text_len())).into(),
+                    end.into(),
+                ));
+            }
+            NodeOrToken::Token(t) => end -= u32::from(t.text_len()),
+            NodeOrToken::Node(n) => {
+                if let Some(r) = last_token(n, end) {
+                    return Some(r);
+                }
+                end -= u32::from(n.text_len());
+            }
+        }
     }
-    if let Some(t) = last {
-        line_end_after(&t, text, err);
+    None
+}
+
+/// An entry ends its line: only blanks, a comment or the end of the file may follow it.
+fn line_end(pair: &Green, at: u32, text: &str, err: &mut Err<'_>) {
+    if let Some(last) = last_token(pair, at + u32::from(pair.text_len())) {
+        line_end_after(last, text, err);
     }
 }
 
-fn line_end_after(last: &SyntaxToken, text: &str, err: &mut Err<'_>) {
-    let rest = text[usize::from(last.text_range().end())..].trim_start_matches([' ', '\t']);
+fn line_end_after(last: TextRange, text: &str, err: &mut Err<'_>) {
+    let rest = text[usize::from(last.end())..].trim_start_matches([' ', '\t']);
     if !(rest.is_empty() || rest.starts_with(['\n', '\r', '#'])) {
         err(
-            last.text_range(),
+            last,
             "missing-newline",
             "expected a line break after the entry".into(),
         );
@@ -315,13 +331,14 @@ impl<'t> Model<'t> {
     /// the last element of an array of tables and create missing tables; a value stops the walk.
     fn header(
         &mut self,
-        key: &SyntaxNode,
+        key: &Green,
+        start: u32,
         array: bool,
         text: &'t str,
         err: &mut Err<'_>,
     ) -> Option<usize> {
-        let parts = key_parts(key, text);
-        let range = trimmed(key);
+        let (parts, end) = key_parts(key, start, text);
+        let range = TextRange::new(start.into(), end.into());
         let (last, path) = parts.split_last()?;
         let mut cur = 0;
         for p in path {
@@ -386,13 +403,11 @@ impl<'t> Model<'t> {
     }
 
     /// `a.b = value` in the table `base`; a dotted key may only pass tables other dotted keys made.
-    fn pair(&mut self, base: usize, pair: &SyntaxNode, text: &'t str, err: &mut Err<'_>) {
-        let Some(pair) = Pair::cast(pair.clone()) else {
-            return;
-        };
-        if let Some(key) = pair.key() {
-            let range = trimmed(key.syntax());
-            let parts = key_parts(key.syntax(), text);
+    fn pair(&mut self, base: usize, pair: &Green, at: u32, text: &'t str, err: &mut Err<'_>) {
+        let mut inner = nodes(pair, at).peekable();
+        if let Some((start, key)) = inner.next_if(|(_, n)| kind_of(n) == kind::KEY) {
+            let (parts, end) = key_parts(key, start, text);
+            let range = TextRange::new(start.into(), end.into());
             let mut cur = base;
             for (i, p) in parts.iter().enumerate() {
                 let last = i + 1 == parts.len();
@@ -425,23 +440,23 @@ impl<'t> Model<'t> {
                 };
             }
         }
-        if let Some(v) = pair.value() {
-            self.value(v.syntax(), text, err);
+        if let Some((start, v)) = inner.next() {
+            self.value(v, start, text, err);
         }
     }
 
     /// The entries of inline tables inside a value are checked in a scope of their own.
-    fn value(&mut self, v: &SyntaxNode, text: &'t str, err: &mut Err<'_>) {
-        match v.kind() {
+    fn value(&mut self, v: &Green, at: u32, text: &'t str, err: &mut Err<'_>) {
+        match kind_of(v) {
             kind::INLINE_TABLE => {
                 let scope = self.scratch();
-                for p in v.children().filter(|c| c.kind() == kind::PAIR) {
-                    self.pair(scope, &p, text, err);
+                for (s, p) in nodes(v, at).filter(|(_, n)| kind_of(n) == kind::PAIR) {
+                    self.pair(scope, p, s, text, err);
                 }
             }
             kind::ARRAY => {
-                for e in v.children() {
-                    self.value(&e, text, err);
+                for (s, e) in nodes(v, at) {
+                    self.value(e, s, text, err);
                 }
             }
             _ => {}
