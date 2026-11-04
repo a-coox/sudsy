@@ -1,0 +1,15 @@
+---
+source: crates/lang-csharp/tests/rules.rs
+expression: sorted
+---
+using System;
+using aa;
+using Aa;
+using Alpha;
+using Zeta;
+using static System.Math;
+using static Foo.Bar;
+using W = Y.Z;
+using X = Y.Z;
+
+class A { }

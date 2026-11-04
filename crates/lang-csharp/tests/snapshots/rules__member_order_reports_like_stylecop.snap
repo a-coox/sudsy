@@ -1,0 +1,9 @@
+---
+source: crates/lang-csharp/tests/rules.rs
+expression: "report(text, \"member-order: warn\")"
+---
+3:14 warning[member-order] field should not follow method
+4:13 warning[member-order] public members should come before private members
+8:15 warning[member-order] readonly fields should come before non-readonly fields
+9:22 warning[member-order] static private elements should come before instance elements
+13:6 warning[member-order] enum should not follow class

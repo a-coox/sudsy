@@ -62,6 +62,32 @@ fn using_order_sorts_plain_usings_and_leaves_the_rest() {
 }
 
 #[test]
+fn using_order_follows_the_options() {
+    let text = "using Zeta;
+using static Foo.Bar;
+using Alpha;
+using X = Y.Z;
+using System;
+using static System.Math;
+using Aa;
+using aa;
+using W = Y.Z;
+
+class A { }
+";
+    let rules = "using-order:
+  level: warn
+  options:
+    compare: culture
+    static_position: after
+    alias_position: after";
+    assert_snapshot!(report(text, rules));
+    let sorted = fixed(text, rules, false);
+    assert_snapshot!(sorted);
+    assert_eq!(report(&sorted, rules), "");
+}
+
+#[test]
 fn using_order_skips_lists_with_directives() {
     let text = "using Zeta;\n#if X\nusing Alpha;\n#endif\nclass A { }\n";
     assert_eq!(report(text, "using-order: warn"), "");
@@ -138,4 +164,41 @@ fn lexical_rules_are_off_by_default() {
     let text = "class A { void F() { ; } //x\n}\n";
     assert_eq!(report(text, ""), "");
     assert!(!report(text, LEXICAL).is_empty());
+}
+
+#[test]
+fn member_order_reports_like_stylecop() {
+    let text = "class A {
+ void M() { }
+ private int b;
+ public int a;
+ const int C = 1;
+ static int s;
+ int i;
+ readonly int r;
+ static readonly int sr;
+ public A() { }
+}
+class B { }
+enum E { }
+";
+    assert_snapshot!(report(text, "member-order: warn"));
+    let access_only = "member-order:
+  level: warn
+  options:
+    element_order: [accessibility]";
+    assert_snapshot!(report(text, access_only));
+}
+
+#[test]
+fn accessor_order_swaps_the_accessors() {
+    let text = "class A {
+ int P { set { } get { return 1; } }
+ event System.Action E { remove { } add { } }
+ int Q { set { } /* why */ get { return 1; } }
+}
+";
+    assert_snapshot!(report(text, "accessor-order: warn"));
+    let sorted = fixed(text, "accessor-order: warn", false);
+    assert_snapshot!(sorted);
 }

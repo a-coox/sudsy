@@ -1,0 +1,13 @@
+---
+source: crates/lang-csharp/tests/rules.rs
+expression: "report(text, rules)"
+---
+1:1 warning[using-order] `Zeta` should come after `Alpha`
+  fix (safe): Sort the using directives
+2:1 warning[using-order] `using static` belongs after the other usings
+2:1 warning[using-order] `using static Foo.Bar` should come after the System statics
+3:1 warning[using-order] `Alpha` should come after `Aa`
+4:1 warning[using-order] alias directives belong after the other usings
+5:1 warning[using-order] `System` should come before `Y.Z`: System usings go first
+7:1 warning[using-order] `Aa` should come after `aa`
+9:1 warning[using-order] alias `W` should come before `X`

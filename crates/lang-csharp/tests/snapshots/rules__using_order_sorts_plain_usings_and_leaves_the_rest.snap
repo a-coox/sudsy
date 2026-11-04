@@ -2,5 +2,8 @@
 source: crates/lang-csharp/tests/rules.rs
 expression: "report(text, rules)"
 ---
-1:1 warning[using-order] using directives are not sorted
+1:1 warning[using-order] `Zeta` should come after `Alpha`
   fix (safe): Sort the using directives
+2:1 warning[using-order] `System.Linq` should come before `Zeta`: System usings go first
+2:1 warning[using-order] `System.Linq` should come after `System`
+5:1 warning[using-order] `System` should come before `Zeta`: System usings go first

@@ -202,8 +202,10 @@ fn blank_between(cx: &FormatCtx<'_>, prev: &SyntaxNode, next: &SyntaxNode) -> bo
     if !separate_members(o) || !(enum_member || in_member_list(cx, next)) {
         return false;
     }
+    // Usings in a row stay in a row, comments above one of them or not.
+    let usings = prev.kind() == k::USING_DIRECTIVE && next.kind() == k::USING_DIRECTIVE;
     let decorated = !leading.is_empty() || next.children().any(|c| c.kind() == k::ATTRIBUTE_LIST);
-    decorated
+    (decorated && !usings)
         || (!enum_member
             && if separate_all_members(o) {
                 !(is_run_member(prev) && prev.kind() == next.kind())

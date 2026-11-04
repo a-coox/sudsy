@@ -35,10 +35,44 @@ pub fn significant_range(node: &SyntaxNode, grammar: &Grammar) -> TextRange {
     }
 }
 
-/// [`significant_range`] plus the comments that follow on the same line: what moves along when an
+/// The start of the first token of `node` that is code: not trivia, and not a token of a
+/// structured trivia node (a directive, a documentation comment), which [`significant_range`]
+/// counts as code.
+pub fn code_start(node: &SyntaxNode, grammar: &Grammar) -> core_syntax::TextSize {
+    node.descendants_with_tokens()
+        .filter_map(|e| e.into_token())
+        .find(|t| {
+            !grammar.is_trivia(t.kind())
+                && !t.text_range().is_empty()
+                && !t
+                    .parent_ancestors()
+                    .take_while(|a| a != node)
+                    .any(|a| grammar.is_trivia(a.kind()))
+        })
+        .map_or_else(
+            || significant_range(node, grammar).start(),
+            |t| t.text_range().start(),
+        )
+}
+
+/// [`significant_range`] (from [`code_start`]) plus the comments that follow on the same line: what moves along when an
 /// entry (a key, a using directive) is reordered. A comment on a line of its own stays where it is.
 pub fn entry_range(node: &SyntaxNode, grammar: &Grammar) -> TextRange {
     let significant = significant_range(node, grammar);
+    // The first token is code unless it belongs to a structured trivia node (rare).
+    let in_trivia = node
+        .token_at_offset(significant.start())
+        .right_biased()
+        .is_some_and(|t| {
+            t.parent_ancestors()
+                .take_while(|a| a != node)
+                .any(|a| grammar.is_trivia(a.kind()))
+        });
+    let significant = if in_trivia {
+        TextRange::new(code_start(node, grammar), significant.end())
+    } else {
+        significant
+    };
     let last = node
         .descendants_with_tokens()
         .filter_map(|e| e.into_token())

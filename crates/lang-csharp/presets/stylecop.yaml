@@ -14,11 +14,13 @@ csharp:
     space_between_empty_for_clauses: true
   lint:
     rules:
+      accessor-order: warn
       comment-space: warn
       constant-on-right: warn
       directive-keyword-space: warn
       doc-comment-space: warn
       file-name-matches-type: warn
+      member-order: warn
       no-comment-before-block: warn
       no-empty-attribute-parens: warn
       no-empty-comment: warn
@@ -35,3 +37,9 @@ csharp:
       use-lambda: warn
       use-literal-suffix: warn
       use-string-empty: warn
+      using-order:
+        level: warn
+        options:
+          compare: culture
+          static_position: after
+          alias_position: after

@@ -116,8 +116,8 @@ pub fn check_token_texts(tree: &SyntaxNode) -> Result<(), String> {
 }
 
 use core_config::{OptionValue, ResolvedOptions};
-use core_format::DirectiveTable;
 use core_format::testing::Subject;
+use core_format::{DirectiveTable, NodeFormatter};
 use core_syntax::Grammar;
 use provider_api::{LanguageProvider, OutOfProcessProvider, SourceFile, format_file};
 
@@ -209,6 +209,13 @@ impl Subject for CsSubject {
             Some(e) => Err(format!("{} (byte {})", e.message, e.start)),
             None => Ok(r.tree),
         }
+    }
+
+    fn rewritten(&self, input: &str) -> String {
+        let tree = self.parse(input).expect("the input parses");
+        lang_csharp::CSharpFormatter
+            .rewrite_source(&tree, input, self.grammar(), &self.resolved())
+            .unwrap_or_else(|| input.to_string())
     }
 
     fn format(&self, text: &str) -> Result<String, String> {

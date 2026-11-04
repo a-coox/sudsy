@@ -1,0 +1,9 @@
+---
+source: crates/lang-csharp/tests/rules.rs
+expression: "report(text, \"accessor-order: warn\")"
+---
+2:10 warning[accessor-order] the get accessor should come before the set accessor
+  fix (safe): Swap the accessors
+3:26 warning[accessor-order] the add accessor should come before the remove accessor
+  fix (safe): Swap the accessors
+4:10 warning[accessor-order] the get accessor should come before the set accessor

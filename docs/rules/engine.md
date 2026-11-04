@@ -28,7 +28,7 @@ A rule is skipped (never failed) when the provider does not answer a required la
 ## Diagnostics and fixes
 - Diagnostic: span, severity, message, rule id, related spans, fixes. Fix kinds: `Safe` (applied by `fix`), `Unsafe` (`--unsafe`, or editor quick fix), `Suggestion` (editor only).
 - Fix loop: per round `select` takes for each diagnostic the first applicable fix in priority order (category, rule id, position) and drops a fix if any edit overlaps an accepted one (found again next round). Stops when nothing applies/changes or after 10 rounds. After each round the file is re-parsed; if it no longer parses the round is undone and the rules are named in a warning (`FixOutcome::broke`). `sudsy fix` then formats.
-- Reordering fixes (`sorted-keys`, `using-order`) move text between the entries' source slots: own-line comments stay in place; trailing comments move with a YAML key or using directive; JSON comments stay in place.
+- Reordering fixes (`sorted-keys`, `using-order`, `accessor-order`) move text between the entries' source slots: own-line comments stay in place; trailing comments move with a YAML key or using directive; JSON comments stay in place.
 
 ## Suppressions
 `sudsy-disable-next-line [rule[, rule]...]` in a line or block comment (marker from the grammar's `suppress` line). No rule names suppresses all on that line. A directive naming a rule that does not fire is not reported. Plain JSON: config-only (`overrides` with `"off"`).

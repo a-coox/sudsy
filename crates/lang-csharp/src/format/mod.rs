@@ -20,7 +20,8 @@ pub use options::{
 
 use self::options::{
     attach_comments, constructor_initializer_on_new_line, hanging_base_list,
-    inline_accessor_bodies, label_outdent, switch_arm_as_assignment, unbreakable_single_item_lists,
+    inline_accessor_bodies, label_outdent, sort_usings, switch_arm_as_assignment,
+    unbreakable_single_item_lists,
 };
 use self::tags::Tag;
 use crate::generated::kind as k;
@@ -55,6 +56,18 @@ fn simple_index(list: &SyntaxNode) -> bool {
 }
 
 impl NodeFormatter for CSharpFormatter {
+    fn rewrite_source(
+        &self,
+        tree: &SyntaxNode,
+        text: &str,
+        grammar: &core_syntax::Grammar,
+        options: &ResolvedOptions,
+    ) -> Option<String> {
+        sort_usings(options)
+            .then(|| crate::using_sort::sort_all(tree, text, grammar))
+            .flatten()
+    }
+
     fn comment_style(&self, options: &ResolvedOptions) -> CommentStyle {
         CommentStyle {
             attach_comments: attach_comments(options),

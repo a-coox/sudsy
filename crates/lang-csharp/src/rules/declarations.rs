@@ -2,7 +2,7 @@
 
 use super::{has_comment_in, kind, line_separator, text_of};
 use core_config::Level;
-use core_rules::tree::significant_range;
+use core_rules::tree::{code_start, significant_range};
 use core_rules::{Category, Edit, Fix, FixKind, Rule, RuleContext, RuleMeta};
 use core_syntax::{SyntaxKind, SyntaxNode, TextRange};
 
@@ -62,24 +62,10 @@ impl Rule for SeparateFieldDeclarations {
         let Some(first) = declarators.first().filter(|_| declarators.len() > 1) else {
             return;
         };
-        // A documentation comment is trivia, but its tokens are not, so start at the first
-        // child that is code.
-        let range = {
-            let whole = significant_range(node, grammar);
-            let start = node
-                .descendants_with_tokens()
-                .filter_map(|e| e.into_token())
-                .find(|t| {
-                    !grammar.is_trivia(t.kind())
-                        && !t.text_range().is_empty()
-                        && !t
-                            .parent_ancestors()
-                            .take_while(|a| a != node)
-                            .any(|a| grammar.is_trivia(a.kind()))
-                })
-                .map_or(whole.start(), |t| t.text_range().start());
-            TextRange::new(start, whole.end())
-        };
+        let range = TextRange::new(
+            code_start(node, grammar),
+            significant_range(node, grammar).end(),
+        );
         let prefix = TextRange::new(range.start(), significant_range(first, grammar).start());
         let fix = (!has_comment_in(node, range, ctx)).then(|| {
             let head = &ctx.file.text[usize::from(prefix.start())..usize::from(prefix.end())];

@@ -30,6 +30,7 @@ Never positioned by the formatter: a comment is owned by a token (trivia rule) a
 
 ## Safety check (every file, every run, not switchable)
 `provider_api::format_file`: parse, refuse syntax errors, format, then `format_parsed` re-parses the output and compares node starts/ends and non-trivia tokens. Ignored in the comparison: trivia (structured trivia whole), `#separator` tokens (trailing commas may change; a wrongly removed one still changes structure), `#restyle` positions. `NodeFormatter::extra_check(before, after)` is the hook for YAML's data-model comparison. Any difference aborts that file with an internal error. Idempotency is a test property, not a runtime check.
+An option that reorders code (C# `sort_usings`) does it through `NodeFormatter::rewrite_source`: `format_parsed` takes the rewritten text, parses it again (a rewrite that does not parse is an internal error) and formats and checks that tree; the input tree is not compared with the output.
 
 ## Testing helper
 `core_format::testing::check` enforces round trip, unchanged meaning, idempotency and comments kept. Scaling guard: `core-format/tests/scaling.rs` (steps of `fits` grow at most 4x for 4x the document).

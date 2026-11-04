@@ -12,6 +12,11 @@ pub trait Subject {
     /// `Err` with a message when the text has parse errors.
     fn parse(&self, text: &str) -> Result<SyntaxNode, String>;
     fn format(&self, text: &str) -> Result<String, String>;
+    /// The input as the formatter reads it once an option that reorders code has run (C#
+    /// `sort_usings`); the meaning and comment checks compare the output with this.
+    fn rewritten(&self, input: &str) -> String {
+        input.to_string()
+    }
 }
 
 /// The comments of a tree in order. Structured trivia (doc comments, directives) count as one,
@@ -59,11 +64,17 @@ pub fn check(subject: &dyn Subject, input: &str) -> Result<String, String> {
     if print(&after) != output {
         return Err("the output tree does not print back to the output".into());
     }
-    equal_ignoring_trivia(g, &before, &after).map_err(|e| format!("meaning changed: {e}"))?;
-    if comments(subject, &before) != comments(subject, &after) {
+    let reference = match subject.rewritten(input) {
+        text if text == input => before,
+        text => subject
+            .parse(&text)
+            .map_err(|e| format!("rewritten input: {e}"))?,
+    };
+    equal_ignoring_trivia(g, &reference, &after).map_err(|e| format!("meaning changed: {e}"))?;
+    if comments(subject, &reference) != comments(subject, &after) {
         return Err(format!(
             "comments changed: {:?} became {:?}",
-            comments(subject, &before),
+            comments(subject, &reference),
             comments(subject, &after)
         ));
     }

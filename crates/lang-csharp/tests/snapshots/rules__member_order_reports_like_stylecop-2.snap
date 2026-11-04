@@ -1,0 +1,6 @@
+---
+source: crates/lang-csharp/tests/rules.rs
+expression: "report(text, access_only)"
+---
+4:13 warning[member-order] public members should come before private members
+10:9 warning[member-order] public members should come before private members

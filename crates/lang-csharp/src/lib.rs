@@ -3,6 +3,7 @@
 
 mod format;
 mod rules;
+mod using_sort;
 #[rustfmt::skip]
 pub mod generated;
 

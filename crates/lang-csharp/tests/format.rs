@@ -444,3 +444,52 @@ snap!(
     "class C { void M() { for (;;) { } for (int i = 0;;) { } for (; i < 3;) { } } }",
     [("space_between_empty_for_clauses", OptionValue::Bool(true))]
 );
+
+// Sorting usings ---------------------------------------------------------------------------------
+
+snap!(
+    sort_usings_merges_and_sorts,
+    "// header
+
+using Zeta;
+using static System.Math;
+using X = Y.Z;
+using System.Linq; // linq
+using System;
+
+using Beta;
+// about Alpha
+using alpha;
+using global::Foo;
+namespace N
+{
+    using Zed;
+
+    using Abc;
+    class C { }
+}
+class D { }
+",
+    [("sort_usings", OptionValue::Bool(true))]
+);
+snap!(
+    sort_usings_leaves_directive_lists,
+    "using Zeta;
+#if X
+using Alpha;
+#endif
+class C { }
+",
+    [("sort_usings", OptionValue::Bool(true))]
+);
+snap!(
+    sort_usings_file_scoped_namespace,
+    "using Zeta;
+using Alpha;
+namespace N;
+using Beta;
+using Aa;
+class C { }
+",
+    [("sort_usings", OptionValue::Bool(true))]
+);

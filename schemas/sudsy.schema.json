@@ -19,6 +19,10 @@
           },
           "description": "Rule id (`no-empty-catch`, or `plugin/rule`) to a level or a level with options.",
           "properties": {
+            "accessor-order": {
+              "$ref": "#/definitions/rule",
+              "description": "`get` goes before `set` or `init`, and `add` before `remove`. The fix swaps the two accessors (not offered when a comment stands between or in them). StyleCop SA1212 and SA1213."
+            },
             "ambiguous-booleans": {
               "description": "A plain `yes`, `no`, `on`, `off`, `True`, `TRUE`, `False` or `FALSE` (in the usual casings): a boolean to YAML 1.1 parsers and a string to YAML 1.2 parsers. Lowercase `true` and `false` are fine.",
               "oneOf": [
@@ -207,6 +211,53 @@
                           "default": 120,
                           "description": "Longest allowed line, in characters.",
                           "type": "integer"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            "member-order": {
+              "description": "Members are out of order. Compared with the member before, in the order of the `element_order` option: the kind (fields, constructors, finalizers, delegates, events, enums, interfaces, properties, indexers, operators, methods, structs, classes; in a namespace or file: namespaces, delegates, enums, interfaces, structs, classes), the access (public, internal, protected internal, protected, private protected, private), constants before other fields, static before instance members, readonly fields before the others. A trait only counts between members that agree on the traits listed before it. No fix: moving members would have to take their comments and directives along. StyleCop SA1201 to SA1204 and SA1214.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "element_order": {
+                          "default": [
+                            "kind",
+                            "accessibility",
+                            "constant",
+                            "static",
+                            "readonly"
+                          ],
+                          "description": "The traits that decide the order, most important first. A trait that is left out is not checked.",
+                          "items": {
+                            "enum": [
+                              "kind",
+                              "accessibility",
+                              "constant",
+                              "static",
+                              "readonly"
+                            ],
+                            "type": "string"
+                          },
+                          "type": "array"
                         }
                       },
                       "type": "object"
@@ -639,7 +690,7 @@
               "description": "`string.Empty` instead of `\"\"` (or `@\"\"`). Not reported where a constant is required: `const`, attribute arguments, default parameter values, `case` labels and patterns. Equivalent to StyleCop SA1122."
             },
             "using-order": {
-              "description": "Plain `using` directives of a file or namespace are not in alphabetical order (ordinal). Aliases, `using static` and `global using` stay where they are, and so does a list that has preprocessor directives in it. Comments on lines of their own stay where they are; a comment after a directive moves with it. Overlaps the SDK analyzers' `dotnet_sort_system_directives_first` .editorconfig key.",
+              "description": "`using` directives of a file or namespace are out of order: System first (`system_first`), names in alphabetical order (`compare`), and with the options `static_position` and `alias_position` set to `after`, `using static` directives after the plain ones and aliases after those, each group sorted. `global using` and `using unsafe` stay where they are, and a list restarts at a directive that has a preprocessor directive in front of it (the fix leaves such lists alone). Comments on lines of their own stay where they are; a comment after a directive moves with it. Overlaps the SDK analyzers' `dotnet_sort_system_directives_first` .editorconfig key; StyleCop SA1208 to SA1211, SA1216 and SA1217.",
               "oneOf": [
                 {
                   "$ref": "#/definitions/level"
@@ -653,6 +704,34 @@
                     "options": {
                       "additionalProperties": false,
                       "properties": {
+                        "alias_position": {
+                          "default": "keep",
+                          "description": "`after`: alias directives come after all other usings, sorted by alias name; `keep`: they stay where they are.",
+                          "enum": [
+                            "keep",
+                            "after"
+                          ],
+                          "type": "string"
+                        },
+                        "compare": {
+                          "default": "ordinal",
+                          "description": "`ordinal` compares code points; `culture` ignores case (and puts                           punctuation before digits before letters, a lower-case name before                           an upper-case one that is otherwise equal); `culture_ignore_case`                           leaves names that differ only in case in their order.",
+                          "enum": [
+                            "ordinal",
+                            "culture",
+                            "culture_ignore_case"
+                          ],
+                          "type": "string"
+                        },
+                        "static_position": {
+                          "default": "keep",
+                          "description": "`after`: `using static` directives come after the plain usings, sorted (System ones first with `system_first`); `keep`: they stay where they are.",
+                          "enum": [
+                            "keep",
+                            "after"
+                          ],
+                          "type": "string"
+                        },
                         "system_first": {
                           "default": true,
                           "description": "Put `System` and `System.*` before the other namespaces.",
@@ -978,6 +1057,11 @@
                 "type": "string"
               },
               "type": "array"
+            },
+            "sort_usings": {
+              "default": false,
+              "description": "Sort `using` directives like the `using-order` rule with              `compare: culture_ignore_case`, `static_position: after` and `alias_position:              after` (System first, then the others, `using static`, aliases), and join the              groups: blank lines between directives go, comments above a directive move with              it. Lists with preprocessor directives are left alone.",
+              "type": "boolean"
             },
             "space_after_delegate": {
               "default": true,
@@ -1530,6 +1614,11 @@
                       "type": "string"
                     },
                     "type": "array"
+                  },
+                  "sort_usings": {
+                    "default": false,
+                    "description": "Sort `using` directives like the `using-order` rule with              `compare: culture_ignore_case`, `static_position: after` and `alias_position:              after` (System first, then the others, `using static`, aliases), and join the              groups: blank lines between directives go, comments above a directive move with              it. Lists with preprocessor directives are left alone.",
+                    "type": "boolean"
                   },
                   "space_after_delegate": {
                     "default": true,

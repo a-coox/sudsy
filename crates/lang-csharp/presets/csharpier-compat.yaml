@@ -19,3 +19,4 @@ csharp:
     base_list_layout: hanging
     unbreakable_single_item_lists: true
     do_while_line: same_line
+    sort_usings: true

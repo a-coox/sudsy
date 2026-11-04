@@ -26,7 +26,7 @@
 | `sorted-keys` | yaml | style | off | unsafe | block mappings only, every key that sorts below an earlier key of its mapping is reported (like yamllint), the first report carries the fix; sorting options below; moving an anchor below its alias is why it is unsafe |
 | `no-empty-catch` | csharp | suspicious | warn | none | no statements and no comment |
 | `async-suffix` | csharp | style | warn | none | uses the type layer to check Task/ValueTask and interface implementation; name-based at `fast`; overrides, explicit implementations and `Main` skipped; no fix (rename touches other files) |
-| `using-order` | csharp | cleanup | off | safe | overlaps the `dotnet_sort_system_directives_first` .editorconfig key; plain usings, ordinal, `system_first`; lists with `#` directives skipped |
+| `using-order` | csharp | cleanup | off | safe | System first (`system_first`), names by `compare` (`ordinal`, `culture`, `culture_ignore_case`), `static_position` / `alias_position` (`keep`, `after`: `using static` then aliases behind the plain usings, sorted); reports like StyleCop SA1208 to SA1211, SA1216, SA1217; `global using` keeps its place; the fix is not offered for lists with `#` directives; overlaps the `dotnet_sort_system_directives_first` .editorconfig key. The formatter's `sort_usings` uses the same ordering code |
 | `unreachable-code` | csharp | suspicious | off | suggestion | option `non_returning_calls` (default true); overlaps CS0162 and IDE0035 |
 | `unused-variable` | csharp | cleanup | off | safe | overlaps compiler CS0168 and CS0219 for declaration and catch variables |
 | `unused-assignment` | csharp | cleanup | off | none | dead store via liveness; overlaps IDE0059 |
@@ -51,6 +51,8 @@
 | `suppression-justification` | csharp | style | off | none | `SuppressMessage` without a meaningful `Justification` (missing, null, blank, `<Pending>`); SA1404 |
 | `single-class-per-file` | csharp | style | off | none | classes and records after the first; structs, interfaces, enums, delegates and more parts of the first partial class not counted; SA1402 |
 | `single-namespace-per-file` | csharp | style | off | none | every namespace after the first, nested ones included; SA1403 |
+| `member-order` | csharp | style | off | none | member kinds, access, constants, static, readonly fields compared with the member before, in the order of option `element_order`; SA1201 to SA1204, SA1214; no fix (comments and directives would have to move along) |
+| `accessor-order` | csharp | style | off | safe | `get` before `set`/`init`, `add` before `remove`; the fix swaps them unless a comment is in the way; SA1212, SA1213 |
 | `file-name-matches-type` | csharp | style | off | none | file name up to the first dot (ignoring case, `Name{T}` for generics) is the first type; partial first type skipped; SA1649 |
 
 Rules that repeat a compiler or SDK diagnostic say so in `sudsy rules <id>`; those that fire as compiler warnings anyway are off by default. Sudsy does not reimplement SDK style rules such as IDE0161 (file-scoped namespaces) or IDE0029/IDE0030 (null coalescing).

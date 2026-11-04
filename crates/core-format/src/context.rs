@@ -30,6 +30,19 @@ pub trait NodeFormatter: Send + Sync {
         Ok(())
     }
 
+    /// Source text to format instead of the input, for an option that reorders code (C# sorts
+    /// `using` directives): the input tree is parsed from it again, and the safety check compares
+    /// the output with that tree. `None` (the default) formats the input as it is.
+    fn rewrite_source(
+        &self,
+        _tree: &SyntaxNode,
+        _text: &str,
+        _grammar: &Grammar,
+        _options: &ResolvedOptions,
+    ) -> Option<String> {
+        None
+    }
+
     /// How comments are printed; the default keeps their text and puts one space before a
     /// comment after code.
     fn comment_style(&self, _options: &ResolvedOptions) -> CommentStyle {

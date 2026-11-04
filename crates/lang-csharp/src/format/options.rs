@@ -42,6 +42,7 @@ pub const BLANK_LINE_BEFORE_COMMENT: &str = "blank_line_before_comment";
 pub const BLANK_LINE_AFTER_COMMENT: &str = "blank_line_after_comment";
 pub const SPACE_AFTER_DELEGATE: &str = "space_after_delegate";
 pub const SPACE_BETWEEN_EMPTY_FOR_CLAUSES: &str = "space_between_empty_for_clauses";
+pub const SORT_USINGS: &str = "sort_usings";
 
 const CLAUSE_LINE_VALUES: &[&str] = &["inherit", "new_line", "same_line"];
 
@@ -295,6 +296,11 @@ pub fn option_schema() -> OptionSchema {
             "A space between the two semicolons of a `for` with an empty condition \
              (`for (; ;)`); when false `for (;;)`.",
         ),
+        OptionDef::boolean(
+            SORT_USINGS,
+            false,
+            "Sort `using` directives like the `using-order` rule with              `compare: culture_ignore_case`, `static_position: after` and `alias_position:              after` (System first, then the others, `using static`, aliases), and join the              groups: blank lines between directives go, comments above a directive move with              it. Lists with preprocessor directives are left alone.",
+        ),
     ])
     .with_presets(presets())
 }
@@ -453,6 +459,10 @@ pub fn attach_comments(options: &ResolvedOptions) -> bool {
 
 pub fn space_after_delegate(options: &ResolvedOptions) -> bool {
     options.bool(SPACE_AFTER_DELEGATE)
+}
+
+pub fn sort_usings(options: &ResolvedOptions) -> bool {
+    options.bool(SORT_USINGS)
 }
 
 pub fn space_between_empty_for_clauses(options: &ResolvedOptions) -> bool {

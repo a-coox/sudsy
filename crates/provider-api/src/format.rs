@@ -69,6 +69,40 @@ pub fn format_parsed(
         return Err(syntax_error(&file.text, &parsed.errors));
     }
     let grammar = provider.grammar();
+    let rewritten = provider
+        .formatter()
+        .rewrite_source(&parsed.tree, &file.text, grammar, options);
+    if let Some(text) = rewritten.filter(|t| *t != file.text) {
+        let again = SourceFile {
+            id: file.id.clone(),
+            version: file.version + 1,
+            text,
+            had_bom: file.had_bom,
+            language_version: file.language_version.clone(),
+            preprocessor_symbols: file.preprocessor_symbols.clone(),
+        };
+        let reparsed = provider.parse(&again)?;
+        if let Some(e) = reparsed.errors.first() {
+            return Err(FormatError::Safety(format!(
+                "the rewritten source does not parse: {}",
+                e.message
+            ))
+            .into());
+        }
+        return format_checked(provider, &again, &reparsed, options, directives);
+    }
+    format_checked(provider, file, parsed, options, directives)
+}
+
+/// Formats a tree that has no syntax errors and checks the output against it.
+fn format_checked(
+    provider: &dyn LanguageProvider,
+    file: &SourceFile,
+    parsed: &ParseResult,
+    options: &ResolvedOptions,
+    directives: &DirectiveTable,
+) -> Result<String, FileFormatError> {
+    let grammar = provider.grammar();
     let cx = FormatCtx::new(grammar, options, directives, provider.formatter());
     let output = format_tree(&parsed.tree, &cx)?;
     let reparse = |text: &str| {

@@ -11,6 +11,7 @@ mod empty_catch;
 mod expressions;
 mod file_layout;
 mod flow;
+mod member_order;
 mod statements;
 mod syntax_forms;
 mod usings;
@@ -23,6 +24,8 @@ pub static RULES: &[&dyn Rule] = &[
     &empty_catch::NoEmptyCatch,
     &async_suffix::AsyncSuffix,
     &usings::UsingOrder,
+    &member_order::MemberOrder,
+    &member_order::AccessorOrder,
     &flow::UnreachableCode,
     &flow::UnusedVariable,
     &flow::UnusedAssignment,
