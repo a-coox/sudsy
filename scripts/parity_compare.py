@@ -3,6 +3,7 @@
 Usage: parity_compare.py <tool> <version> <sudsy-binary>
 """
 import json
+import os
 import re
 import shutil
 import subprocess
@@ -12,6 +13,7 @@ from pathlib import Path
 import yaml
 
 ROOT = Path(__file__).resolve().parent.parent
+PARITY = ROOT / os.environ.get("CARGO_TARGET_DIR", "target") / "parity"
 CATALOGS = {"eslint-jsonc": "eslint-plugin-jsonc"}  # tool name -> catalog file, where they differ
 
 
@@ -73,7 +75,7 @@ def eslint_jsonc(version, folder):
     """`{fixture name: {(upstream rule, line, column)}}` of the `.json` fixtures. ESLint and the plugin
     are installed by parity.sh into target/parity/eslint-jsonc-<version>/; the fixtures and the flat
     config are copied below it so that the config finds the plugin."""
-    install = ROOT / "target/parity" / f"eslint-jsonc-{version}"
+    install = PARITY / f"eslint-jsonc-{version}"
     work = install / "work"
     shutil.rmtree(work, ignore_errors=True)
     shutil.copytree(folder, work, ignore=shutil.ignore_patterns("sudsy.yaml"))
@@ -154,7 +156,7 @@ def stylecop(sudsy, version):
     formatter, partial = formatter_ids("stylecop")
     mismatches = 0
     for name in ("plain", "fixed"):
-        work = ROOT / "target/parity" / f"stylecop-{name}"
+        work = PARITY / f"stylecop-{name}"
         shutil.rmtree(work, ignore_errors=True)
         shutil.copytree(ROOT / "tests/parity/stylecop", work)
         if name == "fixed":

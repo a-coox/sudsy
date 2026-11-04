@@ -24,7 +24,9 @@ gate "cargo clippy" cargo clippy "${ws[@]}" --all-targets -- -D warnings
 gate "cargo test" cargo test "${ws[@]}"
 if [ ${#pkg[@]} -eq 0 ]; then
   gate "cargo xtask codegen --check" cargo xtask codegen --check
-  # The sample plugin is a workspace of its own: format check and its native rule tests.
+  # The sample plugin is a workspace of its own: format check and its native rule tests. With a
+  # shared CARGO_TARGET_DIR it gets its own subdirectory (two workspaces in one deps dir confuse rustc).
+  [ -n "${CARGO_TARGET_DIR:-}" ] && export CARGO_TARGET_DIR=$CARGO_TARGET_DIR/sample-host
   gate "sample plugin fmt" cargo fmt --manifest-path tests/plugins/sample/Cargo.toml -- --check
   gate "sample plugin tests" cargo test --manifest-path tests/plugins/sample/Cargo.toml
   if [ $rust_only -eq 0 ]; then

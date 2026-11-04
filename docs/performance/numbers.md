@@ -85,6 +85,16 @@ C# cost structure: on CoreLib Roslyn parse ~0.94 s and the mapping walk ~0.83 s 
 | Typing, 40 edits 30 ms apart: last pull answered after last edit | 0.10-0.25 s |
 | Typing: pulls that did the full work | 1-2 of 40 |
 
+## Dev loop / tooling (persistent `CARGO_TARGET_DIR` slot, `docs/development/dev-loop.md`)
+Method: `CARGO_TARGET_DIR=C:/Coding/.sudsy-targets/slot1`, Git Bash, wall seconds, a fresh slot (cold) then the same command again (warm); Windows 11 desktop shared with two other agents building at the same time, so times are noisy. The warm test time is test execution, not compilation.
+
+| Command | Cold | Warm |
+|---|---|---|
+| `scripts/gate.sh --rust-only` | 827 s (fmt 1, clippy 90, test 565, codegen 14+, sample plugin 40) | 171 s (clippy 1, test 159) |
+| `scripts/bench.sh --no-record` (incl. WSL callgrind cache `~/.cache/sudsy-bench/slot1`) | 1363 s | 91 s |
+| `scripts/parity.sh yamllint` (venv install + CLI build reused) | 86 s | |
+| `scripts/gate.sh -p lang-json` from another checkout path with the warm slot | | 38 s (only workspace crates and a few small dependencies recompile; wasmtime and cranelift are reused) |
+
 ## Not measured repeatably
 - LSP completion/hover/format request latency in `bench.sh`.
 - Config load and discovery on a large repository.

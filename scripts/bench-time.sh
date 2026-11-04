@@ -5,7 +5,7 @@
 # bootstrap 95% confidence interval. Only meaningful within one host and one run.
 set -euo pipefail
 cd "$(dirname "$0")/.."
-root=$PWD; work=$root/target/bench
+root=$PWD; work=${CARGO_TARGET_DIR:-$root/target}/bench
 base_src= rounds=11 head= base= record=0
 while [ $# -gt 0 ]; do
   case "$1" in --base-src) base_src=$2 ;; --rounds) rounds=$2 ;; --head) head=$2 ;; --base) base=$2 ;;

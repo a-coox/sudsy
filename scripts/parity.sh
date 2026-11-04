@@ -8,6 +8,7 @@
 # Format mode: scripts/parity.sh format prettier|biome (see docs/development/parity.md).
 set -euo pipefail
 cd "$(dirname "$0")/.."
+tdir=${CARGO_TARGET_DIR:-$PWD/target}
 tool=${1:-}
 if [ "$tool" = format ]; then
   # Format mode: `sudsy format` under the matching preset against the tool's own output, on
@@ -18,14 +19,14 @@ if [ "$tool" = format ]; then
     *) echo "usage: scripts/parity.sh format prettier|biome" >&2; exit 2 ;;
   esac
   version=$(sed -nE 's/^version: "([0-9][0-9.]*).*/\1/p' "docs/parity/$tool.yaml" | head -n1)
-  dir="target/parity/$tool-$version"
+  dir="$tdir/parity/$tool-$version"
   pkg=$tool; [ "$tool" = biome ] && pkg=@biomejs/biome
   if [ ! -d "$dir/node_modules/$pkg" ]; then
     mkdir -p "$dir"
     npm install --silent --no-audit --no-fund --prefix "$dir" "$pkg@$version"
   fi
   cargo build --quiet -p cli
-  sudsy=$PWD/target/debug/sudsy; [ -x "$sudsy" ] || sudsy=$sudsy.exe
+  sudsy=$tdir/debug/sudsy; [ -x "$sudsy" ] || sudsy=$sudsy.exe
   py=
   for candidate in python3 python; do
     if "$candidate" -c 'import sys' >/dev/null 2>&1; then py=$candidate; break; fi
@@ -50,7 +51,7 @@ case "$tool" in
   yamllint) pkg="yamllint==$version" ;;
   *) pkg=pyyaml ;;
 esac
-venv="target/parity/$tool-$version"
+venv="$tdir/parity/$tool-$version"
 # eslint-jsonc: the npm install lives in that folder; PyYAML for the comparison goes below it.
 [ "$tool" = eslint-jsonc ] && venv="$venv/venv"
 if [ ! -d "$venv" ]; then
@@ -63,7 +64,7 @@ vpy="$venv/bin/python"; [ -x "$vpy" ] || vpy="$venv/Scripts/python.exe"
 cargo build --quiet -p cli
 if [ "$tool" = eslint-jsonc ]; then
   # ESLint 9 with the plugin at the catalog's version (needs Node and network on first use).
-  dir="target/parity/eslint-jsonc-$version"
+  dir="$tdir/parity/eslint-jsonc-$version"
   if [ ! -d "$dir/node_modules/eslint-plugin-jsonc" ]; then
     mkdir -p "$dir"
     npm install --silent --no-audit --no-fund --prefix "$dir" eslint@9 "eslint-plugin-jsonc@$version"
@@ -73,6 +74,6 @@ if [ "$tool" = stylecop ]; then
   dotnet build --nologo -v:q workers/csharp/Sudsy.Worker
   export SUDSY_CSHARP_WORKER=${SUDSY_CSHARP_WORKER:-$PWD/workers/csharp/Sudsy.Worker/bin/Debug/net10.0/Sudsy.Worker.dll}
 fi
-sudsy=$PWD/target/debug/sudsy; [ -x "$sudsy" ] || sudsy=$sudsy.exe
+sudsy=$tdir/debug/sudsy; [ -x "$sudsy" ] || sudsy=$sudsy.exe
 
 exec "$vpy" scripts/parity_compare.py "$tool" "$version" "$sudsy"

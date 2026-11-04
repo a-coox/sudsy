@@ -8,12 +8,14 @@ extends the matching preset); the outputs must be equal. A fixture listed in the
 stale when the outputs are in fact equal.
 """
 import difflib
+import os
 import shutil
 import subprocess
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+PARITY = ROOT / os.environ.get("CARGO_TARGET_DIR", "target") / "parity"
 SUFFIXES = {".json", ".jsonc", ".yaml", ".yml"}
 
 
@@ -56,7 +58,7 @@ def main():
     tool, version, sudsy, prefix = sys.argv[1:5]
     prefix = Path(prefix).resolve()
     folder = ROOT / "tests/parity" / tool
-    work = ROOT / "target/parity" / f"{tool}-work"
+    work = PARITY / f"{tool}-work"
     shutil.rmtree(work, ignore_errors=True)
     work.mkdir(parents=True)
     shutil.copy(folder / "sudsy.yaml", work / "sudsy.yaml")
