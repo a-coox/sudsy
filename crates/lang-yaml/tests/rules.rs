@@ -14,6 +14,53 @@ fn suppression_comment() {
     assert_snapshot!(report(text, ""));
 }
 
+fn dup_count(text: &str) -> usize {
+    report(text, "").matches("no-duplicate-keys").count()
+}
+
+#[test]
+fn block_line_and_file_suppressions() {
+    assert_eq!(dup_count("a: 1\na: 2\n"), 1);
+    // Line, with and without a rule list; another rule's name does not apply.
+    assert_eq!(
+        dup_count("a: 1\na: 2 # sudsy-disable-line no-duplicate-keys\n"),
+        0
+    );
+    assert_eq!(dup_count("a: 1\na: 2 # sudsy-disable-line\n"), 0);
+    assert_eq!(
+        dup_count("a: 1\na: 2 # sudsy-disable-line max-line-length\n"),
+        1
+    );
+    // Block: only between disable and enable; enable may name one rule.
+    let block = |open: &str, close: &str| format!("{open}\na: 1\na: 2\n{close}\nb: 1\nb: 2\n");
+    assert_eq!(dup_count(&block("# sudsy-disable", "# sudsy-enable")), 1);
+    assert_eq!(
+        dup_count(&block(
+            "# sudsy-disable no-duplicate-keys",
+            "# sudsy-enable"
+        )),
+        1
+    );
+    assert_eq!(
+        dup_count(&block(
+            "# sudsy-disable",
+            "# sudsy-enable no-duplicate-keys"
+        )),
+        1
+    );
+    assert_eq!(
+        dup_count(&block("# sudsy-disable", "# sudsy-enable max-line-length")),
+        0
+    );
+    assert_eq!(dup_count(&block("# sudsy-disable", "# nothing")), 0);
+    // File: anywhere in the file.
+    assert_eq!(
+        dup_count("a: 1\na: 2\n# sudsy-disable-file no-duplicate-keys\n"),
+        0
+    );
+    assert_eq!(dup_count("# sudsy-disable-file\na: 1\na: 2\n"), 0);
+}
+
 #[test]
 fn ambiguous_booleans_flag_every_casing_and_honor_check_keys_and_allowed() {
     let text = "on: True\nlist: [FALSE, false, true]\n? Yes\n: y\n";

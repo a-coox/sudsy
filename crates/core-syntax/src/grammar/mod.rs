@@ -4,7 +4,8 @@
 //! // comment
 //! language json 1                      // name and LanguageId (1..=15)
 //! comments line "//" block "/*" "*/"   // either part optional
-//! suppress disable-next-line "sudsy-disable-next-line"   // role, marker
+//! suppress disable-next-line "sudsy-disable-next-line"   // role, marker; roles: disable-next-line,
+//!                                                        // disable-line, disable, enable, disable-file, ignore*
 //! token Whitespace #trivia #whitespace // variable-text token with tags
 //! token LBrace "{" #punctuation        // fixed-text token
 //! node Member #key-value = key:String Colon value:#value

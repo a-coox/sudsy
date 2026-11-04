@@ -5,6 +5,10 @@
 language json 1
 comments line "//" block "/*" "*/"
 suppress disable-next-line "sudsy-disable-next-line"
+suppress disable-line "sudsy-disable-line"
+suppress disable "sudsy-disable"
+suppress enable "sudsy-enable"
+suppress disable-file "sudsy-disable-file"
 suppress ignore "sudsy-ignore"
 suppress ignore-start "sudsy-ignore-start"
 suppress ignore-end "sudsy-ignore-end"

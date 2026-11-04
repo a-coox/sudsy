@@ -4,6 +4,10 @@
 language toml 4
 comments line "#"
 suppress disable-next-line "sudsy-disable-next-line"
+suppress disable-line "sudsy-disable-line"
+suppress disable "sudsy-disable"
+suppress enable "sudsy-enable"
+suppress disable-file "sudsy-disable-file"
 suppress ignore "sudsy-ignore"
 
 token Whitespace #trivia #whitespace

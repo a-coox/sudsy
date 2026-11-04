@@ -7,7 +7,7 @@
 //! * [`configure`]: which rules run on a file, with which options.
 //! * [`fixes`]: fix selection and application, and the loop around them.
 //! * [`layout`]: layout directives that rules attach for the formatter.
-//! * `suppress`: `sudsy-disable-next-line`.
+//! * `suppress`: `sudsy-disable-next-line`, `-disable-line`, `-disable`/`-enable`, `-disable-file`.
 
 pub mod comments;
 pub mod configure;
@@ -21,6 +21,7 @@ pub mod keys;
 pub mod layout;
 pub mod lines;
 pub mod options;
+pub mod paths;
 pub mod project;
 pub mod rule;
 pub mod shared;
