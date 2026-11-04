@@ -22,8 +22,7 @@ static MEMBER_ORDER: RuleMeta = RuleMeta {
                   private protected, private), constants before other fields, static before \
                   instance members, readonly fields before the others. A trait only counts \
                   between members that agree on the traits listed before it. No fix: moving \
-                  members would have to take their comments and directives along. StyleCop \
-                  SA1201 to SA1204 and SA1214.",
+                  members would have to take their comments and directives along.",
     example: "class A {\n  void F() { }\n  int x;   // fields come first\n}",
     default_level: Level::Off,
     fix: None,
@@ -42,8 +41,7 @@ static ACCESSOR_ORDER: RuleMeta = RuleMeta {
     id: "accessor-order",
     category: Category::Style,
     description: "`get` goes before `set` or `init`, and `add` before `remove`. The fix swaps \
-                  the two accessors (not offered when a comment stands between or in them). \
-                  StyleCop SA1212 and SA1213.",
+                  the two accessors (not offered when a comment stands between or in them).",
     example: "int P { set { } get { return 1; } }   // get first",
     default_level: Level::Off,
     fix: Some(FixKind::Safe),

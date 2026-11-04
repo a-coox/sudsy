@@ -3017,8 +3017,10 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "core-config",
+ "core-rules",
  "core-syntax",
  "languages",
+ "provider-api",
  "serde_json",
 ]
 

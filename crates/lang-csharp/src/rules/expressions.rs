@@ -18,7 +18,7 @@ static NULLABLE_SHORTHAND: RuleMeta = RuleMeta {
     description: "`int?` instead of `Nullable<int>` or `System.Nullable<int>`. Name-based: a \
                   type of your own called `Nullable` is reported too. Not reported in `using` \
                   aliases, `nameof`, `typeof(Nullable<>)` and before a member access \
-                  (`Nullable<int>.Equals`). Equivalent to StyleCop SA1125.",
+                  (`Nullable<int>.Equals`).",
     example: "Nullable<int> x;   // write: int? x;",
     default_level: Level::Off,
     fix: Some(FixKind::Safe),
@@ -32,8 +32,7 @@ static USE_LAMBDA: RuleMeta = RuleMeta {
     category: Category::Style,
     description: "A lambda instead of an anonymous method. The fix is offered when the anonymous \
                   method has a parameter list and no comment before its body; `delegate { }` \
-                  without one converts to delegate types with any parameters, so it has no fix. \
-                  Equivalent to StyleCop SA1130.",
+                  without one converts to delegate types with any parameters, so it has no fix.",
     example: "Func<int, int> f = delegate (int x) { return x; };   // write: (int x) => { return x; }",
     default_level: Level::Off,
     fix: Some(FixKind::Safe),
@@ -48,7 +47,7 @@ static CONSTANT_ON_RIGHT: RuleMeta = RuleMeta {
     description: "A comparison with the constant on the left: `null == x` is `x == null`, \
                   `1 < x` is `x > 1`. Without the type layer a constant is a literal, `nameof`, \
                   `int.MaxValue`-style member or an expression of those; a named constant on the \
-                  left is not recognised. Equivalent to StyleCop SA1131.",
+                  left is not recognised.",
     example: "if (null == x) { }   // write: if (x == null) { }",
     default_level: Level::Off,
     fix: Some(FixKind::Safe),
@@ -63,7 +62,7 @@ static USE_LITERAL_SUFFIX: RuleMeta = RuleMeta {
     description: "A numeric literal cast to `long`, `ulong`, `uint`, `float`, `double` or \
                   `decimal` when the literal's own type differs: `(long)1` is `1L`. Not reported \
                   for hexadecimal and binary literals cast to a floating-point type, which have \
-                  no suffix. Equivalent to StyleCop SA1139.",
+                  no suffix.",
     example: "var x = (long)1;   // write: var x = 1L;",
     default_level: Level::Off,
     fix: Some(FixKind::Safe),

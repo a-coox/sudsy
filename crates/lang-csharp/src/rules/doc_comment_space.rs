@@ -12,7 +12,7 @@ static META: RuleMeta = RuleMeta {
     category: Category::Style,
     description: "A documentation line (`///`) starts with a single space. More spaces are \
                   allowed to indent continuation lines, not on the first line of the comment; a \
-                  tab or no space is always reported. Equivalent to StyleCop SA1004.",
+                  tab or no space is always reported.",
     example: "///<summary>x</summary>   // write: /// <summary>x</summary>",
     default_level: Level::Off,
     fix: Some(FixKind::Safe),

@@ -21,7 +21,7 @@
           "properties": {
             "accessor-order": {
               "$ref": "#/definitions/rule",
-              "description": "`get` goes before `set` or `init`, and `add` before `remove`. The fix swaps the two accessors (not offered when a comment stands between or in them). StyleCop SA1212 and SA1213."
+              "description": "`get` goes before `set` or `init`, and `add` before `remove`. The fix swaps the two accessors (not offered when a comment stands between or in them)."
             },
             "ambiguous-booleans": {
               "description": "A plain `yes`, `no`, `on`, `off`, `True`, `TRUE`, `False` or `FALSE` (in the usual casings): a boolean to YAML 1.1 parsers and a string to YAML 1.2 parsers. Lowercase `true` and `false` are fine.",
@@ -68,27 +68,27 @@
             },
             "comment-space": {
               "$ref": "#/definitions/rule",
-              "description": "A line comment has text right after its marker. Exempt: nothing but whitespace after the marker, a marker repeated (`////`, `##`), `--` separator lines, and a `#!` shebang on the first line. The fix inserts the space. Equivalent to StyleCop SA1005 and yamllint's `comments.require-starting-space`."
+              "description": "A line comment has text right after its marker. Exempt: nothing but whitespace after the marker, a marker repeated (`////`, `##`), `--` separator lines, and a `#!` shebang on the first line. The fix inserts the space."
             },
             "constant-on-right": {
               "$ref": "#/definitions/rule",
-              "description": "A comparison with the constant on the left: `null == x` is `x == null`, `1 < x` is `x > 1`. Without the type layer a constant is a literal, `nameof`, `int.MaxValue`-style member or an expression of those; a named constant on the left is not recognised. Equivalent to StyleCop SA1131."
+              "description": "A comparison with the constant on the left: `null == x` is `x == null`, `1 < x` is `x > 1`. Without the type layer a constant is a literal, `nameof`, `int.MaxValue`-style member or an expression of those; a named constant on the left is not recognised."
             },
             "debug-assert-message": {
               "$ref": "#/definitions/rule",
-              "description": "`Debug.Assert` without a message, or with a constant blank one. With the type layer the call is checked against `System.Diagnostics.Debug`; without it any call written `Debug.Assert` is. No fix. Equivalent to StyleCop SA1405."
+              "description": "`Debug.Assert` without a message, or with a constant blank one. With the type layer the call is checked against `System.Diagnostics.Debug`; without it any call written `Debug.Assert` is. No fix."
             },
             "debug-fail-message": {
               "$ref": "#/definitions/rule",
-              "description": "`Debug.Fail` with a constant blank message. With the type layer the call is checked against `System.Diagnostics.Debug`; without it any call written `Debug.Fail` is. No fix. Equivalent to StyleCop SA1406."
+              "description": "`Debug.Fail` with a constant blank message. With the type layer the call is checked against `System.Diagnostics.Debug`; without it any call written `Debug.Fail` is. No fix."
             },
             "directive-keyword-space": {
               "$ref": "#/definitions/rule",
-              "description": "No space between `#` and the directive keyword (`#if`, not `# if`). Equivalent to StyleCop SA1006."
+              "description": "No space between `#` and the directive keyword (`#if`, not `# if`)."
             },
             "doc-comment-space": {
               "$ref": "#/definitions/rule",
-              "description": "A documentation line (`///`) starts with a single space. More spaces are allowed to indent continuation lines, not on the first line of the comment; a tab or no space is always reported. Equivalent to StyleCop SA1004."
+              "description": "A documentation line (`///`) starts with a single space. More spaces are allowed to indent continuation lines, not on the first line of the comment; a tab or no space is always reported."
             },
             "document-start": {
               "$ref": "#/definitions/rule",
@@ -96,10 +96,10 @@
             },
             "file-name-matches-type": {
               "$ref": "#/definitions/rule",
-              "description": "The file name, up to its first dot and ignoring case, is the name of the first type in the file; a generic type may also be written `Name{T,U}`. Not checked when that type is partial. No fix. Equivalent to StyleCop SA1649."
+              "description": "The file name, up to its first dot and ignoring case, is the name of the first type in the file; a generic type may also be written `Name{T,U}`. Not checked when that type is partial. No fix."
             },
             "float-style": {
-              "description": "Restricts how plain floats are written. Every option is off until set: `.5` without a leading digit, `1e3` scientific notation, `.nan` and `.inf`. Quoted and tagged scalars are not checked. The fix for `.5` is `0.5`. yamllint `float-values`.",
+              "description": "Restricts how plain floats are written. Every option is off until set: `.5` without a leading digit, `1e3` scientific notation, `.nan` and `.inf`. Quoted and tagged scalars are not checked. The fix for `.5` is `0.5`.",
               "oneOf": [
                 {
                   "$ref": "#/definitions/level"
@@ -146,7 +146,7 @@
             },
             "inheritdoc-on-inheriting-member": {
               "$ref": "#/definitions/rule",
-              "description": "`<inheritdoc />` without `cref` on a type without a base list, or on a member that neither overrides nor implements anything (a constructor whose signature matches a base constructor is fine). No fix. Equivalent to StyleCop SA1648."
+              "description": "`<inheritdoc />` without `cref` on a type without a base list, or on a member that neither overrides nor implements anything (a constructor whose signature matches a base constructor is fine). No fix."
             },
             "key-name-casing": {
               "description": "A key does not follow one of the allowed naming conventions. The checks are those of eslint-plugin-jsonc: a key with punctuation or whitespace never matches, `camelCase` also rejects `_` and `-`, `snake_case` and `kebab-case` reject capitals. No fix: renaming a key changes the data.",
@@ -236,7 +236,7 @@
               ]
             },
             "member-order": {
-              "description": "Members are out of order. Compared with the member before, in the order of the `element_order` option: the kind (fields, constructors, finalizers, delegates, events, enums, interfaces, properties, indexers, operators, methods, structs, classes; in a namespace or file: namespaces, delegates, enums, interfaces, structs, classes), the access (public, internal, protected internal, protected, private protected, private), constants before other fields, static before instance members, readonly fields before the others. A trait only counts between members that agree on the traits listed before it. No fix: moving members would have to take their comments and directives along. StyleCop SA1201 to SA1204 and SA1214.",
+              "description": "Members are out of order. Compared with the member before, in the order of the `element_order` option: the kind (fields, constructors, finalizers, delegates, events, enums, interfaces, properties, indexers, operators, methods, structs, classes; in a namespace or file: namespaces, delegates, enums, interfaces, structs, classes), the access (public, internal, protected internal, protected, private protected, private), constants before other fields, static before instance members, readonly fields before the others. A trait only counts between members that agree on the traits listed before it. No fix: moving members would have to take their comments and directives along.",
               "oneOf": [
                 {
                   "$ref": "#/definitions/level"
@@ -284,15 +284,15 @@
             },
             "no-comment-before-block": {
               "$ref": "#/definitions/rule",
-              "description": "A comment between the head of an `if`, `else`, `while`, `do`, `for`, `foreach`, `lock`, `try`, `catch`, `finally`, `switch`, `checked` or `unchecked` and its `{`. Put it inside the block or above the statement. Equivalent to StyleCop SA1108."
+              "description": "A comment between the head of an `if`, `else`, `while`, `do`, `for`, `foreach`, `lock`, `try`, `catch`, `finally`, `switch`, `checked` or `unchecked` and its `{`. Put it inside the block or above the statement."
             },
             "no-default-value-type-constructor": {
               "$ref": "#/definitions/rule",
-              "description": "`new S()` of a value type with an implicit parameterless constructor and no initializer: write `default(S)` (`Guid.Empty`, `CancellationToken.None`, `IntPtr.Zero`, the enum member with value 0 where they exist). No fix for a target-typed `new()`. Equivalent to StyleCop SA1129."
+              "description": "`new S()` of a value type with an implicit parameterless constructor and no initializer: write `default(S)` (`Guid.Empty`, `CancellationToken.None`, `IntPtr.Zero`, the enum member with value 0 where they exist). No fix for a target-typed `new()`."
             },
             "no-duplicate-anchors": {
               "$ref": "#/definitions/rule",
-              "description": "An anchor name is defined again in the same document; an alias refers to the latest definition above it, which is easy to misread. yamllint `forbid-duplicated-anchors`."
+              "description": "An anchor name is defined again in the same document; an alias refers to the latest definition above it, which is easy to misread."
             },
             "no-duplicate-keys": {
               "$ref": "#/definitions/rule",
@@ -300,7 +300,7 @@
             },
             "no-empty-attribute-parens": {
               "$ref": "#/definitions/rule",
-              "description": "An attribute with empty parentheses: `[Foo()]` is `[Foo]`. Equivalent to StyleCop SA1411."
+              "description": "An attribute with empty parentheses: `[Foo()]` is `[Foo]`."
             },
             "no-empty-catch": {
               "$ref": "#/definitions/rule",
@@ -308,11 +308,11 @@
             },
             "no-empty-comment": {
               "$ref": "#/definitions/rule",
-              "description": "A comment has no text. A block comment is reported wherever it is; an empty line comment only when it begins or ends a run of comments, because a bare `//` between two comment lines separates paragraphs. Equivalent to StyleCop SA1120."
+              "description": "A comment has no text. A block comment is reported wherever it is; an empty line comment only when it begins or ends a run of comments, because a bare `//` between two comment lines separates paragraphs."
             },
             "no-empty-delegate-parens": {
               "$ref": "#/definitions/rule",
-              "description": "An anonymous method with an empty parameter list: `delegate() { }` is `delegate { }`. The fix is unsafe: without a parameter list the method also converts to delegate types that have parameters, which can change which overload is chosen. Equivalent to StyleCop SA1410."
+              "description": "An anonymous method with an empty parameter list: `delegate() { }` is `delegate { }`. The fix is unsafe: without a parameter list the method also converts to delegate types that have parameters, which can change which overload is chosen."
             },
             "no-empty-keys": {
               "$ref": "#/definitions/rule",
@@ -320,10 +320,10 @@
             },
             "no-empty-statement": {
               "$ref": "#/definitions/rule",
-              "description": "A lone `;` is a statement that does nothing. A statement labelled `label: ;` is allowed. The fix removes the statement (its whole line when it is alone on it), or turns an empty loop or `if` body into `{ }`; it is not offered for the only statement of a switch section. Overlaps compiler CS0642 for `if (x);`. Equivalent to StyleCop SA1106."
+              "description": "A lone `;` is a statement that does nothing. A statement labelled `label: ;` is allowed. The fix removes the statement (its whole line when it is alone on it), or turns an empty loop or `if` body into `{ }`; it is not offered for the only statement of a switch section. Overlaps compiler CS0642 for `if (x);`."
             },
             "no-empty-values": {
-              "description": "A mapping key or sequence entry without a value (an implicit null). Values with an anchor or tag are not empty. Reported at the `:` or `-`. yamllint `empty-values`.",
+              "description": "A mapping key or sequence entry without a value (an implicit null). Values with an anchor or tag are not empty. Reported at the `:` or `-`.",
               "oneOf": [
                 {
                   "$ref": "#/definitions/level"
@@ -364,7 +364,7 @@
               ]
             },
             "no-octal-values": {
-              "description": "A plain `0755` (octal to YAML 1.1 parsers, decimal 755 to YAML 1.2) or `0o755` (octal to YAML 1.2, a string to YAML 1.1). Quoted and tagged scalars are not checked. No fix: the intended value is not known. yamllint `octal-values`.",
+              "description": "A plain `0755` (octal to YAML 1.1 parsers, decimal 755 to YAML 1.2) or `0o755` (octal to YAML 1.2, a string to YAML 1.1). Quoted and tagged scalars are not checked. No fix: the intended value is not known.",
               "oneOf": [
                 {
                   "$ref": "#/definitions/level"
@@ -401,11 +401,11 @@
             },
             "no-region-in-body": {
               "$ref": "#/definitions/rule",
-              "description": "A `#region` inside a block (a method, accessor or lambda body, or any block in one); regions belong between members. No fix. Equivalent to StyleCop SA1123."
+              "description": "A `#region` inside a block (a method, accessor or lambda body, or any block in one); regions belong between members. No fix."
             },
             "no-regions": {
               "$ref": "#/definitions/rule",
-              "description": "`#region` hides code behind a label. Reported on every `#region` outside a block (a region inside a block is `no-region-in-body`'s), in disabled `#if` branches too; no fix, because removing a pair is a judgment call. Equivalent to StyleCop SA1124."
+              "description": "`#region` hides code behind a label. Reported on every `#region` outside a block (a region inside a block is `no-region-in-body`'s), in disabled `#if` branches too; no fix, because removing a pair is a judgment call."
             },
             "no-undefined-alias": {
               "$ref": "#/definitions/rule",
@@ -413,15 +413,15 @@
             },
             "no-unneeded-base-prefix": {
               "$ref": "#/definitions/rule",
-              "description": "`base.M()` or `base[i]` where the type does not override the member, so `this` binds to the same one. The fix writes `this`. Equivalent to StyleCop SA1100."
+              "description": "`base.M()` or `base[i]` where the type does not override the member, so `this` binds to the same one. The fix writes `this`."
             },
             "no-unused-anchors": {
               "$ref": "#/definitions/rule",
-              "description": "An anchor that no alias refers to. The fix removes the anchor, which changes nothing about the data. yamllint `forbid-unused-anchors`."
+              "description": "An anchor that no alias refers to. The fix removes the anchor, which changes nothing about the data."
             },
             "nullable-shorthand": {
               "$ref": "#/definitions/rule",
-              "description": "`int?` instead of `Nullable<int>` or `System.Nullable<int>`. Name-based: a type of your own called `Nullable` is reported too. Not reported in `using` aliases, `nameof`, `typeof(Nullable<>)` and before a member access (`Nullable<int>.Equals`). Equivalent to StyleCop SA1125."
+              "description": "`int?` instead of `Nullable<int>` or `System.Nullable<int>`. Name-based: a type of your own called `Nullable` is reported too. Not reported in `using` aliases, `nameof`, `typeof(Nullable<>)` and before a member access (`Nullable<int>.Equals`)."
             },
             "possible-null-dereference": {
               "$ref": "#/definitions/rule",
@@ -429,10 +429,10 @@
             },
             "qualify-namespace-usings": {
               "$ref": "#/definitions/rule",
-              "description": "A `using` directive inside a namespace whose name is not written fully qualified (it resolves relative to the enclosing namespace). The fix writes the full name, unless it has type arguments. Equivalent to StyleCop SA1135."
+              "description": "A `using` directive inside a namespace whose name is not written fully qualified (it resolves relative to the enclosing namespace). The fix writes the full name, unless it has type arguments."
             },
             "quoted-strings": {
-              "description": "Which strings are quoted. Plain scalars that are not strings (`12`, `true`, `null`, dates, ...), block scalars and scalars tagged `!!` are never checked. `required: always` wants quotes on every string, `only_when_needed` reports quotes that change nothing (unless `extra_allowed` matches) and plain strings that `extra_required` matches, `optional` only the latter. Fixes: quoting a plain string and switching the quote type keep the value; removing quotes is unsafe because YAML 1.2 parsers read some strings (`1e3`) as numbers. yamllint `quoted-strings`.",
+              "description": "Which strings are quoted. Plain scalars that are not strings (`12`, `true`, `null`, dates, ...), block scalars and scalars tagged `!!` are never checked. `required: always` wants quotes on every string, `only_when_needed` reports quotes that change nothing (unless `extra_allowed` matches) and plain strings that `extra_required` matches, `optional` only the latter. Fixes: quoting a plain string and switching the quote type keep the value; removing quotes is unsafe because YAML 1.2 parsers read some strings (`1e3`) as numbers.",
               "oneOf": [
                 {
                   "$ref": "#/definitions/level"
@@ -510,19 +510,19 @@
             },
             "separate-attributes": {
               "$ref": "#/definitions/rule",
-              "description": "One attribute per attribute list: `[A, B]` becomes `[A]` and `[B]`. Lists on parameters and type parameters are left alone. The fix is not offered when the list has a comment in it. Equivalent to StyleCop SA1133."
+              "description": "One attribute per attribute list: `[A, B]` becomes `[A]` and `[B]`. Lists on parameters and type parameters are left alone. The fix is not offered when the list has a comment in it."
             },
             "separate-field-declarations": {
               "$ref": "#/definitions/rule",
-              "description": "One field or event per declaration: `int a, b;` becomes `int a;` and `int b;`, each with the attributes, modifiers and type of the original. The fix is not offered when the declaration has a comment in it. Equivalent to StyleCop SA1132."
+              "description": "One field or event per declaration: `int a, b;` becomes `int a;` and `int b;`, each with the attributes, modifiers and type of the original. The fix is not offered when the declaration has a comment in it."
             },
             "single-class-per-file": {
               "$ref": "#/definitions/rule",
-              "description": "A file holds one class or record: every later one is reported, more parts of the first class (when it is partial) excepted. Structs, interfaces, enums and delegates are not counted. No fix. Equivalent to StyleCop SA1402."
+              "description": "A file holds one class or record: every later one is reported, more parts of the first class (when it is partial) excepted. Structs, interfaces, enums and delegates are not counted. No fix."
             },
             "single-namespace-per-file": {
               "$ref": "#/definitions/rule",
-              "description": "A file declares one namespace: every later one, nested ones included, is reported. No fix. Equivalent to StyleCop SA1403."
+              "description": "A file declares one namespace: every later one, nested ones included, is reported. No fix."
             },
             "sorted-array-values": {
               "description": "The elements of an array of only strings or only numbers are not in order (ascending by default; numbers compare as numbers). Arrays of other or mixed elements are skipped. The elements that would have to move (the fewest) are reported and the first report carries the fix; the fix is unsafe because array order can be data.",
@@ -652,11 +652,11 @@
             },
             "suppression-justification": {
               "$ref": "#/definitions/rule",
-              "description": "`SuppressMessage` needs a `Justification` that says something: not missing, `null`, empty, blank or `\"<Pending>\"`. Matches the attribute by name. No fix. Equivalent to StyleCop SA1404."
+              "description": "`SuppressMessage` needs a `Justification` that says something: not missing, `null`, empty, blank or `\"<Pending>\"`. Matches the attribute by name. No fix."
             },
             "tuple-element-names-in-signatures": {
               "$ref": "#/definitions/rule",
-              "description": "A tuple type in the signature of a method, constructor, property, indexer, conversion operator or delegate whose elements have no names. Overrides and implementations of interface members are left alone (their names are not the member's to choose). No fix. Equivalent to StyleCop SA1414."
+              "description": "A tuple type in the signature of a method, constructor, property, indexer, conversion operator or delegate whose elements have no names. Overrides and implementations of interface members are left alone (their names are not the member's to choose). No fix."
             },
             "unreachable-code": {
               "description": "A statement that can never run. At `fast` depth this is the statement after a `return`, `throw`, `break`, `continue` or `goto`; with the flow layer it also covers constant conditions and calls that do not return (`does_not_return` in `semantics:`). Only the first statement of a run is reported. Removing it is offered as an editor quick fix only, because unreachable code usually signals a bug. Off by default: the compiler already reports unreachable code (CS0162) and the SDK analyzers add IDE0035.",
@@ -707,22 +707,22 @@
             },
             "use-lambda": {
               "$ref": "#/definitions/rule",
-              "description": "A lambda instead of an anonymous method. The fix is offered when the anonymous method has a parameter list and no comment before its body; `delegate { }` without one converts to delegate types with any parameters, so it has no fix. Equivalent to StyleCop SA1130."
+              "description": "A lambda instead of an anonymous method. The fix is offered when the anonymous method has a parameter list and no comment before its body; `delegate { }` without one converts to delegate types with any parameters, so it has no fix."
             },
             "use-literal-suffix": {
               "$ref": "#/definitions/rule",
-              "description": "A numeric literal cast to `long`, `ulong`, `uint`, `float`, `double` or `decimal` when the literal's own type differs: `(long)1` is `1L`. Not reported for hexadecimal and binary literals cast to a floating-point type, which have no suffix. Equivalent to StyleCop SA1139."
+              "description": "A numeric literal cast to `long`, `ulong`, `uint`, `float`, `double` or `decimal` when the literal's own type differs: `(long)1` is `1L`. Not reported for hexadecimal and binary literals cast to a floating-point type, which have no suffix."
             },
             "use-string-empty": {
               "$ref": "#/definitions/rule",
-              "description": "`string.Empty` instead of `\"\"` (or `@\"\"`). Not reported where a constant is required: `const`, attribute arguments, default parameter values, `case` labels and patterns. Equivalent to StyleCop SA1122."
+              "description": "`string.Empty` instead of `\"\"` (or `@\"\"`). Not reported where a constant is required: `const`, attribute arguments, default parameter values, `case` labels and patterns."
             },
             "use-tuple-syntax": {
               "$ref": "#/definitions/rule",
-              "description": "`ValueTuple<int, int>` and `ValueTuple.Create(a, b)` where tuple syntax `(int, int)` and `(a, b)` is available (not inside an expression tree). The fix is offered for types and `ValueTuple.Create` calls. Equivalent to StyleCop SA1141."
+              "description": "`ValueTuple<int, int>` and `ValueTuple.Create(a, b)` where tuple syntax `(int, int)` and `(a, b)` is available (not inside an expression tree). The fix is offered for types and `ValueTuple.Create` calls."
             },
             "using-order": {
-              "description": "`using` directives of a file or namespace are out of order: System first (`system_first`), names in alphabetical order (`compare`), and with the options `static_position` and `alias_position` set to `after`, `using static` directives after the plain ones and aliases after those, each group sorted. `global using` and `using unsafe` stay where they are, and a list restarts at a directive that has a preprocessor directive in front of it (the fix leaves such lists alone). Comments on lines of their own stay where they are; a comment after a directive moves with it. Overlaps the SDK analyzers' `dotnet_sort_system_directives_first` .editorconfig key; StyleCop SA1208 to SA1211, SA1216 and SA1217.",
+              "description": "`using` directives of a file or namespace are out of order: System first (`system_first`), names in alphabetical order (`compare`), and with the options `static_position` and `alias_position` set to `after`, `using static` directives after the plain ones and aliases after those, each group sorted. `global using` and `using unsafe` stay where they are, and a list restarts at a directive that has a preprocessor directive in front of it (the fix leaves such lists alone). Comments on lines of their own stay where they are; a comment after a directive moves with it. Overlaps the SDK analyzers' `dotnet_sort_system_directives_first` .editorconfig key.",
               "oneOf": [
                 {
                   "$ref": "#/definitions/level"

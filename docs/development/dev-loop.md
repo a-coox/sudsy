@@ -1,7 +1,7 @@
 # Dev loop
 
 ## Commands
-`cargo build --workspace`, `cargo test --workspace`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo fmt --all`, `dotnet build workers/csharp`, `dotnet test workers/csharp`, `cargo xtask codegen [--check]` (alias in `.cargo/config.toml`). Rust tests that need the worker build it with `dotnet build` on first use; set `SUDSY_CSHARP_WORKER` to use a prebuilt (e.g. Release) worker.
+`cargo build --workspace`, `cargo test --workspace`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo fmt --all`, `dotnet build workers/csharp`, `dotnet test workers/csharp`, `cargo xtask codegen [--check]` (alias in `.cargo/config.toml`; writes the generated files, including the rule and option tables of `docs/rules/builtin.md` and `docs/formatting/*.md`). Rust tests that need the worker build it with `dotnet build` on first use; set `SUDSY_CSHARP_WORKER` to use a prebuilt (e.g. Release) worker.
 
 ## Scripts (`scripts/`)
 | Script | Use |

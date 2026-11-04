@@ -15,8 +15,7 @@ static NO_EMPTY_STATEMENT: RuleMeta = RuleMeta {
     description: "A lone `;` is a statement that does nothing. A statement labelled `label: ;` is \
                   allowed. The fix removes the statement (its whole line when it is alone on \
                   it), or turns an empty loop or `if` body into `{ }`; it is not offered for the \
-                  only statement of a switch section. Overlaps compiler CS0642 for `if (x);`. \
-                  Equivalent to StyleCop SA1106.",
+                  only statement of a switch section. Overlaps compiler CS0642 for `if (x);`.",
     example: "int y = 1;;   // delete the second ;",
     default_level: Level::Off,
     fix: Some(FixKind::Safe),
@@ -30,8 +29,7 @@ static NO_COMMENT_BEFORE_BLOCK: RuleMeta = RuleMeta {
     category: Category::Style,
     description: "A comment between the head of an `if`, `else`, `while`, `do`, `for`, `foreach`, \
                   `lock`, `try`, `catch`, `finally`, `switch`, `checked` or `unchecked` and its \
-                  `{`. Put it inside the block or above the statement. Equivalent to StyleCop \
-                  SA1108.",
+                  `{`. Put it inside the block or above the statement.",
     example: "if (x) // why\n{                  // move the comment above the if",
     default_level: Level::Off,
     fix: None,

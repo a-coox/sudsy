@@ -18,7 +18,7 @@ Every formatter test checks lossless round trip, idempotency, unchanged meaning 
 | Scaling guards | Work counts, not time | `core-format/tests/scaling.rs`, `tools/perf-bench/tests/scaling.rs` |
 | Parity catalog | `docs/parity/*.yaml` only name rules and options that exist; README counts are current | `languages/tests/parity.rs` |
 | `init --from` | each tool fixture under `tests/fixtures/init/` migrates to a config that loads (snapshots), mappings agree with the catalog | `cli/tests/init.rs` |
-| Codegen | Generated files are fresh | `xtask/tests/codegen_is_fresh.rs` |
+| Codegen | Generated files and doc tables are fresh | `xtask/tests/codegen_is_fresh.rs` |
 
 ## Corpora (not fetched in CI)
 - C#: `tests/conformance/fetch-corpus.sh` → pinned shallow sparse checkouts: dotnet/runtime v10.0.0 `System.Private.CoreLib/src` (1679 files), dotnet/roslyn tag Visual-Studio-2026-Version-18.7 (Compilers CSharp/Core Portable, Workspaces Core Portable; 2858), dotnet/aspnetcore v10.0.0 (Http, Mvc.Core, Middleware, Kestrel Core, Components, SignalR common; 3122). Every file parses with `TARGET_WINDOWS`, `TARGET_AMD64`, `TARGET_64BIT` (files named `*.Browser.*` with `TARGET_BROWSER`, `TARGET_WASM`, `TARGET_32BIT`) so `#else #error` branches do not fail.

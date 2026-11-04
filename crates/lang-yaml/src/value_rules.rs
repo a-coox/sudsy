@@ -28,8 +28,7 @@ static NO_EMPTY_VALUES: RuleMeta = RuleMeta {
     id: "no-empty-values",
     category: Category::Style,
     description: "A mapping key or sequence entry without a value (an implicit null). Values \
-                  with an anchor or tag are not empty. Reported at the `:` or `-`. yamllint \
-                  `empty-values`.",
+                  with an anchor or tag are not empty. Reported at the `:` or `-`.",
     example: "key:      # reported; write `key: null`\nlist:\n  -       # reported",
     default_level: Level::Off,
     fix: None,
@@ -111,8 +110,7 @@ static FLOAT_STYLE: RuleMeta = RuleMeta {
     category: Category::Style,
     description: "Restricts how plain floats are written. Every option is off until set: \
                   `.5` without a leading digit, `1e3` scientific notation, `.nan` and `.inf`. \
-                  Quoted and tagged scalars are not checked. The fix for `.5` is `0.5`. yamllint \
-                  `float-values`.",
+                  Quoted and tagged scalars are not checked. The fix for `.5` is `0.5`.",
     example: "x: .5   # with require_numeral_before_decimal; becomes 0.5",
     default_level: Level::Off,
     fix: Some(FixKind::Safe),
@@ -178,7 +176,7 @@ static NO_OCTAL_VALUES: RuleMeta = RuleMeta {
     category: Category::Suspicious,
     description: "A plain `0755` (octal to YAML 1.1 parsers, decimal 755 to YAML 1.2) or `0o755` \
                   (octal to YAML 1.2, a string to YAML 1.1). Quoted and tagged scalars are not \
-                  checked. No fix: the intended value is not known. yamllint `octal-values`.",
+                  checked. No fix: the intended value is not known.",
     example: "mode: 0755   # quote it (a string) or write the decimal value",
     default_level: Level::Off,
     fix: None,

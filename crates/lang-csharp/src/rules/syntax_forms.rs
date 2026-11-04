@@ -17,7 +17,7 @@ static USE_STRING_EMPTY: RuleMeta = RuleMeta {
     category: Category::Style,
     description: "`string.Empty` instead of `\"\"` (or `@\"\"`). Not reported where a constant is \
                   required: `const`, attribute arguments, default parameter values, `case` \
-                  labels and patterns. Equivalent to StyleCop SA1122.",
+                  labels and patterns.",
     example: "var s = \"\";   // write: var s = string.Empty;",
     default_level: Level::Off,
     fix: Some(FixKind::Safe),
@@ -31,7 +31,7 @@ static SEPARATE_ATTRIBUTES: RuleMeta = RuleMeta {
     category: Category::Style,
     description: "One attribute per attribute list: `[A, B]` becomes `[A]` and `[B]`. Lists on \
                   parameters and type parameters are left alone. The fix is not offered when the \
-                  list has a comment in it. Equivalent to StyleCop SA1133.",
+                  list has a comment in it.",
     example: "[Serializable, Obsolete]   // write one list for each",
     default_level: Level::Off,
     fix: Some(FixKind::Safe),
@@ -43,8 +43,7 @@ static SEPARATE_ATTRIBUTES: RuleMeta = RuleMeta {
 static NO_EMPTY_ATTRIBUTE_PARENS: RuleMeta = RuleMeta {
     id: "no-empty-attribute-parens",
     category: Category::Style,
-    description: "An attribute with empty parentheses: `[Foo()]` is `[Foo]`. Equivalent to \
-                  StyleCop SA1411.",
+    description: "An attribute with empty parentheses: `[Foo()]` is `[Foo]`.",
     example: "[Obsolete()]   // write: [Obsolete]",
     default_level: Level::Off,
     fix: Some(FixKind::Safe),
@@ -59,7 +58,7 @@ static NO_EMPTY_DELEGATE_PARENS: RuleMeta = RuleMeta {
     description: "An anonymous method with an empty parameter list: `delegate() { }` is \
                   `delegate { }`. The fix is unsafe: without a parameter list the method also \
                   converts to delegate types that have parameters, which can change which \
-                  overload is chosen. Equivalent to StyleCop SA1410.",
+                  overload is chosen.",
     example: "Action a = delegate() { };   // write: delegate { }",
     default_level: Level::Off,
     fix: Some(FixKind::Unsafe),

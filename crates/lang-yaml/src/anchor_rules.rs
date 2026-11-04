@@ -87,8 +87,7 @@ static NO_DUPLICATE_ANCHORS: RuleMeta = RuleMeta {
     id: "no-duplicate-anchors",
     category: Category::Suspicious,
     description: "An anchor name is defined again in the same document; an alias refers to the \
-                  latest definition above it, which is easy to misread. yamllint \
-                  `forbid-duplicated-anchors`.",
+                  latest definition above it, which is easy to misread.",
     example: "- &a 1\n- &a 2   # reported at the second `&a`",
     default_level: Level::Off,
     fix: None,
@@ -127,7 +126,7 @@ static NO_UNUSED_ANCHORS: RuleMeta = RuleMeta {
     id: "no-unused-anchors",
     category: Category::Cleanup,
     description: "An anchor that no alias refers to. The fix removes the anchor, which changes \
-                  nothing about the data. yamllint `forbid-unused-anchors`.",
+                  nothing about the data.",
     example: "a: &x 1   # becomes a: 1 when no `*x` follows",
     default_level: Level::Off,
     fix: Some(FixKind::Safe),

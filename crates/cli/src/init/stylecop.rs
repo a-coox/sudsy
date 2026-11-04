@@ -1,8 +1,9 @@
 //! StyleCop.Analyzers: `stylecop.json` settings and `dotnet_diagnostic.SA*.severity` in
 //! `.editorconfig`.
 
-use super::{catalog, editorconfig, out::Out};
+use super::{editorconfig, out::Out};
 use anyhow::Result;
+use languages::catalog;
 use serde_json::{Value, json};
 use std::collections::BTreeMap;
 

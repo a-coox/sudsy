@@ -1,7 +1,7 @@
 //! What a migration produces: the `sudsy.yaml` tree, the report lines, and the rendering of the
 //! tree as YAML with everything a named preset already says removed.
 
-use super::catalog;
+use languages::catalog;
 use serde_json::{Map, Value};
 use std::collections::BTreeMap;
 

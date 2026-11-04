@@ -15,8 +15,7 @@ static COMMENT_SPACE: RuleMeta = RuleMeta {
     category: Category::Style,
     description: "A line comment has text right after its marker. Exempt: nothing but \
                   whitespace after the marker, a marker repeated (`////`, `##`), `--` separator \
-                  lines, and a `#!` shebang on the first line. The fix inserts the space. \
-                  Equivalent to StyleCop SA1005 and yamllint's `comments.require-starting-space`.",
+                  lines, and a `#!` shebang on the first line. The fix inserts the space.",
     example: "//comment   // write: // comment",
     default_level: Level::Off,
     fix: Some(FixKind::Safe),
@@ -30,7 +29,7 @@ static NO_EMPTY_COMMENT: RuleMeta = RuleMeta {
     category: Category::Style,
     description: "A comment has no text. A block comment is reported wherever it is; an empty line \
                   comment only when it begins or ends a run of comments, because a bare `//` \
-                  between two comment lines separates paragraphs. Equivalent to StyleCop SA1120.",
+                  between two comment lines separates paragraphs.",
     example: "// ----\n//\nint x;   // the empty comment above is reported",
     default_level: Level::Off,
     fix: None,

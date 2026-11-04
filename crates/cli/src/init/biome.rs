@@ -121,7 +121,7 @@ fn rules(root: &Value, out: &mut Out) {
     {
         for (name, value) in rules {
             let id = format!("{group}/{name}");
-            let Some(entry) = super::catalog::find("biome", &id) else {
+            let Some(entry) = languages::catalog::find("biome", &id) else {
                 continue;
             };
             let Some(level) = severity(value) else {

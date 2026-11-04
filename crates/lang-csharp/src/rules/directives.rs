@@ -13,8 +13,7 @@ static NO_REGIONS: RuleMeta = RuleMeta {
     category: Category::Style,
     description: "`#region` hides code behind a label. Reported on every `#region` outside a \
                   block (a region inside a block is `no-region-in-body`'s), in disabled `#if` \
-                  branches too; no fix, because removing a pair is a judgment call. Equivalent \
-                  to StyleCop SA1124.",
+                  branches too; no fix, because removing a pair is a judgment call.",
     example: "#region Helpers   // delete the region and its #endregion",
     default_level: Level::Off,
     fix: None,
@@ -26,8 +25,7 @@ static NO_REGIONS: RuleMeta = RuleMeta {
 static DIRECTIVE_KEYWORD_SPACE: RuleMeta = RuleMeta {
     id: "directive-keyword-space",
     category: Category::Style,
-    description: "No space between `#` and the directive keyword (`#if`, not `# if`). Equivalent \
-                  to StyleCop SA1006.",
+    description: "No space between `#` and the directive keyword (`#if`, not `# if`).",
     example: "# if DEBUG   // write: #if DEBUG",
     default_level: Level::Off,
     fix: Some(FixKind::Safe),
@@ -88,7 +86,7 @@ static NO_REGION_IN_BODY: RuleMeta = RuleMeta {
     id: "no-region-in-body",
     category: Category::Style,
     description: "A `#region` inside a block (a method, accessor or lambda body, or any block in \
-                  one); regions belong between members. No fix. Equivalent to StyleCop SA1123.",
+                  one); regions belong between members. No fix.",
     example: "void M() {\n#region Setup   // move the region out of the body\n}",
     default_level: Level::Off,
     fix: None,

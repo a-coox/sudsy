@@ -41,7 +41,7 @@ const fn meta(
 static BASE_PREFIX: RuleMeta = meta(
     "no-unneeded-base-prefix",
     "`base.M()` or `base[i]` where the type does not override the member, so `this` binds to \
-     the same one. The fix writes `this`. Equivalent to StyleCop SA1100.",
+     the same one. The fix writes `this`.",
     "class B : A { void M() { base.Run(); } }   // no override of Run: write this.Run()",
     Some(FixKind::Safe),
     &[Layer::Types],
@@ -51,8 +51,7 @@ static DEFAULT_CTOR: RuleMeta = meta(
     "no-default-value-type-constructor",
     "`new S()` of a value type with an implicit parameterless constructor and no initializer: \
      write `default(S)` (`Guid.Empty`, `CancellationToken.None`, `IntPtr.Zero`, the enum member \
-     with value 0 where they exist). No fix for a target-typed `new()`. Equivalent to StyleCop \
-     SA1129.",
+     with value 0 where they exist). No fix for a target-typed `new()`.",
     "var d = new DateTime();   // write: default(DateTime)",
     Some(FixKind::Safe),
     &[Layer::Types],
@@ -62,7 +61,7 @@ static QUALIFY_USINGS: RuleMeta = meta(
     "qualify-namespace-usings",
     "A `using` directive inside a namespace whose name is not written fully qualified (it \
      resolves relative to the enclosing namespace). The fix writes the full name, unless it \
-     has type arguments. Equivalent to StyleCop SA1135.",
+     has type arguments.",
     "namespace A.B { using C.D; }   // C.D is A.C.D here: write using A.C.D;",
     Some(FixKind::Safe),
     &[Layer::Types],
@@ -72,7 +71,7 @@ static TUPLE_SYNTAX: RuleMeta = meta(
     "use-tuple-syntax",
     "`ValueTuple<int, int>` and `ValueTuple.Create(a, b)` where tuple syntax `(int, int)` and \
      `(a, b)` is available (not inside an expression tree). The fix is offered for types and \
-     `ValueTuple.Create` calls. Equivalent to StyleCop SA1141.",
+     `ValueTuple.Create` calls.",
     "ValueTuple<int, int> p;   // write: (int, int) p;",
     Some(FixKind::Safe),
     &[Layer::Types],
@@ -82,8 +81,7 @@ static TUPLE_NAMES: RuleMeta = meta(
     "tuple-element-names-in-signatures",
     "A tuple type in the signature of a method, constructor, property, indexer, conversion \
      operator or delegate whose elements have no names. Overrides and implementations of \
-     interface members are left alone (their names are not the member's to choose). No fix. \
-     Equivalent to StyleCop SA1414.",
+     interface members are left alone (their names are not the member's to choose). No fix.",
     "(int, int) Pair();   // write: (int x, int y) Pair();",
     None,
     &[Layer::Types],
@@ -93,7 +91,7 @@ static DEBUG_ASSERT: RuleMeta = meta(
     "debug-assert-message",
     "`Debug.Assert` without a message, or with a constant blank one. With the type layer the \
      call is checked against `System.Diagnostics.Debug`; without it any call written \
-     `Debug.Assert` is. No fix. Equivalent to StyleCop SA1405.",
+     `Debug.Assert` is. No fix.",
     "Debug.Assert(ok);   // add a message",
     None,
     &[],
@@ -102,8 +100,7 @@ static DEBUG_ASSERT: RuleMeta = meta(
 static DEBUG_FAIL: RuleMeta = meta(
     "debug-fail-message",
     "`Debug.Fail` with a constant blank message. With the type layer the call is checked \
-     against `System.Diagnostics.Debug`; without it any call written `Debug.Fail` is. No fix. \
-     Equivalent to StyleCop SA1406.",
+     against `System.Diagnostics.Debug`; without it any call written `Debug.Fail` is. No fix.",
     "Debug.Fail(\"\");   // say what went wrong",
     None,
     &[],
@@ -113,7 +110,7 @@ static INHERITDOC: RuleMeta = meta(
     "inheritdoc-on-inheriting-member",
     "`<inheritdoc />` without `cref` on a type without a base list, or on a member that neither \
      overrides nor implements anything (a constructor whose signature matches a base \
-     constructor is fine). No fix. Equivalent to StyleCop SA1648.",
+     constructor is fine). No fix.",
     "/// <inheritdoc />\npublic void Run() { }   // implements nothing",
     None,
     &[Layer::Types],

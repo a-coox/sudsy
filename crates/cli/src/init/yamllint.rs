@@ -265,10 +265,10 @@ fn rule(name: &str, conf: &Value, default_base: bool, out: &mut Out) {
     }
     for key in opts.keys() {
         let id = format!("{name}.{key}");
-        let known = super::catalog::find("yamllint", &id).is_some();
+        let known = languages::catalog::find("yamllint", &id).is_some();
         out.skip_why(
             &id,
-            &super::catalog::reason("yamllint", if known { &id } else { name }),
+            &languages::catalog::reason("yamllint", if known { &id } else { name }),
         );
     }
 }

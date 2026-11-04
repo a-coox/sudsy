@@ -6,7 +6,7 @@
 | `lint [paths]` | Report diagnostics | 1 on any error-level diagnostic |
 | `fix [--unsafe] [paths]` | Apply fixes (loop), then format | 1 if errors remain |
 | `check [paths]` | `format --check` + `lint`, for CI; an unformatted file is an error diagnostic `format` at 1:1 | 1 on any error or unformatted file |
-| `rules [id]` | List rules, or explain one with options | 0 |
+| `rules [id]` | List rules, or explain one with options and the equivalent ids of other tools (from the parity catalog) | 0 |
 | `config print [file]` | Resolved config with the source of each value | 0 |
 | `init [--preset <name>] [--force]` | Write a starter `sudsy.yaml` | 0 |
 | `init --from <tool> [--force] [--write-editorconfig]` | Write the `sudsy.yaml` equivalent of another tool's config in the working directory ([below](#init---from)) | 0 |

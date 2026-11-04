@@ -25,8 +25,7 @@ static QUOTED_STRINGS: RuleMeta = RuleMeta {
                   quotes that change nothing (unless `extra_allowed` matches) and plain strings \
                   that `extra_required` matches, `optional` only the latter. Fixes: quoting a \
                   plain string and switching the quote type keep the value; removing quotes is \
-                  unsafe because YAML 1.2 parsers read some strings (`1e3`) as numbers. \
-                  yamllint `quoted-strings`.",
+                  unsafe because YAML 1.2 parsers read some strings (`1e3`) as numbers.",
     example: "name: bar   # with required: always; becomes name: \"bar\"",
     default_level: Level::Off,
     fix: Some(FixKind::Unsafe),

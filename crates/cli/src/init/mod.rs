@@ -2,7 +2,6 @@
 //! tool's config in the working directory (docs/config/cli.md).
 
 mod biome;
-mod catalog;
 mod csharpier;
 mod editorconfig;
 mod eslint;

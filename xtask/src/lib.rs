@@ -1,9 +1,12 @@
 //! Repository automation. `cargo xtask codegen` regenerates checked-in files from
-//! the grammars and the JSON Schema of the config; `cargo xtask codegen --check` (and the `codegen_is_fresh` test)
+//! the grammars, the JSON Schema of the config and the reference tables of the docs; `cargo xtask codegen --check` (and the `codegen_is_fresh` test)
 //! fails when they are stale.
+
+mod docs;
 
 use anyhow::{Context, Result};
 use core_syntax::{Grammar, codegen};
+use provider_api::LanguageProvider;
 use std::path::{Path, PathBuf};
 
 pub fn repo_root() -> PathBuf {
@@ -25,8 +28,12 @@ pub fn generate() -> Result<Vec<(PathBuf, String)>> {
     let json = load("json")?;
     let csharp = load("csharp")?;
     let yaml = load("yaml")?;
-    Ok(vec![
-        ("schemas/sudsy.schema.json".into(), config_schema()?),
+    let providers = languages::providers();
+    let mut files = vec![
+        (
+            "schemas/sudsy.schema.json".into(),
+            config_schema(&providers)?,
+        ),
         (
             "crates/lang-json/src/generated.rs".into(),
             codegen::rust_module(&json, "grammars/json.grammar", "core_syntax")?,
@@ -43,15 +50,16 @@ pub fn generate() -> Result<Vec<(PathBuf, String)>> {
             "workers/csharp/Sudsy.Worker/Generated/CsharpGrammar.g.cs".into(),
             codegen::csharp_constants(&csharp, "grammars/csharp.grammar")?,
         ),
-    ])
+    ];
+    files.extend(docs::generate(&providers)?);
+    Ok(files)
 }
 
 /// The JSON Schema of `sudsy.yaml`, from the option declarations of the providers; editors register it for completion and validation of the config.
-fn config_schema() -> Result<String> {
-    let providers = languages::providers();
+fn config_schema(providers: &[Box<dyn LanguageProvider>]) -> Result<String> {
     let schema = core_config::json_schema(
-        &languages::schemas(&providers),
-        &languages::rule_schemas(&providers),
+        &languages::schemas(providers),
+        &languages::rule_schemas(providers),
     );
     Ok(serde_json::to_string_pretty(&schema)?
         + "

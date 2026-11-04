@@ -65,6 +65,10 @@ fn explain(out: &mut String, rules: &[(String, &'static dyn Rule)], id: &str) ->
     let _ = writeln!(out, "  category:      {}", m.category.as_str());
     let _ = writeln!(out, "  default level: {}", m.default_level.as_str());
     let _ = writeln!(out, "  fix:           {}", fix_text(m));
+    let equivalent = languages::catalog::equivalents(m.id, &languages);
+    if !equivalent.is_empty() {
+        let _ = writeln!(out, "  equivalent:    {}", equivalent.join(", "));
+    }
     let _ = writeln!(out, "\n{}", m.description);
     if !m.options.is_empty() {
         let _ = writeln!(out, "\nOptions:");

@@ -18,8 +18,7 @@ static META: RuleMeta = RuleMeta {
                   a directive that has a preprocessor directive in front of it (the fix leaves \
                   such lists alone). Comments on lines of their own stay where they are; a \
                   comment after a directive moves with it. Overlaps the SDK analyzers' \
-                  `dotnet_sort_system_directives_first` .editorconfig key; StyleCop SA1208 to \
-                  SA1211, SA1216 and SA1217.",
+                  `dotnet_sort_system_directives_first` .editorconfig key.",
     example: "using Zeta;\nusing Alpha;   // Alpha goes first",
     default_level: Level::Off,
     fix: Some(FixKind::Safe),

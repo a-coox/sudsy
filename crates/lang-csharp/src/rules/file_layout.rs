@@ -16,7 +16,7 @@ static SINGLE_CLASS_PER_FILE: RuleMeta = RuleMeta {
     category: Category::Style,
     description: "A file holds one class or record: every later one is reported, more parts of \
                   the first class (when it is partial) excepted. Structs, interfaces, enums and \
-                  delegates are not counted. No fix. Equivalent to StyleCop SA1402.",
+                  delegates are not counted. No fix.",
     example: "class A { } class B { }   // move B to its own file",
     default_level: Level::Off,
     fix: None,
@@ -29,7 +29,7 @@ static SINGLE_NAMESPACE_PER_FILE: RuleMeta = RuleMeta {
     id: "single-namespace-per-file",
     category: Category::Style,
     description: "A file declares one namespace: every later one, nested ones included, is \
-                  reported. No fix. Equivalent to StyleCop SA1403.",
+                  reported. No fix.",
     example: "namespace A { } namespace B { }   // move B to its own file",
     default_level: Level::Off,
     fix: None,
@@ -43,7 +43,7 @@ static FILE_NAME_MATCHES_TYPE: RuleMeta = RuleMeta {
     category: Category::Style,
     description: "The file name, up to its first dot and ignoring case, is the name of the first \
                   type in the file; a generic type may also be written `Name{T,U}`. Not checked \
-                  when that type is partial. No fix. Equivalent to StyleCop SA1649.",
+                  when that type is partial. No fix.",
     example: "// Orders.cs\nclass Order { }   // rename the file Order.cs",
     default_level: Level::Off,
     fix: None,

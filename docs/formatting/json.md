@@ -7,18 +7,20 @@ Hand-written lexer + recursive descent; strings, numbers, escapes validated by t
 `*.json` is json; `*.jsonc`, `tsconfig.json`, `.vscode/*.json` are jsonc (most specific matcher wins). Override with option `dialect` (`auto`|`json`|`jsonc`). The effective dialect travels in `SourceFile::language_version`.
 
 ## Options
-| Option | Values | Default |
-|---|---|---|
-| `line_width` | int | 80 |
-| `indent_size` | int | 2 |
-| `indent_style` | `space`, `tab` | `space` |
-| `final_newline` | bool | true |
-| `end_of_line` | `auto`, `lf`, `crlf` | `auto` (the file's first line break) |
-| `bracket_spacing` | bool | true (`{ "a": 1 }`; false `{"a": 1}`) |
-| `array_bracket_spacing` | bool | false (`[1, 2]`; true `[ 1, 2 ]`) |
-| `dialect` | `auto`, `json`, `jsonc` | `auto` |
-| `trailing_commas` | `never`, `multiline` (JSONC only) | `never` |
-| `collapse` | `preserve`, `always`, `never`, `opening_break` | `preserve` |
+<!-- generated:options -->
+| Option | Values | Default | Description |
+|---|---|---|---|
+| `line_width` | int 20-1000 | `80` | Preferred maximum line width in columns. |
+| `indent_size` | int 1-16 | `2` | Columns per indentation level (also the width of a tab). |
+| `indent_style` | `space`, `tab` | `space` | Indent with spaces or tabs. |
+| `final_newline` | bool | `true` | End the file with a newline. |
+| `end_of_line` | `auto`, `lf`, `crlf` | `auto` | Line break style of the output: `lf`, `crlf`, or `auto` to keep the file's first line break. |
+| `bracket_spacing` | bool | `true` | Spaces inside the braces of a one-line mapping or object: `{ a: 1 }` or `{a: 1}`. |
+| `array_bracket_spacing` | bool | `false` | Spaces inside the brackets of a one-line sequence or array: `[ 1, 2 ]` or `[1, 2]`. |
+| `collapse` | `preserve`, `always`, `never`, `opening_break` | `preserve` | Objects and arrays on one line: `preserve` keeps one that has a line break between its brackets expanded and puts the others on one line if they fit; `always` puts every one that fits on one line; `never` puts every non-empty one on several lines; `opening_break` keeps an object expanded when a line break follows its opening brace and puts every array that fits on one line. |
+| `trailing_commas` | `never`, `multiline` | `never` | Trailing commas after the last item of a multi-line object or array (JSONC only). |
+| `dialect` | `auto`, `json`, `jsonc` | `auto` | JSON or JSONC (comments, trailing commas); `auto` decides by file name. |
+<!-- /generated -->
 
 `collapse: preserve` keeps an object/array on one line only if the source had no line break between its delimiters (nested items included) and it fits; `always` collapses anything that fits; `never` expands every non-empty one; `opening_break` keeps an object expanded after a line break following `{`.
 

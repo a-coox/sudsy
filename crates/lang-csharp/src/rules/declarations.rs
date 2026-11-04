@@ -14,8 +14,7 @@ static SEPARATE_FIELD_DECLARATIONS: RuleMeta = RuleMeta {
     category: Category::Style,
     description: "One field or event per declaration: `int a, b;` becomes `int a;` and `int b;`, \
                   each with the attributes, modifiers and type of the original. The fix is not \
-                  offered when the declaration has a comment in it. Equivalent to StyleCop \
-                  SA1132.",
+                  offered when the declaration has a comment in it.",
     example: "int a, b;   // write one declaration for each",
     default_level: Level::Off,
     fix: Some(FixKind::Safe),
@@ -29,7 +28,7 @@ static SUPPRESSION_JUSTIFICATION: RuleMeta = RuleMeta {
     category: Category::Style,
     description: "`SuppressMessage` needs a `Justification` that says something: not missing, \
                   `null`, empty, blank or `\"<Pending>\"`. Matches the attribute by name. No \
-                  fix. Equivalent to StyleCop SA1404.",
+                  fix.",
     example: "[SuppressMessage(\"Style\", \"X1\")]   // add Justification = \"why\"",
     default_level: Level::Off,
     fix: None,

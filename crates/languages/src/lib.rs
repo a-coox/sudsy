@@ -1,6 +1,7 @@
 //! The languages Sudsy ships and what is derived from the whole set: the providers, their option
 //! schemas and rule lists. The CLI, the LSP server and `xtask` all need exactly this list.
 
+pub mod catalog;
 mod extensions;
 mod project;
 

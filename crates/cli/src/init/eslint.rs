@@ -86,7 +86,7 @@ fn rules_of(rules: &serde_json::Map<String, Value>, out: &mut Out) {
         let Some((level, opts)) = setting(value) else {
             continue;
         };
-        let Some(entry) = super::catalog::find("eslint-plugin-jsonc", name) else {
+        let Some(entry) = languages::catalog::find("eslint-plugin-jsonc", name) else {
             out.skip_why(name, "not an eslint-plugin-jsonc rule Sudsy knows");
             continue;
         };

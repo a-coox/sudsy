@@ -1,8 +1,9 @@
 //! `.editorconfig` side of a C# migration: reading `dotnet_diagnostic.SA*` severities, and the
 //! entries that switch off the SDK/StyleCop checks Sudsy now does.
 
-use super::{catalog, sources};
+use super::sources;
 use anyhow::Result;
+use languages::catalog;
 use std::path::Path;
 
 const FILE: &str = ".editorconfig";

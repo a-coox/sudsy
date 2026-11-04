@@ -9,7 +9,20 @@ Provider formatting code turns the tree into a layout document using shared shap
 - `format_tree` prints LF, then applies `final_newline` and the line ending: `end_of_line` `lf` or `crlf`, or (`auto`, also for a provider without the option) the file's first line break.
 
 ## Shared options
-`line_width`, `indent_size`, `indent_style` (`space`|`tab`), `final_newline`, `end_of_line` (`auto`|`lf`|`crlf`), `bracket_spacing`, `array_bracket_spacing`; providers set their own defaults and may omit some (YAML has no `indent_style`).
+Options declared by more than one language, generated from the option schemas; providers set their own defaults and may omit some (YAML has no `indent_style`). Each language's full list is in its doc.
+
+<!-- generated:shared-options -->
+| Option | Values | Defaults |
+|---|---|---|
+| `array_bracket_spacing` | bool | json `false`, yaml `false` |
+| `bracket_spacing` | bool | json `true`, yaml `true` |
+| `end_of_line` | `auto`, `lf`, `crlf` | json `auto`, yaml `auto`, csharp `auto` |
+| `final_newline` | bool | json `true`, yaml `true`, csharp `true` |
+| `indent_size` | int 1-16 | json `2`, yaml `2`, csharp `4` |
+| `indent_style` | `space`, `tab` | json `space`, csharp `space` |
+| `line_width` | int 20-1000 | json `80`, yaml `80`, csharp `120` |
+| `trailing_commas` | json: `never`, `multiline`; csharp: `preserve`, `never`, `multiline` | json `never`, csharp `preserve` |
+<!-- /generated -->
 
 ## Shapes (`core-format::shapes`)
 Delimited list, block, key-value, statement sequence, verbatim, binary chain (operator first on continuation lines), member chain (one line or one group per line), and `delimited_list_between` / `block_between` for delimiters that are not first/last tokens. A shape finds its structure from the grammar: first/last significant token are delimiters, child nodes are items, `#separator` tokens after an item are its separator. List separators are re-created from `ListStyle`; block separators are kept. A child tagged `#list-prefix` is printed first. Blank lines between items are kept up to `max_blank_lines`; they vanish in a list that fits one line.

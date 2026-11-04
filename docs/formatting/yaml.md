@@ -11,20 +11,22 @@ Why own: existing crates are event/value based (not lossless) or bring their own
 Loaded from our tree. Core schema (`yes`, `on`, `0b1`, `1_000` are strings), tags, anchors/aliases expanded (an undefined alias loads as an opaque node, so it formats unchanged; the `no-undefined-alias` rule reports it), scalar folding with chomping and indentation indicators. Used for the safety check (before == after on value, type, tag, structure, document count). The config loader uses `serde-saphyr` instead (core-config cannot depend on a language crate; gives spans and strict booleans).
 
 ## Options
-| Option | Values | Default |
-|---|---|---|
-| `line_width` | int | 80 |
-| `indent_size` | int | 2 |
-| `final_newline` | bool | true |
-| `end_of_line` | `auto`, `lf`, `crlf` | `auto` (the file's first line break) |
-| `bracket_spacing` | bool | true (`{ a: 1 }`; false `{a: 1}`) |
-| `array_bracket_spacing` | bool | false (`[1, 2]`; true `[ 1, 2 ]`) |
-| `sequence_indent` | `preserve`, `indented`, `flush` | `preserve` |
-| `quote_style` | `preserve`, `single`, `double`, `prefer_double` | `preserve` |
-| `document_start` | `preserve`, `always`, `never` | `preserve` |
-| `max_blank_lines` | int | 1 |
-| `blank_lines_after_key` | `preserve`, `remove` | `preserve` |
-| `comment_spacing` | int 1-10 | 1 |
+<!-- generated:options -->
+| Option | Values | Default | Description |
+|---|---|---|---|
+| `line_width` | int 20-1000 | `80` | Preferred maximum line width in columns. |
+| `indent_size` | int 1-16 | `2` | Columns per indentation level (also the width of a tab). |
+| `final_newline` | bool | `true` | End the file with a newline. |
+| `end_of_line` | `auto`, `lf`, `crlf` | `auto` | Line break style of the output: `lf`, `crlf`, or `auto` to keep the file's first line break. |
+| `bracket_spacing` | bool | `true` | Spaces inside the braces of a one-line mapping or object: `{ a: 1 }` or `{a: 1}`. |
+| `array_bracket_spacing` | bool | `false` | Spaces inside the brackets of a one-line sequence or array: `[ 1, 2 ]` or `[1, 2]`. |
+| `sequence_indent` | `preserve`, `indented`, `flush` | `preserve` | A block sequence that is the value of a mapping key: `indented` puts the dashes one level in, `flush` at the key's column, `preserve` keeps each sequence as written. |
+| `quote_style` | `preserve`, `single`, `double`, `prefer_double` | `preserve` | Quote style of quoted scalars. With `single` and `double` a scalar keeps its quotes when the other style would change its value or need more escapes; `prefer_double` uses double quotes, except single quotes for text that contains a `"` (unless it has other escapes, which keep it as written). |
+| `document_start` | `preserve`, `always`, `never` | `preserve` | The `---` marker: `always` starts every document with it, `never` leaves it out of the first document when that is possible, `preserve` keeps what is written. |
+| `max_blank_lines` | int 0-10 | `1` | Largest number of blank lines kept between entries, comments and documents. |
+| `blank_lines_after_key` | `preserve`, `remove` | `preserve` | Blank lines between a key and its block value on the next line: `preserve` keeps them (up to `max_blank_lines`); `remove` drops them. |
+| `comment_spacing` | int 1-10 | `1` | Spaces between a value and a comment after it on the same line. |
+<!-- /generated -->
 
 `sequence_indent: preserve` is default because both styles are common (Kubernetes vs GitHub Actions) and the zero-config goal is the smallest diff. No `indent_style`: tabs cannot indent YAML.
 
