@@ -13,7 +13,10 @@ use std::borrow::Cow;
 use std::collections::HashMap;
 
 /// The entries of a `#mapping` node that have a key, with their keys.
-pub fn keyed(mapping: &SyntaxNode, grammar: &Grammar) -> Vec<(SyntaxNode, SyntaxElement)> {
+pub fn entries<'a>(
+    mapping: &SyntaxNode,
+    grammar: &'a Grammar,
+) -> impl Iterator<Item = (SyntaxNode, SyntaxElement)> + 'a {
     mapping
         .children()
         .filter(|c| grammar.has_tag(c.kind(), "key-value"))
@@ -21,7 +24,11 @@ pub fn keyed(mapping: &SyntaxNode, grammar: &Grammar) -> Vec<(SyntaxNode, Syntax
             let key = grammar.slot(&entry, "key")?;
             Some((entry, key))
         })
-        .collect()
+}
+
+/// [`entries`] collected, for the rules that index into them.
+pub fn keyed(mapping: &SyntaxNode, grammar: &Grammar) -> Vec<(SyntaxNode, SyntaxElement)> {
+    entries(mapping, grammar).collect()
 }
 
 /// Where a key is reported: its token, or its node without the comments around it.
@@ -68,7 +75,7 @@ impl Rule for NoDuplicateKeys {
             .merge_key()
             .filter(|_| ctx.options.string("merge_keys") == "allow");
         let mut seen: HashMap<Cow<'_, str>, TextRange> = HashMap::new();
-        for (_, key) in keyed(node, grammar) {
+        for (_, key) in entries(node, grammar) {
             let name = hooks.key_name(&key, text);
             if merge_key == Some(&*name) {
                 continue;
@@ -113,7 +120,7 @@ impl Rule for NoEmptyKeys {
 
     fn check(&self, node: &SyntaxNode, ctx: &mut RuleContext<'_>) {
         let (grammar, hooks, text) = (ctx.file.grammar, ctx.file.hooks, ctx.file.text);
-        for (_, key) in keyed(node, grammar) {
+        for (_, key) in entries(node, grammar) {
             if hooks.key_name(&key, text).trim().is_empty() {
                 ctx.report(key_range(&key, grammar), "empty key");
             }
@@ -201,7 +208,7 @@ impl Rule for KeyNameCasing {
         if allowed.is_empty() {
             return;
         }
-        for (_, key) in keyed(node, grammar) {
+        for (_, key) in entries(node, grammar) {
             let name = hooks.key_name(&key, text);
             if ignored.iter().any(|r| r.is_match(&name))
                 || allowed.iter().any(|c| matches_convention(c, &name))
