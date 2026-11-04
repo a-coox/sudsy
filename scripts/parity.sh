@@ -5,19 +5,32 @@
 # Tools: yamllint (installed at the catalog's version into a venv under target/parity/), eslint-jsonc
 # (ESLint 9 + eslint-plugin-jsonc at the catalog's version, installed with npm), stylecop
 # (StyleCop.Analyzers at the catalog's version, restored by `dotnet build` of the fixture project).
-# Format mode: scripts/parity.sh format prettier|biome (see docs/development/parity.md).
+# Format mode: scripts/parity.sh format prettier|biome|dotnet-format (see docs/development/parity.md).
 set -euo pipefail
 cd "$(dirname "$0")/.."
 tdir=${CARGO_TARGET_DIR:-$PWD/target}
 tool=${1:-}
 if [ "$tool" = format ]; then
   # Format mode: `sudsy format` under the matching preset against the tool's own output, on
-  # tests/parity/<tool>/. The tool is installed with npm at the catalog's version.
+  # tests/parity/<tool>/. The tool is installed with npm at the catalog's version
+  # (dotnet-format is the SDK's `dotnet format whitespace`, nothing to install).
   tool=${2:-}
   case "$tool" in
-    prettier|biome) ;;
-    *) echo "usage: scripts/parity.sh format prettier|biome" >&2; exit 2 ;;
+    prettier|biome|dotnet-format) ;;
+    *) echo "usage: scripts/parity.sh format prettier|biome|dotnet-format" >&2; exit 2 ;;
   esac
+  if [ "$tool" = dotnet-format ]; then
+    dotnet build --nologo -v:q workers/csharp/Sudsy.Worker
+    export SUDSY_CSHARP_WORKER=${SUDSY_CSHARP_WORKER:-$PWD/workers/csharp/Sudsy.Worker/bin/Debug/net10.0/Sudsy.Worker.dll}
+    cargo build --quiet -p cli
+    sudsy=$tdir/debug/sudsy; [ -x "$sudsy" ] || sudsy=$sudsy.exe
+    py=
+    for candidate in python3 python; do
+      if "$candidate" -c 'import sys' >/dev/null 2>&1; then py=$candidate; break; fi
+    done
+    [ -n "$py" ] || { echo "parity.sh: python 3 is required" >&2; exit 2; }
+    exec "$py" scripts/parity_format.py dotnet-format "$(dotnet --version)" "$sudsy" "$tdir/parity"
+  fi
   version=$(sed -nE 's/^version: "([0-9][0-9.]*).*/\1/p' "docs/parity/$tool.yaml" | head -n1)
   dir="$tdir/parity/$tool-$version"
   pkg=$tool; [ "$tool" = biome ] && pkg=@biomejs/biome
@@ -36,7 +49,7 @@ if [ "$tool" = format ]; then
 fi
 case "$tool" in
   yamllint|stylecop|eslint-jsonc) ;;
-  *) echo "usage: scripts/parity.sh yamllint|stylecop|eslint-jsonc | format prettier|biome" >&2; exit 2 ;;
+  *) echo "usage: scripts/parity.sh yamllint|stylecop|eslint-jsonc | format prettier|biome|dotnet-format" >&2; exit 2 ;;
 esac
 
 py=

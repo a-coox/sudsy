@@ -4,10 +4,17 @@
 //! `csharp/microsoft`. Presets are config files (`presets/`): they only set these options, and
 //! nothing in the formatter knows which preset is in use.
 
-use core_config::{OptionDef, OptionSchema, Preset, ResolvedOptions, shared};
+use crate::generated::kind as k;
+use core_config::{OptionDef, OptionSchema, OptionValue, Preset, ResolvedOptions, shared};
 use core_format::shapes::{ListLayout, TrailingComma};
+use core_syntax::SyntaxKind;
 
 pub const BRACE_NEWLINE: &str = "brace_newline";
+pub const BRACE_SAME_LINE: &str = "brace_same_line";
+pub const ELSE_LINE: &str = "else_line";
+pub const CATCH_LINE: &str = "catch_line";
+pub const FINALLY_LINE: &str = "finally_line";
+pub const LABEL_INDENT: &str = "label_indent";
 pub const TRAILING_COMMAS: &str = "trailing_commas";
 pub const MEMBER_CHAIN_MIN_CALLS: &str = "member_chain_min_calls";
 pub const PREPROCESSOR_SYMBOLS: &str = "preprocessor_symbols";
@@ -36,6 +43,8 @@ pub const BLANK_LINE_AFTER_COMMENT: &str = "blank_line_after_comment";
 pub const SPACE_AFTER_DELEGATE: &str = "space_after_delegate";
 pub const SPACE_BETWEEN_EMPTY_FOR_CLAUSES: &str = "space_between_empty_for_clauses";
 
+const CLAUSE_LINE_VALUES: &[&str] = &["inherit", "new_line", "same_line"];
+
 /// Defaults are `csharp/microsoft`: Allman braces, four spaces, width 120.
 pub fn option_schema() -> OptionSchema {
     OptionSchema::new(vec![
@@ -50,6 +59,15 @@ pub fn option_schema() -> OptionSchema {
             "all",
             "Opening braces of types, members, blocks and lambdas: `all` puts each on its own \
              line (Allman); `none` keeps it on the line of the declaration or statement.",
+        ),
+        OptionDef::words(
+            BRACE_SAME_LINE,
+            "Elements whose opening brace stays on the line of the declaration or statement \
+             although `brace_newline` is `all`: `types`, `methods`, `properties`, `accessors`, \
+             `anonymous_methods`, `anonymous_types`, `control_blocks`, `lambdas`, \
+             `object_collection_array_initializers` (types include namespaces, methods include \
+             constructors, operators and local functions, properties include indexers and \
+             events, control blocks include `switch` statements and bare blocks).",
         ),
         OptionDef::choice(
             TRAILING_COMMAS,
@@ -198,6 +216,34 @@ pub fn option_schema() -> OptionSchema {
              follows the closing brace (`} else {`) unless a comment sits between them.",
         ),
         OptionDef::choice(
+            ELSE_LINE,
+            CLAUSE_LINE_VALUES,
+            "inherit",
+            "`else` after a block: `new_line` starts a line; `same_line` follows the closing \
+             brace; `inherit` takes `clause_keyword_line`.",
+        ),
+        OptionDef::choice(
+            CATCH_LINE,
+            CLAUSE_LINE_VALUES,
+            "inherit",
+            "`catch` after a block: `new_line` starts a line; `same_line` follows the closing \
+             brace; `inherit` takes `clause_keyword_line`.",
+        ),
+        OptionDef::choice(
+            FINALLY_LINE,
+            CLAUSE_LINE_VALUES,
+            "inherit",
+            "`finally` after a block: `new_line` starts a line; `same_line` follows the closing \
+             brace; `inherit` takes `clause_keyword_line`.",
+        ),
+        OptionDef::choice(
+            LABEL_INDENT,
+            &["no_change", "one_less", "flush_left"],
+            "no_change",
+            "Indentation of a `goto` label: `no_change` keeps the indentation of the statements \
+             around it; `one_less` indents it one level less; `flush_left` puts it in column 0.",
+        ),
+        OptionDef::choice(
             EMPTY_BRACES,
             &["space", "tight", "expanded"],
             "space",
@@ -280,8 +326,23 @@ fn is(options: &ResolvedOptions, name: &str, value: &str) -> bool {
     options.str(name) == value
 }
 
-pub fn brace_on_new_line(options: &ResolvedOptions) -> bool {
-    is(options, BRACE_NEWLINE, "all")
+/// Does the opening brace of this element (a name of `brace_same_line`) start a line?
+pub fn brace_on_new_line(options: &ResolvedOptions, element: &str) -> bool {
+    is(options, BRACE_NEWLINE, "all") && !brace_same_line(options, element)
+}
+
+fn brace_same_line(options: &ResolvedOptions, element: &str) -> bool {
+    matches!(options.get(BRACE_SAME_LINE), Some(OptionValue::List(items))
+        if items.iter().any(|i| matches!(i, OptionValue::String(s) if s == element)))
+}
+
+/// Indentation levels a label is moved out by, `usize::MAX` for column 0.
+pub fn label_outdent(options: &ResolvedOptions) -> usize {
+    match options.str(LABEL_INDENT) {
+        "one_less" => 1,
+        "flush_left" => usize::MAX,
+        _ => 0,
+    }
 }
 
 /// Members need a blank line between them when either has a body or something above it.
@@ -333,13 +394,21 @@ pub fn chain_break_on_block(options: &ResolvedOptions) -> bool {
 
 /// The brace of a wrapped `new T { ... }` goes on its own line.
 pub fn creation_brace_on_new_line(options: &ResolvedOptions) -> bool {
-    !is(options, WRAPPED_BRACE_LINE, "none")
+    !is(options, WRAPPED_BRACE_LINE, "none") && !brace_same_line(options, INITIALIZERS)
 }
 
 /// The brace of a wrapped nested initializer or property pattern goes on its own line.
 pub fn nested_brace_on_new_line(options: &ResolvedOptions) -> bool {
-    is(options, WRAPPED_BRACE_LINE, "all")
+    is(options, WRAPPED_BRACE_LINE, "all") && !brace_same_line(options, INITIALIZERS)
 }
+
+/// The brace of a wrapped `new { ... }` (anonymous type) goes on its own line.
+pub fn anonymous_type_brace_on_new_line(options: &ResolvedOptions) -> bool {
+    !brace_same_line(options, "anonymous_types")
+}
+
+/// The element name of initializer braces in `brace_same_line`.
+const INITIALIZERS: &str = "object_collection_array_initializers";
 
 /// Initializers and collection expressions.
 pub fn initializer_layout(options: &ResolvedOptions) -> ListLayout {
@@ -394,8 +463,17 @@ pub fn do_while_on_closing_line(options: &ResolvedOptions) -> bool {
     is(options, DO_WHILE_LINE, "same_line")
 }
 
-pub fn clauses_on_closing_line(options: &ResolvedOptions) -> bool {
-    is(options, CLAUSE_KEYWORD_LINE, "same_line")
+/// Does this `else`, `catch` or `finally` clause follow the closing brace of the block before?
+pub fn clauses_on_closing_line(options: &ResolvedOptions, clause: SyntaxKind) -> bool {
+    let own = match clause {
+        k::ELSE_CLAUSE => ELSE_LINE,
+        k::CATCH_CLAUSE => CATCH_LINE,
+        _ => FINALLY_LINE,
+    };
+    match options.str(own) {
+        "inherit" => is(options, CLAUSE_KEYWORD_LINE, "same_line"),
+        line => line == "same_line",
+    }
 }
 
 /// What stands between the braces of an empty body.

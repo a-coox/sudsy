@@ -1,6 +1,6 @@
-"""Compares `sudsy format` with Prettier or Biome on tests/parity/<tool>/ (run by `scripts/parity.sh format`).
+"""Compares `sudsy format` with Prettier, Biome or `dotnet format whitespace` on tests/parity/<tool>/ (run by `scripts/parity.sh format`).
 
-Usage: parity_format.py <prettier|biome> <version> <sudsy-binary> <npm-prefix>
+Usage: parity_format.py <prettier|biome|dotnet-format> <version> <sudsy-binary> <npm-prefix>
 
 Every fixture is formatted by the tool and by Sudsy (with the fixture folder's sudsy.yaml, which
 extends the matching preset); the outputs must be equal. A fixture listed in the folder's
@@ -43,6 +43,51 @@ def sudsy_format(sudsy, fixture, work):
     return fixture.read_bytes().decode("utf-8")
 
 
+def dotnet_format(case, work):
+    """`dotnet format whitespace` on a case folder (an `.editorconfig` and `input.cs`)."""
+    run(["dotnet", "format", "whitespace", str(case), "--folder"], work)
+    return (case / "input.cs").read_bytes().decode("utf-8")
+
+
+def dotnet_format_main(version, sudsy):
+    """One case per `<case>.editorconfig`: `<case>.cs`, else the shared `input.cs`, formatted under it."""
+    folder = ROOT / "tests/parity/dotnet-format"
+    known = expected_diffs(folder)
+    cases = sorted(p.stem for p in folder.glob("*.editorconfig"))
+    bad = 0
+    for name in cases:
+        outputs = []
+        for side in ("dotnet-format", "sudsy"):
+            case = PARITY / f"dotnet-format-work/{side}/{name}"
+            shutil.rmtree(case, ignore_errors=True)
+            case.mkdir(parents=True)
+            shutil.copy(folder / f"{name}.editorconfig", case / ".editorconfig")
+            own = folder / f"{name}.cs"
+            shutil.copy(own if own.exists() else folder / "input.cs", case / "input.cs")
+            shutil.copy(folder / "sudsy.yaml", case / "sudsy.yaml")
+            if side == "sudsy":
+                outputs.append(sudsy_format(sudsy, case / "input.cs", case))
+            else:
+                outputs.append(dotnet_format(case, case))
+        theirs, ours = outputs
+        same = theirs == ours
+        if same and name in known:
+            print(f"{name}: STALE expected-diff entry (outputs are equal)")
+            bad += 1
+        elif same:
+            print(f"{name}: ok")
+        elif name in known:
+            print(f"{name}: known difference ({known[name]})")
+        else:
+            print(f"{name}: DIFFERENT")
+            sys.stdout.writelines(
+                difflib.unified_diff(theirs.splitlines(True), ours.splitlines(True), "dotnet-format", "sudsy")
+            )
+            bad += 1
+    print(f"{len(cases)} cases, {bad} mismatch(es) (dotnet format {version})")
+    return 1 if bad else 0
+
+
 def expected_diffs(folder):
     path = folder / "expected-diff.txt"
     out = {}
@@ -56,6 +101,8 @@ def expected_diffs(folder):
 
 def main():
     tool, version, sudsy, prefix = sys.argv[1:5]
+    if tool == "dotnet-format":
+        return dotnet_format_main(version, sudsy)
     prefix = Path(prefix).resolve()
     folder = ROOT / "tests/parity" / tool
     work = PARITY / f"{tool}-work"

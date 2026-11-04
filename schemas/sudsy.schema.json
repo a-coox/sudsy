@@ -789,6 +789,24 @@
               ],
               "type": "string"
             },
+            "brace_same_line": {
+              "default": [],
+              "description": "Elements whose opening brace stays on the line of the declaration or statement although `brace_newline` is `all`: `types`, `methods`, `properties`, `accessors`, `anonymous_methods`, `anonymous_types`, `control_blocks`, `lambdas`, `object_collection_array_initializers` (types include namespaces, methods include constructors, operators and local functions, properties include indexers and events, control blocks include `switch` statements and bare blocks).",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "catch_line": {
+              "default": "inherit",
+              "description": "`catch` after a block: `new_line` starts a line; `same_line` follows the closing brace; `inherit` takes `clause_keyword_line`.",
+              "enum": [
+                "inherit",
+                "new_line",
+                "same_line"
+              ],
+              "type": "string"
+            },
             "clause_keyword_line": {
               "default": "new_line",
               "description": "`else`, `catch` and `finally` after a block: `new_line` starts a line; `same_line` follows the closing brace (`} else {`) unless a comment sits between them.",
@@ -825,6 +843,16 @@
               ],
               "type": "string"
             },
+            "else_line": {
+              "default": "inherit",
+              "description": "`else` after a block: `new_line` starts a line; `same_line` follows the closing brace; `inherit` takes `clause_keyword_line`.",
+              "enum": [
+                "inherit",
+                "new_line",
+                "same_line"
+              ],
+              "type": "string"
+            },
             "empty_braces": {
               "default": "space",
               "description": "Braces with nothing between them: `space` prints `{ }`, `tight` prints `{}`, `expanded` puts the closing brace of an empty body on the line after the opening one (initializers, and lambdas and anonymous methods, stay `{ }`).",
@@ -849,6 +877,16 @@
               "default": true,
               "description": "End the file with a newline.",
               "type": "boolean"
+            },
+            "finally_line": {
+              "default": "inherit",
+              "description": "`finally` after a block: `new_line` starts a line; `same_line` follows the closing brace; `inherit` takes `clause_keyword_line`.",
+              "enum": [
+                "inherit",
+                "new_line",
+                "same_line"
+              ],
+              "type": "string"
             },
             "indent_nested_binary": {
               "default": false,
@@ -889,6 +927,16 @@
               "default": false,
               "description": "Keep the body of an accessor on its line (`get { return x; }`) when it is one simple statement without comments and fits; otherwise the braces go on their own lines.",
               "type": "boolean"
+            },
+            "label_indent": {
+              "default": "no_change",
+              "description": "Indentation of a `goto` label: `no_change` keeps the indentation of the statements around it; `one_less` indents it one level less; `flush_left` puts it in column 0.",
+              "enum": [
+                "no_change",
+                "one_less",
+                "flush_left"
+              ],
+              "type": "string"
             },
             "lambda_argument_hug": {
               "default": "last",
@@ -1293,6 +1341,24 @@
                     ],
                     "type": "string"
                   },
+                  "brace_same_line": {
+                    "default": [],
+                    "description": "Elements whose opening brace stays on the line of the declaration or statement although `brace_newline` is `all`: `types`, `methods`, `properties`, `accessors`, `anonymous_methods`, `anonymous_types`, `control_blocks`, `lambdas`, `object_collection_array_initializers` (types include namespaces, methods include constructors, operators and local functions, properties include indexers and events, control blocks include `switch` statements and bare blocks).",
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "catch_line": {
+                    "default": "inherit",
+                    "description": "`catch` after a block: `new_line` starts a line; `same_line` follows the closing brace; `inherit` takes `clause_keyword_line`.",
+                    "enum": [
+                      "inherit",
+                      "new_line",
+                      "same_line"
+                    ],
+                    "type": "string"
+                  },
                   "clause_keyword_line": {
                     "default": "new_line",
                     "description": "`else`, `catch` and `finally` after a block: `new_line` starts a line; `same_line` follows the closing brace (`} else {`) unless a comment sits between them.",
@@ -1329,6 +1395,16 @@
                     ],
                     "type": "string"
                   },
+                  "else_line": {
+                    "default": "inherit",
+                    "description": "`else` after a block: `new_line` starts a line; `same_line` follows the closing brace; `inherit` takes `clause_keyword_line`.",
+                    "enum": [
+                      "inherit",
+                      "new_line",
+                      "same_line"
+                    ],
+                    "type": "string"
+                  },
                   "empty_braces": {
                     "default": "space",
                     "description": "Braces with nothing between them: `space` prints `{ }`, `tight` prints `{}`, `expanded` puts the closing brace of an empty body on the line after the opening one (initializers, and lambdas and anonymous methods, stay `{ }`).",
@@ -1353,6 +1429,16 @@
                     "default": true,
                     "description": "End the file with a newline.",
                     "type": "boolean"
+                  },
+                  "finally_line": {
+                    "default": "inherit",
+                    "description": "`finally` after a block: `new_line` starts a line; `same_line` follows the closing brace; `inherit` takes `clause_keyword_line`.",
+                    "enum": [
+                      "inherit",
+                      "new_line",
+                      "same_line"
+                    ],
+                    "type": "string"
                   },
                   "indent_nested_binary": {
                     "default": false,
@@ -1393,6 +1479,16 @@
                     "default": false,
                     "description": "Keep the body of an accessor on its line (`get { return x; }`) when it is one simple statement without comments and fits; otherwise the braces go on their own lines.",
                     "type": "boolean"
+                  },
+                  "label_indent": {
+                    "default": "no_change",
+                    "description": "Indentation of a `goto` label: `no_change` keeps the indentation of the statements around it; `one_less` indents it one level less; `flush_left` puts it in column 0.",
+                    "enum": [
+                      "no_change",
+                      "one_less",
+                      "flush_left"
+                    ],
+                    "type": "string"
                   },
                   "lambda_argument_hug": {
                     "default": "last",

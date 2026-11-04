@@ -47,11 +47,36 @@ impl Session {
     /// queries `warm` runs stay memoized for the caller. Returned in `paths` order.
     pub fn load_all(&self, warm: impl Fn(&Database, File) + Sync) -> Vec<Result<File>> {
         let project = &self.project;
-        par_map(&self.db, &self.paths, |db, path| {
+        let loaded = par_map(&self.db, &self.paths, |db, path| {
             let file = load(db, project, path)?;
             warm(db, file);
             Ok(file)
-        })
+        });
+        self.warn_ignored_editorconfig_keys(&loaded);
+        loaded
+    }
+
+    /// One stderr warning per `.editorconfig` line that sets a C# formatting key Sudsy does not
+    /// follow, however many files it applies to.
+    fn warn_ignored_editorconfig_keys(&self, loaded: &[Result<File>]) {
+        let mut seen = std::collections::HashSet::new();
+        for (path, file) in self.paths.iter().zip(loaded) {
+            let Ok(file) = file else { continue };
+            if path.extension().is_none_or(|e| e != "cs") {
+                continue;
+            }
+            for ignored in &file.editorconfig(&self.db).ignored {
+                if seen.insert((ignored.file.clone(), ignored.line)) {
+                    eprintln!(
+                        "warning: {}:{}: `{} = {}` is not supported by Sudsy and is ignored",
+                        self.project.show(&ignored.file),
+                        ignored.line,
+                        ignored.key,
+                        ignored.value
+                    );
+                }
+            }
+        }
     }
 }
 

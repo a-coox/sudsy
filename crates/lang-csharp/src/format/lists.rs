@@ -2,8 +2,8 @@
 //! attribute lists, and the hook that keeps a lambda as the last argument on the call's line.
 
 use super::options::{
-    creation_brace_on_new_line, empty_braces, hug_closing_paren, hug_only_sole_lambda,
-    initializer_layout, nested_brace_on_new_line, trailing_comma,
+    anonymous_type_brace_on_new_line, creation_brace_on_new_line, empty_braces, hug_closing_paren,
+    hug_only_sole_lambda, initializer_layout, nested_brace_on_new_line, trailing_comma,
 };
 use super::seq::{R, Sep, direct_tokens, sep_doc, separator, seq_of, sig};
 use crate::generated::kind as k;
@@ -189,7 +189,8 @@ pub fn list_with_surroundings(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
     } else {
         style.trailing_comma
     };
-    style.leading_line = node.kind() != k::LIST_PATTERN;
+    style.leading_line =
+        node.kind() != k::LIST_PATTERN && anonymous_type_brace_on_new_line(cx.options);
     let mut parts = Vec::new();
     if oi > 0 {
         parts.push(seq_of(cx, node, &els[..oi])?);

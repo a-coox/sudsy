@@ -4,7 +4,7 @@
 
 mod common;
 
-use common::{fmt, n, s, subject};
+use common::{fmt, l, n, s, subject};
 use core_config::OptionValue;
 use core_format::testing::assert_formats;
 
@@ -248,6 +248,60 @@ snap!(
     brace_newline_none,
     "class C{void M(){if(a){x();}else{y();}foreach(var i in l){z();}}\nint P{get{return 1;}}}",
     [("brace_newline", s("none"))]
+);
+const ELEMENTS: &str = "namespace N{class C{int P{get{return 1;}set{x=value;}}\nvoid M(){if(a){b();}else{c();}try{d();}catch(E){e();}finally{f();}\nvar g=delegate(int i){return i;};var h=()=>{j();};\nint Local(){return 1;}switch(x){case 1:break;}\nvar o=new C{\nA=1\n};var p=new{\nA=1\n};}}}";
+snap!(
+    brace_same_line_types_and_methods,
+    ELEMENTS,
+    [("brace_same_line", l(&["types", "methods"]))]
+);
+snap!(
+    brace_same_line_blocks_and_lambdas,
+    ELEMENTS,
+    [(
+        "brace_same_line",
+        l(&["control_blocks", "lambdas", "anonymous_methods"])
+    )]
+);
+snap!(
+    brace_same_line_properties_and_initializers,
+    ELEMENTS,
+    [(
+        "brace_same_line",
+        l(&[
+            "properties",
+            "accessors",
+            "object_collection_array_initializers",
+            "anonymous_types"
+        ])
+    )]
+);
+snap!(
+    clause_lines_per_keyword,
+    "class C{void M(){if(a){b();}else{c();}try{d();}catch(E){e();}finally{f();}}}",
+    [
+        ("else_line", s("same_line")),
+        ("finally_line", s("same_line"))
+    ]
+);
+snap!(
+    clause_line_inherited_unless_set,
+    "class C{void M(){if(a){b();}else{c();}try{d();}catch(E){e();}finally{f();}}}",
+    [
+        ("clause_keyword_line", s("same_line")),
+        ("catch_line", s("new_line"))
+    ]
+);
+const LABELS: &str = "class C{void M(){if(a){\nlbl:\nx++;goto lbl;}\nend:\nreturn;}}";
+snap!(
+    label_indent_one_less,
+    LABELS,
+    [("label_indent", s("one_less"))]
+);
+snap!(
+    label_indent_flush_left,
+    LABELS,
+    [("label_indent", s("flush_left"))]
 );
 snap!(
     trailing_commas_never,

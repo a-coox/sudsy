@@ -1,0 +1,74 @@
+---
+source: crates/lang-csharp/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+namespace N{class C{int P{get{return 1;}set{x=value;}}
+void M(){if(a){b();}else{c();}try{d();}catch(E){e();}finally{f();}
+var g=delegate(int i){return i;};var h=()=>{j();};
+int Local(){return 1;}switch(x){case 1:break;}
+var o=new C{
+A=1
+};var p=new{
+A=1
+};}}}
+-----
+namespace N
+{
+    class C
+    {
+        int P {
+            get {
+                return 1;
+            }
+            set {
+                x = value;
+            }
+        }
+        void M()
+        {
+            if (a)
+            {
+                b();
+            }
+            else
+            {
+                c();
+            }
+            try
+            {
+                d();
+            }
+            catch (E)
+            {
+                e();
+            }
+            finally
+            {
+                f();
+            }
+            var g = delegate (int i)
+            {
+                return i;
+            };
+            var h = () =>
+            {
+                j();
+            };
+            int Local()
+            {
+                return 1;
+            }
+            switch (x)
+            {
+                case 1:
+                    break;
+            }
+            var o = new C {
+                A = 1
+            };
+            var p = new {
+                A = 1
+            };
+        }
+    }
+}

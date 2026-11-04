@@ -20,7 +20,7 @@ pub use options::{
 
 use self::options::{
     attach_comments, constructor_initializer_on_new_line, hanging_base_list,
-    inline_accessor_bodies, switch_arm_as_assignment, unbreakable_single_item_lists,
+    inline_accessor_bodies, label_outdent, switch_arm_as_assignment, unbreakable_single_item_lists,
 };
 use self::tags::Tag;
 use crate::generated::kind as k;
@@ -91,6 +91,9 @@ impl NodeFormatter for CSharpFormatter {
                     Some(doc) => doc?,
                     None => seq::seq(cx, node)?,
                 }
+            }
+            k::LABELED_STATEMENT if label_outdent(cx.options) > 0 => {
+                seq::labeled_statement(cx, node)?
             }
             k::SWITCH_SECTION => braces::switch_section(cx, node)?,
             k::SWITCH_EXPRESSION => braces::switch_expression(cx, node)?,

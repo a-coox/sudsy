@@ -149,6 +149,10 @@ pub fn s(v: &str) -> OptionValue {
     OptionValue::String(v.into())
 }
 
+pub fn l(v: &[&str]) -> OptionValue {
+    OptionValue::List(v.iter().map(|w| s(w)).collect())
+}
+
 pub fn n(v: i64) -> OptionValue {
     OptionValue::Int(v)
 }

@@ -4,7 +4,7 @@
 use super::options::{
     brace_on_new_line, clauses_on_closing_line, constructor_initializer_on_new_line,
     creation_brace_on_new_line, do_while_on_closing_line, expand_empty_bodies, hanging_base_list,
-    nested_brace_on_new_line, space_after_delegate, space_between_empty_for_clauses,
+    label_outdent, nested_brace_on_new_line, space_after_delegate, space_between_empty_for_clauses,
 };
 use super::spacing;
 use super::tags::{self, Tag};
@@ -51,8 +51,9 @@ pub enum Sep {
     Hard,
     /// A hard line break, one indentation level deeper.
     HardIndented,
-    /// The brace of a body: a line break, or a space with `brace_newline: none`.
-    Brace,
+    /// The brace of a body of this element (a name of `brace_same_line`): a line break, or a space
+    /// with `brace_newline: none`.
+    Brace(&'static str),
     /// The next element is an embedded statement: on its own line, indented.
     Embedded,
 }
@@ -85,6 +86,35 @@ fn inline_attributes(parent: SyntaxKind) -> bool {
             | k::PARENTHESIZED_LAMBDA_EXPRESSION
             | k::FUNCTION_POINTER_PARAMETER
     )
+}
+
+/// The `brace_same_line` element of a block whose parent has this kind.
+pub fn block_element(parent: SyntaxKind) -> &'static str {
+    match parent {
+        k::METHOD_DECLARATION
+        | k::CONSTRUCTOR_DECLARATION
+        | k::DESTRUCTOR_DECLARATION
+        | k::OPERATOR_DECLARATION
+        | k::CONVERSION_OPERATOR_DECLARATION
+        | k::LOCAL_FUNCTION_STATEMENT => "methods",
+        k::GET_ACCESSOR_DECLARATION
+        | k::SET_ACCESSOR_DECLARATION
+        | k::INIT_ACCESSOR_DECLARATION
+        | k::ADD_ACCESSOR_DECLARATION
+        | k::REMOVE_ACCESSOR_DECLARATION
+        | k::UNKNOWN_ACCESSOR_DECLARATION => "accessors",
+        k::SIMPLE_LAMBDA_EXPRESSION | k::PARENTHESIZED_LAMBDA_EXPRESSION => "lambdas",
+        k::ANONYMOUS_METHOD_EXPRESSION => "anonymous_methods",
+        _ => "control_blocks",
+    }
+}
+
+/// The `brace_same_line` element of a node that holds its own braces (a type, namespace, `switch`).
+pub fn braced_element(kind: SyntaxKind) -> &'static str {
+    match kind {
+        k::SWITCH_STATEMENT | k::SWITCH_EXPRESSION => "control_blocks",
+        _ => "types",
+    }
 }
 
 /// Is a body in braces empty: nothing between the braces, and no comments?
@@ -165,7 +195,7 @@ pub fn separator(
             return if block_is_empty(cx, n) && keeps_empty_inline(cx, n) {
                 Sep::Space
             } else {
-                Sep::Brace
+                Sep::Brace(block_element(pk))
             };
         }
         if tags::has(cx.grammar, nk, Tag::InitializerExpression) {
@@ -190,7 +220,7 @@ pub fn separator(
             return if super::braces::accessors_inline(cx, n) {
                 Sep::Space
             } else {
-                Sep::Brace
+                Sep::Brace("properties")
             };
         }
         if has_embedded_body(pk)
@@ -200,7 +230,7 @@ pub fn separator(
             return Sep::Embedded;
         }
         if matches!(nk, k::ELSE_CLAUSE | k::CATCH_CLAUSE | k::FINALLY_CLAUSE) {
-            return if clauses_on_closing_line(cx.options) && clause_can_cuddle(cx, prev, n) {
+            return if clauses_on_closing_line(cx.options, nk) && clause_can_cuddle(cx, prev, n) {
                 Sep::Space
             } else {
                 Sep::Hard
@@ -264,8 +294,8 @@ pub fn sep_doc(cx: &FormatCtx<'_>, sep: Sep) -> Doc {
         Sep::Space => doc::lit(" "),
         Sep::Hard | Sep::Embedded => doc::hardline(),
         Sep::HardIndented => doc::indent(doc::hardline()),
-        Sep::Brace => {
-            if brace_on_new_line(cx.options) {
+        Sep::Brace(element) => {
+            if brace_on_new_line(cx.options, element) {
                 doc::hardline()
             } else {
                 doc::lit(" ")
@@ -303,6 +333,19 @@ pub fn paren_group(
             cx.token_text(close),
         ])),
         cx.trailing_comments_doc(close),
+    ]))
+}
+
+/// `label:` moved out by `label_indent`, then the labeled statement on the next line.
+pub fn labeled_statement(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
+    let els = sig(cx, node);
+    if els.len() < 3 {
+        return seq_of(cx, node, &els);
+    }
+    Ok(doc::concat(vec![
+        doc::outdent(label_outdent(cx.options), seq_of(cx, node, &els[..2])?),
+        doc::hardline(),
+        seq_of(cx, node, &els[2..])?,
     ]))
 }
 

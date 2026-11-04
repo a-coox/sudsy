@@ -46,6 +46,8 @@ struct Cmd<'a> {
 
 /// One interned indentation level.
 struct Level {
+    /// The level this one was made from (the root is its own parent).
+    parent: usize,
     text: String,
     width: usize,
     /// The level one indent deeper, once it exists.
@@ -67,12 +69,13 @@ impl Indents {
             levels: Vec::new(),
             opts,
         };
-        indents.push(String::new(), 0);
+        indents.push(0, String::new(), 0);
         indents
     }
 
-    fn push(&mut self, text: String, width: usize) -> usize {
+    fn push(&mut self, parent: usize, text: String, width: usize) -> usize {
         self.levels.push(Level {
+            parent,
             text,
             width,
             indented: None,
@@ -92,9 +95,19 @@ impl Indents {
         } else {
             (format!("{text}{}", " ".repeat(w)), width + w)
         };
-        let i = self.push(text, width);
+        let i = self.push(parent, text, width);
         self.levels[parent].indented = Some(i);
         i
+    }
+
+    fn outdent(&self, mut level: usize, levels: usize) -> usize {
+        for _ in 0..levels {
+            if level == 0 {
+                break;
+            }
+            level = self.levels[level].parent;
+        }
+        level
     }
 
     fn align(&mut self, parent: usize, spaces: usize) -> usize {
@@ -107,7 +120,7 @@ impl Indents {
         }
         let Level { text, width, .. } = &self.levels[parent];
         let (text, width) = (format!("{text}{}", " ".repeat(spaces)), width + spaces);
-        let i = self.push(text, width);
+        let i = self.push(parent, text, width);
         self.levels[parent].aligned.push((spaces, i));
         i
     }
@@ -240,6 +253,19 @@ impl<'a> Printer<'a> {
         self.write(s);
     }
 
+    /// See [`Doc::Outdent`]: moves the current line (or a new one) to indentation level `indent`.
+    fn restart_line(&mut self, indent: usize) {
+        if self.line_is_blank() {
+            let line_start = self.current_line_start();
+            self.out.truncate(line_start);
+            let level = &self.indents.levels[indent];
+            self.out.push_str(&level.text);
+            self.pos = level.width;
+        } else {
+            self.newline(indent);
+        }
+    }
+
     fn write(&mut self, s: &str) {
         self.out.push_str(s);
         match s.rfind('\n') {
@@ -308,6 +334,11 @@ impl<'a> Printer<'a> {
             }),
             Doc::Indent(d) => {
                 let i = self.indents.indent(indent);
+                push(cmds, i, mode, d);
+            }
+            Doc::Outdent(levels, d) => {
+                let i = self.indents.outdent(indent, *levels);
+                self.restart_line(i);
                 push(cmds, i, mode, d);
             }
             Doc::Align(n, d) => {
@@ -501,7 +532,7 @@ fn fits<'a>(
                     return answer;
                 }
             }
-            Doc::LineStart(_) | Doc::NewlineIfNeeded => return true,
+            Doc::LineStart(_) | Doc::Outdent(..) | Doc::NewlineIfNeeded => return true,
             Doc::Concat(parts) => m.stack.push((mode, Item::Seq(parts))),
             Doc::Indent(d) | Doc::Align(_, d) => m.stack.push((mode, Item::Doc(d))),
             Doc::IfBreak { broken, flat } => m.stack.push((

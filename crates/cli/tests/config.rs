@@ -290,15 +290,51 @@ fn init_writes_a_starter_config_and_will_not_overwrite() {
     assert!(!t.path().join("sudsy.yaml").exists());
 }
 
+/// Builds the worker once per test process (tests run in parallel threads).
 fn csharp_worker() -> PathBuf {
-    let project = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../workers/csharp/Sudsy.Worker");
-    let status = Command::new("dotnet")
-        .args(["build", "-c", "Debug", "--nologo", "-v", "q"])
-        .arg(&project)
-        .status()
-        .expect("dotnet is installed");
-    assert!(status.success(), "dotnet build failed");
-    project.join("bin/Debug/net10.0/Sudsy.Worker.dll")
+    static DLL: std::sync::OnceLock<PathBuf> = std::sync::OnceLock::new();
+    DLL.get_or_init(|| {
+        let project =
+            Path::new(env!("CARGO_MANIFEST_DIR")).join("../../workers/csharp/Sudsy.Worker");
+        let status = Command::new("dotnet")
+            .args(["build", "-c", "Debug", "--nologo", "-v", "q"])
+            .arg(&project)
+            .status()
+            .expect("dotnet is installed");
+        assert!(status.success(), "dotnet build failed");
+        project.join("bin/Debug/net10.0/Sudsy.Worker.dll")
+    })
+    .clone()
+}
+
+#[test]
+fn unmapped_editorconfig_formatting_keys_warn_once() {
+    let t = tempfile::tempdir().unwrap();
+    write(
+        t.path(),
+        ".editorconfig",
+        "root = true\n[*.cs]\ncsharp_space_after_cast = true\ncsharp_space_after_comma = true\ndotnet_style_qualification_for_field = true\n",
+    );
+    write(t.path(), "A.cs", "class A { }\n");
+    write(t.path(), "B.cs", "class B { }\n");
+    let out = Command::new(env!("CARGO_BIN_EXE_sudsy"))
+        .arg("format")
+        .env("SUDSY_CSHARP_WORKER", csharp_worker())
+        .current_dir(t.path())
+        .output()
+        .unwrap();
+    assert_eq!(out.status.code(), Some(0), "{}", stderr(&out));
+    let warnings: Vec<_> = stderr(&out)
+        .lines()
+        .filter(|l| l.starts_with("warning:"))
+        .map(str::to_string)
+        .collect();
+    assert_eq!(
+        warnings,
+        [
+            "warning: .editorconfig:3: `csharp_space_after_cast = true` is not supported by Sudsy and is ignored"
+        ]
+    );
 }
 
 #[test]

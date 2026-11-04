@@ -115,6 +115,20 @@ fn language(
         .map_err(|e| anyhow!("{}", languages::describe_error(&e, &project.root)))?;
     let _ = writeln!(out, "{name} format options:");
     options_table(out, project, provider.option_schema(), &resolved);
+    for ignored in editorconfig
+        .iter()
+        .filter(|_| name == "csharp")
+        .flat_map(|ec| &ec.ignored)
+    {
+        let _ = writeln!(
+            out,
+            "ignored .editorconfig key: {} = {} ({}:{})",
+            ignored.key,
+            ignored.value,
+            project.show(&ignored.file),
+            ignored.line
+        );
+    }
     let rules = project
         .chain
         .rules(&input, provider.option_schema())

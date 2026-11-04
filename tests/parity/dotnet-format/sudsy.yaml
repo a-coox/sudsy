@@ -1,0 +1,3 @@
+# The Sudsy side of the comparison with `dotnet format whitespace`: defaults, so the
+# .editorconfig of each case is the only input.
+format: {}

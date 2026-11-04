@@ -8,7 +8,8 @@ use super::options::{
     separate_members,
 };
 use super::seq::{
-    R, Sep, direct_tokens, is_empty_braces, keeps_empty_inline, sep_doc, separator, seq_of, sig,
+    R, Sep, braced_element, direct_tokens, is_empty_braces, keeps_empty_inline, sep_doc, separator,
+    seq_of, sig,
 };
 use super::tags::{self, Tag};
 use crate::generated::kind as k;
@@ -96,7 +97,7 @@ fn with_braces(
         let sep = if is_empty_braces(cx, &open, &close) && keeps_empty_inline(cx, node) {
             Sep::Space
         } else {
-            Sep::Brace
+            Sep::Brace(braced_element(node.kind()))
         };
         parts.push(sep_doc(cx, sep));
     }
@@ -315,9 +316,10 @@ pub fn accessor_declaration(cx: &FormatCtx<'_>, accessor: &SyntaxNode) -> Option
     }
     Some((|| {
         let head = seq_of(cx, accessor, head)?;
+        let brace = sep_doc(cx, Sep::Brace("accessors"));
         let statement = doc::shared(cx.format(statement)?);
         if statement.clone().propagate_breaks() {
-            return Ok(doc::concat(vec![head, doc::hardline(), cx.format(block)?]));
+            return Ok(doc::concat(vec![head, brace, cx.format(block)?]));
         }
         let (open, close) = (cx.token(open), cx.token(close));
         let one_line = doc::concat(vec![
@@ -331,7 +333,7 @@ pub fn accessor_declaration(cx: &FormatCtx<'_>, accessor: &SyntaxNode) -> Option
         ]);
         let expanded = doc::concat(vec![
             head,
-            doc::hardline(),
+            brace,
             open,
             doc::indent(doc::concat(vec![doc::hardline(), statement])),
             doc::hardline(),

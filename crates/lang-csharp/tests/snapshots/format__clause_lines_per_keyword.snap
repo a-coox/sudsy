@@ -1,0 +1,30 @@
+---
+source: crates/lang-csharp/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+class C{void M(){if(a){b();}else{c();}try{d();}catch(E){e();}finally{f();}}}
+-----
+class C
+{
+    void M()
+    {
+        if (a)
+        {
+            b();
+        } else
+        {
+            c();
+        }
+        try
+        {
+            d();
+        }
+        catch (E)
+        {
+            e();
+        } finally
+        {
+            f();
+        }
+    }
+}

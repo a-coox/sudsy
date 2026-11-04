@@ -21,6 +21,10 @@ pub enum Doc {
     /// disabled code): the printer takes back the indentation of a blank line, or first starts a
     /// new line if the current one has content. It breaks the enclosing groups.
     LineStart(String),
+    /// Contents that start their own line indented this many levels less than the current
+    /// indentation (all of it with `usize::MAX`): the printer takes back the indentation of a
+    /// blank line, or first starts a new line. It breaks the enclosing groups.
+    Outdent(usize, Box<Doc>),
     /// A hard line break, unless the current line is empty. Starts an own-line comment that
     /// follows text on the line the formatter chose. It breaks the enclosing groups.
     NewlineIfNeeded,
@@ -90,6 +94,10 @@ impl Doc {
     pub fn propagate_breaks(&mut self) -> bool {
         match self {
             Doc::HardLine | Doc::BreakParent | Doc::LineStart(_) | Doc::NewlineIfNeeded => true,
+            Doc::Outdent(_, d) => {
+                d.propagate_breaks();
+                true
+            }
             Doc::Nil | Doc::Text(_) | Doc::Verbatim(_) | Doc::Line | Doc::SoftLine => false,
             Doc::Shared(s) => s.forced,
             Doc::IndentIfBreak(_, d) => d.propagate_breaks(),
@@ -276,6 +284,10 @@ pub fn conditional_group(candidates: Vec<Doc>) -> Doc {
 
 pub fn indent(d: Doc) -> Doc {
     Doc::Indent(Box::new(d))
+}
+
+pub fn outdent(levels: usize, d: Doc) -> Doc {
+    Doc::Outdent(levels, Box::new(d))
 }
 
 pub fn align(spaces: usize, d: Doc) -> Doc {

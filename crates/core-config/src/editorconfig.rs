@@ -16,7 +16,14 @@
 //! | `max_line_length` (a number; `off` is ignored) | `line_width` |
 //! | `insert_final_newline` | `final_newline` |
 //! | `end_of_line` (`lf`, `crlf`; `cr` ignored) | `end_of_line` |
-//! | `csharp_new_line_before_open_brace` (`all`, `none`; other lists are ignored) | `brace_newline` (C#) |
+//! | `csharp_new_line_before_open_brace` (`all`, `none`, or a list of elements) | `brace_newline`, `brace_same_line`, `wrapped_brace_line` (C#) |
+//! | `csharp_new_line_before_else`, `_catch`, `_finally` (`true`, `false`) | `else_line`, `catch_line`, `finally_line` (C#) |
+//! | `csharp_indent_labels` (`flush_left`, `one_less_than_current`, `no_change`) | `label_indent` (C#) |
+//!
+//! The other `csharp_*` / `dotnet_*` formatting keys are not mapped. One that a file's sections set
+//! to something other than the behavior Sudsy has (a fixed one: `csharp_space_after_cast = true`)
+//! is reported in [`EditorConfig::ignored`]; code-style keys (`dotnet_style_*`, `csharp_style_*`,
+//! `dotnet_diagnostic.*`, naming rules) belong to the SDK and are silent.
 //!
 //! A value that is not valid for the option (a width of 5, `max_line_length = off`) is ignored:
 //! the file is shared with other tools, so it is not Sudsy's to reject. Options a language does not
@@ -38,11 +45,92 @@ pub struct EditorConfigValue {
     pub key: String,
 }
 
+/// A formatting key of a section that applies to the file, which Sudsy does not honor.
+#[derive(Clone, Debug, PartialEq)]
+pub struct IgnoredKey {
+    pub key: String,
+    pub value: String,
+    pub file: PathBuf,
+    pub line: usize,
+}
+
 /// The mapped values that apply to one file.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct EditorConfig {
     pub values: Vec<EditorConfigValue>,
+    pub ignored: Vec<IgnoredKey>,
 }
+
+/// The elements `csharp_new_line_before_open_brace` lists, as `brace_same_line` names them.
+const BRACE_ELEMENTS: [&str; 9] = [
+    "accessors",
+    "anonymous_methods",
+    "anonymous_types",
+    "control_blocks",
+    "lambdas",
+    "methods",
+    "object_collection_array_initializers",
+    "properties",
+    "types",
+];
+
+/// Formatting keys without an option and the value of the behavior Sudsy has instead. A section
+/// that sets one to another value is reported as ignored.
+const FIXED: [(&str, &str); 29] = [
+    ("csharp_indent_case_contents", "true"),
+    ("csharp_indent_switch_labels", "true"),
+    ("csharp_indent_block_contents", "true"),
+    ("csharp_indent_braces", "false"),
+    (
+        "csharp_new_line_before_members_in_object_initializers",
+        "true",
+    ),
+    ("csharp_new_line_before_members_in_anonymous_types", "true"),
+    ("csharp_new_line_between_query_expression_clauses", "true"),
+    ("csharp_space_after_cast", "false"),
+    (
+        "csharp_space_after_keywords_in_control_flow_statements",
+        "true",
+    ),
+    ("csharp_space_between_parentheses", "false"),
+    ("csharp_space_before_colon_in_inheritance_clause", "true"),
+    ("csharp_space_after_colon_in_inheritance_clause", "true"),
+    ("csharp_space_around_binary_operators", "before_and_after"),
+    (
+        "csharp_space_between_method_declaration_parameter_list_parentheses",
+        "false",
+    ),
+    (
+        "csharp_space_between_method_declaration_empty_parameter_list_parentheses",
+        "false",
+    ),
+    (
+        "csharp_space_between_method_declaration_name_and_open_parenthesis",
+        "false",
+    ),
+    (
+        "csharp_space_between_method_call_parameter_list_parentheses",
+        "false",
+    ),
+    (
+        "csharp_space_between_method_call_empty_parameter_list_parentheses",
+        "false",
+    ),
+    (
+        "csharp_space_between_method_call_name_and_opening_parenthesis",
+        "false",
+    ),
+    ("csharp_space_after_comma", "true"),
+    ("csharp_space_before_comma", "false"),
+    ("csharp_space_after_dot", "false"),
+    ("csharp_space_before_dot", "false"),
+    ("csharp_space_after_semicolon_in_for_statement", "true"),
+    ("csharp_space_before_semicolon_in_for_statement", "false"),
+    ("csharp_space_around_declaration_statements", "false"),
+    ("csharp_space_before_open_square_brackets", "false"),
+    ("csharp_space_between_empty_square_brackets", "false"),
+    ("csharp_space_between_square_brackets", "false"),
+];
 
 #[derive(Debug)]
 struct Section {
@@ -176,6 +264,52 @@ fn properties(files: &[(PathBuf, Parsed)], file: &Path) -> Props {
     props
 }
 
+/// `csharp_new_line_before_open_brace`: `all`, `none`, or the elements that get a new line.
+fn map_braces(props: &Props, push: &mut impl FnMut(&'static str, &str, OptionValue)) {
+    const KEY: &str = "csharp_new_line_before_open_brace";
+    let Some((v, ..)) = props.get(KEY) else {
+        return;
+    };
+    let string = |s: &str| OptionValue::String(s.into());
+    match v.as_str() {
+        "all" => {
+            push("brace_newline", KEY, string("all"));
+            push("brace_same_line", KEY, OptionValue::List(Vec::new()));
+            push("wrapped_brace_line", KEY, string("creation"));
+        }
+        "none" => {
+            push("brace_newline", KEY, string("none"));
+            push("wrapped_brace_line", KEY, string("none"));
+        }
+        list => {
+            let listed: Vec<&str> = list.split(',').map(str::trim).collect();
+            let same_line = BRACE_ELEMENTS
+                .into_iter()
+                .filter(|e| !listed.contains(e))
+                .map(string)
+                .collect();
+            push("brace_newline", KEY, string("all"));
+            push("brace_same_line", KEY, OptionValue::List(same_line));
+        }
+    }
+}
+
+/// The formatting keys of the file's sections that Sudsy has no option for and does not follow.
+fn ignored(props: &Props) -> Vec<IgnoredKey> {
+    FIXED
+        .iter()
+        .filter_map(|(key, fixed)| {
+            let (value, file, line) = props.get(*key)?;
+            (value != fixed).then(|| IgnoredKey {
+                key: (*key).into(),
+                value: value.clone(),
+                file: file.clone(),
+                line: *line,
+            })
+        })
+        .collect()
+}
+
 fn map(props: &Props) -> Vec<EditorConfigValue> {
     let mut out = Vec::new();
     let mut push = |option: &'static str, key: &str, value: OptionValue| {
@@ -232,14 +366,33 @@ fn map(props: &Props) -> Vec<EditorConfigValue> {
     {
         push("end_of_line", "end_of_line", OptionValue::String(v.clone()));
     }
-    if let Some((v, ..)) = props.get("csharp_new_line_before_open_brace")
-        && matches!(v.as_str(), "all" | "none")
-    {
-        push(
-            "brace_newline",
-            "csharp_new_line_before_open_brace",
-            OptionValue::String(v.clone()),
-        );
+    map_braces(props, &mut push);
+    for (key, option) in [
+        ("csharp_new_line_before_else", "else_line"),
+        ("csharp_new_line_before_catch", "catch_line"),
+        ("csharp_new_line_before_finally", "finally_line"),
+    ] {
+        if let Some((v, ..)) = props.get(key)
+            && matches!(v.as_str(), "true" | "false")
+        {
+            let line = if v == "true" { "new_line" } else { "same_line" };
+            push(option, key, OptionValue::String(line.into()));
+        }
+    }
+    if let Some((v, ..)) = props.get("csharp_indent_labels") {
+        let indent = match v.as_str() {
+            "flush_left" => Some("flush_left"),
+            "one_less_than_current" => Some("one_less"),
+            "no_change" => Some("no_change"),
+            _ => None,
+        };
+        if let Some(indent) = indent {
+            push(
+                "label_indent",
+                "csharp_indent_labels",
+                OptionValue::String(indent.into()),
+            );
+        }
     }
     out
 }
@@ -264,8 +417,10 @@ impl EditorConfig {
     }
 
     fn from_files(files: &[(PathBuf, Parsed)], file: &Path) -> EditorConfig {
+        let props = properties(files, file);
         EditorConfig {
-            values: map(&properties(files, file)),
+            values: map(&props),
+            ignored: ignored(&props),
         }
     }
 
@@ -298,9 +453,66 @@ mod tests {
                 ("line_width", OptionValue::Int(90)),
                 ("final_newline", OptionValue::Bool(false)),
                 ("brace_newline", OptionValue::String("none".into())),
+                ("wrapped_brace_line", OptionValue::String("none".into())),
             ]
         );
         assert_eq!(values(text, "/repo/a/b.json").len(), 4);
+    }
+
+    fn word_list(items: &[&str]) -> OptionValue {
+        OptionValue::List(
+            items
+                .iter()
+                .map(|i| OptionValue::String((*i).into()))
+                .collect(),
+        )
+    }
+
+    #[test]
+    fn a_list_of_elements_puts_the_others_on_the_line_of_their_head() {
+        let got = values(
+            "[*.cs]\ncsharp_new_line_before_open_brace = Types, methods\n",
+            "/repo/A.cs",
+        );
+        assert_eq!(
+            got,
+            [
+                ("brace_newline", OptionValue::String("all".into())),
+                (
+                    "brace_same_line",
+                    word_list(&[
+                        "accessors",
+                        "anonymous_methods",
+                        "anonymous_types",
+                        "control_blocks",
+                        "lambdas",
+                        "object_collection_array_initializers",
+                        "properties",
+                    ])
+                ),
+            ]
+        );
+    }
+
+    #[test]
+    fn clause_keywords_and_labels() {
+        let text = "[*.cs]\ncsharp_new_line_before_else = false\ncsharp_new_line_before_catch = true\ncsharp_new_line_before_finally = maybe\ncsharp_indent_labels = one_less_than_current\n";
+        assert_eq!(
+            values(text, "/repo/A.cs"),
+            [
+                ("else_line", OptionValue::String("same_line".into())),
+                ("catch_line", OptionValue::String("new_line".into())),
+                ("label_indent", OptionValue::String("one_less".into())),
+            ]
+        );
+    }
+
+    #[test]
+    fn unmapped_formatting_keys_are_reported_when_they_differ_from_sudsy() {
+        let text = "[*.cs]\ncsharp_space_after_cast = true\ncsharp_space_after_comma = true\ndotnet_style_qualification_for_field = true\ncsharp_style_var_for_built_in_types = true\n[*.json]\ncsharp_space_before_comma = true\n";
+        let ec = EditorConfig::from_text(Path::new("/repo"), text, Path::new("/repo/A.cs"));
+        let keys: Vec<_> = ec.ignored.iter().map(|i| (&*i.key, i.line)).collect();
+        assert_eq!(keys, [("csharp_space_after_cast", 2)]);
     }
 
     #[test]
