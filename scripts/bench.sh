@@ -5,8 +5,8 @@
 #   fixed inputs (bench/inputs + generated), the candidate (working tree) against the baseline
 #   (--base, default the merge-base with origin/main; HEAD or HEAD^ when that is HEAD), built in a
 #   git worktree: instructions (callgrind, in WSL on Windows) and allocations. Exit 1 on a
-#   regression: instructions +1%, allocations +1% (and 10 or more); the lint-all metrics (every rule
-#   on, so they grow with each new rule) are printed but never flagged.
+#   regression: instructions +1%, allocations +1% (and 10 or more); the lint-all and lint-docs metrics (every
+#   rule on, resp. the C# documentation rules, so they grow with each new rule) are printed but never flagged.
 # Tier 2 (--time): interleaved A/B wall time of the CLI, with the C# worker; exit 1 only when the
 #   95% confidence interval of the candidate/baseline ratio lies above 1.03.
 # Run from Git Bash on Windows (WSL needs scripts/bench-setup-wsl.sh once) or natively on Linux.
@@ -89,7 +89,7 @@ awk -v B="$out/base.all" -v C="$out/cand.all" 'BEGIN {
     m = k[i]; if (!(m in b)) { printf "%-26s %14s %14d  (new)\n", m, "-", c[m]; continue }
     d = (b[m] == 0) ? 0 : 100 * (c[m] - b[m]) / b[m]
     if (m ~ /\.work$/) { if (c[m] != b[m]) printf "%-26s %14d %14d  output size changed\n", m, b[m], c[m]; continue }
-    flag = ""; if (m ~ /lint-all/) flag = "  (informational)"; else if (d >= 1 && (m ~ /\.instr$/ || c[m] - b[m] >= 10)) { flag = "  REGRESSION"; bad++ } else if (d <= -1) flag = "  improved"
+    flag = ""; if (m ~ /lint-(all|docs)/) flag = "  (informational)"; else if (d >= 1 && (m ~ /\.instr$/ || c[m] - b[m] >= 10)) { flag = "  REGRESSION"; bad++ } else if (d <= -1) flag = "  improved"
     printf "%-26s %14d %14d %+7.2f%%%s\n", m, b[m], c[m], d, flag
   }
   exit bad > 0

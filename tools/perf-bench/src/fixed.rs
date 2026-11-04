@@ -1,6 +1,6 @@
 //! `perf-bench fixed LANG PHASE [--inputs DIR]`: one fixed, deterministic workload for scripts/bench.sh,
 //! which runs it under callgrind (instruction counts) and with `--features count` (allocations).
-//! LANG is json, yaml, toml or cs; PHASE is parse, format, format-query, lint, lint-all, patterns or plugins. Inputs are the
+//! LANG is json, yaml, toml or cs; PHASE is parse, format, format-query, lint, lint-all, lint-docs (C#), patterns or plugins. Inputs are the
 //! committed files under DIR (default bench/inputs/<lang>) plus generated JSON, YAML and TOML. Only the
 //! work inside `measured` is counted; callgrind is told to collect between its entry and exit.
 
@@ -141,6 +141,23 @@ pub fn run(lang: &str, phase: &str, dir: &Path) -> Result<()> {
             let (w, a) = measured(&mut || diagnostics(p, &files, &rules));
             (files.len(), w, a)
         }
+        "lint-docs" => {
+            // The C# documentation comment rules only, at their defaults (they are off by
+            // default). A baseline without them measures no rules.
+            let files = parsed();
+            let rules: Vec<ActiveRule<'_>> = own_and_shared(p)
+                .filter(|r| DOCUMENTATION_RULES.contains(&r.meta().id))
+                .map(extensions::active)
+                .collect();
+            let started = std::time::Instant::now();
+            let (w, a) = measured(&mut || diagnostics(p, &files, &rules));
+            eprintln!(
+                "TIME {lang} {phase} rules={} ms={:.1}",
+                rules.len(),
+                started.elapsed().as_secs_f64() * 1e3
+            );
+            (files.len(), w, a)
+        }
         "patterns" => {
             let files = parsed();
             let (w, a) = measured(&mut || {
@@ -171,7 +188,9 @@ pub fn run(lang: &str, phase: &str, dir: &Path) -> Result<()> {
             });
             (files.len(), w, a)
         }
-        _ => bail!("PHASE is parse, format, format-query, lint, lint-all, patterns or plugins"),
+        _ => bail!(
+            "PHASE is parse, format, format-query, lint, lint-all, lint-docs, patterns or plugins"
+        ),
     };
     let allocs = if cfg!(feature = "count") {
         format!(" allocs={allocs}")
@@ -181,6 +200,34 @@ pub fn run(lang: &str, phase: &str, dir: &Path) -> Result<()> {
     println!("RESULT {lang} {phase} files={files} bytes={bytes} work={work}{allocs}");
     Ok(())
 }
+
+/// The C# documentation comment rules (StyleCop SA16xx), for the `lint-docs` phase.
+const DOCUMENTATION_RULES: &[&str] = &[
+    "constructor-summary-standard-text",
+    "destructor-summary-standard-text",
+    "doc-param-has-name",
+    "doc-param-has-text",
+    "doc-partial-required",
+    "doc-partial-summary-required",
+    "doc-partial-summary-text",
+    "doc-partial-typeparams",
+    "doc-returns-has-text",
+    "doc-returns-required",
+    "doc-summary-required",
+    "doc-summary-text",
+    "doc-text-ends-with-period",
+    "doc-text-not-empty",
+    "doc-typeparam-has-name",
+    "doc-typeparam-has-text",
+    "doc-value-text",
+    "no-default-summary",
+    "no-doc-placeholder",
+    "no-doc-slashes-in-plain-comment",
+    "no-duplicate-doc-text",
+    "no-returns-on-void",
+    "property-summary-matches-accessors",
+    "property-summary-omits-restricted-accessor",
+];
 
 /// The provider's rules and the ones every language shares.
 fn own_and_shared(p: &dyn LanguageProvider) -> impl Iterator<Item = &'static dyn core_rules::Rule> {
