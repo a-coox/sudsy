@@ -6,8 +6,8 @@ use crate::host::{Plugin, PluginError, w};
 use core_config::Level;
 use core_format::{Directive, NodeKey};
 use core_rules::{
-    Category, Edit, Fix, FixKind, Layer, Opt, OptionDecl, ProjectContext, ProjectFacts, Rule,
-    RuleContext, RuleMeta, RuleOptions,
+    Category, Check, Edit, Fix, FixKind, Layer, Opt, OptionDecl, ProjectContext, ProjectFacts,
+    Rule, RuleContext, RuleMeta, RuleOptions,
 };
 use core_rules::{FileContext, LayoutRole};
 use core_syntax::wire::FlatTree;
@@ -84,6 +84,7 @@ fn meta_of(plugin: &str, r: w::RuleInfo) -> Result<&'static RuleMeta, PluginErro
         .map(|o| OptionDecl {
             name: leak(o.name.clone()),
             description: leak(o.description.clone()),
+            check: Check::Any,
             default: match &o.default_value {
                 w::OptionValue::Flag(b) => Opt::Bool(*b),
                 w::OptionValue::Integer(i) => Opt::Int(*i),

@@ -9,7 +9,7 @@ use core_config::Level;
 use core_rules::sorting::{self, Sorting};
 use core_rules::tree::{entry_range, reorder_edits, significant_range};
 use core_rules::{
-    Category, Edit, FileContext, Fix, FixKind, Opt, OptionDecl, Rule, RuleContext, RuleMeta,
+    Category, Check, Edit, FileContext, Fix, FixKind, Opt, OptionDecl, Rule, RuleContext, RuleMeta,
 };
 use core_syntax::ast::AstNode;
 use core_syntax::{SyntaxKind, SyntaxNode, TextRange, TextSize};
@@ -58,6 +58,7 @@ static NO_DUPLICATE_KEYS: RuleMeta = RuleMeta {
     options: &[OptionDecl {
         name: "merge_keys",
         default: Opt::Str("allow"),
+        check: Check::OneOf(&["allow", "forbid"]),
         description: "`allow` skips `<<` merge keys; `forbid` reports a second `<<` in a mapping like any other duplicate key.",
     }],
 };
@@ -173,11 +174,13 @@ static AMBIGUOUS_BOOLEANS: RuleMeta = RuleMeta {
         OptionDecl {
             name: "check_keys",
             default: Opt::Bool(true),
+            check: Check::Any,
             description: "Also check mapping keys. Turn it off to keep GitHub workflow `on:`.",
         },
         OptionDecl {
             name: "allowed",
             default: Opt::List(&[]),
+            check: Check::Any,
             description: "Spellings that are not reported, for example `[\"on\"]`.",
         },
     ],

@@ -32,8 +32,8 @@ pub use core_format::Directive;
 pub use core_patterns as patterns;
 pub use core_rules::tree;
 pub use core_rules::{
-    BodyContext, Category, Edit, FileContext, Fix, FixKind, Layer, LayoutRole, Opt, OptionDecl,
-    ProjectContext, ProjectFacts, Rule, RuleContext, RuleMeta, RuleOptions,
+    BodyContext, Category, Check, Edit, FileContext, Fix, FixKind, Layer, LayoutRole, Opt,
+    OptionDecl, ProjectContext, ProjectFacts, Rule, RuleContext, RuleMeta, RuleOptions,
 };
 pub use core_semantics;
 pub use core_syntax::{self, SyntaxKind, SyntaxNode, TextRange, TextSize};

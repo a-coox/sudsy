@@ -1,7 +1,7 @@
 //! Ordering shared by the `sorted-keys` rules (JSON, YAML) and `sorted-array-values`: the options,
 //! the comparison and the plan that says which entries are out of place and where each belongs.
 
-use crate::options::{Opt, OptionDecl, RuleOptions};
+use crate::options::{Check, Opt, OptionDecl, RuleOptions};
 use regex::Regex;
 use std::cell::RefCell;
 use std::cmp::Ordering;
@@ -10,32 +10,38 @@ use std::collections::HashMap;
 pub const ORDER: OptionDecl = OptionDecl {
     name: "order",
     default: Opt::List(&[]),
+    check: Check::Any,
     description: "Keys that come first, in this order; the rest follow in the configured order.",
 };
 pub const DIRECTION: OptionDecl = OptionDecl {
     name: "direction",
     default: Opt::Str("asc"),
+    check: Check::OneOf(&["asc", "desc"]),
     description: "`asc` or `desc`.",
 };
 pub const COMPARE: OptionDecl = OptionDecl {
     name: "compare",
     default: Opt::Str("ordinal"),
+    check: Check::OneOf(&["ordinal", "case_insensitive", "natural"]),
     description: "`ordinal` (code points), `case_insensitive`, or `natural` (digit runs compare \
                   as numbers: `a2` before `a10`).",
 };
 pub const IGNORED_KEYS: OptionDecl = OptionDecl {
     name: "ignored_keys",
     default: Opt::List(&[]),
+    check: Check::Regex,
     description: "Regular expressions; matching keys stay where they are and are not compared.",
 };
 pub const MIN_KEYS: OptionDecl = OptionDecl {
     name: "min_keys",
     default: Opt::Int(2),
+    check: Check::Any,
     description: "Mappings with fewer keys are not checked.",
 };
 pub const BLANK_LINE_GROUPS: OptionDecl = OptionDecl {
     name: "blank_line_groups",
     default: Opt::Bool(false),
+    check: Check::Any,
     description: "Sort each run of entries between blank lines on its own.",
 };
 
@@ -78,7 +84,7 @@ thread_local! {
     static REGEXES: RefCell<HashMap<String, Option<Regex>>> = RefCell::new(HashMap::new());
 }
 
-/// A compiled pattern, compiled once per thread; a pattern that does not compile matches nothing.
+/// A compiled pattern, compiled once per thread; options are validated, so it compiles.
 pub fn cached_regex(pattern: &str) -> Option<Regex> {
     REGEXES.with(|c| {
         c.borrow_mut()
@@ -89,7 +95,7 @@ pub fn cached_regex(pattern: &str) -> Option<Regex> {
 }
 
 impl<'a> Sorting<'a> {
-    /// Unknown `direction` and `compare` values mean the defaults. `min_option` names the
+    /// `min_option` names the
     /// threshold option of the rule (`min_keys`, `min_values`).
     pub fn new(options: &'a RuleOptions, min_option: &str) -> Self {
         Sorting {

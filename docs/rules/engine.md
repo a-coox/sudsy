@@ -3,7 +3,7 @@
 Three rule sources (built-in Rust, pattern files, Wasm plugins) report into one diagnostics model and one fix engine.
 
 ## Rule trait
-- Object-safe; rules are zero-sized statics (`&'static dyn Rule`), no state. Options are data: a rule declares `OptionDecl`s (name, typed default, description) in `RuleMeta`; `RuleOptions::resolve` checks names/types and the rule reads typed values from `ctx.options`. Rule options appear in the generated JSON Schema (one entry per rule id under `lint.rules`) and in `sudsy rules <id>`.
+- Object-safe; rules are zero-sized statics (`&'static dyn Rule`), no state. Options are data: a rule declares `OptionDecl`s (name, typed default, `Check`, description) in `RuleMeta`; a `Check` is `Any`, `OneOf(values)` (enum options; also the JSON Schema `enum`) or `Regex` (every string must compile); `RuleOptions::resolve` checks names, types and checks and the rule reads typed values from `ctx.options`. Rule options appear in the generated JSON Schema (one entry per rule id under `lint.rules`) and in `sudsy rules <id>`.
 - `RuleMeta`: id, category (`correctness`, `suspicious`, `style`, `cleanup`, `performance`; also fix priority order), default level, fix kind, `requires` (layers needed) and `uses` (layers that improve it).
 - Ids are short (`no-empty-catch`); the section or the file's language supplies the language. Shared rules (`max-line-length`, in `core_rules::shared`) apply to every language and no language rule may reuse their id. Plugin and pattern ids may carry a prefix (`team/x`).
 - Providers hand rules over via `LanguageProvider::rules()` and `body_kinds()`.

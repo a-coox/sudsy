@@ -2,7 +2,7 @@
 
 use crate::comments::{CommentSpace, NoEmptyComment};
 use crate::diagnostic::Category;
-use crate::options::{Opt, OptionDecl};
+use crate::options::{Check, Opt, OptionDecl};
 use crate::rule::{FileContext, Rule, RuleContext, RuleMeta};
 use core_config::Level;
 use core_syntax::{TextRange, TextSize};
@@ -25,11 +25,13 @@ static MAX_LINE_LENGTH: RuleMeta = RuleMeta {
         OptionDecl {
             name: "max",
             default: Opt::Int(120),
+            check: Check::Any,
             description: "Longest allowed line, in characters.",
         },
         OptionDecl {
             name: "allow_non_breakable_words",
             default: Opt::Bool(true),
+            check: Check::Any,
             description: "Do not report a line that has no space after its indentation (and \
                           after a leading `#` run or `- `), such as a long URL.",
         },

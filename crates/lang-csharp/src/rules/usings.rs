@@ -4,7 +4,7 @@ use crate::generated::{
 };
 use core_config::Level;
 use core_rules::tree::{entry_range, reorder_edits, significant_range};
-use core_rules::{Category, Fix, FixKind, Opt, OptionDecl, Rule, RuleContext, RuleMeta};
+use core_rules::{Category, Check, Fix, FixKind, Opt, OptionDecl, Rule, RuleContext, RuleMeta};
 use core_syntax::ast::AstNode;
 use core_syntax::{SyntaxKind, SyntaxNode, TextRange};
 
@@ -25,6 +25,7 @@ static META: RuleMeta = RuleMeta {
     options: &[OptionDecl {
         name: "system_first",
         default: Opt::Bool(true),
+        check: Check::Any,
         description: "Put `System` and `System.*` before the other namespaces.",
     }],
 };

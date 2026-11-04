@@ -4,7 +4,8 @@ use super::{BODY_KINDS, kind, range_of};
 use core_config::Level;
 use core_flow::{LocalKind, OpFlags, OpKind, dead_stores};
 use core_rules::{
-    BodyContext, Category, Edit, Fix, FixKind, Layer, Opt, OptionDecl, Rule, RuleContext, RuleMeta,
+    BodyContext, Category, Check, Edit, Fix, FixKind, Layer, Opt, OptionDecl, Rule, RuleContext,
+    RuleMeta,
 };
 use core_syntax::{SyntaxNode, TextRange};
 use std::collections::BTreeSet;
@@ -28,6 +29,7 @@ static UNREACHABLE: RuleMeta = RuleMeta {
     options: &[OptionDecl {
         name: "non_returning_calls",
         default: Opt::Bool(true),
+        check: Check::Any,
         description: "Treat the code after a call that never returns (`[DoesNotReturn]`,                       `does_not_return` in `semantics:`) as unreachable. The compiler does not,                       so turn this off to report exactly what it reports (CS0162).",
     }],
 };

@@ -4,7 +4,7 @@ use crate::generated::{Member, kind};
 use crate::string::string_value;
 use core_config::Level;
 use core_rules::sorting;
-use core_rules::{Category, Opt, OptionDecl, Rule, RuleContext, RuleMeta};
+use core_rules::{Category, Check, Opt, OptionDecl, Rule, RuleContext, RuleMeta};
 use core_syntax::ast::AstNode;
 use core_syntax::{SyntaxKind, SyntaxNode};
 
@@ -44,6 +44,14 @@ impl Rule for NoEmptyKeys {
 
 pub struct KeyNameCasing;
 
+const CONVENTIONS: [&str; 5] = [
+    "camelCase",
+    "PascalCase",
+    "snake_case",
+    "kebab-case",
+    "SCREAMING_SNAKE_CASE",
+];
+
 static KEY_NAME_CASING: RuleMeta = RuleMeta {
     id: "key-name-casing",
     category: Category::Style,
@@ -60,6 +68,7 @@ static KEY_NAME_CASING: RuleMeta = RuleMeta {
         OptionDecl {
             name: "allowed",
             default: Opt::List(&["camelCase"]),
+            check: Check::OneOf(&CONVENTIONS),
             description: "Accepted conventions: `camelCase`, `PascalCase`, `snake_case`, \
                           `kebab-case`, `SCREAMING_SNAKE_CASE`. A key is fine when it matches one.",
         },

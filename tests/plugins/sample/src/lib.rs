@@ -4,8 +4,8 @@
 
 use plugin_sdk::tree::significant_range;
 use plugin_sdk::{
-    BodyContext, Category, Directive, Edit, FileContext, Fix, FixKind, Layer, LayoutRole, Level,
-    Opt, OptionDecl, ProjectContext, ProjectFacts, Rule, RuleContext, RuleMeta, SyntaxKind,
+    BodyContext, Category, Check, Directive, Edit, FileContext, Fix, FixKind, Layer, LayoutRole,
+    Level, Opt, OptionDecl, ProjectContext, ProjectFacts, Rule, RuleContext, RuleMeta, SyntaxKind,
     SyntaxNode, kind_of,
 };
 use std::collections::HashMap;
@@ -26,6 +26,7 @@ static NO_DEBUG_FLAG: RuleMeta = RuleMeta {
     options: &[OptionDecl {
         name: "key",
         default: Opt::Str("debug"),
+        check: Check::Any,
         description: "The member that must not be true.",
     }],
 };
@@ -87,6 +88,7 @@ static BRANCHY_BODY: RuleMeta = RuleMeta {
     options: &[OptionDecl {
         name: "max_branches",
         default: Opt::Int(3),
+        check: Check::Any,
         description: "The most blocks that may branch.",
     }],
 };
@@ -215,6 +217,7 @@ static BREAK_ARRAYS: RuleMeta = RuleMeta {
     options: &[OptionDecl {
         name: "min_items",
         default: Opt::Int(2),
+        check: Check::Any,
         description: "Arrays with more items than this break.",
     }],
 };
@@ -255,6 +258,7 @@ static MISBEHAVE: RuleMeta = RuleMeta {
     options: &[OptionDecl {
         name: "mode",
         default: Opt::Str("trap"),
+        check: Check::Any,
         description: "trap | spin | sleep | span",
     }],
 };

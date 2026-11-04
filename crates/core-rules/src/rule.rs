@@ -3,7 +3,7 @@
 use crate::diagnostic::{Category, Diagnostic, FixKind, Severity};
 use crate::layout::{LayoutRole, LayoutSink};
 use crate::lines::LineIndex;
-use crate::options::{OptionDecl, RuleOptions};
+use crate::options::{Check, OptionDecl, RuleOptions};
 use crate::project::{ProjectContext, ProjectFacts};
 use core_config::{Level, RuleOptionSchema, RuleSchema};
 use core_semantics::{BodyFlow, SemanticView};
@@ -45,6 +45,10 @@ impl RuleMeta {
                     name: o.name.to_string(),
                     description: o.description.to_string(),
                     default: o.default.value(),
+                    choices: match o.check {
+                        Check::OneOf(values) => values.iter().map(|s| (*s).to_string()).collect(),
+                        _ => Vec::new(),
+                    },
                 })
                 .collect(),
         }

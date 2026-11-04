@@ -5,7 +5,7 @@ use crate::string::string_value;
 use core_config::Level;
 use core_rules::sorting::{self, Sorting};
 use core_rules::tree::{entry_range, reorder_edits};
-use core_rules::{Category, Fix, FixKind, Opt, OptionDecl, Rule, RuleContext, RuleMeta};
+use core_rules::{Category, Check, Fix, FixKind, Opt, OptionDecl, Rule, RuleContext, RuleMeta};
 use core_syntax::ast::AstNode;
 use core_syntax::{SyntaxKind, SyntaxNode};
 use std::cmp::Ordering;
@@ -91,6 +91,7 @@ static SORTED_ARRAY_VALUES: RuleMeta = RuleMeta {
         OptionDecl {
             name: "min_values",
             default: Opt::Int(2),
+            check: Check::Any,
             description: "Arrays with fewer elements are not checked.",
         },
         sorting::BLANK_LINE_GROUPS,

@@ -47,8 +47,8 @@ Semantic rules' details: [semantics.md](semantics.md). A rule that is a style ch
 | Option | Default | Meaning |
 |---|---|---|
 | `order` | `[]` | `sorted-keys` only: keys that come first, in this order |
-| `direction` | `asc` | `asc` or `desc`; any other value means `asc` |
-| `compare` | `ordinal` | `ordinal` (code points), `case_insensitive`, `natural` (digit runs compare as numbers, the rest by code point); any other value means `ordinal` |
-| `ignored_keys` | `[]` | `sorted-keys` and `key-name-casing`: regexes searched in the key; with `sorted-keys` matching keys are not compared and stay where they are; a pattern that does not compile matches nothing |
+| `direction` | `asc` | `asc` or `desc` |
+| `compare` | `ordinal` | `ordinal` (code points), `case_insensitive`, `natural` (digit runs compare as numbers, the rest by code point) |
+| `ignored_keys` | `[]` | `sorted-keys` and `key-name-casing`: regexes searched in the key; with `sorted-keys` matching keys are not compared and stay where they are; a pattern that does not compile is a config error |
 | `min_keys` / `min_values` | `2` | objects or arrays with fewer entries are not checked |
 | `blank_line_groups` | `false` | sort each run of entries between blank lines on its own |

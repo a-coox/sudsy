@@ -34,6 +34,6 @@ pub use extension::{ALL_LANGUAGES, ExtensionRule, Extensions};
 pub use fixes::{Analysis, FixOutcome, fix_loop};
 pub use layout::{Attach, LayoutRole, attached, run_layout};
 pub use lines::LineIndex;
-pub use options::{Opt, OptionDecl, RuleOptions};
+pub use options::{Check, Opt, OptionDecl, RuleOptions};
 pub use project::{Fact, ProjectContext, ProjectFacts};
 pub use rule::{BodyContext, FileContext, Layer, Rule, RuleContext, RuleMeta};

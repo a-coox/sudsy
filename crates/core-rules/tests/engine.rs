@@ -34,6 +34,7 @@ static PROBE: RuleMeta = RuleMeta {
     options: &[OptionDecl {
         name: "word",
         default: Opt::Str("hit"),
+        check: Check::Any,
         description: "",
     }],
 };

@@ -114,3 +114,21 @@ fn sorted_array_values() {
     assert_eq!(values("min_values: 3", "[2, 1]"), "[2, 1]");
     assert_eq!(report("[\"b\", \"a\"]", ""), "");
 }
+
+#[test]
+#[should_panic(expected = "option `direction` must be one of `asc`, `desc`, not `up`")]
+fn invalid_direction_is_a_config_error() {
+    fixed("sorted-keys", "direction: up", "{}");
+}
+
+#[test]
+#[should_panic(expected = "rule `key-name-casing`")]
+fn invalid_casing_is_a_config_error() {
+    fixed("key-name-casing", "allowed: [Camel]", "{}");
+}
+
+#[test]
+#[should_panic(expected = "option `ignored_keys` has an invalid regular expression `(`")]
+fn invalid_ignored_keys_regex_is_a_config_error() {
+    fixed("sorted-keys", "ignored_keys: [\"(\"]", "{}");
+}

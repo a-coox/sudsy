@@ -56,6 +56,8 @@ pub struct RuleOptionSchema {
     pub name: String,
     pub description: String,
     pub default: OptionValue,
+    /// The only accepted values (of a string, or of each item of a list); empty when any is.
+    pub choices: Vec<String>,
 }
 
 fn rule_option_json(option: &RuleOptionSchema) -> Value {
@@ -65,6 +67,14 @@ fn rule_option_json(option: &RuleOptionSchema) -> Value {
         OptionValue::List(_) => json!({ "type": "array", "items": { "type": "string" } }),
         _ => json!({ "type": "string" }),
     };
+    if !option.choices.is_empty() {
+        let target = if out["type"] == "array" {
+            &mut out["items"]
+        } else {
+            &mut out
+        };
+        target["enum"] = json!(option.choices);
+    }
     out["description"] = json!(option.description);
     out["default"] = value_json(&option.default);
     out
@@ -315,6 +325,7 @@ mod tests {
                 name: "order".into(),
                 description: "The order.".into(),
                 default: OptionValue::List(vec![]),
+                choices: vec!["a".into(), "b".into()],
             }],
         };
         let doc = json_schema(&[], &[rule]);
@@ -324,5 +335,9 @@ mod tests {
             "array"
         );
         assert_eq!(entry["description"], "A rule.");
+        assert_eq!(
+            entry["oneOf"][1]["properties"]["options"]["properties"]["order"]["items"]["enum"],
+            json!(["a", "b"])
+        );
     }
 }
