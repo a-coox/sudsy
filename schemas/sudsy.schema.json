@@ -1351,6 +1351,7 @@
           "preset:json/default",
           "preset:json/prettier-compat",
           "preset:toml/default",
+          "preset:toml/taplo-compat",
           "preset:yaml/default",
           "preset:yaml/prettier-compat",
           "preset:yaml/yamllint"
@@ -2100,6 +2101,11 @@
               "format": {
                 "additionalProperties": false,
                 "properties": {
+                  "align_comments": {
+                    "default": false,
+                    "description": "Start the trailing comments of consecutive entries in one column (entries with no              blank line or comment line between them); a run with an entry on several lines is not \n             aligned.",
+                    "type": "boolean"
+                  },
                   "array_bracket_spacing": {
                     "default": false,
                     "description": "Spaces inside the brackets of a one-line sequence or array: `[ 1, 2 ]` or `[1, 2]`.",
@@ -2156,6 +2162,13 @@
                     "description": "Preferred maximum line width in columns.",
                     "maximum": 1000,
                     "minimum": 20,
+                    "type": "integer"
+                  },
+                  "max_blank_lines": {
+                    "default": 1,
+                    "description": "Largest number of blank lines kept between entries, tables and comments.",
+                    "maximum": 10,
+                    "minimum": 0,
                     "type": "integer"
                   },
                   "trailing_commas": {
@@ -2358,6 +2371,11 @@
         "format": {
           "additionalProperties": false,
           "properties": {
+            "align_comments": {
+              "default": false,
+              "description": "Start the trailing comments of consecutive entries in one column (entries with no              blank line or comment line between them); a run with an entry on several lines is not \n             aligned.",
+              "type": "boolean"
+            },
             "array_bracket_spacing": {
               "default": false,
               "description": "Spaces inside the brackets of a one-line sequence or array: `[ 1, 2 ]` or `[1, 2]`.",
@@ -2414,6 +2432,13 @@
               "description": "Preferred maximum line width in columns.",
               "maximum": 1000,
               "minimum": 20,
+              "type": "integer"
+            },
+            "max_blank_lines": {
+              "default": 1,
+              "description": "Largest number of blank lines kept between entries, tables and comments.",
+              "maximum": 10,
+              "minimum": 0,
               "type": "integer"
             },
             "trailing_commas": {

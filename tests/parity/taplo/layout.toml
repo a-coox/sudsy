@@ -1,0 +1,21 @@
+name = "x" # the name
+version="1.0.0"      # the version
+authors = ["a",
+  "b"]
+
+
+
+# Blank lines (two are kept), aligned comments, collapsed and expanded arrays.
+[dependencies]
+serde = { version = "1", features = ["derive"] }   # json
+tokio = { version = "1", features = ["rt",   "macros"] }
+short = [
+  1,
+  2,
+]
+long = ["aaaaaaaaaaaaaaaaaaaa", "bbbbbbbbbbbbbbbbbbbb", "cccccccccccccccccccc", "dddddddddddd"]
+   # indented comment
+
+[[bin]]
+path   =   "src/main.rs"   # entry
+a . b = 1

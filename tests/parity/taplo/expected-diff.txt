@@ -1,0 +1,11 @@
+# Fixtures where Sudsy and taplo legitimately differ: "<fixture>: <reason>" per line.
+fixtures/handwritten-values.toml: taplo rejects `[[ products ]]` (spaces inside the brackets of an array-of-tables header)
+valid/comment/nonascii.toml: taplo rejects the file (valid TOML)
+valid/datetime/edge.toml: taplo rejects the file (valid TOML)
+valid/key/quoted-unicode.toml: taplo rejects the file (valid TOML)
+valid/comment/tricky.toml: taplo drops the comment `#,9` after an array item that is followed by a comma on the next line
+valid/array/string-with-comma-2.toml: taplo keeps an array with a multi-line string on one line; Sudsy expands it
+valid/inline-table/spaces.toml: taplo expands an array inside a long inline table even when it fits after the break; Sudsy breaks only what does not fit
+valid/empty-file.toml: taplo writes a newline for an empty file; Sudsy keeps it empty
+valid/string/quoted-unicode.toml: taplo rejects the file (valid TOML)
+valid/string/multiline-escaped-crlf.toml: taplo keeps CRLF inside a multi-line string and converts the rest; Sudsy writes LF everywhere

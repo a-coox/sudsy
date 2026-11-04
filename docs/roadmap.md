@@ -3,7 +3,7 @@
 One line each; none is committed.
 
 ## Languages and analysis
-- TOML: TOML 1.1 syntax (the tree-sitter grammar targets 1.0; needs an upstream fix or a fork), a `toml/taplo-compat` preset (needs a parity check against taplo), format `Cargo.lock`.
+- TOML: TOML 1.1 syntax (the tree-sitter grammar targets 1.0; needs an upstream fix or a fork), format `Cargo.lock` (cargo writes arrays indented by one space, so formatting it with the defaults rewrites the whole file; it needs a file-name matcher plus a preset).
 - More tree-sitter languages ([architecture/adding-a-language.md](architecture/adding-a-language.md)); replacing one with a hand-written parser where speed or error messages matter.
 - Native C# parser (Roslyn stays the only one; the conformance suite and addressing by `(file, version, span, kind)` keep the door open).
 - `MSBuildWorkspace` / project- and NuGet-aware binding with syntax-only fallback (replaces `Workspace.cs` without a protocol change).

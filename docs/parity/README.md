@@ -1,6 +1,6 @@
 # Parity catalog
 
-What the tools Sudsy aims to replace do, and where Sudsy stands. One file per tool: `yamllint.yaml`, `prettier.yaml` (YAML and JSON), `biome.yaml` (JSON), `eslint-plugin-jsonc.yaml`, `stylecop.yaml` (StyleCop.Analyzers 1.2.0-beta.556), `csharpier.yaml`, `dotnet-format-editorconfig.yaml` (the IDE0055 formatting options and `.editorconfig` keys), `roslynator.yaml` (overlaps with the others only). Upstream versions are in each file's `version`. Sudsy facts were observed on a debug build; entries without a "Verified" note follow from the documentation of the tool.
+What the tools Sudsy aims to replace do, and where Sudsy stands. One file per tool: `yamllint.yaml`, `prettier.yaml` (YAML and JSON), `biome.yaml` (JSON), `eslint-plugin-jsonc.yaml`, `stylecop.yaml` (StyleCop.Analyzers 1.2.0-beta.556), `taplo.yaml` (TOML), `csharpier.yaml`, `dotnet-format-editorconfig.yaml` (the IDE0055 formatting options and `.editorconfig` keys), `roslynator.yaml` (overlaps with the others only). Upstream versions are in each file's `version`. Sudsy facts were observed on a debug build; entries without a "Verified" note follow from the documentation of the tool.
 
 The differential runner [`scripts/parity.sh`](../development/parity.md) compares a tool's output with `sudsy lint` on fixtures. A test (`crates/languages/tests/parity.rs`) fails when a `rule:` or `option:` status names something that does not exist, or when the counts below are stale.
 
@@ -32,6 +32,7 @@ The differential runner [`scripts/parity.sh`](../development/parity.md) compares
 | prettier | 28 | 15 | 4 | 1 | 0 | 8 | 0 | 1 |
 | roslynator | 67 | 23 | 7 | 16 | 18 | 1 | 2 | 16 |
 | stylecop | 197 | 120 | 10 | 1 | 45 | 21 | 0 | 1 |
+| taplo | 23 | 11 | 7 | 0 | 0 | 0 | 5 | 0 |
 | yamllint | 65 | 54 | 6 | 5 | 0 | 0 | 0 | 5 |
 
 ## Batches

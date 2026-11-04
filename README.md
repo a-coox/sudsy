@@ -46,6 +46,7 @@ Presets are ordinary config files; writing their options by hand in `sudsy.yaml`
 | `csharp/stylecop` | StyleCop.Analyzers layout (blank lines, `)` placement, empty bodies) and its matching rules |
 | `json/default`, `yaml/default`, `toml/default` | The defaults |
 | `json/prettier-compat`, `yaml/prettier-compat` | Prettier-like (width 80) |
+| `toml/taplo-compat` | taplo's defaults |
 
 Without a `sudsy.yaml`, C# uses `csharp/microsoft`, existing `.editorconfig` keys apply, and JSON, YAML and TOML use their defaults. Details: [docs/formatting/presets.md](docs/formatting/presets.md).
 

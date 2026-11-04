@@ -5,7 +5,7 @@
 # Tools: yamllint (installed at the catalog's version into a venv under target/parity/), eslint-jsonc
 # (ESLint 9 + eslint-plugin-jsonc at the catalog's version, installed with npm), stylecop
 # (StyleCop.Analyzers at the catalog's version, restored by `dotnet build` of the fixture project).
-# Format mode: scripts/parity.sh format prettier|biome|dotnet-format|csharpier (see docs/development/parity.md).
+# Format mode: scripts/parity.sh format prettier|biome|taplo|dotnet-format|csharpier (see docs/development/parity.md).
 set -euo pipefail
 cd "$(dirname "$0")/.."
 tdir=${CARGO_TARGET_DIR:-$PWD/target}
@@ -16,8 +16,8 @@ if [ "$tool" = format ]; then
   # (dotnet-format is the SDK's `dotnet format whitespace`, nothing to install).
   tool=${2:-}
   case "$tool" in
-    prettier|biome|dotnet-format|csharpier) ;;
-    *) echo "usage: scripts/parity.sh format prettier|biome|dotnet-format|csharpier" >&2; exit 2 ;;
+    prettier|biome|taplo|dotnet-format|csharpier) ;;
+    *) echo "usage: scripts/parity.sh format prettier|biome|taplo|dotnet-format|csharpier" >&2; exit 2 ;;
   esac
   if [ "$tool" = csharpier ]; then
     version=$(sed -nE 's/^version: "([0-9][0-9.]*).*/\1/p' docs/parity/csharpier.yaml | head -n1)
@@ -33,6 +33,35 @@ if [ "$tool" = format ]; then
     done
     [ -n "$py" ] || { echo "parity.sh: python 3 is required" >&2; exit 2; }
     exec "$py" scripts/parity_format.py csharpier "$version" "$sudsy" "$dir"
+  fi
+  if [ "$tool" = taplo ]; then
+    # taplo's release binary at the catalog's version; the toml-test valid files join the fixtures.
+    version=$(sed -nE 's/^version: "([0-9][0-9.]*).*/\1/p' docs/parity/taplo.yaml | head -n1)
+    dir="$tdir/parity/taplo-$version"
+    if [ ! -x "$dir/taplo" ] && [ ! -x "$dir/taplo.exe" ]; then
+      mkdir -p "$dir"
+      case "$(uname -s)-$(uname -m)" in
+        MINGW*|MSYS*|CYGWIN*) asset=taplo-windows-x86_64.zip ;;
+        Linux-x86_64) asset=taplo-linux-x86_64.gz ;;
+        Darwin-arm64) asset=taplo-darwin-aarch64.gz ;;
+        Darwin-x86_64) asset=taplo-darwin-x86_64.gz ;;
+        *) echo "parity.sh: no taplo release for this platform" >&2; exit 2 ;;
+      esac
+      curl -fsSL -o "$dir/$asset" "https://github.com/tamasfe/taplo/releases/download/$version/$asset"
+      case "$asset" in
+        *.zip) unzip -oq "$dir/$asset" -d "$dir" ;;
+        *) gunzip -c "$dir/$asset" > "$dir/taplo"; chmod +x "$dir/taplo" ;;
+      esac
+    fi
+    bash tests/conformance/fetch-toml-corpus.sh >/dev/null
+    cargo build --quiet -p cli
+    sudsy=$tdir/debug/sudsy; [ -x "$sudsy" ] || sudsy=$sudsy.exe
+    py=
+    for candidate in python3 python; do
+      if "$candidate" -c 'import sys' >/dev/null 2>&1; then py=$candidate; break; fi
+    done
+    [ -n "$py" ] || { echo "parity.sh: python 3 is required" >&2; exit 2; }
+    exec "$py" scripts/parity_format.py taplo "$version" "$sudsy" "$dir"
   fi
   if [ "$tool" = dotnet-format ]; then
     dotnet build --nologo -v:q workers/csharp/Sudsy.Worker
@@ -64,7 +93,7 @@ if [ "$tool" = format ]; then
 fi
 case "$tool" in
   yamllint|stylecop|eslint-jsonc) ;;
-  *) echo "usage: scripts/parity.sh yamllint|stylecop|eslint-jsonc | format prettier|biome|dotnet-format|csharpier" >&2; exit 2 ;;
+  *) echo "usage: scripts/parity.sh yamllint|stylecop|eslint-jsonc | format prettier|biome|taplo|dotnet-format|csharpier" >&2; exit 2 ;;
 esac
 
 py=

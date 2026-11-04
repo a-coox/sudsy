@@ -29,7 +29,8 @@ pub enum ListLayout {
     /// Always one item per line.
     Break,
     /// Never a line break between the delimiters (blank lines and `BreakAll` are ignored), however
-    /// long the line gets: for lists the language cannot break, like TOML inline tables.
+    /// long the line gets, and its items are not indented: for lists the language cannot break,
+    /// like TOML inline tables.
     Flat,
 }
 
@@ -191,7 +192,10 @@ fn list_of(
     } else {
         pad
     };
-    body_parts.extend([opening, doc::indent(doc::concat(inner)), close_pad, closing]);
+    // A flat list has no line breaks of its own to indent; a list nested in it indents itself.
+    let inner = doc::concat(inner);
+    let inner = if flat { inner } else { doc::indent(inner) };
+    body_parts.extend([opening, inner, close_pad, closing]);
     let body = doc::concat(body_parts);
 
     let d = cx.directives_of(node);

@@ -23,6 +23,7 @@ Options declared by more than one language, generated from the option schemas; p
 | `indent_size` | int 1-16 | json `2`, yaml `2`, toml `2`, csharp `4` |
 | `indent_style` | `space`, `tab` | json `space`, toml `space`, csharp `space` |
 | `line_width` | int 20-1000 | json `80`, yaml `80`, toml `80`, csharp `120` |
+| `max_blank_lines` | int 0-10 | yaml `1`, toml `1` |
 | `trailing_commas` | json: `never`, `multiline`; toml: `never`, `multiline`; csharp: `preserve`, `never`, `multiline` | json `never`, toml `multiline`, csharp `preserve` |
 <!-- /generated -->
 

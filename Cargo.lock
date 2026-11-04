@@ -1297,6 +1297,7 @@ dependencies = [
  "provider-api",
  "tree-sitter",
  "tree-sitter-toml-ng",
+ "unicode-width",
 ]
 
 [[package]]

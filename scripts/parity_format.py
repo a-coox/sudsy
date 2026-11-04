@@ -1,6 +1,6 @@
-"""Compares `sudsy format` with Prettier, Biome or `dotnet format whitespace` on tests/parity/<tool>/ (run by `scripts/parity.sh format`).
+"""Compares `sudsy format` with Prettier, Biome, taplo or `dotnet format whitespace` on tests/parity/<tool>/ (run by `scripts/parity.sh format`).
 
-Usage: parity_format.py <prettier|biome|dotnet-format|csharpier> <version> <sudsy-binary> <npm-prefix>
+Usage: parity_format.py <prettier|biome|taplo|dotnet-format|csharpier> <version> <sudsy-binary> <tool-prefix>
 
 Every fixture is formatted by the tool and by Sudsy (with the fixture folder's sudsy.yaml, which
 extends the matching preset); the outputs must be equal. A fixture listed in the folder's
@@ -16,7 +16,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 PARITY = ROOT / os.environ.get("CARGO_TARGET_DIR", "target") / "parity"
-SUFFIXES = {".json", ".jsonc", ".yaml", ".yml", ".cs"}
+SUFFIXES = {".json", ".jsonc", ".yaml", ".yml", ".cs", ".toml"}
 
 
 def run(cmd, cwd, stdin=None):
@@ -36,6 +36,35 @@ def biome(prefix, fixture, work):
     script = prefix / "node_modules/@biomejs/biome/bin/biome"
     text = fixture.read_bytes().decode("utf-8")
     return run(["node", script, "format", f"--stdin-file-path={fixture.name}"], work, text)
+
+
+def taplo(prefix, fixture, work):
+    exe = prefix / "taplo.exe"
+    text = fixture.read_bytes().decode("utf-8")
+    try:
+        return run([exe if exe.exists() else prefix / "taplo", "fmt", "--no-auto-config", "-"], work, text)
+    except SystemExit:
+        return None  # taplo rejects the file (it is valid TOML for Sudsy)
+
+
+def taplo_fixtures(folder):
+    """The folder's own fixtures, the TOML files of tests/fixtures/toml and the toml-test valid
+    files of the 1.0 list (when fetched), as (name, path); names are the keys of expected-diff.txt."""
+    out = [(p.name, p) for p in sorted(folder.glob("*.toml"))]
+    out += [(f"fixtures/{p.name}", p) for p in sorted((ROOT / "tests/fixtures/toml").glob("*.toml"))]
+    tests = ROOT / "tests/conformance/corpus/toml-test/tests"
+    if (tests / "files-toml-1.0.0").exists():
+        for rel in (tests / "files-toml-1.0.0").read_text().splitlines():
+            path = tests / rel
+            if rel.startswith("valid/") and rel.endswith(".toml"):
+                try:
+                    path.read_bytes().decode("utf-8")
+                except UnicodeDecodeError:
+                    continue
+                out.append((rel, path))
+    else:
+        print("toml-test corpus not fetched (tests/conformance/fetch-toml-corpus.sh): corpus files skipped")
+    return out
 
 
 def csharpier(prefix, fixture, work):
@@ -115,25 +144,35 @@ def main():
     shutil.rmtree(work, ignore_errors=True)
     work.mkdir(parents=True)
     shutil.copy(folder / "sudsy.yaml", work / "sudsy.yaml")
-    upstream_format = {"prettier": prettier, "biome": biome, "csharpier": csharpier}[tool]
+    upstream_format = {"prettier": prettier, "biome": biome, "csharpier": csharpier, "taplo": taplo}[tool]
     known = expected_diffs(folder)
-    fixtures = sorted(p for p in folder.iterdir() if p.suffix in SUFFIXES and p.name != "sudsy.yaml")
+    if tool == "taplo":
+        fixtures = taplo_fixtures(folder)
+    else:
+        fixtures = sorted(
+            (p.name, p) for p in folder.iterdir() if p.suffix in SUFFIXES and p.name != "sudsy.yaml"
+        )
     bad = 0
-    for fixture in fixtures:
-        copy = work / fixture.name
+    for name, fixture in fixtures:
+        copy = work / name.replace("/", "__")
         shutil.copy(fixture, copy)
         theirs = upstream_format(prefix, copy, work)
         ours = sudsy_format(sudsy, copy, work)
         same = theirs == ours
-        if same and fixture.name in known:
-            print(f"{fixture.name}: STALE expected-diff entry (outputs are equal)")
+        if theirs is None and name in known:
+            print(f"{name}: known difference ({known[name]})")
+        elif theirs is None:
+            print(f"{name}: DIFFERENT (the tool rejects the file)")
+            bad += 1
+        elif same and name in known:
+            print(f"{name}: STALE expected-diff entry (outputs are equal)")
             bad += 1
         elif same:
-            print(f"{fixture.name}: ok")
-        elif fixture.name in known:
-            print(f"{fixture.name}: known difference ({known[fixture.name]})")
+            print(f"{name}: ok")
+        elif name in known:
+            print(f"{name}: known difference ({known[name]})")
         else:
-            print(f"{fixture.name}: DIFFERENT")
+            print(f"{name}: DIFFERENT")
             sys.stdout.writelines(
                 difflib.unified_diff(theirs.splitlines(True), ours.splitlines(True), tool, "sudsy")
             )

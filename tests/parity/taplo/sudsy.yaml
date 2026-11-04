@@ -1,0 +1,3 @@
+# The Sudsy side of the comparison with taplo.
+extends:
+  - preset:toml/taplo-compat

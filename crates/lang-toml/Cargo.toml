@@ -14,6 +14,7 @@ core-treesitter.workspace = true
 provider-api.workspace = true
 tree-sitter.workspace = true
 tree-sitter-toml-ng.workspace = true
+unicode-width.workspace = true
 
 [dev-dependencies]
 insta.workspace = true

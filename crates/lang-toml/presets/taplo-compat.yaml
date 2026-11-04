@@ -1,0 +1,15 @@
+# Formats like taplo with its defaults: 80 columns, two spaces, LF, up to two blank lines kept,
+# arrays that fit on one line are collapsed, trailing comments of consecutive entries aligned.
+toml:
+  format:
+    line_width: 80
+    indent_style: space
+    indent_size: 2
+    end_of_line: lf
+    final_newline: true
+    bracket_spacing: true
+    array_bracket_spacing: false
+    collapse: always
+    trailing_commas: multiline
+    max_blank_lines: 2
+    align_comments: true

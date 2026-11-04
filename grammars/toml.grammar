@@ -22,7 +22,8 @@ token Comma "," #punctuation #separator
 
 token BareKey #key-part
 token QuotedKey #key-part #string
-token String #literal #string
+// A multi-line string may change its line breaks (`end_of_line`): TomlFormatter::extra_check compares the text.
+token String #literal #string #restyle
 token Integer #literal
 token Float #literal
 token Boolean #literal

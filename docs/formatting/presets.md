@@ -16,6 +16,7 @@ Why plain config and unversioned: no hidden values or code paths per tool, and a
 | `json/biome` | Biome's defaults: tab indent, width 80, LF, `collapse: opening_break`; the same `package.json` override. |
 | `yaml/default` | The defaults (styles preserved). |
 | `toml/default` | The defaults. |
+| `toml/taplo-compat` | taplo 0.10 defaults: width 80, two spaces, LF, `collapse: always` (an array that fits goes on one line), up to two blank lines (`max_blank_lines: 2`) and `align_comments: true`. Checked against taplo by `scripts/parity.sh format taplo`. |
 | `yaml/yamllint` | yamllint's default config: lint levels (line length 80 at error, `no-undefined-alias` at error, `ambiguous-booleans`, `document-start` and `comment-space` at warn; yamllint's other rules are off by default and so stay off) and output that satisfies it: `comment_spacing: 2`, `max_blank_lines: 2`, `sequence_indent: indented`, width 80. `bracket_spacing: false` (`{a: 1}`) and `end_of_line: lf`. |
 | `yaml/prettier-compat` | Width 80, LF, `quote_style: prefer_double`, `blank_lines_after_key: remove`. |
 

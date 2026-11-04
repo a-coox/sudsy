@@ -131,6 +131,36 @@ fn errors_are_lossless_and_reported() {
     }
 }
 
+#[test]
+fn max_blank_lines_option() {
+    let src = "a = 1\n\n\n\nb = 2\n";
+    assert_eq!(fmt(src), "a = 1\n\nb = 2\n");
+    assert_eq!(
+        fmt_with(src, &[("max_blank_lines", OptionValue::Int(2))]),
+        "a = 1\n\n\nb = 2\n"
+    );
+    assert_eq!(
+        fmt_with(src, &[("max_blank_lines", OptionValue::Int(0))]),
+        "a = 1\nb = 2\n"
+    );
+}
+
+#[test]
+fn lf_output_converts_line_breaks_inside_multiline_strings() {
+    let out = fmt_with("s = \"\"\"a\r\nb\"\"\"\r\n", &[("end_of_line", s("lf"))]);
+    assert_eq!(out, "s = \"\"\"a\nb\"\"\"\n");
+}
+
+#[test]
+fn align_comments() {
+    let src = "a = 1 # one\nlonger = 2 # two\nbb = 3\n\nc = 1 # x\n# own line\nd = 22 # y\n[t]\nx = 1 # z\nlong_key = [\n  1,\n  2,\n] # multi\ny = 2 # w\n";
+    assert_eq!(fmt(src), src);
+    assert_eq!(
+        fmt_with(src, &[("align_comments", OptionValue::Bool(true))]),
+        "a = 1      # one\nlonger = 2 # two\nbb = 3\n\nc = 1 # x\n# own line\nd = 22 # y\n[t]\nx = 1 # z\nlong_key = [\n  1,\n  2,\n] # multi\ny = 2 # w\n"
+    );
+}
+
 fn error_codes(src: &str) -> Vec<String> {
     let r = TomlProvider::new()
         .parse(&SourceFile::new("a.toml", 1, src))

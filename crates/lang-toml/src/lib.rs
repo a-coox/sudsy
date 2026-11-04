@@ -3,12 +3,15 @@
 
 #[rustfmt::skip]
 pub mod generated;
+mod align;
 mod format;
 mod hooks;
 mod mapping;
 mod validate;
 
-pub use format::{COLLAPSE, TRAILING_COMMAS, TomlFormatter, option_schema};
+pub use format::{
+    ALIGN_COMMENTS, COLLAPSE, MAX_BLANK_LINES, TRAILING_COMMAS, TomlFormatter, option_schema,
+};
 
 use core_config::OptionSchema;
 use core_format::NodeFormatter;

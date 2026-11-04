@@ -7,7 +7,8 @@ Files: `*.toml`.
 
 ## Formatting
 - `key = value` with one space around `=`; dotted keys without spaces (`a.b`); comments, quoted keys and string quotes kept as written.
-- A table header, then its pairs one per line, not indented. Blank lines between items are kept (at most one).
+- A table header, then its pairs one per line, not indented. Blank lines between items are kept (at most `max_blank_lines`, one by default; after a comment line at most one).
+- With `align_comments`, the trailing comments of consecutive entries (no blank line or comment line between them) start in one column, one past the widest entry of the run; a run with an entry on several lines is left alone.
 - Inline tables are always on one line, however long (TOML 1.0 forbids line breaks in them): `{ a = 1, b = 2 }` (`bracket_spacing`).
 - Arrays follow the shared list shape: on one line if they fit, else one item per line with an indented body; `collapse` chooses whether a line break in the source keeps an array expanded.
 
@@ -24,7 +25,12 @@ Files: `*.toml`.
 | `array_bracket_spacing` | bool | `false` | Spaces inside the brackets of a one-line sequence or array: `[ 1, 2 ]` or `[1, 2]`. |
 | `collapse` | `preserve`, `always`, `never` | `preserve` | Arrays on one line: `preserve` keeps one that has a line break between its brackets expanded and puts the others on one line if they fit; `always` puts every one that fits on one line; `never` puts every non-empty one on several lines. |
 | `trailing_commas` | `never`, `multiline` | `multiline` | Trailing comma after the last item of a multi-line array. |
+| `max_blank_lines` | int 0-10 | `1` | Largest number of blank lines kept between entries, tables and comments. |
+| `align_comments` | bool | `false` | Start the trailing comments of consecutive entries in one column (entries with no blank line or comment line between them); a run with an entry on several lines is not aligned. |
 <!-- /generated -->
+
+## Presets
+`toml/default` sets nothing. `toml/taplo-compat` reproduces taplo 0.10's defaults (`collapse: always`, `max_blank_lines: 2`, `align_comments: true`, LF); `scripts/parity.sh format taplo` compares the two on `tests/fixtures/toml` and the toml-test valid files (203 of 213 identical, the other 10 listed with their reasons in `tests/parity/taplo/expected-diff.txt`).
 
 ## Rules
 Only the shared ones (`comment-space`, `no-empty-comment`, `max-line-length`, and the key and sequence rules `no-duplicate-keys` (it never fires: a duplicate key is a parse error), `no-empty-keys`, `key-name-casing`, `sorted-keys`, `sorted-array-values`), which work through the grammar's tags: `Table`, `ArrayTable`, `InlineTable` and `Document` (its top-level pairs) are `#mapping`, `Array` is `#sequence`. The hooks decode quoted keys and join dotted parts with `.` (`a.b` and `"a"."b"` are one key; `key-name-casing` checks each part of a dotted key and reports the key); sorting reorders pairs only, never tables, and arrays of basic and literal strings, integers and floats are sorted (multi-line strings, booleans and dates are left alone). Suppression comments are `# sudsy-disable-next-line <rule>`.

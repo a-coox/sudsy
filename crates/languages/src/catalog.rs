@@ -44,6 +44,7 @@ pub fn all() -> &'static [Catalog] {
         "prettier",
         "roslynator",
         "stylecop",
+        "taplo",
         "yamllint"
     )
 }
