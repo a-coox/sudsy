@@ -34,6 +34,7 @@ pub const BLANK_LINES_AFTER_BLOCK: &str = "blank_lines_after_block";
 pub const BLANK_LINE_BEFORE_COMMENT: &str = "blank_line_before_comment";
 pub const BLANK_LINE_AFTER_COMMENT: &str = "blank_line_after_comment";
 pub const SPACE_AFTER_DELEGATE: &str = "space_after_delegate";
+pub const SPACE_BETWEEN_EMPTY_FOR_CLAUSES: &str = "space_between_empty_for_clauses";
 
 /// Defaults are `csharp/microsoft`: Allman braces, four spaces, width 120.
 pub fn option_schema() -> OptionSchema {
@@ -242,6 +243,12 @@ pub fn option_schema() -> OptionSchema {
             "A space between `delegate` and the parameter list of an anonymous method \
              (`delegate (int x) { }`); when false `delegate(int x) { }`.",
         ),
+        OptionDef::boolean(
+            SPACE_BETWEEN_EMPTY_FOR_CLAUSES,
+            false,
+            "A space between the two semicolons of a `for` with an empty condition \
+             (`for (; ;)`); when false `for (;;)`.",
+        ),
     ])
     .with_presets(presets())
 }
@@ -377,6 +384,10 @@ pub fn attach_comments(options: &ResolvedOptions) -> bool {
 
 pub fn space_after_delegate(options: &ResolvedOptions) -> bool {
     options.bool(SPACE_AFTER_DELEGATE)
+}
+
+pub fn space_between_empty_for_clauses(options: &ResolvedOptions) -> bool {
+    options.bool(SPACE_BETWEEN_EMPTY_FOR_CLAUSES)
 }
 
 pub fn do_while_on_closing_line(options: &ResolvedOptions) -> bool {

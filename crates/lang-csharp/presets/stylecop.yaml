@@ -11,6 +11,7 @@ csharp:
     blank_line_before_comment: require
     blank_line_after_comment: remove
     space_after_delegate: false
+    space_between_empty_for_clauses: true
   lint:
     rules:
       comment-space: warn

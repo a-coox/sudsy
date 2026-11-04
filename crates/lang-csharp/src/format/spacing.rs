@@ -25,9 +25,6 @@ fn parent_kind(t: &SyntaxToken) -> Option<SyntaxKind> {
 /// node of kind `parent`?
 pub fn space(prev: &SyntaxToken, next: &SyntaxToken, parent: SyntaxKind) -> bool {
     let (p, n) = (prev.text(), next.text());
-    if parent == k::FOR_STATEMENT && p == ";" && n == ";" {
-        return true; // `for (; ;)`
-    }
     match n {
         ")" | "]" | "," | ";" | "." | "?." | "::" | "->" | "++" | "--" | ".." => return false,
         _ => {}

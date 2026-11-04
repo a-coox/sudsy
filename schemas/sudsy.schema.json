@@ -896,6 +896,11 @@
               "description": "A space between `delegate` and the parameter list of an anonymous method (`delegate (int x) { }`); when false `delegate(int x) { }`.",
               "type": "boolean"
             },
+            "space_between_empty_for_clauses": {
+              "default": false,
+              "description": "A space between the two semicolons of a `for` with an empty condition (`for (; ;)`); when false `for (;;)`.",
+              "type": "boolean"
+            },
             "switch_arm_layout": {
               "default": "inline",
               "description": "Layout of a switch expression arm: `inline` keeps `pattern => value` as one run of tokens; `assignment` lays out the value like the right-hand side of `=` (see `assignment_layout`).",
@@ -1393,6 +1398,11 @@
                   "space_after_delegate": {
                     "default": true,
                     "description": "A space between `delegate` and the parameter list of an anonymous method (`delegate (int x) { }`); when false `delegate(int x) { }`.",
+                    "type": "boolean"
+                  },
+                  "space_between_empty_for_clauses": {
+                    "default": false,
+                    "description": "A space between the two semicolons of a `for` with an empty condition (`for (; ;)`); when false `for (;;)`.",
                     "type": "boolean"
                   },
                   "switch_arm_layout": {

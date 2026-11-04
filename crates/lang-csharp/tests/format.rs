@@ -385,3 +385,8 @@ snap!(
     for_semicolons,
     "class C { void M() { for (;;) { } for (int i = 0;;) { } for (; i < 3;) { } for (int i = 0; i < 3; i++) { } } }"
 );
+snap!(
+    for_semicolons_spaced,
+    "class C { void M() { for (;;) { } for (int i = 0;;) { } for (; i < 3;) { } } }",
+    [("space_between_empty_for_clauses", OptionValue::Bool(true))]
+);

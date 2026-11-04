@@ -4,7 +4,7 @@
 use super::options::{
     brace_on_new_line, clauses_on_closing_line, constructor_initializer_on_new_line,
     creation_brace_on_new_line, do_while_on_closing_line, expand_empty_bodies, hanging_base_list,
-    nested_brace_on_new_line, space_after_delegate,
+    nested_brace_on_new_line, space_after_delegate, space_between_empty_for_clauses,
 };
 use super::spacing;
 use super::tags::{self, Tag};
@@ -238,6 +238,13 @@ pub fn separator(
         && matches!(next, SyntaxElement::Node(n) if n.kind() == k::PARAMETER_LIST)
     {
         return Sep::None; // `delegate(int x)`
+    }
+    if pk == k::FOR_STATEMENT
+        && space_between_empty_for_clauses(cx.options)
+        && matches!(prev, SyntaxElement::Token(t) if t.kind() == k::SEMICOLON_TOKEN)
+        && matches!(next, SyntaxElement::Token(t) if t.kind() == k::SEMICOLON_TOKEN)
+    {
+        return Sep::Space; // `for (; ;)`
     }
     match (last_tok(cx, prev), first_tok(cx, next)) {
         (Some(a), Some(b)) => {
