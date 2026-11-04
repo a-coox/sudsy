@@ -93,6 +93,43 @@ impl Doc {
     /// directly only to inspect a document.
     pub fn propagate_breaks(&mut self) -> bool {
         match self {
+            Doc::Nil | Doc::Text(_) | Doc::Verbatim(_) | Doc::Line | Doc::SoftLine => false,
+            Doc::HardLine | Doc::BreakParent | Doc::LineStart(_) | Doc::NewlineIfNeeded => true,
+            Doc::Shared(s) => s.forced,
+            _ => crate::deep(|| self.propagate_breaks_in()),
+        }
+    }
+
+    /// Drops the document without recursing: dropping a deep one the usual way uses a stack
+    /// frame per level.
+    pub fn dispose(self) {
+        let mut pending = vec![self];
+        while let Some(doc) = pending.pop() {
+            match doc {
+                Doc::Outdent(_, d)
+                | Doc::Indent(d)
+                | Doc::Align(_, d)
+                | Doc::LineSuffix(d)
+                | Doc::IndentIfBreak(_, d) => pending.push(*d),
+                Doc::IfBreak { broken, flat } => pending.extend([*broken, *flat]),
+                Doc::Concat(parts) | Doc::Fill(parts) => pending.extend(parts),
+                Doc::Group(g) => {
+                    let g = *g;
+                    pending.push(g.contents);
+                    pending.extend(g.states);
+                }
+                Doc::Shared(s) => {
+                    if let Ok(s) = Arc::try_unwrap(s) {
+                        pending.push(s.doc);
+                    }
+                }
+                _ => {}
+            }
+        }
+    }
+
+    fn propagate_breaks_in(&mut self) -> bool {
+        match self {
             Doc::HardLine | Doc::BreakParent | Doc::LineStart(_) | Doc::NewlineIfNeeded => true,
             Doc::Outdent(_, d) => {
                 d.propagate_breaks();

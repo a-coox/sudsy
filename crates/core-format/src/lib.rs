@@ -29,6 +29,37 @@ pub use printer::PrintOptions;
 use core_config::ResolvedOptions;
 use core_syntax::SyntaxNode;
 
+thread_local! {
+    /// Levels of [`deep`] entered on this thread, and the most since the last [`take_peak`].
+    static LEVEL: std::cell::Cell<u32> = const { std::cell::Cell::new(0) };
+    static PEAK: std::cell::Cell<u32> = const { std::cell::Cell::new(0) };
+}
+
+/// The deepest [`deep`] nesting since the previous call.
+fn take_peak() -> u32 {
+    PEAK.replace(0)
+}
+
+/// Runs `f` on a fresh stack segment when the current one is nearly used up. The recursion over
+/// a syntax tree or a document is as deep as the source nests, which debug frames cannot hold on
+/// a 2 MB thread stack; every recursive entry of the engine goes through here.
+pub fn deep<R>(f: impl FnOnce() -> R) -> R {
+    // Measuring the stack is far dearer than a counter, so only every 32nd level measures; 32
+    // debug-build levels use well under the red zone.
+    let level = LEVEL.get();
+    LEVEL.set(level.wrapping_add(1));
+    if level > PEAK.get() {
+        PEAK.set(level);
+    }
+    let result = if level % 32 == 31 {
+        stacker::maybe_grow(512 * 1024, 4 * 1024 * 1024, f)
+    } else {
+        f()
+    };
+    LEVEL.set(level);
+    result
+}
+
 /// Printer settings from the shared options (`line_width`, `indent_size`, `indent_style`); an
 /// option the provider's schema does not declare keeps the printer default.
 pub fn print_options(options: &ResolvedOptions) -> PrintOptions {
@@ -85,8 +116,13 @@ impl LineEnding {
 /// ending (`auto`, the default and for providers without the option: the file's first one) and
 /// the `final_newline` option, when the provider declares it, decides how the text ends.
 pub fn format_tree(root: &SyntaxNode, cx: &FormatCtx<'_>) -> Result<String, FormatError> {
+    take_peak();
     let mut doc = cx.format_unguarded(root)?;
     let (printed, keep) = printer::print_protected(&mut doc, &print_options(cx.options));
+    // A document of ordinary depth drops the usual way; only a pathological one needs this.
+    if take_peak() > 64 {
+        doc.dispose();
+    }
     // Copies of the whole output only when verbatim text brought `\r\n` into it.
     let (mut out, keep) = if printed.contains("\r\n") {
         let keep = printed[..keep].replace("\r\n", "\n").len();

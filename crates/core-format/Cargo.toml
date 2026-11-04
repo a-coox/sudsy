@@ -9,6 +9,7 @@ publish.workspace = true
 core-config.workspace = true
 core-syntax.workspace = true
 rowan.workspace = true
+stacker.workspace = true
 thiserror.workspace = true
 unicode-width.workspace = true
 

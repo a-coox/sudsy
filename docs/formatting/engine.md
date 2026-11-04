@@ -7,6 +7,7 @@ Provider formatting code turns the tree into a layout document using shared shap
 - Group fits flat if the rest of the line up to the next possible break fits. `conditional_group` takes the first candidate that fits (flat, forced breaks allowed); one whose every candidate has a forced break forces its parents. Line suffixes flush at the next newline; trailing whitespace is trimmed except protected verbatim output.
 - Widths are Unicode display width. Text containing a newline breaks enclosing groups; only its first line counts when measuring.
 - `format_tree` prints LF, then applies `final_newline` and the line ending: `end_of_line` `lf` or `crlf`, or (`auto`, also for a provider without the option) the file's first line break.
+- Recursion depth equals source nesting: `FormatCtx::format_unguarded`, the C# member-chain walk, and `Doc::propagate_breaks` run through `core_format::deep` (`stacker`; it measures the stack every 32nd level), which continues on a fresh stack segment when the current one runs low, so layout depth is bounded by memory, not by a 2 MB debug thread stack. The printer and the safety comparison are iterative, and `format_tree` frees the document with `Doc::dispose` (no recursive drop).
 
 ## Shared options
 Options declared by more than one language, generated from the option schemas; providers set their own defaults and may omit some (YAML has no `indent_style`). Each language's full list is in its doc.

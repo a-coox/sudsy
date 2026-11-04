@@ -21,6 +21,11 @@ use serde::{Deserialize, Serialize};
 
 pub const WIRE_VERSION: u32 = 1;
 
+/// Deepest nesting a decoded tree may have. Dropping a green tree recurses once per level inside
+/// rowan, which a debug build on a 2 MB thread stack survives up to about 3000 levels; real code
+/// nests a few hundred levels at most.
+pub const MAX_DEPTH: usize = 2048;
+
 #[derive(Debug, thiserror::Error, PartialEq, Eq)]
 pub enum WireError {
     #[error("unsupported wire version {0} (expected {WIRE_VERSION})")]
@@ -37,6 +42,8 @@ pub enum WireError {
     TrailingElements(usize),
     #[error("tree ends inside a node")]
     Truncated,
+    #[error("tree nests deeper than {MAX_DEPTH} levels")]
+    TooDeep,
     #[error("token width {width} at byte {offset} is not on a UTF-8 boundary or exceeds the text")]
     BadWidth { offset: usize, width: u32 },
     #[error("tree covers {covered} bytes but the text has {len}")]
@@ -98,6 +105,9 @@ impl FlatTree {
                 builder.token(kind, slice);
                 offset = end;
             } else {
+                if open.len() >= MAX_DEPTH {
+                    return Err(WireError::TooDeep);
+                }
                 builder.start_node(kind);
                 open.push(v);
             }

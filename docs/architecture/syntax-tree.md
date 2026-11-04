@@ -25,3 +25,4 @@ Per file, never per node; token text is not sent (the receiver has the source).
 - Node widths are derived from children. Whether an element is a token is a bit of its kind.
 - Why flat arrays in `bin`: smallest encode+decode overhead (4.8% of Roslyn parse on CoreLib) and no second container format.
 - The real cost is not the encoding but Roslyn's red-node materialization during the mapping walk (see [numbers](../performance/numbers.md)).
+- Decoding rejects trees nested deeper than `MAX_DEPTH` (2048 levels) with `WireError::TooDeep`: rowan drops a green tree recursively, once per level, and a debug build on a 2 MB stack survives about 3000 levels. The file then fails to parse instead of overflowing the stack.

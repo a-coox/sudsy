@@ -161,10 +161,10 @@ impl<'a> FormatCtx<'a> {
 
     /// Formatting code for `node` itself, ignoring ignore comments and `Preserve`.
     pub fn format_unguarded(&self, node: &SyntaxNode) -> Result<Doc, FormatError> {
-        match self.formatter.format_node(node, self)? {
+        crate::deep(|| match self.formatter.format_node(node, self)? {
             Some(doc) => Ok(doc),
             None => self.format_default(node),
-        }
+        })
     }
 
     /// The shared shape for the node's grammar tag.

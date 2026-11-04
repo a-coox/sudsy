@@ -313,6 +313,14 @@ fn walk(
     node: &SyntaxNode,
     links: &mut Vec<Link>,
 ) -> Result<Option<SyntaxNode>, FormatError> {
+    core_format::deep(|| walk_in(cx, node, links))
+}
+
+fn walk_in(
+    cx: &FormatCtx<'_>,
+    node: &SyntaxNode,
+    links: &mut Vec<Link>,
+) -> Result<Option<SyntaxNode>, FormatError> {
     let els = sig(cx, node);
     let inner = |cx: &FormatCtx<'_>, n: &SyntaxNode, links: &mut Vec<Link>| {
         if tags::has(cx.grammar, n.kind(), Tag::MemberChain) {
