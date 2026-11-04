@@ -23,7 +23,10 @@ pub fn validate(root: &SyntaxNode, text: &str) -> Vec<ParseError> {
             message,
         });
     };
-    for t in root.descendants_with_tokens().filter_map(|e| e.into_token()) {
+    for t in root
+        .descendants_with_tokens()
+        .filter_map(|e| e.into_token())
+    {
         let range = t.text_range();
         let raw = &text[usize::from(range.start())..usize::from(range.end())];
         match t.kind() {
@@ -85,7 +88,9 @@ fn trimmed(node: &SyntaxNode) -> TextRange {
         last = t.prev_token();
     }
     let start = node.text_range().start();
-    last.map_or(node.text_range(), |t| TextRange::new(start, t.text_range().end().max(start)))
+    last.map_or(node.text_range(), |t| {
+        TextRange::new(start, t.text_range().end().max(start))
+    })
 }
 
 fn is_trivia(k: SyntaxKind) -> bool {
@@ -236,7 +241,11 @@ fn date_time(raw: &str) -> Result<(), String> {
             _ => {}
         }
     }
-    if i == b.len() { Ok(()) } else { Err("invalid date or time".into()) }
+    if i == b.len() {
+        Ok(())
+    } else {
+        Err("invalid date or time".into())
+    }
 }
 
 // ---- the table model ----
@@ -263,18 +272,27 @@ struct Model {
 impl Model {
     fn new() -> Self {
         let mut m = Model { nodes: Vec::new() };
-        m.add(Kind::Table { explicit: true, dotted: false });
+        m.add(Kind::Table {
+            explicit: true,
+            dotted: false,
+        });
         m
     }
 
     fn add(&mut self, kind: Kind) -> usize {
-        self.nodes.push(Node { kind, kids: HashMap::new() });
+        self.nodes.push(Node {
+            kind,
+            kids: HashMap::new(),
+        });
         self.nodes.len() - 1
     }
 
     /// A table outside the document, for the entries of a rejected header and inline tables.
     fn scratch(&mut self) -> usize {
-        self.add(Kind::Table { explicit: true, dotted: false })
+        self.add(Kind::Table {
+            explicit: true,
+            dotted: false,
+        })
     }
 
     fn child(&mut self, parent: usize, name: &str, kind: Kind) -> usize {
@@ -306,12 +324,23 @@ impl Model {
         let mut cur = 0;
         for p in path {
             cur = match self.nodes[cur].kids.get(p).copied() {
-                None => self.child(cur, p, Kind::Table { explicit: false, dotted: false }),
+                None => self.child(
+                    cur,
+                    p,
+                    Kind::Table {
+                        explicit: false,
+                        dotted: false,
+                    },
+                ),
                 Some(n) => match &self.nodes[n].kind {
                     Kind::Table { .. } => n,
                     Kind::Array(v) => *v.last()?,
                     Kind::Value => {
-                        err(range, "invalid-table", format!("`{p}` is a value, not a table"));
+                        err(
+                            range,
+                            "invalid-table",
+                            format!("`{p}` is a value, not a table"),
+                        );
                         return None;
                     }
                 },
@@ -319,21 +348,36 @@ impl Model {
         }
         let existing = self.nodes[cur].kids.get(last).copied();
         let result = match (existing, array) {
-            (None, false) => Ok(self.child(cur, last, Kind::Table { explicit: true, dotted: false })),
+            (None, false) => Ok(self.child(
+                cur,
+                last,
+                Kind::Table {
+                    explicit: true,
+                    dotted: false,
+                },
+            )),
             (None, true) => {
                 let n = self.child(cur, last, Kind::Array(Vec::new()));
                 Ok(self.element(n))
             }
             (Some(n), false) => match self.nodes[n].kind {
-                Kind::Table { explicit: false, dotted: false } => {
-                    self.nodes[n].kind = Kind::Table { explicit: true, dotted: false };
+                Kind::Table {
+                    explicit: false,
+                    dotted: false,
+                } => {
+                    self.nodes[n].kind = Kind::Table {
+                        explicit: true,
+                        dotted: false,
+                    };
                     Ok(n)
                 }
                 _ => Err(format!("`{last}` is already defined")),
             },
             (Some(n), true) => match self.nodes[n].kind {
                 Kind::Array(_) => Ok(self.element(n)),
-                _ => Err(format!("`{last}` is already defined and is not an array of tables")),
+                _ => Err(format!(
+                    "`{last}` is already defined and is not an array of tables"
+                )),
             },
         };
         result.map_err(|m| err(range, "invalid-table", m)).ok()
@@ -355,17 +399,25 @@ impl Model {
                         let kind = if last {
                             Kind::Value
                         } else {
-                            Kind::Table { explicit: false, dotted: true }
+                            Kind::Table {
+                                explicit: false,
+                                dotted: true,
+                            }
                         };
                         self.child(cur, p, kind)
                     }
                     Some(n)
-                        if !last && matches!(self.nodes[n].kind, Kind::Table { dotted: true, .. }) =>
+                        if !last
+                            && matches!(self.nodes[n].kind, Kind::Table { dotted: true, .. }) =>
                     {
                         n
                     }
                     Some(_) => {
-                        err(range, "duplicate-key", format!("key `{p}` is already defined"));
+                        err(
+                            range,
+                            "duplicate-key",
+                            format!("key `{p}` is already defined"),
+                        );
                         break;
                     }
                 };

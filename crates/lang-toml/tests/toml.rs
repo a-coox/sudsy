@@ -176,7 +176,11 @@ fn semantic_errors_are_parse_errors() {
         "t = { a.b = 1, a.c = 2 }\nu = { a.b = 1 }\n",
         "s = \"\"\"a \\\n   b\"\"\"\nd = 2024-02-29T23:59:60+01:00\nt = '''a'''''\n",
     ] {
-        assert!(error_codes(src).is_empty(), "{src:?}: {:?}", error_codes(src));
+        assert!(
+            error_codes(src).is_empty(),
+            "{src:?}: {:?}",
+            error_codes(src)
+        );
     }
 }
 
