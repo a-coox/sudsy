@@ -1,42 +1,11 @@
 //! Shared comment rules, written against the grammar's comment syntax: `comment-space` and
 //! `no-empty-comment`. They read comment tokens, so they cost nothing when off.
 
-use crate::diagnostic::{Category, Edit, Fix, FixKind};
-use crate::rule::{FileContext, Rule, RuleContext, RuleMeta};
+use crate::diagnostic::{Edit, Fix, FixKind};
+use crate::rule;
+use crate::rule::{FileContext, RuleContext};
 use crate::tree::{is_code, structured_trivia};
-use core_config::Level;
 use core_syntax::{Grammar, SyntaxToken, TextRange};
-
-pub struct CommentSpace;
-pub struct NoEmptyComment;
-
-static COMMENT_SPACE: RuleMeta = RuleMeta {
-    id: "comment-space",
-    category: Category::Style,
-    description: "A line comment has text right after its marker. Exempt: nothing but \
-                  whitespace after the marker, a marker repeated (`////`, `##`), `--` separator \
-                  lines, and a `#!` shebang on the first line. The fix inserts the space.",
-    example: "//comment   // write: // comment",
-    default_level: Level::Off,
-    fix: Some(FixKind::Safe),
-    requires: &[],
-    uses: &[],
-    options: &[],
-};
-
-static NO_EMPTY_COMMENT: RuleMeta = RuleMeta {
-    id: "no-empty-comment",
-    category: Category::Style,
-    description: "A comment has no text. A block comment is reported wherever it is; an empty line \
-                  comment only when it begins or ends a run of comments, because a bare `//` \
-                  between two comment lines separates paragraphs.",
-    example: "// ----\n//\nint x;   // the empty comment above is reported",
-    default_level: Level::Off,
-    fix: None,
-    requires: &[],
-    uses: &[],
-    options: &[],
-};
 
 /// The comment tokens of the file (line and block comments, and documentation exteriors).
 fn comments<'a>(file: &'a FileContext<'a>) -> impl Iterator<Item = SyntaxToken> + 'a {
@@ -46,9 +15,16 @@ fn comments<'a>(file: &'a FileContext<'a>) -> impl Iterator<Item = SyntaxToken> 
         .filter(|t| file.grammar.has_tag(t.kind(), "comment"))
 }
 
-impl Rule for CommentSpace {
-    fn meta(&self) -> &'static RuleMeta {
-        &COMMENT_SPACE
+rule! {
+    pub CommentSpace {
+        id: "comment-space",
+        category: Style,
+        default: Off,
+        fix: Safe,
+        description: "A line comment has text right after its marker. Exempt: nothing but \
+                  whitespace after the marker, a marker repeated (`////`, `##`), `--` separator \
+                  lines, and a `#!` shebang on the first line. The fix inserts the space.",
+        example: "//comment   // write: // comment",
     }
 
     fn check_file(&self, file: &FileContext<'_>, ctx: &mut RuleContext<'_>) {
@@ -137,9 +113,15 @@ fn has_neighbour(token: &SyntaxToken, grammar: &Grammar, forward: bool) -> bool 
     false
 }
 
-impl Rule for NoEmptyComment {
-    fn meta(&self) -> &'static RuleMeta {
-        &NO_EMPTY_COMMENT
+rule! {
+    pub NoEmptyComment {
+        id: "no-empty-comment",
+        category: Style,
+        default: Off,
+        description: "A comment has no text. A block comment is reported wherever it is; an empty line \
+                  comment only when it begins or ends a run of comments, because a bare `//` \
+                  between two comment lines separates paragraphs.",
+        example: "// ----\n//\nint x;   // the empty comment above is reported",
     }
 
     fn check_file(&self, file: &FileContext<'_>, ctx: &mut RuleContext<'_>) {

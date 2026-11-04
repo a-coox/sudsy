@@ -1,35 +1,23 @@
 use super::{kind, text_of};
 use crate::generated::MethodDeclaration;
-use core_config::Level;
-use core_rules::{Category, Layer, Rule, RuleContext, RuleMeta};
+use core_rules::RuleContext;
+use core_rules::rule;
 use core_semantics::DeclarationFlags;
+use core_syntax::SyntaxNode;
 use core_syntax::ast::AstNode;
-use core_syntax::{SyntaxKind, SyntaxNode};
 
-pub struct AsyncSuffix;
-
-static META: RuleMeta = RuleMeta {
-    id: "async-suffix",
-    category: Category::Style,
-    description: "An async method returning Task or ValueTask has a name that does not end in \
+rule! {
+    pub AsyncSuffix {
+        id: "async-suffix",
+        category: Style,
+        default: Warn,
+        description: "An async method returning Task or ValueTask has a name that does not end in \
                   `Async`. Overrides, explicit interface implementations and `Main` are left alone \
                   (their names are not the method's to choose). Renaming needs the binding layer, \
                   so there is no fix.",
-    example: "async Task<int> Load() { }   // rename to LoadAsync",
-    default_level: Level::Warn,
-    fix: None,
-    requires: &[],
-    uses: &[Layer::Types],
-    options: &[],
-};
-
-impl Rule for AsyncSuffix {
-    fn meta(&self) -> &'static RuleMeta {
-        &META
-    }
-
-    fn kinds(&self) -> &[SyntaxKind] {
-        &[kind::METHOD_DECLARATION]
+        example: "async Task<int> Load() { }   // rename to LoadAsync",
+        uses: [Types],
+        kinds: &[kind::METHOD_DECLARATION],
     }
 
     fn check(&self, node: &SyntaxNode, ctx: &mut RuleContext<'_>) {

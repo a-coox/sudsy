@@ -3,12 +3,11 @@
 //! `#mapping` and `#sequence`, so they do nothing in a language that does not tag them.
 
 use crate::comments::{CommentSpace, NoEmptyComment};
-use crate::diagnostic::Category;
 use crate::keys::{KeyNameCasing, NoDuplicateKeys, NoEmptyKeys};
 use crate::options::{Check, Opt, OptionDecl};
-use crate::rule::{FileContext, Rule, RuleContext, RuleMeta};
+use crate::rule;
+use crate::rule::{FileContext, Rule, RuleContext};
 use crate::sorted::{SortedArrayValues, SortedKeys};
-use core_config::Level;
 use core_syntax::{TextRange, TextSize};
 
 pub static RULES: &[&dyn Rule] = &[
@@ -22,38 +21,29 @@ pub static RULES: &[&dyn Rule] = &[
     &SortedArrayValues,
 ];
 
-struct MaxLineLength;
-
-static MAX_LINE_LENGTH: RuleMeta = RuleMeta {
-    id: "max-line-length",
-    category: Category::Style,
-    description: "A line is longer than the configured number of characters.",
-    example: "max-line-length: { level: warn, options: { max: 100 } }\n\
+rule! {
+    MaxLineLength {
+        id: "max-line-length",
+        category: Style,
+        default: Off,
+        description: "A line is longer than the configured number of characters.",
+        example: "max-line-length: { level: warn, options: { max: 100 } }\n\
               A line of 101 characters is reported from the 101st character on.",
-    default_level: Level::Off,
-    fix: None,
-    requires: &[],
-    uses: &[],
-    options: &[
-        OptionDecl {
-            name: "max",
-            default: Opt::Int(120),
-            check: Check::Any,
-            description: "Longest allowed line, in characters.",
-        },
-        OptionDecl {
-            name: "allow_non_breakable_words",
-            default: Opt::Bool(true),
-            check: Check::Any,
-            description: "Do not report a line that has no space after its indentation (and \
+        options: [
+            OptionDecl {
+                name: "max",
+                default: Opt::Int(120),
+                check: Check::Any,
+                description: "Longest allowed line, in characters.",
+            },
+            OptionDecl {
+                name: "allow_non_breakable_words",
+                default: Opt::Bool(true),
+                check: Check::Any,
+                description: "Do not report a line that has no space after its indentation (and \
                           after a leading `#` run or `- `), such as a long URL.",
-        },
+            },
     ],
-};
-
-impl Rule for MaxLineLength {
-    fn meta(&self) -> &'static RuleMeta {
-        &MAX_LINE_LENGTH
     }
 
     fn check_file(&self, file: &FileContext<'_>, ctx: &mut RuleContext<'_>) {

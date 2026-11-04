@@ -3,52 +3,10 @@
 //! StyleCop SA1201 to SA1204, SA1212, SA1213 and SA1214.
 
 use super::kind;
-use core_config::Level;
+use core_rules::rule;
 use core_rules::tree::{code_start, entry_range, reorder_edits, significant_range};
-use core_rules::{Category, Check, Fix, FixKind, Opt, OptionDecl, Rule, RuleContext, RuleMeta};
+use core_rules::{Check, Fix, FixKind, Opt, OptionDecl, RuleContext};
 use core_syntax::{Grammar, SyntaxKind, SyntaxNode, TextRange};
-
-pub struct MemberOrder;
-pub struct AccessorOrder;
-
-static MEMBER_ORDER: RuleMeta = RuleMeta {
-    id: "member-order",
-    category: Category::Style,
-    description: "Members are out of order. Compared with the member before, in the order of the \
-                  `element_order` option: the kind (fields, constructors, finalizers, delegates, \
-                  events, enums, interfaces, properties, indexers, operators, methods, structs, \
-                  classes; in a namespace or file: namespaces, delegates, enums, interfaces, \
-                  structs, classes), the access (public, internal, protected internal, protected, \
-                  private protected, private), constants before other fields, static before \
-                  instance members, readonly fields before the others. A trait only counts \
-                  between members that agree on the traits listed before it. No fix: moving \
-                  members would have to take their comments and directives along.",
-    example: "class A {\n  void F() { }\n  int x;   // fields come first\n}",
-    default_level: Level::Off,
-    fix: None,
-    requires: &[],
-    uses: &[],
-    options: &[OptionDecl {
-        name: "element_order",
-        default: Opt::List(&["kind", "accessibility", "constant", "static", "readonly"]),
-        check: Check::OneOf(&["kind", "accessibility", "constant", "static", "readonly"]),
-        description: "The traits that decide the order, most important first. A trait that is \
-                      left out is not checked.",
-    }],
-};
-
-static ACCESSOR_ORDER: RuleMeta = RuleMeta {
-    id: "accessor-order",
-    category: Category::Style,
-    description: "`get` goes before `set` or `init`, and `add` before `remove`. The fix swaps \
-                  the two accessors (not offered when a comment stands between or in them).",
-    example: "int P { set { } get { return 1; } }   // get first",
-    default_level: Level::Off,
-    fix: Some(FixKind::Safe),
-    requires: &[],
-    uses: &[],
-    options: &[],
-};
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 enum Access {
@@ -278,13 +236,29 @@ fn position(order: &[SyntaxKind], k: SyntaxKind) -> i32 {
     order.iter().position(|&o| o == k).map_or(-1, |i| i as i32)
 }
 
-impl Rule for MemberOrder {
-    fn meta(&self) -> &'static RuleMeta {
-        &MEMBER_ORDER
-    }
-
-    fn kinds(&self) -> &[SyntaxKind] {
-        &[
+rule! {
+    pub MemberOrder {
+        id: "member-order",
+        category: Style,
+        default: Off,
+        description: "Members are out of order. Compared with the member before, in the order of the \
+                  `element_order` option: the kind (fields, constructors, finalizers, delegates, \
+                  events, enums, interfaces, properties, indexers, operators, methods, structs, \
+                  classes; in a namespace or file: namespaces, delegates, enums, interfaces, \
+                  structs, classes), the access (public, internal, protected internal, protected, \
+                  private protected, private), constants before other fields, static before \
+                  instance members, readonly fields before the others. A trait only counts \
+                  between members that agree on the traits listed before it. No fix: moving \
+                  members would have to take their comments and directives along.",
+        example: "class A {\n  void F() { }\n  int x;   // fields come first\n}",
+        options: [OptionDecl {
+            name: "element_order",
+            default: Opt::List(&["kind", "accessibility", "constant", "static", "readonly"]),
+            check: Check::OneOf(&["kind", "accessibility", "constant", "static", "readonly"]),
+            description: "The traits that decide the order, most important first. A trait that is \
+                      left out is not checked.",
+        }],
+        kinds: &[
             kind::COMPILATION_UNIT,
             kind::NAMESPACE_DECLARATION,
             kind::FILE_SCOPED_NAMESPACE_DECLARATION,
@@ -293,7 +267,7 @@ impl Rule for MemberOrder {
             kind::INTERFACE_DECLARATION,
             kind::RECORD_DECLARATION,
             kind::RECORD_STRUCT_DECLARATION,
-        ]
+        ],
     }
 
     fn check(&self, node: &SyntaxNode, ctx: &mut RuleContext<'_>) {
@@ -502,17 +476,20 @@ fn readonly_first(
     }
 }
 
-impl Rule for AccessorOrder {
-    fn meta(&self) -> &'static RuleMeta {
-        &ACCESSOR_ORDER
-    }
-
-    fn kinds(&self) -> &[SyntaxKind] {
-        &[
+rule! {
+    pub AccessorOrder {
+        id: "accessor-order",
+        category: Style,
+        default: Off,
+        fix: Safe,
+        description: "`get` goes before `set` or `init`, and `add` before `remove`. The fix swaps \
+                  the two accessors (not offered when a comment stands between or in them).",
+        example: "int P { set { } get { return 1; } }   // get first",
+        kinds: &[
             kind::PROPERTY_DECLARATION,
             kind::INDEXER_DECLARATION,
             kind::EVENT_DECLARATION,
-        ]
+        ],
     }
 
     fn check(&self, node: &SyntaxNode, ctx: &mut RuleContext<'_>) {

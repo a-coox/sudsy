@@ -1,57 +1,46 @@
 //! Ordering rules on the shared tags: `sorted-keys` (every `#mapping`) and `sorted-array-values`
 //! (every `#sequence` of only strings or only numbers).
 
-use crate::diagnostic::{Category, Fix, FixKind};
+use crate::diagnostic::{Fix, FixKind};
 use crate::hooks::Scalar;
 use crate::keys::{key_range, keyed};
 use crate::options::{Check, Opt, OptionDecl};
-use crate::rule::{Rule, RuleContext, RuleMeta};
+use crate::rule;
+use crate::rule::RuleContext;
 use crate::sorting::{self, Sorting};
 use crate::tree::{has_separator, reorder_edits, reorder_range, significant_range};
-use core_config::Level;
 use core_syntax::{SyntaxElement, SyntaxNode, TextRange};
 use std::cmp::Ordering;
 
-pub struct SortedKeys;
-
-static SORTED_KEYS: RuleMeta = RuleMeta {
-    id: "sorted-keys",
-    category: Category::Style,
-    description: "The keys of a mapping are not in order (alphabetical by default). The keys \
+rule! {
+    pub SortedKeys {
+        id: "sorted-keys",
+        category: Style,
+        default: Off,
+        fix: Unsafe,
+        description: "The keys of a mapping are not in order (alphabetical by default). The keys \
                   reported are chosen by `report`, and the first report carries the fix. \
                   Comments on lines of their own stay where they are, a comment after an entry \
                   moves with it; moving a YAML anchor below its alias breaks the document, so \
                   the fix is unsafe.",
-    example: "{ \"b\": 1, \"a\": 2 }   // becomes { \"a\": 2, \"b\": 1 }",
-    default_level: Level::Off,
-    fix: Some(FixKind::Unsafe),
-    requires: &[],
-    uses: &[],
-    options: &[
-        sorting::ORDER,
-        sorting::DIRECTION,
-        sorting::COMPARE,
-        sorting::IGNORED_KEYS,
-        sorting::MIN_KEYS,
-        sorting::BLANK_LINE_GROUPS,
-        OptionDecl {
-            name: "report",
-            default: Opt::Str("moved"),
-            check: Check::OneOf(&["moved", "misplaced"]),
-            description: "Which keys are reported. `moved`: the fewest keys that would have to \
+        example: "{ \"b\": 1, \"a\": 2 }   // becomes { \"a\": 2, \"b\": 1 }",
+        options: [
+            sorting::ORDER,
+            sorting::DIRECTION,
+            sorting::COMPARE,
+            sorting::IGNORED_KEYS,
+            sorting::MIN_KEYS,
+            sorting::BLANK_LINE_GROUPS,
+            OptionDecl {
+                name: "report",
+                default: Opt::Str("moved"),
+                check: Check::OneOf(&["moved", "misplaced"]),
+                description: "Which keys are reported. `moved`: the fewest keys that would have to \
                           move (eslint-plugin-jsonc). `misplaced`: every key that sorts before \
                           one above it (yamllint).",
-        },
+            },
     ],
-};
-
-impl Rule for SortedKeys {
-    fn meta(&self) -> &'static RuleMeta {
-        &SORTED_KEYS
-    }
-
-    fn tags(&self) -> &[&'static str] {
-        &["mapping"]
+        tags: &["mapping"],
     }
 
     fn check(&self, node: &SyntaxNode, ctx: &mut RuleContext<'_>) {
@@ -93,41 +82,30 @@ impl Rule for SortedKeys {
     }
 }
 
-pub struct SortedArrayValues;
-
-static SORTED_ARRAY_VALUES: RuleMeta = RuleMeta {
-    id: "sorted-array-values",
-    category: Category::Style,
-    description: "The items of a sequence of only strings or only numbers are not in order \
+rule! {
+    pub SortedArrayValues {
+        id: "sorted-array-values",
+        category: Style,
+        default: Off,
+        fix: Unsafe,
+        description: "The items of a sequence of only strings or only numbers are not in order \
                   (ascending by default; numbers compare as numbers). Sequences of other or \
                   mixed items are skipped. The items that would have to move (the fewest) are \
                   reported and the first report carries the fix; the fix is unsafe because \
                   sequence order can be data.",
-    example: "[\"b\", \"a\"]   // becomes [\"a\", \"b\"]",
-    default_level: Level::Off,
-    fix: Some(FixKind::Unsafe),
-    requires: &[],
-    uses: &[],
-    options: &[
-        sorting::DIRECTION,
-        sorting::COMPARE,
-        OptionDecl {
-            name: "min_values",
-            default: Opt::Int(2),
-            check: Check::Any,
-            description: "Sequences with fewer items are not checked.",
-        },
-        sorting::BLANK_LINE_GROUPS,
+        example: "[\"b\", \"a\"]   // becomes [\"a\", \"b\"]",
+        options: [
+            sorting::DIRECTION,
+            sorting::COMPARE,
+            OptionDecl {
+                name: "min_values",
+                default: Opt::Int(2),
+                check: Check::Any,
+                description: "Sequences with fewer items are not checked.",
+            },
+            sorting::BLANK_LINE_GROUPS,
     ],
-};
-
-impl Rule for SortedArrayValues {
-    fn meta(&self) -> &'static RuleMeta {
-        &SORTED_ARRAY_VALUES
-    }
-
-    fn tags(&self) -> &[&'static str] {
-        &["sequence"]
+        tags: &["sequence"],
     }
 
     fn check(&self, node: &SyntaxNode, ctx: &mut RuleContext<'_>) {

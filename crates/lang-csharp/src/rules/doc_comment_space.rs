@@ -1,29 +1,20 @@
 use super::kind;
-use core_config::Level;
 use core_rules::FileContext;
+use core_rules::rule;
 use core_rules::tree::structured_trivia;
-use core_rules::{Category, Edit, Fix, FixKind, Rule, RuleContext, RuleMeta};
+use core_rules::{Edit, Fix, FixKind, RuleContext};
 use core_syntax::TextRange;
 
-pub struct DocCommentSpace;
-
-static META: RuleMeta = RuleMeta {
-    id: "doc-comment-space",
-    category: Category::Style,
-    description: "A documentation line (`///`) starts with a single space. More spaces are \
+rule! {
+    pub DocCommentSpace {
+        id: "doc-comment-space",
+        category: Style,
+        default: Off,
+        fix: Safe,
+        description: "A documentation line (`///`) starts with a single space. More spaces are \
                   allowed to indent continuation lines, not on the first line of the comment; a \
                   tab or no space is always reported.",
-    example: "///<summary>x</summary>   // write: /// <summary>x</summary>",
-    default_level: Level::Off,
-    fix: Some(FixKind::Safe),
-    requires: &[],
-    uses: &[],
-    options: &[],
-};
-
-impl Rule for DocCommentSpace {
-    fn meta(&self) -> &'static RuleMeta {
-        &META
+        example: "///<summary>x</summary>   // write: /// <summary>x</summary>",
     }
 
     fn check_file(&self, file: &FileContext<'_>, ctx: &mut RuleContext<'_>) {

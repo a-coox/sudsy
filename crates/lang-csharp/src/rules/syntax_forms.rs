@@ -1,50 +1,22 @@
 //! Rules about how a construct is written: `separate-attributes` and `no-empty-delegate-parens`.
 
 use super::{kind, line_separator, text_of};
-use core_config::Level;
+use core_rules::rule;
 use core_rules::tree::significant_range;
-use core_rules::{Category, Edit, Fix, FixKind, Rule, RuleContext, RuleMeta};
-use core_syntax::{SyntaxKind, SyntaxNode, TextRange};
+use core_rules::{Edit, Fix, FixKind, RuleContext};
+use core_syntax::{SyntaxNode, TextRange};
 
-pub struct SeparateAttributes;
-pub struct NoEmptyDelegateParens;
-
-static SEPARATE_ATTRIBUTES: RuleMeta = RuleMeta {
-    id: "separate-attributes",
-    category: Category::Style,
-    description: "One attribute per attribute list: `[A, B]` becomes `[A]` and `[B]`. Lists on \
+rule! {
+    pub SeparateAttributes {
+        id: "separate-attributes",
+        category: Style,
+        default: Off,
+        fix: Safe,
+        description: "One attribute per attribute list: `[A, B]` becomes `[A]` and `[B]`. Lists on \
                   parameters and type parameters are left alone. The fix is not offered when the \
                   list has a comment in it.",
-    example: "[Serializable, Obsolete]   // write one list for each",
-    default_level: Level::Off,
-    fix: Some(FixKind::Safe),
-    requires: &[],
-    uses: &[],
-    options: &[],
-};
-
-static NO_EMPTY_DELEGATE_PARENS: RuleMeta = RuleMeta {
-    id: "no-empty-delegate-parens",
-    category: Category::Style,
-    description: "An anonymous method with an empty parameter list: `delegate() { }` is \
-                  `delegate { }`. The fix is unsafe: without a parameter list the method also \
-                  converts to delegate types that have parameters, which can change which \
-                  overload is chosen.",
-    example: "Action a = delegate() { };   // write: delegate { }",
-    default_level: Level::Off,
-    fix: Some(FixKind::Unsafe),
-    requires: &[],
-    uses: &[],
-    options: &[],
-};
-
-impl Rule for SeparateAttributes {
-    fn meta(&self) -> &'static RuleMeta {
-        &SEPARATE_ATTRIBUTES
-    }
-
-    fn kinds(&self) -> &[SyntaxKind] {
-        &[kind::ATTRIBUTE_LIST]
+        example: "[Serializable, Obsolete]   // write one list for each",
+        kinds: &[kind::ATTRIBUTE_LIST],
     }
 
     fn check(&self, node: &SyntaxNode, ctx: &mut RuleContext<'_>) {
@@ -109,13 +81,18 @@ fn empty_parens_with_leading_space(list: &SyntaxNode, ctx: &RuleContext<'_>) -> 
     Some(TextRange::new((start as u32).into(), range.end()))
 }
 
-impl Rule for NoEmptyDelegateParens {
-    fn meta(&self) -> &'static RuleMeta {
-        &NO_EMPTY_DELEGATE_PARENS
-    }
-
-    fn kinds(&self) -> &[SyntaxKind] {
-        &[kind::PARAMETER_LIST]
+rule! {
+    pub NoEmptyDelegateParens {
+        id: "no-empty-delegate-parens",
+        category: Style,
+        default: Off,
+        fix: Unsafe,
+        description: "An anonymous method with an empty parameter list: `delegate() { }` is \
+                  `delegate { }`. The fix is unsafe: without a parameter list the method also \
+                  converts to delegate types that have parameters, which can change which \
+                  overload is chosen.",
+        example: "Action a = delegate() { };   // write: delegate { }",
+        kinds: &[kind::PARAMETER_LIST],
     }
 
     fn check(&self, node: &SyntaxNode, ctx: &mut RuleContext<'_>) {

@@ -29,7 +29,7 @@ Adding a rule needs no Rust test: add `tests/rules/<language>/<rule-id>/<name>.<
 - One test per language lists every failing file with its message. Cases the runner cannot express stay in `crates/*/tests`: option validation errors, config-level on/off, depth and project scope.
 
 ### Adding a rule
-1. `RuleMeta` in the rule's module (id, category, description, default, fix, options with checks and descriptions) and register the rule.
+1. A `rule!` declaration in the rule's module (id, category, description, default, fix, options with checks and descriptions; [../rules/engine.md](../rules/engine.md#rule-trait)) and register the rule.
    A syntax rule that fits a pattern is a file instead: `crates/lang-<language>/rules/<rule-id>.yaml` ([../rules/patterns.md](../rules/patterns.md#built-in-pattern-rules)), no Rust.
 2. A fixture folder `tests/rules/<language>/<rule-id>/` as above.
 3. The matching entry in `docs/parity/<tool>.yaml` (`sudsy: "rule: <id>"`) when another tool has an equivalent.

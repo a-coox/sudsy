@@ -3,119 +3,10 @@
 //! work without the worker, by name.
 
 use super::{kind, range_of, text_of};
-use core_config::Level;
-use core_rules::{Category, Edit, FileContext, Fix, FixKind, Layer, Rule, RuleContext, RuleMeta};
+use core_rules::rule;
+use core_rules::{Edit, FileContext, Fix, FixKind, RuleContext};
 use core_semantics::Finding;
-use core_syntax::{SyntaxKind, SyntaxNode};
-
-pub struct NoUnneededBasePrefix;
-pub struct NoDefaultValueTypeConstructor;
-pub struct QualifyNamespaceUsings;
-pub struct UseTupleSyntax;
-pub struct TupleElementNamesInSignatures;
-pub struct DebugAssertMessage;
-pub struct DebugFailMessage;
-pub struct InheritdocOnInheritingMember;
-
-const fn meta(
-    id: &'static str,
-    description: &'static str,
-    example: &'static str,
-    fix: Option<FixKind>,
-    requires: &'static [Layer],
-    uses: &'static [Layer],
-) -> RuleMeta {
-    RuleMeta {
-        id,
-        category: Category::Style,
-        description,
-        example,
-        default_level: Level::Off,
-        fix,
-        requires,
-        uses,
-        options: &[],
-    }
-}
-
-static BASE_PREFIX: RuleMeta = meta(
-    "no-unneeded-base-prefix",
-    "`base.M()` or `base[i]` where the type does not override the member, so `this` binds to \
-     the same one. The fix writes `this`.",
-    "class B : A { void M() { base.Run(); } }   // no override of Run: write this.Run()",
-    Some(FixKind::Safe),
-    &[Layer::Types],
-    &[],
-);
-static DEFAULT_CTOR: RuleMeta = meta(
-    "no-default-value-type-constructor",
-    "`new S()` of a value type with an implicit parameterless constructor and no initializer: \
-     write `default(S)` (`Guid.Empty`, `CancellationToken.None`, `IntPtr.Zero`, the enum member \
-     with value 0 where they exist). No fix for a target-typed `new()`.",
-    "var d = new DateTime();   // write: default(DateTime)",
-    Some(FixKind::Safe),
-    &[Layer::Types],
-    &[],
-);
-static QUALIFY_USINGS: RuleMeta = meta(
-    "qualify-namespace-usings",
-    "A `using` directive inside a namespace whose name is not written fully qualified (it \
-     resolves relative to the enclosing namespace). The fix writes the full name, unless it \
-     has type arguments.",
-    "namespace A.B { using C.D; }   // C.D is A.C.D here: write using A.C.D;",
-    Some(FixKind::Safe),
-    &[Layer::Types],
-    &[],
-);
-static TUPLE_SYNTAX: RuleMeta = meta(
-    "use-tuple-syntax",
-    "`ValueTuple<int, int>` and `ValueTuple.Create(a, b)` where tuple syntax `(int, int)` and \
-     `(a, b)` is available (not inside an expression tree). The fix is offered for types and \
-     `ValueTuple.Create` calls.",
-    "ValueTuple<int, int> p;   // write: (int, int) p;",
-    Some(FixKind::Safe),
-    &[Layer::Types],
-    &[],
-);
-static TUPLE_NAMES: RuleMeta = meta(
-    "tuple-element-names-in-signatures",
-    "A tuple type in the signature of a method, constructor, property, indexer, conversion \
-     operator or delegate whose elements have no names. Overrides and implementations of \
-     interface members are left alone (their names are not the member's to choose). No fix.",
-    "(int, int) Pair();   // write: (int x, int y) Pair();",
-    None,
-    &[Layer::Types],
-    &[],
-);
-static DEBUG_ASSERT: RuleMeta = meta(
-    "debug-assert-message",
-    "`Debug.Assert` without a message, or with a constant blank one. With the type layer the \
-     call is checked against `System.Diagnostics.Debug`; without it any call written \
-     `Debug.Assert` is. No fix.",
-    "Debug.Assert(ok);   // add a message",
-    None,
-    &[],
-    &[Layer::Types],
-);
-static DEBUG_FAIL: RuleMeta = meta(
-    "debug-fail-message",
-    "`Debug.Fail` with a constant blank message. With the type layer the call is checked \
-     against `System.Diagnostics.Debug`; without it any call written `Debug.Fail` is. No fix.",
-    "Debug.Fail(\"\");   // say what went wrong",
-    None,
-    &[],
-    &[Layer::Types],
-);
-static INHERITDOC: RuleMeta = meta(
-    "inheritdoc-on-inheriting-member",
-    "`<inheritdoc />` without `cref` on a type without a base list, or on a member that neither \
-     overrides nor implements anything (a constructor whose signature matches a base \
-     constructor is fine). No fix.",
-    "/// <inheritdoc />\npublic void Run() { }   // implements nothing",
-    None,
-    &[Layer::Types],
-    &[],
-);
+use core_syntax::SyntaxNode;
 
 /// Reports every finding of `check`; the fix replaces the finding's fix range (or its span).
 fn report(
@@ -144,10 +35,18 @@ fn report(
     }
 }
 
-impl Rule for NoUnneededBasePrefix {
-    fn meta(&self) -> &'static RuleMeta {
-        &BASE_PREFIX
+rule! {
+    pub NoUnneededBasePrefix {
+        id: "no-unneeded-base-prefix",
+        category: Style,
+        default: Off,
+        fix: Safe,
+        description: "`base.M()` or `base[i]` where the type does not override the member, so `this` binds to \
+     the same one. The fix writes `this`.",
+        example: "class B : A { void M() { base.Run(); } }   // no override of Run: write this.Run()",
+        requires: [Types],
     }
+
     fn check_file(&self, file: &FileContext<'_>, ctx: &mut RuleContext<'_>) {
         report(
             file,
@@ -159,10 +58,19 @@ impl Rule for NoUnneededBasePrefix {
     }
 }
 
-impl Rule for NoDefaultValueTypeConstructor {
-    fn meta(&self) -> &'static RuleMeta {
-        &DEFAULT_CTOR
+rule! {
+    pub NoDefaultValueTypeConstructor {
+        id: "no-default-value-type-constructor",
+        category: Style,
+        default: Off,
+        fix: Safe,
+        description: "`new S()` of a value type with an implicit parameterless constructor and no initializer: \
+     write `default(S)` (`Guid.Empty`, `CancellationToken.None`, `IntPtr.Zero`, the enum member \
+     with value 0 where they exist). No fix for a target-typed `new()`.",
+        example: "var d = new DateTime();   // write: default(DateTime)",
+        requires: [Types],
     }
+
     fn check_file(&self, file: &FileContext<'_>, ctx: &mut RuleContext<'_>) {
         report(
             file,
@@ -177,10 +85,19 @@ impl Rule for NoDefaultValueTypeConstructor {
     }
 }
 
-impl Rule for QualifyNamespaceUsings {
-    fn meta(&self) -> &'static RuleMeta {
-        &QUALIFY_USINGS
+rule! {
+    pub QualifyNamespaceUsings {
+        id: "qualify-namespace-usings",
+        category: Style,
+        default: Off,
+        fix: Safe,
+        description: "A `using` directive inside a namespace whose name is not written fully qualified (it \
+     resolves relative to the enclosing namespace). The fix writes the full name, unless it \
+     has type arguments.",
+        example: "namespace A.B { using C.D; }   // C.D is A.C.D here: write using A.C.D;",
+        requires: [Types],
     }
+
     fn check_file(&self, file: &FileContext<'_>, ctx: &mut RuleContext<'_>) {
         report(
             file,
@@ -192,10 +109,19 @@ impl Rule for QualifyNamespaceUsings {
     }
 }
 
-impl Rule for UseTupleSyntax {
-    fn meta(&self) -> &'static RuleMeta {
-        &TUPLE_SYNTAX
+rule! {
+    pub UseTupleSyntax {
+        id: "use-tuple-syntax",
+        category: Style,
+        default: Off,
+        fix: Safe,
+        description: "`ValueTuple<int, int>` and `ValueTuple.Create(a, b)` where tuple syntax `(int, int)` and \
+     `(a, b)` is available (not inside an expression tree). The fix is offered for types and \
+     `ValueTuple.Create` calls.",
+        example: "ValueTuple<int, int> p;   // write: (int, int) p;",
+        requires: [Types],
     }
+
     fn check_file(&self, file: &FileContext<'_>, ctx: &mut RuleContext<'_>) {
         report(
             file,
@@ -207,10 +133,18 @@ impl Rule for UseTupleSyntax {
     }
 }
 
-impl Rule for TupleElementNamesInSignatures {
-    fn meta(&self) -> &'static RuleMeta {
-        &TUPLE_NAMES
+rule! {
+    pub TupleElementNamesInSignatures {
+        id: "tuple-element-names-in-signatures",
+        category: Style,
+        default: Off,
+        description: "A tuple type in the signature of a method, constructor, property, indexer, conversion \
+     operator or delegate whose elements have no names. Overrides and implementations of \
+     interface members are left alone (their names are not the member's to choose). No fix.",
+        example: "(int, int) Pair();   // write: (int x, int y) Pair();",
+        requires: [Types],
     }
+
     fn check_file(&self, file: &FileContext<'_>, ctx: &mut RuleContext<'_>) {
         report(
             file,
@@ -222,10 +156,18 @@ impl Rule for TupleElementNamesInSignatures {
     }
 }
 
-impl Rule for InheritdocOnInheritingMember {
-    fn meta(&self) -> &'static RuleMeta {
-        &INHERITDOC
+rule! {
+    pub InheritdocOnInheritingMember {
+        id: "inheritdoc-on-inheriting-member",
+        category: Style,
+        default: Off,
+        description: "`<inheritdoc />` without `cref` on a type without a base list, or on a member that neither \
+     overrides nor implements anything (a constructor whose signature matches a base \
+     constructor is fine). No fix.",
+        example: "/// <inheritdoc />\npublic void Run() { }   // implements nothing",
+        requires: [Types],
     }
+
     fn check_file(&self, file: &FileContext<'_>, ctx: &mut RuleContext<'_>) {
         report(
             file,
@@ -297,13 +239,19 @@ fn debug_message(
     }
 }
 
-impl Rule for DebugAssertMessage {
-    fn meta(&self) -> &'static RuleMeta {
-        &DEBUG_ASSERT
+rule! {
+    pub DebugAssertMessage {
+        id: "debug-assert-message",
+        category: Style,
+        default: Off,
+        description: "`Debug.Assert` without a message, or with a constant blank one. With the type layer the \
+     call is checked against `System.Diagnostics.Debug`; without it any call written \
+     `Debug.Assert` is. No fix.",
+        example: "Debug.Assert(ok);   // add a message",
+        uses: [Types],
+        kinds: &[kind::INVOCATION_EXPRESSION],
     }
-    fn kinds(&self) -> &[SyntaxKind] {
-        &[kind::INVOCATION_EXPRESSION]
-    }
+
     fn check(&self, node: &SyntaxNode, ctx: &mut RuleContext<'_>) {
         debug_message(
             node,
@@ -313,6 +261,7 @@ impl Rule for DebugAssertMessage {
             "Debug.Assert should provide message text",
         );
     }
+
     fn check_file(&self, file: &FileContext<'_>, ctx: &mut RuleContext<'_>) {
         report(
             file,
@@ -324,13 +273,18 @@ impl Rule for DebugAssertMessage {
     }
 }
 
-impl Rule for DebugFailMessage {
-    fn meta(&self) -> &'static RuleMeta {
-        &DEBUG_FAIL
+rule! {
+    pub DebugFailMessage {
+        id: "debug-fail-message",
+        category: Style,
+        default: Off,
+        description: "`Debug.Fail` with a constant blank message. With the type layer the call is checked \
+     against `System.Diagnostics.Debug`; without it any call written `Debug.Fail` is. No fix.",
+        example: "Debug.Fail(\"\");   // say what went wrong",
+        uses: [Types],
+        kinds: &[kind::INVOCATION_EXPRESSION],
     }
-    fn kinds(&self) -> &[SyntaxKind] {
-        &[kind::INVOCATION_EXPRESSION]
-    }
+
     fn check(&self, node: &SyntaxNode, ctx: &mut RuleContext<'_>) {
         debug_message(
             node,
@@ -340,6 +294,7 @@ impl Rule for DebugFailMessage {
             "Debug.Fail should provide message text",
         );
     }
+
     fn check_file(&self, file: &FileContext<'_>, ctx: &mut RuleContext<'_>) {
         report(
             file,

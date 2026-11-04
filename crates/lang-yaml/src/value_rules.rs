@@ -2,18 +2,12 @@
 
 use crate::generated::{BlockMappingEntry, BlockSequenceEntry, FlowPair, Scalar, kind};
 use crate::rules::has_tag;
-use core_config::Level;
-use core_rules::{
-    Category, Check, Edit, Fix, FixKind, Opt, OptionDecl, Rule, RuleContext, RuleMeta,
-};
+use core_rules::rule;
+use core_rules::{Check, Edit, Fix, FixKind, Opt, OptionDecl, RuleContext};
 use core_syntax::ast::AstNode;
-use core_syntax::{SyntaxKind, SyntaxNode, SyntaxToken, TextSize};
+use core_syntax::{SyntaxNode, SyntaxToken, TextSize};
 use regex::Regex;
 use std::sync::LazyLock;
-
-pub struct NoEmptyValues;
-pub struct FloatStyle;
-pub struct NoOctalValues;
 
 const fn flag(name: &'static str, default: bool, description: &'static str) -> OptionDecl {
     OptionDecl {
@@ -24,34 +18,24 @@ const fn flag(name: &'static str, default: bool, description: &'static str) -> O
     }
 }
 
-static NO_EMPTY_VALUES: RuleMeta = RuleMeta {
-    id: "no-empty-values",
-    category: Category::Style,
-    description: "A mapping key or sequence entry without a value (an implicit null). Values \
+rule! {
+    pub NoEmptyValues {
+        id: "no-empty-values",
+        category: Style,
+        default: Off,
+        description: "A mapping key or sequence entry without a value (an implicit null). Values \
                   with an anchor or tag are not empty. Reported at the `:` or `-`.",
-    example: "key:      # reported; write `key: null`\nlist:\n  -       # reported",
-    default_level: Level::Off,
-    fix: None,
-    requires: &[],
-    uses: &[],
-    options: &[
-        flag("block_mappings", true, "Check block mappings."),
-        flag("flow_mappings", true, "Check flow mappings (`{a: }`)."),
-        flag("block_sequences", true, "Check block sequences."),
+        example: "key:      # reported; write `key: null`\nlist:\n  -       # reported",
+        options: [
+            flag("block_mappings", true, "Check block mappings."),
+            flag("flow_mappings", true, "Check flow mappings (`{a: }`)."),
+            flag("block_sequences", true, "Check block sequences."),
     ],
-};
-
-impl Rule for NoEmptyValues {
-    fn meta(&self) -> &'static RuleMeta {
-        &NO_EMPTY_VALUES
-    }
-
-    fn kinds(&self) -> &[SyntaxKind] {
-        &[
+        kinds: &[
             kind::BLOCK_MAPPING_ENTRY,
             kind::FLOW_PAIR,
             kind::BLOCK_SEQUENCE_ENTRY,
-        ]
+        ],
     }
 
     fn check(&self, node: &SyntaxNode, ctx: &mut RuleContext<'_>) {
@@ -105,40 +89,31 @@ static SCIENTIFIC: LazyLock<Regex> =
 static INF: LazyLock<Regex> = LazyLock::new(|| pattern(r"^[-+]?\.(inf|Inf|INF)$"));
 static NAN: LazyLock<Regex> = LazyLock::new(|| pattern(r"^\.(nan|NaN|NAN)$"));
 
-static FLOAT_STYLE: RuleMeta = RuleMeta {
-    id: "float-style",
-    category: Category::Style,
-    description: "Restricts how plain floats are written. Every option is off until set: \
+rule! {
+    pub FloatStyle {
+        id: "float-style",
+        category: Style,
+        default: Off,
+        fix: Safe,
+        description: "Restricts how plain floats are written. Every option is off until set: \
                   `.5` without a leading digit, `1e3` scientific notation, `.nan` and `.inf`. \
                   Quoted and tagged scalars are not checked. The fix for `.5` is `0.5`.",
-    example: "x: .5   # with require_numeral_before_decimal; becomes 0.5",
-    default_level: Level::Off,
-    fix: Some(FixKind::Safe),
-    requires: &[],
-    uses: &[],
-    options: &[
-        flag(
-            "require_numeral_before_decimal",
-            false,
-            "Report `.5`, `-.5e3`: a digit must come before the decimal point.",
-        ),
-        flag(
-            "forbid_scientific_notation",
-            false,
-            "Report `1e3`, `1.5E-2`, `.5e3`.",
-        ),
-        flag("forbid_nan", false, "Report `.nan`, `.NaN`, `.NAN`."),
-        flag("forbid_inf", false, "Report `.inf`, `-.Inf`, `+.INF`."),
+        example: "x: .5   # with require_numeral_before_decimal; becomes 0.5",
+        options: [
+            flag(
+                "require_numeral_before_decimal",
+                false,
+                "Report `.5`, `-.5e3`: a digit must come before the decimal point.",
+            ),
+            flag(
+                "forbid_scientific_notation",
+                false,
+                "Report `1e3`, `1.5E-2`, `.5e3`.",
+            ),
+            flag("forbid_nan", false, "Report `.nan`, `.NaN`, `.NAN`."),
+            flag("forbid_inf", false, "Report `.inf`, `-.Inf`, `+.INF`."),
     ],
-};
-
-impl Rule for FloatStyle {
-    fn meta(&self) -> &'static RuleMeta {
-        &FLOAT_STYLE
-    }
-
-    fn kinds(&self) -> &[SyntaxKind] {
-        &[kind::SCALAR]
+        kinds: &[kind::SCALAR],
     }
 
     fn check(&self, node: &SyntaxNode, ctx: &mut RuleContext<'_>) {
@@ -171,34 +146,24 @@ impl Rule for FloatStyle {
     }
 }
 
-static NO_OCTAL_VALUES: RuleMeta = RuleMeta {
-    id: "no-octal-values",
-    category: Category::Suspicious,
-    description: "A plain `0755` (octal to YAML 1.1 parsers, decimal 755 to YAML 1.2) or `0o755` \
-                  (octal to YAML 1.2, a string to YAML 1.1). Quoted and tagged scalars are not \
-                  checked. No fix: the intended value is not known.",
-    example: "mode: 0755   # quote it (a string) or write the decimal value",
-    default_level: Level::Off,
-    fix: None,
-    requires: &[],
-    uses: &[],
-    options: &[
-        flag("implicit", true, "Report `0755`."),
-        flag("explicit", true, "Report `0o755`."),
-    ],
-};
-
 fn octal_digits(s: &str) -> bool {
     !s.is_empty() && s.bytes().all(|b| (b'0'..=b'7').contains(&b))
 }
 
-impl Rule for NoOctalValues {
-    fn meta(&self) -> &'static RuleMeta {
-        &NO_OCTAL_VALUES
-    }
-
-    fn kinds(&self) -> &[SyntaxKind] {
-        &[kind::SCALAR]
+rule! {
+    pub NoOctalValues {
+        id: "no-octal-values",
+        category: Suspicious,
+        default: Off,
+        description: "A plain `0755` (octal to YAML 1.1 parsers, decimal 755 to YAML 1.2) or `0o755` \
+                  (octal to YAML 1.2, a string to YAML 1.1). Quoted and tagged scalars are not \
+                  checked. No fix: the intended value is not known.",
+        example: "mode: 0755   # quote it (a string) or write the decimal value",
+        options: [
+            flag("implicit", true, "Report `0755`."),
+            flag("explicit", true, "Report `0o755`."),
+    ],
+        kinds: &[kind::SCALAR],
     }
 
     fn check(&self, node: &SyntaxNode, ctx: &mut RuleContext<'_>) {

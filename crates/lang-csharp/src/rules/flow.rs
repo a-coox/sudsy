@@ -1,42 +1,32 @@
 //! Rules over the flow layer: unreachable code, unused variables, dead stores.
 
 use super::{BODY_KINDS, kind, range_of};
-use core_config::Level;
 use core_flow::{LocalKind, OpFlags, OpKind, dead_stores};
-use core_rules::{
-    BodyContext, Category, Check, Edit, Fix, FixKind, Layer, Opt, OptionDecl, Rule, RuleContext,
-    RuleMeta,
-};
+use core_rules::rule;
+use core_rules::{BodyContext, Check, Edit, Fix, FixKind, Opt, OptionDecl, RuleContext};
 use core_syntax::{SyntaxNode, TextRange};
 use std::collections::BTreeSet;
 
-pub struct UnreachableCode;
-
-static UNREACHABLE: RuleMeta = RuleMeta {
-    id: "unreachable-code",
-    category: Category::Suspicious,
-    description: "A statement that can never run. At `fast` depth this is the statement after a \
+rule! {
+    pub UnreachableCode {
+        id: "unreachable-code",
+        category: Suspicious,
+        default: Off,
+        fix: Suggestion,
+        description: "A statement that can never run. At `fast` depth this is the statement after a \
                   `return`, `throw`, `break`, `continue` or `goto`; with the flow layer it also \
                   covers constant conditions and calls that do not return (`does_not_return` in \
                   `semantics:`). Only the first statement of a run is reported. Removing it is \
                   offered as an editor quick fix only, because unreachable code usually signals \
                   a bug. Off by default: the compiler already reports unreachable code (CS0162) and the SDK analyzers add IDE0035.",
-    example: "return x;\nLog(x);   // never runs",
-    default_level: Level::Off,
-    fix: Some(FixKind::Suggestion),
-    requires: &[],
-    uses: &[Layer::Flow],
-    options: &[OptionDecl {
-        name: "non_returning_calls",
-        default: Opt::Bool(true),
-        check: Check::Any,
-        description: "Treat the code after a call that never returns (`[DoesNotReturn]`,                       `does_not_return` in `semantics:`) as unreachable. The compiler does not,                       so turn this off to report exactly what it reports (CS0162).",
-    }],
-};
-
-impl Rule for UnreachableCode {
-    fn meta(&self) -> &'static RuleMeta {
-        &UNREACHABLE
+        example: "return x;\nLog(x);   // never runs",
+        uses: [Flow],
+        options: [OptionDecl {
+            name: "non_returning_calls",
+            default: Opt::Bool(true),
+            check: Check::Any,
+            description: "Treat the code after a call that never returns (`[DoesNotReturn]`,                       `does_not_return` in `semantics:`) as unreachable. The compiler does not,                       so turn this off to report exactly what it reports (CS0162).",
+        }],
     }
 
     fn check_body(&self, body: &BodyContext<'_>, ctx: &mut RuleContext<'_>) {
@@ -146,25 +136,17 @@ fn syntactic(body: &SyntaxNode, is_statement: impl Fn(&SyntaxNode) -> bool) -> V
     out
 }
 
-pub struct UnusedVariable;
-
-static UNUSED_VARIABLE: RuleMeta = RuleMeta {
-    id: "unused-variable",
-    category: Category::Cleanup,
-    description: "A local variable or catch variable that is never used (the compiler's CS0168), \
+rule! {
+    pub UnusedVariable {
+        id: "unused-variable",
+        category: Cleanup,
+        default: Off,
+        fix: Safe,
+        description: "A local variable or catch variable that is never used (the compiler's CS0168), \
                   or is only assigned constants and never read (CS0219). Variables captured by \
                   lambdas or local functions count as used. Off by default: the compiler already warns (CS0168, CS0219).",
-    example: "int total = 0;   // never read\ntry { Run(); } catch (Exception e) { }   // e is never used",
-    default_level: Level::Off,
-    fix: Some(FixKind::Safe),
-    requires: &[Layer::Flow],
-    uses: &[],
-    options: &[],
-};
-
-impl Rule for UnusedVariable {
-    fn meta(&self) -> &'static RuleMeta {
-        &UNUSED_VARIABLE
+        example: "int total = 0;   // never read\ntry { Run(); } catch (Exception e) { }   // e is never used",
+        requires: [Flow],
     }
 
     fn check_body(&self, body: &BodyContext<'_>, ctx: &mut RuleContext<'_>) {
@@ -240,26 +222,17 @@ fn removal(body: &BodyContext<'_>, local: LocalKind, name: TextRange) -> Option<
     })
 }
 
-pub struct UnusedAssignment;
-
-static UNUSED_ASSIGNMENT: RuleMeta = RuleMeta {
-    id: "unused-assignment",
-    category: Category::Cleanup,
-    description: "A value is stored in a local variable and no path reads it before it is \
+rule! {
+    pub UnusedAssignment {
+        id: "unused-assignment",
+        category: Cleanup,
+        default: Off,
+        description: "A value is stored in a local variable and no path reads it before it is \
                   overwritten or the variable goes out of scope (a dead store). Variables that \
                   are captured or whose address is taken are not checked; a variable that is \
                   never read at all is reported by `unused-variable` instead. Overlaps the SDK analyzer IDE0059 (unnecessary assignment).",
-    example: "int n = 0;\nn = Count();   // the 0 is never read",
-    default_level: Level::Off,
-    fix: None,
-    requires: &[Layer::Flow],
-    uses: &[],
-    options: &[],
-};
-
-impl Rule for UnusedAssignment {
-    fn meta(&self) -> &'static RuleMeta {
-        &UNUSED_ASSIGNMENT
+        example: "int n = 0;\nn = Count();   // the 0 is never read",
+        requires: [Flow],
     }
 
     fn check_body(&self, body: &BodyContext<'_>, ctx: &mut RuleContext<'_>) {

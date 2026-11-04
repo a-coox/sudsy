@@ -2,14 +2,10 @@
 //! `no-duplicate-anchors` and `no-unused-anchors`. Anchors do not cross document markers.
 
 use crate::generated::kind;
-use core_config::Level;
-use core_rules::{Category, Edit, FileContext, Fix, FixKind, Rule, RuleContext, RuleMeta};
+use core_rules::rule;
+use core_rules::{Edit, FileContext, Fix, FixKind, RuleContext};
 use core_syntax::{TextRange, TextSize};
 use std::collections::{HashMap, HashSet};
-
-pub struct NoUndefinedAlias;
-pub struct NoDuplicateAnchors;
-pub struct NoUnusedAnchors;
 
 /// An `&name` or `*name` token of the file.
 struct Event<'a> {
@@ -49,21 +45,13 @@ fn events<'a>(file: &FileContext<'a>) -> Vec<Event<'a>> {
     out
 }
 
-static NO_UNDEFINED_ALIAS: RuleMeta = RuleMeta {
-    id: "no-undefined-alias",
-    category: Category::Correctness,
-    description: "An alias names an anchor that is not defined earlier in the same document.",
-    example: "a: *nope   # no `&nope` before it",
-    default_level: Level::Error,
-    fix: None,
-    requires: &[],
-    uses: &[],
-    options: &[],
-};
-
-impl Rule for NoUndefinedAlias {
-    fn meta(&self) -> &'static RuleMeta {
-        &NO_UNDEFINED_ALIAS
+rule! {
+    pub NoUndefinedAlias {
+        id: "no-undefined-alias",
+        category: Correctness,
+        default: Error,
+        description: "An alias names an anchor that is not defined earlier in the same document.",
+        example: "a: *nope   # no `&nope` before it",
     }
 
     fn check_file(&self, file: &FileContext<'_>, ctx: &mut RuleContext<'_>) {
@@ -83,22 +71,14 @@ impl Rule for NoUndefinedAlias {
     }
 }
 
-static NO_DUPLICATE_ANCHORS: RuleMeta = RuleMeta {
-    id: "no-duplicate-anchors",
-    category: Category::Suspicious,
-    description: "An anchor name is defined again in the same document; an alias refers to the \
+rule! {
+    pub NoDuplicateAnchors {
+        id: "no-duplicate-anchors",
+        category: Suspicious,
+        default: Off,
+        description: "An anchor name is defined again in the same document; an alias refers to the \
                   latest definition above it, which is easy to misread.",
-    example: "- &a 1\n- &a 2   # reported at the second `&a`",
-    default_level: Level::Off,
-    fix: None,
-    requires: &[],
-    uses: &[],
-    options: &[],
-};
-
-impl Rule for NoDuplicateAnchors {
-    fn meta(&self) -> &'static RuleMeta {
-        &NO_DUPLICATE_ANCHORS
+        example: "- &a 1\n- &a 2   # reported at the second `&a`",
     }
 
     fn check_file(&self, file: &FileContext<'_>, ctx: &mut RuleContext<'_>) {
@@ -122,22 +102,15 @@ impl Rule for NoDuplicateAnchors {
     }
 }
 
-static NO_UNUSED_ANCHORS: RuleMeta = RuleMeta {
-    id: "no-unused-anchors",
-    category: Category::Cleanup,
-    description: "An anchor that no alias refers to. The fix removes the anchor, which changes \
+rule! {
+    pub NoUnusedAnchors {
+        id: "no-unused-anchors",
+        category: Cleanup,
+        default: Off,
+        fix: Safe,
+        description: "An anchor that no alias refers to. The fix removes the anchor, which changes \
                   nothing about the data.",
-    example: "a: &x 1   # becomes a: 1 when no `*x` follows",
-    default_level: Level::Off,
-    fix: Some(FixKind::Safe),
-    requires: &[],
-    uses: &[],
-    options: &[],
-};
-
-impl Rule for NoUnusedAnchors {
-    fn meta(&self) -> &'static RuleMeta {
-        &NO_UNUSED_ANCHORS
+        example: "a: &x 1   # becomes a: 1 when no `*x` follows",
     }
 
     fn check_file(&self, file: &FileContext<'_>, ctx: &mut RuleContext<'_>) {

@@ -2,87 +2,28 @@
 //! `use-lambda`, `constant-on-right` and `use-literal-suffix`.
 
 use super::{has_comment_in, kind, text_of};
-use core_config::Level;
+use core_rules::rule;
 use core_rules::tree::significant_range;
-use core_rules::{Category, Edit, Fix, FixKind, Rule, RuleContext, RuleMeta};
-use core_syntax::{SyntaxKind, SyntaxNode, TextRange};
-
-pub struct NullableShorthand;
-pub struct UseLambda;
-pub struct ConstantOnRight;
-pub struct UseLiteralSuffix;
-
-static NULLABLE_SHORTHAND: RuleMeta = RuleMeta {
-    id: "nullable-shorthand",
-    category: Category::Style,
-    description: "`int?` instead of `Nullable<int>` or `System.Nullable<int>`. Name-based: a \
-                  type of your own called `Nullable` is reported too. Not reported in `using` \
-                  aliases, `nameof`, `typeof(Nullable<>)` and before a member access \
-                  (`Nullable<int>.Equals`).",
-    example: "Nullable<int> x;   // write: int? x;",
-    default_level: Level::Off,
-    fix: Some(FixKind::Safe),
-    requires: &[],
-    uses: &[],
-    options: &[],
-};
-
-static USE_LAMBDA: RuleMeta = RuleMeta {
-    id: "use-lambda",
-    category: Category::Style,
-    description: "A lambda instead of an anonymous method. The fix is offered when the anonymous \
-                  method has a parameter list and no comment before its body; `delegate { }` \
-                  without one converts to delegate types with any parameters, so it has no fix.",
-    example: "Func<int, int> f = delegate (int x) { return x; };   // write: (int x) => { return x; }",
-    default_level: Level::Off,
-    fix: Some(FixKind::Safe),
-    requires: &[],
-    uses: &[],
-    options: &[],
-};
-
-static CONSTANT_ON_RIGHT: RuleMeta = RuleMeta {
-    id: "constant-on-right",
-    category: Category::Style,
-    description: "A comparison with the constant on the left: `null == x` is `x == null`, \
-                  `1 < x` is `x > 1`. Without the type layer a constant is a literal, `nameof`, \
-                  `int.MaxValue`-style member or an expression of those; a named constant on the \
-                  left is not recognised.",
-    example: "if (null == x) { }   // write: if (x == null) { }",
-    default_level: Level::Off,
-    fix: Some(FixKind::Safe),
-    requires: &[],
-    uses: &[],
-    options: &[],
-};
-
-static USE_LITERAL_SUFFIX: RuleMeta = RuleMeta {
-    id: "use-literal-suffix",
-    category: Category::Style,
-    description: "A numeric literal cast to `long`, `ulong`, `uint`, `float`, `double` or \
-                  `decimal` when the literal's own type differs: `(long)1` is `1L`. Not reported \
-                  for hexadecimal and binary literals cast to a floating-point type, which have \
-                  no suffix.",
-    example: "var x = (long)1;   // write: var x = 1L;",
-    default_level: Level::Off,
-    fix: Some(FixKind::Safe),
-    requires: &[],
-    uses: &[],
-    options: &[],
-};
+use core_rules::{Edit, Fix, FixKind, RuleContext};
+use core_syntax::{SyntaxNode, TextRange};
 
 /// Is `left` `System` or `global::System`?
 fn is_system(left: &SyntaxNode, ctx: &RuleContext<'_>) -> bool {
     matches!(text_of(left, ctx), "System" | "global::System")
 }
 
-impl Rule for NullableShorthand {
-    fn meta(&self) -> &'static RuleMeta {
-        &NULLABLE_SHORTHAND
-    }
-
-    fn kinds(&self) -> &[SyntaxKind] {
-        &[kind::GENERIC_NAME]
+rule! {
+    pub NullableShorthand {
+        id: "nullable-shorthand",
+        category: Style,
+        default: Off,
+        fix: Safe,
+        description: "`int?` instead of `Nullable<int>` or `System.Nullable<int>`. Name-based: a \
+                  type of your own called `Nullable` is reported too. Not reported in `using` \
+                  aliases, `nameof`, `typeof(Nullable<>)` and before a member access \
+                  (`Nullable<int>.Equals`).",
+        example: "Nullable<int> x;   // write: int? x;",
+        kinds: &[kind::GENERIC_NAME],
     }
 
     fn check(&self, node: &SyntaxNode, ctx: &mut RuleContext<'_>) {
@@ -151,13 +92,17 @@ impl Rule for NullableShorthand {
     }
 }
 
-impl Rule for UseLambda {
-    fn meta(&self) -> &'static RuleMeta {
-        &USE_LAMBDA
-    }
-
-    fn kinds(&self) -> &[SyntaxKind] {
-        &[kind::ANONYMOUS_METHOD_EXPRESSION]
+rule! {
+    pub UseLambda {
+        id: "use-lambda",
+        category: Style,
+        default: Off,
+        fix: Safe,
+        description: "A lambda instead of an anonymous method. The fix is offered when the anonymous \
+                  method has a parameter list and no comment before its body; `delegate { }` \
+                  without one converts to delegate types with any parameters, so it has no fix.",
+        example: "Func<int, int> f = delegate (int x) { return x; };   // write: (int x) => { return x; }",
+        kinds: &[kind::ANONYMOUS_METHOD_EXPRESSION],
     }
 
     fn check(&self, node: &SyntaxNode, ctx: &mut RuleContext<'_>) {
@@ -251,20 +196,25 @@ fn is_constant(node: &SyntaxNode, ctx: &RuleContext<'_>) -> bool {
     }
 }
 
-impl Rule for ConstantOnRight {
-    fn meta(&self) -> &'static RuleMeta {
-        &CONSTANT_ON_RIGHT
-    }
-
-    fn kinds(&self) -> &[SyntaxKind] {
-        &[
+rule! {
+    pub ConstantOnRight {
+        id: "constant-on-right",
+        category: Style,
+        default: Off,
+        fix: Safe,
+        description: "A comparison with the constant on the left: `null == x` is `x == null`, \
+                  `1 < x` is `x > 1`. Without the type layer a constant is a literal, `nameof`, \
+                  `int.MaxValue`-style member or an expression of those; a named constant on the \
+                  left is not recognised.",
+        example: "if (null == x) { }   // write: if (x == null) { }",
+        kinds: &[
             kind::EQUALS_EXPRESSION,
             kind::NOT_EQUALS_EXPRESSION,
             kind::LESS_THAN_EXPRESSION,
             kind::LESS_THAN_OR_EQUAL_EXPRESSION,
             kind::GREATER_THAN_EXPRESSION,
             kind::GREATER_THAN_OR_EQUAL_EXPRESSION,
-        ]
+        ],
     }
 
     fn check(&self, node: &SyntaxNode, ctx: &mut RuleContext<'_>) {
@@ -366,13 +316,18 @@ fn suffix_of(target: &str) -> Option<&'static str> {
     })
 }
 
-impl Rule for UseLiteralSuffix {
-    fn meta(&self) -> &'static RuleMeta {
-        &USE_LITERAL_SUFFIX
-    }
-
-    fn kinds(&self) -> &[SyntaxKind] {
-        &[kind::CAST_EXPRESSION]
+rule! {
+    pub UseLiteralSuffix {
+        id: "use-literal-suffix",
+        category: Style,
+        default: Off,
+        fix: Safe,
+        description: "A numeric literal cast to `long`, `ulong`, `uint`, `float`, `double` or \
+                  `decimal` when the literal's own type differs: `(long)1` is `1L`. Not reported \
+                  for hexadecimal and binary literals cast to a floating-point type, which have \
+                  no suffix.",
+        example: "var x = (long)1;   // write: var x = 1L;",
+        kinds: &[kind::CAST_EXPRESSION],
     }
 
     fn check(&self, node: &SyntaxNode, ctx: &mut RuleContext<'_>) {

@@ -2,55 +2,10 @@
 //! `file-name-matches-type`. They look at the file's top level only.
 
 use super::{kind, text_of};
-use core_config::Level;
+use core_rules::RuleContext;
+use core_rules::rule;
 use core_rules::tree::significant_range;
-use core_rules::{Category, Rule, RuleContext, RuleMeta};
 use core_syntax::{SyntaxKind, SyntaxNode, SyntaxToken};
-
-pub struct SingleClassPerFile;
-pub struct SingleNamespacePerFile;
-pub struct FileNameMatchesType;
-
-static SINGLE_CLASS_PER_FILE: RuleMeta = RuleMeta {
-    id: "single-class-per-file",
-    category: Category::Style,
-    description: "A file holds one class or record: every later one is reported, more parts of \
-                  the first class (when it is partial) excepted. Structs, interfaces, enums and \
-                  delegates are not counted. No fix.",
-    example: "class A { } class B { }   // move B to its own file",
-    default_level: Level::Off,
-    fix: None,
-    requires: &[],
-    uses: &[],
-    options: &[],
-};
-
-static SINGLE_NAMESPACE_PER_FILE: RuleMeta = RuleMeta {
-    id: "single-namespace-per-file",
-    category: Category::Style,
-    description: "A file declares one namespace: every later one, nested ones included, is \
-                  reported. No fix.",
-    example: "namespace A { } namespace B { }   // move B to its own file",
-    default_level: Level::Off,
-    fix: None,
-    requires: &[],
-    uses: &[],
-    options: &[],
-};
-
-static FILE_NAME_MATCHES_TYPE: RuleMeta = RuleMeta {
-    id: "file-name-matches-type",
-    category: Category::Style,
-    description: "The file name, up to its first dot and ignoring case, is the name of the first \
-                  type in the file; a generic type may also be written `Name{T,U}`. Not checked \
-                  when that type is partial. No fix.",
-    example: "// Orders.cs\nclass Order { }   // rename the file Order.cs",
-    default_level: Level::Off,
-    fix: None,
-    requires: &[],
-    uses: &[],
-    options: &[],
-};
 
 const CLASSES: &[SyntaxKind] = &[kind::CLASS_DECLARATION, kind::RECORD_DECLARATION];
 
@@ -100,13 +55,16 @@ fn is_partial(declaration: &SyntaxNode) -> bool {
         .any(|e| e.kind() == kind::PARTIAL_KEYWORD)
 }
 
-impl Rule for SingleClassPerFile {
-    fn meta(&self) -> &'static RuleMeta {
-        &SINGLE_CLASS_PER_FILE
-    }
-
-    fn kinds(&self) -> &[SyntaxKind] {
-        &[kind::COMPILATION_UNIT]
+rule! {
+    pub SingleClassPerFile {
+        id: "single-class-per-file",
+        category: Style,
+        default: Off,
+        description: "A file holds one class or record: every later one is reported, more parts of \
+                  the first class (when it is partial) excepted. Structs, interfaces, enums and \
+                  delegates are not counted. No fix.",
+        example: "class A { } class B { }   // move B to its own file",
+        kinds: &[kind::COMPILATION_UNIT],
     }
 
     fn check(&self, node: &SyntaxNode, ctx: &mut RuleContext<'_>) {
@@ -130,13 +88,15 @@ impl Rule for SingleClassPerFile {
     }
 }
 
-impl Rule for SingleNamespacePerFile {
-    fn meta(&self) -> &'static RuleMeta {
-        &SINGLE_NAMESPACE_PER_FILE
-    }
-
-    fn kinds(&self) -> &[SyntaxKind] {
-        &[kind::COMPILATION_UNIT]
+rule! {
+    pub SingleNamespacePerFile {
+        id: "single-namespace-per-file",
+        category: Style,
+        default: Off,
+        description: "A file declares one namespace: every later one, nested ones included, is \
+                  reported. No fix.",
+        example: "namespace A { } namespace B { }   // move B to its own file",
+        kinds: &[kind::COMPILATION_UNIT],
     }
 
     fn check(&self, node: &SyntaxNode, ctx: &mut RuleContext<'_>) {
@@ -151,13 +111,16 @@ impl Rule for SingleNamespacePerFile {
     }
 }
 
-impl Rule for FileNameMatchesType {
-    fn meta(&self) -> &'static RuleMeta {
-        &FILE_NAME_MATCHES_TYPE
-    }
-
-    fn kinds(&self) -> &[SyntaxKind] {
-        &[kind::COMPILATION_UNIT]
+rule! {
+    pub FileNameMatchesType {
+        id: "file-name-matches-type",
+        category: Style,
+        default: Off,
+        description: "The file name, up to its first dot and ignoring case, is the name of the first \
+                  type in the file; a generic type may also be written `Name{T,U}`. Not checked \
+                  when that type is partial. No fix.",
+        example: "// Orders.cs\nclass Order { }   // rename the file Order.cs",
+        kinds: &[kind::COMPILATION_UNIT],
     }
 
     fn check(&self, node: &SyntaxNode, ctx: &mut RuleContext<'_>) {

@@ -1,50 +1,23 @@
 //! Statement-level lexical rules: `no-empty-statement` and `no-comment-before-block`.
 
 use super::kind;
-use core_config::Level;
+use core_rules::rule;
 use core_rules::tree::{is_code, significant_range};
-use core_rules::{Category, Edit, Fix, FixKind, Rule, RuleContext, RuleMeta};
-use core_syntax::{SyntaxKind, SyntaxNode, TextRange};
+use core_rules::{Edit, Fix, FixKind, RuleContext};
+use core_syntax::{SyntaxNode, TextRange};
 
-pub struct NoEmptyStatement;
-pub struct NoCommentBeforeBlock;
-
-static NO_EMPTY_STATEMENT: RuleMeta = RuleMeta {
-    id: "no-empty-statement",
-    category: Category::Suspicious,
-    description: "A lone `;` is a statement that does nothing. A statement labelled `label: ;` is \
+rule! {
+    pub NoEmptyStatement {
+        id: "no-empty-statement",
+        category: Suspicious,
+        default: Off,
+        fix: Safe,
+        description: "A lone `;` is a statement that does nothing. A statement labelled `label: ;` is \
                   allowed. The fix removes the statement (its whole line when it is alone on \
                   it), or turns an empty loop or `if` body into `{ }`; it is not offered for the \
                   only statement of a switch section. Overlaps compiler CS0642 for `if (x);`.",
-    example: "int y = 1;;   // delete the second ;",
-    default_level: Level::Off,
-    fix: Some(FixKind::Safe),
-    requires: &[],
-    uses: &[],
-    options: &[],
-};
-
-static NO_COMMENT_BEFORE_BLOCK: RuleMeta = RuleMeta {
-    id: "no-comment-before-block",
-    category: Category::Style,
-    description: "A comment between the head of an `if`, `else`, `while`, `do`, `for`, `foreach`, \
-                  `lock`, `try`, `catch`, `finally`, `switch`, `checked` or `unchecked` and its \
-                  `{`. Put it inside the block or above the statement.",
-    example: "if (x) // why\n{                  // move the comment above the if",
-    default_level: Level::Off,
-    fix: None,
-    requires: &[],
-    uses: &[],
-    options: &[],
-};
-
-impl Rule for NoEmptyStatement {
-    fn meta(&self) -> &'static RuleMeta {
-        &NO_EMPTY_STATEMENT
-    }
-
-    fn kinds(&self) -> &[SyntaxKind] {
-        &[kind::EMPTY_STATEMENT]
+        example: "int y = 1;;   // delete the second ;",
+        kinds: &[kind::EMPTY_STATEMENT],
     }
 
     fn check(&self, node: &SyntaxNode, ctx: &mut RuleContext<'_>) {
@@ -90,13 +63,16 @@ fn remove_edit(text: &str, range: TextRange) -> Edit {
     Edit::delete(range)
 }
 
-impl Rule for NoCommentBeforeBlock {
-    fn meta(&self) -> &'static RuleMeta {
-        &NO_COMMENT_BEFORE_BLOCK
-    }
-
-    fn kinds(&self) -> &[SyntaxKind] {
-        &[
+rule! {
+    pub NoCommentBeforeBlock {
+        id: "no-comment-before-block",
+        category: Style,
+        default: Off,
+        description: "A comment between the head of an `if`, `else`, `while`, `do`, `for`, `foreach`, \
+                  `lock`, `try`, `catch`, `finally`, `switch`, `checked` or `unchecked` and its \
+                  `{`. Put it inside the block or above the statement.",
+        example: "if (x) // why\n{                  // move the comment above the if",
+        kinds: &[
             kind::IF_STATEMENT,
             kind::ELSE_CLAUSE,
             kind::WHILE_STATEMENT,
@@ -111,7 +87,7 @@ impl Rule for NoCommentBeforeBlock {
             kind::SWITCH_STATEMENT,
             kind::CHECKED_STATEMENT,
             kind::UNCHECKED_STATEMENT,
-        ]
+        ],
     }
 
     fn check(&self, node: &SyntaxNode, ctx: &mut RuleContext<'_>) {

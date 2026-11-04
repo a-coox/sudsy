@@ -1,49 +1,22 @@
 //! Rules about declarations: `separate-field-declarations` and `suppression-justification`.
 
 use super::{has_comment_in, kind, line_separator, text_of};
-use core_config::Level;
+use core_rules::rule;
 use core_rules::tree::{code_start, significant_range};
-use core_rules::{Category, Edit, Fix, FixKind, Rule, RuleContext, RuleMeta};
-use core_syntax::{SyntaxKind, SyntaxNode, TextRange};
+use core_rules::{Edit, Fix, FixKind, RuleContext};
+use core_syntax::{SyntaxNode, TextRange};
 
-pub struct SeparateFieldDeclarations;
-pub struct SuppressionJustification;
-
-static SEPARATE_FIELD_DECLARATIONS: RuleMeta = RuleMeta {
-    id: "separate-field-declarations",
-    category: Category::Style,
-    description: "One field or event per declaration: `int a, b;` becomes `int a;` and `int b;`, \
+rule! {
+    pub SeparateFieldDeclarations {
+        id: "separate-field-declarations",
+        category: Style,
+        default: Off,
+        fix: Safe,
+        description: "One field or event per declaration: `int a, b;` becomes `int a;` and `int b;`, \
                   each with the attributes, modifiers and type of the original. The fix is not \
                   offered when the declaration has a comment in it.",
-    example: "int a, b;   // write one declaration for each",
-    default_level: Level::Off,
-    fix: Some(FixKind::Safe),
-    requires: &[],
-    uses: &[],
-    options: &[],
-};
-
-static SUPPRESSION_JUSTIFICATION: RuleMeta = RuleMeta {
-    id: "suppression-justification",
-    category: Category::Style,
-    description: "`SuppressMessage` needs a `Justification` that says something: not missing, \
-                  `null`, empty, blank or `\"<Pending>\"`. Matches the attribute by name. No \
-                  fix.",
-    example: "[SuppressMessage(\"Style\", \"X1\")]   // add Justification = \"why\"",
-    default_level: Level::Off,
-    fix: None,
-    requires: &[],
-    uses: &[],
-    options: &[],
-};
-
-impl Rule for SeparateFieldDeclarations {
-    fn meta(&self) -> &'static RuleMeta {
-        &SEPARATE_FIELD_DECLARATIONS
-    }
-
-    fn kinds(&self) -> &[SyntaxKind] {
-        &[kind::FIELD_DECLARATION, kind::EVENT_FIELD_DECLARATION]
+        example: "int a, b;   // write one declaration for each",
+        kinds: &[kind::FIELD_DECLARATION, kind::EVENT_FIELD_DECLARATION],
     }
 
     fn check(&self, node: &SyntaxNode, ctx: &mut RuleContext<'_>) {
@@ -102,13 +75,16 @@ fn is_empty_justification(value: &SyntaxNode, ctx: &RuleContext<'_>) -> bool {
     }
 }
 
-impl Rule for SuppressionJustification {
-    fn meta(&self) -> &'static RuleMeta {
-        &SUPPRESSION_JUSTIFICATION
-    }
-
-    fn kinds(&self) -> &[SyntaxKind] {
-        &[kind::ATTRIBUTE]
+rule! {
+    pub SuppressionJustification {
+        id: "suppression-justification",
+        category: Style,
+        default: Off,
+        description: "`SuppressMessage` needs a `Justification` that says something: not missing, \
+                  `null`, empty, blank or `\"<Pending>\"`. Matches the attribute by name. No \
+                  fix.",
+        example: "[SuppressMessage(\"Style\", \"X1\")]   // add Justification = \"why\"",
+        kinds: &[kind::ATTRIBUTE],
     }
 
     fn check(&self, node: &SyntaxNode, ctx: &mut RuleContext<'_>) {

@@ -1,31 +1,18 @@
 use super::kind;
 use crate::generated::CatchClause;
-use core_config::Level;
-use core_rules::{Category, Rule, RuleContext, RuleMeta};
+use core_rules::RuleContext;
+use core_rules::rule;
+use core_syntax::SyntaxNode;
 use core_syntax::ast::AstNode;
-use core_syntax::{SyntaxKind, SyntaxNode};
 
-pub struct NoEmptyCatch;
-
-static META: RuleMeta = RuleMeta {
-    id: "no-empty-catch",
-    category: Category::Suspicious,
-    description: "A catch block with no statements and no comment swallows the exception silently.",
-    example: "try { Run(); } catch (Exception) { }   // add handling, or a comment saying why not",
-    default_level: Level::Warn,
-    fix: None,
-    requires: &[],
-    uses: &[],
-    options: &[],
-};
-
-impl Rule for NoEmptyCatch {
-    fn meta(&self) -> &'static RuleMeta {
-        &META
-    }
-
-    fn kinds(&self) -> &[SyntaxKind] {
-        &[kind::CATCH_CLAUSE]
+rule! {
+    pub NoEmptyCatch {
+        id: "no-empty-catch",
+        category: Suspicious,
+        default: Warn,
+        description: "A catch block with no statements and no comment swallows the exception silently.",
+        example: "try { Run(); } catch (Exception) { }   // add handling, or a comment saying why not",
+        kinds: &[kind::CATCH_CLAUSE],
     }
 
     fn check(&self, node: &SyntaxNode, ctx: &mut RuleContext<'_>) {

@@ -3,11 +3,9 @@
 
 use crate::generated::{BlockMappingEntry, FlowPair, Scalar, kind};
 use crate::{anchor_rules, quoted_strings, value_rules};
-use core_config::Level;
+use core_rules::rule;
 use core_rules::tree::significant_range;
-use core_rules::{
-    Category, Check, Edit, Fix, FixKind, Opt, OptionDecl, Rule, RuleContext, RuleMeta,
-};
+use core_rules::{Check, Edit, Fix, FixKind, Opt, OptionDecl, Rule, RuleContext};
 use core_syntax::ast::AstNode;
 use core_syntax::{SyntaxKind, SyntaxNode, TextSize};
 
@@ -23,47 +21,36 @@ pub static RULES: &[&dyn Rule] = &[
     &DocumentStart,
 ];
 
-struct AmbiguousBooleans;
-
-static AMBIGUOUS_BOOLEANS: RuleMeta = RuleMeta {
-    id: "ambiguous-booleans",
-    category: Category::Suspicious,
-    description: "A plain `yes`, `no`, `on`, `off`, `True`, `TRUE`, `False` or `FALSE` (in the usual \
-                  casings): a boolean to YAML 1.1 parsers and a string to YAML 1.2 parsers. \
-                  Lowercase `true` and `false` are fine.",
-    example: "enabled: yes   # becomes enabled: \"yes\"",
-    default_level: Level::Off,
-    fix: Some(FixKind::Unsafe),
-    requires: &[],
-    uses: &[],
-    options: &[
-        OptionDecl {
-            name: "check_keys",
-            default: Opt::Bool(true),
-            check: Check::Any,
-            description: "Also check mapping keys. Turn it off to keep GitHub workflow `on:`.",
-        },
-        OptionDecl {
-            name: "allowed",
-            default: Opt::List(&[]),
-            check: Check::Any,
-            description: "Spellings that are not reported, for example `[\"on\"]`.",
-        },
-    ],
-};
-
 const AMBIGUOUS: [&str; 16] = [
     "yes", "Yes", "YES", "no", "No", "NO", "on", "On", "ON", "off", "Off", "OFF", "True", "TRUE",
     "False", "FALSE",
 ];
 
-impl Rule for AmbiguousBooleans {
-    fn meta(&self) -> &'static RuleMeta {
-        &AMBIGUOUS_BOOLEANS
-    }
-
-    fn kinds(&self) -> &[SyntaxKind] {
-        &[kind::SCALAR]
+rule! {
+    AmbiguousBooleans {
+        id: "ambiguous-booleans",
+        category: Suspicious,
+        default: Off,
+        fix: Unsafe,
+        description: "A plain `yes`, `no`, `on`, `off`, `True`, `TRUE`, `False` or `FALSE` (in the usual \
+                  casings): a boolean to YAML 1.1 parsers and a string to YAML 1.2 parsers. \
+                  Lowercase `true` and `false` are fine.",
+        example: "enabled: yes   # becomes enabled: \"yes\"",
+        options: [
+            OptionDecl {
+                name: "check_keys",
+                default: Opt::Bool(true),
+                check: Check::Any,
+                description: "Also check mapping keys. Turn it off to keep GitHub workflow `on:`.",
+            },
+            OptionDecl {
+                name: "allowed",
+                default: Opt::List(&[]),
+                check: Check::Any,
+                description: "Spellings that are not reported, for example `[\"on\"]`.",
+            },
+    ],
+        kinds: &[kind::SCALAR],
     }
 
     fn check(&self, node: &SyntaxNode, ctx: &mut RuleContext<'_>) {
@@ -120,27 +107,15 @@ pub(crate) fn is_key(scalar: &SyntaxNode) -> bool {
     key.is_some_and(|k| *k.syntax() == value)
 }
 
-struct DocumentStart;
-
-static DOCUMENT_START: RuleMeta = RuleMeta {
-    id: "document-start",
-    category: Category::Style,
-    description: "The first document does not start with `---`.",
-    example: "a: 1   # becomes ---\\na: 1",
-    default_level: Level::Off,
-    fix: Some(FixKind::Safe),
-    requires: &[],
-    uses: &[],
-    options: &[],
-};
-
-impl Rule for DocumentStart {
-    fn meta(&self) -> &'static RuleMeta {
-        &DOCUMENT_START
-    }
-
-    fn kinds(&self) -> &[SyntaxKind] {
-        &[kind::STREAM]
+rule! {
+    DocumentStart {
+        id: "document-start",
+        category: Style,
+        default: Off,
+        fix: Safe,
+        description: "The first document does not start with `---`.",
+        example: "a: 1   # becomes ---\\na: 1",
+        kinds: &[kind::STREAM],
     }
 
     fn check(&self, node: &SyntaxNode, ctx: &mut RuleContext<'_>) {

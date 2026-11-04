@@ -2,12 +2,11 @@
 //! the language's [`RuleHooks`](crate::hooks::RuleHooks): `no-duplicate-keys`, `no-empty-keys` and
 //! `key-name-casing`.
 
-use crate::diagnostic::Category;
 use crate::options::{Check, Opt, OptionDecl};
-use crate::rule::{Rule, RuleContext, RuleMeta};
+use crate::rule;
+use crate::rule::RuleContext;
 use crate::sorting;
 use crate::tree::significant_range;
-use core_config::Level;
 use core_syntax::{Grammar, SyntaxElement, SyntaxNode, TextRange};
 use std::borrow::Cow;
 use std::collections::HashMap;
@@ -39,34 +38,22 @@ pub fn key_range(key: &SyntaxElement, grammar: &Grammar) -> TextRange {
     }
 }
 
-pub struct NoDuplicateKeys;
-
-static NO_DUPLICATE_KEYS: RuleMeta = RuleMeta {
-    id: "no-duplicate-keys",
-    category: Category::Correctness,
-    description: "A mapping has the same key twice (after decoding escapes and quotes); parsers \
+rule! {
+    pub NoDuplicateKeys {
+        id: "no-duplicate-keys",
+        category: Correctness,
+        default: Error,
+        description: "A mapping has the same key twice (after decoding escapes and quotes); parsers \
                   disagree on which value wins.",
-    example: "{ \"a\": 1, \"a\": 2 }   // reported at the second \"a\"",
-    default_level: Level::Error,
-    fix: None,
-    requires: &[],
-    uses: &[],
-    options: &[OptionDecl {
-        name: "merge_keys",
-        default: Opt::Str("allow"),
-        check: Check::OneOf(&["allow", "forbid"]),
-        description: "Languages with a merge key (YAML `<<`) only. `allow` skips merge keys, \
+        example: "{ \"a\": 1, \"a\": 2 }   // reported at the second \"a\"",
+        options: [OptionDecl {
+            name: "merge_keys",
+            default: Opt::Str("allow"),
+            check: Check::OneOf(&["allow", "forbid"]),
+            description: "Languages with a merge key (YAML `<<`) only. `allow` skips merge keys, \
                       which may repeat; `forbid` reports a second one like any other duplicate key.",
-    }],
-};
-
-impl Rule for NoDuplicateKeys {
-    fn meta(&self) -> &'static RuleMeta {
-        &NO_DUPLICATE_KEYS
-    }
-
-    fn tags(&self) -> &[&'static str] {
-        &["mapping"]
+        }],
+        tags: &["mapping"],
     }
 
     fn check(&self, node: &SyntaxNode, ctx: &mut RuleContext<'_>) {
@@ -129,28 +116,15 @@ impl<'a> Seen<'a> {
     }
 }
 
-pub struct NoEmptyKeys;
-
-static NO_EMPTY_KEYS: RuleMeta = RuleMeta {
-    id: "no-empty-keys",
-    category: Category::Suspicious,
-    description: "A key is empty or only whitespace (after decoding escapes); some consumers \
+rule! {
+    pub NoEmptyKeys {
+        id: "no-empty-keys",
+        category: Suspicious,
+        default: Off,
+        description: "A key is empty or only whitespace (after decoding escapes); some consumers \
                   cannot address such a property.",
-    example: "{ \"\": 1, \" \": 2 }   // both keys reported",
-    default_level: Level::Off,
-    fix: None,
-    requires: &[],
-    uses: &[],
-    options: &[],
-};
-
-impl Rule for NoEmptyKeys {
-    fn meta(&self) -> &'static RuleMeta {
-        &NO_EMPTY_KEYS
-    }
-
-    fn tags(&self) -> &[&'static str] {
-        &["mapping"]
+        example: "{ \"\": 1, \" \": 2 }   // both keys reported",
+        tags: &["mapping"],
     }
 
     fn check(&self, node: &SyntaxNode, ctx: &mut RuleContext<'_>) {
@@ -163,8 +137,6 @@ impl Rule for NoEmptyKeys {
     }
 }
 
-pub struct KeyNameCasing;
-
 const CONVENTIONS: [&str; 5] = [
     "camelCase",
     "PascalCase",
@@ -172,30 +144,6 @@ const CONVENTIONS: [&str; 5] = [
     "kebab-case",
     "SCREAMING_SNAKE_CASE",
 ];
-
-static KEY_NAME_CASING: RuleMeta = RuleMeta {
-    id: "key-name-casing",
-    category: Category::Style,
-    description: "A key does not follow one of the allowed naming conventions. The checks are \
-                  those of eslint-plugin-jsonc: a key with punctuation or whitespace never \
-                  matches, `camelCase` also rejects `_` and `-`, `snake_case` and `kebab-case` \
-                  reject capitals. No fix: renaming a key changes the data.",
-    example: "{ \"first_name\": 1 }   // reported with the default `camelCase`",
-    default_level: Level::Off,
-    fix: None,
-    requires: &[],
-    uses: &[],
-    options: &[
-        OptionDecl {
-            name: "allowed",
-            default: Opt::List(&["camelCase"]),
-            check: Check::OneOf(&CONVENTIONS),
-            description: "Accepted conventions: `camelCase`, `PascalCase`, `snake_case`, \
-                          `kebab-case`, `SCREAMING_SNAKE_CASE`. A key is fine when it matches one.",
-        },
-        sorting::IGNORED_KEYS,
-    ],
-};
 
 fn has_symbol(c: char) -> bool {
     matches!(c, '\u{21}'..='\u{23}' | '\u{25}'..='\u{2c}' | '.' | '/' | '\u{3a}'..='\u{40}'
@@ -222,13 +170,27 @@ fn matches_convention(convention: &str, key: &str) -> bool {
     }
 }
 
-impl Rule for KeyNameCasing {
-    fn meta(&self) -> &'static RuleMeta {
-        &KEY_NAME_CASING
-    }
-
-    fn tags(&self) -> &[&'static str] {
-        &["mapping"]
+rule! {
+    pub KeyNameCasing {
+        id: "key-name-casing",
+        category: Style,
+        default: Off,
+        description: "A key does not follow one of the allowed naming conventions. The checks are \
+                  those of eslint-plugin-jsonc: a key with punctuation or whitespace never \
+                  matches, `camelCase` also rejects `_` and `-`, `snake_case` and `kebab-case` \
+                  reject capitals. No fix: renaming a key changes the data.",
+        example: "{ \"first_name\": 1 }   // reported with the default `camelCase`",
+        options: [
+            OptionDecl {
+                name: "allowed",
+                default: Opt::List(&["camelCase"]),
+                check: Check::OneOf(&CONVENTIONS),
+                description: "Accepted conventions: `camelCase`, `PascalCase`, `snake_case`, \
+                          `kebab-case`, `SCREAMING_SNAKE_CASE`. A key is fine when it matches one.",
+            },
+            sorting::IGNORED_KEYS,
+    ],
+        tags: &["mapping"],
     }
 
     fn check(&self, node: &SyntaxNode, ctx: &mut RuleContext<'_>) {

@@ -1,34 +1,23 @@
 //! Rules over the binding, type and value layers, and the project-scope rule.
 
 use super::range_of;
-use core_config::Level;
-use core_rules::{
-    Category, Edit, FileContext, Fix, FixKind, Layer, ProjectContext, ProjectFacts, Rule,
-    RuleContext, RuleMeta,
-};
+use core_rules::rule;
+use core_rules::{Edit, FileContext, Fix, FixKind, ProjectContext, ProjectFacts, RuleContext};
 use core_semantics::{Accessibility, DeclarationFlags, DeclarationKind};
 use core_syntax::{TextRange, TextSize};
 use std::collections::BTreeSet;
 
-pub struct RemoveUnusedUsings;
-
-static UNUSED_USINGS: RuleMeta = RuleMeta {
-    id: "remove-unused-usings",
-    category: Category::Cleanup,
-    description: "A `using` directive that nothing in the file needs (the compiler's hidden \
+rule! {
+    pub RemoveUnusedUsings {
+        id: "remove-unused-usings",
+        category: Cleanup,
+        default: Off,
+        fix: Safe,
+        description: "A `using` directive that nothing in the file needs (the compiler's hidden \
                   CS8019, IDE0005 in the SDK analyzers). Not reported in a file that has compiler errors or `#if` regions, \
                   because unresolved or inactive code could be the one using it.",
-    example: "using System.Text;   // nothing from System.Text is used",
-    default_level: Level::Off,
-    fix: Some(FixKind::Safe),
-    requires: &[Layer::Binding],
-    uses: &[],
-    options: &[],
-};
-
-impl Rule for RemoveUnusedUsings {
-    fn meta(&self) -> &'static RuleMeta {
-        &UNUSED_USINGS
+        example: "using System.Text;   // nothing from System.Text is used",
+        requires: [Binding],
     }
 
     fn check_file(&self, file: &FileContext<'_>, ctx: &mut RuleContext<'_>) {
@@ -63,25 +52,16 @@ fn whole_line(text: &str, range: TextRange) -> TextRange {
     }
 }
 
-pub struct PossibleNullDereference;
-
-static NULL_DEREF: RuleMeta = RuleMeta {
-    id: "possible-null-dereference",
-    category: Category::Correctness,
-    description: "A member or element access on an expression the compiler's nullable analysis \
+rule! {
+    pub PossibleNullDereference {
+        id: "possible-null-dereference",
+        category: Correctness,
+        default: Off,
+        description: "A member or element access on an expression the compiler's nullable analysis \
                   says may be null. Only code under `#nullable enable` is checked. Off by \
                   default: the compiler reports the same thing as CS8602.",
-    example: "string? s = Find();\nint n = s.Length;   // s may be null",
-    default_level: Level::Off,
-    fix: None,
-    requires: &[Layer::Values],
-    uses: &[],
-    options: &[],
-};
-
-impl Rule for PossibleNullDereference {
-    fn meta(&self) -> &'static RuleMeta {
-        &NULL_DEREF
+        example: "string? s = Find();\nint n = s.Length;   // s may be null",
+        requires: [Values],
     }
 
     fn check_file(&self, file: &FileContext<'_>, ctx: &mut RuleContext<'_>) {
@@ -95,28 +75,19 @@ impl Rule for PossibleNullDereference {
     }
 }
 
-pub struct UnusedPrivateMember;
-
-static UNUSED_PRIVATE: RuleMeta = RuleMeta {
-    id: "unused-private-member",
-    category: Category::Cleanup,
-    description: "A private field, method, property or event that no file of the project uses \
-                  (`analysis: deep`). Members with attributes, overrides, interface \
-                  implementations, `extern` and `partial` methods are left alone. Overlaps the SDK analyzers IDE0051 (unused private member) and IDE0052 (unread private member).",
-    example: "class A { private int cache; }   // cache is never used",
-    default_level: Level::Warn,
-    fix: None,
-    requires: &[Layer::Types, Layer::Project],
-    uses: &[],
-    options: &[],
-};
-
 const DECLARED: &str = "declared";
 const USED: &str = "used";
 
-impl Rule for UnusedPrivateMember {
-    fn meta(&self) -> &'static RuleMeta {
-        &UNUSED_PRIVATE
+rule! {
+    pub UnusedPrivateMember {
+        id: "unused-private-member",
+        category: Cleanup,
+        default: Warn,
+        description: "A private field, method, property or event that no file of the project uses \
+                  (`analysis: deep`). Members with attributes, overrides, interface \
+                  implementations, `extern` and `partial` methods are left alone. Overlaps the SDK analyzers IDE0051 (unused private member) and IDE0052 (unread private member).",
+        example: "class A { private int cache; }   // cache is never used",
+        requires: [Types, Project],
     }
 
     fn collect(&self, file: &FileContext<'_>, facts: &mut ProjectFacts) {

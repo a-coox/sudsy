@@ -1,28 +1,12 @@
 //! JSON rules on values: the opt-in `unsafe-numbers`.
 
 use crate::generated::{Literal, kind};
-use core_config::Level;
-use core_rules::{Category, Rule, RuleContext, RuleMeta};
+use core_rules::rule;
+use core_rules::{Rule, RuleContext};
+use core_syntax::SyntaxNode;
 use core_syntax::ast::AstNode;
-use core_syntax::{SyntaxKind, SyntaxNode};
 
 pub static RULES: &[&dyn Rule] = &[&UnsafeNumbers];
-
-pub struct UnsafeNumbers;
-
-static UNSAFE_NUMBERS: RuleMeta = RuleMeta {
-    id: "unsafe-numbers",
-    category: Category::Suspicious,
-    description: "A number that a double-precision parser (JavaScript, most JSON libraries) \
-                  cannot hold: an integer beyond 2^53 - 1, a value that overflows to infinity, \
-                  underflows to zero or is subnormal.",
-    example: "{ \"id\": 12345678901234567890, \"x\": 1e999 }   // both reported",
-    default_level: Level::Off,
-    fix: None,
-    requires: &[],
-    uses: &[],
-    options: &[],
-};
 
 const MAX_SAFE_INTEGER: f64 = 9_007_199_254_740_991.0;
 
@@ -43,13 +27,16 @@ fn unsafe_reason(text: &str) -> Option<&'static str> {
     }
 }
 
-impl Rule for UnsafeNumbers {
-    fn meta(&self) -> &'static RuleMeta {
-        &UNSAFE_NUMBERS
-    }
-
-    fn kinds(&self) -> &[SyntaxKind] {
-        &[kind::LITERAL]
+rule! {
+    pub UnsafeNumbers {
+        id: "unsafe-numbers",
+        category: Suspicious,
+        default: Off,
+        description: "A number that a double-precision parser (JavaScript, most JSON libraries) \
+                  cannot hold: an integer beyond 2^53 - 1, a value that overflows to infinity, \
+                  underflows to zero or is subnormal.",
+        example: "{ \"id\": 12345678901234567890, \"x\": 1e999 }   // both reported",
+        kinds: &[kind::LITERAL],
     }
 
     fn check(&self, node: &SyntaxNode, ctx: &mut RuleContext<'_>) {

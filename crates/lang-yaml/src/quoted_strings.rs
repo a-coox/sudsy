@@ -5,77 +5,12 @@ use crate::generated::{Scalar, kind};
 use crate::resolve::{plain_round_trips, resolves_to_str};
 use crate::rules::is_key;
 use crate::scalar::{double_quoted_value, plain_value, single_quoted_value};
-use core_config::Level;
+use core_rules::rule;
 use core_rules::sorting::cached_regex;
-use core_rules::{
-    Category, Check, Edit, FileContext, Fix, FixKind, Opt, OptionDecl, Rule, RuleContext, RuleMeta,
-};
+use core_rules::{Check, Edit, FileContext, Fix, FixKind, Opt, OptionDecl, RuleContext};
 use core_syntax::ast::AstNode;
 use core_syntax::{SyntaxKind, SyntaxNode, SyntaxToken};
 use regex::Regex;
-
-pub struct QuotedStrings;
-
-static QUOTED_STRINGS: RuleMeta = RuleMeta {
-    id: "quoted-strings",
-    category: Category::Style,
-    description: "Which strings are quoted. Plain scalars that are not strings (`12`, `true`, \
-                  `null`, dates, ...), block scalars and scalars tagged `!!` are never checked. \
-                  `required: always` wants quotes on every string, `only_when_needed` reports \
-                  quotes that change nothing (unless `extra_allowed` matches) and plain strings \
-                  that `extra_required` matches, `optional` only the latter. Fixes: quoting a \
-                  plain string and switching the quote type keep the value; removing quotes is \
-                  unsafe because YAML 1.2 parsers read some strings (`1e3`) as numbers.",
-    example: "name: bar   # with required: always; becomes name: \"bar\"",
-    default_level: Level::Off,
-    fix: Some(FixKind::Unsafe),
-    requires: &[],
-    uses: &[],
-    options: &[
-        OptionDecl {
-            name: "quote_type",
-            default: Opt::Str("any"),
-            check: Check::OneOf(&["any", "single", "double", "consistent"]),
-            description: "The quotes to use. `consistent`: the first quoted string of the file \
-                          decides.",
-        },
-        OptionDecl {
-            name: "required",
-            default: Opt::Str("always"),
-            check: Check::OneOf(&["always", "optional", "only_when_needed"]),
-            description: "`always`: every string is quoted. `optional`: quotes are free, but \
-                          must be of `quote_type`. `only_when_needed`: quotes only where the \
-                          string would otherwise read as something else.",
-        },
-        OptionDecl {
-            name: "extra_required",
-            default: Opt::List(&[]),
-            check: Check::Regex,
-            description: "Regular expressions; a string they match (searched in the value) must \
-                          be quoted even with `optional` or `only_when_needed`.",
-        },
-        OptionDecl {
-            name: "extra_allowed",
-            default: Opt::List(&[]),
-            check: Check::Regex,
-            description: "Regular expressions; a string they match may be quoted with \
-                          `only_when_needed`.",
-        },
-        OptionDecl {
-            name: "allow_quoted_quotes",
-            default: Opt::Bool(false),
-            check: Check::Any,
-            description: "Accept the other quote type when the string contains the wanted \
-                          quote.",
-        },
-        OptionDecl {
-            name: "check_keys",
-            default: Opt::Bool(false),
-            check: Check::Any,
-            description: "Check mapping keys too.",
-        },
-    ],
-};
 
 /// What is wrong with a scalar.
 enum Problem {
@@ -132,9 +67,64 @@ fn quote(value: &str, wanted: Option<char>) -> String {
     }
 }
 
-impl Rule for QuotedStrings {
-    fn meta(&self) -> &'static RuleMeta {
-        &QUOTED_STRINGS
+rule! {
+    pub QuotedStrings {
+        id: "quoted-strings",
+        category: Style,
+        default: Off,
+        fix: Unsafe,
+        description: "Which strings are quoted. Plain scalars that are not strings (`12`, `true`, \
+                  `null`, dates, ...), block scalars and scalars tagged `!!` are never checked. \
+                  `required: always` wants quotes on every string, `only_when_needed` reports \
+                  quotes that change nothing (unless `extra_allowed` matches) and plain strings \
+                  that `extra_required` matches, `optional` only the latter. Fixes: quoting a \
+                  plain string and switching the quote type keep the value; removing quotes is \
+                  unsafe because YAML 1.2 parsers read some strings (`1e3`) as numbers.",
+        example: "name: bar   # with required: always; becomes name: \"bar\"",
+        options: [
+            OptionDecl {
+                name: "quote_type",
+                default: Opt::Str("any"),
+                check: Check::OneOf(&["any", "single", "double", "consistent"]),
+                description: "The quotes to use. `consistent`: the first quoted string of the file \
+                          decides.",
+            },
+            OptionDecl {
+                name: "required",
+                default: Opt::Str("always"),
+                check: Check::OneOf(&["always", "optional", "only_when_needed"]),
+                description: "`always`: every string is quoted. `optional`: quotes are free, but \
+                          must be of `quote_type`. `only_when_needed`: quotes only where the \
+                          string would otherwise read as something else.",
+            },
+            OptionDecl {
+                name: "extra_required",
+                default: Opt::List(&[]),
+                check: Check::Regex,
+                description: "Regular expressions; a string they match (searched in the value) must \
+                          be quoted even with `optional` or `only_when_needed`.",
+            },
+            OptionDecl {
+                name: "extra_allowed",
+                default: Opt::List(&[]),
+                check: Check::Regex,
+                description: "Regular expressions; a string they match may be quoted with \
+                          `only_when_needed`.",
+            },
+            OptionDecl {
+                name: "allow_quoted_quotes",
+                default: Opt::Bool(false),
+                check: Check::Any,
+                description: "Accept the other quote type when the string contains the wanted \
+                          quote.",
+            },
+            OptionDecl {
+                name: "check_keys",
+                default: Opt::Bool(false),
+                check: Check::Any,
+                description: "Check mapping keys too.",
+            },
+    ],
     }
 
     fn check_file(&self, file: &FileContext<'_>, ctx: &mut RuleContext<'_>) {

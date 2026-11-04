@@ -2,23 +2,9 @@
 //! pattern files in `rules/`).
 
 use super::kind;
-use core_config::Level;
-use core_rules::{Category, Edit, Fix, FixKind, Rule, RuleContext, RuleMeta};
+use core_rules::rule;
+use core_rules::{Edit, Fix, FixKind, RuleContext};
 use core_syntax::{SyntaxKind, SyntaxNode};
-
-pub struct DirectiveKeywordSpace;
-
-static DIRECTIVE_KEYWORD_SPACE: RuleMeta = RuleMeta {
-    id: "directive-keyword-space",
-    category: Category::Style,
-    description: "No space between `#` and the directive keyword (`#if`, not `# if`).",
-    example: "# if DEBUG   // write: #if DEBUG",
-    default_level: Level::Off,
-    fix: Some(FixKind::Safe),
-    requires: &[],
-    uses: &[],
-    options: &[],
-};
 
 /// Every directive node kind.
 static DIRECTIVES: &[SyntaxKind] = &[
@@ -48,13 +34,15 @@ fn hash_of(node: &SyntaxNode) -> Option<core_syntax::SyntaxToken> {
         .find(|t| t.kind() == kind::HASH_TOKEN)
 }
 
-impl Rule for DirectiveKeywordSpace {
-    fn meta(&self) -> &'static RuleMeta {
-        &DIRECTIVE_KEYWORD_SPACE
-    }
-
-    fn kinds(&self) -> &[SyntaxKind] {
-        DIRECTIVES
+rule! {
+    pub DirectiveKeywordSpace {
+        id: "directive-keyword-space",
+        category: Style,
+        default: Off,
+        fix: Safe,
+        description: "No space between `#` and the directive keyword (`#if`, not `# if`).",
+        example: "# if DEBUG   // write: #if DEBUG",
+        kinds: DIRECTIVES,
     }
 
     fn check(&self, node: &SyntaxNode, ctx: &mut RuleContext<'_>) {

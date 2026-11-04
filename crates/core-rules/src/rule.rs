@@ -6,12 +6,14 @@ use crate::layout::{LayoutRole, LayoutSink};
 use crate::lines::LineIndex;
 use crate::options::{Check, OptionDecl, RuleOptions};
 use crate::project::{ProjectContext, ProjectFacts};
-use core_config::{Level, RuleOptionSchema, RuleSchema};
+use core_config::{RuleOptionSchema, RuleSchema};
 use core_semantics::{BodyFlow, SemanticView};
-use core_syntax::{Grammar, SyntaxKind, SyntaxNode, TextRange};
+use core_syntax::{Grammar, SyntaxNode, TextRange};
 use std::path::Path;
 
+pub use core_config::Level;
 pub use core_semantics::Layer;
+pub use core_syntax::SyntaxKind;
 
 /// What `sudsy rules` shows and the engine reads about a rule.
 #[derive(Debug)]

@@ -11,6 +11,7 @@
 
 pub mod comments;
 pub mod configure;
+mod declare;
 pub mod diagnostic;
 pub mod engine;
 pub mod extension;
