@@ -1,7 +1,7 @@
 //! Rules about how a construct is written, each with a safe fix: `use-string-empty`,
 //! `separate-attributes`, `no-empty-attribute-parens` and `no-empty-delegate-parens`.
 
-use super::{kind, text_of};
+use super::{kind, line_separator, text_of};
 use core_config::Level;
 use core_rules::tree::significant_range;
 use core_rules::{Category, Edit, Fix, FixKind, Rule, RuleContext, RuleMeta};
@@ -145,16 +145,7 @@ impl Rule for SeparateAttributes {
                 .find(|c| c.kind() == kind::ATTRIBUTE_TARGET_SPECIFIER)
                 .map_or(String::new(), |t| format!("{} ", text_of(&t, ctx)));
             let range = significant_range(node, grammar);
-            let text = ctx.file.text;
-            let line_start = text[..usize::from(range.start())]
-                .rfind('\n')
-                .map_or(0, |i| i + 1);
-            let indent = &text[line_start..usize::from(range.start())];
-            let separator = if indent.trim().is_empty() {
-                format!("\n{indent}")
-            } else {
-                " ".to_string()
-            };
+            let separator = line_separator(range, ctx);
             let lists: Vec<String> = attributes
                 .iter()
                 .map(|a| format!("[{target}{}]", text_of(a, ctx)))

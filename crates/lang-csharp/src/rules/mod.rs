@@ -4,9 +4,12 @@
 
 mod async_suffix;
 mod binding;
+mod declarations;
 mod directives;
 mod doc_comment_space;
 mod empty_catch;
+mod expressions;
+mod file_layout;
 mod flow;
 mod statements;
 mod syntax_forms;
@@ -29,6 +32,16 @@ pub static RULES: &[&dyn Rule] = &[
     &doc_comment_space::DocCommentSpace,
     &directives::NoRegions,
     &directives::DirectiveKeywordSpace,
+    &directives::NoRegionInBody,
+    &expressions::NullableShorthand,
+    &expressions::UseLambda,
+    &expressions::ConstantOnRight,
+    &expressions::UseLiteralSuffix,
+    &declarations::SeparateFieldDeclarations,
+    &declarations::SuppressionJustification,
+    &file_layout::SingleClassPerFile,
+    &file_layout::SingleNamespacePerFile,
+    &file_layout::FileNameMatchesType,
     &statements::NoEmptyStatement,
     &statements::NoCommentBeforeBlock,
     &syntax_forms::UseStringEmpty,
@@ -59,6 +72,33 @@ pub static BODY_KINDS: &[SyntaxKind] = &[
 /// A text range from a provider's byte offset and length.
 fn range_of(start: u32, len: u32) -> core_syntax::TextRange {
     core_syntax::TextRange::at(start.into(), len.into())
+}
+
+/// Is there a comment inside `range` (a range within `node`)?
+fn has_comment_in(
+    node: &SyntaxNode,
+    range: core_syntax::TextRange,
+    ctx: &core_rules::RuleContext<'_>,
+) -> bool {
+    node.descendants_with_tokens()
+        .filter_map(|e| e.into_token())
+        .any(|t| {
+            range.contains_range(t.text_range()) && ctx.file.grammar.has_tag(t.kind(), "comment")
+        })
+}
+
+/// What goes between declarations that replace the one at `range`: a new line with the same
+/// indentation when it starts its line, else a space.
+fn line_separator(range: core_syntax::TextRange, ctx: &core_rules::RuleContext<'_>) -> String {
+    let text = ctx.file.text;
+    let start = usize::from(range.start());
+    let line_start = text[..start].rfind('\n').map_or(0, |i| i + 1);
+    let indent = &text[line_start..start];
+    if indent.trim().is_empty() {
+        format!("\n{indent}")
+    } else {
+        " ".to_string()
+    }
 }
 
 /// The source text of a node without the comments and blank space around it.

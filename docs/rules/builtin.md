@@ -35,13 +35,23 @@
 | `unused-private-member` | csharp | cleanup | warn | none | project scope, `analysis: deep` only; overlaps IDE0051 and IDE0052 |
 | `doc-comment-space` | csharp | style | off | safe | `///` followed by exactly one space on the first line of a doc comment; SA1004 |
 | `directive-keyword-space` | csharp | style | off | safe | `# if` -> `#if`; SA1006 |
-| `no-regions` | csharp | style | off | none | every `#region`; SA1124 |
+| `no-regions` | csharp | style | off | none | every `#region` outside a block; SA1124 |
 | `no-empty-statement` | csharp | suspicious | off | safe | lone `;` (not after a label); embedded bodies become `{ }`; SA1106 |
 | `no-comment-before-block` | csharp | style | off | none | comment between a statement head and its `{`; SA1108 |
 | `use-string-empty` | csharp | style | off | safe | `""` -> `string.Empty` outside constant positions; SA1122 |
 | `separate-attributes` | csharp | style | off | safe | `[A, B]` -> `[A]` `[B]` (not on parameters, type parameters, lists with comments); SA1133 |
 | `no-empty-attribute-parens` | csharp | style | off | safe | `[A()]` -> `[A]`; SA1411 |
 | `no-empty-delegate-parens` | csharp | style | off | unsafe | `delegate() { }` -> `delegate { }`; unsafe because overload resolution can change; SA1410 |
+| `no-region-in-body` | csharp | style | off | none | `#region` inside a block (`no-regions` reports the others); SA1123 |
+| `nullable-shorthand` | csharp | style | off | safe | `Nullable<int>` -> `int?`, name-based; not in using aliases, `nameof` or before a member access; SA1125 |
+| `use-lambda` | csharp | style | off | safe | anonymous method -> lambda; fix only with a parameter list and no comment before the body; SA1130 |
+| `constant-on-right` | csharp | style | off | safe | `null == x` -> `x == null`, `1 < x` -> `x > 1`; constants are literals, `nameof`, `int.MaxValue`-style members; SA1131 |
+| `use-literal-suffix` | csharp | style | off | safe | `(long)1` -> `1L`; not hex or binary literals cast to floating-point; SA1139 |
+| `separate-field-declarations` | csharp | style | off | safe | `int a, b;` -> two declarations (fields, constants, events); SA1132 |
+| `suppression-justification` | csharp | style | off | none | `SuppressMessage` without a meaningful `Justification` (missing, null, blank, `<Pending>`); SA1404 |
+| `single-class-per-file` | csharp | style | off | none | classes and records after the first; structs, interfaces, enums, delegates and more parts of the first partial class not counted; SA1402 |
+| `single-namespace-per-file` | csharp | style | off | none | every namespace after the first, nested ones included; SA1403 |
+| `file-name-matches-type` | csharp | style | off | none | file name up to the first dot (ignoring case, `Name{T}` for generics) is the first type; partial first type skipped; SA1649 |
 
 Rules that repeat a compiler or SDK diagnostic say so in `sudsy rules <id>`; those that fire as compiler warnings anyway are off by default. Sudsy does not reimplement SDK style rules such as IDE0161 (file-scoped namespaces) or IDE0029/IDE0030 (null coalescing).
 

@@ -15,13 +15,23 @@ csharp:
   lint:
     rules:
       comment-space: warn
+      constant-on-right: warn
       directive-keyword-space: warn
       doc-comment-space: warn
+      file-name-matches-type: warn
       no-comment-before-block: warn
       no-empty-attribute-parens: warn
       no-empty-comment: warn
       no-empty-delegate-parens: warn
       no-empty-statement: warn
+      no-region-in-body: warn
       no-regions: warn
+      nullable-shorthand: warn
       separate-attributes: warn
+      separate-field-declarations: warn
+      single-class-per-file: warn
+      single-namespace-per-file: warn
+      suppression-justification: warn
+      use-lambda: warn
+      use-literal-suffix: warn
       use-string-empty: warn

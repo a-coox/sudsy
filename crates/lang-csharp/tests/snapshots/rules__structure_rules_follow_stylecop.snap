@@ -1,0 +1,10 @@
+---
+source: crates/lang-csharp/tests/rules.rs
+expression: "report(text, rules)"
+---
+2:12 warning[suppression-justification] the suppression has no justification
+3:38 warning[suppression-justification] the suppression's justification is empty
+4:21 warning[file-name-matches-type] the file name should match the first type in it
+5:1 warning[no-region-in-body] do not place regions within elements
+7:11 warning[single-class-per-file] a file may only contain a single class
+7:40 warning[single-namespace-per-file] a file may only contain a single namespace

@@ -115,6 +115,24 @@ fn attribute_forms() {
     assert_snapshot!(fixed(text, rules, true));
 }
 
+const SYNTAX: &str = "constant-on-right: warn\nnullable-shorthand: warn\nseparate-field-declarations: warn\nuse-lambda: warn\nuse-literal-suffix: warn";
+
+#[test]
+fn syntax_rules_report_and_fix() {
+    let text = "class A {\n int a, b;\n Nullable<int> n = (long)1 < 2 ? null : null;\n void F(object o, int i) {\n  var f = delegate (int x) { return x; };\n  var g = null == o || 1 < i;\n  var h = (float)1 + (double)2.5;\n }\n}\n";
+    assert_snapshot!(report(text, SYNTAX));
+    let fixed = fixed(text, SYNTAX, false);
+    assert_snapshot!(fixed);
+    assert_eq!(report(&fixed, SYNTAX), "");
+}
+
+#[test]
+fn structure_rules_follow_stylecop() {
+    let text = "using System.Diagnostics.CodeAnalysis;\n[assembly: SuppressMessage(\"C\", \"I\")]\n[assembly: SuppressMessage(\"C\", \"I\", Justification = \"<Pending>\")]\nnamespace N { class Other { void M() {\n#region R\n#endregion\n} } class B { } struct S { } namespace M { } }\n";
+    let rules = "no-region-in-body: warn\nno-regions: warn\nsingle-class-per-file: warn\nsingle-namespace-per-file: warn\nsuppression-justification: warn\nfile-name-matches-type: warn";
+    assert_snapshot!(report(text, rules));
+}
+
 #[test]
 fn lexical_rules_are_off_by_default() {
     let text = "class A { void F() { ; } //x\n}\n";

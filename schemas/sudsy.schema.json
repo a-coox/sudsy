@@ -66,6 +66,10 @@
               "$ref": "#/definitions/rule",
               "description": "A line comment has text right after its marker. Exempt: nothing but whitespace after the marker, a marker repeated (`////`, `##`), `--` separator lines, and a `#!` shebang on the first line. The fix inserts the space. Equivalent to StyleCop SA1005 and yamllint's `comments.require-starting-space`."
             },
+            "constant-on-right": {
+              "$ref": "#/definitions/rule",
+              "description": "A comparison with the constant on the left: `null == x` is `x == null`, `1 < x` is `x > 1`. Without the type layer a constant is a literal, `nameof`, `int.MaxValue`-style member or an expression of those; a named constant on the left is not recognised. Equivalent to StyleCop SA1131."
+            },
             "directive-keyword-space": {
               "$ref": "#/definitions/rule",
               "description": "No space between `#` and the directive keyword (`#if`, not `# if`). Equivalent to StyleCop SA1006."
@@ -77,6 +81,10 @@
             "document-start": {
               "$ref": "#/definitions/rule",
               "description": "The first document does not start with `---`."
+            },
+            "file-name-matches-type": {
+              "$ref": "#/definitions/rule",
+              "description": "The file name, up to its first dot and ignoring case, is the name of the first type in the file; a generic type may also be written `Name{T,U}`. Not checked when that type is partial. No fix. Equivalent to StyleCop SA1649."
             },
             "float-style": {
               "description": "Restricts how plain floats are written. Every option is off until set: `.5` without a leading digit, `1e3` scientific notation, `.nan` and `.inf`. Quoted and tagged scalars are not checked. The fix for `.5` is `0.5`. yamllint `float-values`.",
@@ -324,9 +332,13 @@
                 }
               ]
             },
+            "no-region-in-body": {
+              "$ref": "#/definitions/rule",
+              "description": "A `#region` inside a block (a method, accessor or lambda body, or any block in one); regions belong between members. No fix. Equivalent to StyleCop SA1123."
+            },
             "no-regions": {
               "$ref": "#/definitions/rule",
-              "description": "`#region` hides code behind a label. Reported on every `#region`, in disabled `#if` branches too; no fix, because removing a pair is a judgment call. Equivalent to StyleCop SA1124."
+              "description": "`#region` hides code behind a label. Reported on every `#region` outside a block (a region inside a block is `no-region-in-body`'s), in disabled `#if` branches too; no fix, because removing a pair is a judgment call. Equivalent to StyleCop SA1124."
             },
             "no-undefined-alias": {
               "$ref": "#/definitions/rule",
@@ -335,6 +347,10 @@
             "no-unused-anchors": {
               "$ref": "#/definitions/rule",
               "description": "An anchor that no alias refers to. The fix removes the anchor, which changes nothing about the data. yamllint `forbid-unused-anchors`."
+            },
+            "nullable-shorthand": {
+              "$ref": "#/definitions/rule",
+              "description": "`int?` instead of `Nullable<int>` or `System.Nullable<int>`. Name-based: a type of your own called `Nullable` is reported too. Not reported in `using` aliases, `nameof`, `typeof(Nullable<>)` and before a member access (`Nullable<int>.Equals`). Equivalent to StyleCop SA1125."
             },
             "possible-null-dereference": {
               "$ref": "#/definitions/rule",
@@ -420,6 +436,18 @@
             "separate-attributes": {
               "$ref": "#/definitions/rule",
               "description": "One attribute per attribute list: `[A, B]` becomes `[A]` and `[B]`. Lists on parameters and type parameters are left alone. The fix is not offered when the list has a comment in it. Equivalent to StyleCop SA1133."
+            },
+            "separate-field-declarations": {
+              "$ref": "#/definitions/rule",
+              "description": "One field or event per declaration: `int a, b;` becomes `int a;` and `int b;`, each with the attributes, modifiers and type of the original. The fix is not offered when the declaration has a comment in it. Equivalent to StyleCop SA1132."
+            },
+            "single-class-per-file": {
+              "$ref": "#/definitions/rule",
+              "description": "A file holds one class or record: every later one is reported, more parts of the first class (when it is partial) excepted. Structs, interfaces, enums and delegates are not counted. No fix. Equivalent to StyleCop SA1402."
+            },
+            "single-namespace-per-file": {
+              "$ref": "#/definitions/rule",
+              "description": "A file declares one namespace: every later one, nested ones included, is reported. No fix. Equivalent to StyleCop SA1403."
             },
             "sorted-array-values": {
               "description": "The elements of an array of only strings or only numbers are not in order (ascending by default; numbers compare as numbers). Arrays of other or mixed elements are skipped. The elements that would have to move (the fewest) are reported and the first report carries the fix; the fix is unsafe because array order can be data.",
@@ -547,6 +575,10 @@
                 }
               ]
             },
+            "suppression-justification": {
+              "$ref": "#/definitions/rule",
+              "description": "`SuppressMessage` needs a `Justification` that says something: not missing, `null`, empty, blank or `\"<Pending>\"`. Matches the attribute by name. No fix. Equivalent to StyleCop SA1404."
+            },
             "unreachable-code": {
               "description": "A statement that can never run. At `fast` depth this is the statement after a `return`, `throw`, `break`, `continue` or `goto`; with the flow layer it also covers constant conditions and calls that do not return (`does_not_return` in `semantics:`). Only the first statement of a run is reported. Removing it is offered as an editor quick fix only, because unreachable code usually signals a bug. Off by default: the compiler already reports unreachable code (CS0162) and the SDK analyzers add IDE0035.",
               "oneOf": [
@@ -593,6 +625,14 @@
             "unused-variable": {
               "$ref": "#/definitions/rule",
               "description": "A local variable or catch variable that is never used (the compiler's CS0168), or is only assigned constants and never read (CS0219). Variables captured by lambdas or local functions count as used. Off by default: the compiler already warns (CS0168, CS0219)."
+            },
+            "use-lambda": {
+              "$ref": "#/definitions/rule",
+              "description": "A lambda instead of an anonymous method. The fix is offered when the anonymous method has a parameter list and no comment before its body; `delegate { }` without one converts to delegate types with any parameters, so it has no fix. Equivalent to StyleCop SA1130."
+            },
+            "use-literal-suffix": {
+              "$ref": "#/definitions/rule",
+              "description": "A numeric literal cast to `long`, `ulong`, `uint`, `float`, `double` or `decimal` when the literal's own type differs: `(long)1` is `1L`. Not reported for hexadecimal and binary literals cast to a floating-point type, which have no suffix. Equivalent to StyleCop SA1139."
             },
             "use-string-empty": {
               "$ref": "#/definitions/rule",
