@@ -28,6 +28,9 @@ pub enum ListLayout {
     PreserveOpenBreak,
     /// Always one item per line.
     Break,
+    /// Never a line break between the delimiters (blank lines and `BreakAll` are ignored), however
+    /// long the line gets: for lists the language cannot break, like TOML inline tables.
+    Flat,
 }
 
 #[derive(Clone, Debug)]
@@ -142,11 +145,13 @@ fn list_of(
         ]));
     }
 
-    let pad = if style.padding {
-        doc::line()
+    let flat = style.layout == ListLayout::Flat;
+    let (line, soft) = if flat {
+        (doc::lit(" "), Doc::Nil)
     } else {
-        doc::softline()
+        (doc::line(), doc::softline())
     };
+    let pad = if style.padding { line.clone() } else { soft };
     let sep = doc::lit(style.separator);
     let last = items.len().saturating_sub(1);
     let mut inner = Vec::new();
@@ -163,8 +168,8 @@ fn list_of(
                 cx,
                 &items[i - 1],
                 &items[i],
-                doc::line(),
-                style.max_blank_lines,
+                line.clone(),
+                if flat { 0 } else { style.max_blank_lines },
                 style.force_blank,
             ));
         }
@@ -190,13 +195,15 @@ fn list_of(
     let body = doc::concat(body_parts);
 
     let d = cx.directives_of(node);
-    let broken = if d.has(&Directive::BreakAll) {
+    let broken = if flat {
+        false
+    } else if d.has(&Directive::BreakAll) {
         true
     } else if d.has(&Directive::KeepTogether) {
         false
     } else {
         match style.layout {
-            ListLayout::Fit => false,
+            ListLayout::Fit | ListLayout::Flat => false,
             ListLayout::Break => !items.is_empty(),
             ListLayout::PreserveBreak => {
                 !items.is_empty() && spans_lines(cx, node, &c.open, &c.close)

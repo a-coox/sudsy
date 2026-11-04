@@ -1,0 +1,44 @@
+// TOML 1.0, parsed by tree-sitter (tree-sitter-toml-ng) and mapped by crates/lang-toml/src/mapping.rs.
+// Format: see crates/core-syntax/src/grammar/mod.rs.
+
+language toml 4
+comments line "#"
+suppress disable-next-line "sudsy-disable-next-line"
+suppress ignore "sudsy-ignore"
+
+token Whitespace #trivia #whitespace
+token Newline #trivia #newline
+token Comment #trivia #comment
+
+token LBracket "[" #punctuation
+token RBracket "]" #punctuation
+token LBracket2 "[[" #punctuation
+token RBracket2 "]]" #punctuation
+token LBrace "{" #punctuation
+token RBrace "}" #punctuation
+token Equals "=" #punctuation
+token Dot "." #punctuation
+token Comma "," #punctuation #separator
+
+token BareKey #key-part
+token QuotedKey #key-part #string
+token String #literal #string
+token Integer #literal
+token Float #literal
+token Boolean #literal
+token DateTime #literal
+
+// Zero-width end-of-file token; it carries the leading trivia of the file's tail.
+token Eof
+// Text the parser could not classify.
+token Unknown #error
+
+// Tree-sitter has no node for a one-part key or for a literal: the adapter wraps those tokens.
+node Document = items:#item* Eof
+node Table #item #mapping = LBracket key:Key RBracket entries:Pair*
+node ArrayTable #item #mapping = LBracket2 key:Key RBracket2 entries:Pair*
+node Pair #item #key-value = key:Key Equals value:#value
+node Key = parts:#key-part*
+node Literal #value = value:#literal
+node Array #value #sequence #delimited-list = LBracket elements:#value* RBracket
+node InlineTable #value #mapping #delimited-list = LBrace entries:Pair* RBrace

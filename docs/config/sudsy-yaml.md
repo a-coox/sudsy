@@ -10,7 +10,7 @@ analysis: standard           # fast | standard (default) | deep
 format: { line_width: 100 }  # shared: every language
 lint: { rules: { max-line-length: warn } }
 plugins: { patterns: ["rules/*.yaml"], wasm: ["rules/team.wasm"] }
-csharp:                      # also json:, yaml:
+csharp:                      # also json:, yaml:, toml:
   format: { line_width: 120, brace_newline: all, preprocessor_symbols: [DEBUG] }
   lint:
     rules:

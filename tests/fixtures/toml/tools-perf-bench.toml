@@ -1,0 +1,40 @@
+# Engine throughput benchmark (NOT PRODUCT CODE): generates large JSON and YAML inputs
+# deterministically and times each phase of `format_file` separately. See docs/performance/tooling.md
+# "Performance".
+[package]
+name = "perf-bench"
+edition.workspace = true
+version.workspace = true
+publish.workspace = true
+
+[dependencies]
+core-config.workspace = true
+core-format.workspace = true
+core-incremental.workspace = true
+core-patterns.workspace = true
+core-plugins.workspace = true
+core-rules.workspace = true
+core-syntax.workspace = true
+lang-csharp.workspace = true
+lang-json.workspace = true
+lang-yaml.workspace = true
+provider-api.workspace = true
+anyhow.workspace = true
+# `lsp-latency`: the language server's responsiveness.
+lsp.workspace = true
+lsp-server = "0.10"
+serde_json.workspace = true
+url = "2"
+# The sample plugin's rules, built in, to compare with the same rules as a plugin.
+sample-plugin = { path = "../../tests/plugins/sample" }
+mimalloc = { workspace = true, optional = true }
+
+[features]
+# Use the CLI's global allocator (mimalloc); without it the bench measures the system allocator.
+mimalloc = ["dep:mimalloc"]
+# Count allocations per phase.
+count = []
+
+[[bin]]
+name = "lsp-latency"
+path = "src/lsp_latency.rs"

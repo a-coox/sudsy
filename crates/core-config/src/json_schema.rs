@@ -267,7 +267,7 @@ pub fn json_schema(languages: &[(&str, &OptionSchema)], rules: &[RuleSchema]) ->
     json!({
         "$schema": "http://json-schema.org/draft-07/schema#",
         "title": "sudsy.yaml",
-        "description": "Configuration of Sudsy, the formatter and linter for C#, JSON and YAML.",
+        "description": "Configuration of Sudsy, the formatter and linter for C#, JSON, YAML and TOML.",
         "type": "object",
         "additionalProperties": false,
         "properties": properties,

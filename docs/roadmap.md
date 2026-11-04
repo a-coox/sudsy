@@ -3,6 +3,8 @@
 One line each; none is committed.
 
 ## Languages and analysis
+- TOML: TOML 1.1 syntax (the tree-sitter grammar targets 1.0; needs an upstream fix or a fork), semantic errors (duplicate keys, redefined tables, invalid dates; 80 of the 361 toml-test invalid files parse), a `toml/taplo-compat` preset (needs a parity check against taplo), format `Cargo.lock`, a provider hook for decoding quoted keys in the shared key rules.
+- More tree-sitter languages ([architecture/adding-a-language.md](architecture/adding-a-language.md)); replacing one with a hand-written parser where speed or error messages matter.
 - Native C# parser (Roslyn stays the only one; the conformance suite and addressing by `(file, version, span, kind)` keep the door open).
 - `MSBuildWorkspace` / project- and NuGet-aware binding with syntax-only fallback (replaces `Workspace.cs` without a protocol change).
 - Point queries (`symbol_of`, `type_of(span)`) and the pattern predicate `type_matches` that needs them.

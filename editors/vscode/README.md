@@ -1,6 +1,6 @@
 # Sudsy for VS Code
 
-Formats and lints C#, JSON and YAML with Sudsy: diagnostics, quick fixes, fix all
+Formats and lints C#, JSON, YAML and TOML with Sudsy: diagnostics, quick fixes, fix all
 and format on save, from the `sudsy.yaml` of your repository.
 
 To format on save, choose Sudsy as the formatter of each language in your settings:
@@ -11,6 +11,7 @@ To format on save, choose Sudsy as the formatter of each language in your settin
   "[json]": { "editor.defaultFormatter": "Coox.sudsy", "editor.formatOnSave": true },
   "[jsonc]": { "editor.defaultFormatter": "Coox.sudsy", "editor.formatOnSave": true },
   "[yaml]": { "editor.defaultFormatter": "Coox.sudsy", "editor.formatOnSave": true },
+  "[toml]": { "editor.defaultFormatter": "Coox.sudsy", "editor.formatOnSave": true },
   "editor.codeActionsOnSave": { "source.fixAll.sudsy": "explicit" }
 }
 ```

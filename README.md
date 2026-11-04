@@ -1,10 +1,10 @@
 # Sudsy
 
-A formatter and linter for C#, JSON (including JSONC) and YAML, configured from one `sudsy.yaml`.
+A formatter and linter for C#, JSON (including JSONC), YAML and TOML, configured from one `sudsy.yaml`.
 
 - **Formatting**: every layout decision is a named option; presets reproduce the styles of Microsoft, the .NET runtime, Google, CSharpier and Prettier. Each result is checked to have the same syntax tree (and for YAML the same data) as the input before it is written.
-- **Linting**: built-in rules for all three languages, semantic C# rules (types, control and data flow), safe and unsafe fixes, suppression comments, [pattern rules](docs/rules/patterns.md) in YAML and [Wasm plugins](docs/rules/plugins.md) (unstable API).
-- **Implementation**: a Rust core. JSON and YAML are parsed natively; C# is parsed and analysed by a Roslyn-backed .NET worker that the CLI starts when it needs it.
+- **Linting**: built-in rules for all four languages, semantic C# rules (types, control and data flow), safe and unsafe fixes, suppression comments, [pattern rules](docs/rules/patterns.md) in YAML and [Wasm plugins](docs/rules/plugins.md) (unstable API).
+- **Implementation**: a Rust core. JSON and YAML are parsed natively and TOML by an embedded tree-sitter grammar; C# is parsed and analysed by a Roslyn-backed .NET worker that the CLI starts when it needs it.
 
 Measured speed against CSharpier, Prettier, Biome and dprint, with the method and machine: [docs/performance/numbers.md](docs/performance/numbers.md).
 
@@ -12,7 +12,7 @@ Measured speed against CSharpier, Prettier, Biome and dprint, with the method an
 
 - **CLI**: download the archive for your platform (Linux, Windows or macOS; x64 or arm64) from the GitHub releases page and put the `sudsy` executable on your `PATH`. Keep the `csharp-worker/` directory beside it.
 - **VS Code**: install the extension `Coox.sudsy`. It bundles the CLI and the worker.
-- **C#** needs the [.NET 10 runtime](https://dotnet.microsoft.com/download/dotnet/10.0). JSON and YAML work without it.
+- **C#** needs the [.NET 10 runtime](https://dotnet.microsoft.com/download/dotnet/10.0). JSON, YAML and TOML work without it.
 
 ## Quick start
 
@@ -44,10 +44,10 @@ Presets are ordinary config files; writing their options by hand in `sudsy.yaml`
 | `csharp/google` | 2 spaces, 100 columns, K&R braces |
 | `csharp/csharpier-compat` | CSharpier 1.x layout |
 | `csharp/stylecop` | StyleCop.Analyzers layout (blank lines, `)` placement, empty bodies) and its matching rules |
-| `json/default`, `yaml/default` | The defaults |
+| `json/default`, `yaml/default`, `toml/default` | The defaults |
 | `json/prettier-compat`, `yaml/prettier-compat` | Prettier-like (width 80) |
 
-Without a `sudsy.yaml`, C# uses `csharp/microsoft`, existing `.editorconfig` keys apply, and JSON and YAML use their defaults. Details: [docs/formatting/presets.md](docs/formatting/presets.md).
+Without a `sudsy.yaml`, C# uses `csharp/microsoft`, existing `.editorconfig` keys apply, and JSON, YAML and TOML use their defaults. Details: [docs/formatting/presets.md](docs/formatting/presets.md).
 
 ## Configuration
 

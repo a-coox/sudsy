@@ -37,13 +37,15 @@ async function start(context: vscode.ExtensionContext): Promise<void> {
     vscode.workspace.workspaceFolders?.[0]?.uri.fsPath,
   );
   const options: LanguageClientOptions = {
-    // `.cs` by pattern as well, so that it works without a C# extension that names the language.
+    // `.cs` and `.toml` by pattern as well, so that it works without an extension that names the language.
     documentSelector: [
       { scheme: "file", language: "csharp" },
       { scheme: "file", pattern: "**/*.cs" },
       { scheme: "file", language: "json" },
       { scheme: "file", language: "jsonc" },
       { scheme: "file", language: "yaml" },
+      { scheme: "file", language: "toml" },
+      { scheme: "file", pattern: "**/*.toml" },
     ],
     // Pull diagnostics for every open tab, not just the visible editor.
     diagnosticPullOptions: { onChange: true, onSave: true, onTabs: true },

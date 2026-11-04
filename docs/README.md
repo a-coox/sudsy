@@ -7,11 +7,13 @@ Current state only; history is in git. Update the doc for the area you change in
 | [architecture/overview.md](architecture/overview.md) | Crates, dependency rules, data flow, versioned boundaries |
 | [architecture/syntax-tree.md](architecture/syntax-tree.md) | Lossless tree, trivia rule, grammars and codegen, wire encoding |
 | [architecture/csharp-worker.md](architecture/csharp-worker.md) | .NET worker, protocol, workspace, lifecycle |
+| [architecture/adding-a-language.md](architecture/adding-a-language.md) | Adding a tree-sitter language: steps and per-language cost |
 | [architecture/incremental.md](architecture/incremental.md) | Salsa query graph, backdating, parallelism |
 | [formatting/engine.md](formatting/engine.md) | Layout doc, printer, shapes, directives, comments, safety check |
 | [formatting/csharp.md](formatting/csharp.md) | C# formatter and options |
 | [formatting/json.md](formatting/json.md) | JSON/JSONC parser, formatter, options |
 | [formatting/yaml.md](formatting/yaml.md) | YAML parser, data model, formatter, options |
+| [formatting/toml.md](formatting/toml.md) | TOML parser (tree-sitter), formatter, options, conformance |
 | [formatting/presets.md](formatting/presets.md) | Preset list and notes |
 | [parity/README.md](parity/README.md) | Parity catalog: what yamllint, Prettier, Biome, eslint-plugin-jsonc, StyleCop, CSharpier do and where Sudsy stands |
 | [rules/engine.md](rules/engine.md) | Rule trait, scopes, layers and depth, levels, fixes, suppressions |

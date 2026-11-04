@@ -1,0 +1,21 @@
+[package]
+name = "lang-toml"
+edition.workspace = true
+license.workspace = true
+version.workspace = true
+publish.workspace = true
+
+[dependencies]
+core-config.workspace = true
+core-format.workspace = true
+core-syntax.workspace = true
+core-treesitter.workspace = true
+provider-api.workspace = true
+tree-sitter.workspace = true
+tree-sitter-toml-ng.workspace = true
+
+[dev-dependencies]
+insta.workspace = true
+
+[lints]
+workspace = true

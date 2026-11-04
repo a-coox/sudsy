@@ -3,14 +3,14 @@
 ## [0.1.0] - unreleased
 
 First release: one tool, as a CLI and a VS Code extension, that formats, lints and fixes C#, JSON
-(including JSONC) and YAML from a single `sudsy.yaml`.
+(including JSONC), YAML and TOML from a single `sudsy.yaml`.
 
 ### Formatting
-* Lossless shared syntax tree for all three languages; every layout decision is an option.
+* Lossless shared syntax tree for all four languages; every layout decision is an option.
 * C# through a Roslyn-backed .NET worker (framework-dependent, roll-forward); JSON and YAML are
-  native Rust and never start .NET.
+  native Rust and never start .NET; TOML is parsed by an embedded tree-sitter grammar.
 * Presets: `csharp/microsoft`, `csharp/dotnet-runtime`, `csharp/google`, `csharp/csharpier-compat`,
-  `csharp/stylecop`, `json/default`, `json/prettier-compat`, `yaml/default`, `yaml/prettier-compat`.
+  `csharp/stylecop`, `json/default`, `json/prettier-compat`, `yaml/default`, `yaml/prettier-compat`, `toml/default`.
 * Every format is checked for an unchanged tree (and unchanged data for YAML) before it is written.
 
 ### Rules and fixes

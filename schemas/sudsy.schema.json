@@ -809,7 +809,7 @@
       ]
     }
   },
-  "description": "Configuration of Sudsy, the formatter and linter for C#, JSON and YAML.",
+  "description": "Configuration of Sudsy, the formatter and linter for C#, JSON, YAML and TOML.",
   "properties": {
     "analysis": {
       "default": "standard",
@@ -1214,6 +1214,7 @@
           "preset:json/biome",
           "preset:json/default",
           "preset:json/prettier-compat",
+          "preset:toml/default",
           "preset:yaml/default",
           "preset:yaml/prettier-compat",
           "preset:yaml/yamllint"
@@ -1957,6 +1958,109 @@
           "lint": {
             "$ref": "#/definitions/lint"
           },
+          "toml": {
+            "additionalProperties": false,
+            "properties": {
+              "format": {
+                "additionalProperties": false,
+                "properties": {
+                  "array_bracket_spacing": {
+                    "default": false,
+                    "description": "Spaces inside the brackets of a one-line sequence or array: `[ 1, 2 ]` or `[1, 2]`.",
+                    "type": "boolean"
+                  },
+                  "bracket_spacing": {
+                    "default": true,
+                    "description": "Spaces inside the braces of a one-line mapping or object: `{ a: 1 }` or `{a: 1}`.",
+                    "type": "boolean"
+                  },
+                  "collapse": {
+                    "default": "preserve",
+                    "description": "Arrays on one line: `preserve` keeps one that has a line break between its brackets expanded and puts the others on one line if they fit; `always` puts every one that fits on one line; `never` puts every non-empty one on several lines.",
+                    "enum": [
+                      "preserve",
+                      "always",
+                      "never"
+                    ],
+                    "type": "string"
+                  },
+                  "end_of_line": {
+                    "default": "auto",
+                    "description": "Line break style of the output: `lf`, `crlf`, or `auto` to keep the file's first              line break.",
+                    "enum": [
+                      "auto",
+                      "lf",
+                      "crlf"
+                    ],
+                    "type": "string"
+                  },
+                  "final_newline": {
+                    "default": true,
+                    "description": "End the file with a newline.",
+                    "type": "boolean"
+                  },
+                  "indent_size": {
+                    "default": 2,
+                    "description": "Columns per indentation level (also the width of a tab).",
+                    "maximum": 16,
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  "indent_style": {
+                    "default": "space",
+                    "description": "Indent with spaces or tabs.",
+                    "enum": [
+                      "space",
+                      "tab"
+                    ],
+                    "type": "string"
+                  },
+                  "line_width": {
+                    "default": 80,
+                    "description": "Preferred maximum line width in columns.",
+                    "maximum": 1000,
+                    "minimum": 20,
+                    "type": "integer"
+                  },
+                  "trailing_commas": {
+                    "default": "multiline",
+                    "description": "Trailing comma after the last item of a multi-line array.",
+                    "enum": [
+                      "never",
+                      "multiline"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              },
+              "lint": {
+                "$ref": "#/definitions/lint"
+              },
+              "semantics": {
+                "additionalProperties": false,
+                "description": "Facts about methods that the flow analyses use.",
+                "properties": {
+                  "does_not_return": {
+                    "description": "Qualified method names without parameter lists; every overload is covered.",
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "pure": {
+                    "description": "Qualified method names without parameter lists; every overload is covered.",
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  }
+                },
+                "type": "object"
+              }
+            },
+            "type": "object"
+          },
           "yaml": {
             "additionalProperties": false,
             "properties": {
@@ -2108,6 +2212,109 @@
             "type": "string"
           },
           "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "toml": {
+      "additionalProperties": false,
+      "properties": {
+        "format": {
+          "additionalProperties": false,
+          "properties": {
+            "array_bracket_spacing": {
+              "default": false,
+              "description": "Spaces inside the brackets of a one-line sequence or array: `[ 1, 2 ]` or `[1, 2]`.",
+              "type": "boolean"
+            },
+            "bracket_spacing": {
+              "default": true,
+              "description": "Spaces inside the braces of a one-line mapping or object: `{ a: 1 }` or `{a: 1}`.",
+              "type": "boolean"
+            },
+            "collapse": {
+              "default": "preserve",
+              "description": "Arrays on one line: `preserve` keeps one that has a line break between its brackets expanded and puts the others on one line if they fit; `always` puts every one that fits on one line; `never` puts every non-empty one on several lines.",
+              "enum": [
+                "preserve",
+                "always",
+                "never"
+              ],
+              "type": "string"
+            },
+            "end_of_line": {
+              "default": "auto",
+              "description": "Line break style of the output: `lf`, `crlf`, or `auto` to keep the file's first              line break.",
+              "enum": [
+                "auto",
+                "lf",
+                "crlf"
+              ],
+              "type": "string"
+            },
+            "final_newline": {
+              "default": true,
+              "description": "End the file with a newline.",
+              "type": "boolean"
+            },
+            "indent_size": {
+              "default": 2,
+              "description": "Columns per indentation level (also the width of a tab).",
+              "maximum": 16,
+              "minimum": 1,
+              "type": "integer"
+            },
+            "indent_style": {
+              "default": "space",
+              "description": "Indent with spaces or tabs.",
+              "enum": [
+                "space",
+                "tab"
+              ],
+              "type": "string"
+            },
+            "line_width": {
+              "default": 80,
+              "description": "Preferred maximum line width in columns.",
+              "maximum": 1000,
+              "minimum": 20,
+              "type": "integer"
+            },
+            "trailing_commas": {
+              "default": "multiline",
+              "description": "Trailing comma after the last item of a multi-line array.",
+              "enum": [
+                "never",
+                "multiline"
+              ],
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "lint": {
+          "$ref": "#/definitions/lint"
+        },
+        "semantics": {
+          "additionalProperties": false,
+          "description": "Facts about methods that the flow analyses use.",
+          "properties": {
+            "does_not_return": {
+              "description": "Qualified method names without parameter lists; every overload is covered.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "pure": {
+              "description": "Qualified method names without parameter lists; every overload is covered.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          "type": "object"
         }
       },
       "type": "object"

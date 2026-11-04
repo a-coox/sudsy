@@ -14,18 +14,19 @@ Options declared by more than one language, generated from the option schemas; p
 <!-- generated:shared-options -->
 | Option | Values | Defaults |
 |---|---|---|
-| `array_bracket_spacing` | bool | json `false`, yaml `false` |
-| `bracket_spacing` | bool | json `true`, yaml `true` |
-| `end_of_line` | `auto`, `lf`, `crlf` | json `auto`, yaml `auto`, csharp `auto` |
-| `final_newline` | bool | json `true`, yaml `true`, csharp `true` |
-| `indent_size` | int 1-16 | json `2`, yaml `2`, csharp `4` |
-| `indent_style` | `space`, `tab` | json `space`, csharp `space` |
-| `line_width` | int 20-1000 | json `80`, yaml `80`, csharp `120` |
-| `trailing_commas` | json: `never`, `multiline`; csharp: `preserve`, `never`, `multiline` | json `never`, csharp `preserve` |
+| `array_bracket_spacing` | bool | json `false`, yaml `false`, toml `false` |
+| `bracket_spacing` | bool | json `true`, yaml `true`, toml `true` |
+| `collapse` | json: `preserve`, `always`, `never`, `opening_break`; toml: `preserve`, `always`, `never` | json `preserve`, toml `preserve` |
+| `end_of_line` | `auto`, `lf`, `crlf` | json `auto`, yaml `auto`, toml `auto`, csharp `auto` |
+| `final_newline` | bool | json `true`, yaml `true`, toml `true`, csharp `true` |
+| `indent_size` | int 1-16 | json `2`, yaml `2`, toml `2`, csharp `4` |
+| `indent_style` | `space`, `tab` | json `space`, toml `space`, csharp `space` |
+| `line_width` | int 20-1000 | json `80`, yaml `80`, toml `80`, csharp `120` |
+| `trailing_commas` | json: `never`, `multiline`; toml: `never`, `multiline`; csharp: `preserve`, `never`, `multiline` | json `never`, toml `multiline`, csharp `preserve` |
 <!-- /generated -->
 
 ## Shapes (`core-format::shapes`)
-Delimited list, block, key-value, statement sequence, verbatim, binary chain (operator first on continuation lines), member chain (one line or one group per line), and `delimited_list_between` / `block_between` for delimiters that are not first/last tokens. A shape finds its structure from the grammar: first/last significant token are delimiters, child nodes are items, `#separator` tokens after an item are its separator. List separators are re-created from `ListStyle`; block separators are kept. A child tagged `#list-prefix` is printed first. Blank lines between items are kept up to `max_blank_lines`; they vanish in a list that fits one line.
+Delimited list (layouts: fit, preserve a break, break always, `Flat` never breaks, as TOML inline tables), block, key-value, statement sequence, verbatim, binary chain (operator first on continuation lines), member chain (one line or one group per line), and `delimited_list_between` / `block_between` for delimiters that are not first/last tokens. A shape finds its structure from the grammar: first/last significant token are delimiters, child nodes are items, `#separator` tokens after an item are its separator. List separators are re-created from `ListStyle`; block separators are kept. A child tagged `#list-prefix` is printed first. Blank lines between items are kept up to `max_blank_lines`; they vanish in a list that fits one line.
 
 ## Comments
 Never positioned by the formatter: a comment is owned by a token (trivia rule) and printed with it (`FormatCtx::token`). Own-line comments stay on their own lines (`NewlineIfNeeded`); a block comment on the same line stays inline; a line comment after a token is a line suffix and breaks the group. Comments before a closing delimiter are dangling and printed inside the container. A second comment on a line already ending in a line comment moves to its own line. Structured trivia are comments: `Lines` (doc comments, line by line), `Directive` (`#verbatim-trivia`, kept at column 0; `#region` follows indentation).

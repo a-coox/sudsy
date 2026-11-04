@@ -1,0 +1,17 @@
+[package]
+name = "sample-plugin"
+version = "0.0.0"
+edition = "2024"
+publish = false
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+plugin-sdk = { path = "../../../crates/plugin-sdk" }
+
+[dev-dependencies]
+plugin-sdk = { path = "../../../crates/plugin-sdk", features = ["testing"] }
+
+# Not a member of the Sudsy workspace: it builds for wasm32-wasip2 on its own.
+[workspace]

@@ -1,0 +1,29 @@
+# Adding a language with tree-sitter
+
+A language whose tree-sitter grammar exists and is good enough costs a grammar file, a node-name table, a small formatter and provider glue; the parser, error recovery and lossless tree come from `core-treesitter`. `lang-toml` is the worked example (about 250 lines of Rust and grammar in total, against about 880 for the hand-written JSON parser and formatter). Hand-written parsers stay the choice where speed, error messages or recovery matter (C#, JSON, YAML); a hand-written parser can replace a tree-sitter one later without touching anything outside the language crate, because the core sees only our tree.
+
+## What the adapter does (`core-treesitter`)
+`Engine::new(language, grammar, mapping)` parses with a linked-in tree-sitter `Language` (native C, no Wasm: the Wasm host would link a second wasmtime) and converts the result:
+- Every tree-sitter node named in `Mapping::kinds` becomes the kind of our grammar it maps to: a node kind becomes a node, a token kind a leaf (its tree-sitter children are swallowed, so a string with escape sequences is one token), a trivia kind (comments) trivia. An unmapped node with children is transparent; an unmapped leaf is an `Unknown` error token.
+- Tree-sitter's tree has no whitespace or newlines: the bytes between tokens are rebuilt as `Whitespace` and `Newline` tokens and attached by the shared trivia rule, so the tree prints back to the input byte for byte. Text that is neither is an `Unknown` token.
+- `ERROR` nodes become `SyntaxKind::ERROR` and a parse error, `MISSING` nodes a parse error. Messages are "syntax error" and "missing X", with no codes or hints.
+- `Mapping::wrap`: tree-sitter hides one-part keys and literals as bare tokens, while shapes (`#delimited-list`, `#key-value`) want nodes as items. A token listed there is wrapped in a node of its own, unless its tree-sitter parent already maps to that node.
+- A zero-width `Eof` token ends the root; it owns the comments at the end of the file.
+
+## Steps
+1. **Grammar file** `grammars/<lang>.grammar` (format: [syntax-tree.md](syntax-tree.md)). Take a free language id (`language <name> <id>`, 4 bits: 1-4 are taken) and add `LanguageId::<NAME>`. Declare the trivia tokens (`Whitespace`, `Newline`, the comment kinds), `Eof` and `Unknown #error`, one token per tree-sitter token you keep, and the nodes with the tags the shared code reads: `#delimited-list`, `#block`, `#key-value`, `#separator`, `#mapping`, `#sequence`. Read the grammar's `node-types.json` first: hidden rules (`_name`) are not nodes in the tree, so their children are tokens in the parent.
+2. **Register the grammar**: a function in `core-syntax/src/grammars.rs` and its entry in `by_name`.
+3. **Crate** `crates/lang-<name>` (`Cargo.toml` with the tree-sitter grammar crate, `core-treesitter`, `core-config`, `core-format`, `core-syntax`, `provider-api`), `src/mapping.rs` (the `Mapping` table), `src/lib.rs` (the `LanguageProvider`: `id`, `grammar`, `file_matchers`, `capabilities`, `parse` calling `Engine::parse`, `formatter`, `option_schema`), `src/format.rs` (option schema from the `shared::` options plus the language's own, a `NodeFormatter` for the nodes whose tag default is not right, presets). Add the grammar crate and the new crate to `[workspace.dependencies]`.
+4. **Wire it**: `languages::providers()`, the `xtask` entry that writes `src/generated.rs` (kind constants, AST wrappers and the grammar hash; the first run needs a hand-written stub of the constants `format.rs` uses, since `xtask` links the crate), the `language_rank` list in `xtask/src/docs.rs`, `docs/formatting/<name>.md` with a `<!-- generated:options -->` block, then `cargo xtask codegen`. Shared comment rules and `max-line-length` work through the grammar tags with no code.
+5. **Editors**: the document selector and activation event in `editors/vscode`.
+6. **Tests**: format fixtures under `tests/fixtures/<name>/` (lossless tree, trivia attachment, and `core_format::testing::check`: round trip, meaning, idempotency, comments kept), unit tests for the layout, the language's conformance suite as an ignored test with a fetch script in `tests/conformance/` (pinned commit, gitignored corpus).
+7. **Measure** (`perf-bench`: an input generator, `fixed.rs`, `scripts/bench.sh` and `bench-measure.sh` language lists), and record parse and format throughput, binary size and build time in [../performance/numbers.md](../performance/numbers.md).
+8. **Docs**: [overview.md](overview.md), the README language list, the presets list, the roadmap.
+
+## Per-language cost and limits
+- Code: grammar file about 40 lines, mapping about 50, provider glue about 60, formatter about 130 for TOML. Expect more formatter code for a language with irregular layout; the shapes cover lists, key-values, blocks and statement sequences.
+- Cost in every build: a C compiler (already needed), the tree-sitter runtime once, and the grammar's `parser.c` and scanner per language; sizes are in `numbers.md`.
+- Tree-sitter is 4-10x slower than the hand-written parsers and its trees need the adapter pass; the printer dominates the end-to-end cost anyway.
+- A grammar that lags its language spec (TOML 1.1 today) needs a fork or an upstream fix, which the language then carries. Tree-sitter accepts documents that are syntactically fine and semantically invalid (duplicate keys, bad dates); those need lint rules.
+- Error recovery is tree-sitter's: a bad line may swallow a large span into one `ERROR`. The formatter refuses a file with errors, so this only affects messages.
+- Not covered by the adapter: incremental reparse, a depth limit (the walk is iterative; the formatter recurses), dialects, embedded languages.

@@ -15,6 +15,7 @@ Why plain config and unversioned: no hidden values or code paths per tool, and a
 | `json/prettier-compat` | Width 80, LF, objects stay expanded after an opening line break (`collapse: opening_break`); `package.json`, `package-lock.json` and `composer.json` fully expanded (`overrides`, `collapse: never`). Number arrays not filled, numbers not normalized. |
 | `json/biome` | Biome's defaults: tab indent, width 80, LF, `collapse: opening_break`; the same `package.json` override. |
 | `yaml/default` | The defaults (styles preserved). |
+| `toml/default` | The defaults. |
 | `yaml/yamllint` | yamllint's default config: lint levels (line length 80 at error, `no-undefined-alias` at error, `ambiguous-booleans`, `document-start` and `comment-space` at warn; yamllint's other rules are off by default and so stay off) and output that satisfies it: `comment_spacing: 2`, `max_blank_lines: 2`, `sequence_indent: indented`, width 80. `bracket_spacing: false` (`{a: 1}`) and `end_of_line: lf`. |
 | `yaml/prettier-compat` | Width 80, LF, `quote_style: prefer_double`, `blank_lines_after_key: remove`. |
 
@@ -22,4 +23,4 @@ Why plain config and unversioned: no hidden values or code paths per tool, and a
 - A preset goes through the same merge as an `extends` file, below all files in the chain (not interleaved at the position of the entry). `config print` shows `preset <name>` as the source.
 - A preset may extend other presets only (no relative files) and may not set `include`, `exclude`, `analysis` or `plugins`. Its override globs are relative to the root config's directory. Cycles are caught.
 - Two tests keep presets pure: a hand-written config with a preset's values formats every sample like `extends`, and no formatter source mentions "csharpier".
-- Zero-config (no `sudsy.yaml`): C# uses `csharp/microsoft`; `.editorconfig` keys are honored; JSON/YAML use their defaults (2-space indent, YAML quotes kept, keys never reordered).
+- Zero-config (no `sudsy.yaml`): C# uses `csharp/microsoft`; `.editorconfig` keys are honored; JSON/YAML/TOML use their defaults (2-space indent, YAML quotes kept, keys never reordered).

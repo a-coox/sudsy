@@ -13,6 +13,7 @@ core-rules.workspace = true
 lang-csharp.workspace = true
 lang-json.workspace = true
 lang-yaml.workspace = true
+lang-toml.workspace = true
 core-workspace.workspace = true
 provider-api.workspace = true
 serde.workspace = true

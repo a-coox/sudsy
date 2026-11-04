@@ -28,6 +28,7 @@ pub fn generate() -> Result<Vec<(PathBuf, String)>> {
     let json = load("json")?;
     let csharp = load("csharp")?;
     let yaml = load("yaml")?;
+    let toml = load("toml")?;
     let providers = languages::providers();
     let mut files = vec![
         (
@@ -41,6 +42,10 @@ pub fn generate() -> Result<Vec<(PathBuf, String)>> {
         (
             "crates/lang-yaml/src/generated.rs".into(),
             codegen::rust_module(&yaml, "grammars/yaml.grammar", "core_syntax")?,
+        ),
+        (
+            "crates/lang-toml/src/generated.rs".into(),
+            codegen::rust_module(&toml, "grammars/toml.grammar", "core_syntax")?,
         ),
         (
             "crates/lang-csharp/src/generated.rs".into(),

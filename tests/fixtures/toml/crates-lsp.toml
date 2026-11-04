@@ -1,0 +1,32 @@
+[package]
+name = "lsp"
+edition.workspace = true
+license.workspace = true
+version.workspace = true
+publish.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+core-config.workspace = true
+core-incremental.workspace = true
+core-rules.workspace = true
+core-workspace.workspace = true
+crossbeam-channel = "0.5"
+languages.workspace = true
+lsp-server = "0.10"
+lsp-types = "0.97"
+provider-api.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+url = "2"
+
+[dev-dependencies]
+core-format.workspace = true
+core-syntax.workspace = true
+lang-csharp.workspace = true
+lang-json.workspace = true
+lang-yaml.workspace = true
+tempfile.workspace = true
+
+[lints]
+workspace = true

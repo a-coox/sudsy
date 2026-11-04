@@ -59,10 +59,10 @@ fn cell(text: &str) -> String {
 }
 
 fn language_rank(language: &str) -> usize {
-    ["all", "json", "yaml", "csharp"]
+    ["all", "json", "yaml", "toml", "csharp"]
         .iter()
         .position(|l| *l == language)
-        .unwrap_or(4)
+        .unwrap_or(5)
 }
 
 fn rules_table(rules: &[(String, &'static dyn Rule)]) -> String {

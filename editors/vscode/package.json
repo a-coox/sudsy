@@ -1,7 +1,7 @@
 {
   "name": "sudsy",
   "displayName": "Sudsy",
-  "description": "Formatter and linter for C#, JSON and YAML.",
+  "description": "Formatter and linter for C#, JSON, YAML and TOML.",
   "version": "0.1.0",
   "publisher": "Coox",
   "license": "MIT",
@@ -18,6 +18,7 @@
     "onLanguage:json",
     "onLanguage:jsonc",
     "onLanguage:yaml",
+    "onLanguage:toml",
     "workspaceContains:**/sudsy.{yaml,yml}"
   ],
   "capabilities": {

@@ -21,7 +21,7 @@ static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
 #[command(
     name = "sudsy",
     version,
-    about = "Formatter and linter for C#, JSON and YAML"
+    about = "Formatter and linter for C#, JSON, YAML and TOML"
 )]
 struct Cli {
     #[command(subcommand)]
@@ -33,7 +33,7 @@ enum Command {
     /// Developer tools: parse a .cs file with the C# worker and print its tree.
     #[command(subcommand)]
     Debug(debug::DebugCommand),
-    /// Format C#, JSON, JSONC and YAML files.
+    /// Format C#, JSON, JSONC, YAML and TOML files.
     Format(format::FormatArgs),
     /// Report rule violations; exit code 1 if there is an error.
     Lint(lint::ReportArgs),

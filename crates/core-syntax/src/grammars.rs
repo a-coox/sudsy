@@ -12,6 +12,11 @@ pub fn json() -> &'static Grammar {
     load(&G, include_str!("../../../grammars/json.grammar"))
 }
 
+pub fn toml() -> &'static Grammar {
+    static G: OnceLock<Grammar> = OnceLock::new();
+    load(&G, include_str!("../../../grammars/toml.grammar"))
+}
+
 pub fn csharp() -> &'static Grammar {
     static G: OnceLock<Grammar> = OnceLock::new();
     load(&G, include_str!("../../../grammars/csharp.grammar"))
@@ -24,7 +29,7 @@ pub fn yaml() -> &'static Grammar {
 
 /// The built-in grammar of `language` (its `language` line), if there is one.
 pub fn by_name(language: &str) -> Option<&'static Grammar> {
-    [json, csharp, yaml]
+    [json, csharp, yaml, toml]
         .into_iter()
         .map(|g| g())
         .find(|g| g.language == language)
