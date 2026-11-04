@@ -49,6 +49,21 @@ public sealed class CompilerDiagnostic
 }
 
 [MessagePackObject]
+public sealed class Finding
+{
+    /// <summary>The check: base_call, default_value_constructor, unqualified_using, value_tuple,
+    /// unnamed_tuple_element, debug_assert_message, debug_fail_message, inheritdoc.</summary>
+    [Key(0)] public string Kind { get; set; } = "";
+    [Key(1)] public uint Start { get; set; }
+    [Key(2)] public uint Length { get; set; }
+    /// <summary>The replacement for the span, or what the message needs; empty for none.</summary>
+    [Key(3)] public string Text { get; set; } = "";
+    /// <summary>The range `Text` replaces (a part of the span or the span itself); 0, 0 for the span.</summary>
+    [Key(4)] public uint FixStart { get; set; }
+    [Key(5)] public uint FixLength { get; set; }
+}
+
+[MessagePackObject]
 public sealed class Answers
 {
     [Key(0)] public string FileId { get; set; } = "";
@@ -61,6 +76,7 @@ public sealed class Answers
     /// <summary>Compiler errors in the file; answers that need a complete binding (unused imports)
     /// are left empty when there are any.</summary>
     [Key(7)] public uint SemanticErrors { get; set; }
+    [Key(8)] public Finding[] Findings { get; set; } = [];
 }
 
 [MessagePackObject]

@@ -55,7 +55,7 @@ pub struct UpdateText {
 pub struct Query {
     pub file_id: String,
     pub version: u64,
-    /// What to answer: `declarations`, `references`, `unused_imports`, `maybe_null`,
+    /// What to answer: `declarations`, `references`, `unused_imports`, `maybe_null`, `symbol_findings`,
     /// `diagnostics`.
     pub items: Vec<String>,
     /// For `diagnostics`: the compiler diagnostic ids to report.

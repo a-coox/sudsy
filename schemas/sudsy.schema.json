@@ -74,6 +74,14 @@
               "$ref": "#/definitions/rule",
               "description": "A comparison with the constant on the left: `null == x` is `x == null`, `1 < x` is `x > 1`. Without the type layer a constant is a literal, `nameof`, `int.MaxValue`-style member or an expression of those; a named constant on the left is not recognised. Equivalent to StyleCop SA1131."
             },
+            "debug-assert-message": {
+              "$ref": "#/definitions/rule",
+              "description": "`Debug.Assert` without a message, or with a constant blank one. With the type layer the call is checked against `System.Diagnostics.Debug`; without it any call written `Debug.Assert` is. No fix. Equivalent to StyleCop SA1405."
+            },
+            "debug-fail-message": {
+              "$ref": "#/definitions/rule",
+              "description": "`Debug.Fail` with a constant blank message. With the type layer the call is checked against `System.Diagnostics.Debug`; without it any call written `Debug.Fail` is. No fix. Equivalent to StyleCop SA1406."
+            },
             "directive-keyword-space": {
               "$ref": "#/definitions/rule",
               "description": "No space between `#` and the directive keyword (`#if`, not `# if`). Equivalent to StyleCop SA1006."
@@ -135,6 +143,10 @@
                   "type": "object"
                 }
               ]
+            },
+            "inheritdoc-on-inheriting-member": {
+              "$ref": "#/definitions/rule",
+              "description": "`<inheritdoc />` without `cref` on a type without a base list, or on a member that neither overrides nor implements anything (a constructor whose signature matches a base constructor is fine). No fix. Equivalent to StyleCop SA1648."
             },
             "key-name-casing": {
               "description": "A key does not follow one of the allowed naming conventions. The checks are those of eslint-plugin-jsonc: a key with punctuation or whitespace never matches, `camelCase` also rejects `_` and `-`, `snake_case` and `kebab-case` reject capitals. No fix: renaming a key changes the data.",
@@ -274,6 +286,10 @@
               "$ref": "#/definitions/rule",
               "description": "A comment between the head of an `if`, `else`, `while`, `do`, `for`, `foreach`, `lock`, `try`, `catch`, `finally`, `switch`, `checked` or `unchecked` and its `{`. Put it inside the block or above the statement. Equivalent to StyleCop SA1108."
             },
+            "no-default-value-type-constructor": {
+              "$ref": "#/definitions/rule",
+              "description": "`new S()` of a value type with an implicit parameterless constructor and no initializer: write `default(S)` (`Guid.Empty`, `CancellationToken.None`, `IntPtr.Zero`, the enum member with value 0 where they exist). No fix for a target-typed `new()`. Equivalent to StyleCop SA1129."
+            },
             "no-duplicate-anchors": {
               "$ref": "#/definitions/rule",
               "description": "An anchor name is defined again in the same document; an alias refers to the latest definition above it, which is easy to misread. yamllint `forbid-duplicated-anchors`."
@@ -395,6 +411,10 @@
               "$ref": "#/definitions/rule",
               "description": "An alias names an anchor that is not defined earlier in the same document."
             },
+            "no-unneeded-base-prefix": {
+              "$ref": "#/definitions/rule",
+              "description": "`base.M()` or `base[i]` where the type does not override the member, so `this` binds to the same one. The fix writes `this`. Equivalent to StyleCop SA1100."
+            },
             "no-unused-anchors": {
               "$ref": "#/definitions/rule",
               "description": "An anchor that no alias refers to. The fix removes the anchor, which changes nothing about the data. yamllint `forbid-unused-anchors`."
@@ -406,6 +426,10 @@
             "possible-null-dereference": {
               "$ref": "#/definitions/rule",
               "description": "A member or element access on an expression the compiler's nullable analysis says may be null. Only code under `#nullable enable` is checked. Off by default: the compiler reports the same thing as CS8602."
+            },
+            "qualify-namespace-usings": {
+              "$ref": "#/definitions/rule",
+              "description": "A `using` directive inside a namespace whose name is not written fully qualified (it resolves relative to the enclosing namespace). The fix writes the full name, unless it has type arguments. Equivalent to StyleCop SA1135."
             },
             "quoted-strings": {
               "description": "Which strings are quoted. Plain scalars that are not strings (`12`, `true`, `null`, dates, ...), block scalars and scalars tagged `!!` are never checked. `required: always` wants quotes on every string, `only_when_needed` reports quotes that change nothing (unless `extra_allowed` matches) and plain strings that `extra_required` matches, `optional` only the latter. Fixes: quoting a plain string and switching the quote type keep the value; removing quotes is unsafe because YAML 1.2 parsers read some strings (`1e3`) as numbers. yamllint `quoted-strings`.",
@@ -630,6 +654,10 @@
               "$ref": "#/definitions/rule",
               "description": "`SuppressMessage` needs a `Justification` that says something: not missing, `null`, empty, blank or `\"<Pending>\"`. Matches the attribute by name. No fix. Equivalent to StyleCop SA1404."
             },
+            "tuple-element-names-in-signatures": {
+              "$ref": "#/definitions/rule",
+              "description": "A tuple type in the signature of a method, constructor, property, indexer, conversion operator or delegate whose elements have no names. Overrides and implementations of interface members are left alone (their names are not the member's to choose). No fix. Equivalent to StyleCop SA1414."
+            },
             "unreachable-code": {
               "description": "A statement that can never run. At `fast` depth this is the statement after a `return`, `throw`, `break`, `continue` or `goto`; with the flow layer it also covers constant conditions and calls that do not return (`does_not_return` in `semantics:`). Only the first statement of a run is reported. Removing it is offered as an editor quick fix only, because unreachable code usually signals a bug. Off by default: the compiler already reports unreachable code (CS0162) and the SDK analyzers add IDE0035.",
               "oneOf": [
@@ -688,6 +716,10 @@
             "use-string-empty": {
               "$ref": "#/definitions/rule",
               "description": "`string.Empty` instead of `\"\"` (or `@\"\"`). Not reported where a constant is required: `const`, attribute arguments, default parameter values, `case` labels and patterns. Equivalent to StyleCop SA1122."
+            },
+            "use-tuple-syntax": {
+              "$ref": "#/definitions/rule",
+              "description": "`ValueTuple<int, int>` and `ValueTuple.Create(a, b)` where tuple syntax `(int, int)` and `(a, b)` is available (not inside an expression tree). The fix is offered for types and `ValueTuple.Create` calls. Equivalent to StyleCop SA1141."
             },
             "using-order": {
               "description": "`using` directives of a file or namespace are out of order: System first (`system_first`), names in alphabetical order (`compare`), and with the options `static_position` and `alias_position` set to `after`, `using static` directives after the plain ones and aliases after those, each group sorted. `global using` and `using unsafe` stay where they are, and a list restarts at a directive that has a preprocessor directive in front of it (the fix leaves such lists alone). Comments on lines of their own stay where they are; a comment after a directive moves with it. Overlaps the SDK analyzers' `dotnet_sort_system_directives_first` .editorconfig key; StyleCop SA1208 to SA1211, SA1216 and SA1217.",

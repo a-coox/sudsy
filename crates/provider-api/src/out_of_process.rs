@@ -184,6 +184,9 @@ impl LanguageProvider for OutOfProcessProvider {
         if layers.types || layers.project {
             items.push("declarations");
         }
+        if layers.types {
+            items.push("symbol_findings");
+        }
         if layers.project {
             items.push("references");
         }

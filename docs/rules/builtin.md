@@ -54,6 +54,14 @@
 | `member-order` | csharp | style | off | none | member kinds, access, constants, static, readonly fields compared with the member before, in the order of option `element_order`; SA1201 to SA1204, SA1214; no fix (comments and directives would have to move along) |
 | `accessor-order` | csharp | style | off | safe | `get` before `set`/`init`, `add` before `remove`; the fix swaps them unless a comment is in the way; SA1212, SA1213 |
 | `file-name-matches-type` | csharp | style | off | none | file name up to the first dot (ignoring case, `Name{T}` for generics) is the first type; partial first type skipped; SA1649 |
+| `no-unneeded-base-prefix` | csharp | style | off | safe | `base.M()` / `base[i]` where `this` binds to the same member; types layer; SA1100 |
+| `no-default-value-type-constructor` | csharp | style | off | safe | `new S()` of a value type -> `default(S)`, `Guid.Empty`, `CancellationToken.None`, `IntPtr.Zero` or the enum member 0; no fix for `new()`; types layer; SA1129 |
+| `qualify-namespace-usings` | csharp | style | off | safe | `using` in a namespace not written fully qualified; no fix with type arguments; types layer; SA1135 |
+| `use-tuple-syntax` | csharp | style | off | safe | `ValueTuple<..>` types and `ValueTuple.Create(..)` -> tuple syntax (not in expression trees); types layer; SA1141 |
+| `tuple-element-names-in-signatures` | csharp | style | off | none | unnamed tuple elements in signatures, not on overrides or interface implementations; types layer; SA1414 |
+| `debug-assert-message` | csharp | style | off | none | `Debug.Assert` without a message or with a blank constant; by the written name `Debug.Assert` at `fast`, exact with the types layer; SA1405 |
+| `debug-fail-message` | csharp | style | off | none | `Debug.Fail` with a blank constant message; same depths as `debug-assert-message`; SA1406 |
+| `inheritdoc-on-inheriting-member` | csharp | style | off | none | `<inheritdoc />` without `cref` on a type without a base list or a member that neither overrides nor implements; types layer; SA1648 |
 
 Rules that repeat a compiler or SDK diagnostic say so in `sudsy rules <id>`; those that fire as compiler warnings anyway are off by default. Sudsy does not reimplement SDK style rules such as IDE0161 (file-scoped namespaces) or IDE0029/IDE0030 (null coalescing).
 

@@ -84,6 +84,32 @@ fn fast_depth_is_syntactic_only() {
 }
 
 #[test]
+fn debug_message_rules_degrade_to_the_written_name_at_fast_depth() {
+    let t = tempfile::tempdir().unwrap();
+    write(
+        t.path(),
+        "sudsy.yaml",
+        "lint:\n  rules:\n    debug-assert-message: warn\n    debug-fail-message: warn\n    use-tuple-syntax: warn\n",
+    );
+    // `Debug` is the file's own class here: only the name says otherwise.
+    write(
+        t.path(),
+        "D.cs",
+        "class Debug { public static void Assert(bool b) { } }\nclass A {\n  System.ValueTuple<int, int> p;\n  void F(bool b) {\n  Debug.Assert(b);\n  Debug.Fail(\"\");\n} }\n",
+    );
+    let fast = stdout(&sudsy(t.path(), &["lint", "--analysis", "fast", "D.cs"]));
+    assert!(fast.contains("Debug.Assert should provide"), "{fast}");
+    assert!(fast.contains("Debug.Fail should provide"), "{fast}");
+    assert!(!fast.contains("tuple syntax"), "{fast}");
+    let standard = stdout(&sudsy(t.path(), &["lint", "D.cs"]));
+    assert!(
+        !standard.contains("Debug.Assert should provide"),
+        "{standard}"
+    );
+    assert!(standard.contains("tuple syntax"), "{standard}");
+}
+
+#[test]
 fn deep_depth_adds_project_scope_rules_across_partial_files() {
     let t = tempfile::tempdir().unwrap();
     write(

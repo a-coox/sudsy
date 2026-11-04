@@ -56,7 +56,7 @@ public sealed class Query
 {
     [Key(0)] public string FileId { get; set; } = "";
     [Key(1)] public ulong Version { get; set; }
-    /// <summary>What to answer: declarations, references, unused_imports, maybe_null, diagnostics.</summary>
+    /// <summary>What to answer: declarations, references, unused_imports, maybe_null, symbol_findings, diagnostics.</summary>
     [Key(2)] public string[] Items { get; set; } = [];
     /// <summary>For the diagnostics item: the compiler diagnostic ids to report (CS0162, ...).</summary>
     [Key(3)] public string[] DiagnosticIds { get; set; } = [];

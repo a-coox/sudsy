@@ -13,6 +13,7 @@ mod file_layout;
 mod flow;
 mod member_order;
 mod statements;
+mod symbol_checks;
 mod syntax_forms;
 mod usings;
 
@@ -51,6 +52,14 @@ pub static RULES: &[&dyn Rule] = &[
     &syntax_forms::SeparateAttributes,
     &syntax_forms::NoEmptyAttributeParens,
     &syntax_forms::NoEmptyDelegateParens,
+    &symbol_checks::NoUnneededBasePrefix,
+    &symbol_checks::NoDefaultValueTypeConstructor,
+    &symbol_checks::QualifyNamespaceUsings,
+    &symbol_checks::UseTupleSyntax,
+    &symbol_checks::TupleElementNamesInSignatures,
+    &symbol_checks::DebugAssertMessage,
+    &symbol_checks::DebugFailMessage,
+    &symbol_checks::InheritdocOnInheritingMember,
 ];
 
 /// Methods, constructors, local functions, lambdas and anonymous methods: what body-scope rules

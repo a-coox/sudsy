@@ -11,6 +11,8 @@ Providers declare layers, rules require them; JSON and YAML declare none.
 | Flow | Worker exports Roslyn control-flow graphs; analyses run in the core |
 | Project | Roslyn references; project phase in the core |
 
+`symbol_findings` (Types) is one walk over the file for the checks that need a symbol or type: `base` calls that bind the same as `this`, default value-type constructors, partly qualified usings in namespaces, `ValueTuple` spelled out, unnamed tuple elements in signatures, `Debug.Assert`/`Fail` messages, `inheritdoc` on members that inherit nothing. Each finding carries its span and the replacement text the fix uses; the rules in `symbol_checks.rs` only turn findings into diagnostics. Only the `Debug` message rules also run without the answers (by the written name).
+
 Answers are file-wide enumerations (`Answers`, `Declaration`, `Reference`), not point queries. Symbol ids are Roslyn documentation-comment ids (`M:Shop.Orders.OrderService.GetRecentAsync(System.Int32)`). `fast` never touches the worker's model; a `standard` run with no semantic rule enabled asks for nothing.
 
 ## Flow (`core-flow`)

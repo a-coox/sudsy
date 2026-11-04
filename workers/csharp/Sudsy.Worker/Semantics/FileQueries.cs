@@ -26,6 +26,9 @@ internal static class FileQueries
                 case "unused_imports":
                     answers.UnusedImports = answers.SemanticErrors == 0 ? UnusedImports(document, diagnostics) : [];
                     break;
+                case "symbol_findings":
+                    answers.Findings = SymbolFindings.Collect(document, model);
+                    break;
                 case "maybe_null":
                     answers.MaybeNull = MaybeNull(document, model);
                     break;
@@ -160,7 +163,7 @@ internal static class FileQueries
         type.OriginalDefinition.ToDisplayString() is "System.Threading.Tasks.Task" or "System.Threading.Tasks.Task<TResult>"
             or "System.Threading.Tasks.ValueTask" or "System.Threading.Tasks.ValueTask<TResult>";
 
-    private static bool Implements(ISymbol symbol)
+    internal static bool Implements(ISymbol symbol)
     {
         if (symbol is not (IMethodSymbol or IPropertySymbol or IEventSymbol) || symbol.ContainingType is not { } type)
         {

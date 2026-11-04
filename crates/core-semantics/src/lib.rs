@@ -8,7 +8,7 @@ mod summaries;
 
 pub use facts::{
     Accessibility, Answers, CompilerDiagnostic, Declaration, DeclarationFlags, DeclarationKind,
-    FileSemantics, Reference, Span, qualified_name,
+    FileSemantics, Finding, Reference, Span, qualified_name,
 };
 pub use layer::{Layer, Layers};
 pub use summaries::{BehaviorSummaries, BodyFlow, SemanticView};

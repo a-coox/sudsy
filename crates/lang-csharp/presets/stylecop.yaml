@@ -17,26 +17,34 @@ csharp:
       accessor-order: warn
       comment-space: warn
       constant-on-right: warn
+      debug-assert-message: warn
+      debug-fail-message: warn
       directive-keyword-space: warn
       doc-comment-space: warn
       file-name-matches-type: warn
+      inheritdoc-on-inheriting-member: warn
       member-order: warn
       no-comment-before-block: warn
+      no-default-value-type-constructor: warn
       no-empty-attribute-parens: warn
       no-empty-comment: warn
       no-empty-delegate-parens: warn
       no-empty-statement: warn
       no-region-in-body: warn
       no-regions: warn
+      no-unneeded-base-prefix: warn
       nullable-shorthand: warn
+      qualify-namespace-usings: warn
       separate-attributes: warn
       separate-field-declarations: warn
       single-class-per-file: warn
       single-namespace-per-file: warn
       suppression-justification: warn
+      tuple-element-names-in-signatures: warn
       use-lambda: warn
       use-literal-suffix: warn
       use-string-empty: warn
+      use-tuple-syntax: warn
       using-order:
         level: warn
         options:

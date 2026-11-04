@@ -14,7 +14,7 @@ Length-prefixed frames on stdin/stdout, MessagePack payloads (enums as one-entry
 | `OpenWorkspace` | Roots for the semantic compilation (the proxy remembers and resends after a restart) |
 | `Parse` | file, version, text, language version, `preprocessor_symbols` -> wire tree + errors |
 | `UpdateText` | Sent with every semantic request; the worker ignores unchanged text |
-| `Query` | Typed items: Binding `unused_imports`, Types `declarations`, Values `maybe_null`, Project `references`, plus `diagnostic_ids`. File-wide enumerations, not point queries. |
+| `Query` | Typed items: Binding `unused_imports`, Types `declarations` and `symbol_findings`, Values `maybe_null`, Project `references`, plus `diagnostic_ids`. File-wide enumerations, not point queries. |
 | `FlowGraphs` | Bodies of a file -> graphs (plain MessagePack structs) |
 | `Shutdown` | Clean exit |
 

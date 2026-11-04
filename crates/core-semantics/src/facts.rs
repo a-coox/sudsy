@@ -101,6 +101,21 @@ pub struct CompilerDiagnostic {
     pub message: String,
 }
 
+/// A place the symbol-level checks of the `symbol_findings` item found. `kind` names the check
+/// (`base_call`, `default_value_constructor`, `unqualified_using`, `value_tuple`,
+/// `unnamed_tuple_element`, `debug_assert_message`, `debug_fail_message`, `inheritdoc`); `text`
+/// is the replacement for the span, or what the message needs; empty when there is none.
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Finding {
+    pub kind: String,
+    pub start: u32,
+    pub len: u32,
+    pub text: String,
+    /// The range `text` replaces; `0, 0` means the span.
+    pub fix_start: u32,
+    pub fix_len: u32,
+}
+
 /// The answers to a `Query`; items that were not asked for are empty.
 #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Answers {
@@ -115,6 +130,14 @@ pub struct Answers {
     pub diagnostics: Vec<CompilerDiagnostic>,
     /// Compiler errors in the file.
     pub semantic_errors: u32,
+    pub findings: Vec<Finding>,
+}
+
+impl Answers {
+    /// The findings of one check.
+    pub fn findings_of<'a>(&'a self, kind: &'a str) -> impl Iterator<Item = &'a Finding> {
+        self.findings.iter().filter(move |f| f.kind == kind)
+    }
 }
 
 /// Everything a provider answered about a file for the layers its rules need.
