@@ -15,12 +15,6 @@ fn report_at(path: &str, text: &str, rules: &str) -> String {
 }
 
 #[test]
-fn duplicate_keys_are_reported_at_the_later_key() {
-    let text = "{\"a\": 1, \"b\": {\"x\": 1, \"x\": 2}, \"a\": 3, \"a\": 4}\n";
-    assert_snapshot!(report(text, "no-duplicate-keys: error"));
-}
-
-#[test]
 fn duplicate_keys_are_on_by_default_and_can_be_turned_off() {
     let text = "{\"a\": 1, \"a\": 2}";
     assert!(report(text, "").contains("error[no-duplicate-keys]"));
@@ -38,24 +32,10 @@ fn sorted_keys_is_opt_in() {
 }
 
 #[test]
-fn sorted_keys_fix_sorts_every_level_and_is_idempotent() {
-    let text = "{\n  \"b\": 1,\n  \"a\": {\"y\": 2, \"x\": [3]},\n  \"c\": null\n}\n";
-    // Unsafe: nothing happens without `--unsafe`.
-    assert_eq!(fix(&JsonProvider::new(), "a.json", text, ALL, false), text);
-    assert_snapshot!(fix(&JsonProvider::new(), "a.json", text, ALL, true));
-}
-
-#[test]
 fn sorted_keys_order_option_puts_listed_keys_first() {
     let rules = "sorted-keys:\n  level: warn\n  options:\n    order: [name, version]";
     let text = "{\"zeta\": 1, \"version\": 2, \"alpha\": 3, \"name\": 4}";
     assert_snapshot!(fix(&JsonProvider::new(), "a.json", text, rules, true));
-}
-
-#[test]
-fn sorted_keys_keeps_comments_in_place_in_jsonc() {
-    let text = "{\n  // about b\n  \"b\": 1, // one\n  \"a\": 2 // two\n}\n";
-    assert_snapshot!(fix(&JsonProvider::new(), "a.jsonc", text, ALL, true));
 }
 
 #[test]
@@ -76,22 +56,4 @@ fn suppression_comments_work_in_jsonc() {
     // Without a rule name, every rule is suppressed on that line.
     let text = "{\n  \"a\": 1,\n  // sudsy-disable-next-line\n  \"a\": 2\n}\n";
     assert!(reported(text).is_empty());
-}
-
-#[test]
-fn shared_rule_max_line_length() {
-    let text = "{\"key\": \"0123456789\"}\n";
-    assert_snapshot!(report(
-        text,
-        "max-line-length:\n  level: warn\n  options:\n    max: 10"
-    ));
-    assert_eq!(report(text, ""), "");
-}
-
-#[test]
-fn shared_comment_rules() {
-    let text = "{\n  //no space\n  /// fine\n  \"a\": 1, //tail\n  /**/\n  \"b\": 2\n}\n";
-    let rules = "comment-space: warn\nno-empty-comment: warn";
-    assert_snapshot!(report_at("a.jsonc", text, rules));
-    assert_eq!(report_at("a.jsonc", text, ""), "");
 }

@@ -1,0 +1,17 @@
+a: 1
+b:
+  x: 1
+  x: 2
+# ^ no-duplicate-keys
+'a': 3
+^^^ no-duplicate-keys
+? a
+# ^ no-duplicate-keys
+: 4
+flow: {k: 1, k: 2}
+#            ^ no-duplicate-keys
+merge:
+  <<: *one
+#     ^^^^ no-undefined-alias
+  <<: *two
+#     ^^^^ no-undefined-alias

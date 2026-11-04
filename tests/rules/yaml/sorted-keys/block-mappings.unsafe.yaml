@@ -1,0 +1,9 @@
+# head
+a:
+  x: 2
+  y: |
+    text
+b: 1 # one
+z:
+  - 1
+  - 2

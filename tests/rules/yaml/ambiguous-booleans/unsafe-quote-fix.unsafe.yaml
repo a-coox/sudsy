@@ -1,0 +1,5 @@
+"on": "yes"
+list: ["no", "Off", true]
+safe: !!str yes
+quoted: "yes"
+word: yesterday

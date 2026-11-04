@@ -1,5 +1,0 @@
----
-source: crates/lang-csharp/tests/rules.rs
-expression: "report(text, \"\")"
----
-5:20 warning[async-suffix] async method `Other` should be named `OtherAsync`

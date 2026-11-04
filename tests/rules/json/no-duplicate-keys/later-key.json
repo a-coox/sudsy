@@ -1,0 +1,4 @@
+{"a": 1, "b": {"x": 1, "x": 2}, "a": 3, "a": 4}
+//                     ^^^ no-duplicate-keys
+//                              ^^^ no-duplicate-keys
+//                                      ^^^ no-duplicate-keys

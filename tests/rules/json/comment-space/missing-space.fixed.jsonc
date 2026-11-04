@@ -1,0 +1,6 @@
+{
+  // no space
+  /// fine
+  "a": 1, // tail
+  "b": 2
+}

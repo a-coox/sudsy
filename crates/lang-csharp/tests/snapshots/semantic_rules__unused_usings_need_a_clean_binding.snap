@@ -1,6 +1,0 @@
----
-source: crates/lang-csharp/tests/semantic_rules.rs
-expression: "report(clean, \"remove-unused-usings: warn\")"
----
-2:1 warning[remove-unused-usings] unnecessary using directive
-  fix (safe): Remove the unnecessary using

@@ -26,12 +26,6 @@ fn count(out: &str, rule: &str) -> usize {
 }
 
 #[test]
-fn duplicate_keys_compare_decoded_keys() {
-    let out = report("{\"a\": 1, \"\\u0061\": 2, \"b\\/\": 3, \"b/\": 4}", "");
-    assert_eq!(count(&out, "no-duplicate-keys"), 2, "{out}");
-}
-
-#[test]
 fn sorted_keys_directions_modes_and_thresholds() {
     let keys = |o: &str, t: &str| fixed("sorted-keys", o, t);
     assert_eq!(
@@ -67,21 +61,6 @@ fn sorted_keys_directions_modes_and_thresholds() {
 }
 
 #[test]
-fn sorted_keys_reports_the_keys_that_have_to_move() {
-    let out = report("{\"c\": 1, \"b\": 2, \"a\": 3}", "sorted-keys: warn");
-    assert_eq!(count(&out, "sorted-keys"), 2, "{out}");
-}
-
-#[test]
-fn empty_keys() {
-    let out = report(
-        "{\"\": 1, \" \\t\": 2, \"a\": 3, \"\\u0020\": 4}",
-        "no-empty-keys: warn",
-    );
-    assert_eq!(count(&out, "no-empty-keys"), 3, "{out}");
-}
-
-#[test]
 fn key_name_casing() {
     let text = "{\"camelCase\": 1, \"snake_case\": 2, \"kebab-case\": 3, \"PascalCase\": 4, \"SCREAMING_SNAKE\": 5, \"a b\": 6}";
     let out = report(text, "key-name-casing: warn");
@@ -92,13 +71,6 @@ fn key_name_casing() {
     );
     let out = report(text, &rules);
     assert_eq!(count(&out, "key-name-casing"), 3, "{out}");
-}
-
-#[test]
-fn unsafe_numbers() {
-    let text = "[9007199254740991, 9007199254740992, -12345678901234567890, 1e999, 1e-999, 5e-324, 0, 0.0e5, 1.5, 12345678901234567890.5]";
-    let out = report(text, "unsafe-numbers: warn");
-    assert_eq!(count(&out, "unsafe-numbers"), 5, "{out}");
 }
 
 #[test]

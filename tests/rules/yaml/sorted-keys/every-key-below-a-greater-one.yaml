@@ -1,0 +1,6 @@
+b: 1
+a: 2
+^ sorted-keys
+d: 3
+c: 4
+^ sorted-keys

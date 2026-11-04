@@ -1,6 +1,0 @@
----
-source: crates/lang-csharp/tests/semantic_rules.rs
-expression: "report(text, \"\")"
----
-1:122 warning[unreachable-code] unreachable code
-  fix (suggestion): Remove the unreachable statement

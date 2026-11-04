@@ -1,0 +1,6 @@
+{"camelCase": 1, "snake_case": 2, "kebab-case": 3, "PascalCase": 4, "SCREAMING_SNAKE": 5, "a b": 6}
+//               ^^^^^^^^^^^^ key-name-casing
+//                                ^^^^^^^^^^^^ key-name-casing
+//                                                 ^^^^^^^^^^^^ key-name-casing
+//                                                                  ^^^^^^^^^^^^^^^^^ key-name-casing
+//                                                                                        ^^^^^ key-name-casing

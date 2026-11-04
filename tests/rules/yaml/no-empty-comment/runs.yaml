@@ -1,0 +1,9 @@
+a: 1
+#
+^ no-empty-comment
+b: 2
+#
+^ no-empty-comment
+# x
+#
+^ no-empty-comment

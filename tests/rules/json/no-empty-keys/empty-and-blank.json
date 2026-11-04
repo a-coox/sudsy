@@ -1,0 +1,4 @@
+{"": 1, " \t": 2, "a": 3, "\u0020": 4}
+ ^^ no-empty-keys
+//      ^^^^^ no-empty-keys
+//                        ^^^^^^^^ no-empty-keys

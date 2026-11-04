@@ -1,0 +1,4 @@
+max-line-length:
+  level: warn
+  options:
+    max: 10

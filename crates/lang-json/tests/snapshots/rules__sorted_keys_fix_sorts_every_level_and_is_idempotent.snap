@@ -1,9 +1,0 @@
----
-source: crates/lang-json/tests/rules.rs
-expression: "fix(&JsonProvider::new(), \"a.json\", text, ALL, true)"
----
-{
-  "a": {"x": [3], "y": 2},
-  "b": 1,
-  "c": null
-}

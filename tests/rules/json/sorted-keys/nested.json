@@ -1,0 +1,7 @@
+{
+  "b": 1,
+//^^^ sorted-keys
+  "a": {"y": 2, "x": [3]},
+//      ^^^ sorted-keys
+  "c": null
+}

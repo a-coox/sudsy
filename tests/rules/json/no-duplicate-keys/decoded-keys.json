@@ -1,0 +1,3 @@
+{"a": 1, "\u0061": 2, "b\/": 3, "b/": 4}
+//       ^^^^^^^^ no-duplicate-keys
+//                              ^^^^ no-duplicate-keys

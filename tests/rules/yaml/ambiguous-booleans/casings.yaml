@@ -1,0 +1,8 @@
+on: True
+^^ ambiguous-booleans
+#   ^^^^ ambiguous-booleans
+list: [FALSE, false, true]
+#      ^^^^^ ambiguous-booleans
+? Yes
+# ^^^ ambiguous-booleans
+: y

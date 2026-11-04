@@ -1,0 +1,4 @@
+a: *nope
+#  ^^^^^ no-undefined-alias
+b: &x 1
+c: *x

@@ -35,3 +35,4 @@ A rule is skipped (never failed) when the provider does not answer a required la
 
 ## Test harness (`provider_api::testing`)
 `lint`, `render`, `fix`, `lint_with`/`fix_with` (extension rules), `pattern_rules`, `pattern_error`, `expect`: fixtures with expected diagnostics written under the line (`// ^^^ rule-id`, `#` in YAML; carets give the span length). Fixes are checked to keep the file parseable and be idempotent. `plugin_sdk::testing` re-exports it.
+Rule tests are fixture files, see [../development/testing.md](../development/testing.md#rule-fixtures).

@@ -1,0 +1,9 @@
+on: yes
+^^ ambiguous-booleans
+#   ^^^ ambiguous-booleans
+list: [no, Off, true]
+#      ^^ ambiguous-booleans
+#          ^^^ ambiguous-booleans
+safe: !!str yes
+quoted: "yes"
+word: yesterday

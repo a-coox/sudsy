@@ -1,7 +1,0 @@
----
-source: crates/lang-yaml/tests/rules.rs
-expression: "fixed(\"# comment\\na: 1\\n\", rules, false)"
----
----
-# comment
-a: 1

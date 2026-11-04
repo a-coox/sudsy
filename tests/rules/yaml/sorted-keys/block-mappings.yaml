@@ -1,0 +1,11 @@
+# head
+b: 1 # one
+z:
+  - 1
+  - 2
+a:
+^ sorted-keys
+  y: |
+    text
+  x: 2
+# ^ sorted-keys

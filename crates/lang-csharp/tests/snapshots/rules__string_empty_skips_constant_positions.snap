@@ -1,6 +1,0 @@
----
-source: crates/lang-csharp/tests/rules.rs
-expression: "report(text, \"use-string-empty: warn\")"
----
-6:15 warning[use-string-empty] use string.Empty for an empty string
-  fix (safe): Use string.Empty

@@ -1,0 +1,4 @@
+"on": "True"
+list: ["FALSE", false, true]
+? "Yes"
+: y

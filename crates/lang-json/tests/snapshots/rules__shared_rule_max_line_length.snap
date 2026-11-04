@@ -1,5 +1,0 @@
----
-source: crates/lang-json/tests/rules.rs
-expression: "report(text, \"max-line-length:\\n  level: warn\\n  options:\\n    max: 10\")"
----
-1:11 warning[max-line-length] line is 21 characters long; the limit is 10

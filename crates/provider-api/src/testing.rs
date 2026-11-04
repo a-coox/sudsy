@@ -216,37 +216,72 @@ pub fn fix_with(
 }
 
 /// An annotated fixture split into the source text and the diagnostics it expects.
-struct Annotated {
-    text: String,
+pub(crate) struct Annotated {
+    pub(crate) text: String,
     /// `(line, column, carets, rule)`, lines and columns from 1.
-    expected: Vec<(usize, usize, usize, String)>,
+    pub(crate) expected: Vec<(usize, usize, usize, String)>,
 }
 
 /// Annotation lines hold the language's line-comment marker, carets under the reported span and
-/// the rule id: `// ^^^ no-empty-catch` (`#` in YAML) points at the line above. They are removed
-/// before the rules run, so they never shift a position.
-fn split_annotations(marker: &str, annotated: &str) -> Annotated {
+/// the rule id: `// ^^^ no-empty-catch` (`#` in YAML) points at the line above. The marker may be
+/// left out (`^^^ no-empty-catch`), which is how a span in the first columns is written. They are
+/// removed before the rules run, so they never shift a position.
+pub(crate) fn split_annotations(marker: &str, annotated: &str) -> Annotated {
     let mut text = String::new();
     let mut expected = Vec::new();
     let mut lines = 0;
     for line in annotated.split_inclusive('\n') {
         let body = line.trim_end_matches(['\r', '\n']);
-        let rest = body.trim_start().strip_prefix(marker).map(str::trim_start);
-        match rest {
-            Some(rest) if rest.starts_with('^') => {
-                let column = body.chars().count() - rest.chars().count() + 1;
-                let carets = rest.chars().take_while(|&c| c == '^').count();
-                let rule = rest[carets..].trim().to_string();
-                assert!(lines > 0, "annotation `{body}` has no line above it");
-                expected.push((lines, column, carets, rule));
-            }
-            _ => {
-                text.push_str(line);
-                lines += 1;
-            }
+        // The marker is optional: carets in the first columns have no room for it.
+        let trimmed = body.trim_start();
+        let rest = trimmed
+            .strip_prefix(marker)
+            .map_or(trimmed, str::trim_start);
+        if rest.starts_with('^') {
+            let column = body.chars().count() - rest.chars().count() + 1;
+            let carets = rest.chars().take_while(|&c| c == '^').count();
+            let rule = rest[carets..].trim().to_string();
+            assert!(lines > 0, "annotation `{body}` has no line above it");
+            expected.push((lines, column, carets, rule));
+        } else {
+            text.push_str(line);
+            lines += 1;
         }
     }
     Annotated { text, expected }
+}
+
+pub(crate) fn marker(provider: &dyn LanguageProvider) -> String {
+    provider
+        .grammar()
+        .comments
+        .line
+        .clone()
+        .unwrap_or_else(|| "//".into())
+}
+
+/// `(line, column, carets, rule)` of every diagnostic; a multi-line span has 0 carets.
+pub(crate) fn found(
+    provider: &dyn LanguageProvider,
+    extensions: &Extensions,
+    path: &str,
+    text: &str,
+    rules: &str,
+) -> Vec<(usize, usize, usize, String)> {
+    let index = LineIndex::new(text);
+    lint_with(provider, extensions, path, text, rules)
+        .iter()
+        .map(|d| {
+            let (line, column) = index.line_col(text, d.range.start());
+            let (end_line, end_column) = index.line_col(text, d.range.end());
+            let carets = if end_line == line {
+                end_column - column
+            } else {
+                0
+            };
+            (line, column, carets, d.rule.clone())
+        })
+        .collect()
 }
 
 /// Runs `rules` on a fixture whose expected diagnostics are written under the lines they point
@@ -259,28 +294,8 @@ pub fn expect(
     annotated: &str,
     rules: &str,
 ) -> String {
-    let marker = provider
-        .grammar()
-        .comments
-        .line
-        .clone()
-        .unwrap_or_else(|| "//".into());
-    let Annotated { text, expected } = split_annotations(&marker, annotated);
-    let index = LineIndex::new(&text);
-    let mut actual: Vec<(usize, usize, usize, String)> =
-        lint_with(provider, extensions, path, &text, rules)
-            .iter()
-            .map(|d| {
-                let (line, column) = index.line_col(&text, d.range.start());
-                let (end_line, end_column) = index.line_col(&text, d.range.end());
-                let carets = if end_line == line {
-                    end_column - column
-                } else {
-                    0
-                };
-                (line, column, carets, d.rule.clone())
-            })
-            .collect();
+    let Annotated { text, expected } = split_annotations(&marker(provider), annotated);
+    let mut actual = found(provider, extensions, path, &text, rules);
     let mut expected = expected;
     // A multi-line span has no caret count to compare.
     for e in &mut expected {
