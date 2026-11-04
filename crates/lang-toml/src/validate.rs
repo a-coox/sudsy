@@ -297,9 +297,9 @@ impl<'t> Model<'t> {
         })
     }
 
-    fn child(&mut self, parent: usize, name: &Cow<'t, str>, kind: Kind) -> usize {
+    fn child(&mut self, parent: usize, name: Cow<'t, str>, kind: Kind) -> usize {
         let n = self.add(kind);
-        self.kids.insert((parent, name.clone()), n);
+        self.kids.insert((parent, name), n);
         n
     }
 
@@ -328,7 +328,7 @@ impl<'t> Model<'t> {
             cur = match self.kids.get(&(cur, p.clone())).copied() {
                 None => self.child(
                     cur,
-                    p,
+                    p.clone(),
                     Kind::Table {
                         explicit: false,
                         dotted: false,
@@ -352,14 +352,14 @@ impl<'t> Model<'t> {
         let result = match (existing, array) {
             (None, false) => Ok(self.child(
                 cur,
-                last,
+                last.clone(),
                 Kind::Table {
                     explicit: true,
                     dotted: false,
                 },
             )),
             (None, true) => {
-                let n = self.child(cur, last, Kind::Array(Vec::new()));
+                let n = self.child(cur, last.clone(), Kind::Array(Vec::new()));
                 Ok(self.element(n))
             }
             (Some(n), false) => match self.nodes[n].kind {
@@ -406,7 +406,7 @@ impl<'t> Model<'t> {
                                 dotted: true,
                             }
                         };
-                        self.child(cur, p, kind)
+                        self.child(cur, p.clone(), kind)
                     }
                     Some(n)
                         if !last
