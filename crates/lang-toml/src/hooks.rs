@@ -98,27 +98,39 @@ pub fn leaves(node: &GreenNodeData, start: u32) -> impl Iterator<Item = (u32, &G
     })
 }
 
-/// The decoded parts of a key at `start` (`a."b.c".d` has three) and where the last one ends.
-pub fn key_parts<'a>(key: &GreenNodeData, start: u32, text: &'a str) -> (Vec<Cow<'a, str>>, u32) {
+/// Replaces `out` with the decoded parts of the key at `start` (`a."b.c".d` has three); returns
+/// where the last one ends.
+pub fn key_parts<'a>(
+    key: &GreenNodeData,
+    start: u32,
+    text: &'a str,
+    out: &mut Vec<Cow<'a, str>>,
+) -> u32 {
     let mut end = start;
-    let parts = leaves(key, start)
-        .filter_map(|(at, t)| {
-            let to = at + u32::from(t.text_len());
-            let raw = &text[at as usize..to as usize];
-            let part = match SyntaxKind(t.kind().0) {
-                kind::QUOTED_KEY => unquote(raw),
-                kind::BARE_KEY => Cow::Borrowed(raw),
-                _ => return None,
-            };
-            end = to;
-            Some(part)
-        })
-        .collect();
-    (parts, end)
+    out.clear();
+    out.extend(leaves(key, start).filter_map(|(at, t)| {
+        let to = at + u32::from(t.text_len());
+        let raw = &text[at as usize..to as usize];
+        let part = match SyntaxKind(t.kind().0) {
+            kind::QUOTED_KEY => unquote(raw),
+            kind::BARE_KEY => Cow::Borrowed(raw),
+            _ => return None,
+        };
+        end = to;
+        Some(part)
+    }));
+    end
 }
 
 fn parts<'a>(key: &SyntaxNode, text: &'a str) -> Vec<Cow<'a, str>> {
-    key_parts(&key.green(), key.text_range().start().into(), text).0
+    let mut out = Vec::new();
+    key_parts(
+        &key.green(),
+        key.text_range().start().into(),
+        text,
+        &mut out,
+    );
+    out
 }
 
 impl RuleHooks for TomlHooks {

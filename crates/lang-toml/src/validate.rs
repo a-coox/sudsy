@@ -285,6 +285,8 @@ struct Model<'t> {
     nodes: Vec<Node>,
     /// (table, key part) -> member; one map, so a table costs no allocation of its own.
     kids: HashMap<(usize, Cow<'t, str>), usize>,
+    /// The parts of the key being checked, kept between keys to save an allocation each.
+    parts: Vec<Cow<'t, str>>,
 }
 
 impl<'t> Model<'t> {
@@ -292,6 +294,7 @@ impl<'t> Model<'t> {
         let mut m = Model {
             nodes: Vec::new(),
             kids: HashMap::new(),
+            parts: Vec::new(),
         };
         m.add(Kind::Table {
             explicit: true,
@@ -337,8 +340,22 @@ impl<'t> Model<'t> {
         text: &'t str,
         err: &mut Err<'_>,
     ) -> Option<usize> {
-        let (parts, end) = key_parts(key, start, text);
+        let mut parts = std::mem::take(&mut self.parts);
+        let end = key_parts(key, start, text, &mut parts);
         let range = TextRange::new(start.into(), end.into());
+        let result = self.header_in(&parts, range, array, err);
+        parts.clear();
+        self.parts = parts;
+        result
+    }
+
+    fn header_in(
+        &mut self,
+        parts: &[Cow<'t, str>],
+        range: TextRange,
+        array: bool,
+        err: &mut Err<'_>,
+    ) -> Option<usize> {
         let (last, path) = parts.split_last()?;
         let mut cur = 0;
         for p in path {
@@ -406,7 +423,8 @@ impl<'t> Model<'t> {
     fn pair(&mut self, base: usize, pair: &Green, at: u32, text: &'t str, err: &mut Err<'_>) {
         let mut inner = nodes(pair, at).peekable();
         if let Some((start, key)) = inner.next_if(|(_, n)| kind_of(n) == kind::KEY) {
-            let (parts, end) = key_parts(key, start, text);
+            let mut parts = std::mem::take(&mut self.parts);
+            let end = key_parts(key, start, text, &mut parts);
             let range = TextRange::new(start.into(), end.into());
             let mut cur = base;
             for (i, p) in parts.iter().enumerate() {
@@ -439,6 +457,8 @@ impl<'t> Model<'t> {
                     }
                 };
             }
+            parts.clear();
+            self.parts = parts;
         }
         if let Some((start, v)) = inner.next() {
             self.value(v, start, text, err);
