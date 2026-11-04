@@ -8,6 +8,7 @@ use crate::hooks::key_parts;
 use core_syntax::ast::AstNode;
 use core_syntax::{SyntaxKind, SyntaxNode, SyntaxToken, TextRange};
 use provider_api::ParseError;
+use std::borrow::Cow;
 use std::collections::HashMap;
 
 type Err<'a> = dyn FnMut(TextRange, &str, String) + 'a;
@@ -261,17 +262,21 @@ enum Kind {
 
 struct Node {
     kind: Kind,
-    kids: HashMap<String, usize>,
 }
 
 /// The tables of a document as headers and keys define them; node 0 is the root.
-struct Model {
+struct Model<'t> {
     nodes: Vec<Node>,
+    /// (table, key part) -> member; one map, so a table costs no allocation of its own.
+    kids: HashMap<(usize, Cow<'t, str>), usize>,
 }
 
-impl Model {
+impl<'t> Model<'t> {
     fn new() -> Self {
-        let mut m = Model { nodes: Vec::new() };
+        let mut m = Model {
+            nodes: Vec::new(),
+            kids: HashMap::new(),
+        };
         m.add(Kind::Table {
             explicit: true,
             dotted: false,
@@ -280,10 +285,7 @@ impl Model {
     }
 
     fn add(&mut self, kind: Kind) -> usize {
-        self.nodes.push(Node {
-            kind,
-            kids: HashMap::new(),
-        });
+        self.nodes.push(Node { kind });
         self.nodes.len() - 1
     }
 
@@ -295,9 +297,9 @@ impl Model {
         })
     }
 
-    fn child(&mut self, parent: usize, name: &str, kind: Kind) -> usize {
+    fn child(&mut self, parent: usize, name: &Cow<'t, str>, kind: Kind) -> usize {
         let n = self.add(kind);
-        self.nodes[parent].kids.insert(name.to_string(), n);
+        self.kids.insert((parent, name.clone()), n);
         n
     }
 
@@ -315,7 +317,7 @@ impl Model {
         &mut self,
         key: &SyntaxNode,
         array: bool,
-        text: &str,
+        text: &'t str,
         err: &mut Err<'_>,
     ) -> Option<usize> {
         let parts = key_parts(key, text);
@@ -323,7 +325,7 @@ impl Model {
         let (last, path) = parts.split_last()?;
         let mut cur = 0;
         for p in path {
-            cur = match self.nodes[cur].kids.get(p).copied() {
+            cur = match self.kids.get(&(cur, p.clone())).copied() {
                 None => self.child(
                     cur,
                     p,
@@ -346,7 +348,7 @@ impl Model {
                 },
             };
         }
-        let existing = self.nodes[cur].kids.get(last).copied();
+        let existing = self.kids.get(&(cur, last.clone())).copied();
         let result = match (existing, array) {
             (None, false) => Ok(self.child(
                 cur,
@@ -384,7 +386,7 @@ impl Model {
     }
 
     /// `a.b = value` in the table `base`; a dotted key may only pass tables other dotted keys made.
-    fn pair(&mut self, base: usize, pair: &SyntaxNode, text: &str, err: &mut Err<'_>) {
+    fn pair(&mut self, base: usize, pair: &SyntaxNode, text: &'t str, err: &mut Err<'_>) {
         let Some(pair) = Pair::cast(pair.clone()) else {
             return;
         };
@@ -394,7 +396,7 @@ impl Model {
             let mut cur = base;
             for (i, p) in parts.iter().enumerate() {
                 let last = i + 1 == parts.len();
-                cur = match self.nodes[cur].kids.get(p).copied() {
+                cur = match self.kids.get(&(cur, p.clone())).copied() {
                     None => {
                         let kind = if last {
                             Kind::Value
@@ -429,7 +431,7 @@ impl Model {
     }
 
     /// The entries of inline tables inside a value are checked in a scope of their own.
-    fn value(&mut self, v: &SyntaxNode, text: &str, err: &mut Err<'_>) {
+    fn value(&mut self, v: &SyntaxNode, text: &'t str, err: &mut Err<'_>) {
         match v.kind() {
             kind::INLINE_TABLE => {
                 let scope = self.scratch();

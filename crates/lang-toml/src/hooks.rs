@@ -94,9 +94,9 @@ fn parts<'a>(key: &SyntaxNode, text: &'a str) -> impl Iterator<Item = Cow<'a, st
         })
 }
 
-/// The decoded parts of a key as owned names.
-pub fn key_parts(key: &SyntaxNode, text: &str) -> Vec<String> {
-    parts(key, text).map(Cow::into_owned).collect()
+/// The decoded parts of a key.
+pub fn key_parts<'a>(key: &SyntaxNode, text: &'a str) -> Vec<Cow<'a, str>> {
+    parts(key, text).collect()
 }
 
 impl RuleHooks for TomlHooks {
