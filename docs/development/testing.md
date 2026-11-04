@@ -29,6 +29,7 @@ Adding a rule needs no Rust test: add `tests/rules/<language>/<rule-id>/<name>.<
 - One test per language lists every failing file with its message. Cases the runner cannot express stay in `crates/*/tests`: option validation errors, config-level on/off, depth and project scope.
 
 ### Adding a rule
+`cargo xtask new-rule <language> <rule-id> [--rust]` does steps 1 and 2 with a starter that reports empty statements (the gate passes as generated; edit the rule and its fixture, then `SUDSY_BLESS=1 cargo test -p lang-<language> --test rule_fixtures`) and prints the parity-catalog lines for step 3. Without `--rust` it writes the pattern file, with `--rust` a `rule!` module registered in the language's `RULES`; only C# has scaffolding so far (the other languages' rules are written by hand).
 1. A `rule!` declaration in the rule's module (id, category, description, default, fix, options with checks and descriptions; [../rules/engine.md](../rules/engine.md#rule-trait)) and register the rule.
    A syntax rule that fits a pattern is a file instead: `crates/lang-<language>/rules/<rule-id>.yaml` ([../rules/patterns.md](../rules/patterns.md#built-in-pattern-rules)), no Rust.
 2. A fixture folder `tests/rules/<language>/<rule-id>/` as above.

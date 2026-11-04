@@ -16,6 +16,16 @@ fn main() -> Result<()> {
             }
             bail!("stale generated files (run `cargo xtask codegen`): {stale:?}");
         }
-        _ => bail!("usage: cargo xtask codegen [--check]"),
+        ["new-rule", language, id] => print_new_rule(language, id, false),
+        ["new-rule", language, id, "--rust"] => print_new_rule(language, id, true),
+        _ => bail!("usage: cargo xtask codegen [--check] | new-rule <language> <id> [--rust]"),
     }
+}
+
+fn print_new_rule(language: &str, id: &str, rust: bool) -> Result<()> {
+    println!(
+        "{}",
+        xtask::new_rule(&xtask::repo_root(), language, id, rust)?
+    );
+    Ok(())
 }

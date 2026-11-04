@@ -3,6 +3,9 @@
 //! fails when they are stale.
 
 mod docs;
+mod new_rule;
+
+pub use new_rule::new_rule;
 
 use anyhow::{Context, Result};
 use core_syntax::{Grammar, codegen};
