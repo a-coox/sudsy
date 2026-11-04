@@ -20,3 +20,4 @@ csharp:
     unbreakable_single_item_lists: true
     do_while_line: same_line
     sort_usings: true
+    derive_symbol_sets: true

@@ -16,6 +16,7 @@ One line each; none is committed.
 ## Formatting
 - Range (selection) formatting; the formatter can already format a subtree in context.
 - Other CSharpier differences listed in [formatting/csharp.md](formatting/csharp.md).
+- Rule-produced layout directives for `#if` branches formatted from other parses (the layout rules run on the file's own parse only); solving `#if` conditions to find symbol sets (`derive_symbol_sets` tries subsets of the condition symbols, at most 16 sets).
 - A rule source that attaches layout directives (pattern `layout:` key, plugin directive output); plugins returning layout documents is deliberately excluded.
 - YAML: re-wrapping long scalars and comments; comments between split properties.
 - Performance levers: green-tree cursor for the formatter instead of rowan red nodes; a token-level or hashed safety check; sharing anchored YAML nodes (`Rc`) for alias-heavy files; first-token index for pattern rules.

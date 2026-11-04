@@ -20,7 +20,7 @@ pub mod safety;
 pub mod shapes;
 pub mod testing;
 
-pub use context::{DefaultFormatter, FormatCtx, NodeFormatter};
+pub use context::{DefaultFormatter, FormatCtx, NodeFormatter, Variants};
 pub use directives::{DIRECTIVES_VERSION, Directive, DirectiveConflict, DirectiveTable, NodeKey};
 pub use doc::Doc;
 pub use error::FormatError;

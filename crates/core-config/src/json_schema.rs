@@ -28,6 +28,10 @@ fn option_json(def: &OptionDef) -> Value {
         }
         OptionKind::Enum(values) => json!({ "type": "string", "enum": values }),
         OptionKind::Words => json!({ "type": "array", "items": { "type": "string" } }),
+        OptionKind::WordSets => json!({
+            "type": "array",
+            "items": { "type": "array", "items": { "type": "string" } }
+        }),
     };
     out["description"] = json!(def.description);
     out["default"] = value_json(&def.default);

@@ -1,0 +1,28 @@
+---
+source: crates/lang-csharp/tests/branches.rs
+expression: out
+---
+class A
+{
+#if X
+    void F()
+    {
+        int a = 1;
+    }
+#elif Y
+    void G()
+    {
+        int b = 1;
+#if Z
+        int zz = 3;
+#else
+        int qq = 4;
+#endif
+    }
+#else
+    void H()
+    {
+        int c = 1;
+    }
+#endif
+}

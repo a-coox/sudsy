@@ -30,6 +30,7 @@ Never positioned by the formatter: a comment is owned by a token (trivia rule) a
 
 ## Safety check (every file, every run, not switchable)
 `provider_api::format_file`: parse, refuse syntax errors, format, then `format_parsed` re-parses the output and compares node starts/ends and non-trivia tokens. Ignored in the comparison: trivia (structured trivia whole), `#separator` tokens (trailing commas may change; a wrongly removed one still changes structure), `#restyle` positions. `NodeFormatter::extra_check(before, after)` is the hook for YAML's data-model comparison. Any difference aborts that file with an internal error. Idempotency is a test property, not a runtime check.
+With C# `preprocessor_symbol_sets` / `derive_symbol_sets`, `NodeFormatter::merge_variants` returns the output with inactive `#if` branches formatted from other parses ([csharp.md](csharp.md#inactive-if-branches)); `format_parsed` then runs the check once per parse that supplied text (reparse under that parse's symbols) and falls back to the unmerged output on any failure.
 An option that reorders code (C# `sort_usings`) does it through `NodeFormatter::rewrite_source`: `format_parsed` takes the rewritten text, parses it again (a rewrite that does not parse is an internal error) and formats and checks that tree; the input tree is not compared with the output.
 
 ## Testing helper

@@ -3,7 +3,9 @@
 //! warm worker (the number a long-lived `sudsy lsp` gives, and the one the per-run CLI cannot).
 //! Each pass makes the same work as one run of the CLI (parse, format, safety check) with the
 //! `csharp/csharpier-compat` preset, on all cores; then one pass on a single thread reports the
-//! time per file, which is what an editor asking for one file at a time sees.
+//! time per file, which is what an editor asking for one file at a time sees. The environment
+//! variable `PERF_BENCH_CSHARP_FORMAT` adds `;`-separated C# format options to the preset
+//! (`derive_symbol_sets: false; line_width: 80`).
 
 use anyhow::{Result, anyhow};
 use core_config::{ConfigChain, EditorConfig};
@@ -84,9 +86,14 @@ pub fn run(dir: &Path, passes: usize) -> Result<()> {
         texts.push((path, text));
     }
     let mut db = Database::new(vec![Box::new(lang_csharp::provider(&worker))]);
-    db.set_config(Ok(ConfigChain::parse(
-        "extends:\n  - preset:csharp/csharpier-compat\n",
-    )?));
+    let mut config = "extends:\n  - preset:csharp/csharpier-compat\n".to_string();
+    if let Ok(extra) = std::env::var("PERF_BENCH_CSHARP_FORMAT") {
+        config.push_str("csharp:\n  format:\n");
+        for option in extra.split(';') {
+            config.push_str(&format!("    {}\n", option.trim()));
+        }
+    }
+    db.set_config(Ok(ConfigChain::parse(&config)?));
     let threads = std::thread::available_parallelism().map_or(1, |n| n.get());
     println!("{} files, {:.1} MB", texts.len(), bytes as f64 / 1e6);
     for n in 1..=passes {

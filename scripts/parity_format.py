@@ -1,6 +1,6 @@
 """Compares `sudsy format` with Prettier, Biome or `dotnet format whitespace` on tests/parity/<tool>/ (run by `scripts/parity.sh format`).
 
-Usage: parity_format.py <prettier|biome|dotnet-format> <version> <sudsy-binary> <npm-prefix>
+Usage: parity_format.py <prettier|biome|dotnet-format|csharpier> <version> <sudsy-binary> <npm-prefix>
 
 Every fixture is formatted by the tool and by Sudsy (with the fixture folder's sudsy.yaml, which
 extends the matching preset); the outputs must be equal. A fixture listed in the folder's
@@ -16,7 +16,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 PARITY = ROOT / os.environ.get("CARGO_TARGET_DIR", "target") / "parity"
-SUFFIXES = {".json", ".jsonc", ".yaml", ".yml"}
+SUFFIXES = {".json", ".jsonc", ".yaml", ".yml", ".cs"}
 
 
 def run(cmd, cwd, stdin=None):
@@ -36,6 +36,12 @@ def biome(prefix, fixture, work):
     script = prefix / "node_modules/@biomejs/biome/bin/biome"
     text = fixture.read_bytes().decode("utf-8")
     return run(["node", script, "format", f"--stdin-file-path={fixture.name}"], work, text)
+
+
+def csharpier(prefix, fixture, work):
+    exe = prefix / "csharpier.exe"
+    run([exe if exe.exists() else prefix / "csharpier", "format", fixture.name], work)
+    return fixture.read_bytes().decode("utf-8")
 
 
 def sudsy_format(sudsy, fixture, work):
@@ -109,7 +115,7 @@ def main():
     shutil.rmtree(work, ignore_errors=True)
     work.mkdir(parents=True)
     shutil.copy(folder / "sudsy.yaml", work / "sudsy.yaml")
-    upstream_format = {"prettier": prettier, "biome": biome}[tool]
+    upstream_format = {"prettier": prettier, "biome": biome, "csharpier": csharpier}[tool]
     known = expected_diffs(folder)
     fixtures = sorted(p for p in folder.iterdir() if p.suffix in SUFFIXES and p.name != "sudsy.yaml")
     bad = 0

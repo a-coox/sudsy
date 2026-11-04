@@ -17,11 +17,17 @@ pub trait Subject {
     fn rewritten(&self, input: &str) -> String {
         input.to_string()
     }
+    /// Whether code the parse leaves out (C# disabled `#if` text) must come out unchanged. False
+    /// when an option formats that code from other parses.
+    fn keeps_verbatim_trivia(&self) -> bool {
+        true
+    }
 }
 
 /// The comments of a tree in order. Structured trivia (doc comments, directives) count as one,
 /// compared line by line without indentation because the printer re-indents them.
 fn comments(subject: &dyn Subject, tree: &SyntaxNode) -> Vec<String> {
+    let verbatim = subject.keeps_verbatim_trivia();
     let g = subject.grammar();
     let mut out = Vec::new();
     let mut walk = tree.preorder_with_tokens();
@@ -30,7 +36,7 @@ fn comments(subject: &dyn Subject, tree: &SyntaxNode) -> Vec<String> {
             continue;
         };
         let structured = matches!(e, SyntaxElement::Node(_));
-        if g.has_tag(e.kind(), "comment") || g.has_tag(e.kind(), "verbatim-trivia") {
+        if g.has_tag(e.kind(), "comment") || (verbatim && g.has_tag(e.kind(), "verbatim-trivia")) {
             let text = match &e {
                 SyntaxElement::Token(t) => t.text().to_string(),
                 SyntaxElement::Node(n) => n.text().to_string(),

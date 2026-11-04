@@ -6,6 +6,7 @@
 //! lists) are in [`chains`], [`lists`] and [`query`].
 
 mod braces;
+mod branches;
 mod chains;
 mod flat;
 mod lists;
@@ -28,7 +29,7 @@ use self::tags::Tag;
 use crate::generated::kind as k;
 use core_config::ResolvedOptions;
 use core_format::comments::CommentStyle;
-use core_format::{Doc, FormatCtx, FormatError, NodeFormatter};
+use core_format::{Doc, FormatCtx, FormatError, NodeFormatter, Variants};
 use core_syntax::SyntaxNode;
 
 pub struct CSharpFormatter;
@@ -67,6 +68,16 @@ impl NodeFormatter for CSharpFormatter {
         sort_usings(options)
             .then(|| crate::using_sort::sort_all(tree, text, grammar))
             .flatten()
+    }
+
+    fn merge_variants(
+        &self,
+        tree: &SyntaxNode,
+        output: &str,
+        options: &ResolvedOptions,
+        variants: &mut dyn Variants,
+    ) -> Option<(String, Vec<Vec<String>>)> {
+        branches::merge(tree, output, options, variants)
     }
 
     fn comment_style(&self, options: &ResolvedOptions) -> CommentStyle {

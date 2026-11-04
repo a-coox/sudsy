@@ -2,7 +2,8 @@
 
 use crate::provider::{LanguageProvider, ParseError, ParseResult, ProviderError, SourceFile};
 use core_config::ResolvedOptions;
-use core_format::{DirectiveTable, FormatCtx, FormatError, format_tree, safety};
+use core_format::{DirectiveTable, FormatCtx, FormatError, Variants, format_tree, safety};
+use core_syntax::SyntaxNode;
 use std::path::Path;
 
 #[derive(Debug, thiserror::Error)]
@@ -94,7 +95,9 @@ pub fn format_parsed(
     format_checked(provider, file, parsed, options, directives)
 }
 
-/// Formats a tree that has no syntax errors and checks the output against it.
+/// Formats a tree that has no syntax errors and checks the output against it. Code that the
+/// parse leaves out (inactive `#if` branches) is formatted from other parses when the provider
+/// asks for that (see [`core_format::NodeFormatter::merge_variants`]); every parse it used checks the result.
 fn format_checked(
     provider: &dyn LanguageProvider,
     file: &SourceFile,
@@ -105,30 +108,95 @@ fn format_checked(
     let grammar = provider.grammar();
     let cx = FormatCtx::new(grammar, options, directives, provider.formatter());
     let output = format_tree(&parsed.tree, &cx)?;
-    let reparse = |text: &str| {
-        // Not `..file.clone()`: that would copy the whole source text just to replace it.
-        let again = SourceFile {
-            id: file.id.clone(),
-            version: file.version + 1,
-            text: text.to_string(),
-            had_bom: file.had_bom,
-            language_version: file.language_version.clone(),
-            preprocessor_symbols: file.preprocessor_symbols.clone(),
+    let check = |symbols: &[String], tree: &SyntaxNode, text: &str| {
+        let reparse = |text: &str| {
+            // Not `..file.clone()`: that would copy the whole source text just to replace it.
+            let again = SourceFile {
+                id: file.id.clone(),
+                version: file.version + 1,
+                text: text.to_string(),
+                had_bom: file.had_bom,
+                language_version: file.language_version.clone(),
+                preprocessor_symbols: symbols.to_vec(),
+            };
+            let result = provider.parse(&again).map_err(|e| e.to_string())?;
+            match result.errors.first() {
+                Some(e) => Err(format!("{}: {}", position_str(text, e), e.message)),
+                None => Ok(result.tree),
+            }
         };
-        let result = provider.parse(&again).map_err(|e| e.to_string())?;
-        match result.errors.first() {
-            Some(e) => Err(format!("{}: {}", position_str(text, e), e.message)),
-            None => Ok(result.tree),
-        }
+        safety::verify(grammar, provider.formatter(), tree, text, reparse)
     };
-    safety::verify(
-        grammar,
-        provider.formatter(),
-        &parsed.tree,
-        &output,
-        reparse,
-    )?;
+    let mut variants = Reparses {
+        provider,
+        file,
+        options,
+        directives,
+        parses: vec![(file.preprocessor_symbols.clone(), Some(parsed.tree.clone()))],
+    };
+    let merged = provider
+        .formatter()
+        .merge_variants(&parsed.tree, &output, options, &mut variants)
+        .filter(|(text, _)| *text != output);
+    if let Some((text, sets)) = merged {
+        let trees: Option<Vec<_>> = sets.iter().map(|s| variants.parse(s)).collect();
+        let sound = trees.is_some_and(|trees| {
+            check(&file.preprocessor_symbols, &parsed.tree, &text).is_ok()
+                && sets
+                    .iter()
+                    .zip(&trees)
+                    .all(|(s, t)| check(s, t, &text).is_ok())
+        });
+        // Any doubt: the inactive branches stay as they were.
+        if sound {
+            return Ok(text);
+        }
+    }
+    check(&file.preprocessor_symbols, &parsed.tree, &output)?;
     Ok(output)
+}
+
+/// The parses of one file under other symbol sets, memoized (see [`Variants`]).
+struct Reparses<'a> {
+    provider: &'a dyn LanguageProvider,
+    file: &'a SourceFile,
+    options: &'a ResolvedOptions,
+    directives: &'a DirectiveTable,
+    parses: Vec<(Vec<String>, Option<SyntaxNode>)>,
+}
+
+impl Variants for Reparses<'_> {
+    fn parse(&mut self, symbols: &[String]) -> Option<SyntaxNode> {
+        if let Some((_, tree)) = self.parses.iter().find(|(s, _)| s == symbols) {
+            return tree.clone();
+        }
+        let again = SourceFile {
+            id: self.file.id.clone(),
+            version: self.file.version + 1,
+            text: self.file.text.clone(),
+            had_bom: self.file.had_bom,
+            language_version: self.file.language_version.clone(),
+            preprocessor_symbols: symbols.to_vec(),
+        };
+        let tree = self
+            .provider
+            .parse(&again)
+            .ok()
+            .filter(|r| r.errors.is_empty())
+            .map(|r| r.tree);
+        self.parses.push((symbols.to_vec(), tree.clone()));
+        tree
+    }
+
+    fn format(&mut self, tree: &SyntaxNode) -> Option<String> {
+        let cx = FormatCtx::new(
+            self.provider.grammar(),
+            self.options,
+            self.directives,
+            self.provider.formatter(),
+        );
+        format_tree(tree, &cx).ok()
+    }
 }
 
 fn position_str(text: &str, e: &ParseError) -> String {

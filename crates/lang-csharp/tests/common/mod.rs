@@ -211,6 +211,12 @@ impl Subject for CsSubject {
         }
     }
 
+    fn keeps_verbatim_trivia(&self) -> bool {
+        let options = self.resolved();
+        !options.bool("derive_symbol_sets")
+            && options.string_lists("preprocessor_symbol_sets").is_empty()
+    }
+
     fn rewritten(&self, input: &str) -> String {
         let tree = self.parse(input).expect("the input parses");
         lang_csharp::CSharpFormatter

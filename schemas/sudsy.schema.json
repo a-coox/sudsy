@@ -945,6 +945,11 @@
               ],
               "type": "string"
             },
+            "derive_symbol_sets": {
+              "default": false,
+              "description": "Also parse with sets of symbols taken from the `#if` and `#elif` conditions of the file (the empty set, all symbols, then each symbol, then pairs and so on, at most 16 sets, after those of `preprocessor_symbol_sets`) until every branch has been active once, and format the branches that are inactive under `preprocessor_symbols` from those parses. A branch no set activates stays as it is.",
+              "type": "boolean"
+            },
             "do_while_line": {
               "default": "new_line",
               "description": "The `while` of a `do` statement: `new_line` starts a line; `same_line` follows the closing brace (`} while (x);`).",
@@ -1082,9 +1087,20 @@
               "minimum": 1,
               "type": "integer"
             },
+            "preprocessor_symbol_sets": {
+              "default": [],
+              "description": "Further sets of conditional compilation symbols. The file is also parsed with each set (a set replaces `preprocessor_symbols`), and the `#if` branches that are inactive under `preprocessor_symbols` but active under a set are formatted from that parse. Empty (the default) leaves inactive branches as they are.",
+              "items": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "type": "array"
+            },
             "preprocessor_symbols": {
               "default": [],
-              "description": "Conditional compilation symbols (`DEBUG`, `NET8_0`) defined when parsing, which decide the active branch of `#if`. Only the active branch is formatted.",
+              "description": "Conditional compilation symbols (`DEBUG`, `NET8_0`) defined when parsing, which decide the active branch of `#if`. Branches that are inactive under these symbols stay as they are unless `preprocessor_symbol_sets` or `derive_symbol_sets` format them.",
               "items": {
                 "type": "string"
               },
@@ -1512,6 +1528,11 @@
                     ],
                     "type": "string"
                   },
+                  "derive_symbol_sets": {
+                    "default": false,
+                    "description": "Also parse with sets of symbols taken from the `#if` and `#elif` conditions of the file (the empty set, all symbols, then each symbol, then pairs and so on, at most 16 sets, after those of `preprocessor_symbol_sets`) until every branch has been active once, and format the branches that are inactive under `preprocessor_symbols` from those parses. A branch no set activates stays as it is.",
+                    "type": "boolean"
+                  },
                   "do_while_line": {
                     "default": "new_line",
                     "description": "The `while` of a `do` statement: `new_line` starts a line; `same_line` follows the closing brace (`} while (x);`).",
@@ -1649,9 +1670,20 @@
                     "minimum": 1,
                     "type": "integer"
                   },
+                  "preprocessor_symbol_sets": {
+                    "default": [],
+                    "description": "Further sets of conditional compilation symbols. The file is also parsed with each set (a set replaces `preprocessor_symbols`), and the `#if` branches that are inactive under `preprocessor_symbols` but active under a set are formatted from that parse. Empty (the default) leaves inactive branches as they are.",
+                    "items": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "type": "array"
+                  },
                   "preprocessor_symbols": {
                     "default": [],
-                    "description": "Conditional compilation symbols (`DEBUG`, `NET8_0`) defined when parsing, which decide the active branch of `#if`. Only the active branch is formatted.",
+                    "description": "Conditional compilation symbols (`DEBUG`, `NET8_0`) defined when parsing, which decide the active branch of `#if`. Branches that are inactive under these symbols stay as they are unless `preprocessor_symbol_sets` or `derive_symbol_sets` format them.",
                     "items": {
                       "type": "string"
                     },

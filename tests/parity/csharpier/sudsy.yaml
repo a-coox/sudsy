@@ -1,0 +1,3 @@
+# The Sudsy side of the comparison with CSharpier.
+extends:
+  - preset:csharp/csharpier-compat

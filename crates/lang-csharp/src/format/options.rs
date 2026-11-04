@@ -18,6 +18,8 @@ pub const LABEL_INDENT: &str = "label_indent";
 pub const TRAILING_COMMAS: &str = "trailing_commas";
 pub const MEMBER_CHAIN_MIN_CALLS: &str = "member_chain_min_calls";
 pub const PREPROCESSOR_SYMBOLS: &str = "preprocessor_symbols";
+pub const PREPROCESSOR_SYMBOL_SETS: &str = "preprocessor_symbol_sets";
+pub const DERIVE_SYMBOL_SETS: &str = "derive_symbol_sets";
 pub const BLANK_LINES_BETWEEN_MEMBERS: &str = "blank_lines_between_members";
 pub const ACCESSOR_BLANK_LINES: &str = "accessor_blank_lines";
 pub const INLINE_ACCESSOR_BODIES: &str = "inline_accessor_bodies";
@@ -90,7 +92,25 @@ pub fn option_schema() -> OptionSchema {
         OptionDef::words(
             PREPROCESSOR_SYMBOLS,
             "Conditional compilation symbols (`DEBUG`, `NET8_0`) defined when parsing, which \
-             decide the active branch of `#if`. Only the active branch is formatted.",
+             decide the active branch of `#if`. Branches that are inactive under these symbols \
+             stay as they are unless `preprocessor_symbol_sets` or `derive_symbol_sets` format \
+             them.",
+        ),
+        OptionDef::word_sets(
+            PREPROCESSOR_SYMBOL_SETS,
+            "Further sets of conditional compilation symbols. The file is also parsed with each \
+             set (a set replaces `preprocessor_symbols`), and the `#if` branches that are \
+             inactive under `preprocessor_symbols` but active under a set are formatted from that \
+             parse. Empty (the default) leaves inactive branches as they are.",
+        ),
+        OptionDef::boolean(
+            DERIVE_SYMBOL_SETS,
+            false,
+            "Also parse with sets of symbols taken from the `#if` and `#elif` conditions of the \
+             file (the empty set, all symbols, then each symbol, then pairs and so on, at most 16 \
+             sets, after those of `preprocessor_symbol_sets`) until every branch has been active \
+             once, and format the branches that are inactive under `preprocessor_symbols` from \
+             those parses. A branch no set activates stays as it is.",
         ),
         OptionDef::choice(
             BLANK_LINES_BETWEEN_MEMBERS,

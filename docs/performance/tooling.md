@@ -14,7 +14,7 @@ Run `scripts/bench.sh` after every feature change; CI runs tier 1 on ubuntu-late
 
 ## `tools/perf-bench` (`cargo run --release -p perf-bench -- ...`)
 - `json|yaml|json-flat|all [--phases-only]`: generated inputs (40k pretty JSON objects 11.1 MB; 60k YAML items 5.0 MB; one-line JSON 1.1 MB), per-phase timing, whole `format_file` at 1x/4x/16x. `--features count` adds allocations per phase, `--sites` samples allocation sites, `--features mimalloc` swaps the allocator. `--write DIR` writes the inputs.
-- `csharp DIR [PASSES]`: warm worker pool, same files repeatedly with the safety check.
+- `csharp DIR [PASSES]`: warm worker pool, same files repeatedly with the safety check; `PERF_BENCH_CSHARP_FORMAT="derive_symbol_sets: false; ..."` adds C# format options to the preset.
 - `semantic DIR [LIMIT]`: cost per analysis depth, and the compiler-agreement run.
 - `fixed LANG PHASE`: the `bench.sh` workload. `layout LANG [--inputs DIR]`: the `format` query with 0, 1, 10 and 100 pattern layout rules.
 - `extensions-cli <sudsy>`: CLI processes with extensions. `--bin lsp-latency DIR WORKER.dll FILES RUNS`: server latency while typing.

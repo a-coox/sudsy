@@ -16,6 +16,8 @@ pub enum OptionKind {
     Enum(&'static [&'static str]),
     /// A list of C# identifiers-like words (preprocessor symbols).
     Words,
+    /// A list of lists of words (sets of preprocessor symbols).
+    WordSets,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -63,6 +65,16 @@ impl OptionDef {
         }
     }
 
+    /// A list of lists of words, empty by default.
+    pub fn word_sets(name: &'static str, description: &'static str) -> Self {
+        OptionDef {
+            name,
+            kind: OptionKind::WordSets,
+            default: OptionValue::List(Vec::new()),
+            description,
+        }
+    }
+
     pub fn choice(
         name: &'static str,
         values: &'static [&'static str],
@@ -87,6 +99,12 @@ impl OptionDef {
                 .iter()
                 .map(|v| OptionValue::String((*v).into()))
                 .collect(),
+            OptionKind::WordSets => vec![
+                OptionValue::List(Vec::new()),
+                OptionValue::List(vec![OptionValue::List(vec![OptionValue::String(
+                    "DEBUG".into(),
+                )])]),
+            ],
             OptionKind::Words => vec![
                 OptionValue::List(Vec::new()),
                 OptionValue::List(vec![OptionValue::String("DEBUG".into())]),
@@ -119,6 +137,16 @@ impl OptionDef {
                 Ok(())
             }
             (OptionKind::Words, OptionValue::List(items)) if items.iter().all(is_word) => Ok(()),
+            (OptionKind::WordSets, OptionValue::List(sets))
+                if sets.iter().all(
+                    |s| matches!(s, OptionValue::List(items) if items.iter().all(is_word)),
+                ) =>
+            {
+                Ok(())
+            }
+            (OptionKind::WordSets, _) => {
+                Err("must be a list of lists of words made of letters, digits and `_`".into())
+            }
             (OptionKind::Words, _) => {
                 Err("must be a list of words made of letters, digits and `_`".into())
             }
@@ -235,6 +263,26 @@ impl ResolvedOptions {
                 .filter_map(|i| match i {
                     OptionValue::String(s) => Some(s.clone()),
                     _ => None,
+                })
+                .collect(),
+            _ => Vec::new(),
+        }
+    }
+
+    /// The lists of strings of a list-of-lists option; empty when the option is absent.
+    pub fn string_lists(&self, name: &str) -> Vec<Vec<String>> {
+        match self.0.get(name) {
+            Some(OptionValue::List(sets)) => sets
+                .iter()
+                .map(|set| match set {
+                    OptionValue::List(items) => items
+                        .iter()
+                        .filter_map(|i| match i {
+                            OptionValue::String(s) => Some(s.clone()),
+                            _ => None,
+                        })
+                        .collect(),
+                    _ => Vec::new(),
                 })
                 .collect(),
             _ => Vec::new(),

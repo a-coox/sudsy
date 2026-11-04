@@ -43,11 +43,36 @@ pub trait NodeFormatter: Send + Sync {
         None
     }
 
+    /// Formatted text of the code the input's own parse leaves out (C# `#if` branches that are
+    /// inactive under the file's symbols): `output` is the input formatted from `tree`;
+    /// `variants` parses and formats the same text under other symbol sets. Returns the output
+    /// with those parts replaced by their formatted text, and the symbol sets whose parses it
+    /// took text from. The caller checks the result against the tree of every one of them and
+    /// falls back to `output` on any doubt. `None` (the default) means there is nothing to merge.
+    fn merge_variants(
+        &self,
+        _tree: &SyntaxNode,
+        _output: &str,
+        _options: &ResolvedOptions,
+        _variants: &mut dyn Variants,
+    ) -> Option<(String, Vec<Vec<String>>)> {
+        None
+    }
+
     /// How comments are printed; the default keeps their text and puts one space before a
     /// comment after code.
     fn comment_style(&self, _options: &ResolvedOptions) -> CommentStyle {
         CommentStyle::default()
     }
+}
+
+/// Other parses of the text being formatted, under other symbol sets (see
+/// [`NodeFormatter::merge_variants`]). Parses are memoized by symbol set.
+pub trait Variants {
+    /// The tree under `symbols`, or `None` when it has syntax errors.
+    fn parse(&mut self, symbols: &[String]) -> Option<SyntaxNode>;
+    /// `tree` (from [`Variants::parse`]) formatted; `None` when formatting fails.
+    fn format(&mut self, tree: &SyntaxNode) -> Option<String>;
 }
 
 /// For providers that have no formatting code yet: everything uses tag defaults.
