@@ -7,6 +7,7 @@ Formatter + linter for C#, JSON and YAML. `docs/` describes how everything works
 - .NET worker in `workers/csharp/` (net10.0, roll-forward). Grammars in `grammars/`, WIT in `wit/`, VS Code extension in `editors/vscode/`.
 
 ## Conventions
+- Code is cost. Every line, test fixture and doc line costs agent tokens to write, to read on every later task, and to update on every change. Before adding, look for what to reuse or generalize: a shared rule over grammar tags, a pattern rule (YAML) or a data row of a rule family before a Rust rule, an existing helper before a new one. Fixtures are small and focused on the rule's own cases; never copy a shared input into many folders. When a second or third copy of something appears, generalize it instead.
 - Small focused modules; extract helpers instead of growing entrypoints. No duplicated logic across crates: shared behavior lives in a core crate.
 - Errors: `thiserror` in libraries, `anyhow` only in binaries (`cli`, `lsp`).
 - Snapshot tests use `insta`; fixtures live under `tests/fixtures/<lang>/` or the crate's `tests/`.
