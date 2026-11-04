@@ -15,10 +15,10 @@ Machine unless noted: AMD Ryzen 5 3600 (6 cores / 12 threads), 32 GB, Windows 11
 
 `format` writing 1500 small JSON files that all change (`scripts/bench-write.sh`, NTFS): 0.9 s with `fs::write`, 3.4 s with the temp file + fsync + rename of `format`/`fix` (about 1.7 ms per rewritten file, all of it the sync); files that do not change are not written, so check mode and clean trees are unaffected.
 
-Time is linear in file size (guards: `core-format/tests/scaling.rs`, `tools/perf-bench/tests/scaling.rs`). Remaining cost is spread over phases: layout is ~7 allocations per node (rowan red nodes), parse is mostly rowan's node builder, the safety check re-parses and re-compares (about a third of the run). Allocator: mimalloc gives 1.3-1.4x over the system allocator.
+Time is linear in file size (guards: `core-format/tests/scaling.rs`, `tools/perf-bench/tests/scaling.rs`). Remaining cost is spread over phases: layout is ~7 allocations per node (rowan red nodes), parse is mostly rowan's node builder. Release builds skip the safety check (a re-parse and tree compare, about a third of a debug run; `perf-bench` phases still time it). Allocator: mimalloc gives 1.3-1.4x over the system allocator.
 
 ## JSON / YAML against other formatters (`speed-json-yaml.sh`, check mode, caches off, new process per run, best of 3, seconds)
-Prettier 3.9.10, Biome 2.6.4, dprint 0.64.3 (json 0.25.2, pretty_yaml 0.6.0), Node 24.22.0. Sudsy runs its always-on safety check. Biome YAML is not stable and is excluded.
+Prettier 3.9.10, Biome 2.6.4, dprint 0.64.3 (json 0.25.2, pretty_yaml 0.6.0), Node 24.22.0. Biome YAML is not stable and is excluded.
 
 | Input | Sudsy | Prettier | Biome | dprint |
 |---|---|---|---|---|
@@ -35,7 +35,7 @@ Prettier 3.9.10, Biome 2.6.4, dprint 0.64.3 (json 0.25.2, pretty_yaml 0.6.0), No
 
 (Machine ran ~15% slower on that day; use the ratios: 4.3-4.5x cold, 5.3-7.3x warm.) Baseline run: CoreLib warm 12 threads 7.0 / 4.1 / 3.4 s over three passes; one thread 13.5 s, per file median 1.6 ms, p95 26.9 ms. Editor-style (one thread, one file at a time, warm): median 1.4-1.5 ms, p95 15-25 ms, p99 67-117 ms (slowest 1% are large generated files).
 
-C# cost structure: on CoreLib Roslyn parse ~0.94 s and the mapping walk ~0.83 s (88% of parse, 8.4 M elements); the walk is bounded by Roslyn's public API creating red nodes on demand (visiting with no mapping costs 65% of parse), so a C# file costs about 2x its Roslyn parse to reach Rust. The safety re-parse costs as much as the first parse. Worker pool: 1 worker 6.1 s, 2 4.1 s, 4 3.4 s, 6 3.3 s (hence the cap of 4). Tree wire encoding overhead is 4.8% of parse.
+C# cost structure: on CoreLib Roslyn parse ~0.94 s and the mapping walk ~0.83 s (88% of parse, 8.4 M elements); the walk is bounded by Roslyn's public API creating red nodes on demand (visiting with no mapping costs 65% of parse), so a C# file costs about 2x its Roslyn parse to reach Rust. The safety re-parse (debug builds) costs as much as the first parse. Worker pool: 1 worker 6.1 s, 2 4.1 s, 4 3.4 s, 6 3.3 s (hence the cap of 4). Tree wire encoding overhead is 4.8% of parse.
 
 ## Lint (`perf-bench semantic`, one file at a time, single worker)
 | Tree | files | fast | standard | deep | first file | standard median / p95 |
@@ -54,6 +54,7 @@ C# cost structure: on CoreLib Roslyn parse ~0.94 s and the mapping walk ~0.83 s 
 | Pattern rules, 100 rules, token start / `$X` start | 504 / 3970 us per file (4.4 / 22.7 us per rule) |
 | Built-in pattern rules (C#: `crates/lang-csharp/rules/*.yaml`, 4 files) | building the provider reads the files: 195 us once per process (no worker started, no pattern compiled); compiling all four on first use (kind and regex only, no snippet parse): 1.0 ms. Against the commit before (`bench.sh`): instructions json/yaml/toml lint, parse, format unchanged (within 0.01%), cs.lint allocations 9369 -> 9369, cs.parse +1 allocation; json/yaml.patterns +0.22% / +0.17% instructions (the rule struct holds its patterns lazily). `bench.sh` has no C# instruction or lint-all metric, so the per-rule lint-all cost of the four converted rules against their Rust versions was not measured. Re-run: `cargo test -p lang-csharp --release --test builtin_patterns -- --ignored --nocapture`. |
 | Layout rules, `format` query on the bench inputs (json 1.1 MB / yaml 0.5 MB), 0 / 1 / 10 / 100 pattern layout rules | json 225 / 235 / 313 / 687 ms, yaml 322 / 337 / 417 / 837 ms (`perf-bench layout`: ~4.6 ms per rule per MB, one syntax-only traversal; C# 12 files within worker noise) |
+| Release builds without the formatter safety check (debug builds and the `corpus` profile keep it), against the commit before | `format` query instructions json -25.4%, yaml -36.8%, toml -40.9%; allocations json -9.5%, yaml -39.9%, toml -7.3%, cs -5.6% (`bench.sh`, tier 1; the C# re-parse runs in the worker, outside the counts) |
 | `format` query with no layout rule, against the commit before | instructions json +0.07%, yaml -0.01%; allocations +0.01% (`bench.sh`, tier 1) |
 | Default lint after `no-undefined-alias` (YAML, on by default; a `memchr` scan for `&` and `*`, tree lookups only at those bytes) and `unused-variable` / `unreachable-code` off for C#, against the commit before | instructions yaml.lint +0.30%, json.parse +0.12%, others within 0.1%; allocations yaml.lint +0.14%, cs.lint -45% (`bench.sh`, tier 1) |
 | Engine rule dispatch by node kind: a sorted `Vec` with binary search instead of a SipHash `HashMap` lookup per node, against the commit before (default lint, pattern-only run) | instructions json.lint -4.4%, yaml.lint -4.1%, json.patterns -10.1%, yaml.patterns -10.9%; allocations unchanged (`bench.sh`, tier 1; WSL2 Ubuntu, callgrind) |

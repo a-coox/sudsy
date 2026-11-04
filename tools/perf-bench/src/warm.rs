@@ -1,7 +1,7 @@
 //! `perf-bench csharp DIR [PASSES]`: `sudsy format --check` on the C# files under DIR, several
 //! passes in one process with one worker pool, so that every pass after the first runs against a
 //! warm worker (the number a long-lived `sudsy lsp` gives, and the one the per-run CLI cannot).
-//! Each pass makes the same work as one run of the CLI (parse, format, safety check) with the
+//! Each pass makes the same work as one run of the CLI (parse, format) with the
 //! `csharp/csharpier-compat` preset, on all cores; then one pass on a single thread reports the
 //! time per file, which is what an editor asking for one file at a time sees. The environment
 //! variable `PERF_BENCH_CSHARP_FORMAT` adds `;`-separated C# format options to the preset

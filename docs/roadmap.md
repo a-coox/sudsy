@@ -21,7 +21,7 @@ One line each; none is committed.
 - Rule-produced layout directives for `#if` branches formatted from other parses (the layout rules run on the file's own parse only); solving `#if` conditions to find symbol sets (`derive_symbol_sets` tries subsets of the condition symbols, at most 16 sets).
 - A rule source that attaches layout directives (pattern `layout:` key, plugin directive output); plugins returning layout documents is deliberately excluded.
 - YAML: re-wrapping long scalars and comments; comments between split properties.
-- Performance levers: green-tree cursor for the formatter instead of rowan red nodes; a token-level or hashed safety check; sharing anchored YAML nodes (`Rc`) for alias-heavy files; first-token index for pattern rules.
+- Performance levers: green-tree cursor for the formatter instead of rowan red nodes; sharing anchored YAML nodes (`Rc`) for alias-heavy files; first-token index for pattern rules.
 
 ## Extensibility
 - Plugin SDKs for languages other than Rust (the WIT is documented); freezing the plugin API at v1.
@@ -31,7 +31,7 @@ One line each; none is committed.
 
 ## Tooling and editor
 - Pull-diagnostic result ids; editor watching of closed files for deep diagnostics; pre-starting the second worker so formatting during the first build is instant.
-- SARIF `fixes`; an output-file option; a switch to skip the safety check (deliberately absent).
+- SARIF `fixes`; an output-file option.
 - Editor extensions other than VS Code (other editors use `sudsy lsp`).
 - Self-contained C# worker for machines without .NET.
 - Repeatable benchmarks for the paths listed in [performance/numbers.md](performance/numbers.md).

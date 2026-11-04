@@ -1,7 +1,7 @@
 //! Formatting over the pinned corpora (see `corpus.rs`): every file must format, pass the safety
 //! check (re-parse, tree comparison) and be idempotent. Failures are listed by category.
 //!
-//! Run: `bash tests/conformance/fetch-corpus.sh && cargo test --release -p lang-csharp --test format_corpus -- --ignored --nocapture`
+//! Run: `bash tests/conformance/fetch-corpus.sh && cargo test --profile corpus -p lang-csharp --test format_corpus -- --ignored --nocapture`
 //! `SUDSY_CORPUS_FAILURES=<file>` receives every failure; `SUDSY_CORPUS_FILTER=<substring>` limits
 //! the run to matching paths.
 

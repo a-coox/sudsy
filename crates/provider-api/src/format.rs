@@ -1,4 +1,4 @@
-//! Formatting a file through a provider: parse, format, safety check.
+//! Formatting a file through a provider: parse, format (and, in debug builds, the safety check).
 
 use crate::provider::{LanguageProvider, ParseError, ParseResult, ProviderError, SourceFile};
 use core_config::ResolvedOptions;
@@ -45,8 +45,8 @@ fn syntax_error(text: &str, errors: &[ParseError]) -> FileFormatError {
     }
 }
 
-/// Formats `file` with the provider and checks the result before returning it. A file with
-/// syntax errors, or whose output fails the safety check, is an error and is left alone.
+/// Formats `file` with the provider. A file with syntax errors is an error and is left alone;
+/// debug builds (every test) also run the safety check on the output.
 pub fn format_file(
     provider: &dyn LanguageProvider,
     file: &SourceFile,
@@ -152,7 +152,10 @@ fn format_checked(
             return Ok(text);
         }
     }
-    check(&file.preprocessor_symbols, &parsed.tree, &output)?;
+    // Release builds trust the formatter; tests and the corpus runs keep checking it.
+    if cfg!(debug_assertions) {
+        check(&file.preprocessor_symbols, &parsed.tree, &output)?;
+    }
     Ok(output)
 }
 

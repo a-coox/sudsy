@@ -3,7 +3,7 @@
 //! how many files are identical and which kinds of difference are left.
 //!
 //! Run: `bash tests/conformance/fetch-corpus.sh && bash tests/conformance/csharpier-baseline.sh &&
-//!       cargo test --release -p lang-csharp --test differential -- --ignored --nocapture`
+//!       cargo test --profile corpus -p lang-csharp --test differential -- --ignored --nocapture`
 //! `SUDSY_DIFF_DIR` is the directory of the baseline script (default `<temp>/sudsy-differential`);
 //! `SUDSY_DIFF_FILTER=<substring>` limits the run to matching paths. Sudsy's output is written to
 //! `<dir>/sudsy/` and the differing hunks to `<dir>/hunks.txt`, grouped by category.

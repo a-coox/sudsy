@@ -4,7 +4,7 @@
 //! * Error cases must produce at least one error.
 //!
 //! Run: `bash tests/conformance/fetch-yaml-corpus.sh &&
-//! cargo test --release -p lang-yaml --test conformance -- --ignored --nocapture`
+//! cargo test --profile corpus -p lang-yaml --test conformance -- --ignored --nocapture`
 
 mod common;
 

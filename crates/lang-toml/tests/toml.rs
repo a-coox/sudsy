@@ -170,7 +170,7 @@ fn fixtures() {
 /// every valid file that parses must format with all checks; invalid files are counted. Prints
 /// the numbers recorded in docs/formatting/toml.md.
 ///
-/// `cargo test --release -p lang-toml --test toml -- --ignored --nocapture conformance`
+/// `cargo test --profile corpus -p lang-toml --test toml -- --ignored --nocapture conformance`
 #[test]
 #[ignore]
 fn conformance() {

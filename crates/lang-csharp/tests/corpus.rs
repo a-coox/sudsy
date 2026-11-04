@@ -2,7 +2,7 @@
 //! about 90 MB): every file parses without errors, round-trips byte for byte, satisfies the trivia
 //! attachment rule, has every token in the tree, and fits the bodies of the grammar.
 //!
-//! Run: `bash tests/conformance/fetch-corpus.sh && cargo test --release -p lang-csharp --test corpus -- --ignored --nocapture`
+//! Run: `bash tests/conformance/fetch-corpus.sh && cargo test --profile corpus -p lang-csharp --test corpus -- --ignored --nocapture`
 
 mod common;
 

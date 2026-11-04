@@ -171,7 +171,7 @@ pub fn parse(db: &dyn Db, file: File) -> Result<Parsed, Failure> {
 }
 
 /// The formatted text, or why the file is left alone: a worker failure, syntax errors, a
-/// formatter error, or a failed safety check (lossless, meaning-preserving; see
+/// formatter error, or (debug builds) a failed safety check (lossless, meaning-preserving; see
 /// `core_format::safety`). The safety check's re-parse of the output goes straight to the
 /// provider: the output is not a file, so there is nothing to key a query on.
 #[salsa::tracked(returns(ref))]

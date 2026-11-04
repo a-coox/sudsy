@@ -6,7 +6,7 @@
 //!   and every file we accept must format with all the shared checks.
 //!
 //! Run: `bash tests/conformance/fetch-json-corpus.sh &&
-//! cargo test --release -p lang-json --test conformance -- --ignored --nocapture`
+//! cargo test --profile corpus -p lang-json --test conformance -- --ignored --nocapture`
 
 mod common;
 

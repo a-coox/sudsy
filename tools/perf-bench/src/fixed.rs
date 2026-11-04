@@ -105,7 +105,7 @@ pub fn run(lang: &str, phase: &str, dir: &Path) -> Result<()> {
         }
         "format-query" => {
             // The production path: the `format` query of the incremental engine (parse, options,
-            // the layout rules' directives, format, safety check), one file after the other.
+            // the layout rules' directives, format), one file after the other.
             let db = core_incremental::Database::new(vec![make_provider(lang)?]);
             let files: Vec<_> = texts
                 .iter()

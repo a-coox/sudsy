@@ -4,8 +4,8 @@ Every formatter test checks lossless round trip, idempotency, unchanged meaning 
 
 | Layer | What | Where |
 |---|---|---|
-| Parser/conformance | Round trip, attachment, shape check on large corpora (ignored tests, run by hand) | C#: `cargo test --release -p lang-csharp --test corpus -- --ignored` (7659 files, 89.8 MB, ~27 s); JSON: `lang-json/tests/conformance.rs`; YAML: `cargo test --release -p lang-yaml --test conformance -- --ignored` |
-| Format corpus | Format twice (default and `csharpier-compat`): safety check and idempotency, 0 failures | `cargo test --release -p lang-csharp --test format_corpus -- --ignored` |
+| Parser/conformance | Round trip, attachment, shape check on large corpora (ignored tests, run by hand) | C#: `cargo test --profile corpus -p lang-csharp --test corpus -- --ignored` (7659 files, 89.8 MB, ~27 s); JSON: `lang-json/tests/conformance.rs`; YAML: `cargo test --profile corpus -p lang-yaml --test conformance -- --ignored` |
+| Format corpus | Format twice (default and `csharpier-compat`): safety check and idempotency, 0 failures | `cargo test --profile corpus -p lang-csharp --test format_corpus -- --ignored` |
 | Differential | `csharpier-compat` vs CSharpier 1.3.0 (pinned in `dotnet-tools.json`) | `tests/conformance/csharpier-baseline.sh`, then `--test differential -- --ignored`; writes `hunks.txt`, `summary.txt` |
 | Snapshots | Fixtures per construct and option value (`insta`) | `crates/*/tests`, `tests/fixtures/csharp` (`error_*.cs` must report errors; also run with CRLF) |
 | Presets | Sample input/expected output per preset; hand-written config equals the preset | `tests/fixtures/presets/`, `crates/cli/tests/presets.rs` |

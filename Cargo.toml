@@ -56,3 +56,8 @@ provider-api = { path = "crates/provider-api" }
 
 [workspace.lints.rust]
 unsafe_code = "forbid"
+
+# Release speed with debug assertions: the corpus and conformance runs keep the formatter safety check.
+[profile.corpus]
+inherits = "release"
+debug-assertions = true
