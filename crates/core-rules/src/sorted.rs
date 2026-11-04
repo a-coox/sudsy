@@ -5,6 +5,7 @@ use crate::diagnostic::{Fix, FixKind};
 use crate::hooks::Scalar;
 use crate::keys::{key_range, keyed};
 use crate::options::{Check, Opt, OptionDecl};
+use crate::paths::{self, PATH_PATTERNS};
 use crate::rule;
 use crate::rule::RuleContext;
 use crate::sorting::{self, Sorting};
@@ -31,6 +32,13 @@ rule! {
             sorting::IGNORED_KEYS,
             sorting::MIN_KEYS,
             sorting::BLANK_LINE_GROUPS,
+            PATH_PATTERNS,
+            OptionDecl {
+                name: "has_properties",
+                default: Opt::List(&[]),
+                check: Check::Any,
+                description: "Only mappings that have all of these keys are checked.",
+            },
             OptionDecl {
                 name: "report",
                 default: Opt::Str("moved"),
@@ -50,6 +58,15 @@ rule! {
             .iter()
             .map(|(_, k)| hooks.key_name(k, text))
             .collect();
+        if !ctx
+            .options
+            .list("has_properties")
+            .iter()
+            .all(|p| names.iter().any(|n| n == p))
+            || !paths::in_scope(node, ctx)
+        {
+            return;
+        }
         let separated = has_separator(node, grammar);
         let range = |i: usize| reorder_range(&entries[i].0, separated, grammar);
         let sorting = Sorting::new(ctx.options, "min_keys");
@@ -104,12 +121,16 @@ rule! {
                 description: "Sequences with fewer items are not checked.",
             },
             sorting::BLANK_LINE_GROUPS,
+            PATH_PATTERNS,
     ],
         tags: &["sequence"],
     }
 
     fn check(&self, node: &SyntaxNode, ctx: &mut RuleContext<'_>) {
         let (grammar, hooks, text) = (ctx.file.grammar, ctx.file.hooks, ctx.file.text);
+        if !paths::in_scope(node, ctx) {
+            return;
+        }
         // `entry` is what moves (a YAML entry with its dash), `item` the value node in it.
         let separated = has_separator(node, grammar);
         let mut entries: Vec<SyntaxNode> = Vec::new();

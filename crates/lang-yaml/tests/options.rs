@@ -71,6 +71,7 @@ fn the_schema_declares_what_the_formatter_reads() {
             "sequence_indent",
             "quote_style",
             "document_start",
+            "document_end",
             "max_blank_lines",
             "blank_lines_after_key",
             "comment_spacing"

@@ -5,6 +5,7 @@ mod format;
 #[rustfmt::skip]
 pub mod generated;
 mod anchor_rules;
+mod flow_rules;
 mod hooks;
 pub mod model;
 mod parser;

@@ -2,7 +2,7 @@
 //! rules on values in `value_rules` and `quoted_strings`.
 
 use crate::generated::{BlockMappingEntry, FlowPair, Scalar, kind};
-use crate::{anchor_rules, quoted_strings, value_rules};
+use crate::{anchor_rules, flow_rules, quoted_strings, value_rules};
 use core_rules::rule;
 use core_rules::tree::significant_range;
 use core_rules::{Check, Edit, Fix, FixKind, Opt, OptionDecl, Rule, RuleContext};
@@ -13,12 +13,15 @@ pub static RULES: &[&dyn Rule] = &[
     &anchor_rules::NoUndefinedAlias,
     &anchor_rules::NoDuplicateAnchors,
     &anchor_rules::NoUnusedAnchors,
+    &flow_rules::NoFlowMappings,
+    &flow_rules::NoFlowSequences,
     &value_rules::NoEmptyValues,
     &value_rules::FloatStyle,
     &value_rules::NoOctalValues,
     &quoted_strings::QuotedStrings,
     &AmbiguousBooleans,
     &DocumentStart,
+    &DocumentEnd,
 ];
 
 const AMBIGUOUS: [&str; 16] = [
@@ -49,6 +52,13 @@ rule! {
                 check: Check::Any,
                 description: "Spellings that are not reported, for example `[\"on\"]`.",
             },
+            OptionDecl {
+                name: "report_true_false",
+                default: Opt::Bool(false),
+                check: Check::Any,
+                description: "Also report `true` and `false` (unless listed in `allowed`), for \
+                          code that wants every boolean quoted or spelled out.",
+            },
     ],
         kinds: &[kind::SCALAR],
     }
@@ -58,7 +68,9 @@ rule! {
             return;
         };
         if token.kind() != kind::PLAIN
-            || !AMBIGUOUS.contains(&token.text())
+            || !(AMBIGUOUS.contains(&token.text())
+                || (ctx.options.bool("report_true_false")
+                    && matches!(token.text(), "true" | "false")))
             || ctx.options.list("allowed").contains(&token.text())
         {
             return;
@@ -138,6 +150,69 @@ rule! {
             "Add `---`",
             FixKind::Safe,
             vec![Edit::insert(TextSize::from(0), "---\n")],
+        ));
+    }
+}
+
+rule! {
+    DocumentEnd {
+        id: "document-end",
+        category: Style,
+        default: Off,
+        fix: Safe,
+        description: "A document without the `...` end marker (or, with `present: false`, one that has it).",
+        example: "a: 1   # becomes a: 1\\n...",
+        options: [
+            OptionDecl {
+                name: "present",
+                default: Opt::Bool(true),
+                check: Check::Any,
+                description: "`true` requires `...` after every document (fixable); `false` forbids it.",
+            },
+        ],
+        kinds: &[kind::DOCUMENT],
+    }
+
+    fn check(&self, node: &SyntaxNode, ctx: &mut RuleContext<'_>) {
+        let end = node
+            .children_with_tokens()
+            .filter_map(|c| c.into_token())
+            .find(|t| t.kind() == kind::DOC_END);
+        if !ctx.options.bool("present") {
+            if let Some(e) = end {
+                ctx.report(e.text_range(), "the document ends with `...`");
+            }
+            return;
+        }
+        let Some(body) = node.children().next().filter(|_| end.is_none()) else {
+            return;
+        };
+        let range = significant_range(&body, ctx.file.grammar);
+        let at = range.end();
+        // A block scalar's range already ends with its line break.
+        let line_end = ctx.file.text[..usize::from(at)].ends_with('\n');
+        // Reported, like yamllint, at the start of the next document's line, or of the last line
+        // at the end of the file.
+        let line = match node.next_sibling().filter(|n| n.kind() == kind::DOCUMENT) {
+            Some(n) => ctx
+                .file
+                .lines
+                .line(significant_range(&n, ctx.file.grammar).start()),
+            None => ctx
+                .file
+                .lines
+                .line(TextSize::of(ctx.file.text))
+                .saturating_sub(1),
+        };
+        let start = ctx.file.lines.line_range(ctx.file.text, line).0;
+        ctx.report(
+            core_syntax::TextRange::empty(TextSize::from(start as u32)),
+            "the document does not end with `...`",
+        )
+        .fix(Fix::new(
+            "Add `...`",
+            FixKind::Safe,
+            vec![Edit::insert(at, if line_end { "...\n" } else { "\n..." })],
         ));
     }
 }

@@ -7,6 +7,7 @@ mod align;
 mod format;
 mod hooks;
 mod mapping;
+mod rules;
 mod validate;
 
 pub use format::{
@@ -15,7 +16,7 @@ pub use format::{
 
 use core_config::OptionSchema;
 use core_format::NodeFormatter;
-use core_rules::RuleHooks;
+use core_rules::{Rule, RuleHooks};
 use core_syntax::{Grammar, LanguageId, grammars};
 use core_treesitter::Engine;
 use provider_api::{
@@ -64,6 +65,10 @@ impl LanguageProvider for TomlProvider {
 
     fn file_matchers(&self) -> &[FileMatcher] {
         &self.matchers
+    }
+
+    fn rules(&self) -> &'static [&'static dyn Rule] {
+        rules::RULES
     }
 
     fn capabilities(&self) -> Capabilities {

@@ -50,6 +50,11 @@
                           "default": true,
                           "description": "Also check mapping keys. Turn it off to keep GitHub workflow `on:`.",
                           "type": "boolean"
+                        },
+                        "report_true_false": {
+                          "default": false,
+                          "description": "Also report `true` and `false` (unless listed in `allowed`), for code that wants every boolean quoted or spelled out.",
+                          "type": "boolean"
                         }
                       },
                       "type": "object"
@@ -157,6 +162,37 @@
             "doc-value-text": {
               "$ref": "#/definitions/rule",
               "description": "A property's `<value>` without text (`<value></value>`; `<value />` is left alone, as StyleCop does). Skipped when the comment has `<inheritdoc />`. No fix."
+            },
+            "document-end": {
+              "description": "A document without the `...` end marker (or, with `present: false`, one that has it).",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "present": {
+                          "default": true,
+                          "description": "`true` requires `...` after every document (fixable); `false` forbids it.",
+                          "type": "boolean"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
             },
             "document-start": {
               "$ref": "#/definitions/rule",
@@ -282,6 +318,11 @@
                     "options": {
                       "additionalProperties": false,
                       "properties": {
+                        "allow_non_breakable_inline_mappings": {
+                          "default": false,
+                          "description": "With `allow_non_breakable_words`, also do not report a `key: value` line whose value has no space. Only in languages that have such lines (YAML).",
+                          "type": "boolean"
+                        },
                         "allow_non_breakable_words": {
                           "default": true,
                           "description": "Do not report a line that has no space after its indentation (and after a leading `#` run or `- `), such as a long URL.",
@@ -465,6 +506,68 @@
                         "flow_mappings": {
                           "default": true,
                           "description": "Check flow mappings (`{a: }`).",
+                          "type": "boolean"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            "no-flow-mappings": {
+              "description": "A flow mapping (`{a: 1}`); write a block mapping instead.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "allow_empty": {
+                          "default": false,
+                          "description": "Do not report empty collections (`{}`, `[]`).",
+                          "type": "boolean"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            "no-flow-sequences": {
+              "description": "A flow sequence (`[a, b]`); write a block sequence instead.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "allow_empty": {
+                          "default": false,
+                          "description": "Do not report empty collections (`{}`, `[]`).",
                           "type": "boolean"
                         }
                       },
@@ -694,6 +797,14 @@
                           "default": 2,
                           "description": "Sequences with fewer items are not checked.",
                           "type": "integer"
+                        },
+                        "path_patterns": {
+                          "default": [],
+                          "description": "Regular expressions; only mappings (sequences) whose key path matches one are checked. The path is `a.b[0].c` (`[\"odd key\"]` for keys that are not identifiers), empty for the root; none listed means everywhere. A TOML table counts as its header key and an array table is not indexed.",
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
                         }
                       },
                       "type": "object"
@@ -745,6 +856,14 @@
                           ],
                           "type": "string"
                         },
+                        "has_properties": {
+                          "default": [],
+                          "description": "Only mappings that have all of these keys are checked.",
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        },
                         "ignored_keys": {
                           "default": [],
                           "description": "Regular expressions; matching keys stay where they are and are not compared.",
@@ -761,6 +880,14 @@
                         "order": {
                           "default": [],
                           "description": "Keys that come first, in this order; the rest follow in the configured order.",
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        },
+                        "path_patterns": {
+                          "default": [],
+                          "description": "Regular expressions; only mappings (sequences) whose key path matches one are checked. The path is `a.b[0].c` (`[\"odd key\"]` for keys that are not identifiers), empty for the root; none listed means everywhere. A TOML table counts as its header key and an array table is not indexed.",
                           "items": {
                             "type": "string"
                           },
@@ -2242,6 +2369,16 @@
                     "minimum": 1,
                     "type": "integer"
                   },
+                  "document_end": {
+                    "default": "preserve",
+                    "description": "The `...` marker: `always` ends every document with it, `never` leaves it out when the next document has no directive, `preserve` keeps what is written.",
+                    "enum": [
+                      "preserve",
+                      "always",
+                      "never"
+                    ],
+                    "type": "string"
+                  },
                   "document_start": {
                     "default": "preserve",
                     "description": "The `---` marker: `always` starts every document with it, `never` leaves it out of the first document when that is possible, `preserve` keeps what is written.",
@@ -2511,6 +2648,16 @@
               "maximum": 10,
               "minimum": 1,
               "type": "integer"
+            },
+            "document_end": {
+              "default": "preserve",
+              "description": "The `...` marker: `always` ends every document with it, `never` leaves it out when the next document has no directive, `preserve` keeps what is written.",
+              "enum": [
+                "preserve",
+                "always",
+                "never"
+              ],
+              "type": "string"
             },
             "document_start": {
               "default": "preserve",

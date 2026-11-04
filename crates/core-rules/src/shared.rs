@@ -43,12 +43,21 @@ rule! {
                 description: "Do not report a line that has no space after its indentation (and \
                           after a leading `#` run or `- `), such as a long URL.",
             },
+            OptionDecl {
+                name: "allow_non_breakable_inline_mappings",
+                default: Opt::Bool(false),
+                check: Check::Any,
+                description: "With `allow_non_breakable_words`, also do not report a `key: value` \
+                          line whose value has no space. Only in languages that have such lines \
+                          (YAML).",
+            },
     ],
     }
 
     fn check_file(&self, file: &FileContext<'_>, ctx: &mut RuleContext<'_>) {
         let max = usize::try_from(ctx.options.int("max")).unwrap_or(usize::MAX);
         let non_breakable = ctx.options.bool("allow_non_breakable_words");
+        let inline_mappings = ctx.options.bool("allow_non_breakable_inline_mappings");
         for line in 0..file.lines.line_count() {
             let (start, end) = file.lines.line_range(file.text, line);
             let text = &file.text[start..end];
@@ -59,7 +68,9 @@ rule! {
                 TextSize::from((start + offset) as u32),
                 TextSize::from(end as u32),
             );
-            if non_breakable && is_non_breakable(text) {
+            if non_breakable
+                && (is_non_breakable(text) || (inline_mappings && file.hooks.inline_mapping_line(text)))
+            {
                 continue;
             }
             let length = text.chars().count();

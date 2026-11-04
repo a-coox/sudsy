@@ -23,6 +23,7 @@ use core_syntax::SyntaxNode;
 pub const SEQUENCE_INDENT: &str = "sequence_indent";
 pub const QUOTE_STYLE: &str = "quote_style";
 pub const DOCUMENT_START: &str = "document_start";
+pub const DOCUMENT_END: &str = "document_end";
 pub const MAX_BLANK_LINES: &str = "max_blank_lines";
 pub const BLANK_LINES_AFTER_KEY: &str = "blank_lines_after_key";
 pub const COMMENT_SPACING: &str = "comment_spacing";
@@ -57,6 +58,13 @@ pub fn option_schema() -> OptionSchema {
             "preserve",
             "The `---` marker: `always` starts every document with it, `never` leaves it out of \
              the first document when that is possible, `preserve` keeps what is written.",
+        ),
+        OptionDef::choice(
+            DOCUMENT_END,
+            &["preserve", "always", "never"],
+            "preserve",
+            "The `...` marker: `always` ends every document with it, `never` leaves it out when \
+             the next document has no directive, `preserve` keeps what is written.",
         ),
         OptionDef::int(
             MAX_BLANK_LINES,
@@ -97,6 +105,12 @@ pub(crate) enum Quotes {
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
+pub(crate) enum DocumentEnd {
+    Preserve,
+    Always,
+    Never,
+}
+
 pub(crate) enum DocumentStart {
     Preserve,
     Always,
@@ -109,6 +123,7 @@ pub(crate) struct Style {
     pub sequence: SequenceIndent,
     pub quotes: Quotes,
     pub document_start: DocumentStart,
+    pub document_end: DocumentEnd,
     pub max_blank: usize,
     /// Blank lines between `key:` and a block value on the next line are dropped.
     pub drop_blank_after_key: bool,
@@ -134,6 +149,11 @@ impl Style {
                 "always" => DocumentStart::Always,
                 "never" => DocumentStart::Never,
                 _ => DocumentStart::Preserve,
+            },
+            document_end: match options.str(DOCUMENT_END) {
+                "always" => DocumentEnd::Always,
+                "never" => DocumentEnd::Never,
+                _ => DocumentEnd::Preserve,
             },
             max_blank: options.int(MAX_BLANK_LINES) as usize,
         }

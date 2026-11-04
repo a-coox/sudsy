@@ -1,0 +1,5 @@
+a: true
+#  ^^^^ ambiguous-booleans
+b: [false, yes]
+#          ^^^ ambiguous-booleans
+c: "true"

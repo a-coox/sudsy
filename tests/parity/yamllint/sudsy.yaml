@@ -2,10 +2,14 @@
 lint:
   rules:
     document-start: warn
+    document-end: warn
+    no-flow-mappings: warn
+    no-flow-sequences: warn
     max-line-length:
       level: warn
       options:
         max: 30
+        allow_non_breakable_inline_mappings: true
     ambiguous-booleans: warn
     no-duplicate-anchors: warn
     no-unused-anchors: warn

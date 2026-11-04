@@ -1,0 +1,3 @@
+tags = ["b", "a"]
+ids = [3, 2]
+#      ^ sorted-array-values

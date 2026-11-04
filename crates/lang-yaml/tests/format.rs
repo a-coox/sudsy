@@ -239,6 +239,21 @@ snap!(
     [("document_start", s("never"))]
 );
 snap!(
+    document_end_always,
+    "a: 1\n---\nb: 2\n...\n---\n- c\n# trailing\n",
+    [("document_end", s("always"))]
+);
+snap!(
+    document_end_never,
+    "a: 1\n...\n---\nb: 2\n... # about it\n",
+    [("document_end", s("never"))]
+);
+snap!(
+    document_end_never_keeps_what_a_directive_needs,
+    "a: 1\n...\n%YAML 1.2\n---\nb: 2\n...\n",
+    [("document_end", s("never"))]
+);
+snap!(
     empty_and_comment_only_documents,
     "---\n# only a comment\n---\n---\nx\n"
 );

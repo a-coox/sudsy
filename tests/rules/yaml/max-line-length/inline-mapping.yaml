@@ -1,0 +1,3 @@
+a: https://example.com/a/very/long/url/that/cannot/be/broken
+b: two words that make this line over the limit
+#                             ^^^^^^^^^^^^^^^^^ max-line-length

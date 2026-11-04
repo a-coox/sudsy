@@ -1,0 +1,4 @@
+sorted-array-values:
+  level: warn
+  options:
+    path_patterns: ['^ids$']

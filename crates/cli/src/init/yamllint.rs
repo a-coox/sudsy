@@ -122,6 +122,25 @@ fn rule(name: &str, conf: &Value, default_base: bool, out: &mut Out) {
                 _ => {}
             }
         }
+        "document-end" => {
+            lint(out, "document-end", "document-end");
+            match take("present") {
+                Some(Value::Bool(true)) => {
+                    out.opt("document-end.present", L, "document_end", "always")
+                }
+                Some(Value::Bool(false)) => {
+                    out.opt("document-end.present", L, "document_end", "never");
+                    out.rule_opt(
+                        "document-end",
+                        "yaml",
+                        "document-end",
+                        "present",
+                        json!(false),
+                    );
+                }
+                _ => {}
+            }
+        }
         "empty-values" => lint(out, "empty-values", "no-empty-values"),
         "float-values" => lint(out, "float-values", "float-style"),
         "octal-values" => lint(out, "octal-values", "no-octal-values"),
@@ -178,6 +197,15 @@ fn rule(name: &str, conf: &Value, default_base: bool, out: &mut Out) {
                     v,
                 );
             }
+            if let Some(v) = take("allow-non-breakable-inline-mappings") {
+                out.rule_opt(
+                    "line-length.allow-non-breakable-inline-mappings",
+                    "yaml",
+                    "max-line-length",
+                    "allow_non_breakable_inline_mappings",
+                    v,
+                );
+            }
         }
         "truthy" => {
             lint(out, "truthy", "ambiguous-booleans");
@@ -188,6 +216,14 @@ fn rule(name: &str, conf: &Value, default_base: bool, out: &mut Out) {
                     "ambiguous-booleans",
                     "allowed",
                     v,
+                );
+                // yamllint's allowed values include `true` and `false`; Sudsy exempts them
+                // through `allowed` once they are checked.
+                out.rule_opt_free(
+                    "yaml",
+                    "ambiguous-booleans",
+                    "report_true_false",
+                    json!(true),
                 );
             }
             if let Some(v) = take("check-keys") {
@@ -215,6 +251,19 @@ fn rule(name: &str, conf: &Value, default_base: bool, out: &mut Out) {
                 );
             }
             take("max-spaces-inside");
+            let (id, rule) = if name == "braces" {
+                ("braces.forbid", "no-flow-mappings")
+            } else {
+                ("brackets.forbid", "no-flow-sequences")
+            };
+            match take("forbid") {
+                Some(Value::Bool(true)) => out.rule(id, "yaml", rule, level),
+                Some(v) if v == json!("non-empty") => {
+                    out.rule(id, "yaml", rule, level);
+                    out.rule_opt(id, "yaml", rule, "allow_empty", json!(true));
+                }
+                _ => {}
+            }
         }
         "empty-lines" if enabled => {
             if let Some(n) = take("max") {

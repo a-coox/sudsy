@@ -1,0 +1,4 @@
+document-end:
+  level: warn
+  options:
+    present: false

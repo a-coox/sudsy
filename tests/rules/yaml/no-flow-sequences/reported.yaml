@@ -1,0 +1,8 @@
+a: [1, 2]
+#  ^ no-flow-sequences
+b: []
+#  ^ no-flow-sequences
+c:
+  - [[1], x]
+#   ^ no-flow-sequences
+#    ^ no-flow-sequences

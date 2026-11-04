@@ -1,0 +1,4 @@
+sorted-keys:
+  level: warn
+  options:
+    path_patterns: ['^c\.d$']

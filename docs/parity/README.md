@@ -33,7 +33,7 @@ The differential runner [`scripts/parity.sh`](../development/parity.md) compares
 | roslynator | 67 | 23 | 7 | 16 | 18 | 1 | 2 | 16 |
 | stylecop | 197 | 120 | 10 | 1 | 45 | 21 | 0 | 1 |
 | taplo | 23 | 11 | 7 | 0 | 0 | 0 | 5 | 0 |
-| yamllint | 65 | 54 | 6 | 5 | 0 | 0 | 0 | 5 |
+| yamllint | 65 | 62 | 3 | 0 | 0 | 0 | 0 | 0 |
 
 ## Batches
 Planned work is grouped so related entries land together.
@@ -42,7 +42,7 @@ Planned work is grouped so related entries land together.
 |---|---|
 | B1 yaml-defaults | yamllint defaults: comment spacing, `truthy` options, `line-length` for unbreakable words, a yamllint-compatible preset |
 | B2 shared-format-options | `end_of_line`, `bracket_spacing`, JSON/YAML options several tools share |
-| B3 yaml-optin-lint | yamllint opt-in rules: document end (anchors, empty values, float and octal values, quoted strings are done) |
+| B3 yaml-optin-lint | yamllint opt-in rules (all done) |
 | B4 json-optin-lint, sorted-keys-options | JSON opt-in rules and `sorted-keys` parity |
 | B5 stylecop-lexical | comment and preprocessor spacing, empty statements, token checks |
 | B6 stylecop-syntax | syntax-structure checks, one type per file, file name matches type |

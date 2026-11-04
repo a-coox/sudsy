@@ -18,6 +18,8 @@ Options:
   ignored_keys (a list of strings, default []): Regular expressions; matching keys stay where they are and are not compared.
   min_keys (an integer, default 2): Mappings with fewer keys are not checked.
   blank_line_groups (a boolean, default false): Sort each run of entries between blank lines on its own.
+  path_patterns (a list of strings, default []): Regular expressions; only mappings (sequences) whose key path matches one are checked. The path is `a.b[0].c` (`["odd key"]` for keys that are not identifiers), empty for the root; none listed means everywhere. A TOML table counts as its header key and an array table is not indexed.
+  has_properties (a list of strings, default []): Only mappings that have all of these keys are checked.
   report (a string, default "moved"): Which keys are reported. `moved`: the fewest keys that would have to move (eslint-plugin-jsonc). `misplaced`: every key that sorts before one above it (yamllint).
 
 Example:

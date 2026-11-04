@@ -41,6 +41,13 @@ pub trait RuleHooks: Send + Sync {
     fn scalar<'a>(&self, _item: &SyntaxNode, _text: &'a str) -> Option<Scalar<'a>> {
         None
     }
+
+    /// Is the line a `key: value` entry whose value is one unbreakable word (no space)? Lets
+    /// `max-line-length` accept it with `allow_non_breakable_inline_mappings`. The default has no
+    /// such lines.
+    fn inline_mapping_line(&self, _line: &str) -> bool {
+        false
+    }
 }
 
 /// The hooks of a language that has none of its own.

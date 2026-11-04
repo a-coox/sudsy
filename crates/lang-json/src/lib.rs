@@ -7,6 +7,7 @@ mod format;
 mod hooks;
 mod lexer;
 mod parser;
+mod rules;
 mod string;
 mod value_rules;
 
@@ -114,7 +115,7 @@ impl LanguageProvider for JsonProvider {
     }
 
     fn rules(&self) -> &'static [&'static dyn Rule] {
-        value_rules::RULES
+        rules::RULES
     }
 
     fn rule_hooks(&self) -> &dyn RuleHooks {

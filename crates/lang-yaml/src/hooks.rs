@@ -57,6 +57,19 @@ impl RuleHooks for YamlHooks {
         Some("<<")
     }
 
+    fn inline_mapping_line(&self, line: &str) -> bool {
+        let mut body = line.trim_start_matches(' ');
+        while let Some(rest) = body.strip_prefix("- ") {
+            body = rest.trim_start_matches(' ');
+        }
+        // shortcut: a quoted key containing `: ` is split early, which only errs towards reporting.
+        let Some((_, value)) = body.split_once(": ") else {
+            return false;
+        };
+        let value = value.trim_start_matches(' ');
+        !value.is_empty() && !value.contains(' ')
+    }
+
     fn scalar<'a>(&self, item: &SyntaxNode, text: &'a str) -> Option<Scalar<'a>> {
         let token = ScalarNode::cast(item.clone())?.value()?;
         let value = scalar_value(&token, text)?;

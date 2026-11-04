@@ -1,0 +1,5 @@
+max-line-length:
+  level: warn
+  options:
+    max: 30
+    allow_non_breakable_inline_mappings: true

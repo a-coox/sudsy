@@ -28,5 +28,5 @@ json:
 migrated .eslintrc.json
 not migrated: jsonc/no-comments (syntax errors are always reported)
 not migrated: jsonc/not-a-rule (not an eslint-plugin-jsonc rule Sudsy knows)
-not migrated: jsonc/object-curly-newline (no threshold form)
+not migrated: jsonc/object-curly-newline (no `minProperties`/`multiline` threshold: `collapse` follows source line breaks and fit, not property count)
 not migrated: jsonc/sort-array-values options (per-path option sets are not supported; set the options by hand)

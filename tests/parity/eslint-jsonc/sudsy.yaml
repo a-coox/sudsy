@@ -18,6 +18,22 @@ overrides:
     lint: { rules: { sorted-keys: { level: error, options: { min_keys: 3 } } } }
   - files: ["sort-keys-groups.json"]
     lint: { rules: { sorted-keys: { level: error, options: { blank_line_groups: true } } } }
+  - files: ["sort-keys-path.json"]
+    lint:
+      rules:
+        sorted-keys:
+          level: error
+          options:
+            path_patterns: ['^c$', '^d\[0\]$', '^\["odd key"\]$', '^e\.f$']
+  - files: ["sort-keys-has-properties.json"]
+    lint: { rules: { sorted-keys: { level: error, options: { has_properties: [z] } } } }
+  - files: ["sort-array-values-path.json"]
+    lint:
+      rules:
+        sorted-array-values:
+          level: error
+          options:
+            path_patterns: ['^ids$', '^nested\[1\]$']
   - files: ["key-name-casing.json"]
     lint: { rules: { key-name-casing: error } }
   - files: ["key-name-casing-snake.json"]

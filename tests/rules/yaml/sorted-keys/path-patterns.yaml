@@ -1,0 +1,9 @@
+b: 1
+a:
+  z: 1
+# ^ sorted-keys
+  y: 2
+list:
+  - q: 1
+#   ^ sorted-keys
+    p: 2

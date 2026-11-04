@@ -29,6 +29,40 @@ fn scaffolds_a_pattern_rule_and_a_registered_rust_rule() {
             .contains("pub NoBar {")
     );
 
+    // The data languages: Rust rules only, listed in their registry (a one-line list is expanded).
+    let yaml = root.join("crates/lang-yaml/src");
+    fs::create_dir_all(&yaml).unwrap();
+    fs::write(
+        yaml.join("rules.rs"),
+        "use core_rules::Rule;\n\npub static RULES: &[&dyn Rule] = &[&a::A];\n",
+    )
+    .unwrap();
+    let refused = xtask::new_rule(&root, "yaml", "no-foo", false).unwrap_err();
+    assert!(refused.to_string().contains("--rust"), "{refused}");
+    xtask::new_rule(&root, "yaml", "no-foo", true).unwrap();
+    assert_eq!(
+        fs::read_to_string(yaml.join("rules.rs")).unwrap(),
+        "use core_rules::Rule;\n\nmod no_foo;\n\npub static RULES: &[&dyn Rule] = &[\n    &a::A,\n    &no_foo::NoFoo,\n];\n"
+    );
+    assert!(yaml.join("rules/no_foo.rs").exists());
+    let case = fs::read_to_string(root.join("tests/rules/yaml/no-foo/starter.yaml")).unwrap();
+    assert_eq!(case, "a: {}\n#  ^^ no-foo\n");
+    let json = root.join("crates/lang-json/src");
+    fs::create_dir_all(&json).unwrap();
+    fs::write(
+        json.join("rules.rs"),
+        "pub static RULES: &[&dyn Rule] = &[];\n",
+    )
+    .unwrap();
+    xtask::new_rule(&root, "json", "no-foo", true).unwrap();
+    assert!(
+        fs::read_to_string(json.join("rules.rs"))
+            .unwrap()
+            .ends_with(
+                "mod no_foo;\n\npub static RULES: &[&dyn Rule] = &[\n    &no_foo::NoFoo,\n];\n"
+            )
+    );
+
     assert!(xtask::new_rule(&root, "csharp", "no-foo", false).is_err());
     assert!(xtask::new_rule(&root, "csharp", "No_Foo", false).is_err());
     assert!(xtask::new_rule(&root, "cobol", "no-foo", false).is_err());

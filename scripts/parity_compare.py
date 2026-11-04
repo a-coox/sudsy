@@ -61,6 +61,9 @@ def yamllint(fixture, cwd):
             rule, column = m.group(4) or "syntax-error", int(m.group(2))
             if rule == "anchors":  # one yamllint rule, three Sudsy rules: "found unused anchor ..."
                 rule += {"undeclared": ".forbid-undeclared-aliases", "duplicated": ".forbid-duplicated-anchors", "unused": ".forbid-unused-anchors"}[m.group(3).split()[1]]
+            if rule in ("braces", "brackets") and "forbidden" in m.group(3):  # the `forbid` option
+                rule += ".forbid"
+                column -= 1  # after the delimiter
             # yamllint reports these two after the token: Sudsy reports the token (the `:` or `-`,
             # the octal number).
             if rule == "empty-values":

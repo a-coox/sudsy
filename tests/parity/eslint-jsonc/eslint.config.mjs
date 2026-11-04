@@ -18,6 +18,21 @@ export default [
   only(["sort-keys-groups.json"], {
     "jsonc/sort-keys": ["error", "asc", { allowLineSeparatedGroups: true }],
   }),
+  only(["sort-keys-path.json"], {
+    "jsonc/sort-keys": [
+      "error",
+      { pathPattern: '^(c|d\\[0\\]|\\["odd key"\\]|e\\.f)$', order: { type: "asc" } },
+    ],
+  }),
+  only(["sort-keys-has-properties.json"], {
+    "jsonc/sort-keys": ["error", { pathPattern: "", hasProperties: ["z"], order: { type: "asc" } }],
+  }),
+  only(["sort-array-values-path.json"], {
+    "jsonc/sort-array-values": [
+      "error",
+      { pathPattern: "^(ids|nested\\[1\\])$", order: { type: "asc" } },
+    ],
+  }),
   only(["key-name-casing.json"], { "jsonc/key-name-casing": "error" }),
   only(["key-name-casing-snake.json"], {
     "jsonc/key-name-casing": ["error", { camelCase: false, snake_case: true, "kebab-case": true }],

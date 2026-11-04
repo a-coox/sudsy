@@ -1,0 +1,5 @@
+ambiguous-booleans:
+  level: warn
+  options:
+    report_true_false: true
+    allowed: ["false"]

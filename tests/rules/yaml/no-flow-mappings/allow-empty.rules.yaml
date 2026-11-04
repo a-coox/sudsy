@@ -1,0 +1,4 @@
+no-flow-mappings:
+  level: warn
+  options:
+    allow_empty: true

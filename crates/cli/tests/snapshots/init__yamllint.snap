@@ -10,6 +10,7 @@ yaml:
     array_bracket_spacing: false
     bracket_spacing: true
     comment_spacing: 1
+    document_end: never
     final_newline: false
     indent_size: 4
     line_width: 120
@@ -22,11 +23,17 @@ yaml:
         options:
           allowed: ["true", "false", "on"]
           check_keys: false
+          report_true_false: true
+      document-end:
+        level: error
+        options:
+          present: false
       document-start: "off"
       float-style: error
       max-line-length:
         level: warn
         options:
+          allow_non_breakable_inline_mappings: true
           max: 120
       no-duplicate-anchors: error
       no-duplicate-keys:
@@ -34,6 +41,10 @@ yaml:
         options:
           merge_keys: forbid
       no-empty-values: error
+      no-flow-mappings:
+        level: error
+        options:
+          allow_empty: true
       no-octal-values: warn
       no-undefined-alias: "off"
       no-unused-anchors: error
@@ -45,5 +56,4 @@ extends: preset:yaml/yamllint
 not migrated: ignore (use `include`/`exclude` globs in sudsy.yaml)
 not migrated: colons.max-spaces-after (fixed formatter behavior, not configurable)
 not migrated: rules.foo-bar (not a yamllint rule Sudsy knows)
-not migrated: line-length.allow-non-breakable-inline-mappings (planned)
 not migrated: quoted-strings.quote-type (this setting has no Sudsy option; rule: quoted-strings)

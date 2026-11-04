@@ -274,15 +274,17 @@ fn options() -> impl Strategy<Value = Vec<(&'static str, OptionValue)>> {
         prop_oneof![Just("preserve"), Just("indented"), Just("flush")],
         prop_oneof![Just("preserve"), Just("single"), Just("double")],
         prop_oneof![Just("preserve"), Just("always"), Just("never")],
+        prop_oneof![Just("preserve"), Just("always"), Just("never")],
         0i64..=2,
         prop_oneof![Just(20i64), Just(40), Just(80)],
     )
-        .prop_map(|(indent, seq, quotes, start, blank, width)| {
+        .prop_map(|(indent, seq, quotes, start, end, blank, width)| {
             vec![
                 ("indent_size", n(indent)),
                 ("sequence_indent", s(seq)),
                 ("quote_style", s(quotes)),
                 ("document_start", s(start)),
+                ("document_end", s(end)),
                 ("max_blank_lines", n(blank)),
                 ("line_width", n(width)),
             ]

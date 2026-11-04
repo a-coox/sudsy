@@ -1,0 +1,3 @@
+a: {x: 1}
+#  ^ no-flow-mappings
+b: {}

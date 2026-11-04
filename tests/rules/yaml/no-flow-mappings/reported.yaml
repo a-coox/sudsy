@@ -1,0 +1,7 @@
+a: {x: 1}
+#  ^ no-flow-mappings
+b: {}
+#  ^ no-flow-mappings
+c:
+  - {k: v}
+#   ^ no-flow-mappings

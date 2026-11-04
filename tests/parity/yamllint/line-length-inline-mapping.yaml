@@ -1,0 +1,5 @@
+a: https://example.com/a/very/long/url/that/cannot/be/broken/anywhere
+b:
+  - c: https://example.com/a/very/long/url/that/cannot/be/broken/anywhere
+  - d: a value with spaces that is certainly over the limit
+e: first-long-word-without-any-space-that-goes-way-past-the-limit # comment

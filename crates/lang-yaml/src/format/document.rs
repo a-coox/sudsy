@@ -2,7 +2,7 @@
 
 use super::block::{Ctx, node_after, property_root};
 use super::comments::{gap, has_remaining_comments, leading, tok};
-use super::{DocumentStart, Style, scalars};
+use super::{DocumentEnd, DocumentStart, Style, scalars};
 use crate::generated::kind as k;
 use crate::tree::{blank_lines_after, first_token, prev_significant, token_of};
 use core_format::comments;
@@ -14,17 +14,21 @@ type R = Result<Doc, FormatError>;
 /// The documents one under the other, then the comments at the end of the file.
 pub(crate) fn stream(cx: &FormatCtx<'_>, st: &Style, node: &SyntaxNode) -> R {
     let mut out = Vec::new();
-    for (i, d) in node
+    let documents: Vec<SyntaxNode> = node
         .children()
         .filter(|n| n.kind() == k::DOCUMENT)
-        .enumerate()
-    {
+        .collect();
+    for (i, d) in documents.iter().enumerate() {
         if i > 0 {
             let first =
-                first_token(&d).ok_or_else(|| FormatError::Shape("an empty document".into()))?;
+                first_token(d).ok_or_else(|| FormatError::Shape("an empty document".into()))?;
             out.push(gap(cx, st, &first));
         }
-        out.push(document(cx, st, &d, i)?);
+        // A directive can only follow a `...`.
+        let before_directive = documents
+            .get(i + 1)
+            .is_some_and(|n| token_of(n, k::DIRECTIVE).is_some());
+        out.push(document(cx, st, d, i, before_directive)?);
     }
     if let Some(eof) = token_of(node, k::EOF) {
         if has_remaining_comments(cx, &eof) {
@@ -44,7 +48,13 @@ pub(crate) fn stream(cx: &FormatCtx<'_>, st: &Style, node: &SyntaxNode) -> R {
     Ok(doc::concat(out))
 }
 
-fn document(cx: &FormatCtx<'_>, st: &Style, node: &SyntaxNode, index: usize) -> R {
+fn document(
+    cx: &FormatCtx<'_>,
+    st: &Style,
+    node: &SyntaxNode,
+    index: usize,
+    before_directive: bool,
+) -> R {
     let directives: Vec<SyntaxToken> = node
         .children_with_tokens()
         .filter_map(SyntaxElement::into_token)
@@ -90,11 +100,33 @@ fn document(cx: &FormatCtx<'_>, st: &Style, node: &SyntaxNode, index: usize) -> 
             }
         }
     }
-    if let Some(e) = end {
-        if !out.is_empty() {
-            out.push(gap(cx, st, &e));
+    let keep_end = match st.document_end {
+        DocumentEnd::Preserve => end.is_some(),
+        DocumentEnd::Always => true,
+        DocumentEnd::Never => before_directive,
+    };
+    match (end, keep_end) {
+        (Some(e), true) => {
+            if !out.is_empty() {
+                out.push(gap(cx, st, &e));
+            }
+            out.push(tok(cx, &e));
         }
-        out.push(tok(cx, &e));
+        (Some(e), false) => {
+            // Only its comments remain, below the document.
+            if !out.is_empty()
+                && (has_remaining_comments(cx, &e)
+                    || !comments::trailing_comments(cx.grammar, &e).is_empty())
+            {
+                out.push(gap(cx, st, &e));
+            }
+            out.push(dropped_marker(cx, &e));
+        }
+        (None, true) if !out.is_empty() => {
+            out.push(doc::hardline());
+            out.push(doc::lit("..."));
+        }
+        (None, _) => {}
     }
     Ok(doc::concat(out))
 }

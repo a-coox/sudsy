@@ -1,12 +1,10 @@
 //! JSON rules on values: the opt-in `unsafe-numbers`.
 
 use crate::generated::{Literal, kind};
+use core_rules::RuleContext;
 use core_rules::rule;
-use core_rules::{Rule, RuleContext};
 use core_syntax::SyntaxNode;
 use core_syntax::ast::AstNode;
-
-pub static RULES: &[&dyn Rule] = &[&UnsafeNumbers];
 
 const MAX_SAFE_INTEGER: f64 = 9_007_199_254_740_991.0;
 
