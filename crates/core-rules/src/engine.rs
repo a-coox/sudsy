@@ -67,9 +67,16 @@ pub(crate) fn traverse(
     // Sorted by kind: a handful of kinds, looked up once per node, so a binary search beats hashing.
     let mut by_kind: Vec<(SyntaxKind, Vec<usize>)> = Vec::new();
     for (i, a) in active.iter().enumerate() {
-        for &kind in a.rule.kinds() {
+        // A tag resolves through the file's grammar to the node kinds carrying it.
+        let tagged = a
+            .rule
+            .tags()
+            .iter()
+            .flat_map(|t| file.grammar.nodes_with_tag(t));
+        for &kind in a.rule.kinds().iter().chain(tagged) {
             match by_kind.binary_search_by_key(&kind, |e| e.0) {
-                Ok(at) => by_kind[at].1.push(i),
+                Ok(at) if by_kind[at].1.last() != Some(&i) => by_kind[at].1.push(i),
+                Ok(_) => {}
                 Err(at) => by_kind.insert(at, (kind, vec![i])),
             }
         }

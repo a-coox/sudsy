@@ -1,0 +1,4 @@
+no-duplicate-keys:
+  level: error
+  options:
+    merge_keys: forbid

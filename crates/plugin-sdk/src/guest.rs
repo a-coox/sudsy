@@ -165,6 +165,7 @@ fn with_file<T>(
         grammar: decoded.grammar,
         lines: &decoded.lines,
         body_kinds: &decoded.body_kinds,
+        hooks: &core_rules::DEFAULT_HOOKS,
         semantics: decoded
             .semantics
             .as_ref()

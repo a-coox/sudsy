@@ -34,7 +34,7 @@ token Eof
 token Unknown #error
 
 node Document = value:#value? Eof
-node Object #value #block = LBrace members:Member* RBrace
+node Object #value #block #mapping = LBrace members:Member* RBrace
 node Member #key-value = key:String Colon value:#value
-node Array #value #delimited-list = LBracket elements:#value* RBracket
+node Array #value #delimited-list #sequence = LBracket elements:#value* RBracket
 node Literal #value = value:#literal

@@ -4,10 +4,9 @@
 #[rustfmt::skip]
 pub mod generated;
 mod format;
-mod key_rules;
+mod hooks;
 mod lexer;
 mod parser;
-mod rules;
 mod string;
 mod value_rules;
 
@@ -16,7 +15,7 @@ pub use parser::{Dialect, MAX_DEPTH};
 
 use core_config::OptionSchema;
 use core_format::NodeFormatter;
-use core_rules::Rule;
+use core_rules::{Rule, RuleHooks};
 use core_syntax::{Grammar, LanguageId, grammars};
 use provider_api::{
     Capabilities, FileMatcher, FilePattern, LanguageProvider, ParseResult, ProviderError,
@@ -115,6 +114,10 @@ impl LanguageProvider for JsonProvider {
     }
 
     fn rules(&self) -> &'static [&'static dyn Rule] {
-        rules::RULES
+        value_rules::RULES
+    }
+
+    fn rule_hooks(&self) -> &dyn RuleHooks {
+        &hooks::JsonHooks
     }
 }

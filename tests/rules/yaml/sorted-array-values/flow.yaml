@@ -1,0 +1,4 @@
+x: [b, a, c]
+#   ^ sorted-array-values
+y: ["b", 'a']
+#   ^^^ sorted-array-values

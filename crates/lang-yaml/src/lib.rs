@@ -5,6 +5,7 @@ mod format;
 #[rustfmt::skip]
 pub mod generated;
 mod anchor_rules;
+mod hooks;
 pub mod model;
 mod parser;
 mod quoted_strings;
@@ -22,7 +23,7 @@ pub use parser::{MAX_DEPTH, Parsed, parse};
 
 use core_config::OptionSchema;
 use core_format::NodeFormatter;
-use core_rules::Rule;
+use core_rules::{Rule, RuleHooks};
 use core_syntax::{Grammar, LanguageId, grammars};
 use provider_api::{
     Capabilities, FileMatcher, LanguageProvider, ParseResult, ProviderError, SourceFile,
@@ -88,5 +89,9 @@ impl LanguageProvider for YamlProvider {
 
     fn rules(&self) -> &'static [&'static dyn Rule] {
         rules::RULES
+    }
+
+    fn rule_hooks(&self) -> &dyn RuleHooks {
+        &hooks::YamlHooks
     }
 }

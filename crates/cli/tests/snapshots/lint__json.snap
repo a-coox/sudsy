@@ -26,7 +26,7 @@ expression: "serde_json::to_string_pretty(&value).unwrap()"
             }
           ],
           "kind": "unsafe",
-          "title": "Sort the keys of this object"
+          "title": "Sort the keys of this mapping"
         }
       ],
       "message": "keys are not sorted",
@@ -85,6 +85,44 @@ expression: "serde_json::to_string_pretty(&value).unwrap()"
       "severity": "error"
     },
     {
+      "category": "style",
+      "fixes": [
+        {
+          "edits": [
+            {
+              "end": 10,
+              "start": 4,
+              "text": "a: 1"
+            },
+            {
+              "end": 15,
+              "start": 11,
+              "text": "z: yes"
+            }
+          ],
+          "kind": "unsafe",
+          "title": "Sort the keys of this mapping"
+        }
+      ],
+      "message": "keys are not sorted",
+      "path": "b.yaml",
+      "range": {
+        "end": {
+          "column": 2,
+          "line": 2,
+          "offset": 5
+        },
+        "start": {
+          "column": 1,
+          "line": 2,
+          "offset": 4
+        }
+      },
+      "related": [],
+      "rule": "sorted-keys",
+      "severity": "warning"
+    },
+    {
       "category": "suspicious",
       "fixes": [
         {
@@ -115,44 +153,6 @@ expression: "serde_json::to_string_pretty(&value).unwrap()"
       },
       "related": [],
       "rule": "ambiguous-booleans",
-      "severity": "warning"
-    },
-    {
-      "category": "style",
-      "fixes": [
-        {
-          "edits": [
-            {
-              "end": 10,
-              "start": 4,
-              "text": "a: 1"
-            },
-            {
-              "end": 15,
-              "start": 11,
-              "text": "z: yes"
-            }
-          ],
-          "kind": "unsafe",
-          "title": "Sort the keys of this mapping"
-        }
-      ],
-      "message": "keys are not sorted",
-      "path": "b.yaml",
-      "range": {
-        "end": {
-          "column": 2,
-          "line": 3,
-          "offset": 12
-        },
-        "start": {
-          "column": 1,
-          "line": 3,
-          "offset": 11
-        }
-      },
-      "related": [],
-      "rule": "sorted-keys",
       "severity": "warning"
     }
   ],

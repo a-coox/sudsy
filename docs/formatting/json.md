@@ -27,7 +27,7 @@ Hand-written lexer + recursive descent; strings, numbers, escapes validated by t
 Objects are tagged `#block` but laid out with the list shape.
 
 ## Rules
-`no-duplicate-keys`, `sorted-keys` (see [builtin.md](../rules/builtin.md)). Plain JSON has no comments, so suppression there is config-only (`overrides` with `"off"`).
+The shared key and sequence rules (`no-duplicate-keys`, `sorted-keys`, `sorted-array-values`, ...) run on `Object` and `Array`, which carry `#mapping` and `#sequence`; JSON's own are `unsafe-numbers` and its hooks decode string escapes (see [builtin.md](../rules/builtin.md)). Plain JSON has no comments, so suppression there is config-only (`overrides` with `"off"`).
 
 ## Conformance
 JSONTestSuite pinned to nst/JSONTestSuite `1ef36fa` (`tests/conformance/fetch-json-corpus.sh`); every accepted file is formatted with all checks in both dialects.

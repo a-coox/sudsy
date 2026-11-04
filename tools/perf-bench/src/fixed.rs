@@ -130,15 +130,14 @@ pub fn run(lang: &str, phase: &str, dir: &Path) -> Result<()> {
         }
         "lint" => {
             let files = parsed();
-            let rules = activate(p.rules().iter().copied(), &BTreeMap::new(), |_| false)?;
+            let rules = activate(own_and_shared(p), &BTreeMap::new(), |_| false)?;
             let (w, a) = measured(&mut || diagnostics(p, &files, &rules));
             (files.len(), w, a)
         }
         "lint-all" => {
-            // Every rule of the provider on at its default options, opt-in rules included.
+            // Every rule of the language on at its default options, opt-in rules included.
             let files = parsed();
-            let rules: Vec<ActiveRule<'_>> =
-                p.rules().iter().map(|r| extensions::active(*r)).collect();
+            let rules: Vec<ActiveRule<'_>> = own_and_shared(p).map(extensions::active).collect();
             let (w, a) = measured(&mut || diagnostics(p, &files, &rules));
             (files.len(), w, a)
         }
@@ -181,6 +180,11 @@ pub fn run(lang: &str, phase: &str, dir: &Path) -> Result<()> {
     };
     println!("RESULT {lang} {phase} files={files} bytes={bytes} work={work}{allocs}");
     Ok(())
+}
+
+/// The provider's rules and the ones every language shares.
+fn own_and_shared(p: &dyn LanguageProvider) -> impl Iterator<Item = &'static dyn core_rules::Rule> {
+    p.rules().iter().chain(core_rules::shared::RULES).copied()
 }
 
 fn diagnostics(p: &dyn LanguageProvider, files: &[Parsed], rules: &[ActiveRule<'_>]) -> usize {

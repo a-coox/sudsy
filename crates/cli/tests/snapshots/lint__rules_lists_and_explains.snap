@@ -3,13 +3,13 @@ source: crates/cli/tests/lint.rs
 expression: out(&one)
 ---
 sorted-keys
-  languages:     json, yaml
+  languages:     all
   category:      style
   default level: off
   fix:           unsafe
   equivalent:    Biome assist/source/useSortedKeys (partial), eslint-plugin-jsonc jsonc/sort-keys (partial), yamllint key-ordering (partial), yamllint key-ordering.ignored-keys
 
-The keys of an object are not in order (alphabetical by default). The keys that would have to move (the fewest) are reported and the first report carries the fix. Comments on lines of their own stay where they are.
+The keys of a mapping are not in order (alphabetical by default). The keys reported are chosen by `report`, and the first report carries the fix. Comments on lines of their own stay where they are, a comment after an entry moves with it; moving a YAML anchor below its alias breaks the document, so the fix is unsafe.
 
 Options:
   order (a list of strings, default []): Keys that come first, in this order; the rest follow in the configured order.
@@ -18,6 +18,7 @@ Options:
   ignored_keys (a list of strings, default []): Regular expressions; matching keys stay where they are and are not compared.
   min_keys (an integer, default 2): Mappings with fewer keys are not checked.
   blank_line_groups (a boolean, default false): Sort each run of entries between blank lines on its own.
+  report (a string, default "moved"): Which keys are reported. `moved`: the fewest keys that would have to move (eslint-plugin-jsonc). `misplaced`: every key that sorts before one above it (yamllint).
 
 Example:
   { "b": 1, "a": 2 }   // becomes { "a": 2, "b": 1 }

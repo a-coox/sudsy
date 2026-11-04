@@ -166,6 +166,7 @@ fn the_project_phase_runs_in_the_plugin() {
             grammar: provider.grammar(),
             lines: &lines,
             body_kinds: &[],
+            hooks: provider.rule_hooks(),
             semantics: None,
         };
         facts.extend(&run_file(&file, &active, true).facts);

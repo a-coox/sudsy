@@ -5,7 +5,7 @@ use core_syntax::{ast_any, ast_node, LanguageId, SyntaxKind, SyntaxToken};
 
 pub const LANGUAGE: LanguageId = LanguageId::new(3);
 /// The grammar's version; the worker must report the same value.
-pub const GRAMMAR_HASH: &str = "792174e398ac7ca5f3cf228a17a2faade0978f0db83773cb9253be239f384650";
+pub const GRAMMAR_HASH: &str = "13bc1662dc8435337557ac2109867a93b695dc4c1e151ee779088a11d9105a45";
 
 pub mod kind {
     use super::*;

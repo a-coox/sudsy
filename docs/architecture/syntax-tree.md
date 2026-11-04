@@ -14,7 +14,8 @@ Trailing trivia: after a token up to and including the end of its line. Leading:
 ## Grammars (`grammars/<lang>.grammar`)
 - Line-based, ungrammar-like: tokens, nodes with named child fields (`name:Type`, `?`, `*`), comment syntax, `suppress` markers.
 - Field types are a kind name or a `#tag`. Tags (`#block`, `#delimited-list`, `#key-value`, `#separator`, `#string`, `#comment`, `#binary-chain`, `#member-chain`, `#restyle`, ...) drive shared shapes, rules and patterns; they double as union types in generated wrappers.
-- Bodies match children in order (`core_syntax::ast::assign`); `ShapeChecker` verifies every child lands in a slot. Generated accessors use the same routine.
+- Bodies match children in order (`core_syntax::ast::assign`); `ShapeChecker` verifies every child lands in a slot. Generated accessors use the same routine, and so does `Grammar::slot(node, label)`, the generic accessor for a labelled item (shared rules read an entry's `key` and `value` with it; bodies are resolved to kind lists once when the grammar loads).
+- Tags for shared rules: `#mapping` marks a container of key/value entries (the entries are `#key-value` nodes whose key is the item labelled `key`: JSON `Object`; YAML `BlockMapping`, `FlowMapping`), `#sequence` a list of values (JSON `Array`; YAML `BlockSequence`, `FlowSequence`). A rule subscribes by tag (`Rule::tags`) and runs for every kind carrying it, in every language that tags its grammar. `Grammar::nodes_with_tag` answers from a table built at load.
 - `grammars/csharp.grammar` follows Roslyn's field lists (321 node kinds, 252 token kinds); hand-maintained. Types are also expressions (every `#type` kind carries `#expression`).
 - `cargo xtask codegen` writes typed wrappers (`lang-*/src/generated.rs`), the worker's kind table (`workers/csharp/Sudsy.Worker/Generated/CsharpGrammar.g.cs`) and `schemas/sudsy.schema.json`. `xtask/tests/codegen_is_fresh.rs` fails on stale output.
 

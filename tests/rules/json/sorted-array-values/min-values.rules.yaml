@@ -1,0 +1,4 @@
+sorted-array-values:
+  level: warn
+  options:
+    min_values: 3

@@ -25,6 +25,7 @@
 mod parse;
 
 use crate::kind::{LanguageId, SyntaxKind};
+use crate::tree::{SyntaxElement, SyntaxNode};
 use std::collections::HashMap;
 
 pub use parse::GrammarError;
@@ -96,6 +97,12 @@ pub struct Grammar {
     /// Hot tags per kind, indexed like `tokens` and `nodes`.
     token_flags: Vec<u8>,
     node_flags: Vec<u8>,
+    /// Per node kind (indexed like `nodes`) and body item: the sorted kinds the item accepts.
+    bodies: Vec<Vec<Vec<SyntaxKind>>>,
+    /// Trivia and `ERROR`, sorted: invisible to bodies.
+    skip: Vec<SyntaxKind>,
+    /// Node kinds per tag, in id order.
+    tag_nodes: HashMap<String, Vec<SyntaxKind>>,
 }
 
 /// Tags that formatting code asks about for every token or node: answered from a bit set
@@ -123,7 +130,95 @@ fn hot_flags(defs: &[KindDef]) -> Vec<u8> {
         .collect()
 }
 
+/// One node kind's body as [`crate::ast::assign`] sees it.
+struct GrammarBody<'g> {
+    grammar: &'g Grammar,
+    kinds: &'g [Vec<SyntaxKind>],
+    body: &'g [Item],
+}
+
+impl crate::ast::Body for GrammarBody<'_> {
+    fn slots(&self) -> usize {
+        self.kinds.len()
+    }
+    fn accepts(&self, slot: usize, kind: SyntaxKind) -> bool {
+        self.kinds[slot].binary_search(&kind).is_ok()
+    }
+    fn many(&self, slot: usize) -> bool {
+        self.body[slot].cardinality == Cardinality::Many
+    }
+    fn skips(&self, kind: SyntaxKind) -> bool {
+        self.grammar.skip.binary_search(&kind).is_ok()
+    }
+}
+
 impl Grammar {
+    /// Fills the tables derived from the kinds: resolved bodies, the skipped kinds and the nodes
+    /// per tag.
+    fn resolve(&mut self) {
+        let kinds_of = |target: &Target| -> Vec<SyntaxKind> {
+            let mut kinds: Vec<SyntaxKind> = match target {
+                Target::Kind(k) => vec![*k],
+                Target::Tag(t) => self.kinds_with_tag(t).map(|d| d.kind).collect(),
+            };
+            kinds.sort();
+            kinds
+        };
+        let bodies = self
+            .nodes
+            .iter()
+            .map(|d| d.body.iter().map(|i| kinds_of(&i.target)).collect())
+            .collect();
+        let mut skip: Vec<SyntaxKind> = std::iter::once(SyntaxKind::ERROR)
+            .chain(self.kinds_with_tag("trivia").map(|d| d.kind))
+            .collect();
+        skip.sort();
+        let mut tag_nodes: HashMap<String, Vec<SyntaxKind>> = HashMap::new();
+        for d in &self.nodes {
+            for tag in &d.tags {
+                tag_nodes.entry(tag.clone()).or_default().push(d.kind);
+            }
+        }
+        self.bodies = bodies;
+        self.skip = skip;
+        self.tag_nodes = tag_nodes;
+    }
+
+    /// For each body item of a node kind, the sorted kinds it accepts.
+    pub fn body_kinds(&self, node: SyntaxKind) -> Option<&[Vec<SyntaxKind>]> {
+        self.def(node)?;
+        self.bodies.get(node.index() as usize).map(Vec::as_slice)
+    }
+
+    /// Trivia kinds and `ERROR`, sorted: they take no part in matching bodies.
+    pub fn skipped_kinds(&self) -> &[SyntaxKind] {
+        &self.skip
+    }
+
+    /// The node kinds carrying `tag`, in id order (precomputed; empty for an unknown tag).
+    pub fn nodes_with_tag(&self, tag: &str) -> &[SyntaxKind] {
+        self.tag_nodes.get(tag).map_or(&[], Vec::as_slice)
+    }
+
+    /// The child of `node` in the body item labelled `label` (the first, for a repeated item).
+    /// Found with the routine the generated accessors use, so it agrees with them.
+    pub fn slot(&self, node: &SyntaxNode, label: &str) -> Option<SyntaxElement> {
+        let kind = node.kind();
+        let def = self.def(kind)?;
+        let index = def
+            .body
+            .iter()
+            .position(|i| i.label.as_deref() == Some(label))?;
+        let body = GrammarBody {
+            grammar: self,
+            kinds: self.body_kinds(kind)?,
+            body: &def.body,
+        };
+        crate::ast::assign(node, body)
+            .find(|(i, _)| *i == index)
+            .map(|(_, e)| e)
+    }
+
     pub fn parse(source: &str) -> Result<Grammar, GrammarError> {
         parse::parse(source)
     }

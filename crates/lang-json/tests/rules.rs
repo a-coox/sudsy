@@ -1,10 +1,7 @@
 //! JSON rules: expected diagnostics (snapshots) and fix output.
 
-use insta::assert_snapshot;
 use lang_json::JsonProvider;
-use provider_api::testing::{fix, lint, render};
-
-const ALL: &str = "no-duplicate-keys: error\nsorted-keys: warn";
+use provider_api::testing::{lint, render};
 
 fn report(text: &str, rules: &str) -> String {
     report_at("a.json", text, rules)
@@ -25,17 +22,6 @@ fn duplicate_keys_are_on_by_default_and_can_be_turned_off() {
 #[test]
 fn sorted_keys_is_opt_in() {
     assert_eq!(report("{\"b\": 1, \"a\": 2}", ""), "");
-    assert_snapshot!(report(
-        "{\"b\": 1, \"a\": 2, \"c\": {\"z\": 1, \"y\": 2}}",
-        ALL
-    ));
-}
-
-#[test]
-fn sorted_keys_order_option_puts_listed_keys_first() {
-    let rules = "sorted-keys:\n  level: warn\n  options:\n    order: [name, version]";
-    let text = "{\"zeta\": 1, \"version\": 2, \"alpha\": 3, \"name\": 4}";
-    assert_snapshot!(fix(&JsonProvider::new(), "a.json", text, rules, true));
 }
 
 #[test]

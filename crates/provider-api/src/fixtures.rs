@@ -6,7 +6,8 @@
 //! - `<name>.fixed.<ext>` is the text after the safe fixes, `<name>.unsafe.<ext>` after the unsafe
 //!   ones too; a missing file means the fixes change nothing beyond the previous step.
 //! - `rules.yaml` in the folder holds the rule entries (the mapping under `lint.rules`); without
-//!   it the rule runs as `<rule-id>: warn`.
+//!   it the rule runs as `<rule-id>: warn`. `<name>.rules.yaml` next to an input replaces it for
+//!   that input alone (options, other rules).
 //!
 //! `SUDSY_BLESS=1` rewrites the annotations and the `.fixed`/`.unsafe` files from what the rules
 //! report now; review the diff before committing.
@@ -28,9 +29,12 @@ pub fn rule_fixtures(provider: &dyn LanguageProvider) {
     let (mut count, mut failures) = (0, Vec::new());
     for dir in sorted(&root).into_iter().filter(|p| p.is_dir()) {
         let id = dir.file_name().expect("a folder").to_string_lossy();
-        let rules = fs::read_to_string(dir.join(CONFIG)).unwrap_or_else(|_| format!("{id}: warn"));
+        let folder_rules =
+            fs::read_to_string(dir.join(CONFIG)).unwrap_or_else(|_| format!("{id}: warn"));
         for file in sorted(&dir).into_iter().filter(|p| is_input(p)) {
             count += 1;
+            let rules = fs::read_to_string(sibling(&file, "rules"))
+                .unwrap_or_else(|_| folder_rules.clone());
             let run = || check(provider, &file, &rules, bless);
             if let Err(panic) = catch_unwind(AssertUnwindSafe(run)) {
                 let message = panic
@@ -75,16 +79,21 @@ fn sorted(dir: &Path) -> Vec<PathBuf> {
     paths
 }
 
-/// Not a result file of another input and not the folder's config.
+/// Not a result file or config of another input and not the folder's config.
 fn is_input(path: &Path) -> bool {
     let name = path.file_name().unwrap().to_string_lossy();
-    path.is_file() && name != CONFIG && !name.contains(".fixed.") && !name.contains(".unsafe.")
+    path.is_file()
+        && name != CONFIG
+        && !name.ends_with(".rules.yaml")
+        && !name.contains(".fixed.")
+        && !name.contains(".unsafe.")
 }
 
-/// `a.json` -> `a.fixed.json`.
+/// `a.json` -> `a.fixed.json`; the per-input config is `a.rules.yaml` whatever the extension.
 fn sibling(file: &Path, kind: &str) -> PathBuf {
     let name = file.file_name().unwrap().to_string_lossy();
     let (stem, ext) = name.rsplit_once('.').expect("a fixture has an extension");
+    let ext = if kind == "rules" { "yaml" } else { ext };
     file.with_file_name(format!("{stem}.{kind}.{ext}"))
 }
 

@@ -24,3 +24,7 @@ yaml:
       no-undefined-alias: error
       document-start: warn
       comment-space: warn
+      sorted-keys:
+        level: off
+        options:
+          report: misplaced

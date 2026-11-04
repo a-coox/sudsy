@@ -1,0 +1,7 @@
+camelCase: 1
+snake_case: 2
+^^^^^^^^^^ key-name-casing
+"kebab-case": 3
+^^^^^^^^^^^^ key-name-casing
+flow: {Pascal: 1}
+#      ^^^^^^ key-name-casing

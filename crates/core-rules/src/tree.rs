@@ -92,6 +92,22 @@ pub fn entry_range(node: &SyntaxNode, grammar: &Grammar) -> TextRange {
     TextRange::new(significant.start(), end)
 }
 
+/// The range of `entry` that moves when the entries of `container` are reordered. Entries
+/// separated by a token (`#separator`, a comma) move without a trailing comment, which would
+/// swallow the separator that ends up behind it; entries without separators (block style) take
+/// the comment after them along ([`entry_range`]).
+pub fn reorder_range(container: &SyntaxNode, entry: &SyntaxNode, grammar: &Grammar) -> TextRange {
+    let separated = container
+        .children_with_tokens()
+        .filter_map(|e| e.into_token())
+        .any(|t| grammar.has_tag(t.kind(), "separator"));
+    if separated {
+        significant_range(entry, grammar)
+    } else {
+        entry_range(entry, grammar)
+    }
+}
+
 /// Fix edits that put `items` (ranges of nodes in the source) into the order `sorted`, which lists
 /// indices into `items`: each position takes the text of the item that belongs there.
 pub fn reorder_edits(text: &str, items: &[TextRange], sorted: &[usize]) -> Vec<crate::Edit> {

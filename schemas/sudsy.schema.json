@@ -295,8 +295,39 @@
               "description": "An anchor name is defined again in the same document; an alias refers to the latest definition above it, which is easy to misread."
             },
             "no-duplicate-keys": {
-              "$ref": "#/definitions/rule",
-              "description": "An object has the same key twice, after decoding escapes; parsers disagree on which value wins."
+              "description": "A mapping has the same key twice (after decoding escapes and quotes); parsers disagree on which value wins.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "merge_keys": {
+                          "default": "allow",
+                          "description": "Languages with a merge key (YAML `<<`) only. `allow` skips merge keys, which may repeat; `forbid` reports a second one like any other duplicate key.",
+                          "enum": [
+                            "allow",
+                            "forbid"
+                          ],
+                          "type": "string"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
             },
             "no-empty-attribute-parens": {
               "$ref": "#/definitions/rule",
@@ -525,7 +556,7 @@
               "description": "A file declares one namespace: every later one, nested ones included, is reported. No fix."
             },
             "sorted-array-values": {
-              "description": "The elements of an array of only strings or only numbers are not in order (ascending by default; numbers compare as numbers). Arrays of other or mixed elements are skipped. The elements that would have to move (the fewest) are reported and the first report carries the fix; the fix is unsafe because array order can be data.",
+              "description": "The items of a sequence of only strings or only numbers are not in order (ascending by default; numbers compare as numbers). Sequences of other or mixed items are skipped. The items that would have to move (the fewest) are reported and the first report carries the fix; the fix is unsafe because sequence order can be data.",
               "oneOf": [
                 {
                   "$ref": "#/definitions/level"
@@ -565,7 +596,7 @@
                         },
                         "min_values": {
                           "default": 2,
-                          "description": "Arrays with fewer elements are not checked.",
+                          "description": "Sequences with fewer items are not checked.",
                           "type": "integer"
                         }
                       },
@@ -580,7 +611,7 @@
               ]
             },
             "sorted-keys": {
-              "description": "The keys of an object are not in order (alphabetical by default). The keys that would have to move (the fewest) are reported and the first report carries the fix. Comments on lines of their own stay where they are.",
+              "description": "The keys of a mapping are not in order (alphabetical by default). The keys reported are chosen by `report`, and the first report carries the fix. Comments on lines of their own stay where they are, a comment after an entry moves with it; moving a YAML anchor below its alias breaks the document, so the fix is unsafe.",
               "oneOf": [
                 {
                   "$ref": "#/definitions/level"
@@ -638,6 +669,15 @@
                             "type": "string"
                           },
                           "type": "array"
+                        },
+                        "report": {
+                          "default": "moved",
+                          "description": "Which keys are reported. `moved`: the fewest keys that would have to move (eslint-plugin-jsonc). `misplaced`: every key that sorts before one above it (yamllint).",
+                          "enum": [
+                            "moved",
+                            "misplaced"
+                          ],
+                          "type": "string"
                         }
                       },
                       "type": "object"

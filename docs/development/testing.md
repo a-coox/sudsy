@@ -24,9 +24,9 @@ Every formatter test checks lossless round trip, idempotency, unchanged meaning 
 Adding a rule needs no Rust test: add `tests/rules/<language>/<rule-id>/<name>.<ext>` files (C# fixtures run through the worker).
 - `<name>.<ext>` is the input. Expected diagnostics are written under the line they point at, `// ^^^ rule-id` (`#` in YAML; carets give the span length, the marker may be left out when the span starts in the first columns). No annotation means no diagnostic. The id is checked, so a fixture also shows other rules that fire by default.
 - `<name>.fixed.<ext>` is the text after the safe fixes, `<name>.unsafe.<ext>` after the unsafe ones too. A missing file means the fixes change nothing (resp. nothing more). Every fix run also checks that the file stays parseable and that a second run is idempotent.
-- `rules.yaml` in the folder is the `lint.rules` mapping (default `<rule-id>: warn`); one config per folder, so a case that needs other options goes in its own folder or stays a Rust test.
+- `rules.yaml` in the folder is the `lint.rules` mapping (default `<rule-id>: warn`); `<name>.rules.yaml` next to an input replaces it for that input alone, which is how a case sets options. Shared rules (`sorted-keys`, `no-duplicate-keys`, ...) have fixtures in each language's folder that tags the concept.
 - `SUDSY_BLESS=1 cargo test -p lang-json --test rule_fixtures` (or `lang-yaml`, `lang-csharp`) rewrites the annotations and the `.fixed`/`.unsafe` files from what the rules do now; review the diff.
-- One test per language lists every failing file with its message. Cases the runner cannot express stay in `crates/*/tests`: option validation errors, per-option behavior, config-level on/off, depth and project scope.
+- One test per language lists every failing file with its message. Cases the runner cannot express stay in `crates/*/tests`: option validation errors, config-level on/off, depth and project scope.
 
 ### Adding a rule
 1. `RuleMeta` in the rule's module (id, category, description, default, fix, options with checks and descriptions) and register the rule.

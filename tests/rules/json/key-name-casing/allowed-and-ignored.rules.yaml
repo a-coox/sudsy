@@ -1,0 +1,5 @@
+key-name-casing:
+  level: warn
+  options:
+    allowed: [snake_case, kebab-case]
+    ignored_keys: ["^P"]

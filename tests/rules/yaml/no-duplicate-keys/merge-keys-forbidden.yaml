@@ -1,0 +1,6 @@
+x: &x {k: 1}
+y: &y {j: 2}
+a:
+  <<: *x
+  <<: *y
+# ^^ no-duplicate-keys

@@ -1,0 +1,5 @@
+{
+  b: 1, # one
+# ^ sorted-keys
+  a: 2 # two
+}

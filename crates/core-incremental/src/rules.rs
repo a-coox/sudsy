@@ -133,6 +133,7 @@ pub fn layout(db: &dyn Db, file: File) -> Result<DirectiveTable, Failure> {
         grammar: provider.grammar(),
         lines: &lines,
         body_kinds: provider.body_kinds(),
+        hooks: provider.rule_hooks(),
         semantics: None,
     };
     run_layout(&context, &active).map_err(|e| Failure::message(Stage::Format, e))
@@ -205,6 +206,7 @@ pub fn lint(db: &dyn Db, file: File) -> Result<Linted, Failure> {
         grammar: provider.grammar(),
         lines: &lines,
         body_kinds: provider.body_kinds(),
+        hooks: provider.rule_hooks(),
         semantics: data.map(|data| SemanticView {
             data,
             summaries: &summaries,

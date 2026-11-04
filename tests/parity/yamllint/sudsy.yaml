@@ -35,3 +35,4 @@ lint:
       level: warn
       options:
         ignored_keys: ["^_"]
+        report: misplaced

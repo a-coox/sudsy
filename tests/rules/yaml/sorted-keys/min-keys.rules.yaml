@@ -1,0 +1,4 @@
+sorted-keys:
+  level: warn
+  options:
+    min_keys: 3

@@ -4,61 +4,17 @@
 //! a grammar's bodies honest.
 
 use crate::ast::{Pattern, Slot, assign};
-use crate::grammar::{Cardinality, Grammar, Target};
+use crate::grammar::{Cardinality, Grammar};
 use crate::kind::SyntaxKind;
 use crate::tree::{SyntaxElement, SyntaxNode};
-use std::collections::HashMap;
-
-/// A body resolved to kind lists.
-struct Body {
-    kinds: Vec<Vec<SyntaxKind>>,
-    cardinality: Vec<Cardinality>,
-}
 
 pub struct ShapeChecker<'g> {
     grammar: &'g Grammar,
-    skip: Vec<SyntaxKind>,
-    bodies: HashMap<SyntaxKind, Body>,
 }
 
 impl<'g> ShapeChecker<'g> {
     pub fn new(grammar: &'g Grammar) -> Self {
-        let mut skip: Vec<SyntaxKind> = std::iter::once(SyntaxKind::ERROR)
-            .chain(
-                grammar
-                    .tokens()
-                    .iter()
-                    .chain(grammar.nodes())
-                    .filter(|d| d.has_tag("trivia"))
-                    .map(|d| d.kind),
-            )
-            .collect();
-        skip.sort();
-        let bodies = grammar
-            .nodes()
-            .iter()
-            .map(|d| {
-                let kinds = d
-                    .body
-                    .iter()
-                    .map(|item| {
-                        let mut kinds: Vec<SyntaxKind> = match &item.target {
-                            Target::Kind(k) => vec![*k],
-                            Target::Tag(t) => grammar.kinds_with_tag(t).map(|d| d.kind).collect(),
-                        };
-                        kinds.sort();
-                        kinds
-                    })
-                    .collect();
-                let cardinality = d.body.iter().map(|i| i.cardinality.clone()).collect();
-                (d.kind, Body { kinds, cardinality })
-            })
-            .collect();
-        ShapeChecker {
-            grammar,
-            skip,
-            bodies,
-        }
+        ShapeChecker { grammar }
     }
 
     /// The first node whose children do not fit its body, described. Nodes that contain an `ERROR`
@@ -71,24 +27,27 @@ impl<'g> ShapeChecker<'g> {
     }
 
     fn check_node(&self, node: &SyntaxNode) -> Result<(), String> {
-        let Some(body) = self.bodies.get(&node.kind()) else {
+        let (Some(def), Some(kinds)) = (
+            self.grammar.def(node.kind()),
+            self.grammar.body_kinds(node.kind()),
+        ) else {
             return Ok(());
         };
+        let skip = self.grammar.skipped_kinds();
         if node.children().any(|c| c.kind() == SyntaxKind::ERROR) {
             return Ok(());
         }
-        let slots: Vec<Slot> = body
-            .kinds
+        let slots: Vec<Slot> = kinds
             .iter()
-            .zip(&body.cardinality)
-            .map(|(kinds, c)| Slot {
+            .zip(&def.body)
+            .map(|(kinds, item)| Slot {
                 kinds,
-                many: *c == Cardinality::Many,
+                many: item.cardinality == Cardinality::Many,
             })
             .collect();
         let pattern = Pattern {
             slots: &slots,
-            skip: &self.skip,
+            skip,
         };
         let mut counts = vec![0usize; slots.len()];
         let mut assigned = assign(node, &pattern).peekable();
@@ -100,7 +59,7 @@ impl<'g> ShapeChecker<'g> {
             )
         };
         for child in node.children_with_tokens() {
-            if self.skip.binary_search(&child.kind()).is_ok() {
+            if skip.binary_search(&child.kind()).is_ok() {
                 continue;
             }
             match assigned.peek() {
@@ -118,14 +77,14 @@ impl<'g> ShapeChecker<'g> {
                 }
             }
         }
-        for (i, (count, c)) in counts.iter().zip(&body.cardinality).enumerate() {
+        for (count, item) in counts.iter().zip(&def.body) {
+            let c = &item.cardinality;
             let bad = match c {
                 Cardinality::One => *count != 1,
                 Cardinality::Optional => *count > 1,
                 Cardinality::Many => false,
             };
             if bad {
-                let item = &self.grammar.def(node.kind()).expect("has a body").body[i];
                 return Err(describe(format!(
                     "item {} has {count} children, expected {}",
                     item.label.as_deref().unwrap_or("(unlabeled)"),

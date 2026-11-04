@@ -415,7 +415,7 @@ fn resolve(
         }
     }
 
-    Ok(Grammar {
+    let mut grammar = Grammar {
         language,
         language_id,
         comments,
@@ -426,7 +426,12 @@ fn resolve(
         tokens,
         by_name,
         hash,
-    })
+        bodies: Vec::new(),
+        skip: Vec::new(),
+        tag_nodes: HashMap::new(),
+    };
+    grammar.resolve();
+    Ok(grammar)
 }
 
 #[cfg(test)]

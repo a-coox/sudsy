@@ -2,20 +2,10 @@
 
 use insta::assert_snapshot;
 use lang_yaml::YamlProvider;
-use provider_api::testing::{fix, lint, render};
+use provider_api::testing::{lint, render};
 
 fn report(text: &str, rules: &str) -> String {
     render(text, &lint(&YamlProvider::new(), "a.yaml", text, rules))
-}
-
-fn fixed(text: &str, rules: &str, allow_unsafe: bool) -> String {
-    fix(&YamlProvider::new(), "a.yaml", text, rules, allow_unsafe)
-}
-
-#[test]
-fn sorted_keys_order_option() {
-    let rules = "sorted-keys:\n  level: warn\n  options:\n    order: [name]";
-    assert_snapshot!(fixed("b: 1\nname: x\na: 2\n", rules, true));
 }
 
 #[test]

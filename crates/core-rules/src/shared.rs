@@ -1,13 +1,26 @@
 //! Rules that apply to every language. A language-specific rule cannot reuse a shared rule's name.
+//! Those on keys and sequences ([`crate::keys`], [`crate::sorted`]) act on the grammar tags
+//! `#mapping` and `#sequence`, so they do nothing in a language that does not tag them.
 
 use crate::comments::{CommentSpace, NoEmptyComment};
 use crate::diagnostic::Category;
+use crate::keys::{KeyNameCasing, NoDuplicateKeys, NoEmptyKeys};
 use crate::options::{Check, Opt, OptionDecl};
 use crate::rule::{FileContext, Rule, RuleContext, RuleMeta};
+use crate::sorted::{SortedArrayValues, SortedKeys};
 use core_config::Level;
 use core_syntax::{TextRange, TextSize};
 
-pub static RULES: &[&dyn Rule] = &[&MaxLineLength, &CommentSpace, &NoEmptyComment];
+pub static RULES: &[&dyn Rule] = &[
+    &MaxLineLength,
+    &CommentSpace,
+    &NoEmptyComment,
+    &NoDuplicateKeys,
+    &NoEmptyKeys,
+    &KeyNameCasing,
+    &SortedKeys,
+    &SortedArrayValues,
+];
 
 struct MaxLineLength;
 

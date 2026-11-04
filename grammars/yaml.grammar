@@ -53,12 +53,12 @@ token Unknown #error
 
 node Stream = documents:Document* Eof
 node Document = directives:Directive* DocStart? body:#value? DocEnd?
-node BlockMapping #value #block = entries:BlockMappingEntry*
+node BlockMapping #value #block #mapping = entries:BlockMappingEntry*
 node BlockMappingEntry #key-value = Question? key:#value? Colon? value:#value?
-node BlockSequence #value #block = entries:BlockSequenceEntry*
+node BlockSequence #value #block #sequence = entries:BlockSequenceEntry*
 node BlockSequenceEntry = Dash value:#value?
-node FlowMapping #value #delimited-list = LBrace entries:FlowPair* RBrace
-node FlowSequence #value #delimited-list = LBracket items:#value* RBracket
+node FlowMapping #value #delimited-list #mapping = LBrace entries:FlowPair* RBrace
+node FlowSequence #value #delimited-list #sequence = LBracket items:#value* RBracket
 // `key: value` inside `{}`, or a single pair inside `[]`.
 node FlowPair #value #key-value = Question? key:#value? Colon? value:#value?
 // Anchor and tag, then the node they apply to (absent for an empty node).

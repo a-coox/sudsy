@@ -1,6 +1,6 @@
 use core_config::OptionSchema;
 use core_format::NodeFormatter;
-use core_rules::Rule;
+use core_rules::{DEFAULT_HOOKS, Rule, RuleHooks};
 use core_semantics::{BehaviorSummaries, CompilerDiagnostic, FileSemantics, Layers};
 use core_syntax::{Grammar, LanguageId, SyntaxKind, SyntaxNode};
 use std::path::{Path, PathBuf};
@@ -32,6 +32,12 @@ pub trait LanguageProvider: Send + Sync {
     /// The language's own rules; the rules every language shares are `core_rules::shared::RULES`.
     fn rules(&self) -> &'static [&'static dyn Rule] {
         &[]
+    }
+
+    /// What the shared rules ask this language about its keys and scalars (see
+    /// [`core_rules::RuleHooks`]); the defaults suit a language with nothing special.
+    fn rule_hooks(&self) -> &dyn RuleHooks {
+        &DEFAULT_HOOKS
     }
 
     /// The node kinds that are bodies (methods, lambdas, local functions): body-scope rules are

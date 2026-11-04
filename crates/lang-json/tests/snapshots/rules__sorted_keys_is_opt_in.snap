@@ -1,8 +1,0 @@
----
-source: crates/lang-json/tests/rules.rs
-expression: "report(\"{\\\"b\\\": 1, \\\"a\\\": 2, \\\"c\\\": {\\\"z\\\": 1, \\\"y\\\": 2}}\", ALL)"
----
-1:2 warning[sorted-keys] keys are not sorted
-  fix (unsafe): Sort the keys of this object
-1:24 warning[sorted-keys] keys are not sorted
-  fix (unsafe): Sort the keys of this object

@@ -1,0 +1,4 @@
+sorted-keys:
+  level: warn
+  options:
+    ignored_keys: ["^_"]

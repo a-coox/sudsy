@@ -72,31 +72,65 @@ fn contains(kinds: &[SyntaxKind], kind: SyntaxKind) -> bool {
     kinds.binary_search(&kind).is_ok()
 }
 
-/// Assigns each child of `parent` to a slot of `pattern` (the generated accessors and the
-/// conformance shape check use this one routine).
+/// What [`assign`] needs to know about a node's body: a [`Pattern`], or a grammar's resolved body
+/// (see [`crate::Grammar::slot`]).
+pub trait Body {
+    fn slots(&self) -> usize;
+    fn accepts(&self, slot: usize, kind: SyntaxKind) -> bool;
+    fn many(&self, slot: usize) -> bool;
+    fn skips(&self, kind: SyntaxKind) -> bool;
+}
+
+impl Body for Pattern<'_> {
+    fn slots(&self) -> usize {
+        self.slots.len()
+    }
+    fn accepts(&self, slot: usize, kind: SyntaxKind) -> bool {
+        contains(self.slots[slot].kinds, kind)
+    }
+    fn many(&self, slot: usize) -> bool {
+        self.slots[slot].many
+    }
+    fn skips(&self, kind: SyntaxKind) -> bool {
+        contains(self.skip, kind)
+    }
+}
+
+impl<B: Body> Body for &B {
+    fn slots(&self) -> usize {
+        (**self).slots()
+    }
+    fn accepts(&self, slot: usize, kind: SyntaxKind) -> bool {
+        (**self).accepts(slot, kind)
+    }
+    fn many(&self, slot: usize) -> bool {
+        (**self).many(slot)
+    }
+    fn skips(&self, kind: SyntaxKind) -> bool {
+        (**self).skips(kind)
+    }
+}
+
+/// Assigns each child of `parent` to a slot of `body` (the generated accessors, the conformance
+/// shape check and [`crate::Grammar::slot`] use this one routine).
 ///
 /// Children are matched in order: a child goes to the first slot at or after the current one that
 /// accepts its kind, which skips slots of absent optional items. A `many` slot stays current until a
 /// later slot takes a child; any other slot is current only up to its match. A child no later slot
 /// accepts (a separator, or something the grammar does not describe) gets no slot and does not
 /// move the current one.
-pub fn assign<'a>(
+pub fn assign<'a, B: Body + 'a>(
     parent: &SyntaxNode,
-    pattern: &'a Pattern<'a>,
+    body: B,
 ) -> impl Iterator<Item = (usize, SyntaxElement)> + 'a {
     let mut current = 0;
     parent.children_with_tokens().filter_map(move |child| {
         let kind = child.kind();
-        if contains(pattern.skip, kind) {
+        if body.skips(kind) {
             return None;
         }
-        let index =
-            (current..pattern.slots.len()).find(|&i| contains(pattern.slots[i].kinds, kind))?;
-        current = if pattern.slots[index].many {
-            index
-        } else {
-            index + 1
-        };
+        let index = (current..body.slots()).find(|&i| body.accepts(i, kind))?;
+        current = if body.many(index) { index } else { index + 1 };
         Some((index, child))
     })
 }

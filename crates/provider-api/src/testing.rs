@@ -130,6 +130,7 @@ fn analyze(
         grammar: provider.grammar(),
         lines: &lines,
         body_kinds: provider.body_kinds(),
+        hooks: provider.rule_hooks(),
         semantics: data.as_ref().map(|data| SemanticView {
             data,
             summaries: &summaries,

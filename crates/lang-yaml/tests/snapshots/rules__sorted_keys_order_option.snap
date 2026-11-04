@@ -1,7 +1,0 @@
----
-source: crates/lang-yaml/tests/rules.rs
-expression: "fixed(\"b: 1\\nname: x\\na: 2\\n\", rules, true)"
----
-name: x
-a: 2
-b: 1

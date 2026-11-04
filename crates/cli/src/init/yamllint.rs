@@ -140,6 +140,13 @@ fn rule(name: &str, conf: &Value, default_base: bool, out: &mut Out) {
         }
         "key-ordering" => {
             lint(out, "key-ordering", "sorted-keys");
+            out.rule_opt(
+                "key-ordering",
+                "yaml",
+                "sorted-keys",
+                "report",
+                "misplaced".into(),
+            );
             if let Some(keys) = take("ignored-keys") {
                 out.rule_opt(
                     "key-ordering.ignored-keys",

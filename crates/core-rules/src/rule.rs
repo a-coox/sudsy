@@ -1,6 +1,7 @@
 //! The rule trait and the contexts rules run in.
 
 use crate::diagnostic::{Category, Diagnostic, FixKind, Severity};
+use crate::hooks::RuleHooks;
 use crate::layout::{LayoutRole, LayoutSink};
 use crate::lines::LineIndex;
 use crate::options::{Check, OptionDecl, RuleOptions};
@@ -68,6 +69,8 @@ pub struct FileContext<'a> {
     /// What the provider's semantic model says about the file, when the file's rules need the
     /// layers and the depth allows them.
     pub semantics: Option<SemanticView<'a>>,
+    /// The language's answers to the shared rules' questions about keys and scalars.
+    pub hooks: &'a dyn RuleHooks,
 }
 
 /// A method, lambda or local function, with its flow graph when the flow layer is available.
@@ -141,6 +144,13 @@ pub trait Rule: Send + Sync {
 
     /// Node scope: the kinds [`Rule::check`] is called for.
     fn kinds(&self) -> &[SyntaxKind] {
+        &[]
+    }
+
+    /// Node scope by grammar tag: [`Rule::check`] is also called for every node whose kind
+    /// carries one of these tags in the file's grammar (`mapping`, `sequence`), so a rule about a
+    /// shared concept runs in every language that tags it.
+    fn tags(&self) -> &[&'static str] {
         &[]
     }
 
