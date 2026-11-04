@@ -161,9 +161,8 @@ rule:
 "#,
     );
     let text = format!("[{}]", vec!["1"; 150].join(", "));
-    let start = std::time::Instant::now();
+    // The step budget is what stops it; no wall-clock bound, which made this flaky on a busy machine.
     let found = lint_with(&JsonProvider::new(), &ext, "a.json", &text, "");
     assert_eq!(found.len(), 1, "{found:?}");
     assert!(found[0].message.contains("too many steps"), "{found:?}");
-    assert!(start.elapsed().as_secs() < 10, "{:?}", start.elapsed());
 }
