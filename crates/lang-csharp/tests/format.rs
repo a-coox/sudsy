@@ -492,6 +492,8 @@ using Aa;
 class C { }
 ",
     [("sort_usings", OptionValue::Bool(true))]
+);
+
 // preserve_single_line_* ----------------------------------------------------------------------------------------------
 
 const SINGLE_LINE_SOURCE: &str = "class C\n{\n    int P { get { return 1; } set { value++; } }\n    int R() { return 1; }\n    void M(int x)\n    {\n        if (x > 1) { x++; } else { x--; }\n        int a = 1; int b = 2;\n        while (x > 0) { if (a > 1) { b++; } x--; }\n        try { x++; } catch (E) { x--; } finally { x = 0; }\n        if (x > 1) { // c\n            x++; }\n        switch (x) { case 1: break; }\n        Action f = () => { x++; };\n        { x = 1; y = 2; }\n    }\n}\n";
