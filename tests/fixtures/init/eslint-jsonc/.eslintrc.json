@@ -1,0 +1,25 @@
+{
+  "root": true,
+  "overrides": [
+    {
+      "files": ["*.json", "*.jsonc"],
+      "parser": "jsonc-eslint-parser",
+      "rules": {
+        "jsonc/sort-keys": ["error", "desc", { "minKeys": 3, "allowLineSeparatedGroups": true }],
+        "jsonc/sort-array-values": ["warn", { "pathPattern": "^files$", "order": { "type": "asc" } }],
+        "jsonc/key-name-casing": ["error", { "camelCase": false, "snake_case": true, "ignores": ["^\\$"] }],
+        "jsonc/no-dupe-keys": "off",
+        "jsonc/array-bracket-spacing": ["error", "always"],
+        "jsonc/object-curly-spacing": ["error", "never"],
+        "jsonc/comma-dangle": ["error", "always-multiline"],
+        "jsonc/indent": ["error", "tab"],
+        "jsonc/object-curly-newline": "error",
+        "jsonc/no-comments": "off",
+        "jsonc/quotes": "error",
+        "jsonc/key-spacing": "error",
+        "jsonc/not-a-rule": "error",
+        "no-console": "error"
+      }
+    }
+  ]
+}

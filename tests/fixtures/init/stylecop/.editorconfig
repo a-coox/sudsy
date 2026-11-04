@@ -1,0 +1,10 @@
+root = true
+
+[*.cs]
+indent_style = tab
+dotnet_diagnostic.SA1005.severity = none
+dotnet_diagnostic.SA1201.severity = error
+dotnet_diagnostic.SA1202.severity = warning
+dotnet_diagnostic.SA1600.severity = warning
+dotnet_diagnostic.SA1633.severity = suggestion
+dotnet_diagnostic.SA9999.severity = error

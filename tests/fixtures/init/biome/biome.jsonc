@@ -1,0 +1,19 @@
+{
+  // Biome config
+  "$schema": "https://biomejs.dev/schemas/2.0.0/schema.json",
+  "formatter": { "indentStyle": "space", "indentWidth": 4, "lineWidth": 100, "useEditorconfig": true },
+  "json": {
+    "formatter": { "lineEnding": "crlf", "trailingCommas": "all", "expand": "always", "trailingNewline": false, "bracketSpacing": false, "delimiterSpacing": true },
+    "parser": { "allowComments": true, "allowTrailingCommas": true },
+  },
+  "linter": {
+    "rules": {
+      "recommended": true,
+      "suspicious": { "noDuplicateObjectKeys": "warn", "noEmptyObjectKeys": "error", "noDuplicateDependencies": "error" },
+      "nursery": { "noJsonUnsafeValues": "error" },
+      "correctness": { "noUnusedVariables": "error" }
+    }
+  },
+  "assist": { "actions": { "source": { "useSortedKeys": "on" } } },
+  "overrides": [{ "includes": ["**/*.json"], "json": {} }]
+}

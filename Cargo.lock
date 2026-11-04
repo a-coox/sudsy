@@ -321,6 +321,8 @@ dependencies = [
  "lsp",
  "mimalloc",
  "provider-api",
+ "serde",
+ "serde-saphyr",
  "serde_json",
  "tempfile",
 ]

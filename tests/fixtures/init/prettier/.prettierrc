@@ -1,0 +1,14 @@
+printWidth: 100
+tabWidth: 4
+useTabs: true
+singleQuote: true
+bracketSpacing: false
+endOfLine: crlf
+semi: false
+trailingComma: all
+objectWrap: collapse
+proseWrap: always
+overrides:
+  - files: "*.md"
+    options:
+      tabWidth: 2

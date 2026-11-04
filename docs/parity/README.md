@@ -52,3 +52,6 @@ Planned work is grouped so related entries land together.
 | B11 csharpier-gaps | using sort, inactive `#if` branches, layout differences |
 | B12 editorconfig-mapping | the `.editorconfig` keys not mapped yet |
 | B13 existing-rule-options | options of rules that exist |
+
+## Migration
+`sudsy init --from <tool>` ([config/cli.md](../config/cli.md#init---from)) turns a tool's config into a `sudsy.yaml` with this catalog as the source of truth: the catalog files are embedded in the binary, the reason printed for a setting that cannot be migrated is the entry's `gap` (or its status), and the C# `.editorconfig` entries that switch off covered SA rules come from the `covered` StyleCop entries. The option and rule values are mapped in code (`crates/cli/src/init/`); each mapping names its catalog entry and debug builds fail when the entry points elsewhere. A new `rule:` or `option:` status therefore changes what `init` writes for the settings that use it; the fixtures under `tests/fixtures/init/` show the result.
