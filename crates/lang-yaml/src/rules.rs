@@ -336,16 +336,18 @@ impl Rule for SortedKeys {
             .filter_map(|e| e.key().map(|k| (e, k)))
             .collect();
         let names: Vec<String> = entries.iter().map(|(_, k)| key_identity(k, ctx)).collect();
-        let keys: Vec<&str> = names.iter().map(String::as_str).collect();
-        let ranges: Vec<TextRange> = entries
-            .iter()
-            .map(|(e, _)| entry_range(e.syntax(), ctx.file.grammar))
-            .collect();
+        let range = |i: usize| entry_range(entries[i].0.syntax(), ctx.file.grammar);
+        let text = ctx.file.text;
         let sorting = Sorting::new(ctx.options, "min_keys");
-        let blank = sorting.blank_before(ctx.file.text, &ranges);
-        let Some(plan) = sorting.plan_keys(&keys, &blank) else {
+        let blank = |i: usize| {
+            sorting::has_blank_line(
+                &text[usize::from(range(i - 1).end())..usize::from(range(i).start())],
+            )
+        };
+        let Some(plan) = sorting.plan_keys(&names, blank) else {
             return;
         };
+        let ranges: Vec<TextRange> = (0..entries.len()).map(range).collect();
         let edits = reorder_edits(ctx.file.text, &ranges, &plan.sorted);
         // Every key that sorts before the one above it is reported, like yamllint; the first
         // report carries the fix for the whole mapping.

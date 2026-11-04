@@ -1,6 +1,6 @@
 //! `perf-bench fixed LANG PHASE [--inputs DIR]`: one fixed, deterministic workload for scripts/bench.sh,
 //! which runs it under callgrind (instruction counts) and with `--features count` (allocations).
-//! LANG is json, yaml or cs; PHASE is parse, format, format-query, lint, patterns or plugins. Inputs are the
+//! LANG is json, yaml or cs; PHASE is parse, format, format-query, lint, lint-all, patterns or plugins. Inputs are the
 //! committed files under DIR (default bench/inputs/<lang>) plus generated JSON and YAML. Only the
 //! work inside `measured` is counted; callgrind is told to collect between its entry and exit.
 
@@ -132,6 +132,14 @@ pub fn run(lang: &str, phase: &str, dir: &Path) -> Result<()> {
             let (w, a) = measured(&mut || diagnostics(p, &files, &rules));
             (files.len(), w, a)
         }
+        "lint-all" => {
+            // Every rule of the provider on at its default options, opt-in rules included.
+            let files = parsed();
+            let rules: Vec<ActiveRule<'_>> =
+                p.rules().iter().map(|r| extensions::active(*r)).collect();
+            let (w, a) = measured(&mut || diagnostics(p, &files, &rules));
+            (files.len(), w, a)
+        }
         "patterns" => {
             let files = parsed();
             let (w, a) = measured(&mut || {
@@ -162,7 +170,7 @@ pub fn run(lang: &str, phase: &str, dir: &Path) -> Result<()> {
             });
             (files.len(), w, a)
         }
-        _ => bail!("PHASE is parse, format, format-query, lint, patterns or plugins"),
+        _ => bail!("PHASE is parse, format, format-query, lint, lint-all, patterns or plugins"),
     };
     let allocs = if cfg!(feature = "count") {
         format!(" allocs={allocs}")

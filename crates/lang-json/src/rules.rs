@@ -115,17 +115,19 @@ impl Rule for SortedKeys {
             .iter()
             .map(|(_, k)| string_value(k.text()))
             .collect();
-        let keys: Vec<&str> = names.iter().map(|n| &**n).collect();
         let grammar = ctx.file.grammar;
-        let ranges: Vec<_> = members
-            .iter()
-            .map(|(m, _)| significant_range(m.syntax(), grammar))
-            .collect();
+        let text = ctx.file.text;
+        let range = |i: usize| significant_range(members[i].0.syntax(), grammar);
         let sorting = Sorting::new(ctx.options, "min_keys");
-        let blank = sorting.blank_before(ctx.file.text, &ranges);
-        let Some(plan) = sorting.plan_keys(&keys, &blank) else {
+        let blank = |i: usize| {
+            sorting::has_blank_line(
+                &text[usize::from(range(i - 1).end())..usize::from(range(i).start())],
+            )
+        };
+        let Some(plan) = sorting.plan_keys(&names, blank) else {
             return;
         };
+        let ranges: Vec<_> = (0..members.len()).map(range).collect();
         let edits = reorder_edits(ctx.file.text, &ranges, &plan.sorted);
         let mut fix = Some(Fix::new(
             "Sort the keys of this object",

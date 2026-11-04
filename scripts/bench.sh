@@ -66,8 +66,8 @@ for side in cand base; do
   if [ $instr = 1 ]; then
     echo "== $side: instructions"
     if [ $windows = 1 ]; then
-      wslrun "$(wsl_path "$root")/scripts/bench-measure.sh --src $(wsl_path "$s") --target \$HOME/.cache/sudsy-bench/$side --inputs $(wsl_path "$inputs") --mode instr --langs 'json yaml' --out \$HOME/.cache/sudsy-bench/$side.instr"
-      wslrun "cat \$HOME/.cache/sudsy-bench/$side.instr" >"$out/$side.instr"
+      wslrun "$(wsl_path "$root")/scripts/bench-measure.sh --src $(wsl_path "$s") --target \$HOME/.cache/sudsy-bench/$(basename "$root")/$side --inputs $(wsl_path "$inputs") --mode instr --langs 'json yaml' --out \$HOME/.cache/sudsy-bench/$(basename "$root")/$side.instr"
+      wslrun "cat \$HOME/.cache/sudsy-bench/$(basename "$root")/$side.instr" >"$out/$side.instr"
     else
       scripts/bench-measure.sh --src "$s" --target "$work/$side" --inputs "$inputs" --mode instr \
         --langs "json yaml" --out "$out/$side.instr"

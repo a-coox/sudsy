@@ -9,7 +9,6 @@ use crate::rule::{BodyContext, FileContext, Rule, RuleContext};
 use crate::suppress::Suppressions;
 use core_semantics::Layers;
 use core_syntax::SyntaxKind;
-use std::collections::HashMap;
 use std::path::PathBuf;
 
 /// A rule that is on for a file: its severity and checked options.
@@ -65,10 +64,14 @@ pub(crate) fn traverse(
     mut layout: Option<&mut LayoutSink>,
 ) -> FileReport {
     let mut diagnostics = Vec::new();
-    let mut by_kind: HashMap<SyntaxKind, Vec<usize>> = HashMap::new();
+    // Sorted by kind: a handful of kinds, looked up once per node, so a binary search beats hashing.
+    let mut by_kind: Vec<(SyntaxKind, Vec<usize>)> = Vec::new();
     for (i, a) in active.iter().enumerate() {
         for &kind in a.rule.kinds() {
-            by_kind.entry(kind).or_default().push(i);
+            match by_kind.binary_search_by_key(&kind, |e| e.0) {
+                Ok(at) => by_kind[at].1.push(i),
+                Err(at) => by_kind.insert(at, (kind, vec![i])),
+            }
         }
     }
     let mut run = |index: usize, f: &mut dyn FnMut(&dyn Rule, &mut RuleContext<'_>)| {
@@ -84,8 +87,8 @@ pub(crate) fn traverse(
         f(a.rule, &mut ctx);
     };
     for node in file.root.descendants() {
-        if let Some(indices) = by_kind.get(&node.kind()) {
-            for &i in indices {
+        if let Ok(at) = by_kind.binary_search_by_key(&node.kind(), |e| e.0) {
+            for &i in &by_kind[at].1 {
                 run(i, &mut |rule, ctx| rule.check(&node, ctx));
             }
         }

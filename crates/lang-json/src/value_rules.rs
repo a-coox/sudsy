@@ -1,6 +1,6 @@
 //! JSON rules on values, both opt-in: `unsafe-numbers` and `sorted-array-values`.
 
-use crate::generated::{AnyValue, Array, Literal, kind};
+use crate::generated::{Array, Literal, kind};
 use crate::string::string_value;
 use core_config::Level;
 use core_rules::sorting::{self, Sorting};
@@ -97,21 +97,6 @@ static SORTED_ARRAY_VALUES: RuleMeta = RuleMeta {
     ],
 };
 
-/// The scalar a string or number element holds.
-enum Scalar<'a> {
-    Text(std::borrow::Cow<'a, str>),
-    Number(f64),
-}
-
-fn scalar(element: &AnyValue) -> Option<Scalar<'static>> {
-    let token = Literal::cast(element.syntax().clone())?.value()?;
-    match token.kind() {
-        kind::STRING => Some(Scalar::Text(string_value(token.text()).into_owned().into())),
-        kind::NUMBER => token.text().parse().ok().map(Scalar::Number),
-        _ => None,
-    }
-}
-
 impl Rule for SortedArrayValues {
     fn meta(&self) -> &'static RuleMeta {
         &SORTED_ARRAY_VALUES
@@ -125,59 +110,56 @@ impl Rule for SortedArrayValues {
         let Some(array) = Array::cast(node.clone()) else {
             return;
         };
-        let elements: Vec<AnyValue> = array.elements().collect();
-        let Some(values) = elements.iter().map(scalar).collect::<Option<Vec<_>>>() else {
+        // A literal is one token, so the token is also the element's range.
+        let Some(tokens) = array
+            .elements()
+            .map(|e| Literal::cast(e.syntax().clone()).and_then(|l| l.value()))
+            .collect::<Option<Vec<_>>>()
+        else {
+            return;
+        };
+        let Some(first) = tokens.first().map(|t| t.kind()) else {
             return;
         };
         let sorting = Sorting::new(ctx.options, "min_values");
-        let grammar = ctx.file.grammar;
-        let ranges: Vec<_> = elements
-            .iter()
-            .map(|e| entry_range(e.syntax(), grammar))
-            .collect();
-        let blank = sorting.blank_before(ctx.file.text, &ranges);
-        let plan = match values.first() {
-            Some(Scalar::Number(_)) => {
-                let nums: Option<Vec<f64>> = values
-                    .iter()
-                    .map(|v| {
-                        if let Scalar::Number(n) = v {
-                            Some(*n)
-                        } else {
-                            None
-                        }
-                    })
-                    .collect();
-                nums.and_then(|nums| {
-                    sorting.plan(
-                        nums.len(),
-                        &blank,
-                        |_| false,
-                        |a, b| {
-                            sorting
-                                .directed(nums[a].partial_cmp(&nums[b]).unwrap_or(Ordering::Equal))
-                        },
-                    )
+        let text = ctx.file.text;
+        let blank = |i: usize| {
+            let gap = tokens[i - 1].text_range().end()..tokens[i].text_range().start();
+            sorting::has_blank_line(&text[usize::from(gap.start)..usize::from(gap.end)])
+        };
+        let plan = if first == kind::NUMBER {
+            let numbers: Option<Vec<f64>> = tokens
+                .iter()
+                .map(|t| {
+                    (t.kind() == kind::NUMBER)
+                        .then(|| t.text().parse().ok())
+                        .flatten()
                 })
-            }
-            Some(Scalar::Text(_)) => {
-                let texts: Option<Vec<&str>> = values
-                    .iter()
-                    .map(|v| {
-                        if let Scalar::Text(t) = v {
-                            Some(&**t)
-                        } else {
-                            None
-                        }
-                    })
-                    .collect();
-                texts.and_then(|texts| sorting.plan_keys(&texts, &blank))
-            }
-            None => None,
+                .collect();
+            numbers.and_then(|n| {
+                let order = |a: usize, b: usize| {
+                    sorting.directed(n[a].partial_cmp(&n[b]).unwrap_or(Ordering::Equal))
+                };
+                sorting.plan(n.len(), blank, |_| false, order)
+            })
+        } else if first == kind::STRING {
+            let strings: Option<Vec<_>> = tokens
+                .iter()
+                .map(|t| (t.kind() == kind::STRING).then(|| string_value(t.text())))
+                .collect();
+            strings.and_then(|s| sorting.plan_keys(&s, blank))
+        } else {
+            None
         };
         let Some(plan) = plan else {
             return;
         };
+        let grammar = ctx.file.grammar;
+        let ranges: Vec<_> = tokens
+            .iter()
+            .filter_map(|t| t.parent())
+            .map(|literal| entry_range(&literal, grammar))
+            .collect();
         let edits = reorder_edits(ctx.file.text, &ranges, &plan.sorted);
         let mut fix = Some(Fix::new(
             "Sort the values of this array",
@@ -185,8 +167,7 @@ impl Rule for SortedArrayValues {
             edits,
         ));
         for i in plan.moved {
-            let at = core_rules::tree::significant_range(elements[i].syntax(), grammar);
-            let report = ctx.report(at, "values are not sorted");
+            let report = ctx.report(tokens[i].text_range(), "values are not sorted");
             if let Some(f) = fix.take() {
                 report.fix(f);
             }

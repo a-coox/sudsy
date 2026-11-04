@@ -2,7 +2,6 @@
 //! the comparison and the plan that says which entries are out of place and where each belongs.
 
 use crate::options::{Opt, OptionDecl, RuleOptions};
-use core_syntax::TextRange;
 use regex::Regex;
 use std::cell::RefCell;
 use std::cmp::Ordering;
@@ -111,18 +110,6 @@ impl<'a> Sorting<'a> {
         }
     }
 
-    /// For `blank_line_groups`: whether a blank line precedes each of the entries at `ranges`.
-    pub fn blank_before(&self, text: &str, ranges: &[TextRange]) -> Vec<bool> {
-        let mut out = vec![false; ranges.len()];
-        if self.blank_line_groups {
-            for (i, pair) in ranges.windows(2).enumerate() {
-                let gap = &text[usize::from(pair[0].end())..usize::from(pair[1].start())];
-                out[i + 1] = has_blank_line(gap);
-            }
-        }
-        out
-    }
-
     /// `ord` for the configured direction.
     pub fn directed(&self, ord: Ordering) -> Ordering {
         if self.descending { ord.reverse() } else { ord }
@@ -139,9 +126,14 @@ impl<'a> Sorting<'a> {
         })
     }
 
-    /// The plan for entries with these keys. `blank_before[i]` is whether a blank line precedes
-    /// entry `i`. `None` when nothing is out of place.
-    pub fn plan_keys(&self, keys: &[&str], blank_before: &[bool]) -> Option<Plan> {
+    /// The plan for entries with these keys. `blank_before(i)` says whether a blank line precedes
+    /// entry `i` (`i > 0`); it is only asked with `blank_line_groups`. `None` when nothing is out
+    /// of place.
+    pub fn plan_keys<K: AsRef<str>>(
+        &self,
+        keys: &[K],
+        blank_before: impl Fn(usize) -> bool,
+    ) -> Option<Plan> {
         let rank = |k: &str| {
             self.order
                 .iter()
@@ -151,11 +143,15 @@ impl<'a> Sorting<'a> {
         self.plan(
             keys.len(),
             blank_before,
-            |i| self.ignored.iter().any(|r| r.is_match(keys[i])),
+            |i| {
+                !self.ignored.is_empty()
+                    && self.ignored.iter().any(|r| r.is_match(keys[i].as_ref()))
+            },
             |a, b| {
-                let (ra, rb) = (rank(keys[a]), rank(keys[b]));
+                let (a, b) = (keys[a].as_ref(), keys[b].as_ref());
+                let (ra, rb) = (rank(a), rank(b));
                 if ra == rb && ra == self.order.len() {
-                    self.text(keys[a], keys[b])
+                    self.text(a, b)
                 } else {
                     ra.cmp(&rb)
                 }
@@ -164,24 +160,41 @@ impl<'a> Sorting<'a> {
     }
 
     /// The plan for `n` entries ordered by `cmp` (final order, direction included). Entries for
-    /// which `skip` holds stay where they are.
+    /// which `skip` hold stay where they are. Sorted input costs one pass and no allocation.
     pub fn plan(
         &self,
         n: usize,
-        blank_before: &[bool],
+        blank_before: impl Fn(usize) -> bool,
         skip: impl Fn(usize) -> bool,
         cmp: impl Fn(usize, usize) -> Ordering,
     ) -> Option<Plan> {
         if n < self.min {
             return None;
         }
-        let mut sorted: Vec<usize> = (0..n).collect();
+        let starts_group = |i: usize| self.blank_line_groups && i > 0 && blank_before(i);
+        // Below the greatest entry so far in the group, not only below its neighbour.
         let mut misplaced = Vec::new();
+        let mut top: Option<usize> = None;
+        for i in 0..n {
+            if starts_group(i) {
+                top = None;
+            }
+            if skip(i) {
+                continue;
+            }
+            match top {
+                Some(t) if cmp(t, i) == Ordering::Greater => misplaced.push(i),
+                _ => top = Some(i),
+            }
+        }
+        if misplaced.is_empty() {
+            return None;
+        }
+        let mut sorted: Vec<usize> = (0..n).collect();
         let mut moved = Vec::new();
         let mut group: Vec<usize> = Vec::new();
-        let mut top: Option<usize> = None;
         for i in 0..=n {
-            if i == n || (self.blank_line_groups && blank_before.get(i) == Some(&true)) {
+            if i == n || starts_group(i) {
                 let mut by = group.clone();
                 by.sort_by(|&a, &b| cmp(a, b));
                 if by != group {
@@ -191,18 +204,12 @@ impl<'a> Sorting<'a> {
                     sorted[*slot] = item;
                 }
                 group.clear();
-                top = None;
             }
             if i < n && !skip(i) {
-                // Below the greatest entry so far in the group, not only below its neighbour.
-                match top {
-                    Some(t) if cmp(t, i) == Ordering::Greater => misplaced.push(i),
-                    _ => top = Some(i),
-                }
                 group.push(i);
             }
         }
-        (!misplaced.is_empty()).then_some(Plan {
+        Some(Plan {
             sorted,
             misplaced,
             moved,
@@ -294,7 +301,7 @@ mod tests {
     }
 
     fn sorted(opts: &RuleOptions, keys: &[&str]) -> Vec<usize> {
-        let plan = Sorting::new(opts, "min_keys").plan_keys(keys, &vec![false; keys.len()]);
+        let plan = Sorting::new(opts, "min_keys").plan_keys(keys, |_| false);
         plan.map_or_else(|| (0..keys.len()).collect(), |p| p.sorted)
     }
 
@@ -326,7 +333,7 @@ mod tests {
         assert_eq!(sorted(&ignored, &["c", "x1", "a"]), [2, 1, 0]);
         let groups = sorting(&[("blank_line_groups", OptionValue::Bool(true))]);
         let plan = Sorting::new(&groups, "min_keys")
-            .plan_keys(&["b", "a", "d", "c"], &[false, false, true, false])
+            .plan_keys(&["b", "a", "d", "c"], |i| i == 2)
             .unwrap();
         assert_eq!(
             (plan.sorted, plan.misplaced),
