@@ -76,25 +76,56 @@ impl Rule for NoDuplicateKeys {
             .filter(|_| ctx.options.string("merge_keys") == "allow");
         // Ranges are found only for the keys that are reported (finding one reads the tree), so
         // the first occurrence is kept as its index and looked up again on a duplicate.
-        let mut seen: HashMap<Cow<'_, str>, usize> = HashMap::new();
+        let mut seen = Seen::default();
         for (index, (_, key)) in entries(node, grammar).enumerate() {
             let name = hooks.key_name(&key, text);
             if merge_key == Some(&*name) {
                 continue;
             }
-            match seen.get(&name) {
-                Some(&first) => {
-                    let first = entries(node, grammar)
-                        .nth(first)
-                        .map_or_else(|| key_range(&key, grammar), |(_, k)| key_range(&k, grammar));
-                    ctx.report(key_range(&key, grammar), format!("duplicate key `{name}`"))
-                        .related(first, "first defined here");
-                }
-                None => {
-                    seen.insert(name, index);
-                }
+            if let Some((first, name)) = seen.first(name, index) {
+                let first = entries(node, grammar)
+                    .nth(first)
+                    .map_or_else(|| key_range(&key, grammar), |(_, k)| key_range(&k, grammar));
+                ctx.report(key_range(&key, grammar), format!("duplicate key `{name}`"))
+                    .related(first, "first defined here");
             }
         }
+    }
+}
+
+const SMALL: usize = 8;
+
+/// The entry that first used each name: a linear scan for the few entries most mappings have, a
+/// hash map beyond that (hashing and growing a map cost more than comparing a handful of names).
+#[derive(Default)]
+struct Seen<'a> {
+    small: [(Cow<'a, str>, usize); SMALL],
+    len: usize,
+    map: HashMap<Cow<'a, str>, usize>,
+}
+
+impl<'a> Seen<'a> {
+    /// The index of the earlier entry named `name`, with the name handed back; records `name` as
+    /// `index` when there is none.
+    fn first(&mut self, name: Cow<'a, str>, index: usize) -> Option<(usize, Cow<'a, str>)> {
+        if self.map.is_empty() {
+            if let Some((_, first)) = self.small[..self.len].iter().find(|(n, _)| *n == name) {
+                let first = *first;
+                return Some((first, name));
+            }
+            if self.len < SMALL {
+                self.small[self.len] = (name, index);
+                self.len += 1;
+                return None;
+            }
+            let small = self.small.iter_mut().map(|(n, i)| (std::mem::take(n), *i));
+            self.map.extend(small);
+        }
+        if let Some(&first) = self.map.get(&name) {
+            return Some((first, name));
+        }
+        self.map.insert(name, index);
+        None
     }
 }
 

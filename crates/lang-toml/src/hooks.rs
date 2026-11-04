@@ -64,15 +64,18 @@ fn integer(raw: &str) -> Option<f64> {
         .map(|i| i as f64)
 }
 
-/// A key made only of bare-key characters is one part, borrowed from the file text.
-fn plain_key<'a>(key: &SyntaxNode, text: &'a str) -> Option<&'a str> {
+/// A key written only with bare parts (`a`, `a.b`): its text, which is also its name.
+fn bare_key<'a>(key: &SyntaxNode, text: &'a str) -> Option<&'a str> {
     let range = key.text_range();
     let raw = &text[usize::from(range.start())..usize::from(range.end())];
-    (!raw.is_empty()
-        && raw
-            .bytes()
-            .all(|b| b.is_ascii_alphanumeric() || b == b'_' || b == b'-'))
-    .then_some(raw)
+    raw.split('.')
+        .all(|part| {
+            !part.is_empty()
+                && part
+                    .bytes()
+                    .all(|b| b.is_ascii_alphanumeric() || b == b'_' || b == b'-')
+        })
+        .then_some(raw)
 }
 
 /// The decoded parts of a key (`a."b.c".d` has three).
@@ -95,8 +98,10 @@ impl RuleHooks for TomlHooks {
         let SyntaxElement::Node(key) = key else {
             return None;
         };
-        if plain_key(key, text).is_some() {
-            return None;
+        if let Some(bare) = bare_key(key, text) {
+            return bare
+                .contains('.')
+                .then(|| bare.split('.').map(Cow::Borrowed).collect());
         }
         Some(parts(key, text).collect())
     }
@@ -105,7 +110,7 @@ impl RuleHooks for TomlHooks {
         let SyntaxElement::Node(key) = key else {
             return Cow::Borrowed("");
         };
-        if let Some(plain) = plain_key(key, text) {
+        if let Some(plain) = bare_key(key, text) {
             return Cow::Borrowed(plain);
         }
         let mut parts = parts(key, text);
