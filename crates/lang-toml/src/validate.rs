@@ -4,10 +4,10 @@
 //! tables, tables and arrays of tables that conflict, extending an inline table or a value).
 
 use crate::generated::kind;
-use crate::hooks::{key_parts, leaves};
+use crate::hooks::key_parts;
 use core_syntax::{SyntaxKind, SyntaxNode, TextRange};
 use provider_api::ParseError;
-use rowan::{GreenNodeData as Green, NodeOrToken};
+use rowan::{GreenNodeData as Green, GreenTokenData, NodeOrToken};
 use std::borrow::Cow;
 use std::collections::HashMap;
 
@@ -28,6 +28,25 @@ fn nodes(node: &Green, start: u32) -> impl Iterator<Item = (u32, &Green)> {
         NodeOrToken::Token(t) => {
             at += u32::from(t.text_len());
             None
+        }
+    })
+}
+
+/// The tokens under a green node with their start offsets.
+fn leaves(node: &Green, start: u32) -> impl Iterator<Item = (u32, &GreenTokenData)> {
+    let (mut stack, mut at) = (vec![node.children()], start);
+    std::iter::from_fn(move || {
+        loop {
+            match stack.last_mut()?.next() {
+                None => {
+                    stack.pop();
+                }
+                Some(NodeOrToken::Node(n)) => stack.push(n.children()),
+                Some(NodeOrToken::Token(t)) => {
+                    at += u32::from(t.text_len());
+                    return Some((at - u32::from(t.text_len()), t));
+                }
+            }
         }
     })
 }

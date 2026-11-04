@@ -5,7 +5,7 @@ use crate::generated::{Literal, kind};
 use core_rules::{RuleHooks, Scalar};
 use core_syntax::ast::AstNode;
 use core_syntax::{SyntaxElement, SyntaxKind, SyntaxNode, SyntaxToken};
-use rowan::{GreenNodeData, GreenTokenData, NodeOrToken};
+use rowan::{GreenNodeData, NodeOrToken};
 use std::borrow::Cow;
 
 pub struct TomlHooks;
@@ -79,25 +79,6 @@ fn bare_key<'a>(key: &SyntaxNode, text: &'a str) -> Option<&'a str> {
         .then_some(raw)
 }
 
-/// The tokens under a green node with their start offsets.
-pub fn leaves(node: &GreenNodeData, start: u32) -> impl Iterator<Item = (u32, &GreenTokenData)> {
-    let (mut stack, mut at) = (vec![node.children()], start);
-    std::iter::from_fn(move || {
-        loop {
-            match stack.last_mut()?.next() {
-                None => {
-                    stack.pop();
-                }
-                Some(NodeOrToken::Node(n)) => stack.push(n.children()),
-                Some(NodeOrToken::Token(t)) => {
-                    at += u32::from(t.text_len());
-                    return Some((at - u32::from(t.text_len()), t));
-                }
-            }
-        }
-    })
-}
-
 /// Replaces `out` with the decoded parts of the key at `start` (`a."b.c".d` has three); returns
 /// where the last one ends.
 pub fn key_parts<'a>(
@@ -106,20 +87,36 @@ pub fn key_parts<'a>(
     text: &'a str,
     out: &mut Vec<Cow<'a, str>>,
 ) -> u32 {
-    let mut end = start;
     out.clear();
-    out.extend(leaves(key, start).filter_map(|(at, t)| {
-        let to = at + u32::from(t.text_len());
-        let raw = &text[at as usize..to as usize];
-        let part = match SyntaxKind(t.kind().0) {
-            kind::QUOTED_KEY => unquote(raw),
-            kind::BARE_KEY => Cow::Borrowed(raw),
-            _ => return None,
-        };
-        end = to;
-        Some(part)
-    }));
+    let (mut at, mut end) = (start, start);
+    push_parts(key, text, out, &mut at, &mut end);
     end
+}
+
+/// Recursive: a dotted key is nested keys, and a stack for the walk would cost an allocation.
+fn push_parts<'a>(
+    node: &GreenNodeData,
+    text: &'a str,
+    out: &mut Vec<Cow<'a, str>>,
+    at: &mut u32,
+    end: &mut u32,
+) {
+    for child in node.children() {
+        match child {
+            NodeOrToken::Node(n) => push_parts(n, text, out, at, end),
+            NodeOrToken::Token(t) => {
+                let from = *at;
+                *at += u32::from(t.text_len());
+                let raw = &text[from as usize..*at as usize];
+                match SyntaxKind(t.kind().0) {
+                    kind::QUOTED_KEY => out.push(unquote(raw)),
+                    kind::BARE_KEY => out.push(Cow::Borrowed(raw)),
+                    _ => continue,
+                }
+                *end = *at;
+            }
+        }
+    }
 }
 
 fn parts<'a>(key: &SyntaxNode, text: &'a str) -> Vec<Cow<'a, str>> {
