@@ -22,6 +22,7 @@ Each parallel agent works in its own git worktree and sets `CARGO_TARGET_DIR=C:/
 
 ## Conventions
 - Errors: `thiserror` in libraries, `anyhow` only in binaries (`cli`, `lsp`). `unsafe_code = "forbid"`.
+- `.cargo/config.toml` points `TEMP`/`TMP`/`TMPDIR` at `.cargo/tmp` (inside the repo, so no `.gitignore` there: the project walk honors it), so `tempfile` dirs never sit below a stray `sudsy.yaml` of the system temp dir.
 - Snapshots use `insta`. After a decision, delete the losing alternatives; results live in these docs and git history.
 - Docs describe the current state; update the relevant file in the same commit as the change.
 

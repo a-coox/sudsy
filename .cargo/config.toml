@@ -1,2 +1,8 @@
 [alias]
 xtask = "run --quiet --package xtask --"
+
+# Tests create their temp dirs here, so a stray sudsy.yaml in the system temp dir is not their parent config.
+[env]
+TEMP = { value = ".cargo/tmp", relative = true, force = true }
+TMP = { value = ".cargo/tmp", relative = true, force = true }
+TMPDIR = { value = ".cargo/tmp", relative = true, force = true }
