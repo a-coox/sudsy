@@ -92,15 +92,19 @@ pub fn entry_range(node: &SyntaxNode, grammar: &Grammar) -> TextRange {
     TextRange::new(significant.start(), end)
 }
 
-/// The range of `entry` that moves when the entries of `container` are reordered. Entries
-/// separated by a token (`#separator`, a comma) move without a trailing comment, which would
-/// swallow the separator that ends up behind it; entries without separators (block style) take
-/// the comment after them along ([`entry_range`]).
-pub fn reorder_range(container: &SyntaxNode, entry: &SyntaxNode, grammar: &Grammar) -> TextRange {
-    let separated = container
+/// Are the entries of `container` separated by a token (`#separator`, a comma)?
+pub fn has_separator(container: &SyntaxNode, grammar: &Grammar) -> bool {
+    container
         .children_with_tokens()
         .filter_map(|e| e.into_token())
-        .any(|t| grammar.has_tag(t.kind(), "separator"));
+        .any(|t| grammar.has_tag(t.kind(), "separator"))
+}
+
+/// The range of `entry` that moves when the entries of its container are reordered.
+/// `separated` is [`has_separator`] of the container: entries separated by a token move without
+/// a trailing comment, which would swallow the separator that ends up behind it; entries without
+/// separators (block style) take the comment after them along ([`entry_range`]).
+pub fn reorder_range(entry: &SyntaxNode, separated: bool, grammar: &Grammar) -> TextRange {
     if separated {
         significant_range(entry, grammar)
     } else {

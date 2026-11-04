@@ -7,7 +7,7 @@ use crate::keys::{key_range, keyed};
 use crate::options::{Check, Opt, OptionDecl};
 use crate::rule::{Rule, RuleContext, RuleMeta};
 use crate::sorting::{self, Sorting};
-use crate::tree::{reorder_edits, reorder_range, significant_range};
+use crate::tree::{has_separator, reorder_edits, reorder_range, significant_range};
 use core_config::Level;
 use core_syntax::{SyntaxElement, SyntaxNode, TextRange};
 use std::cmp::Ordering;
@@ -61,7 +61,8 @@ impl Rule for SortedKeys {
             .iter()
             .map(|(_, k)| hooks.key_name(k, text))
             .collect();
-        let range = |i: usize| reorder_range(node, &entries[i].0, grammar);
+        let separated = has_separator(node, grammar);
+        let range = |i: usize| reorder_range(&entries[i].0, separated, grammar);
         let sorting = Sorting::new(ctx.options, "min_keys");
         let blank = |i: usize| {
             sorting::has_blank_line(
@@ -132,6 +133,7 @@ impl Rule for SortedArrayValues {
     fn check(&self, node: &SyntaxNode, ctx: &mut RuleContext<'_>) {
         let (grammar, hooks, text) = (ctx.file.grammar, ctx.file.hooks, ctx.file.text);
         // `entry` is what moves (a YAML entry with its dash), `item` the value node in it.
+        let separated = has_separator(node, grammar);
         let mut entries: Vec<SyntaxNode> = Vec::new();
         let mut scalars: Vec<Scalar> = Vec::new();
         let mut at: Vec<TextRange> = Vec::new();
@@ -187,7 +189,7 @@ impl Rule for SortedArrayValues {
         };
         let ranges: Vec<TextRange> = entries
             .iter()
-            .map(|e| reorder_range(node, e, grammar))
+            .map(|e| reorder_range(e, separated, grammar))
             .collect();
         let edits = reorder_edits(text, &ranges, &plan.sorted);
         let mut fix = Some(Fix::new(
