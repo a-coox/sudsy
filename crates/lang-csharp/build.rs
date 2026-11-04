@@ -17,8 +17,10 @@ fn main() {
         // slot shared by several checkouts never reads another checkout's files.
         .map(|p| {
             let name = p.file_name().unwrap().to_str().unwrap();
-            format!("    include_str!(concat!(env!(\"CARGO_MANIFEST_DIR\"), \"/rules/{name}\")),
-")
+            format!(
+                "    include_str!(concat!(env!(\"CARGO_MANIFEST_DIR\"), \"/rules/{name}\")),
+"
+            )
         })
         .collect();
     let out = PathBuf::from(env::var("OUT_DIR").unwrap()).join("pattern_rules.rs");
