@@ -131,6 +131,55 @@ fn errors_are_lossless_and_reported() {
     }
 }
 
+fn error_codes(src: &str) -> Vec<String> {
+    let r = TomlProvider::new()
+        .parse(&SourceFile::new("a.toml", 1, src))
+        .unwrap();
+    r.errors.into_iter().map(|e| e.code).collect()
+}
+
+#[test]
+fn semantic_errors_are_parse_errors() {
+    for (src, code) in [
+        ("a = 1\n'a' = 2\n", "duplicate-key"),
+        ("a.b = 1\na.b.c = 2\n", "duplicate-key"),
+        ("t = { k = 1, k = 2 }\n", "duplicate-key"),
+        ("[a]\n[a]\n", "invalid-table"),
+        ("[a.b]\n[a]\n[a]\n", "invalid-table"),
+        ("[a]\nx.y = 1\n[a.x]\n", "invalid-table"),
+        ("a = 1\n[a.b]\n", "invalid-table"),
+        ("[a]\n[[a]]\n", "invalid-table"),
+        ("[[a]]\n[a]\n", "invalid-table"),
+        ("a = []\n[[a]]\n", "invalid-table"),
+        ("t = {}\n[t.x]\n", "invalid-table"),
+        ("d = 2023-04-31\n", "invalid-date"),
+        ("d = 2023-02-29\n", "invalid-date"),
+        ("d = 2023-02-30T00:00:00\n", "invalid-date"),
+        ("d = 10000-01-01\n", "invalid-date"),
+        ("s = \"\"\"\\q\"\"\"\n", "invalid-string"),
+        ("s = \"\\uD801\"\n", "invalid-string"),
+        ("s = \"\"\"a \\ b\"\"\"\n", "invalid-string"),
+        ("s = '''a''''''\n", "invalid-string"),
+        ("a = 1 b = 2\n", "missing-newline"),
+    ] {
+        assert_eq!(
+            error_codes(src).first().map(String::as_str),
+            Some(code),
+            "{src:?}"
+        );
+    }
+    for src in [
+        "[a.b]\n[a]\nx = 1\n",
+        "[a]\nb.c = 1\n[a.b.d]\n",
+        "[[a]]\n[a.b]\n[[a]]\n[a.b]\n",
+        "a.b = 1\na.c = 2\n",
+        "t = { a.b = 1, a.c = 2 }\nu = { a.b = 1 }\n",
+        "s = \"\"\"a \\\n   b\"\"\"\nd = 2024-02-29T23:59:60+01:00\nt = '''a'''''\n",
+    ] {
+        assert!(error_codes(src).is_empty(), "{src:?}: {:?}", error_codes(src));
+    }
+}
+
 fn collect(dir: &Path, out: &mut Vec<PathBuf>) {
     let Ok(rd) = std::fs::read_dir(dir) else {
         return;
@@ -201,7 +250,11 @@ fn conformance() {
             }
         } else {
             invalid += 1;
-            invalid_rejected += usize::from(!r.errors.is_empty());
+            if r.errors.is_empty() {
+                println!("invalid but accepted: {rel}");
+            } else {
+                invalid_rejected += 1;
+            }
         }
     }
     println!(

@@ -6,6 +6,7 @@ pub mod generated;
 mod format;
 mod hooks;
 mod mapping;
+mod validate;
 
 pub use format::{COLLAPSE, TRAILING_COMMAS, TomlFormatter, option_schema};
 
@@ -67,7 +68,12 @@ impl LanguageProvider for TomlProvider {
     }
 
     fn parse(&self, file: &SourceFile) -> Result<ParseResult, ProviderError> {
-        Ok(self.engine.parse(&file.text))
+        let mut parsed = self.engine.parse(&file.text);
+        // Semantic checks need a tree without recovery nodes.
+        if parsed.errors.is_empty() {
+            parsed.errors = validate::validate(&parsed.tree, &file.text);
+        }
+        Ok(parsed)
     }
 
     fn formatter(&self) -> &dyn NodeFormatter {

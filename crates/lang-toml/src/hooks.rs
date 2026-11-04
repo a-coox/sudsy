@@ -80,7 +80,8 @@ fn bare_key<'a>(key: &SyntaxNode, text: &'a str) -> Option<&'a str> {
 
 /// The decoded parts of a key (`a."b.c".d` has three).
 fn parts<'a>(key: &SyntaxNode, text: &'a str) -> impl Iterator<Item = Cow<'a, str>> {
-    key.children_with_tokens()
+    // `a.b.c` is nested keys, `(a.b).c`.
+    key.descendants_with_tokens()
         .filter_map(|e| e.into_token())
         .filter(|t| matches!(t.kind(), kind::BARE_KEY | kind::QUOTED_KEY))
         .map(|t| {
@@ -91,6 +92,11 @@ fn parts<'a>(key: &SyntaxNode, text: &'a str) -> impl Iterator<Item = Cow<'a, st
                 Cow::Borrowed(raw)
             }
         })
+}
+
+/// The decoded parts of a key as owned names.
+pub fn key_parts(key: &SyntaxNode, text: &str) -> Vec<String> {
+    parts(key, text).map(Cow::into_owned).collect()
 }
 
 impl RuleHooks for TomlHooks {

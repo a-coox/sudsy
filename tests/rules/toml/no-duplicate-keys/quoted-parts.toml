@@ -1,9 +1,9 @@
 "a b".c = 1
 "a b" . c = 2
-^^^^^^^^^ no-duplicate-keys
+^^^^^^^^^ syntax-error
 a.b = 1
 "a"."b" = 2
-^^^^^^^ no-duplicate-keys
+^^^^^^^ syntax-error
 "A\u0042" = 1
 "AB" = 2
-^^^^ no-duplicate-keys
+^^^^ syntax-error
