@@ -331,7 +331,7 @@
             },
             "no-empty-attribute-parens": {
               "$ref": "#/definitions/rule",
-              "description": "An attribute with empty parentheses: `[Foo()]` is `[Foo]`."
+              "description": "An attribute with empty parentheses: `[Foo()]` is `[Foo]`. Parentheses with a comment in them are left alone."
             },
             "no-empty-catch": {
               "$ref": "#/definitions/rule",

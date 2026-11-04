@@ -130,6 +130,13 @@ impl WorkerProxy {
         }
     }
 
+    /// Has any worker process been started (or tried)?
+    pub fn started(&self) -> bool {
+        self.slots
+            .iter()
+            .any(|s| !matches!(Self::lock(s).state, State::NotStarted))
+    }
+
     /// Starts the first two workers in the background, so that a format request that arrives while
     /// the first is busy with a build finds the second already running.
     pub fn prestart(self: &std::sync::Arc<Self>) {

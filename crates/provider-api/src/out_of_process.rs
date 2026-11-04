@@ -68,6 +68,26 @@ impl OutOfProcessProvider {
         self
     }
 
+    /// The language's built-in pattern rules (the `rules/*.yaml` files, as text), added to its
+    /// own. Their patterns compile when a rule first runs, so building them starts no worker.
+    pub fn with_pattern_rules(mut self, sources: &[&str]) -> Self {
+        let parser: std::sync::Arc<dyn core_patterns::SnippetParser + Send + Sync> =
+            std::sync::Arc::new(WorkerSnippets {
+                grammar: self.grammar,
+                proxy: self.proxy.clone(),
+            });
+        let mut rules: Vec<&'static dyn Rule> = self.rules.to_vec();
+        for source in sources {
+            let loaded = core_patterns::load_lazy(source, &self.grammar.language, &parser)
+                .unwrap_or_else(|e| panic!("built-in pattern file: {e}"));
+            for rule in loaded {
+                rules.push(Box::leak(Box::new(rule)));
+            }
+        }
+        self.rules = Box::leak(rules.into_boxed_slice());
+        self
+    }
+
     pub fn proxy(&self) -> &WorkerProxy {
         &self.proxy
     }
@@ -215,32 +235,54 @@ impl LanguageProvider for OutOfProcessProvider {
     }
 
     fn parse(&self, file: &SourceFile) -> Result<ParseResult, ProviderError> {
-        let parsed = self
-            .proxy
-            .parse(ParseRequest {
-                file_id: file.id.clone(),
-                version: file.version,
-                text: file.text.clone(),
-                language_version: file.language_version.clone(),
-                preprocessor_symbols: file.preprocessor_symbols.clone(),
-            })
-            .map_err(to_provider_error)?;
-        if parsed.file_id != file.id || parsed.version != file.version {
-            return Err(ProviderError::Unavailable(
-                "worker answered for a different file or version".into(),
-            ));
-        }
-        let tree = SyntaxNode::new_root(parsed.tree.decode(&file.text)?);
-        let errors = parsed
-            .errors
-            .into_iter()
-            .map(|e| ParseError {
-                start: e.start,
-                len: e.length,
-                code: e.code,
-                message: e.message,
-            })
-            .collect();
-        Ok(ParseResult { tree, errors })
+        parse_with(&self.proxy, file)
+    }
+}
+
+fn parse_with(proxy: &WorkerProxy, file: &SourceFile) -> Result<ParseResult, ProviderError> {
+    let parsed = proxy
+        .parse(ParseRequest {
+            file_id: file.id.clone(),
+            version: file.version,
+            text: file.text.clone(),
+            language_version: file.language_version.clone(),
+            preprocessor_symbols: file.preprocessor_symbols.clone(),
+        })
+        .map_err(to_provider_error)?;
+    if parsed.file_id != file.id || parsed.version != file.version {
+        return Err(ProviderError::Unavailable(
+            "worker answered for a different file or version".into(),
+        ));
+    }
+    let tree = SyntaxNode::new_root(parsed.tree.decode(&file.text)?);
+    let errors = parsed
+        .errors
+        .into_iter()
+        .map(|e| ParseError {
+            start: e.start,
+            len: e.length,
+            code: e.code,
+            message: e.message,
+        })
+        .collect();
+    Ok(ParseResult { tree, errors })
+}
+
+/// Parses pattern snippets through a worker proxy: what a built-in pattern rule holds to compile
+/// itself on first use, when the provider itself is out of reach.
+pub struct WorkerSnippets {
+    grammar: &'static Grammar,
+    proxy: std::sync::Arc<WorkerProxy>,
+}
+
+impl core_patterns::SnippetParser for WorkerSnippets {
+    fn grammar(&self) -> &Grammar {
+        self.grammar
+    }
+
+    fn parse(&self, text: &str) -> Result<Option<SyntaxNode>, String> {
+        let parsed = parse_with(&self.proxy, &SourceFile::new("builtin-pattern", 1, text))
+            .map_err(|e| e.to_string())?;
+        Ok(parsed.errors.is_empty().then_some(parsed.tree))
     }
 }

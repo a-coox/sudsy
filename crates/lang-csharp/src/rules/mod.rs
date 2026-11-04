@@ -21,6 +21,8 @@ use crate::generated::kind;
 use core_rules::Rule;
 use core_syntax::{SyntaxKind, SyntaxNode};
 
+pub static PATTERN_RULES: &[&str] = include!(concat!(env!("OUT_DIR"), "/pattern_rules.rs"));
+
 pub static RULES: &[&dyn Rule] = &[
     &empty_catch::NoEmptyCatch,
     &async_suffix::AsyncSuffix,
@@ -34,9 +36,7 @@ pub static RULES: &[&dyn Rule] = &[
     &binding::PossibleNullDereference,
     &binding::UnusedPrivateMember,
     &doc_comment_space::DocCommentSpace,
-    &directives::NoRegions,
     &directives::DirectiveKeywordSpace,
-    &directives::NoRegionInBody,
     &expressions::NullableShorthand,
     &expressions::UseLambda,
     &expressions::ConstantOnRight,
@@ -48,9 +48,7 @@ pub static RULES: &[&dyn Rule] = &[
     &file_layout::FileNameMatchesType,
     &statements::NoEmptyStatement,
     &statements::NoCommentBeforeBlock,
-    &syntax_forms::UseStringEmpty,
     &syntax_forms::SeparateAttributes,
-    &syntax_forms::NoEmptyAttributeParens,
     &syntax_forms::NoEmptyDelegateParens,
     &symbol_checks::NoUnneededBasePrefix,
     &symbol_checks::NoDefaultValueTypeConstructor,

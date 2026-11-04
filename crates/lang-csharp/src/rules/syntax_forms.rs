@@ -1,5 +1,4 @@
-//! Rules about how a construct is written, each with a safe fix: `use-string-empty`,
-//! `separate-attributes`, `no-empty-attribute-parens` and `no-empty-delegate-parens`.
+//! Rules about how a construct is written: `separate-attributes` and `no-empty-delegate-parens`.
 
 use super::{kind, line_separator, text_of};
 use core_config::Level;
@@ -7,24 +6,8 @@ use core_rules::tree::significant_range;
 use core_rules::{Category, Edit, Fix, FixKind, Rule, RuleContext, RuleMeta};
 use core_syntax::{SyntaxKind, SyntaxNode, TextRange};
 
-pub struct UseStringEmpty;
 pub struct SeparateAttributes;
-pub struct NoEmptyAttributeParens;
 pub struct NoEmptyDelegateParens;
-
-static USE_STRING_EMPTY: RuleMeta = RuleMeta {
-    id: "use-string-empty",
-    category: Category::Style,
-    description: "`string.Empty` instead of `\"\"` (or `@\"\"`). Not reported where a constant is \
-                  required: `const`, attribute arguments, default parameter values, `case` \
-                  labels and patterns.",
-    example: "var s = \"\";   // write: var s = string.Empty;",
-    default_level: Level::Off,
-    fix: Some(FixKind::Safe),
-    requires: &[],
-    uses: &[],
-    options: &[],
-};
 
 static SEPARATE_ATTRIBUTES: RuleMeta = RuleMeta {
     id: "separate-attributes",
@@ -33,18 +16,6 @@ static SEPARATE_ATTRIBUTES: RuleMeta = RuleMeta {
                   parameters and type parameters are left alone. The fix is not offered when the \
                   list has a comment in it.",
     example: "[Serializable, Obsolete]   // write one list for each",
-    default_level: Level::Off,
-    fix: Some(FixKind::Safe),
-    requires: &[],
-    uses: &[],
-    options: &[],
-};
-
-static NO_EMPTY_ATTRIBUTE_PARENS: RuleMeta = RuleMeta {
-    id: "no-empty-attribute-parens",
-    category: Category::Style,
-    description: "An attribute with empty parentheses: `[Foo()]` is `[Foo]`.",
-    example: "[Obsolete()]   // write: [Obsolete]",
     default_level: Level::Off,
     fix: Some(FixKind::Safe),
     requires: &[],
@@ -66,49 +37,6 @@ static NO_EMPTY_DELEGATE_PARENS: RuleMeta = RuleMeta {
     uses: &[],
     options: &[],
 };
-
-/// Walking up from an empty-string literal: does a constant have to stand here?
-fn constant_required(literal: &SyntaxNode) -> bool {
-    for ancestor in literal.ancestors().skip(1) {
-        match ancestor.kind() {
-            kind::ATTRIBUTE_ARGUMENT
-            | kind::CONSTANT_PATTERN
-            | kind::CASE_SWITCH_LABEL
-            | kind::PARAMETER => return true,
-            kind::FIELD_DECLARATION | kind::LOCAL_DECLARATION_STATEMENT => {
-                return ancestor
-                    .children_with_tokens()
-                    .any(|e| e.kind() == kind::CONST_KEYWORD);
-            }
-            _ => {}
-        }
-    }
-    false
-}
-
-impl Rule for UseStringEmpty {
-    fn meta(&self) -> &'static RuleMeta {
-        &USE_STRING_EMPTY
-    }
-
-    fn kinds(&self) -> &[SyntaxKind] {
-        &[kind::STRING_LITERAL_EXPRESSION]
-    }
-
-    fn check(&self, node: &SyntaxNode, ctx: &mut RuleContext<'_>) {
-        let range = significant_range(node, ctx.file.grammar);
-        let text = &ctx.file.text[usize::from(range.start())..usize::from(range.end())];
-        if (text != "\"\"" && text != "@\"\"") || constant_required(node) {
-            return;
-        }
-        ctx.report(range, "use string.Empty for an empty string")
-            .fix(Fix::new(
-                "Use string.Empty",
-                FixKind::Safe,
-                vec![Edit::replace(range, "string.Empty")],
-            ));
-    }
-}
 
 impl Rule for SeparateAttributes {
     fn meta(&self) -> &'static RuleMeta {
@@ -179,38 +107,6 @@ fn empty_parens_with_leading_space(list: &SyntaxNode, ctx: &RuleContext<'_>) -> 
     let before = &text[..usize::from(range.start())];
     let start = before.trim_end_matches([' ', '\t']).len();
     Some(TextRange::new((start as u32).into(), range.end()))
-}
-
-impl Rule for NoEmptyAttributeParens {
-    fn meta(&self) -> &'static RuleMeta {
-        &NO_EMPTY_ATTRIBUTE_PARENS
-    }
-
-    fn kinds(&self) -> &[SyntaxKind] {
-        &[kind::ATTRIBUTE_ARGUMENT_LIST]
-    }
-
-    fn check(&self, node: &SyntaxNode, ctx: &mut RuleContext<'_>) {
-        if node
-            .children()
-            .any(|c| c.kind() == kind::ATTRIBUTE_ARGUMENT)
-        {
-            return;
-        }
-        let range = significant_range(node, ctx.file.grammar);
-        let remove = empty_parens_with_leading_space(node, ctx);
-        let diagnostic = ctx.report(
-            TextRange::at(range.start(), 1.into()),
-            "the attribute has empty parentheses",
-        );
-        if let Some(remove) = remove {
-            diagnostic.fix(Fix::new(
-                "Remove the parentheses",
-                FixKind::Safe,
-                vec![Edit::delete(remove)],
-            ));
-        }
-    }
 }
 
 impl Rule for NoEmptyDelegateParens {

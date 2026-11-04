@@ -29,6 +29,32 @@ fix-kind: unsafe                    # safe | unsafe (default: a template is not 
 ```
 Also `description` and `example`. Unknown keys are errors.
 
+## Span, fix target, options
+```yaml
+id: no-empty-attribute-parens
+language: csharp
+message: the attribute has empty parentheses
+rule:
+  kind: AttributeArgumentList
+  regex: '^\(\s*\)$'
+report-on: first-token           # the diagnostic points at the `(`
+fix: ""
+fix-trim-before: true            # the fix also takes the spaces before the parentheses
+fix-kind: safe
+```
+- `report-on` sets the diagnostic span: `$NAME` (what the metavariable captured), `first-token` (the first token of the matched node) or `first-token $NAME`. Default: the matched node.
+- `fix-on: $NAME` makes the fix replace what the metavariable captured instead of the matched node; `fix-trim-before: true` extends the replaced range back over the spaces and tabs before it. `fix: ""` deletes. Both need a `fix`; `$NAME` must be captured by a pattern outside `inside`/`has`/`not`.
+- `options` declares typed options with a default, validated and shown in the schema and `sudsy rules <id>` like a Rust rule's: `{ name, type, default, choices, description }`, `type` being `bool`, `int`, `string`, `list` (of strings) or `regex` (a string that must compile); `choices` limits a `string` or each item of a `list`. A user sets them under the rule in `lint.rules` (`options:`).
+- A constraint can read an option: `in-option: NAME` (the captured text is an item of the `list` option, or equals the `string` option) and `regex-option: NAME` (it matches the `regex` option).
+
+```yaml
+options:
+  - { name: banned, type: list, default: [Thread.Sleep], description: Calls that are reported }
+rule: { pattern: $CALL($$$ARGS) }
+constraints:
+  CALL: { in-option: banned }
+```
+
 ## Layout
 `layout:` asks the formatter for a layout; each entry is `<directive> [argument] [on $NAME]`:
 
@@ -60,7 +86,12 @@ rule:
 - `rule` keys: `pattern`, `kind` (node kinds of the language's grammar), `regex` (node text without trivia), `inside`, `not-inside`, `has`, `not-has` (nested rules), `all`, `any`, `not`. Keys at one level all must hold. `inside`/`has` drop their captures.
 - A rule must pin where it starts: a `pattern` or `kind` at the top (or in every `any` branch). `kinds()` is that root kind, so the engine calls the rule for those kinds only. A rule that pins none (regex or relation alone) is a config error: it would cost 1.6 ms per file per rule.
 - `message` and `fix` substitute captured source text. The fix replaces the matched node; fix loop and formatter do the rest.
-- A pattern rule has no options. `type_matches` is not available (see roadmap).
+- `type_matches` is not available (see roadmap).
 
 ## Loading
 `core-patterns` compiles a file into `PatternRule`, a plain `core_rules::Rule`. Patterns compile when the config loads (a C# pattern file starts the worker then); a bad pattern is a config error naming its file. Ids are used as written; an id equal to a built-in's or defined twice for a language is a config error. Rules are leaked once per distinct file text (`Rule::meta` returns `&'static`), so an unchanged reload costs nothing. Fixtures: `provider_api::testing::expect` / `fix_with`.
+
+## Built-in pattern rules
+A language crate ships rules as pattern files: `crates/lang-<language>/rules/*.yaml` (C#: `crates/lang-csharp/rules/`). Adding a file is the whole change: `build.rs` lists the directory for `include_str!`, the provider hands the rules over with its Rust ones (`OutOfProcessProvider::with_pattern_rules`), and they are built-in rules in every respect (`sudsy rules`, the generated rule table and schema, levels, suppressions, fixes). They use the same format and features as a user's file; `severity` is the default level and a rule that is off by default says `severity: off`.
+
+The YAML is read when the provider is built (metadata and options need nothing more); the patterns compile when the rule first runs, through the provider's worker, once per process. A run that never lints that language never starts its worker for them. A broken file is a bug: `every_embedded_pattern_compiles` (`crates/lang-csharp/tests/builtin_patterns.rs`) compiles all of them. A rule that needs semantics, flow, project scope or logic a pattern cannot say stays in Rust; the fixture folder under `tests/rules/<language>/<id>/` is the same either way.

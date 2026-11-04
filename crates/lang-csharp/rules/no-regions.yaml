@@ -1,0 +1,14 @@
+id: no-regions
+language: csharp
+message: do not use regions
+description: >-
+  `#region` hides code behind a label. Reported on every `#region` outside a block (a region
+  inside a block is `no-region-in-body`'s), in disabled `#if` branches too; no fix, because
+  removing a pair is a judgment call.
+example: "#region Helpers   // delete the region and its #endregion"
+severity: off
+category: style
+rule:
+  kind: RegionDirectiveTrivia
+  not-inside: { kind: Block }
+report-on: first-token

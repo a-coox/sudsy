@@ -118,6 +118,7 @@ pub fn provider_with_command(command: Vec<OsString>) -> OutOfProcessProvider {
     )
     .with_format(Box::new(CSharpFormatter), option_schema())
     .with_rules(rules::RULES, rules::BODY_KINDS)
+    .with_pattern_rules(rules::PATTERN_RULES)
     .with_summaries(BehaviorSummaries::new(DOES_NOT_RETURN, &[]))
 }
 

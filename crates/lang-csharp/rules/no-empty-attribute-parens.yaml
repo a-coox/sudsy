@@ -1,0 +1,15 @@
+id: no-empty-attribute-parens
+language: csharp
+message: the attribute has empty parentheses
+description: "An attribute with empty parentheses: `[Foo()]` is `[Foo]`. Parentheses with a comment in them are left alone."
+example: "[Obsolete()]   // write: [Obsolete]"
+severity: off
+category: style
+rule:
+  kind: AttributeArgumentList
+  regex: '^\(\s*\)$'
+report-on: first-token
+fix: ""
+fix-trim-before: true
+fix-title: Remove the parentheses
+fix-kind: safe

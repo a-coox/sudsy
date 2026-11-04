@@ -1,0 +1,23 @@
+id: use-string-empty
+language: csharp
+message: use string.Empty for an empty string
+description: >-
+  `string.Empty` instead of `""` (or `@""`). Not reported where a constant is required:
+  `const`, attribute arguments, default parameter values, `case` labels and patterns.
+example: 'var s = "";   // write: var s = string.Empty;'
+severity: off
+category: style
+rule:
+  kind: StringLiteralExpression
+  regex: '^@?""$'
+  not-inside:
+    any:
+      - kind: AttributeArgument
+      - kind: ConstantPattern
+      - kind: CaseSwitchLabel
+      - kind: Parameter
+      - { kind: FieldDeclaration, regex: '^[^=]*\bconst\b' }
+      - { kind: LocalDeclarationStatement, regex: '^[^=]*\bconst\b' }
+fix: string.Empty
+fix-title: Use string.Empty
+fix-kind: safe

@@ -120,3 +120,110 @@ fn a_suppression_comment_silences_a_pattern_rule_like_any_other() {
     let text = "class A { void F() {\n // sudsy-disable-next-line no-console-writeline\n Console.WriteLine();\n Console.WriteLine();\n} }\n";
     assert_eq!(lint_with(&p, &ext, "a.cs", text, "").len(), 1);
 }
+
+const OPTIONS: &str = r#"
+id: banned-call
+language: csharp
+message: "$CALL is not allowed"
+severity: warn
+options:
+  - { name: banned, type: list, default: [Thread.Sleep], description: Calls that are reported }
+rule:
+  pattern: $CALL($$$ARGS)
+constraints:
+  CALL: { in-option: banned }
+"#;
+
+#[test]
+fn options_are_declared_and_used_by_constraints() {
+    let p = csharp();
+    let ext = rules(OPTIONS);
+    let names: Vec<_> = ext.rules[0]
+        .rule
+        .meta()
+        .options
+        .iter()
+        .map(|o| o.name)
+        .collect();
+    assert_eq!(names, ["banned"]);
+    let text = "class A { void F() { Thread.Sleep(1); Task.Delay(1); } }\n";
+    let found = lint_with(&p, &ext, "a.cs", text, "banned-call: warn");
+    assert_eq!(found.len(), 1, "{found:?}");
+    assert_eq!(found[0].message, "Thread.Sleep is not allowed");
+    let configured = "banned-call:\n  level: warn\n  options:\n    banned: [Task.Delay]";
+    let found = lint_with(&p, &ext, "a.cs", text, configured);
+    assert_eq!(found.len(), 1);
+    assert_eq!(found[0].message, "Task.Delay is not allowed");
+}
+
+#[test]
+fn a_regex_option_constraint_matches_what_the_option_says() {
+    let p = csharp();
+    let ext = rules(
+        r#"
+id: call-by-regex
+language: csharp
+message: "$CALL"
+options:
+  - { name: names, type: regex, default: '^Thread\.', description: Calls that are reported }
+rule:
+  pattern: $CALL($$$ARGS)
+constraints:
+  CALL: { regex-option: names }
+"#,
+    );
+    let text = "class A { void F() { Thread.Sleep(1); Task.Delay(1); } }\n";
+    assert_eq!(
+        lint_with(&p, &ext, "a.cs", text, "call-by-regex: warn").len(),
+        1
+    );
+    let configured = "call-by-regex:\n  level: warn\n  options:\n    names: '^Task'";
+    assert_eq!(lint_with(&p, &ext, "a.cs", text, configured).len(), 1);
+}
+
+#[test]
+fn option_declarations_and_uses_are_checked() {
+    let head = "id: x\nlanguage: csharp\nmessage: m\nrule: { pattern: 'F($N)' }\n";
+    for bad in [
+        "options:\n  - { name: a, type: bool, default: 1, description: d }\n",
+        "options:\n  - { name: a, type: regex, default: 'x', choices: [x], description: d }\n",
+        "constraints:\n  N: { in-option: nope }\n",
+        "options:\n  - { name: a, type: bool, default: true, description: d }\nconstraints:\n  N: { in-option: a }\n",
+    ] {
+        let source = format!("{head}{bad}");
+        assert!(
+            provider_api::testing::pattern_error(&csharp(), &source).is_some(),
+            "{bad}"
+        );
+    }
+}
+
+#[test]
+fn report_on_and_fix_on_select_the_span_and_the_edit() {
+    let p = csharp();
+    let ext = rules(
+        r#"
+id: second-arg
+language: csharp
+message: "the second argument is always 0"
+rule:
+  pattern: Log($A, $B)
+report-on: $B
+fix: "0"
+fix-on: $B
+fix-kind: safe
+"#,
+    );
+    let text = "class A { void F() { Log(1, 2); } }\n";
+    let found = lint_with(&p, &ext, "a.cs", text, "");
+    assert_eq!(found.len(), 1);
+    assert_eq!(
+        usize::from(found[0].range.start()),
+        text.find("2)").unwrap()
+    );
+    assert_eq!(usize::from(found[0].range.len()), 1);
+    assert_eq!(
+        fix_with(&p, &ext, "a.cs", text, "", false),
+        "class A { void F() { Log(1, 0); } }\n"
+    );
+}
