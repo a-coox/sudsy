@@ -1280,6 +1280,7 @@ version = "0.1.0"
 dependencies = [
  "core-config",
  "core-format",
+ "core-rules",
  "core-syntax",
  "core-treesitter",
  "insta",

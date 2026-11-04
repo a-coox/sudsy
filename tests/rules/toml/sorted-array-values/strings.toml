@@ -1,0 +1,3 @@
+x = ["b", "a", 'c']
+#    ^^^ sorted-array-values
+y = ["a", "b"]

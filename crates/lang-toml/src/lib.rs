@@ -4,12 +4,14 @@
 #[rustfmt::skip]
 pub mod generated;
 mod format;
+mod hooks;
 mod mapping;
 
 pub use format::{COLLAPSE, TRAILING_COMMAS, TomlFormatter, option_schema};
 
 use core_config::OptionSchema;
 use core_format::NodeFormatter;
+use core_rules::RuleHooks;
 use core_syntax::{Grammar, LanguageId, grammars};
 use core_treesitter::Engine;
 use provider_api::{
@@ -74,5 +76,9 @@ impl LanguageProvider for TomlProvider {
 
     fn option_schema(&self) -> &OptionSchema {
         &self.schema
+    }
+
+    fn rule_hooks(&self) -> &dyn RuleHooks {
+        &hooks::TomlHooks
     }
 }

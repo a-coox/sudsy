@@ -1,0 +1,5 @@
+b.x = 1
+^^^ sorted-keys
+a.y = 2
+^^^ sorted-keys
+"a b" = 3

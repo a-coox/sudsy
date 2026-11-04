@@ -1,0 +1,5 @@
+x = [10, 9, 1_000, 0x10]
+#    ^^ sorted-array-values
+#           ^^^^^ sorted-array-values
+f = [2.5, 1.5]
+#    ^^^ sorted-array-values

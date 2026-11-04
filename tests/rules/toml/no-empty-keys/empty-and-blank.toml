@@ -1,0 +1,8 @@
+"" = 1
+^^ no-empty-keys
+' ' = 2
+^^^ no-empty-keys
+ok = 3
+[t]
+"" = 4
+^^ no-empty-keys

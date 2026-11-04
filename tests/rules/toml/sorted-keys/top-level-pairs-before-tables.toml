@@ -1,0 +1,9 @@
+b = 1 # one
+^ sorted-keys
+a = 2
+[tbl]
+z = 1
+^ sorted-keys
+y = 2
+[aaa]
+q = 1

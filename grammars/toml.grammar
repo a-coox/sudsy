@@ -34,7 +34,8 @@ token Eof
 token Unknown #error
 
 // Tree-sitter has no node for a one-part key or for a literal: the adapter wraps those tokens.
-node Document = items:#item* Eof
+// Document is a mapping for the pairs before the first table; its tables are not entries.
+node Document #mapping = items:#item* Eof
 node Table #item #mapping = LBracket key:Key RBracket entries:Pair*
 node ArrayTable #item #mapping = LBracket2 key:Key RBracket2 entries:Pair*
 node Pair #item #key-value = key:Key Equals value:#value

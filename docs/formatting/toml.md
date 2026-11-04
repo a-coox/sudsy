@@ -27,7 +27,7 @@ Files: `*.toml`.
 <!-- /generated -->
 
 ## Rules
-Only the shared ones (`comment-space`, `no-empty-comment`, `max-line-length`), which work through the grammar's tags. Suppression comments are `# sudsy-disable-next-line <rule>`.
+Only the shared ones (`comment-space`, `no-empty-comment`, `max-line-length`, and the key and sequence rules `no-duplicate-keys`, `no-empty-keys`, `key-name-casing`, `sorted-keys`, `sorted-array-values`), which work through the grammar's tags: `Table`, `ArrayTable`, `InlineTable` and `Document` (its top-level pairs) are `#mapping`, `Array` is `#sequence`. The hooks decode quoted keys and join dotted parts with `.` (`a.b` and `"a"."b"` are one key; `key-name-casing` sees the whole dotted key, so a dotted key never matches a convention); sorting reorders pairs only, never tables, and arrays of basic and literal strings, integers and floats are sorted (multi-line strings, booleans and dates are left alone). Suppression comments are `# sudsy-disable-next-line <rule>`.
 
 ## Conformance
 toml-test v1.6.0, TOML 1.0 file list (`tests/conformance/fetch-toml-corpus.sh`, then `cargo test --release -p lang-toml --test toml -- --ignored --nocapture conformance`): all 185 valid files parse and format with all checks; 281 of the 361 invalid files are rejected (the rest are semantic errors tree-sitter does not report). `tests/fixtures/toml/` holds the `Cargo.toml` files of this repository and a hand-written file of every value form, checked on every test run.

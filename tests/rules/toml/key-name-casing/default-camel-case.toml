@@ -1,0 +1,10 @@
+camelCase = 1
+snake_case = 2
+^^^^^^^^^^ key-name-casing
+"kebab-case" = 3
+^^^^^^^^^^^^ key-name-casing
+inline = { good = 1, not_good = 2 }
+#                    ^^^^^^^^ key-name-casing
+[table]
+Bad = 1
+^^^ key-name-casing

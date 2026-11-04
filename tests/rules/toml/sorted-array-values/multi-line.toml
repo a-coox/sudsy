@@ -1,0 +1,6 @@
+x = [
+  "b", # one
+# ^^^ sorted-array-values
+  "a", # two
+  "c",
+]

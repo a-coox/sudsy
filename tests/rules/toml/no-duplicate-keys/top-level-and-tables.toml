@@ -1,0 +1,17 @@
+a = 1
+a = 2
+^ no-duplicate-keys
+"b" = 1
+b = 2
+^ no-duplicate-keys
+[t]
+x = 1
+'x' = 2
+^^^ no-duplicate-keys
+y.z = 1
+y.z = 2
+^^^ no-duplicate-keys
+[u]
+x = 1
+inline = { k = 1, k = 2 }
+#                 ^ no-duplicate-keys
