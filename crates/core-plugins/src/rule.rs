@@ -118,12 +118,10 @@ pub(crate) fn make_rules(
 ) -> Result<Vec<(&'static str, &'static dyn Rule)>, PluginError> {
     let mut out: Vec<(&'static str, &'static dyn Rule)> = Vec::new();
     for r in info.rules {
+        // The host checks the language against its providers (`languages::load_extensions`).
         let language: &'static str = match r.language.as_str() {
             "*" => core_rules::ALL_LANGUAGES,
-            "json" => "json",
-            "csharp" => "csharp",
-            "yaml" => "yaml",
-            other => return Err(bad(&info.name, &r.id, "language", other)),
+            other => leak(other.to_string()),
         };
         let local_id = r.id.clone();
         let role = match r.layout {

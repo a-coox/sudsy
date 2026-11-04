@@ -21,3 +21,11 @@ pub fn yaml() -> &'static Grammar {
     static G: OnceLock<Grammar> = OnceLock::new();
     load(&G, include_str!("../../../grammars/yaml.grammar"))
 }
+
+/// The built-in grammar of `language` (its `language` line), if there is one.
+pub fn by_name(language: &str) -> Option<&'static Grammar> {
+    [json, csharp, yaml]
+        .into_iter()
+        .map(|g| g())
+        .find(|g| g.language == language)
+}

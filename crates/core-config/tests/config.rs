@@ -56,16 +56,21 @@ fn parses_the_structure_from_the_plan() {
     assert_eq!(c.format["line_width"].value, OptionValue::Int(100));
     assert_eq!(c.lint.rules["max-line-length"].value.level, Level::Warn);
     assert_eq!(c.plugins.wasm[0].value, "rules/team-rules.wasm");
-    assert_eq!(c.csharp.format["line_width"].value, OptionValue::Int(120));
     assert_eq!(
-        c.csharp.format["brace_newline"].value,
+        c.language_section("csharp").unwrap().format["line_width"].value,
+        OptionValue::Int(120)
+    );
+    assert_eq!(
+        c.language_section("csharp").unwrap().format["brace_newline"].value,
         OptionValue::String("all".into())
     );
     assert_eq!(
-        c.csharp.lint.rules["max-line-length"].value.level,
+        c.language_section("csharp").unwrap().lint.rules["max-line-length"]
+            .value
+            .level,
         Level::Off
     );
-    let plugin = &c.csharp.lint.rules["team/no-direct-datetime"].value;
+    let plugin = &c.language_section("csharp").unwrap().lint.rules["team/no-direct-datetime"].value;
     assert_eq!(plugin.level, Level::Error);
     assert_eq!(
         plugin.options["allowed_in"],
@@ -73,7 +78,13 @@ fn parses_the_structure_from_the_plan() {
     );
     assert_eq!(c.overrides[0].files.value[0].value, "tests/**");
     assert_eq!(
-        c.overrides[0].csharp.lint.rules["async-suffix"].value.level,
+        c.overrides[0]
+            .language_section("csharp")
+            .unwrap()
+            .lint
+            .rules["async-suffix"]
+            .value
+            .level,
         Level::Off
     );
 }
@@ -479,8 +490,14 @@ fn rules_merge_by_tier_and_keep_options_when_only_the_level_changes() {
     let chain = ConfigChain::parse(
         "lint:\n  rules:\n    a: warn\n    b:\n      level: error\n      options: { n: 1 }\nx:\n  lint: {}\n",
     );
-    // `x` is not a language section: the config is rejected, not silently ignored.
-    assert!(chain.is_err());
+    // `x` is not a language: the config is rejected when checked against the providers, not
+    // silently ignored.
+    let e = chain
+        .unwrap()
+        .validate(&[("csharp", &schema())])
+        .unwrap_err();
+    assert!(e.message.contains("unknown language section `x`"), "{e}");
+    assert_eq!(e.line, Some(8), "{e}");
 
     let chain = ConfigChain::parse(
         "lint:\n  rules:\n    a: warn\n    b:\n      level: error\n      options: { n: 1 }\ncsharp:\n  lint:\n    rules:\n      a: \"off\"\n      b: warn\noverrides:\n  - files: [\"tests/**\"]\n    csharp:\n      lint:\n        rules:\n          a: error\n",

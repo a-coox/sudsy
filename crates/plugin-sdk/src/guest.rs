@@ -76,12 +76,7 @@ pub fn info(name: &str, rules: &[PluginRule]) -> w::PluginInfo {
 }
 
 fn grammar_of(language: &str) -> Result<&'static Grammar, String> {
-    match language {
-        "json" => Ok(grammars::json()),
-        "csharp" => Ok(grammars::csharp()),
-        "yaml" => Ok(grammars::yaml()),
-        other => Err(format!("the SDK has no grammar for `{other}`")),
-    }
+    grammars::by_name(language).ok_or_else(|| format!("the SDK has no grammar for `{language}`"))
 }
 
 fn find<'a>(rules: &'a [PluginRule], id: &str) -> Result<&'a PluginRule, String> {

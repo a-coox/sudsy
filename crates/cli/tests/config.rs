@@ -143,6 +143,26 @@ fn paths_print_relative_to_the_working_directory_with_slashes() {
 }
 
 #[test]
+fn a_section_for_a_language_sudsy_lacks_is_an_error_with_a_suggestion() {
+    let t = tempfile::tempdir().unwrap();
+    write(t.path(), "a.json", JSON);
+    write(
+        t.path(),
+        "sudsy.yaml",
+        "jsn:\n  format:\n    collapse: never\n",
+    );
+    let out = sudsy(t.path(), &["format"]);
+    assert_eq!(out.status.code(), Some(2));
+    let message = stderr(&out);
+    assert!(
+        message.contains("unknown language section `jsn`"),
+        "{message}"
+    );
+    assert!(message.contains("did you mean `json`"), "{message}");
+    assert_eq!(read(t.path(), "a.json"), JSON);
+}
+
+#[test]
 fn config_errors_name_the_file_and_position_and_suggest() {
     let t = tempfile::tempdir().unwrap();
     write(t.path(), "a.json", JSON);

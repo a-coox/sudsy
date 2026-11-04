@@ -42,12 +42,8 @@ pub use core_syntax::{self, SyntaxKind, SyntaxNode, TextRange, TextSize};
 /// `kinds()` is built from these. Panics on a name the grammar does not have, which a test of
 /// the rule finds at once.
 pub fn kind_of(language: &str, name: &str) -> SyntaxKind {
-    let grammar = match language {
-        "json" => core_syntax::grammars::json(),
-        "csharp" => core_syntax::grammars::csharp(),
-        "yaml" => core_syntax::grammars::yaml(),
-        other => panic!("no grammar for `{other}`"),
-    };
+    let grammar = core_syntax::grammars::by_name(language)
+        .unwrap_or_else(|| panic!("no grammar for `{language}`"));
     grammar
         .kind_by_name(name)
         .unwrap_or_else(|| panic!("the {language} grammar has no kind `{name}`"))

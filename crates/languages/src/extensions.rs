@@ -121,6 +121,15 @@ pub fn load_extensions(
             extensions.files.push(path.clone());
             for (language, rule) in rules {
                 let id = rule.meta().id;
+                if language != core_rules::ALL_LANGUAGES
+                    && !providers.iter().any(|p| p.grammar().language == language)
+                {
+                    let known = providers.iter().map(|p| p.grammar().language.as_str());
+                    return Err(at(format!(
+                        "rule `{id}`: {}",
+                        core_config::unknown_name("language", language, known)
+                    )));
+                }
                 if builtin.contains(&id) {
                     return Err(at(format!("rule `{id}` is the id of a built-in rule")));
                 }

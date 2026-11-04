@@ -2,7 +2,7 @@
 
 use crate::chain::ConfigChain;
 use crate::error::{ConfigError, unknown_name};
-use crate::model::{LintSection, Override};
+use crate::model::LintSection;
 
 impl ConfigChain {
     /// Every rule id in a `lint` section of the config files (top level, language sections and
@@ -12,10 +12,8 @@ impl ConfigChain {
         for loaded in &self.files {
             let c = &loaded.config;
             let sections = std::iter::once(&c.lint)
-                .chain([&c.csharp.lint, &c.json.lint, &c.yaml.lint])
-                .chain(c.overrides.iter().flat_map(|o: &Override| {
-                    [&o.lint, &o.csharp.lint, &o.json.lint, &o.yaml.lint]
-                }));
+                .chain(c.overrides.iter().map(|o| &o.lint))
+                .chain(c.all_sections().map(|(_, s)| &s.value.lint));
             for lint in sections {
                 check_section(lint, known).map_err(|e| loaded.attribute(e))?;
             }

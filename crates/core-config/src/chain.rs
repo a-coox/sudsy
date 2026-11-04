@@ -4,7 +4,7 @@ use crate::PRESET_PREFIX;
 use crate::error::ConfigError;
 use crate::glob::Matcher;
 use crate::load::{parse_str, read_source};
-use crate::model::{Config, Depth, LANGUAGES, Plugins};
+use crate::model::{Config, Depth, Plugins};
 use crate::presets::language_of;
 use crate::resolve::Source;
 use crate::schema::OptionSchema;
@@ -467,11 +467,11 @@ impl ConfigChain {
                 }
             }
             None => {
-                if !LANGUAGES.contains(&language) {
+                if !schemas.iter().any(|(l, _)| *l == language) {
                     return Err(at(crate::error::unknown_name(
                         "preset language",
                         language,
-                        LANGUAGES,
+                        schemas.iter().map(|(l, _)| *l),
                     )));
                 }
             }
@@ -483,6 +483,16 @@ impl ConfigChain {
 /// Checks one config's format options against the declarations of the languages in `schemas`.
 fn check_loaded(loaded: &Loaded, schemas: &[(&str, &OptionSchema)]) -> Result<(), ConfigError> {
     let check = |e: ConfigError| loaded.attribute(e);
+    for (name, section) in loaded.config.all_sections() {
+        if !schemas.iter().any(|(l, _)| l == name) {
+            let known = schemas.iter().map(|(l, _)| *l);
+            return Err(check(ConfigError::at(
+                section.referenced.line(),
+                section.referenced.column(),
+                crate::error::unknown_name("language section", name, known),
+            )));
+        }
+    }
     crate::resolve::check_shared(&loaded.config.format).map_err(check)?;
     for o in &loaded.config.overrides {
         crate::resolve::check_shared(&o.format).map_err(check)?;

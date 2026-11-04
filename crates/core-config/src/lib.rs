@@ -27,8 +27,8 @@ pub use load::{
     CONFIG_FILE_NAMES, MAX_CONFIG_BYTES, discover, is_rule_id, load_file, parse_str, read_capped,
 };
 pub use model::{
-    Config, Depth, LANGUAGES, LanguageSection, Level, LintSection, OptionValue, Options, Override,
-    Plugins, RuleConfig, Semantics,
+    Config, Depth, LanguageSection, LanguageSections, Level, LintSection, OptionValue, Options,
+    Override, Plugins, RuleConfig, Semantics,
 };
 pub use presets::{PRESET_PREFIX, Preset};
 pub use resolve::{FileInput, Resolved, ResolvedRule, Source};

@@ -1,7 +1,7 @@
 //! The JSON Schema of `sudsy.yaml`, generated from the providers' option declarations
 //! Editors register it for completion and validation of the config.
 
-use crate::model::{Depth, LANGUAGES, OptionValue};
+use crate::model::{Depth, OptionValue};
 use crate::schema::{OptionDef, OptionKind, OptionSchema, shared};
 use serde_json::{Map, Value, json};
 
@@ -185,9 +185,9 @@ pub fn json_schema(languages: &[(&str, &OptionSchema)], rules: &[RuleSchema]) ->
             "properties": { "format": format, "lint": lint_section(), "semantics": semantics_section() }
         })
     };
-    let sections: Map<String, Value> = LANGUAGES
+    let sections: Map<String, Value> = languages
         .iter()
-        .map(|l| ((*l).to_string(), language_section(l)))
+        .map(|(l, _)| ((*l).to_string(), language_section(l)))
         .collect();
 
     let mut override_properties = Map::new();

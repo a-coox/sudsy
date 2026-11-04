@@ -1,6 +1,6 @@
 use crate::error::{ConfigError, suggest};
 use crate::glob::Matcher;
-use crate::model::{Config, Depth, LANGUAGES, LintSection};
+use crate::model::{Config, Depth, LintSection};
 use serde_saphyr::Spanned;
 use std::path::{Path, PathBuf};
 
@@ -79,8 +79,8 @@ fn validate(config: &Config) -> Result<(), ConfigError> {
         }
     }
     check_lint(&config.lint)?;
-    for section in LANGUAGES.iter().filter_map(|l| config.language_section(l)) {
-        check_lint(&section.lint)?;
+    for (_, section) in config.all_sections() {
+        check_lint(&section.value.lint)?;
     }
     for o in &config.overrides {
         if o.files.value.is_empty() {
@@ -91,9 +91,6 @@ fn validate(config: &Config) -> Result<(), ConfigError> {
         }
         Matcher::new(&o.files.value)?;
         check_lint(&o.lint)?;
-        for section in LANGUAGES.iter().filter_map(|l| o.language_section(l)) {
-            check_lint(&section.lint)?;
-        }
     }
     Ok(())
 }
