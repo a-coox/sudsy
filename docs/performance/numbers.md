@@ -8,6 +8,7 @@ Machine unless noted: AMD Ryzen 5 3600 (6 cores / 12 threads), 32 GB, Windows 11
 | JSON 11.1 MB phases: parse / layout / print / re-parse / compare | 304 / 1136 / 259 / 408 / 122 ms; whole 5.9 MB/s at 4x |
 | JSON one line 1.1 MB | 386 ms (2.9 MB/s) |
 | YAML 5.0 MB phases: parse / layout / print / re-parse / compare / data model | 522 / 1655 / 202 / 499 / 194 / 732 ms; whole 1.6 MB/s at 4x |
+| TOML (tree-sitter) 5.5 MB generated (`perf-bench toml`) phases: parse / layout / print / re-parse / compare | 2337 / 558 / 142 / 2348 / 69 ms; whole 1.0 MB/s at 4x (parse 2.3 MB/s; 4.1 MB/s on 512 real `Cargo.toml` files in an earlier spike). Tree-sitter is two thirds of the parse, the adapter one third (spike). |
 | Allocations per fixed workload (`scripts/bench.sh`) | json.format 851308, yaml.format 2114000, cs.format 140206 |
 | Instructions per fixed workload (`scripts/bench.sh`, valgrind in WSL) | json.format 1.392 G, yaml.format 1.789 G |
 | C# layout options of `csharp/stylecop` (blank-line rules, `)` placement, expanded empty bodies), `format --check` of the 12 files of `bench/inputs/cs` (0.1 MB), release CLI with worker, cold process, 7 runs x 2 | median 121 ms with `csharp/microsoft`, 122 ms with `csharp/stylecop` (process and worker start dominate; no measurable difference). Default-option allocations are unchanged (the rules are only built when an option asks for them). |
@@ -80,6 +81,8 @@ C# cost structure: on CoreLib Roslyn parse ~0.94 s and the mapping walk ~0.83 s 
 | `lto = "fat"`, same | 25.63 MB | 9.01 MB | 14.5 min | same or slower (one run 2x on JSON), startup not better |
 
 `wasmtime` itself already has default features off, with only what the host uses. The ~20 MB Wasm host is Cranelift, so LTO saves 7-12% for 2-3x the build time on every CI platform job: not taken. `strip` changes nothing with the MSVC toolchain (symbols are in the pdb). Reconsider fat LTO only if the size matters more than release build time.
+
+TOML (tree-sitter-toml-ng through `core-treesitter`, `lang-toml`): `sudsy.exe` 29.71 MB without, 29.87 MB with (+0.15 MB, +0.5%), same machine and profile as above. Clean release build of `cli`: 261 s without, 239 s with; the difference is inside the noise of a shared machine (the C compile of the grammar and the runtime takes about a minute on an idle one). In the spike, touching `lang-toml` and rebuilding the CLI took 14.5 s against 15.0 s for `lang-json`.
 
 ## Editor (`lsp-latency`, 300 corpus files as workspace, 20 KB file open, six semantic rules)
 | | Number |

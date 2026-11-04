@@ -1,4 +1,4 @@
-//! `cargo run --release -p perf-bench -- [json|yaml|all] [--phases-only]`, or `-- --write DIR` to
+//! `cargo run --release -p perf-bench -- [json|yaml|toml|all] [--phases-only]`, or `-- --write DIR` to
 //! write the headline-size inputs (bench.json, bench.yaml) to disk for other tools, or
 //! `-- csharp DIR [PASSES]` for the warm-worker C# measurement (see `warm.rs`), or
 //! `-- extensions [DIR] [LIMIT]` / `-- extensions-cli SUDSY_EXE` for pattern rules and Wasm plugins
@@ -32,6 +32,7 @@ use std::time::{Duration, Instant};
 
 const JSON_OBJECTS: usize = 40_000;
 const YAML_ITEMS: usize = 60_000;
+const TOML_ITEMS: usize = 30_000;
 
 /// Time and allocations of one phase.
 #[derive(Clone, Copy)]
@@ -196,6 +197,7 @@ fn main() -> Result<()> {
         std::fs::create_dir_all(dir)?;
         std::fs::write(dir.join("bench.json"), inputs::json(JSON_OBJECTS))?;
         std::fs::write(dir.join("bench.yaml"), inputs::yaml(YAML_ITEMS))?;
+        std::fs::write(dir.join("bench.toml"), inputs::toml(TOML_ITEMS))?;
         return Ok(());
     }
     if which == "semantic" {
@@ -297,6 +299,16 @@ fn main() -> Result<()> {
             "bench.yaml",
             inputs::yaml,
             YAML_ITEMS,
+            scaling,
+        )?;
+    }
+    if matches!(which, "toml" | "all") {
+        report(
+            "TOML",
+            &lang_toml::TomlProvider::new(),
+            "bench.toml",
+            inputs::toml,
+            TOML_ITEMS,
             scaling,
         )?;
     }

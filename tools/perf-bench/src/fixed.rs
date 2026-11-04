@@ -1,7 +1,7 @@
 //! `perf-bench fixed LANG PHASE [--inputs DIR]`: one fixed, deterministic workload for scripts/bench.sh,
 //! which runs it under callgrind (instruction counts) and with `--features count` (allocations).
-//! LANG is json, yaml or cs; PHASE is parse, format, format-query, lint, lint-all, patterns or plugins. Inputs are the
-//! committed files under DIR (default bench/inputs/<lang>) plus generated JSON and YAML. Only the
+//! LANG is json, yaml, toml or cs; PHASE is parse, format, format-query, lint, lint-all, patterns or plugins. Inputs are the
+//! committed files under DIR (default bench/inputs/<lang>) plus generated JSON, YAML and TOML. Only the
 //! work inside `measured` is counted; callgrind is told to collect between its entry and exit.
 
 use crate::extensions::{self, Parsed};
@@ -40,6 +40,7 @@ pub(crate) fn texts(lang: &str, dir: &Path) -> Result<Vec<(String, String)>> {
     match lang {
         "json" => out.push(("gen.json".into(), inputs::json(4_000))),
         "yaml" => out.push(("gen.yaml".into(), inputs::yaml(6_000))),
+        "toml" => out.push(("gen.toml".into(), inputs::toml(3_000))),
         _ => {}
     }
     Ok(out)
@@ -65,10 +66,11 @@ pub(crate) fn make_provider(lang: &str) -> Result<Box<dyn LanguageProvider>> {
     Ok(match lang {
         "json" => Box::new(lang_json::JsonProvider::new()),
         "yaml" => Box::new(lang_yaml::YamlProvider::new()),
+        "toml" => Box::new(lang_toml::TomlProvider::new()),
         "cs" => Box::new(lang_csharp::provider(
             &lang_csharp::locate_worker().map_err(|e| anyhow!(e))?,
         )),
-        _ => bail!("LANG is json, yaml or cs"),
+        _ => bail!("LANG is json, yaml, toml or cs"),
     })
 }
 

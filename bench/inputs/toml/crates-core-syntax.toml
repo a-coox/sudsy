@@ -1,0 +1,20 @@
+[package]
+name = "core-syntax"
+edition.workspace = true
+license.workspace = true
+version.workspace = true
+publish.workspace = true
+
+[dependencies]
+rowan.workspace = true
+sha2.workspace = true
+thiserror.workspace = true
+serde.workspace = true
+serde_bytes.workspace = true
+
+[dev-dependencies]
+proptest.workspace = true
+rmp-serde.workspace = true
+
+[lints]
+workspace = true

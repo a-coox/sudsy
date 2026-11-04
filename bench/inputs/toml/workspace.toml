@@ -1,0 +1,58 @@
+[workspace]
+resolver = "3"
+members = ["crates/*", "xtask", "tools/wire-bench", "tools/perf-bench"]
+# Builds for wasm32-wasip2 on its own (the plugin tests do that); not part of the host build.
+exclude = ["tests/plugins/sample"]
+
+[workspace.package]
+edition = "2024"
+license = "MIT"
+version = "0.1.0"
+publish = false
+
+[workspace.dependencies]
+anyhow = "1"
+clap = { version = "4", features = ["derive"] }
+globset = "0.4"
+ignore = "0.4"
+insta = "1"
+memchr = "2"
+unicode-width = "0.2"
+proptest = "1"
+rmp-serde = "1"
+regex = "1"
+rowan = "0.16"
+mimalloc = "0.1"
+salsa = "0.28"
+serde = { version = "1", features = ["derive"] }
+serde_bytes = "0.11"
+serde-saphyr = "2"
+serde_json = "1"
+sha2 = "0.10"
+tempfile = "3"
+thiserror = "2"
+tree-sitter = "0.27"
+tree-sitter-toml-ng = "0.7"
+
+core-config = { path = "crates/core-config" }
+core-patterns = { path = "crates/core-patterns" }
+core-plugins = { path = "crates/core-plugins" }
+plugin-sdk = { path = "crates/plugin-sdk" }
+core-flow = { path = "crates/core-flow" }
+core-semantics = { path = "crates/core-semantics" }
+core-incremental = { path = "crates/core-incremental" }
+core-rules = { path = "crates/core-rules" }
+core-format = { path = "crates/core-format" }
+core-workspace = { path = "crates/core-workspace" }
+lang-csharp = { path = "crates/lang-csharp" }
+lang-json = { path = "crates/lang-json" }
+lang-yaml = { path = "crates/lang-yaml" }
+lang-toml = { path = "crates/lang-toml" }
+core-treesitter = { path = "crates/core-treesitter" }
+core-syntax = { path = "crates/core-syntax" }
+languages = { path = "crates/languages" }
+lsp = { path = "crates/lsp" }
+provider-api = { path = "crates/provider-api" }
+
+[workspace.lints.rust]
+unsafe_code = "forbid"

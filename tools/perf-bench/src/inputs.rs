@@ -70,6 +70,23 @@ pub fn yaml(items: usize) -> String {
     s
 }
 
+/// `items` tables with strings, numbers, an inline table and an array each. About 190 bytes per
+/// item.
+pub fn toml(items: usize) -> String {
+    let mut r = Rng::new(0x70c1);
+    let mut s = String::with_capacity(items * 200);
+    for i in 0..items {
+        let (a, b, c) = (r.word(), r.word(), r.word());
+        s.push_str(&format!(
+            "[package{i}]\nname = \"{a}-{b}\"\nversion = \"0.{}.{}\"\nfeatures = [\"{a}\", \"{b}\", \"{c}\"]\ndep = {{ version = \"1\", optional = true, features = [\"{c}\"] }}\n# {c}\nweight = {}\n\n",
+            r.below(100),
+            r.below(100),
+            r.below(100_000),
+        ));
+    }
+    s
+}
+
 /// One-line minified JSON: an object of `members` members with small flat arrays. The printer
 /// has to break the object and measure every array on its own.
 pub fn json_flat(members: usize) -> String {

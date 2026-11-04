@@ -49,7 +49,7 @@ rm -rf "$src_base/tools/perf-bench"; cp -r tools/perf-bench "$src_base/tools/per
 inputs=$root/bench/inputs
 
 # --- tier 1 ---------------------------------------------------------------------------------------
-langs="json yaml"; command -v dotnet >/dev/null && langs="json yaml cs" || echo "no dotnet: C# phases skipped"
+langs="json yaml toml"; command -v dotnet >/dev/null && langs="json yaml toml cs" || echo "no dotnet: C# phases skipped"
 measure() { # measure SIDE SRC MODE ; native
   scripts/bench-measure.sh --src "$2" --target "$work/$1" --inputs "$inputs" --mode "$3" \
     --langs "$langs" --out "$out/$1.$3"
@@ -69,11 +69,11 @@ for side in cand base; do
   if [ $instr = 1 ]; then
     echo "== $side: instructions"
     if [ $windows = 1 ]; then
-      wslrun "$(wsl_path "$root")/scripts/bench-measure.sh --src $(wsl_path "$s") --target \$HOME/.cache/sudsy-bench/$slot/$side --inputs $(wsl_path "$inputs") --mode instr --langs 'json yaml' --out \$HOME/.cache/sudsy-bench/$slot/$side.instr"
+      wslrun "$(wsl_path "$root")/scripts/bench-measure.sh --src $(wsl_path "$s") --target \$HOME/.cache/sudsy-bench/$slot/$side --inputs $(wsl_path "$inputs") --mode instr --langs 'json yaml toml' --out \$HOME/.cache/sudsy-bench/$slot/$side.instr"
       wslrun "cat \$HOME/.cache/sudsy-bench/$slot/$side.instr" >"$out/$side.instr"
     else
       scripts/bench-measure.sh --src "$s" --target "$work/$side" --inputs "$inputs" --mode instr \
-        --langs "json yaml" --out "$out/$side.instr"
+        --langs "json yaml toml" --out "$out/$side.instr"
     fi
   fi
 done

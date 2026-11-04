@@ -1,0 +1,49 @@
+# Every value form, with comments in odd places.
+title = "TOML \u00e9xample"   # trailing
+literal='C:\Users\nodejs\templates'
+multi = """
+Roses are red
+  Violets are blue"""
+multi_literal = '''
+raw \n text'''
+int = 1_000
+hex = 0xDEADBEEF
+float = -3.14e+2
+inf = inf
+nan = nan
+on = true
+odt = 1979-05-27T07:32:00-08:00
+ldt = 1979-05-27T07:32:00
+ld = 1979-05-27
+lt = 07:32:00.999
+
+"quoted key" = 1
+'literal key' = 2
+a . b . "c d" = 3
+ints = [ 1, 2,3 ]
+nested = [[1, 2], ["a", 'b'], []]
+broken = [
+  "one",   # first
+  "two",
+  # dangling
+]
+inline = {x=1,y = { z = [1,2] },"k"="v"}
+empty_inline = { }
+empty_array = [   ]
+
+
+[ table . sub ]   # header comment
+key = "value"
+
+
+# before array table
+[[ products ]]
+name = "Hammer"
+
+[[products]]
+name = "Nail"
+color = "gray"
+
+[a.b.c]
+d = 1
+# final comment
