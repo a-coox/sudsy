@@ -19,6 +19,7 @@
 //! | `csharp_new_line_before_open_brace` (`all`, `none`, or a list of elements) | `brace_newline`, `brace_same_line`, `wrapped_brace_line` (C#) |
 //! | `csharp_new_line_before_else`, `_catch`, `_finally` (`true`, `false`) | `else_line`, `catch_line`, `finally_line` (C#) |
 //! | `csharp_indent_labels` (`flush_left`, `one_less_than_current`, `no_change`) | `label_indent` (C#) |
+//! | `csharp_preserve_single_line_blocks`, `_statements` (`true`, `false`) | `preserve_single_line_blocks`, `preserve_single_line_statements` (C#) |
 //!
 //! The other `csharp_*` / `dotnet_*` formatting keys are not mapped. One that a file's sections set
 //! to something other than the behavior Sudsy has (a fixed one: `csharp_space_after_cast = true`)
@@ -379,6 +380,22 @@ fn map(props: &Props) -> Vec<EditorConfigValue> {
             push(option, key, OptionValue::String(line.into()));
         }
     }
+    for (key, option) in [
+        (
+            "csharp_preserve_single_line_blocks",
+            "preserve_single_line_blocks",
+        ),
+        (
+            "csharp_preserve_single_line_statements",
+            "preserve_single_line_statements",
+        ),
+    ] {
+        if let Some((v, ..)) = props.get(key)
+            && matches!(v.as_str(), "true" | "false")
+        {
+            push(option, key, OptionValue::Bool(v == "true"));
+        }
+    }
     if let Some((v, ..)) = props.get("csharp_indent_labels") {
         let indent = match v.as_str() {
             "flush_left" => Some("flush_left"),
@@ -503,6 +520,21 @@ mod tests {
                 ("else_line", OptionValue::String("same_line".into())),
                 ("catch_line", OptionValue::String("new_line".into())),
                 ("label_indent", OptionValue::String("one_less".into())),
+            ]
+        );
+    }
+
+    #[test]
+    fn single_line_preservation_keys() {
+        let text = "[*.cs]
+csharp_preserve_single_line_blocks = true
+csharp_preserve_single_line_statements = false
+";
+        assert_eq!(
+            values(text, "/repo/A.cs"),
+            [
+                ("preserve_single_line_blocks", OptionValue::Bool(true)),
+                ("preserve_single_line_statements", OptionValue::Bool(false)),
             ]
         );
     }

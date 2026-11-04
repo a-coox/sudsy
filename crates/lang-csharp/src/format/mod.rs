@@ -7,6 +7,7 @@
 
 mod braces;
 mod chains;
+mod flat;
 mod lists;
 mod options;
 mod query;

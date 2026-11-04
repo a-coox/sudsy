@@ -1,15 +1,16 @@
 //! Compilation units and everything with a braced body: types, namespaces, blocks, switch
 //! statements and expressions, enums, accessor lists.
 
+use super::flat;
 use super::lists::list_trailing_comma;
 use super::options::{
     blank_after_block, blank_before_comment, empty_braces, expand_empty_bodies,
-    indent_switch_section_block, remove_accessor_blank_lines, separate_all_members,
-    separate_members,
+    indent_switch_section_block, preserve_single_line_blocks, preserve_single_line_statements,
+    remove_accessor_blank_lines, separate_all_members, separate_members,
 };
 use super::seq::{
-    R, Sep, braced_element, direct_tokens, is_empty_braces, keeps_empty_inline, sep_doc, separator,
-    seq_of, sig,
+    R, Sep, block_is_empty, braced_element, direct_tokens, is_empty_braces, keeps_empty_inline,
+    sep_doc, separator, seq_of, sig,
 };
 use super::tags::{self, Tag};
 use crate::generated::kind as k;
@@ -38,7 +39,13 @@ fn position(els: &[SyntaxElement], t: &SyntaxToken) -> Option<usize> {
 pub fn compilation_unit(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
     let els = sig(cx, node);
     let items: Vec<SyntaxNode> = nodes_of(&els);
-    let mut parts = vec![statement_sequence_with(cx, &items, 1, blank_rule(cx))?];
+    let mut parts = vec![statement_sequence_with(
+        cx,
+        &items,
+        1,
+        blank_rule(cx),
+        preserve_single_line_statements(cx.options),
+    )?];
     if let Some(SyntaxElement::Token(eof)) = els.last() {
         let trailing = comments::leading_comments(cx.grammar, eof);
         if !trailing.is_empty() {
@@ -71,7 +78,13 @@ pub fn file_scoped_namespace(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
     if comments::blank_lines_before(cx.grammar, &first) > 0 || separate_all_members(cx.options) {
         parts.push(doc::hardline());
     }
-    parts.push(statement_sequence_with(cx, &rest, 1, blank_rule(cx))?);
+    parts.push(statement_sequence_with(
+        cx,
+        &rest,
+        1,
+        blank_rule(cx),
+        false,
+    )?);
     Ok(doc::concat(parts))
 }
 
@@ -116,6 +129,7 @@ fn block_style(cx: &FormatCtx<'_>) -> BlockStyle {
         empty: empty_braces(cx.options),
         force_blank: None,
         expand_empty: false,
+        keep_same_line: false,
     }
 }
 
@@ -224,9 +238,13 @@ fn blank_rule(cx: &FormatCtx<'_>) -> Option<BlankRule> {
 
 /// Blocks, namespaces, types and switch statements.
 pub fn braced(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
+    if node.kind() == k::BLOCK && flat::inside(cx, node) && !block_is_empty(cx, node) {
+        return flat::block(cx, node);
+    }
     let style = BlockStyle {
         force_blank: blank_rule(cx),
         expand_empty: expand_empty_bodies(cx.options) && !keeps_empty_inline(cx, node),
+        keep_same_line: node.kind() == k::BLOCK && preserve_single_line_statements(cx.options),
         ..block_style(cx)
     };
     with_braces(cx, node, |open, close| {
@@ -243,13 +261,13 @@ pub fn accessors_inline(cx: &FormatCtx<'_>, list: &SyntaxNode) -> bool {
         return false;
     };
     let range = TextRange::new(open.text_range().start(), close.text_range().start());
+    let blocks = preserve_single_line_blocks(cx.options);
     let simple = list.children().all(|a| {
         g.is_trivia(a.kind())
-            || a.children().all(|c| {
-                !matches!(
-                    c.kind(),
-                    k::BLOCK | k::ARROW_EXPRESSION_CLAUSE | k::ATTRIBUTE_LIST
-                )
+            || a.children().all(|c| match c.kind() {
+                k::BLOCK => blocks && flat::is_root(cx, &c),
+                k::ARROW_EXPRESSION_CLAUSE | k::ATTRIBUTE_LIST => false,
+                _ => true,
             })
     });
     let has_comment = list
@@ -402,9 +420,21 @@ pub fn switch_section(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
         parts.push(doc::hardline());
         parts.push(cx.format(&statements[0])?);
     } else if !statements.is_empty() {
+        let on_label_line = preserve_single_line_statements(cx.options)
+            && flat::follows_on_line(cx, &statements[0]);
         parts.push(doc::indent(doc::concat(vec![
-            doc::hardline(),
-            statement_sequence_with(cx, &statements, 1, blank_rule(cx))?,
+            if on_label_line {
+                doc::lit(" ")
+            } else {
+                doc::hardline()
+            },
+            statement_sequence_with(
+                cx,
+                &statements,
+                1,
+                blank_rule(cx),
+                preserve_single_line_statements(cx.options),
+            )?,
         ])));
     }
     Ok(doc::concat(parts))

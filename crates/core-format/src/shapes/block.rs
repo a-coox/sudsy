@@ -17,6 +17,8 @@ pub struct BlockStyle {
     pub force_blank: Option<BlankRule>,
     /// An empty block puts the closing delimiter on a line of its own instead of `empty`.
     pub expand_empty: bool,
+    /// Items that share a source line (no comment between) stay on one line, separated by a space.
+    pub keep_same_line: bool,
 }
 
 impl Default for BlockStyle {
@@ -26,6 +28,7 @@ impl Default for BlockStyle {
             empty: "",
             force_blank: None,
             expand_empty: false,
+            keep_same_line: false,
         }
     }
 }
@@ -80,6 +83,7 @@ fn block_of(
         render_slots(cx, &c.slots)?,
         style.max_blank_lines,
         style.force_blank,
+        style.keep_same_line,
     )];
     let blank_before = !c.slots.is_empty() && comments::blank_lines_before(g, &c.close) > 0;
     inner.push(dangling_comments(&dangling, blank_before));
@@ -102,7 +106,7 @@ pub fn statement_sequence(
     items: &[SyntaxNode],
     max_blank_lines: usize,
 ) -> Result<Doc, FormatError> {
-    statement_sequence_with(cx, items, max_blank_lines, None)
+    statement_sequence_with(cx, items, max_blank_lines, None, false)
 }
 
 /// [`statement_sequence`] with a rule for blank lines the source does not have.
@@ -111,6 +115,7 @@ pub fn statement_sequence_with(
     items: &[SyntaxNode],
     max_blank_lines: usize,
     force_blank: Option<BlankRule>,
+    keep_same_line: bool,
 ) -> Result<Doc, FormatError> {
     let slots: Vec<Slot> = items
         .iter()
@@ -124,6 +129,7 @@ pub fn statement_sequence_with(
         render_slots(cx, &slots)?,
         max_blank_lines,
         force_blank,
+        keep_same_line,
     ))
 }
 
@@ -132,10 +138,13 @@ fn sequence_items(
     mut items: Vec<Rendered>,
     max_blank: usize,
     force_blank: Option<BlankRule>,
+    keep_same_line: bool,
 ) -> Doc {
     let mut parts = Vec::new();
     for i in 0..items.len() {
-        if i > 0 {
+        if i > 0 && keep_same_line && shares_line(cx, &items[i - 1], &items[i]) {
+            parts.push(doc::lit(" "));
+        } else if i > 0 {
             parts.push(gap(
                 cx,
                 &items[i - 1],
@@ -151,4 +160,23 @@ fn sequence_items(
         }
     }
     doc::concat(parts)
+}
+
+/// Do two neighbouring items stand on one source line, each of them written on one line, with
+/// no comment or separator token between them?
+fn shares_line(cx: &FormatCtx<'_>, prev: &Rendered, next: &Rendered) -> bool {
+    let g = cx.grammar;
+    let (Some(start), Some(end), Some(after)) = (
+        cx.first_token(&prev.first),
+        cx.last_token(&prev.last),
+        cx.first_token(&next.first),
+    ) else {
+        return false;
+    };
+    let range = core_syntax::TextRange::new(start.text_range().start(), end.text_range().end());
+    prev.sep.is_none()
+        && !comments::break_after(g, &end)
+        && !cx.has_line_break(&prev.first, range)
+        && comments::trailing_comments(g, &end).is_empty()
+        && comments::leading_comments(g, &after).is_empty()
 }

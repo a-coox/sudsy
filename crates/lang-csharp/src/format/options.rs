@@ -21,6 +21,8 @@ pub const PREPROCESSOR_SYMBOLS: &str = "preprocessor_symbols";
 pub const BLANK_LINES_BETWEEN_MEMBERS: &str = "blank_lines_between_members";
 pub const ACCESSOR_BLANK_LINES: &str = "accessor_blank_lines";
 pub const INLINE_ACCESSOR_BODIES: &str = "inline_accessor_bodies";
+pub const PRESERVE_SINGLE_LINE_BLOCKS: &str = "preserve_single_line_blocks";
+pub const PRESERVE_SINGLE_LINE_STATEMENTS: &str = "preserve_single_line_statements";
 pub const INDENT_SWITCH_SECTION_BLOCK: &str = "indent_switch_section_block";
 pub const ASSIGNMENT_LAYOUT: &str = "assignment_layout";
 pub const SWITCH_ARM_LAYOUT: &str = "switch_arm_layout";
@@ -113,6 +115,16 @@ pub fn option_schema() -> OptionSchema {
             false,
             "Keep the body of an accessor on its line (`get { return x; }`) when it is one simple \
              statement without comments and fits; otherwise the braces go on their own lines.",
+        ),
+        OptionDef::boolean(
+            PRESERVE_SINGLE_LINE_BLOCKS,
+            false,
+            "A block written on one line (`void M() { return; }`, `get { return x; }`,              `if (a)` followed by `{ b(); }`) stays on one line, as `{ a; b; }`, when it has no              comment and no `switch` or label in it. Types, namespaces and `switch` bodies are              not affected.",
+        ),
+        OptionDef::boolean(
+            PRESERVE_SINGLE_LINE_STATEMENTS,
+            false,
+            "Statements written on one line stay there: `a(); b();` in a sequence, `case 1:              break;`, and a whole `if`, `while`, `for`, `foreach`, `do`, `try`, `using`, `lock`,              `fixed`, `checked` or `unsafe` statement (with its blocks) written on one line,              unless it has a comment, a `switch` or a label in it.",
         ),
         OptionDef::boolean(
             INDENT_SWITCH_SECTION_BLOCK,
@@ -372,6 +384,14 @@ pub fn remove_accessor_blank_lines(options: &ResolvedOptions) -> bool {
 
 pub fn inline_accessor_bodies(options: &ResolvedOptions) -> bool {
     options.bool(INLINE_ACCESSOR_BODIES)
+}
+
+pub fn preserve_single_line_blocks(options: &ResolvedOptions) -> bool {
+    options.bool(PRESERVE_SINGLE_LINE_BLOCKS)
+}
+
+pub fn preserve_single_line_statements(options: &ResolvedOptions) -> bool {
+    options.bool(PRESERVE_SINGLE_LINE_STATEMENTS)
 }
 
 pub fn indent_switch_section_block(options: &ResolvedOptions) -> bool {

@@ -1,0 +1,45 @@
+---
+source: crates/lang-csharp/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+class C
+{
+    int P { get { return 1; } set { value++; } }
+    int R() { return 1; }
+    void M(int x)
+    {
+        if (x > 1) { x++; } else { x--; }
+        int a = 1; int b = 2;
+        while (x > 0) { if (a > 1) { b++; } x--; }
+        try { x++; } catch (E) { x--; } finally { x = 0; }
+        if (x > 1) { // c
+            x++; }
+        switch (x) { case 1: break; }
+        Action f = () => { x++; };
+        { x = 1; y = 2; }
+    }
+}
+
+-----
+class C
+{
+    int P { get { return 1; } set { value++; } }
+    int R() { return 1; }
+    void M(int x)
+    {
+        if (x > 1) { x++; } else { x--; }
+        int a = 1; int b = 2;
+        while (x > 0) { if (a > 1) { b++; } x--; }
+        try { x++; } catch (E) { x--; } finally { x = 0; }
+        if (x > 1)
+        { // c
+            x++;
+        }
+        switch (x)
+        {
+            case 1: break;
+        }
+        Action f = () => { x++; };
+        { x = 1; y = 2; }
+    }
+}

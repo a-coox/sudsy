@@ -1,6 +1,7 @@
 //! The generic layout: a node's significant children one after the other, separated by the
 //! space, line break or nothing that [`Sep`] decides.
 
+use super::flat;
 use super::options::{
     brace_on_new_line, clauses_on_closing_line, constructor_initializer_on_new_line,
     creation_brace_on_new_line, do_while_on_closing_line, expand_empty_bodies, hanging_base_list,
@@ -155,7 +156,7 @@ pub fn keeps_empty_inline(cx: &FormatCtx<'_>, node: &SyntaxNode) -> bool {
         })
 }
 
-fn block_is_empty(cx: &FormatCtx<'_>, block: &SyntaxNode) -> bool {
+pub fn block_is_empty(cx: &FormatCtx<'_>, block: &SyntaxNode) -> bool {
     let opens = direct_tokens(block, k::OPEN_BRACE_TOKEN);
     let closes = direct_tokens(block, k::CLOSE_BRACE_TOKEN);
     match (opens.first(), closes.last()) {
@@ -164,8 +165,32 @@ fn block_is_empty(cx: &FormatCtx<'_>, block: &SyntaxNode) -> bool {
     }
 }
 
-/// The separator between `prev` and `next`, children of a node of kind `parent`.
+/// The separator between `prev` and `next`, children of a node of kind `parent`. Inside what
+/// `preserve_single_line_*` keeps on one line, line breaks become spaces; so does the break in
+/// front of the one-line body of a member, accessor or lambda.
 pub fn separator(
+    cx: &FormatCtx<'_>,
+    parent: &SyntaxNode,
+    prev: &SyntaxElement,
+    next: &SyntaxElement,
+) -> Sep {
+    let sep = separator_raw(cx, parent, prev, next);
+    if matches!(
+        sep,
+        Sep::Hard | Sep::HardIndented | Sep::Embedded | Sep::Brace(_)
+    ) {
+        let body = matches!(next, SyntaxElement::Node(n) if n.kind() == k::BLOCK
+            && (block_element(parent.kind()) != "control_blocks"
+                || matches!(parent.kind(), k::CATCH_CLAUSE | k::FINALLY_CLAUSE))
+            && flat::is_root(cx, n));
+        if body || flat::inside(cx, parent) {
+            return Sep::Space;
+        }
+    }
+    sep
+}
+
+fn separator_raw(
     cx: &FormatCtx<'_>,
     parent: &SyntaxNode,
     prev: &SyntaxElement,

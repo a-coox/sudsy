@@ -13,6 +13,7 @@ A fallback source of format options: below the `extends` chain, above provider d
 | `csharp_new_line_before_open_brace` (`all`, `none`, or a list of elements) | `brace_newline` and `wrapped_brace_line: none` for `none`; for a list `brace_newline: all` and `brace_same_line` = the elements not listed (C#) |
 | `csharp_new_line_before_else`, `_catch`, `_finally` (`true`, `false`) | `else_line`, `catch_line`, `finally_line` (`new_line`, `same_line`) (C#) |
 | `csharp_indent_labels` (`flush_left`, `one_less_than_current`, `no_change`) | `label_indent` (`flush_left`, `one_less`, `no_change`) (C#) |
+| `csharp_preserve_single_line_blocks`, `csharp_preserve_single_line_statements` (`true`, `false`) | `preserve_single_line_blocks`, `preserve_single_line_statements` (C#); both default to `false` in Sudsy, whereas `dotnet format` defaults to `true`, so a file that does not set the keys is formatted with the options' defaults |
 
 Brace elements follow `dotnet format`: `types` covers namespaces, `methods` covers constructors, operators and local functions (the `local_functions` element has no effect there), `properties` covers indexers and events (`indexers` and `events` have none), `control_blocks` covers `switch` and bare blocks. `dotnet format whitespace` moves the brace of an initializer neither way, so `object_collection_array_initializers` is Sudsy-only (`scripts/parity.sh format dotnet-format`).
 

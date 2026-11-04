@@ -27,7 +27,7 @@ The differential runner [`scripts/parity.sh`](../development/parity.md) compares
 |---|---:|---:|---:|---:|---:|---:|---:|---:|
 | biome | 34 | 13 | 6 | 2 | 0 | 13 | 0 | 2 |
 | csharpier | 16 | 9 | 6 | 0 | 0 | 1 | 0 | 1 |
-| dotnet-format-editorconfig | 56 | 44 | 7 | 0 | 1 | 4 | 0 | 0 |
+| dotnet-format-editorconfig | 56 | 45 | 7 | 0 | 1 | 3 | 0 | 0 |
 | eslint-plugin-jsonc | 44 | 36 | 6 | 0 | 0 | 2 | 0 | 0 |
 | prettier | 28 | 15 | 4 | 1 | 0 | 8 | 0 | 1 |
 | roslynator | 67 | 23 | 7 | 16 | 18 | 1 | 2 | 16 |

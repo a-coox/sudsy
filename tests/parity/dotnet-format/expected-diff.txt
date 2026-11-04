@@ -1,3 +1,2 @@
 # Cases where Sudsy and `dotnet format whitespace` legitimately differ: "<case>: <reason>" per line.
 inits: dotnet format leaves the brace of an initializer where the source has it (and `new C {` + `}` of an empty one); Sudsy lays out a wrapped initializer by object_collection_array_initializers / anonymous_types
-single-line: csharp_preserve_single_line_blocks (default true) keeps `get { return 1; }` on one line; Sudsy expands an accessor body unless inline_accessor_bodies
