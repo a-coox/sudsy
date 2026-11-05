@@ -4,8 +4,7 @@
 mod format;
 mod rules;
 mod using_sort;
-#[rustfmt::skip]
-pub mod generated;
+core_syntax::include_generated!();
 
 pub use format::{
     BRACE_NEWLINE, CSharpFormatter, MEMBER_CHAIN_MIN_CALLS, PREPROCESSOR_SYMBOLS, TRAILING_COMMAS,

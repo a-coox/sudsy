@@ -26,3 +26,14 @@ pub use tree::{
     SudsyLang, SyntaxElement, SyntaxNode, SyntaxToken, TreeBuilder, dump_tree, embedded_language,
     print,
 };
+
+/// The typed wrappers the crate's build script generates from its grammar (`build/lang-crate.rs`).
+#[macro_export]
+macro_rules! include_generated {
+    () => {
+        #[allow(clippy::all, dead_code, unused_imports)]
+        pub mod generated {
+            include!(concat!(env!("OUT_DIR"), "/generated.rs"));
+        }
+    };
+}

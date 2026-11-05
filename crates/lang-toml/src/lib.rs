@@ -1,8 +1,7 @@
 //! TOML: tree-sitter parses (through `core-treesitter`, mapping in `mapping.rs`), formatting is
 //! the shared shapes plus the table layout in `format.rs`.
 
-#[rustfmt::skip]
-pub mod generated;
+core_syntax::include_generated!();
 mod align;
 mod format;
 mod hooks;

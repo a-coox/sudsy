@@ -1,8 +1,7 @@
 //! XML: tree-sitter parses (through `core-treesitter`, mapping in `mapping.rs`), `validate.rs`
 //! checks well-formedness beyond the grammar, formatting is in `format.rs`.
 
-#[rustfmt::skip]
-pub mod generated;
+core_syntax::include_generated!();
 mod format;
 mod mapping;
 mod rules;

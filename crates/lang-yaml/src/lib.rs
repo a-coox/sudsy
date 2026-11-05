@@ -2,8 +2,7 @@
 //! safety check, and the formatter.
 
 mod format;
-#[rustfmt::skip]
-pub mod generated;
+core_syntax::include_generated!();
 mod anchor_rules;
 mod flow_rules;
 mod hooks;

@@ -81,7 +81,7 @@ pub fn with_pattern_families(
     Box::leak(rules.into_boxed_slice())
 }
 
-/// The text of the crate's `rules/*.yaml`, listed by `build/embed-rules.rs` (set it as the
+/// The text of the crate's `rules/*.yaml`, listed by `build/lang-crate.rs` (set it as the
 /// crate's `build` script).
 #[macro_export]
 macro_rules! pattern_files {
