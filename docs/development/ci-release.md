@@ -11,7 +11,7 @@ Runs only on demand (`gh workflow run ci.yml`) and from the release workflow whi
 | `vscode` | `npm ci`, typecheck, lint, test, build (Linux) |
 | `package` | release `sudsy`, published worker, staged server, `.vsix` artifact for `linux-x64` and `win32-x64`, after a smoke test that the staged binary formats C# without `SUDSY_CSHARP_WORKER` |
 
-`.github/workflows/site.yml` (pushes and pull requests touching the site's sources) builds the documentation site; its Pages deploy job is off, see [site.md](site.md).
+`.github/workflows/site.yml` (run by hand while the repository is private) builds the documentation site; its Pages deploy job is off, see [site.md](site.md).
 
 ## Release (`.github/workflows/release.yml`, on a `vX.Y.Z` tag)
 1. `scripts/check-version.sh`: one version for the Cargo workspace, `editors/vscode/package.json` + lock, the tag, and a `CHANGELOG.md` section. The sample plugin stays 0.0.0.
