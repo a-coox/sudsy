@@ -28,7 +28,7 @@ token Eof
 token Unknown #error
 
 // The preamble is the pairs before the first section.
-node Document = items:#item* Eof
-node Section #item = header:SectionHeader entries:Pair*
+node Document #mapping = items:#item* Eof
+node Section #item #mapping = header:SectionHeader entries:Pair*
 node SectionHeader = LBracket Glob? RBracket
-node Pair #item = key:Key Equals value:Value?
+node Pair #item #key-value = key:Key Equals value:Value?

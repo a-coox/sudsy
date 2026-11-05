@@ -1,0 +1,4 @@
+dotnet_a_new_option_nothing_like_any = true
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ unknown-property
+csharp_style_var_elsewhere = true
+resharper_apply_auto_detected_rules = false

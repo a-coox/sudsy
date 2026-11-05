@@ -1,0 +1,17 @@
+[*.cs]
+indent_syle = space
+^^^^^^^^^^^ unknown-property
+INDENT_STYLE = space
+dotnet_style_qualification_for_feild = false:suggestion
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ unknown-property
+csharp_new_line_befor_open_brace = all
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ unknown-property
+dotnet_diagnostic.CA1000.sevrity = none
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ unknown-property
+dotnet_naming_rule.types.symbol = types
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ unknown-property
+dotnet_diagnostic.CA1000.severity = none
+dotnet_naming_style.pascal.capitalization = pascal_case
+resharper_apply_auto_detected_rules = false
+ij_formatter_enabled = true
+dotnet_a_new_option_nothing_like_any = true

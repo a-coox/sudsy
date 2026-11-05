@@ -268,6 +268,10 @@
               "$ref": "#/definitions/rule",
               "description": "`<inheritdoc />` without `cref` on a type without a base list, or on a member that neither overrides nor implements anything (a constructor whose signature matches a base constructor is fine). No fix."
             },
+            "invalid-property-value": {
+              "$ref": "#/definitions/rule",
+              "description": "A known EditorConfig or .NET property has a value it does not accept (`indent_style = tabs`, `dotnet_diagnostic.CA1000.severity = high`). Values are case-insensitive, `unset` is always valid, and .NET code-style options may end in `:silent`, `:suggestion`, `:warning` or `:error`. Unknown properties are not checked."
+            },
             "key-name-casing": {
               "description": "A key does not follow one of the allowed naming conventions. The checks are those of eslint-plugin-jsonc: a key with punctuation or whitespace never matches, `camelCase` also rejects `_` and `-`, `snake_case` and `kebab-case` reject capitals. No fix: renaming a key changes the data.",
               "oneOf": [
@@ -485,6 +489,10 @@
                   "type": "object"
                 }
               ]
+            },
+            "no-duplicate-sections": {
+              "$ref": "#/definitions/rule",
+              "description": "Two sections of one file have the same glob. Both apply, the later one winning, which is rarely the intent; merge them."
             },
             "no-emphasis-as-heading": {
               "$ref": "#/definitions/rule",
@@ -806,6 +814,10 @@
               "$ref": "#/definitions/rule",
               "description": "A `using` directive that nothing in the file needs (the compiler's hidden CS8019, IDE0005 in the SDK analyzers). Not reported in a file that has compiler errors or `#if` regions, because unresolved or inactive code could be the one using it."
             },
+            "root-in-section": {
+              "$ref": "#/definitions/rule",
+              "description": "The `root` property stops the search for parent `.editorconfig` files, but only as a preamble pair (before the first `[section]`); inside a section editors ignore it. No fix: moving it into the preamble is the author's call."
+            },
             "separate-attributes": {
               "$ref": "#/definitions/rule",
               "description": "One attribute per attribute list: `[A, B]` becomes `[A]` and `[B]`. Lists on parameters and type parameters are left alone. The fix is not offered when the list has a comment in it."
@@ -992,6 +1004,37 @@
             "tuple-element-names-in-signatures": {
               "$ref": "#/definitions/rule",
               "description": "A tuple type in the signature of a method, constructor, property, indexer, conversion operator or delegate whose elements have no names. Overrides and implementations of interface members are left alone (their names are not the member's to choose). No fix."
+            },
+            "unknown-property": {
+              "description": "A property name that is not an EditorConfig or .NET (`dotnet_*`, `csharp_*`, `visual_basic_*`, `dotnet_diagnostic.<ID>.severity`, naming rule) property but is one typo away from one: the setting is silently ignored. Names of other tools (`resharper_*`, `ij_*`) are left alone. Known properties and values: `crates/lang-editorconfig/data/properties.txt`.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "strict": {
+                          "default": false,
+                          "description": "Also report `dotnet_*`, `csharp_*` and `visual_basic_*` names that are close to no known property (the list may lag behind new .NET options).",
+                          "type": "boolean"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
             },
             "unreachable-code": {
               "description": "A statement that can never run. At `fast` depth this is the statement after a `return`, `throw`, `break`, `continue` or `goto`; with the flow layer it also covers constant conditions and calls that do not return (`does_not_return` in `semantics:`). Only the first statement of a run is reported. Removing it is offered as an editor quick fix only, because unreachable code usually signals a bug. Off by default: the compiler already reports unreachable code (CS0162) and the SDK analyzers add IDE0035.",

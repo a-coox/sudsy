@@ -24,7 +24,15 @@ Files: the file name `.editorconfig` (`Spec::file_names`).
 `editorconfig/default` sets nothing.
 
 ## Rules
-Only the shared ones that need no grammar tags: suppression comments (`# sudsy-disable-next-line <rule>`), `no-empty-comment`, `comment-space`, `max-line-length`.
+Shared: suppression comments (`# sudsy-disable-next-line <rule>`), `no-empty-comment`, `comment-space`, `max-line-length`, and the key rules, because the grammar tags `Document` and `Section` as `#mapping` and `Pair` as `#key-value` (`no-duplicate-keys` finds a key repeated in the preamble or in one section; keys compare case-insensitively through the language's `key_name` hook; its default level is `error` as everywhere, though EditorConfig itself lets the later one win).
+
+Language rules (all `warn` by default, correctness; the file is shared with other tools, so nothing is `error`):
+- `unknown-property`: a property name one typo from a known one (`indent_syle`, `dotnet_diagnostic.CA1000.sevrity`), with the suggestion. Names with no close match are not reported, because other tools add properties (`resharper_*`, `ij_*`) and new .NET options appear faster than the list: the `strict` option reports unknown `dotnet_*`, `csharp_*` and `visual_basic_*` names too.
+- `invalid-property-value`: a value a known property does not accept (`indent_style = tabs`, `dotnet_diagnostic.CA1000.severity = high`, `charset = "utf-8-bom"`, a trailing `# comment`, which EditorConfig does not strip). Case-insensitive; `unset` always passes; code-style options may end in a `:severity`.
+- `no-duplicate-sections`: the same section glob twice in one file (compared as written).
+- `root-in-section` (pattern rule): `root` inside a section, where it is ignored.
+
+`unknown-property` and `invalid-property-value` read `crates/lang-editorconfig/data/properties.txt`, a table of the EditorConfig 0.17.2 properties and the .NET options of Microsoft's code-style, formatting and naming docs with the values each accepts (its header lists the sources and the line format); a new property is a new line. No other tool lints `.editorconfig` content (editorconfig-checker checks files that an `.editorconfig` governs; the .NET IDE reports unknown options only as a squiggle in the editor), so there is no parity entry.
 
 ## Conformance
 `tests/conformance/fetch-editorconfig-corpus.sh` fetches the `.editorconfig` files of dotnet/runtime, roslyn and aspnetcore at pinned commits; `cargo test --profile corpus -p lang-editorconfig --test editorconfig -- --ignored --nocapture conformance` checks that each parses, round-trips, formats idempotently, and that `core_config::outline` (the reader that applies the file to formatting) finds the same sections and properties before and after.

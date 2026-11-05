@@ -3,6 +3,7 @@
 
 core_syntax::include_generated!();
 mod format;
+mod hooks;
 mod mapping;
 mod rules;
 
@@ -20,7 +21,7 @@ pub fn provider() -> TreeSitterProvider {
         file_names: &[".editorconfig"],
         schema: option_schema(),
         formatter: &EditorConfigFormatter,
-        hooks: &core_rules::DEFAULT_HOOKS,
+        hooks: &hooks::EditorConfigHooks,
         rules: rules::RULES,
         pattern_files: provider_api::pattern_files!(),
         validate: None,

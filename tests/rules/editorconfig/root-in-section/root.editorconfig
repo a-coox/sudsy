@@ -1,0 +1,9 @@
+root = true
+
+[*.cs]
+indent_size = 4
+Root = true
+^^^^^^^^^^^ root-in-section
+[*.vb]
+rooted = true
+^^^^^^ unknown-property

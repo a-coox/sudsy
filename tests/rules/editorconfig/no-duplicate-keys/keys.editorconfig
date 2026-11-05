@@ -1,0 +1,12 @@
+root = true
+root = false
+^^^^ no-duplicate-keys
+
+[*.cs]
+indent_size = 4
+Indent_Size = 2
+^^^^^^^^^^^ no-duplicate-keys
+tab_width = 4
+
+[*.vb]
+indent_size = 4

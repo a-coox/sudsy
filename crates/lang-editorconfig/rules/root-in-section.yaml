@@ -1,0 +1,14 @@
+id: root-in-section
+language: editorconfig
+message: "`root` only counts before the first section; here it is ignored"
+description: >-
+  The `root` property stops the search for parent `.editorconfig` files, but only as a preamble
+  pair (before the first `[section]`); inside a section editors ignore it. No fix: moving it
+  into the preamble is the author's call.
+example: "[*]\nroot = true   # reported: move it above the first section"
+severity: warn
+category: correctness
+rule:
+  kind: Pair
+  parent: { kind: Section }
+  regex: '(?i)^root[ \t]*='

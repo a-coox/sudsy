@@ -1736,6 +1736,187 @@
       "upstream": []
     },
     {
+      "category": "correctness",
+      "default_level": "warn",
+      "description": "A known EditorConfig or .NET property has a value it does not accept (`indent_style = tabs`, `dotnet_diagnostic.CA1000.severity = high`). Values are case-insensitive, `unset` is always valid, and .NET code-style options may end in `:silent`, `:suggestion`, `:warning` or `:error`. Unknown properties are not checked.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "indent_style = tabs\nindent_style = Tab\nindent_size = four\nindent_size = 4\nindent_size = TAB\nindent_size = unset\ntab_width =\nmax_line_length = off\ncharset = \"utf-8-bom\"\ntrim_trailing_whitespace = yes\nend_of_line = LF\ndotnet_diagnostic.CA1000.severity = high\ndotnet_diagnostic.CA1000.severity = Warning\ndotnet_style_qualification_for_field = maybe:suggestion\ncsharp_style_var_elsewhere = true:suggestoin\ncsharp_style_var_elsewhere = true:suggestion\ncsharp_new_line_before_open_brace = all\ncsharp_new_line_before_open_brace = methods, types\ncsharp_new_line_before_open_brace = methods, typs\ncsharp_new_line_before_else = true:suggestion\ndotnet_naming_symbols.x.applicable_kinds = class, strukt\ndotnet_code_quality.CA1822.api_surface = anything, goes\nnot_a_known_property = whatever\n",
+        "language": "editorconfig",
+        "spans": [
+          {
+            "column": 16,
+            "length": 4,
+            "line": 1
+          },
+          {
+            "column": 15,
+            "length": 4,
+            "line": 3
+          },
+          {
+            "column": 1,
+            "length": 9,
+            "line": 7
+          },
+          {
+            "column": 11,
+            "length": 11,
+            "line": 9
+          },
+          {
+            "column": 28,
+            "length": 3,
+            "line": 10
+          },
+          {
+            "column": 37,
+            "length": 4,
+            "line": 12
+          },
+          {
+            "column": 40,
+            "length": 16,
+            "line": 14
+          },
+          {
+            "column": 30,
+            "length": 15,
+            "line": 15
+          },
+          {
+            "column": 37,
+            "length": 13,
+            "line": 19
+          },
+          {
+            "column": 31,
+            "length": 15,
+            "line": 20
+          },
+          {
+            "column": 44,
+            "length": 13,
+            "line": 21
+          }
+        ]
+      },
+      "fix": null,
+      "id": "invalid-property-value",
+      "languages": [
+        "editorconfig"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "correctness",
+      "default_level": "warn",
+      "description": "Two sections of one file have the same glob. Both apply, the later one winning, which is rarely the intent; merge them.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "[*.cs]\nindent_size = 4\n\n[*.vb]\nindent_size = 2\n\n[*.cs]\ntab_width = 4\n[*.CS]\ntab_width = 4\n",
+        "language": "editorconfig",
+        "spans": [
+          {
+            "column": 2,
+            "length": 4,
+            "line": 7
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-duplicate-sections",
+      "languages": [
+        "editorconfig"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "correctness",
+      "default_level": "warn",
+      "description": "The `root` property stops the search for parent `.editorconfig` files, but only as a preamble pair (before the first `[section]`); inside a section editors ignore it. No fix: moving it into the preamble is the author's call.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "root = true\n\n[*.cs]\nindent_size = 4\nRoot = true\n[*.vb]\nrooted = true\n",
+        "language": "editorconfig",
+        "spans": [
+          {
+            "column": 1,
+            "length": 11,
+            "line": 5
+          }
+        ]
+      },
+      "fix": null,
+      "id": "root-in-section",
+      "languages": [
+        "editorconfig"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "correctness",
+      "default_level": "warn",
+      "description": "A property name that is not an EditorConfig or .NET (`dotnet_*`, `csharp_*`, `visual_basic_*`, `dotnet_diagnostic.<ID>.severity`, naming rule) property but is one typo away from one: the setting is silently ignored. Names of other tools (`resharper_*`, `ij_*`) are left alone. Known properties and values: `crates/lang-editorconfig/data/properties.txt`.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "[*.cs]\nindent_syle = space\nINDENT_STYLE = space\ndotnet_style_qualification_for_feild = false:suggestion\ncsharp_new_line_befor_open_brace = all\ndotnet_diagnostic.CA1000.sevrity = none\ndotnet_naming_rule.types.symbol = types\ndotnet_diagnostic.CA1000.severity = none\ndotnet_naming_style.pascal.capitalization = pascal_case\nresharper_apply_auto_detected_rules = false\nij_formatter_enabled = true\ndotnet_a_new_option_nothing_like_any = true\n",
+        "language": "editorconfig",
+        "spans": [
+          {
+            "column": 1,
+            "length": 11,
+            "line": 2
+          },
+          {
+            "column": 1,
+            "length": 36,
+            "line": 4
+          },
+          {
+            "column": 1,
+            "length": 32,
+            "line": 5
+          },
+          {
+            "column": 1,
+            "length": 32,
+            "line": 6
+          },
+          {
+            "column": 1,
+            "length": 31,
+            "line": 7
+          }
+        ]
+      },
+      "fix": null,
+      "id": "unknown-property",
+      "languages": [
+        "editorconfig"
+      ],
+      "options": [
+        {
+          "default": false,
+          "description": "Also report `dotnet_*`, `csharp_*` and `visual_basic_*` names that are close to no known property (the list may lag behind new .NET options).",
+          "name": "strict",
+          "type": "bool"
+        }
+      ],
+      "presets": [],
+      "upstream": []
+    },
+    {
       "category": "style",
       "default_level": "off",
       "description": "`get` goes before `set` or `init`, and `add` before `remove`. The fix swaps the two accessors (not offered when a comment stands between or in them).",
