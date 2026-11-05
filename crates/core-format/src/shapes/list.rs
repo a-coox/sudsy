@@ -110,7 +110,19 @@ fn list_of(
     style: &ListStyle,
 ) -> Result<Doc, FormatError> {
     let g = cx.grammar;
+    // The separator goes right after the last item and its trailing comments after the separator:
+    // `b, // c` and `b, /* c */` whether or not the source had a comma.
+    let tail = c
+        .slots
+        .last()
+        .filter(|_| style.trailing_comma != TrailingComma::Never)
+        .and_then(|s| cx.last_token(&s.node))
+        .filter(|t| comments::has_trailing_comment(g, t));
+    if let Some(t) = &tail {
+        cx.detach_trailing(t);
+    }
     let mut items = render_slots(cx, &c.slots)?;
+    let mut tail_comments = tail.as_ref().map_or(Doc::Nil, |t| cx.reattach_trailing(t));
     let dangling = comments::leading_comments(g, &c.close);
     let open_comments = !comments::trailing_comments(g, &c.open).is_empty();
     // Comments before the opening and after the closing delimiter belong outside the group: a
@@ -180,6 +192,9 @@ fn list_of(
             (true, TrailingComma::Never) => Doc::Nil,
             (true, TrailingComma::WhenBroken) => doc::if_break(sep.clone(), Doc::Nil),
         });
+        if i == last && !tail_comments.is_nil() {
+            inner.push(std::mem::replace(&mut tail_comments, Doc::Nil));
+        }
         inner.push(separator_comments(cx, &items[i]));
     }
     inner.push(dangling_comments(&dangling, false));

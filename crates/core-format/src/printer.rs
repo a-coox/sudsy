@@ -387,6 +387,16 @@ impl<'a> Printer<'a> {
                     mode: Mode::Flat,
                     item: Item::Doc(doc),
                 };
+                // A candidate with a forced break of its own is printed in break mode (its groups
+                // are measured one by one) once it was found to fit; a flat run would measure
+                // only the first group after the break.
+                let chosen_cmd = |c: Cmd<'a>| match c.item {
+                    Item::Doc(Doc::Shared(s)) if s.forced => Cmd {
+                        mode: Mode::Break,
+                        ..c
+                    },
+                    _ => c,
+                };
                 if mode == Mode::Flat && !self.remeasure {
                     let (m, d) = match (g.broken, g.states.last()) {
                         (true, Some(last)) => (Mode::Break, last),
@@ -406,7 +416,11 @@ impl<'a> Printer<'a> {
                     if let Some(id) = g.id {
                         self.group_modes.insert(id, Mode::Flat);
                     }
-                    cmds.push(next);
+                    cmds.push(if g.states.is_empty() {
+                        next
+                    } else {
+                        chosen_cmd(next)
+                    });
                 } else if let Some(most_expanded) = g.states.last() {
                     if g.broken {
                         push(cmds, indent, Mode::Break, most_expanded);
@@ -417,7 +431,7 @@ impl<'a> Printer<'a> {
                         .map(flat_cmd)
                         .find(|c| fits(&mut self.measure, *c, cmds, width, false));
                     match chosen {
-                        Some(c) => cmds.push(c),
+                        Some(c) => cmds.push(chosen_cmd(c)),
                         None => push(cmds, indent, Mode::Break, most_expanded),
                     }
                 } else {

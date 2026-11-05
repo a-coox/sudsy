@@ -529,6 +529,10 @@ pub fn leading_comments(g: &Grammar, tok: &SyntaxToken) -> Vec<Comment> {
     out
 }
 
+pub fn has_trailing_comment(g: &Grammar, tok: &SyntaxToken) -> bool {
+    comment_follows(g, tok)
+}
+
 pub fn trailing_comments(g: &Grammar, tok: &SyntaxToken) -> Vec<Comment> {
     if !comment_follows(g, tok) {
         return Vec::new();

@@ -1,0 +1,18 @@
+---
+source: crates/lang-csharp/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+class C{int[] b=new[]
+{
+1,
+2 /* two */
+};}
+-----
+class C
+{
+    int[] b = new[]
+    {
+        1,
+        2, /* two */
+    };
+}

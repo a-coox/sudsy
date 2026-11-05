@@ -314,6 +314,15 @@ snap!(
     [("trailing_commas", s("multiline"))]
 );
 snap!(
+    trailing_commas_multiline_block_comment,
+    "class C{int[] b=new[]
+{
+1,
+2 /* two */
+};}",
+    [("trailing_commas", s("multiline"))]
+);
+snap!(
     line_width_60,
     "class C{void M(){var result=Compute(firstArgument,secondArgument,thirdArgument)+other;}}",
     [("line_width", n(60))]

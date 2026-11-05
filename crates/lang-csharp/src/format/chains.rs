@@ -112,22 +112,25 @@ pub fn equals_value_clause(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
 }
 
 pub fn arrow_clause(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
-    if fluid_assignments(cx.options) {
+    let els = sig(cx, node);
+    let [SyntaxElement::Token(op), SyntaxElement::Node(value)] = els.as_slice() else {
+        return Err(shape("expected an operator token and a value"));
+    };
+    // Directives and comments in front of `=>` are indented with it.
+    let lead = doc::concat(vec![
+        doc::indent(cx.leading_comments_doc(op)),
+        cx.token_text(op),
+        cx.trailing_comments_doc(op),
+    ]);
+    if fluid_assignments(cx.options) && !ends_in_line_comment(cx, op) {
         // `=>` and then the body, which moves to its own line as a whole when it does not fit.
-        let els = sig(cx, node);
-        if let [SyntaxElement::Token(op), SyntaxElement::Node(value)] = els.as_slice()
-            && !ends_in_line_comment(cx, op)
-        {
-            return Ok(doc::concat(vec![
-                cx.token(op),
-                doc::group(doc::indent(doc::concat(vec![
-                    doc::line(),
-                    cx.format(value)?,
-                ]))),
-            ]));
-        }
+        // The group holds `=>` too: a directive in front of it breaks the line after it as well.
+        return Ok(doc::group(doc::concat(vec![
+            lead,
+            doc::indent(doc::concat(vec![doc::line(), cx.format(value)?])),
+        ])));
     }
-    operator_and_value(cx, node)
+    with_rhs(cx, lead, op, value)
 }
 
 /// `pattern => expr` in a switch expression, laid out like an assignment (`switch_arm_layout`).

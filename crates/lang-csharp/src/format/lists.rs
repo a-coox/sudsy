@@ -33,33 +33,13 @@ fn property_pattern_follows_something(clause: &SyntaxNode) -> bool {
         || pattern.parent().map(|p| p.kind()) == Some(k::IS_PATTERN_EXPRESSION)
 }
 
-/// The trailing comma of a list, as `trailing_commas` says, except that a comma is not added after
-/// a last element that ends in a line comment: the comma would end up in front of the comment,
-/// and the comment would belong to the comma the next time (a different layout, so not stable).
+/// The trailing comma of a list, as `trailing_commas` says.
 pub fn list_trailing_comma(
     cx: &FormatCtx<'_>,
     node: &SyntaxNode,
     close: &SyntaxToken,
 ) -> TrailingComma {
-    let source = source_trailing_comma(cx, node, close);
-    let els = sig(cx, node);
-    let last_item_comment = els
-        .iter()
-        .position(|e| matches!(e, SyntaxElement::Token(t) if t == close))
-        .and_then(|i| i.checked_sub(1))
-        .and_then(|i| match &els[i] {
-            SyntaxElement::Node(n) => cx.last_token(n),
-            SyntaxElement::Token(_) => None,
-        })
-        .is_some_and(|t| {
-            comments::trailing_comments(cx.grammar, &t)
-                .iter()
-                .any(|c| c.kind != comments::CommentKind::Block)
-        });
-    if last_item_comment && !source {
-        return TrailingComma::Never;
-    }
-    trailing_comma(cx.options, source)
+    trailing_comma(cx.options, source_trailing_comma(cx, node, close))
 }
 
 /// Parameters, arguments, type arguments, attributes, tuples, patterns: one line if it fits,

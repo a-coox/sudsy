@@ -8,7 +8,7 @@ use crate::ignore::{self, IgnoreMark};
 use crate::lines::LineBreaks;
 use crate::shapes::{self, BlockStyle, KeyValueStyle, ListStyle};
 use core_config::ResolvedOptions;
-use core_syntax::{Grammar, SyntaxElement, SyntaxNode, SyntaxToken, TextRange};
+use core_syntax::{Grammar, SyntaxElement, SyntaxNode, SyntaxToken, TextRange, TextSize};
 use std::sync::Mutex;
 
 /// A provider's formatting code. Nodes it does not handle fall back to the shared shape of their
@@ -95,6 +95,9 @@ pub struct FormatCtx<'a> {
     pub comment_style: CommentStyle,
     /// The line breaks of the tree being formatted, found when first asked for.
     line_breaks: Mutex<Option<LineBreaks>>,
+    /// Tokens whose trailing comments a shape prints itself, with the comments once the token
+    /// was printed.
+    detached: Mutex<Vec<(TextSize, Option<Vec<Comment>>)>>,
     /// A provider's per-run data derived from the options (see [`FormatCtx::cached`]).
     cache: std::sync::OnceLock<Box<dyn std::any::Any + Send + Sync>>,
 }
@@ -113,6 +116,7 @@ impl<'a> FormatCtx<'a> {
             formatter,
             comment_style: formatter.comment_style(options),
             line_breaks: Mutex::new(None),
+            detached: Mutex::new(Vec::new()),
             cache: std::sync::OnceLock::new(),
         }
     }
@@ -248,7 +252,7 @@ impl<'a> FormatCtx<'a> {
     /// A token with its leading and trailing comments.
     pub fn token(&self, tok: &SyntaxToken) -> Doc {
         let leading = self.leading(tok);
-        let trailing = comments::trailing_comments(self.grammar, tok);
+        let trailing = self.trailing(tok);
         if leading.is_empty() && trailing.is_empty() {
             return self.token_text(tok);
         }
@@ -283,10 +287,41 @@ impl<'a> FormatCtx<'a> {
     }
 
     pub fn trailing_comments_doc(&self, tok: &SyntaxToken) -> Doc {
-        trailing_comments_doc(
-            &self.comment_style,
-            &comments::trailing_comments(self.grammar, tok),
-        )
+        trailing_comments_doc(&self.comment_style, &self.trailing(tok))
+    }
+
+    /// The trailing comments of `tok`, none while a shape has detached them.
+    fn trailing(&self, tok: &SyntaxToken) -> Vec<Comment> {
+        let cs = comments::trailing_comments(self.grammar, tok);
+        if !cs.is_empty() {
+            let at = tok.text_range().start();
+            let mut detached = self.detached.lock().expect("detached lock");
+            if let Some(d) = detached.iter_mut().find(|d| d.0 == at) {
+                d.1 = Some(cs);
+                return Vec::new();
+            }
+        }
+        cs
+    }
+
+    /// Holds back the trailing comments of `tok` from the next printing of the token, so that a
+    /// shape can print them itself after what follows the token (a list separator).
+    pub fn detach_trailing(&self, tok: &SyntaxToken) {
+        let mut detached = self.detached.lock().expect("detached lock");
+        detached.push((tok.text_range().start(), None));
+    }
+
+    /// Ends [`FormatCtx::detach_trailing`]: the comments of a token that was printed without them
+    /// (the caller prints them), none when the token was not printed through the context (its
+    /// comments are part of what was printed).
+    pub fn reattach_trailing(&self, tok: &SyntaxToken) -> Doc {
+        let at = tok.text_range().start();
+        let mut detached = self.detached.lock().expect("detached lock");
+        let i = detached.iter().position(|d| d.0 == at);
+        i.and_then(|i| detached.swap_remove(i).1)
+            .map_or(Doc::Nil, |cs| {
+                trailing_comments_doc(&self.comment_style, &cs)
+            })
     }
 
     /// Source text from the node's first to its last token, plus those tokens' outer comments.

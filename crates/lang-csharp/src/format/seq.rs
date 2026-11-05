@@ -265,6 +265,16 @@ fn separator_raw(
         if nk == k::TYPE_PARAMETER_CONSTRAINT_CLAUSE {
             return Sep::HardIndented;
         }
+        // A line comment after `)` stays there: `=>` starts the next line.
+        if nk == k::ARROW_EXPRESSION_CLAUSE
+            && match prev {
+                SyntaxElement::Node(p) => cx.last_token(p),
+                SyntaxElement::Token(t) => Some(t.clone()),
+            }
+            .is_some_and(|t| core_format::shapes::ends_in_line_comment(cx, &t))
+        {
+            return Sep::HardIndented;
+        }
         if pk == k::LABELED_STATEMENT && tags::has(cx.grammar, nk, Tag::Statement) {
             return Sep::Hard;
         }
