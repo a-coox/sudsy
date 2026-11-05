@@ -145,6 +145,16 @@ fn spelled_out_options_equal_the_preset() {
 #[test]
 fn no_tool_names_in_formatter_sources() {
     let crates = Path::new(env!("CARGO_MANIFEST_DIR")).join("..");
+    let languages: Vec<String> = fs::read_dir(&crates)
+        .unwrap()
+        .filter_map(|e| {
+            e.unwrap()
+                .file_name()
+                .to_str()?
+                .strip_prefix("lang-")
+                .map(String::from)
+        })
+        .collect();
     let mut stack: Vec<PathBuf> = fs::read_dir(&crates)
         .unwrap()
         .map(|e| e.unwrap().path())
@@ -158,12 +168,14 @@ fn no_tool_names_in_formatter_sources() {
         if path.is_dir() {
             stack.extend(fs::read_dir(&path).unwrap().map(|e| e.unwrap().path()));
         } else if path.extension().is_some_and(|e| e == "rs") {
-            // The provider's list of preset files (`"csharp/<name>"`, `"xml/<name>"`, `include_str!`) names them; nothing else may.
+            // The provider's list of preset files (`"<language>/<name>"`, `include_str!`) names them; nothing else may.
             let text = fs::read_to_string(&path).unwrap().to_lowercase();
             let code = text.lines().filter(|l| {
+                let l = l.trim_start();
                 !(l.contains("include_str!")
-                    || l.trim_start().starts_with("\"csharp/")
-                    || l.trim_start().starts_with("\"xml/"))
+                    || l.strip_prefix('"')
+                        .and_then(|l| l.split_once('/'))
+                        .is_some_and(|(language, _)| languages.iter().any(|n| n == language)))
             });
             assert!(
                 !code.collect::<String>().contains("csharpier"),

@@ -8,7 +8,7 @@
 // comment's XML or the directive's tokens. Disabled text, whitespace, line comments and
 // end-of-line stay trivia tokens. Missing and skipped tokens are ERROR nodes (core kind).
 
-language csharp 2
+language csharp 2 "C#"
 comments line "//" block "/*" "*/"
 suppress disable-next-line "sudsy-disable-next-line"
 suppress disable-line "sudsy-disable-line"

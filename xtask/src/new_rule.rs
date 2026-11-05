@@ -1,71 +1,55 @@
 //! `cargo xtask new-rule <language> <id> [--rust]`: the files a new rule starts from. The starter
-//! rule reports empty statements (C#) or empty mappings (the data languages), so the generated
+//! rule reports the node that the language's `starter.<Kind>.<ext>` marks, so the generated
 //! rule and its fixture pass the gate as they are; edit both, then run `cargo fmt`. Generated docs
 //! and the schema come from `cargo xtask codegen`.
 
-use anyhow::{Context, Result, bail, ensure};
-use provider_api::FilePattern;
+use anyhow::{Context, Result, ensure};
+use core_syntax::codegen::screaming;
 use std::fs;
 use std::path::Path;
 
-/// The starter rule of a language: it reports an empty statement (C#) or an empty mapping (the
-/// data languages), so the generated rule and its fixture pass the gate as they are. What is
-/// empty is language-specific; the extension, comment marker and rule registry are read from the
-/// provider and the crate.
-struct Lang {
-    name: &'static str,
-    /// The node kind the starter pattern rule matches.
-    kind: &'static str,
-    /// The starter fixture: an input line the starter rule reports, with what closes the
-    /// construct and the column and width of the report (for the carets).
-    case: &'static str,
-    close: &'static str,
-    column: usize,
-    width: usize,
+/// The starter of a language: `crates/lang-<language>/starter.<Kind>.<ext>`, a rule fixture whose
+/// last annotation (`^^^ ID`) marks the node of kind `<Kind>` that the starter rule reports.
+struct Starter {
+    kind: String,
+    ext: String,
+    /// The fixture, with `ID` for the rule id.
+    text: String,
+    /// The annotated text.
+    reported: String,
 }
 
-const LANGUAGES: &[Lang] = &[
-    Lang {
-        name: "csharp",
-        kind: "EmptyStatement",
-        case: "class A {\n    void M() {\n        ;\n",
-        close: "    }\n}\n",
-        column: 8,
-        width: 1,
-    },
-    Lang {
-        name: "json",
-        kind: "Object",
-        case: "{\n  \"a\": {}\n",
-        close: "}\n",
-        column: 7,
-        width: 2,
-    },
-    Lang {
-        name: "yaml",
-        kind: "FlowMapping",
-        case: "a: {}\n",
-        close: "",
-        column: 3,
-        width: 2,
-    },
-    Lang {
-        name: "toml",
-        kind: "InlineTable",
-        case: "a = {}\n",
-        close: "",
-        column: 4,
-        width: 2,
-    },
-    Lang {
-        name: "xml",
-        kind: "EmptyTag",
-        case: "<a>\n  <b/>\n",
-        close: "</a>\n",
-        column: 2,
-        width: 4,
-    },
-];
+fn starter(krate: &Path) -> Result<Starter> {
+    let file = fs::read_dir(krate)?
+        .map(|e| e.map(|e| e.path()))
+        .collect::<std::io::Result<Vec<_>>>()?
+        .into_iter()
+        .find_map(|p| {
+            let name = p.file_name()?.to_str()?.to_string();
+            let mut parts = name.strip_prefix("starter.")?.splitn(2, '.');
+            Some((
+                p.clone(),
+                parts.next()?.to_string(),
+                parts.next()?.to_string(),
+            ))
+        })
+        .context("the language has no `starter.<Kind>.<ext>` file")?;
+    let text = fs::read_to_string(&file.0)?.replace("\r\n", "\n");
+    let lines: Vec<&str> = text.lines().collect();
+    let at = lines
+        .iter()
+        .rposition(|l| l.contains("^ ID"))
+        .context("the starter has no `^ ID` annotation")?;
+    let carets = lines[at].find('^').context("a caret")?;
+    let width = lines[at].chars().filter(|&c| c == '^').count();
+    let reported = lines[at - 1][carets..carets + width].to_string();
+    Ok(Starter {
+        kind: file.1,
+        ext: file.2,
+        text,
+        reported,
+    })
+}
 
 fn pascal(id: &str) -> String {
     id.split('-')
@@ -73,55 +57,44 @@ fn pascal(id: &str) -> String {
         .collect()
 }
 
-fn yaml_rule(lang: &Lang, id: &str) -> String {
-    let Lang { name, kind, .. } = lang;
-    // The node kinds of the data languages match filled mappings as well.
-    let empty = if matches!(*name, "csharp" | "xml") {
-        ""
-    } else {
-        "  regex: '^\\{\\s*\\}$'\n"
-    };
+/// The text as an anchored regex.
+fn regex(text: &str) -> String {
+    let escaped: String = text
+        .chars()
+        .flat_map(|c| {
+            let meta = "\\.+*?()|[]{}^$#&-~".contains(c);
+            meta.then_some('\\').into_iter().chain([c])
+        })
+        .collect();
+    format!("^{escaped}$")
+}
+
+fn yaml_rule(language: &str, id: &str, starter: &Starter) -> String {
+    let kind = &starter.kind;
+    let regex = regex(&starter.reported).replace('\'', "''");
     format!(
-        "id: {id}\nlanguage: {name}\nmessage: TODO what the diagnostic says\n\
+        "id: {id}\nlanguage: {language}\nmessage: TODO what the diagnostic says\n\
          description: TODO what the rule reports, and what it leaves alone.\n\
          example: 'TODO code that triggers the rule   // write: what it should be'\n\
-         severity: off\ncategory: style\nrule:\n  kind: {kind}\n{empty}"
+         severity: off\ncategory: style\nrule:\n  kind: {kind}\n  regex: '{regex}'\n"
     )
 }
 
-fn rust_rule(lang: &Lang, id: &str) -> String {
-    // C# rules subscribe to a node kind; the data languages' to the grammar tag `mapping`.
-    let (imports, subscription, body) = if lang.name == "csharp" {
-        (
-            "use super::kind;\nuse core_rules::{RuleContext, rule};\nuse core_syntax::SyntaxNode;\n",
-            "kinds: &[kind::EMPTY_STATEMENT],",
-            "",
-        )
-    } else {
-        (
-            "use core_rules::{RuleContext, rule};\nuse core_syntax::SyntaxNode;\n",
-            "tags: &[\"mapping\"],",
-            "        if node.children().next().is_some() {\n            return;\n        }\n",
-        )
-    };
+fn rust_rule(id: &str, starter: &Starter) -> String {
+    let constant = screaming(&starter.kind);
+    let reported = format!("{:?}", starter.reported);
     format!(
-        "{imports}\nrule! {{\n    pub {name} {{\n        id: \"{id}\",\n        category: Style,\n        \
+        "use crate::generated::kind;\nuse core_rules::{{RuleContext, rule}};\nuse core_syntax::SyntaxNode;\n\n\
+         rule! {{\n    pub {name} {{\n        id: \"{id}\",\n        category: Style,\n        \
          default: Off,\n        description: \"TODO what the rule reports, and what it leaves alone.\",\n        \
          example: \"TODO code that triggers the rule   // write: what it should be\",\n        \
-         {subscription}\n    }}\n\n    \
-         fn check(&self, node: &SyntaxNode, ctx: &mut RuleContext<'_>) {{\n{body}        \
+         kinds: &[kind::{constant}],\n    }}\n\n    \
+         fn check(&self, node: &SyntaxNode, ctx: &mut RuleContext<'_>) {{\n        \
          let range = core_rules::tree::significant_range(node, ctx.file.grammar);\n        \
+         if ctx.file.text[std::ops::Range::<usize>::from(range)] != *{reported} {{\n            return;\n        }}\n        \
          ctx.report(range, \"TODO what the diagnostic says\");\n    }}\n}}\n",
         name = pascal(id)
     )
-}
-
-/// The starter input: the language's line, then the annotation under the line that is reported
-/// (the last of `case`), then whatever closes the construct.
-fn fixture(lang: &Lang, marker: &str, id: &str) -> String {
-    let pad = " ".repeat(lang.column.saturating_sub(marker.len()));
-    let carets = "^".repeat(lang.width);
-    format!("{}{marker}{pad}{carets} {id}\n{}", lang.case, lang.close)
 }
 
 fn write_new(path: &Path, text: &str) -> Result<()> {
@@ -195,13 +168,6 @@ fn register(registry: &Path, snake: &str, name: &str) -> Result<()> {
 
 /// Creates the rule's files under `root`; returns what to tell the user.
 pub fn new_rule(root: &Path, language: &str, id: &str, rust: bool) -> Result<String> {
-    let Some(lang) = LANGUAGES.iter().find(|l| l.name == language) else {
-        let known: Vec<_> = LANGUAGES.iter().map(|l| l.name).collect();
-        bail!(
-            "no scaffolding for `{language}` (known: {}); add the rule by hand as docs/development/testing.md describes",
-            known.join(", ")
-        );
-    };
     ensure!(
         !id.is_empty()
             && id.starts_with(|c: char| c.is_ascii_lowercase())
@@ -212,25 +178,14 @@ pub fn new_rule(root: &Path, language: &str, id: &str, rust: bool) -> Result<Str
             && !id.contains("--"),
         "the rule id must be lowercase words joined by `-`: `{id}`"
     );
-    let providers = languages::providers();
-    let provider = providers
-        .iter()
-        .find(|p| p.grammar().language == language)
-        .context("no provider for the language")?;
-    let marker = provider.grammar().comments.line.as_deref().unwrap_or("//");
-    let ext = provider
-        .file_matchers()
-        .iter()
-        .find_map(|m| match &m.pattern {
-            FilePattern::Extension(e) => Some(e.as_str()),
-            _ => None,
-        })
-        .context("the provider matches no extension")?;
     let krate = root.join("crates").join(format!("lang-{language}"));
+    let starter = starter(&krate).with_context(|| {
+        format!("no scaffolding for `{language}`; add the rule by hand as docs/development/testing.md describes")
+    })?;
     let snake = id.replace('-', "_");
     let created = if rust {
         let file = krate.join("src/rules").join(format!("{snake}.rs"));
-        write_new(&file, &rust_rule(lang, id))?;
+        write_new(&file, &rust_rule(id, &starter))?;
         let nested = krate.join("src/rules/mod.rs");
         let registry = if nested.exists() {
             nested
@@ -241,15 +196,15 @@ pub fn new_rule(root: &Path, language: &str, id: &str, rust: bool) -> Result<Str
         file
     } else {
         let file = krate.join("rules").join(format!("{id}.yaml"));
-        write_new(&file, &yaml_rule(lang, id))?;
+        write_new(&file, &yaml_rule(language, id, &starter))?;
         file
     };
     let case = root
         .join("tests/rules")
         .join(language)
         .join(id)
-        .join(format!("starter.{ext}"));
-    write_new(&case, &fixture(lang, marker, id))?;
+        .join(format!("starter.{}", starter.ext));
+    write_new(&case, &starter.text.replace("^ ID", &format!("^ {id}")))?;
     Ok(format!(
         "created {}\ncreated {}\n\
          next: edit both, `cargo fmt`, `SUDSY_BLESS=1 cargo test -p lang-{language} --test rule_fixtures`, then `cargo xtask codegen`.\n\

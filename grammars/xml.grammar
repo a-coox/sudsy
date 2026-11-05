@@ -1,7 +1,7 @@
 // XML 1.0, parsed by tree-sitter (tree-sitter-xml) and mapped by crates/lang-xml/src/mapping.rs.
 // Format: see crates/core-syntax/src/grammar/mod.rs.
 
-language xml 5
+language xml 5 "XML"
 comments block "<!--" "-->"
 suppress disable-next-line "sudsy-disable-next-line"
 suppress disable-line "sudsy-disable-line"

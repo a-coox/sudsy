@@ -1,7 +1,7 @@
 // TOML 1.0, parsed by tree-sitter (tree-sitter-toml-ng) and mapped by crates/lang-toml/src/mapping.rs.
 // Format: see crates/core-syntax/src/grammar/mod.rs.
 
-language toml 4
+language toml 4 "TOML"
 comments line "#"
 suppress disable-next-line "sudsy-disable-next-line"
 suppress disable-line "sudsy-disable-line"

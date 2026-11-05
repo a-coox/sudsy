@@ -2,7 +2,7 @@
 //!
 //! ```text
 //! // comment
-//! language json 1                      // name and LanguageId (1..=15)
+//! language json 1 "JSON"              // name, LanguageId (1..=15), display name (optional)
 //! comments line "//" block "/*" "*/"   // either part optional
 //! suppress disable-next-line "sudsy-disable-next-line"   // role, marker; roles: disable-next-line,
 //!                                                        // disable-line, disable, enable, disable-file, ignore*
@@ -89,6 +89,8 @@ pub struct Suppression {
 pub struct Grammar {
     pub language: String,
     pub language_id: LanguageId,
+    /// The language's name for people (`C#`); the `language` name when the grammar gives none.
+    pub title: String,
     pub comments: CommentSyntax,
     pub suppressions: Vec<Suppression>,
     nodes: Vec<KindDef>,

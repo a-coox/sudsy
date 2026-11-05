@@ -247,7 +247,7 @@ pub(super) fn parse(source: &str) -> Result<Grammar, GrammarError> {
     let decls = split_decls(source)?;
     let hash = content_hash(&decls);
 
-    let mut language: Option<(String, LanguageId)> = None;
+    let mut language: Option<(String, LanguageId, String)> = None;
     let mut comments = CommentSyntax::default();
     let mut suppressions = Vec::new();
     let mut raw: Vec<RawKind> = Vec::new();
@@ -265,7 +265,14 @@ pub(super) fn parse(source: &str) -> Result<Grammar, GrammarError> {
                     Some(Lexeme::Int(n)) if (1..=LanguageId::MAX as u32).contains(n) => *n as u8,
                     _ => return err(d.line, "language id must be 1..=15"),
                 };
-                if language.replace((name, LanguageId::new(id))).is_some() {
+                let title = match c.peek() {
+                    Some(Lexeme::Str(_)) => c.string("display name")?,
+                    _ => name.clone(),
+                };
+                if language
+                    .replace((name, LanguageId::new(id), title))
+                    .is_some()
+                {
                     return err(d.line, "duplicate language declaration");
                 }
             }
@@ -323,15 +330,24 @@ pub(super) fn parse(source: &str) -> Result<Grammar, GrammarError> {
         }
     }
 
-    let Some((language, language_id)) = language else {
+    let Some((language, language_id, title)) = language else {
         return err(1, "missing `language` declaration");
     };
-    resolve(language, language_id, comments, suppressions, raw, hash)
+    resolve(
+        language,
+        language_id,
+        title,
+        comments,
+        suppressions,
+        raw,
+        hash,
+    )
 }
 
 fn resolve(
     language: String,
     language_id: LanguageId,
+    title: String,
     comments: CommentSyntax,
     suppressions: Vec<Suppression>,
     raw: Vec<RawKind>,
@@ -418,6 +434,7 @@ fn resolve(
     let mut grammar = Grammar {
         language,
         language_id,
+        title,
         comments,
         suppressions,
         token_flags: super::hot_flags(&tokens),

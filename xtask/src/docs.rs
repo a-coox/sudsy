@@ -32,6 +32,33 @@ pub fn generate(providers: &[Box<dyn LanguageProvider>]) -> Result<Vec<(PathBuf,
         "docs/formatting/engine.md",
         &[("shared-options", shared_options_table(&schemas))],
     )?);
+    let mut titles: Vec<(&str, &str)> = providers
+        .iter()
+        .map(|p| (p.grammar().title.as_str(), p.grammar().language.as_str()))
+        .collect();
+    titles.sort();
+    let (last, rest) = titles.split_last().expect("a language");
+    let names = format!(
+        "{} and {}",
+        rest.iter().map(|t| t.0).collect::<Vec<_>>().join(", "),
+        last.0
+    );
+    let crates = titles
+        .iter()
+        .map(|t| format!("`lang-{}`", t.1))
+        .collect::<Vec<_>>()
+        .join(", ");
+    for rel in [
+        "README.md",
+        "editors/vscode/README.md",
+        "docs/editor/vscode.md",
+    ] {
+        out.push(splice(rel, &[("languages", names.clone())])?);
+    }
+    out.push(splice(
+        "docs/architecture/overview.md",
+        &[("crates", crates)],
+    )?);
     Ok(out)
 }
 
@@ -48,7 +75,13 @@ fn splice(rel: &str, blocks: &[(&str, String)]) -> Result<(PathBuf, String)> {
         let Some(len) = text[from..].find(END) else {
             bail!("{rel}: `{start}` has no `{END}`");
         };
-        text.replace_range(from..from + len, &format!("\n{body}"));
+        // A marker followed by text on its line is an inline block: the body replaces the text.
+        let newline = if text[from..].starts_with('\n') {
+            "\n"
+        } else {
+            ""
+        };
+        text.replace_range(from..from + len, &format!("{newline}{body}"));
     }
     Ok((rel.into(), text))
 }

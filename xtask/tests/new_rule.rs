@@ -1,10 +1,32 @@
 use std::fs;
+use std::path::Path;
+
+/// The languages' real starter files, copied into the scratch root.
+fn copy_starters(root: &Path) {
+    for language in ["csharp", "json", "toml", "yaml"] {
+        let krate = format!("crates/lang-{language}");
+        fs::create_dir_all(root.join(&krate)).unwrap();
+        for entry in fs::read_dir(xtask::repo_root().join(&krate)).unwrap() {
+            let path = entry.unwrap().path();
+            if path
+                .file_name()
+                .unwrap()
+                .to_str()
+                .unwrap()
+                .starts_with("starter.")
+            {
+                fs::copy(&path, root.join(&krate).join(path.file_name().unwrap())).unwrap();
+            }
+        }
+    }
+}
 
 #[test]
 fn scaffolds_a_pattern_rule_and_a_registered_rust_rule() {
     let root = std::env::temp_dir().join(format!("sudsy-new-rule-{}", std::process::id()));
     let rules = root.join("crates/lang-csharp/src/rules");
     fs::create_dir_all(&rules).unwrap();
+    copy_starters(&root);
     fs::write(
         rules.join("mod.rs"),
         "mod a;\nmod z;\n\npub static RULES: &[&dyn Rule] = &[\n    &a::A,\n];\n",
@@ -16,18 +38,16 @@ fn scaffolds_a_pattern_rule_and_a_registered_rust_rule() {
     let yaml = fs::read_to_string(root.join("crates/lang-csharp/rules/no-foo.yaml")).unwrap();
     assert!(yaml.starts_with("id: no-foo\nlanguage: csharp\n"));
     let case = fs::read_to_string(root.join("tests/rules/csharp/no-foo/starter.cs")).unwrap();
-    assert!(case.contains("// ^ no-foo") || case.contains("^ no-foo"));
+    assert!(case.contains("//      ^ no-foo"), "{case}");
+    assert!(yaml.contains("  regex: '^;$'\n"), "{yaml}");
 
     xtask::new_rule(&root, "csharp", "no-bar", true).unwrap();
     assert_eq!(
         fs::read_to_string(rules.join("mod.rs")).unwrap(),
         "mod a;\nmod no_bar;\nmod z;\n\npub static RULES: &[&dyn Rule] = &[\n    &a::A,\n    &no_bar::NoBar,\n];\n"
     );
-    assert!(
-        fs::read_to_string(rules.join("no_bar.rs"))
-            .unwrap()
-            .contains("pub NoBar {")
-    );
+    let rust = fs::read_to_string(rules.join("no_bar.rs")).unwrap();
+    assert!(rust.contains("pub NoBar {") && rust.contains("kinds: &[kind::EMPTY_STATEMENT]"));
 
     // The data languages: Rust rules, listed in their registry (a one-line list is expanded).
     let yaml = root.join("crates/lang-yaml/src");
@@ -40,10 +60,7 @@ fn scaffolds_a_pattern_rule_and_a_registered_rust_rule() {
     xtask::new_rule(&root, "toml", "no-baz", false).unwrap();
     let toml = fs::read_to_string(root.join("crates/lang-toml/rules/no-baz.yaml")).unwrap();
     assert!(
-        toml.contains(
-            "kind: InlineTable
-  regex:"
-        ),
+        toml.contains("kind: InlineTable\n  regex: '^\\{\\}$'"),
         "{toml}"
     );
     xtask::new_rule(&root, "yaml", "no-foo", true).unwrap();

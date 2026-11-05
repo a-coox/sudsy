@@ -2,7 +2,7 @@
 // commas are representable; whether they are allowed is a parser/rule concern.
 // Format: see crates/core-syntax/src/grammar/mod.rs.
 
-language json 1
+language json 1 "JSON"
 comments line "//" block "/*" "*/"
 suppress disable-next-line "sudsy-disable-next-line"
 suppress disable-line "sudsy-disable-line"

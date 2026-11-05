@@ -2,7 +2,7 @@
 // collection, entry and scalar so that the formatter sees structure, not columns.
 // Format: see crates/core-syntax/src/grammar/mod.rs.
 
-language yaml 3
+language yaml 3 "YAML"
 comments line "#"
 suppress disable-next-line "sudsy-disable-next-line"
 suppress disable-line "sudsy-disable-line"

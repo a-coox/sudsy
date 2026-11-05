@@ -1,6 +1,6 @@
 # Architecture overview
 
-A Rust core owns everything language-neutral; each language contributes a provider. Only C# parsing and semantic queries run outside Rust, in a .NET worker. JSON, YAML, TOML and XML never start .NET.
+A Rust core owns everything language-neutral; each language contributes a provider. Only C# parsing and semantic queries run outside Rust, in a .NET worker. Every other language stays in Rust and never starts .NET.
 
 ## Crates (`crates/`)
 
@@ -18,7 +18,7 @@ A Rust core owns everything language-neutral; each language contributes a provid
 | `core-config` | `sudsy.yaml` model, chain, resolution, presets, `.editorconfig`, JSON Schema |
 | `core-workspace` | File discovery (ignore files, hidden dirs, `.git` excluded) |
 | `provider-api` | `LanguageProvider`, out-of-process proxy, protocol types, `format_file`, test harness |
-| `lang-json`, `lang-yaml`, `lang-csharp`, `lang-toml`, `lang-xml` | Parser (JSON, YAML; TOML and XML through tree-sitter), formatter, rules, presets; C# adds the worker provider |
+| <!-- generated:crates -->`lang-csharp`, `lang-json`, `lang-toml`, `lang-xml`, `lang-yaml`<!-- /generated --> | Parser (JSON, YAML; TOML and XML through tree-sitter), formatter, rules, presets; C# adds the worker provider |
 | `languages` | Built-in provider list, option schemas, `Project` (config found from a directory, validated) |
 | `cli`, `lsp` | Front ends. `lsp` is a library; the server is `sudsy lsp` (one binary) |
 | `plugin-sdk` | Public crate for rule authors |
