@@ -241,7 +241,7 @@ entries:
     kind: "format-option"
     sudsy: "formatter"
     coverage: "covered"
-    notes: "`markdown/prettier-compat` against Prettier 3.9 with embeddedLanguageFormatting=off on the repo's docs, a fixture and 23 files of dotnet/runtime docs: 56 of 64 identical (`scripts/parity.sh format prettier`). Setext headings, escapes and code stay as written, as in Prettier 3.9."
+    notes: "`markdown/prettier-compat` against Prettier 3.9 with embeddedLanguageFormatting=off on the repo's docs, a fixture and 23 files of dotnet/runtime docs: 55 of 64 identical (`scripts/parity.sh format prettier`). Setext headings, escapes and code stay as written, as in Prettier 3.9."
     gap: "Code spans with three backticks, blocks with tabs and lists that would parse differently when restyled are kept as written; trailing blanks in code are kept; no front matter or embedded code formatting."
     priority: "p2"
     batch: "B14 markdown-defaults"

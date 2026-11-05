@@ -7,3 +7,4 @@ runtime-docs/coding-guidelines/cross-platform-performance-and-eventing.md: a blo
 runtime-docs/coding-guidelines/EventLogging.md: a block with a tab is kept as written (the width of a tab depends on its column); Prettier re-indents the nested list
 runtime-docs/coding-guidelines/mono-code-guide.md: a code span over two lines in a list item: Prettier removes the indentation of the second line from the span, Sudsy keeps the text of the span
 runtime-docs/coding-guidelines/vectorization-guidelines.md: trailing blanks inside a code block are code; Prettier removes them
+docs/formatting/csharp.md: an HTML block right after a table gets a blank line in front (Prettier keeps it on the next line; both parse it as HTML)

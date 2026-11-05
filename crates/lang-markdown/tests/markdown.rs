@@ -116,8 +116,14 @@ fn render(md: &str) -> String {
     out
 }
 
-/// `None` when the output renders like the input and formatting it again changes nothing.
+/// `None` when the output renders like the input and formatting it again changes nothing, with
+/// the input's line breaks and with CRLF.
 fn problem(s: &S, md: &str) -> Option<String> {
+    let crlf = md.replace("\r\n", "\n").replace('\n', "\r\n");
+    problem_once(s, md).or_else(|| problem_once(s, &crlf).map(|p| format!("(CRLF) {p}")))
+}
+
+fn problem_once(s: &S, md: &str) -> Option<String> {
     let out = match s.format(md) {
         Ok(o) => o,
         Err(e) => return Some(format!("refused: {e}")),
@@ -132,12 +138,9 @@ fn problem(s: &S, md: &str) -> Option<String> {
     }
 }
 
-#[test]
-fn repo_docs_render_the_same_and_are_idempotent() {
-    let s = subject();
-    let docs = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../docs");
-    let mut files = vec![std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../CLAUDE.md")];
-    let mut stack = vec![docs];
+/// The `.md` files under `dir`, recursively.
+fn md_files(dir: std::path::PathBuf) -> Vec<std::path::PathBuf> {
+    let (mut files, mut stack) = (Vec::new(), vec![dir]);
     while let Some(d) = stack.pop() {
         for e in std::fs::read_dir(d).unwrap().flatten() {
             let p = e.path();
@@ -148,6 +151,11 @@ fn repo_docs_render_the_same_and_are_idempotent() {
             }
         }
     }
+    files
+}
+
+fn assert_files_ok(files: &[std::path::PathBuf]) {
+    let s = subject();
     let bad: Vec<String> = files
         .iter()
         .filter_map(|f| {
@@ -155,7 +163,31 @@ fn repo_docs_render_the_same_and_are_idempotent() {
             problem(&s, &md).map(|p| format!("{}: {p}", f.display()))
         })
         .collect();
-    assert!(bad.is_empty(), "{}", bad.join("\n====\n"));
+    assert!(
+        bad.is_empty(),
+        "{}",
+        bad.join(
+            "
+====
+"
+        )
+    );
+}
+
+#[test]
+fn repo_docs_render_the_same_and_are_idempotent() {
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+    let mut files = md_files(root.join("docs"));
+    files.push(root.join("CLAUDE.md"));
+    assert_files_ok(&files);
+}
+
+#[test]
+#[ignore = "needs tests/conformance/fetch-markdown-corpus.sh"]
+fn runtime_docs_render_the_same_and_are_idempotent() {
+    let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../../tests/conformance/corpus/runtime-docs/docs");
+    assert_files_ok(&md_files(dir));
 }
 
 #[test]

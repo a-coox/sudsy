@@ -5,12 +5,10 @@
 //! Code, HTML, code spans, destinations and everything else are kept verbatim.
 
 use crate::generated::kind as k;
-use crate::mapping;
+
 use core_config::{OptionSchema, Preset, shared};
 use core_format::{Doc, FormatCtx, FormatError, NodeFormatter, doc};
-use core_syntax::{SyntaxElement, SyntaxKind, SyntaxNode, SyntaxToken, grammars};
-use core_treesitter::Engine;
-use std::sync::OnceLock;
+use core_syntax::{SyntaxElement, SyntaxKind, SyntaxNode, SyntaxToken};
 use unicode_width::UnicodeWidthStr;
 
 pub fn option_schema() -> OptionSchema {
@@ -46,12 +44,7 @@ impl NodeFormatter for MarkdownFormatter {
         if r.unformattable(node) {
             return Ok(Some(doc::verbatim(as_written.trim_end_matches('\n'))));
         }
-        let mut out = r.blocks(node, false).join("\n").replace('\r', "");
-        out.push('\n');
-        // Release builds skip the safety check: a rendering the parser reads differently stays as written.
-        if !r.same_document(node, &out) {
-            out = as_written;
-        }
+        let out = r.blocks(node, false).join("\n").replace('\r', "");
         Ok(Some(doc::verbatim(out.trim_end_matches('\n'))))
     }
 
@@ -69,21 +62,6 @@ impl NodeFormatter for MarkdownFormatter {
                 ))
             })
     }
-}
-
-/// Parses text the way the provider does, for the check of a rendered block.
-fn reparse(text: &str) -> Option<SyntaxNode> {
-    static ENGINE: OnceLock<Engine> = OnceLock::new();
-    let engine = ENGINE.get_or_init(|| {
-        Engine::with_composite(
-            tree_sitter_md::LANGUAGE.into(),
-            grammars::markdown(),
-            &mapping::BLOCK,
-            Some(mapping::COMPOSITE),
-        )
-    });
-    let parsed = engine.parse(text);
-    parsed.errors.is_empty().then_some(parsed.tree)
 }
 
 /// A container whose prefix every line of its content carries.
@@ -162,6 +140,18 @@ fn strip<'a>(mut line: &'a str, chain: &[Cont]) -> &'a str {
         };
     }
     line
+}
+
+/// Could a line, once unindented, start a block that interrupts a paragraph (a heading, quote,
+/// fence, HTML, rule, setext underline or list)?
+fn starts_block(t: &str) -> bool {
+    let first = t.chars().next();
+    let digits = t.bytes().take_while(u8::is_ascii_digit).count();
+    t.starts_with(['#', '>', '<'])
+        || t.starts_with("```")
+        || t.starts_with("~~~")
+        || first.is_some_and(|c| "-*_=+".contains(c))
+        || digits > 0 && t[digits..].starts_with(['.', ')'])
 }
 
 /// Stands for a line break inside a token while a paragraph is joined and trimmed line by line.
@@ -358,6 +348,38 @@ impl Render<'_> {
                 && matches!(e, SyntaxElement::Node(n)
                 if (n.kind() == k::BLOCK_QUOTE || n.kind() == k::LIST)
                     && significant(n).any(|t| t.kind() == k::INDENTED_CODE))
+            || top && matches!(e, SyntaxElement::Node(n) if self.irregular(n))
+    }
+
+    /// Indentation the renderer would remove or add although it carries meaning: an indented
+    /// or lazy paragraph line that would start a block at its container's indentation
+    /// (`Foo\n    ---` is not a heading, a lazy `===` is one once it gets the quote's `>`), an indented
+    /// opening fence (its content loses as much), a list followed by an indented line (new
+    /// marker widths could pull it into the last item).
+    fn irregular(&self, n: &SyntaxNode) -> bool {
+        let indented = |s: &str| s.starts_with([' ', '\t']);
+        if n.kind() == k::LIST
+            && self.src[usize::from(n.text_range().end())..]
+                .lines()
+                .find(|l| !l.trim().is_empty())
+                .is_some_and(indented)
+        {
+            return true;
+        }
+        n.descendants().any(|d| match d.kind() {
+            k::INLINE => {
+                let chain = self.chain(&d);
+                let text = &self.src[d.text_range()];
+                text.split('\n').skip(1).any(|l| {
+                    let lazy = !in_container(l, &chain);
+                    (lazy || indented(strip(l, &chain))) && starts_block(l.trim())
+                })
+            }
+            k::FENCED_CODE => significant(&d)
+                .find(|t| t.kind() == k::FENCE)
+                .is_some_and(|t| indented(t.text())),
+            _ => false,
+        })
     }
 
     /// Files whose blocks cannot all be told apart or rendered again: an empty heading has no
@@ -381,43 +403,12 @@ impl Render<'_> {
                 })
     }
 
-    /// Does the rendered block parse to what the block was? A restyle the parser reads
-    /// differently (odd list indentation, a lazy line that becomes a heading) is not made.
-    fn same_meaning(&self, e: &SyntaxElement, lines: &[String]) -> bool {
-        let text = format!("{}\n", lines.join("\n"));
-        let Some(doc) = reparse(&text) else {
-            return false;
-        };
-        let after = Render {
-            src: &text,
-            tab: self.tab,
-        };
-        let mut new = Vec::new();
-        for b in Self::block_elems(&doc) {
-            after.sig(&b, &mut new);
-        }
-        let mut old = Vec::new();
-        self.sig(e, &mut old);
-        old == new
-    }
-
-    fn same_document(&self, doc: &SyntaxNode, out: &str) -> bool {
-        let Some(new) = reparse(out) else {
-            return false;
-        };
-        let (mut a, mut b) = (Vec::new(), Vec::new());
-        self.sig(&SyntaxElement::Node(doc.clone()), &mut a);
-        Render {
-            src: out,
-            tab: self.tab,
-        }
-        .sig(&SyntaxElement::Node(new), &mut b);
-        a == b
-    }
-
     fn blocks(&self, parent: &SyntaxNode, tight: bool) -> Vec<String> {
         let mut out: Vec<String> = Vec::new();
         let (mut ignore, mut nth, mut prev_list) = (false, 0, None::<bool>);
+        // The block after a list kept as written is kept too: a list's new marker could be the
+        // other's, an indented block could join the list once unindented.
+        let mut prev_kept = false;
         let mut prev: Option<SyntaxElement> = None;
         let chain = if parent.kind() == k::BLOCK_QUOTE || parent.kind() == k::LIST_ITEM {
             self.chain_in(parent)
@@ -430,23 +421,18 @@ impl Render<'_> {
                 SyntaxElement::Node(n) if n.kind() == k::LIST => Some(self.ordered(n)),
                 _ => None,
             };
-            nth = if ordered.is_some() && ordered == prev_list {
-                nth + 1
-            } else {
-                0
-            };
+            let after_list = ordered.is_some() && ordered == prev_list;
+            nth = if after_list { nth + 1 } else { 0 };
+            let after_kept_list = prev_list.is_some() && prev_kept;
             prev_list = ordered;
-            let mut lines = if ignore || self.keep(&e, top) {
+            let kept = ignore || self.keep(&e, top) || after_kept_list;
+            prev_kept = kept;
+            let mut lines = if kept {
                 self.verbatim(&e)
             } else {
-                let lines = match &e {
+                match &e {
                     SyntaxElement::Node(n) => self.node_block(n, nth),
                     SyntaxElement::Token(t) => self.token_block(t, out.is_empty() && top),
-                };
-                if top && !self.same_meaning(&e, &lines) {
-                    self.verbatim(&e)
-                } else {
-                    lines
                 }
             };
             ignore = matches!(&e, SyntaxElement::Node(n) if n.kind() == k::HTML
@@ -721,6 +707,7 @@ impl Render<'_> {
                 .map_or(self.src.len(), |i| end(&open) + i + 1);
             let mut pieces = self.src[from..].split('\n').peekable();
             while let Some(raw) = pieces.next() {
+                let raw = raw.strip_suffix('\r').unwrap_or(raw);
                 // The empty piece after the file's last line break is not a line.
                 if raw.is_empty() && pieces.peek().is_none() && self.src.ends_with('\n') {
                     break;
