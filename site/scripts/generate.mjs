@@ -41,11 +41,14 @@ function example(e) {
   ].filter(Boolean).join('\n\n');
 }
 
-const ruleIds = new Set(rules().map((r) => r.id.toLowerCase()));
+const realLanguages = [...new Set(rules().flatMap((r) => r.languages))].filter((l) => l !== 'all');
+const ruleIds =new Set(rules().map((r) => r.id.toLowerCase()));
 const stubs = new Map(); // slug -> { id, tools, rules }
 for (const r of rules()) {
   const chips = [
-    ...r.languages.map((v) => chip('language', v)),
+    // A rule for all languages shows "all" but is filterable under every real language.
+    ...r.languages.map((v) => (v === 'all' ? `<span>language: all</span>` : chip('language', v))),
+    ...(r.languages.includes('all') ? realLanguages.map((v) => `<span hidden data-pagefind-filter="language[data-v]" data-v="${v}"></span>`) : []),
     chip('category', r.category),
     chip('level', r.default_level),
     chip('fix', r.fix ?? 'none'),
