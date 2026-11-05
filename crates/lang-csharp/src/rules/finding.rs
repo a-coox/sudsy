@@ -76,17 +76,13 @@ pub fn report(
 
 #[cfg(test)]
 mod tests {
-    use super::super::PATTERN_RULES;
-
     fn load(family: &str, params: &str) {
         let source = format!(
             "id: f\nlanguage: csharp\nfamily: {family}\nparams: {{ {params} }}\nmessage: m\nseverity: warn\n"
         );
-        let patterns = core_patterns::Patterns {
-            sources: &[&source],
-            families: PATTERN_RULES.families,
-        };
-        crate::provider_with_command(vec!["no-such-host".into()]).with_pattern_rules(patterns);
+        crate::provider_with_command(vec!["no-such-host".into()])
+            .with_families(super::super::FAMILIES)
+            .with_pattern_rules(&[&source]);
     }
 
     #[test]
