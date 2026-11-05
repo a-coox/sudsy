@@ -3,7 +3,7 @@
 use super::kind;
 use core_rules::rule;
 use core_rules::tree::{is_code, significant_range};
-use core_rules::{Edit, Fix, FixKind, RuleContext};
+use core_rules::{Edit, RuleContext};
 use core_syntax::{SyntaxNode, TextRange};
 
 rule! {
@@ -40,14 +40,8 @@ rule! {
             kind::GLOBAL_STATEMENT => None,
             _ => Some(Edit::replace(range, "{ }")),
         };
-        let diagnostic = ctx.report(range, "empty statement");
-        if let Some(edit) = edit {
-            diagnostic.fix(Fix::new(
-                "Remove the empty statement",
-                FixKind::Safe,
-                vec![edit],
-            ));
-        }
+        let fix = edit.map(|edit| ("Remove the empty statement", vec![edit]));
+        ctx.report_fix(range, "empty statement", fix);
     }
 }
 

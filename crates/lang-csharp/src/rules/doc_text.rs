@@ -6,7 +6,7 @@ use super::doc_comments::{
 };
 use super::kind;
 use core_rules::rule;
-use core_rules::{Edit, Fix, FixKind, RuleContext};
+use core_rules::{Edit, RuleContext};
 use core_syntax::{SyntaxNode, SyntaxToken, TextRange, TextSize};
 use std::collections::HashSet;
 
@@ -74,14 +74,8 @@ rule! {
         {
             let end = token.text_range().end();
             let slashes = TextRange::new(end - TextSize::from(3), end);
-            let diagnostic = ctx.report(slashes, "a plain comment should not use documentation slashes");
-            if !attached {
-                diagnostic.fix(Fix::new(
-                    "Use //",
-                    FixKind::Safe,
-                    vec![Edit::replace(slashes, "//")],
-                ));
-            }
+            let fix = (!attached).then(|| ("Use //", vec![Edit::replace(slashes, "//")]));
+            ctx.report_fix(slashes, "a plain comment should not use documentation slashes", fix);
         }
     }
 }
@@ -280,10 +274,8 @@ rule! {
             } else {
                 Edit::insert(m.after, ".")
             };
-            let diagnostic = ctx.report(range, "the documentation text should end with a period");
-            if m.fixable {
-                diagnostic.fix(Fix::new("Add a period", FixKind::Safe, vec![edit]));
-            }
+            let fix = m.fixable.then(|| ("Add a period", vec![edit]));
+            ctx.report_fix(range, "the documentation text should end with a period", fix);
         }
     }
 }

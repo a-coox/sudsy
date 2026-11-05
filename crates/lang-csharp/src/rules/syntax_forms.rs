@@ -3,7 +3,7 @@
 use super::{kind, line_separator, text_of};
 use core_rules::rule;
 use core_rules::tree::significant_range;
-use core_rules::{Edit, Fix, FixKind, RuleContext};
+use core_rules::{Edit, RuleContext};
 use core_syntax::{SyntaxNode, TextRange};
 
 rule! {
@@ -49,19 +49,14 @@ rule! {
                 .iter()
                 .map(|a| format!("[{target}{}]", text_of(a, ctx)))
                 .collect();
-            fix = Some(Fix::new(
-                "Split into one list per attribute",
-                FixKind::Safe,
-                vec![Edit::replace(range, lists.join(&separator))],
-            ));
+            let edit = Edit::replace(range, lists.join(&separator));
+            fix = Some(("Split into one list per attribute", vec![edit]));
         }
-        let diagnostic = ctx.report(
+        ctx.report_fix(
             significant_range(second, grammar),
             "combined attributes: put each attribute in its own list",
+            fix,
         );
-        if let Some(fix) = fix {
-            diagnostic.fix(fix);
-        }
     }
 }
 
@@ -70,9 +65,7 @@ rule! {
 fn empty_parens_with_leading_space(list: &SyntaxNode, ctx: &RuleContext<'_>) -> Option<TextRange> {
     let range = significant_range(list, ctx.file.grammar);
     let text = ctx.file.text;
-    let inner = text[usize::from(range.start())..usize::from(range.end())]
-        .strip_prefix('(')?
-        .strip_suffix(')')?;
+    let inner = text[range].strip_prefix('(')?.strip_suffix(')')?;
     if !inner.trim().is_empty() {
         return None;
     }
@@ -104,16 +97,10 @@ rule! {
         }
         let range = significant_range(node, ctx.file.grammar);
         let remove = empty_parens_with_leading_space(node, ctx);
-        let diagnostic = ctx.report(
+        ctx.report_fix(
             TextRange::at(range.start(), 1.into()),
             "the anonymous method has an empty parameter list",
+            remove.map(|remove| ("Remove the parentheses", vec![Edit::delete(remove)])),
         );
-        if let Some(remove) = remove {
-            diagnostic.fix(Fix::new(
-                "Remove the parentheses",
-                FixKind::Unsafe,
-                vec![Edit::delete(remove)],
-            ));
-        }
     }
 }

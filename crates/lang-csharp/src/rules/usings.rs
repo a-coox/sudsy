@@ -2,7 +2,7 @@ use super::kind;
 use crate::using_sort::{self, Compare, Order};
 use core_rules::rule;
 use core_rules::tree::{code_start, entry_range, reorder_edits, significant_range};
-use core_rules::{Check, Fix, FixKind, Opt, OptionDecl, RuleContext};
+use core_rules::{Check, Opt, OptionDecl, RuleContext};
 use core_syntax::{SyntaxNode, TextRange};
 
 fn order_of(ctx: &RuleContext<'_>) -> Order {
@@ -84,19 +84,12 @@ rule! {
         let sorted = using_sort::sorted(&entries, &order);
         let ranges: Vec<_> = entries.iter().map(|e| entry_range(&e.node, g)).collect();
         let mut fix = (!directives && sorted.iter().enumerate().any(|(i, &s)| i != s)).then(|| {
-            Fix::new(
-                "Sort the using directives",
-                FixKind::Safe,
-                reorder_edits(text, &ranges, &sorted),
-            )
+            ("Sort the using directives", reorder_edits(text, &ranges, &sorted))
         });
         for m in found {
             let node = &entries[m.at].node;
             let range = TextRange::new(code_start(node, g), significant_range(node, g).end());
-            let diagnostic = ctx.report(range, &m.message);
-            if let Some(fix) = fix.take() {
-                diagnostic.fix(fix);
-            }
+            ctx.report_fix(range, &m.message, fix.take());
         }
     }
 }

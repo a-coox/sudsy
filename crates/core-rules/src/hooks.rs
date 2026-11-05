@@ -18,7 +18,7 @@ pub trait RuleHooks: Send + Sync {
     /// of matching quotes stripped.
     fn key_name<'a>(&self, key: &SyntaxElement, text: &'a str) -> Cow<'a, str> {
         let range = key.text_range();
-        let raw = text[usize::from(range.start())..usize::from(range.end())].trim();
+        let raw = text[range].trim();
         let inner = ['"', '\'']
             .iter()
             .find_map(|&q| raw.strip_prefix(q)?.strip_suffix(q));

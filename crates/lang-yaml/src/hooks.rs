@@ -19,7 +19,7 @@ fn is_trivia(kind: SyntaxKind) -> bool {
 /// The value of a scalar node: `None` for a quoted scalar with an invalid escape.
 fn scalar_value<'a>(token: &SyntaxToken, text: &'a str) -> Option<Cow<'a, str>> {
     let range = token.text_range();
-    let raw = &text[usize::from(range.start())..usize::from(range.end())];
+    let raw = &text[range];
     match token.kind() {
         kind::PLAIN if !raw.contains(['\n', '\r']) => Some(Cow::Borrowed(raw)),
         kind::PLAIN => Some(Cow::Owned(plain_value(raw))),

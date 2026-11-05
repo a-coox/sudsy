@@ -1,6 +1,6 @@
 //! The rule trait and the contexts rules run in.
 
-use crate::diagnostic::{Category, Diagnostic, FixKind, Severity};
+use crate::diagnostic::{Category, Diagnostic, Edit, Fix, FixKind, Severity};
 use crate::hooks::RuleHooks;
 use crate::layout::{LayoutRole, LayoutSink};
 use crate::lines::LineIndex;
@@ -130,6 +130,23 @@ impl<'a> RuleContext<'a> {
             fixes: Vec::new(),
         });
         self.out.last_mut().expect("just pushed")
+    }
+
+    /// [`report`](Self::report) with a fix `(title, edits)` of the kind the rule declares in its
+    /// metadata (`fix:`); `None` reports without one.
+    pub fn report_fix<T: Into<String>>(
+        &mut self,
+        range: TextRange,
+        message: impl Into<String>,
+        fix: impl Into<Option<(T, Vec<Edit>)>>,
+    ) -> &mut Diagnostic {
+        let kind = self.meta.fix;
+        let diagnostic = self.report(range, message);
+        if let Some((title, edits)) = fix.into() {
+            let kind = kind.expect("a rule that fixes declares `fix`");
+            diagnostic.fix(Fix::new(title, kind, edits));
+        }
+        diagnostic
     }
 }
 

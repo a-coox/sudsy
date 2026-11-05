@@ -1,7 +1,7 @@
 //! Shared comment rules, written against the grammar's comment syntax: `comment-space` and
 //! `no-empty-comment`. They read comment tokens, so they cost nothing when off.
 
-use crate::diagnostic::{Edit, Fix, FixKind};
+use crate::diagnostic::Edit;
 use crate::rule;
 use crate::rule::{FileContext, RuleContext};
 use crate::tree::{is_code, structured_trivia};
@@ -48,15 +48,11 @@ rule! {
                 continue;
             }
             let after = start + core_syntax::TextSize::of(marker);
-            ctx.report(
+            ctx.report_fix(
                 TextRange::new(start, after),
                 format!("a comment should start with a space after `{marker}`"),
-            )
-            .fix(Fix::new(
-                "Insert a space",
-                FixKind::Safe,
-                vec![Edit::insert(after, " ")],
-            ));
+                ("Insert a space", vec![Edit::insert(after, " ")]),
+            );
         }
     }
 }

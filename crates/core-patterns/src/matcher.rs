@@ -351,6 +351,6 @@ impl<'p> Cx<'p> {
 impl Capture {
     /// The captured source text.
     pub fn text<'a>(&self, source: &'a str) -> &'a str {
-        &source[usize::from(self.range.start())..usize::from(self.range.end())]
+        &source[self.range]
     }
 }

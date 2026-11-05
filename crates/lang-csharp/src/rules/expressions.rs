@@ -4,7 +4,7 @@
 use super::{has_comment_in, kind, text_of};
 use core_rules::rule;
 use core_rules::tree::significant_range;
-use core_rules::{Edit, Fix, FixKind, RuleContext};
+use core_rules::{Edit, RuleContext};
 use core_syntax::{SyntaxNode, TextRange};
 
 /// Is `left` `System` or `global::System`?
@@ -80,15 +80,14 @@ rule! {
         if before_member {
             return;
         }
-        ctx.report(
+        ctx.report_fix(
             range,
             format!("use `{argument_text}?` instead of `Nullable<{argument_text}>`"),
-        )
-        .fix(Fix::new(
-            "Use the nullable shorthand",
-            FixKind::Safe,
-            vec![Edit::replace(range, format!("{argument_text}?"))],
-        ));
+            (
+                "Use the nullable shorthand",
+                vec![Edit::replace(range, format!("{argument_text}?"))],
+            ),
+        );
     }
 }
 
@@ -125,19 +124,10 @@ rule! {
                 .next()
                 .is_some_and(|c| !c.is_whitespace());
             let tail = if attached { " " } else { "" };
-            Some(Fix::new(
-                "Use a lambda",
-                FixKind::Safe,
-                vec![Edit::replace(
-                    range,
-                    format!("{} =>{tail}", text_of(&p, ctx)),
-                )],
-            ))
+            let edit = Edit::replace(range, format!("{} =>{tail}", text_of(&p, ctx)));
+            Some(("Use a lambda", vec![edit]))
         });
-        let diagnostic = ctx.report(keyword.text_range(), "use lambda syntax");
-        if let Some(fix) = fix {
-            diagnostic.fix(fix);
-        }
+        ctx.report_fix(keyword.text_range(), "use lambda syntax", fix);
     }
 }
 
@@ -235,22 +225,14 @@ rule! {
         let fix = flip
             .filter(|_| !has_comment_in(node, whole, ctx))
             .map(|op| {
-                Fix::new(
-                    "Put the constant on the right",
-                    FixKind::Safe,
-                    vec![Edit::replace(
-                        whole,
-                        format!("{} {op} {}", text_of(&right, ctx), text_of(&left, ctx)),
-                    )],
-                )
+                let swapped = format!("{} {op} {}", text_of(&right, ctx), text_of(&left, ctx));
+                ("Put the constant on the right", vec![Edit::replace(whole, swapped)])
             });
-        let diagnostic = ctx.report(
+        ctx.report_fix(
             significant_range(&left, grammar),
             "put the constant on the right side of the comparison",
+            fix,
         );
-        if let Some(fix) = fix {
-            diagnostic.fix(fix);
-        }
     }
 }
 
@@ -379,18 +361,13 @@ rule! {
         let bare = literal.trim_end_matches(letters);
         let range = significant_range(node, ctx.file.grammar);
         let fix = (!has_comment_in(node, range, ctx)).then(|| {
-            Fix::new(
-                "Use a literal suffix",
-                FixKind::Safe,
-                vec![Edit::replace(range, format!("{sign}{bare}{suffix}"))],
-            )
+            let edit = Edit::replace(range, format!("{sign}{bare}{suffix}"));
+            ("Use a literal suffix", vec![edit])
         });
-        let diagnostic = ctx.report(
+        ctx.report_fix(
             range,
             format!("use the literal suffix `{suffix}` instead of casting to {target}"),
+            fix,
         );
-        if let Some(fix) = fix {
-            diagnostic.fix(fix);
-        }
     }
 }

@@ -120,7 +120,7 @@ impl Expr {
             Expr::Kind(k) => (node.kind() == *k).then(Captures::new),
             Expr::Regex(re) => {
                 let range = significant_range(node, cx.grammar);
-                let text = &cx.text[usize::from(range.start())..usize::from(range.end())];
+                let text = &cx.text[range];
                 re.is_match(text).then(Captures::new)
             }
             Expr::Inside(e) => node

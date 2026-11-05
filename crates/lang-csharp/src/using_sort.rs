@@ -69,7 +69,7 @@ fn compact(s: &str) -> String {
 
 fn text<'a>(node: &SyntaxNode, source: &'a str, g: &Grammar) -> &'a str {
     let r = significant_range(node, g);
-    &source[usize::from(r.start())..usize::from(r.end())]
+    &source[r]
 }
 
 /// The directives of the list `usings`, whose source is `source`.
@@ -424,7 +424,7 @@ pub fn list_span(entries: &[Entry], source: &str, g: &Grammar) -> Option<(TextRa
         significant_range(&first.node, g).start(),
         entry_range(&last.node, g).end(),
     );
-    let inside = &source[usize::from(span.start())..usize::from(span.end())];
+    let inside = &source[span];
     Some((span, has_directive(inside)))
 }
 
@@ -500,11 +500,7 @@ fn sorted_list(entries: &[Entry], source: &str, g: &Grammar) -> String {
         .into_iter()
         .map(|i| {
             let b = bodies[i];
-            format!(
-                "{}{}",
-                leads[i],
-                &source[usize::from(b.start())..usize::from(b.end())]
-            )
+            format!("{}{}", leads[i], &source[b])
         })
         .collect::<Vec<_>>()
         .join(newline)

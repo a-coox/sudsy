@@ -3,7 +3,7 @@
 
 use crate::generated::kind;
 use core_rules::rule;
-use core_rules::{Edit, FileContext, Fix, FixKind, RuleContext};
+use core_rules::{Edit, FileContext, RuleContext};
 use core_syntax::{TextRange, TextSize};
 use std::collections::{HashMap, HashSet};
 
@@ -131,12 +131,12 @@ rule! {
             }
         }
         for (e, _) in events.iter().zip(&used).filter(|(e, u)| e.anchor && !**u) {
-            ctx.report(e.range, format!("unused anchor `{}`", e.name))
-                .fix(Fix::new(
-                    "Remove the anchor",
-                    FixKind::Safe,
-                    vec![Edit::delete(removal(file.text, e.range))],
-                ));
+            let edit = Edit::delete(removal(file.text, e.range));
+            ctx.report_fix(
+                e.range,
+                format!("unused anchor `{}`", e.name),
+                ("Remove the anchor", vec![edit]),
+            );
         }
     }
 }

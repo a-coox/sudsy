@@ -5,7 +5,7 @@
 use super::kind;
 use core_rules::rule;
 use core_rules::tree::{code_start, entry_range, reorder_edits, significant_range};
-use core_rules::{Check, Fix, FixKind, Opt, OptionDecl, RuleContext};
+use core_rules::{Check, Opt, OptionDecl, RuleContext};
 use core_syntax::{Grammar, SyntaxKind, SyntaxNode, TextRange};
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -534,13 +534,7 @@ rule! {
             .descendants_with_tokens()
             .filter_map(|e| e.into_token())
             .any(|t| span.contains_range(t.text_range()) && g.has_tag(t.kind(), "comment"));
-        let diagnostic = ctx.report(range, message);
-        if !commented {
-            diagnostic.fix(Fix::new(
-                "Swap the accessors",
-                FixKind::Safe,
-                reorder_edits(text, &ranges, &[1, 0]),
-            ));
-        }
+        let fix = (!commented).then(|| ("Swap the accessors", reorder_edits(text, &ranges, &[1, 0])));
+        ctx.report_fix(range, message, fix);
     }
 }

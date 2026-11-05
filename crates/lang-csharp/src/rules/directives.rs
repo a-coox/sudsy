@@ -3,7 +3,7 @@
 
 use super::kind;
 use core_rules::rule;
-use core_rules::{Edit, Fix, FixKind, RuleContext};
+use core_rules::{Edit, RuleContext};
 use core_syntax::{SyntaxKind, SyntaxNode};
 
 /// Every directive node kind.
@@ -55,14 +55,13 @@ rule! {
         let Some(keyword) = space.next_token() else {
             return;
         };
-        ctx.report(
+        ctx.report_fix(
             keyword.text_range(),
             "the directive keyword should follow `#` directly",
-        )
-        .fix(Fix::new(
-            "Remove the space after `#`",
-            FixKind::Safe,
-            vec![Edit::delete(space.text_range())],
-        ));
+            (
+                "Remove the space after `#`",
+                vec![Edit::delete(space.text_range())],
+            ),
+        );
     }
 }

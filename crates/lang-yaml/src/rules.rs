@@ -5,7 +5,7 @@ use crate::generated::{BlockMappingEntry, FlowPair, Scalar, kind};
 use crate::{anchor_rules, flow_rules, quoted_strings, value_rules};
 use core_rules::rule;
 use core_rules::tree::significant_range;
-use core_rules::{Check, Edit, Fix, FixKind, Opt, OptionDecl, Rule, RuleContext};
+use core_rules::{Check, Edit, Opt, OptionDecl, Rule, RuleContext};
 use core_syntax::ast::AstNode;
 use core_syntax::{SyntaxKind, SyntaxNode, TextSize};
 
@@ -83,15 +83,12 @@ rule! {
             return;
         }
         let text = token.text();
-        ctx.report(
+        let edit = Edit::replace(token.text_range(), format!("\"{text}\""));
+        ctx.report_fix(
             token.text_range(),
             format!("`{text}` is a boolean in YAML 1.1 and a string in YAML 1.2"),
-        )
-        .fix(Fix::new(
-            format!("Quote it: \"{text}\""),
-            FixKind::Unsafe,
-            vec![Edit::replace(token.text_range(), format!("\"{text}\""))],
-        ));
+            (format!("Quote it: \"{text}\""), vec![edit]),
+        );
     }
 }
 
@@ -142,15 +139,11 @@ rule! {
         let Some(body) = document.children().next() else {
             return;
         };
-        ctx.report(
+        ctx.report_fix(
             significant_range(&body, ctx.file.grammar),
             "the document does not start with `---`",
-        )
-        .fix(Fix::new(
-            "Add `---`",
-            FixKind::Safe,
-            vec![Edit::insert(TextSize::from(0), "---\n")],
-        ));
+            ("Add `---`", vec![Edit::insert(TextSize::from(0), "---\n")]),
+        );
     }
 }
 
@@ -205,14 +198,11 @@ rule! {
                 .saturating_sub(1),
         };
         let start = ctx.file.lines.line_range(ctx.file.text, line).0;
-        ctx.report(
+        let edit = Edit::insert(at, if line_end { "...\n" } else { "\n..." });
+        ctx.report_fix(
             core_syntax::TextRange::empty(TextSize::from(start as u32)),
             "the document does not end with `...`",
-        )
-        .fix(Fix::new(
-            "Add `...`",
-            FixKind::Safe,
-            vec![Edit::insert(at, if line_end { "...\n" } else { "\n..." })],
-        ));
+            ("Add `...`", vec![edit]),
+        );
     }
 }

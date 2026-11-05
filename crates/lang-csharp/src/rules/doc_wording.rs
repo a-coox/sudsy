@@ -9,7 +9,7 @@ use super::doc_comments::{
 use super::kind;
 use core_rules::rule;
 use core_rules::tree::significant_range;
-use core_rules::{Edit, Fix, FixKind, RuleContext};
+use core_rules::{Edit, RuleContext};
 use core_syntax::{SyntaxNode, TextRange};
 
 /// What is wrong with a property summary.
@@ -191,7 +191,7 @@ fn property_mismatch(d: &Documented, ctx: &RuleContext<'_>) -> Option<(Mismatch,
 }
 
 /// The fix that gives the summary the expected start (StyleCop's `PropertySummaryDocumentation` fix).
-fn property_fix(m: &Mismatch, summary: &Element) -> Option<Fix> {
+fn property_fix(m: &Mismatch, summary: &Element) -> Option<(String, Vec<Edit>)> {
     if summary.content().is_empty() {
         return None;
     }
@@ -215,9 +215,8 @@ fn property_fix(m: &Mismatch, summary: &Element) -> Option<Fix> {
         .map(|c| c.to_lowercase().chain(chars).collect())
         .unwrap_or_default();
     let new = format!("{}{} {}", &text[..lead], m.expected, lowered);
-    Some(Fix::new(
+    Some((
         format!("Start the summary with \"{}\"", m.expected),
-        FixKind::Unsafe,
         vec![Edit::replace(token.text_range(), new)],
     ))
 }
@@ -241,10 +240,7 @@ fn report_property(rule_restricted: bool, node: &SyntaxNode, ctx: &mut RuleConte
     };
     let fix = property_fix(&m, &summary);
     for range in d.names() {
-        let diagnostic = ctx.report(range, message.clone());
-        if let Some(fix) = fix.clone() {
-            diagnostic.fix(fix);
-        }
+        ctx.report_fix(range, message.clone(), fix.clone());
     }
 }
 
@@ -397,7 +393,7 @@ fn standard_text_fix(
     generics: Option<&str>,
     first: &str,
     second: &str,
-) -> Option<Fix> {
+) -> Option<(&'static str, Vec<Edit>)> {
     let summary = d.doc.first("summary")?;
     let see = see_element(name, generics);
     let edit = match found {
@@ -405,11 +401,7 @@ fn standard_text_fix(
         Found::See(range) => Edit::replace(*range, see),
         Found::Text => {
             if let Some(edit) = malformed_sentence(summary, &see, first, second) {
-                return Some(Fix::new(
-                    "Use the standard summary text",
-                    FixKind::Unsafe,
-                    vec![edit],
-                ));
+                return Some(("Use the standard summary text", vec![edit]));
             }
             let tag = summary
                 .node
@@ -435,11 +427,7 @@ fn standard_text_fix(
             )
         }
     };
-    Some(Fix::new(
-        "Use the standard summary text",
-        FixKind::Unsafe,
-        vec![edit],
-    ))
+    Some(("Use the standard summary text", vec![edit]))
 }
 
 fn check_standard(
@@ -474,16 +462,14 @@ fn check_standard(
         _ => summary.range(),
     };
     let fix = standard_text_fix(d, &found, &name, generics.as_deref(), first, second);
-    let diagnostic = ctx.report(
+    ctx.report_fix(
         range,
         format!(
             "the summary should start with: \"{first}<see cref=\"{name}\"/>{}\"",
             second.trim_end()
         ),
+        fix,
     );
-    if let Some(fix) = fix {
-        diagnostic.fix(fix);
-    }
 }
 
 rule! {

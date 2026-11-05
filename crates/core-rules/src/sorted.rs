@@ -1,7 +1,6 @@
 //! Ordering rules on the shared tags: `sorted-keys` (every `#mapping`) and `sorted-array-values`
 //! (every `#sequence` of only strings or only numbers).
 
-use crate::diagnostic::{Fix, FixKind};
 use crate::hooks::Scalar;
 use crate::keys::{key_range, keyed};
 use crate::options::{Check, Opt, OptionDecl};
@@ -80,21 +79,14 @@ rule! {
         };
         let ranges: Vec<TextRange> = (0..entries.len()).map(range).collect();
         let edits = reorder_edits(text, &ranges, &plan.sorted);
-        let mut fix = Some(Fix::new(
-            "Sort the keys of this mapping",
-            FixKind::Unsafe,
-            edits,
-        ));
+        let mut fix = Some(("Sort the keys of this mapping", edits));
         let reported = if ctx.options.string("report") == "misplaced" {
             &plan.misplaced
         } else {
             &plan.moved
         };
         for &i in reported {
-            let report = ctx.report(key_range(&entries[i].1, grammar), "keys are not sorted");
-            if let Some(f) = fix.take() {
-                report.fix(f);
-            }
+            ctx.report_fix(key_range(&entries[i].1, grammar), "keys are not sorted", fix.take());
         }
     }
 }
@@ -191,16 +183,9 @@ rule! {
             .map(|e| reorder_range(e, separated, grammar))
             .collect();
         let edits = reorder_edits(text, &ranges, &plan.sorted);
-        let mut fix = Some(Fix::new(
-            "Sort the values of this sequence",
-            FixKind::Unsafe,
-            edits,
-        ));
+        let mut fix = Some(("Sort the values of this sequence", edits));
         for &i in &plan.moved {
-            let report = ctx.report(at[i], "values are not sorted");
-            if let Some(f) = fix.take() {
-                report.fix(f);
-            }
+            ctx.report_fix(at[i], "values are not sorted", fix.take());
         }
     }
 }

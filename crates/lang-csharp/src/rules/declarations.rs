@@ -3,7 +3,7 @@
 use super::{has_comment_in, kind, line_separator, text_of};
 use core_rules::rule;
 use core_rules::tree::{code_start, significant_range};
-use core_rules::{Edit, Fix, FixKind, RuleContext};
+use core_rules::{Edit, RuleContext};
 use core_syntax::{SyntaxNode, TextRange};
 
 rule! {
@@ -40,25 +40,20 @@ rule! {
         );
         let prefix = TextRange::new(range.start(), significant_range(first, grammar).start());
         let fix = (!has_comment_in(node, range, ctx)).then(|| {
-            let head = &ctx.file.text[usize::from(prefix.start())..usize::from(prefix.end())];
+            let head = &ctx.file.text[prefix];
             let separator = line_separator(range, ctx);
             let split: Vec<String> = declarators
                 .iter()
                 .map(|d| format!("{head}{};", text_of(d, ctx)))
                 .collect();
-            Fix::new(
-                "Split into one declaration per variable",
-                FixKind::Safe,
-                vec![Edit::replace(range, split.join(&separator))],
-            )
+            let edit = Edit::replace(range, split.join(&separator));
+            ("Split into one declaration per variable", vec![edit])
         });
-        let diagnostic = ctx.report(
+        ctx.report_fix(
             prefix,
             "do not combine fields: declare each in its own statement",
+            fix,
         );
-        if let Some(fix) = fix {
-            diagnostic.fix(fix);
-        }
     }
 }
 

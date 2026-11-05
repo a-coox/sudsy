@@ -2,7 +2,7 @@ use super::kind;
 use core_rules::FileContext;
 use core_rules::rule;
 use core_rules::tree::structured_trivia;
-use core_rules::{Edit, Fix, FixKind, RuleContext};
+use core_rules::{Edit, RuleContext};
 use core_syntax::TextRange;
 
 rule! {
@@ -53,18 +53,12 @@ rule! {
                 (0, " ")
             };
             let range = TextRange::at(at, (len.max(1) as u32).into());
-            ctx.report(
+            let edit = Edit::replace(TextRange::at(at, (len as u32).into()), replacement);
+            ctx.report_fix(
                 range,
                 "a documentation line should start with a single space",
-            )
-            .fix(Fix::new(
-                "Use a single space",
-                FixKind::Safe,
-                vec![Edit::replace(
-                    TextRange::at(at, (len as u32).into()),
-                    replacement,
-                )],
-            ));
+                ("Use a single space", vec![edit]),
+            );
         }
     }
 }

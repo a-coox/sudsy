@@ -4,16 +4,11 @@
 use crate::generated::{Literal, kind};
 use core_rules::{RuleHooks, Scalar};
 use core_syntax::ast::AstNode;
-use core_syntax::{SyntaxElement, SyntaxKind, SyntaxNode, SyntaxToken};
+use core_syntax::{SyntaxElement, SyntaxKind, SyntaxNode};
 use rowan::{GreenNodeData, NodeOrToken};
 use std::borrow::Cow;
 
 pub struct TomlHooks;
-
-fn text_of<'a>(token: &SyntaxToken, text: &'a str) -> &'a str {
-    let range = token.text_range();
-    &text[usize::from(range.start())..usize::from(range.end())]
-}
 
 /// The value of a single-line quoted string token: `'literal'` as written, `"basic"` with its
 /// escapes decoded (an escape TOML does not define is kept as written).
@@ -68,7 +63,7 @@ fn integer(raw: &str) -> Option<f64> {
 /// A key written only with bare parts (`a`, `a.b`): its text, which is also its name.
 fn bare_key<'a>(key: &SyntaxNode, text: &'a str) -> Option<&'a str> {
     let range = key.text_range();
-    let raw = &text[usize::from(range.start())..usize::from(range.end())];
+    let raw = &text[range];
     raw.split('.')
         .all(|part| {
             !part.is_empty()
@@ -167,7 +162,7 @@ impl RuleHooks for TomlHooks {
 
     fn scalar<'a>(&self, item: &SyntaxNode, text: &'a str) -> Option<Scalar<'a>> {
         let token = Literal::cast(item.clone())?.value()?;
-        let raw = text_of(&token, text);
+        let raw = &text[token.text_range()];
         match token.kind() {
             // Multi-line strings are left alone.
             kind::STRING if !raw.starts_with("\"\"\"") && !raw.starts_with("'''") => {

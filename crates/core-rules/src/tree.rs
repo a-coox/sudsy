@@ -122,10 +122,7 @@ pub fn reorder_edits(text: &str, items: &[TextRange], sorted: &[usize]) -> Vec<c
         .filter(|(i, (_, s))| i != *s)
         .map(|(_, (&at, &s))| {
             let from = items[s];
-            crate::Edit::replace(
-                at,
-                &text[usize::from(from.start())..usize::from(from.end())],
-            )
+            crate::Edit::replace(at, &text[from])
         })
         .collect()
 }

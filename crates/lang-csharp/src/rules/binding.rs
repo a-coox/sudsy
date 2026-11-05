@@ -2,7 +2,7 @@
 
 use super::range_of;
 use core_rules::rule;
-use core_rules::{Edit, FileContext, Fix, FixKind, ProjectContext, ProjectFacts, RuleContext};
+use core_rules::{Edit, FileContext, ProjectContext, ProjectFacts, RuleContext};
 use core_semantics::{Accessibility, DeclarationFlags, DeclarationKind};
 use core_syntax::{TextRange, TextSize};
 use std::collections::BTreeSet;
@@ -24,12 +24,12 @@ rule! {
         let Some(view) = &file.semantics else { return };
         for span in &view.data.answers.unused_imports {
             let range = range_of(span.start, span.len);
-            ctx.report(range, "unnecessary using directive")
-                .fix(Fix::new(
-                    "Remove the unnecessary using",
-                    FixKind::Safe,
-                    vec![Edit::delete(whole_line(file.text, range))],
-                ));
+            let edit = Edit::delete(whole_line(file.text, range));
+            ctx.report_fix(
+                range,
+                "unnecessary using directive",
+                ("Remove the unnecessary using", vec![edit]),
+            );
         }
     }
 }

@@ -3,7 +3,7 @@
 use super::{BODY_KINDS, kind, range_of};
 use core_flow::{LocalKind, OpFlags, OpKind, dead_stores};
 use core_rules::rule;
-use core_rules::{BodyContext, Check, Edit, Fix, FixKind, Opt, OptionDecl, RuleContext};
+use core_rules::{BodyContext, Check, Edit, Opt, OptionDecl, RuleContext};
 use core_syntax::{SyntaxNode, TextRange};
 use std::collections::BTreeSet;
 
@@ -34,11 +34,11 @@ rule! {
         let is_statement = |n: &SyntaxNode| grammar.has_tag(n.kind(), "statement");
         let report = |ctx: &mut RuleContext<'_>, statement: &SyntaxNode| {
             let range = core_rules::tree::significant_range(statement, grammar);
-            ctx.report(range, "unreachable code").fix(Fix::new(
-                "Remove the unreachable statement",
-                FixKind::Suggestion,
-                vec![Edit::delete(range)],
-            ));
+            ctx.report_fix(
+                range,
+                "unreachable code",
+                ("Remove the unreachable statement", vec![Edit::delete(range)]),
+            );
         };
         let Some(flow) = &body.flow else {
             for statement in syntactic(body.node, is_statement) {
@@ -181,14 +181,9 @@ rule! {
                 _ => continue,
             };
             let range = range_of(local.start, local.len);
-            let diagnostic = ctx.report(range, message);
-            if let Some(edit) = removal(body, local.kind(), range) {
-                diagnostic.fix(Fix::new(
-                    format!("Remove `{}`", local.name),
-                    FixKind::Safe,
-                    vec![edit],
-                ));
-            }
+            let fix = removal(body, local.kind(), range)
+                .map(|edit| (format!("Remove `{}`", local.name), vec![edit]));
+            ctx.report_fix(range, message, fix);
         }
     }
 }

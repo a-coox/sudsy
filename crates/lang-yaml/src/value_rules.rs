@@ -3,7 +3,7 @@
 use crate::generated::{BlockMappingEntry, BlockSequenceEntry, FlowPair, Scalar, kind};
 use crate::rules::has_tag;
 use core_rules::rule;
-use core_rules::{Check, Edit, Fix, FixKind, Opt, OptionDecl, RuleContext};
+use core_rules::{Check, Edit, Opt, OptionDecl, RuleContext};
 use core_syntax::ast::AstNode;
 use core_syntax::{SyntaxNode, SyntaxToken, TextSize};
 use regex::Regex;
@@ -133,15 +133,11 @@ rule! {
         }
         if o.bool("require_numeral_before_decimal") && NUMERAL_BEFORE_DECIMAL.is_match(text) {
             let at = range.start() + TextSize::new(u32::from(text.starts_with(['-', '+'])));
-            ctx.report(
+            ctx.report_fix(
                 range,
                 format!("decimal `{text}` is missing the 0 before the point"),
-            )
-            .fix(Fix::new(
-                "Add the 0",
-                FixKind::Safe,
-                vec![Edit::insert(at, "0")],
-            ));
+                ("Add the 0", vec![Edit::insert(at, "0")]),
+            );
         }
     }
 }
