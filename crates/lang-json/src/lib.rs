@@ -19,8 +19,8 @@ use core_format::NodeFormatter;
 use core_rules::{Rule, RuleHooks};
 use core_syntax::{Grammar, LanguageId, grammars};
 use provider_api::{
-    Capabilities, FileMatcher, FilePattern, LanguageProvider, ParseResult, ProviderError,
-    SourceFile,
+    Capabilities, FileMatcher, FilePattern, FnSnippets, LanguageProvider, ParseResult,
+    ProviderError, SourceFile,
 };
 use std::path::Path;
 
@@ -28,6 +28,7 @@ pub struct JsonProvider {
     matchers: Vec<FileMatcher>,
     schema: OptionSchema,
     formatter: JsonFormatter,
+    rules: &'static [&'static dyn Rule],
 }
 
 impl Default for JsonProvider {
@@ -58,6 +59,12 @@ impl JsonProvider {
             ],
             schema: option_schema(),
             formatter: JsonFormatter,
+            rules: provider_api::with_pattern_rules(
+                rules::RULES,
+                &grammars::json().language,
+                provider_api::pattern_files!(),
+                FnSnippets::new(grammars::json(), |text| parse_result(text, Dialect::Json)),
+            ),
         }
     }
 
@@ -81,6 +88,14 @@ impl JsonProvider {
     }
 }
 
+fn parse_result(text: &str, dialect: Dialect) -> ParseResult {
+    let parsed = parser::parse(text, dialect);
+    ParseResult {
+        tree: parsed.tree,
+        errors: parsed.errors,
+    }
+}
+
 impl LanguageProvider for JsonProvider {
     fn id(&self) -> LanguageId {
         LanguageId::JSON
@@ -99,11 +114,7 @@ impl LanguageProvider for JsonProvider {
     }
 
     fn parse(&self, file: &SourceFile) -> Result<ParseResult, ProviderError> {
-        let parsed = parser::parse(&file.text, self.dialect_of(file));
-        Ok(ParseResult {
-            tree: parsed.tree,
-            errors: parsed.errors,
-        })
+        Ok(parse_result(&file.text, self.dialect_of(file)))
     }
 
     fn formatter(&self) -> &dyn NodeFormatter {
@@ -115,7 +126,7 @@ impl LanguageProvider for JsonProvider {
     }
 
     fn rules(&self) -> &'static [&'static dyn Rule] {
-        rules::RULES
+        self.rules
     }
 
     fn rule_hooks(&self) -> &dyn RuleHooks {

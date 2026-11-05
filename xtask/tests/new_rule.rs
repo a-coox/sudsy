@@ -29,7 +29,7 @@ fn scaffolds_a_pattern_rule_and_a_registered_rust_rule() {
             .contains("pub NoBar {")
     );
 
-    // The data languages: Rust rules only, listed in their registry (a one-line list is expanded).
+    // The data languages: Rust rules, listed in their registry (a one-line list is expanded).
     let yaml = root.join("crates/lang-yaml/src");
     fs::create_dir_all(&yaml).unwrap();
     fs::write(
@@ -37,8 +37,15 @@ fn scaffolds_a_pattern_rule_and_a_registered_rust_rule() {
         "use core_rules::Rule;\n\npub static RULES: &[&dyn Rule] = &[&a::A];\n",
     )
     .unwrap();
-    let refused = xtask::new_rule(&root, "yaml", "no-foo", false).unwrap_err();
-    assert!(refused.to_string().contains("--rust"), "{refused}");
+    xtask::new_rule(&root, "toml", "no-baz", false).unwrap();
+    let toml = fs::read_to_string(root.join("crates/lang-toml/rules/no-baz.yaml")).unwrap();
+    assert!(
+        toml.contains(
+            "kind: InlineTable
+  regex:"
+        ),
+        "{toml}"
+    );
     xtask::new_rule(&root, "yaml", "no-foo", true).unwrap();
     assert_eq!(
         fs::read_to_string(yaml.join("rules.rs")).unwrap(),

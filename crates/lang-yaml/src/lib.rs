@@ -27,13 +27,14 @@ use core_format::NodeFormatter;
 use core_rules::{Rule, RuleHooks};
 use core_syntax::{Grammar, LanguageId, grammars};
 use provider_api::{
-    Capabilities, FileMatcher, LanguageProvider, ParseResult, ProviderError, SourceFile,
+    Capabilities, FileMatcher, FnSnippets, LanguageProvider, ParseResult, ProviderError, SourceFile,
 };
 
 pub struct YamlProvider {
     matchers: Vec<FileMatcher>,
     schema: OptionSchema,
     formatter: YamlFormatter,
+    rules: &'static [&'static dyn Rule],
 }
 
 impl Default for YamlProvider {
@@ -51,7 +52,21 @@ impl YamlProvider {
             ],
             schema: option_schema(),
             formatter: YamlFormatter,
+            rules: provider_api::with_pattern_rules(
+                rules::RULES,
+                &grammars::yaml().language,
+                provider_api::pattern_files!(),
+                FnSnippets::new(grammars::yaml(), parse_result),
+            ),
         }
+    }
+}
+
+fn parse_result(text: &str) -> ParseResult {
+    let parsed = parser::parse(text);
+    ParseResult {
+        tree: parsed.tree,
+        errors: parsed.errors,
     }
 }
 
@@ -73,11 +88,7 @@ impl LanguageProvider for YamlProvider {
     }
 
     fn parse(&self, file: &SourceFile) -> Result<ParseResult, ProviderError> {
-        let parsed = parser::parse(&file.text);
-        Ok(ParseResult {
-            tree: parsed.tree,
-            errors: parsed.errors,
-        })
+        Ok(parse_result(&file.text))
     }
 
     fn formatter(&self) -> &dyn NodeFormatter {
@@ -89,7 +100,7 @@ impl LanguageProvider for YamlProvider {
     }
 
     fn rules(&self) -> &'static [&'static dyn Rule] {
-        rules::RULES
+        self.rules
     }
 
     fn rule_hooks(&self) -> &dyn RuleHooks {

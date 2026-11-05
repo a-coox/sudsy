@@ -26,8 +26,6 @@ use crate::generated::kind;
 use core_rules::Rule;
 use core_syntax::{SyntaxKind, SyntaxNode};
 
-pub static PATTERN_RULES: &[&str] = include!(concat!(env!("OUT_DIR"), "/pattern_rules.rs"));
-
 pub static RULES: &[&dyn Rule] = &[
     &empty_catch::NoEmptyCatch,
     &async_suffix::AsyncSuffix,

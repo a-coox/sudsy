@@ -71,20 +71,16 @@ impl OutOfProcessProvider {
     /// The language's built-in pattern rules (the `rules/*.yaml` files, as text), added to its
     /// own. Their patterns compile when a rule first runs, so building them starts no worker.
     pub fn with_pattern_rules(mut self, sources: &[&str]) -> Self {
-        let parser: std::sync::Arc<dyn core_patterns::SnippetParser + Send + Sync> =
-            std::sync::Arc::new(WorkerSnippets {
-                grammar: self.grammar,
-                proxy: self.proxy.clone(),
-            });
-        let mut rules: Vec<&'static dyn Rule> = self.rules.to_vec();
-        for source in sources {
-            let loaded = core_patterns::load_lazy(source, &self.grammar.language, &parser)
-                .unwrap_or_else(|e| panic!("built-in pattern file: {e}"));
-            for rule in loaded {
-                rules.push(Box::leak(Box::new(rule)));
-            }
-        }
-        self.rules = Box::leak(rules.into_boxed_slice());
+        let parser = std::sync::Arc::new(WorkerSnippets {
+            grammar: self.grammar,
+            proxy: self.proxy.clone(),
+        });
+        self.rules = crate::snippets::with_pattern_rules(
+            self.rules,
+            &self.grammar.language,
+            sources,
+            parser,
+        );
         self
     }
 
