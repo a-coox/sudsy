@@ -14,7 +14,7 @@ function cat(f) {
   if (f ~ /^tests\/rules\//) return "rule fixtures"
   if (f ~ /^docs\/|\.md$/) return "docs"
   if (f ~ /\/tests\/.*\.rs$|^tests\/.*\.rs$/) return "Rust tests"
-  if (f ~ /^tests\//) return "other test data"
+  if (f ~ /^tests\/|^bench\/inputs\//) return "other test data"
   if (f ~ /\.rs$/) return "Rust src"
   return "scripts/other"
 }
