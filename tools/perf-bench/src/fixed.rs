@@ -1,7 +1,8 @@
 //! `perf-bench fixed LANG PHASE [--inputs DIR]`: one fixed, deterministic workload for scripts/bench.sh,
 //! which runs it under callgrind (instruction counts) and with `--features count` (allocations).
-//! LANG is json, yaml, toml, xml or cs; PHASE is parse, format, format-query, lint, lint-all, lint-docs (C#), patterns or plugins. Inputs are the
-//! committed files under DIR (default bench/inputs/<lang>) plus generated JSON, YAML, TOML and XML. Only the
+//! LANG is a folder of `bench/inputs` (named after its files' extension: json, yaml, toml, xml, cs);
+//! PHASE is one of `phases` (`perf-bench list` prints them per language). Inputs are the committed
+//! files under DIR/LANG plus generated JSON, YAML, TOML and XML. Only the
 //! work inside `measured` is counted; callgrind is told to collect between its entry and exit.
 
 use crate::extensions::{self, Parsed};
@@ -23,11 +24,10 @@ fn measured(f: &mut dyn FnMut() -> usize) -> (usize, u64) {
 }
 
 pub(crate) fn texts(lang: &str, dir: &Path) -> Result<Vec<(String, String)>> {
-    let ext = if lang == "cs" { "cs" } else { lang };
     let mut out = Vec::new();
     let mut names: Vec<_> = std::fs::read_dir(dir.join(lang))?
         .filter_map(|e| e.ok().map(|e| e.path()))
-        .filter(|p| p.extension().is_some_and(|e| e == ext))
+        .filter(|p| p.extension().is_some_and(|e| e == lang))
         .collect();
     names.sort();
     for p in names {
@@ -47,8 +47,9 @@ pub(crate) fn texts(lang: &str, dir: &Path) -> Result<Vec<(String, String)>> {
     Ok(out)
 }
 
-fn pattern_source(lang: &str) -> String {
-    match lang {
+/// The pattern rule of the `patterns` phase; a language without one has no such phase.
+fn pattern_source(lang: &str) -> Option<String> {
+    Some(match lang {
         "json" => {
             "id: bench-debug\nlanguage: json\nmessage: m\nrule:\n  pattern: '\"debug\": true'\n"
                 .into()
@@ -56,11 +57,59 @@ fn pattern_source(lang: &str) -> String {
         "yaml" => {
             "id: bench-debug\nlanguage: yaml\nmessage: m\nrule:\n  pattern: 'debug: true'\n".into()
         }
-        _ => format!(
+        "cs" => format!(
             "{}id: bench-tostring\nlanguage: csharp\nmessage: m\nrule:\n  pattern: $X.ToString()\n",
             extensions::call_rules(10, true)
         ),
+        _ => return None,
+    })
+}
+
+/// The rule of the sample plugin that the `plugins` phase runs; a language without one has no such
+/// phase.
+fn plugin_rule(lang: &str) -> Option<&'static str> {
+    match lang {
+        "json" => Some("sample/no-debug-flag"),
+        "cs" => Some("sample/todo-marker"),
+        _ => None,
     }
+}
+
+/// The languages whose provider is a separate process (the .NET worker), which callgrind does not
+/// trace.
+const WORKER: &[&str] = &["cs"];
+
+/// `perf-bench list [--inputs DIR]`: a line `<lang> <native|worker> <phase>...` for every folder of
+/// DIR that a provider claims (by the extension of the folder's name), so that a language needs
+/// only its input files.
+pub fn list(dir: &Path) -> Result<()> {
+    let mut langs: Vec<_> = std::fs::read_dir(dir)?
+        .filter_map(|e| e.ok()?.file_name().into_string().ok())
+        .collect();
+    langs.sort();
+    for lang in langs {
+        let Ok(provider) = make_provider(&lang) else {
+            continue;
+        };
+        let mut phases = vec!["parse", "format", "format-query", "lint", "lint-all"];
+        let documented = |r: &&dyn core_rules::Rule| DOCUMENTATION_RULES.contains(&r.meta().id);
+        if provider.rules().iter().any(documented) {
+            phases.push("lint-docs");
+        }
+        if pattern_source(&lang).is_some() {
+            phases.push("patterns");
+        }
+        if plugin_rule(&lang).is_some() {
+            phases.push("plugins");
+        }
+        let kind = if WORKER.contains(&lang.as_str()) {
+            "worker"
+        } else {
+            "native"
+        };
+        println!("{lang} {kind} {}", phases.join(" "));
+    }
+    Ok(())
 }
 
 /// The provider of a tree-sitter language, found by name so that the harness builds against any
@@ -72,16 +121,13 @@ pub(crate) fn named_provider(language: &str) -> Box<dyn LanguageProvider> {
         .unwrap_or_else(|| panic!("{language} is registered"))
 }
 
+/// The provider that claims files with the extension `lang`.
 pub(crate) fn make_provider(lang: &str) -> Result<Box<dyn LanguageProvider>> {
-    Ok(match lang {
-        "json" => Box::new(lang_json::JsonProvider::new()),
-        "yaml" => Box::new(lang_yaml::YamlProvider::new()),
-        "toml" | "xml" => named_provider(lang),
-        "cs" => Box::new(lang_csharp::provider(
-            &lang_csharp::locate_worker().map_err(|e| anyhow!(e))?,
-        )),
-        _ => bail!("LANG is json, yaml, toml, xml or cs"),
-    })
+    let sample = std::path::PathBuf::from(format!("bench.{lang}"));
+    languages::providers()
+        .into_iter()
+        .find(|p| p.file_matchers().iter().any(|m| m.matches(&sample)))
+        .ok_or_else(|| anyhow!("no language claims .{lang} files"))
 }
 
 pub fn run(lang: &str, phase: &str, dir: &Path) -> Result<()> {
@@ -171,8 +217,8 @@ pub fn run(lang: &str, phase: &str, dir: &Path) -> Result<()> {
         "patterns" => {
             let files = parsed();
             let (w, a) = measured(&mut || {
-                let ext =
-                    extensions::load_rules(p, &pattern_source(lang)).expect("pattern rules load");
+                let ext = extensions::load_rules(p, &pattern_source(lang).expect("a pattern rule"))
+                    .expect("pattern rules load");
                 let rules: Vec<ActiveRule<'_>> = ext
                     .rules
                     .iter()
@@ -183,11 +229,8 @@ pub fn run(lang: &str, phase: &str, dir: &Path) -> Result<()> {
             (files.len(), w, a)
         }
         "plugins" => {
-            let id = match lang {
-                "json" => "sample/no-debug-flag",
-                "cs" => "sample/todo-marker",
-                _ => bail!("no sample plugin rule for {lang}"),
-            };
+            let id =
+                plugin_rule(lang).ok_or_else(|| anyhow!("no sample plugin rule for {lang}"))?;
             let files = parsed();
             let wasm = extensions::plugin_path();
             let bytes = std::fs::read(&wasm).map_err(|e| anyhow!("{}: {e}", wasm.display()))?;

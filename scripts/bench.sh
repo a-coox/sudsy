@@ -9,6 +9,9 @@
 #   rule on, resp. the C# documentation rules, so they grow with each new rule) are printed but never flagged.
 # Tier 2 (--time): interleaved A/B wall time of the CLI, with the C# worker; exit 1 only when the
 #   95% confidence interval of the candidate/baseline ratio lies above 1.03.
+# Languages: the folders of bench/inputs that a provider claims (`perf-bench list`).
+# Each measured run is killed after BENCH_TIMEOUT seconds (default 900; inside WSL for the
+# instruction runs) and the run fails.
 # Run from Git Bash on Windows (WSL needs scripts/bench-setup-wsl.sh once) or natively on Linux.
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -49,10 +52,8 @@ rm -rf "$src_base/tools/perf-bench"; cp -r tools/perf-bench "$src_base/tools/per
 inputs=$root/bench/inputs
 
 # --- tier 1 ---------------------------------------------------------------------------------------
-langs="json yaml toml xml"; command -v dotnet >/dev/null && langs="json yaml toml xml cs" || echo "no dotnet: C# phases skipped"
 measure() { # measure SIDE SRC MODE ; native
-  scripts/bench-measure.sh --src "$2" --target "$work/$1" --inputs "$inputs" --mode "$3" \
-    --langs "$langs" --out "$out/$1.$3"
+  scripts/bench-measure.sh --src "$2" --target "$work/$1" --inputs "$inputs" --mode "$3" --out "$out/$1.$3"
 }
 instr_ok=$instr
 if [ $instr = 1 ]; then
@@ -69,11 +70,11 @@ for side in cand base; do
   if [ $instr = 1 ]; then
     echo "== $side: instructions"
     if [ $windows = 1 ]; then
-      wslrun "$(wsl_path "$root")/scripts/bench-measure.sh --src $(wsl_path "$s") --target \$HOME/.cache/sudsy-bench/$slot/$side --inputs $(wsl_path "$inputs") --mode instr --langs 'json yaml toml xml' --out \$HOME/.cache/sudsy-bench/$slot/$side.instr"
+      wslrun "$(wsl_path "$root")/scripts/bench-measure.sh --src $(wsl_path "$s") --target \$HOME/.cache/sudsy-bench/$slot/$side --inputs $(wsl_path "$inputs") --mode instr --out \$HOME/.cache/sudsy-bench/$slot/$side.instr"
       wslrun "cat \$HOME/.cache/sudsy-bench/$slot/$side.instr" >"$out/$side.instr"
     else
       scripts/bench-measure.sh --src "$s" --target "$work/$side" --inputs "$inputs" --mode instr \
-        --langs "json yaml toml xml" --out "$out/$side.instr"
+        --out "$out/$side.instr"
     fi
   fi
 done

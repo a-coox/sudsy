@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Pre-commit gate. Usage: scripts/gate.sh [--rust-only] [-p <crate>]
 # -p limits fmt/clippy/test to one crate and skips dotnet, codegen and the extension.
+# Each step is killed after GATE_TIMEOUT seconds (default 1800) and the gate fails.
 set -uo pipefail
 cd "$(dirname "$0")/.."
 rust_only=0; pkg=()
@@ -14,10 +15,10 @@ done
 ws=(--workspace); [ ${#pkg[@]} -gt 0 ] && ws=("${pkg[@]}")
 gate() {
   local name=$1 t=$SECONDS; shift; echo "== $name"
-  "$@" || { echo "GATE FAILED: $name" >&2; exit 1; }
+  timeout -k 15 "${GATE_TIMEOUT:-1800}" "$@"; local rc=$?
+  [ $rc -eq 0 ] || { [ $rc -eq 124 ] && echo "GATE TIMED OUT after ${GATE_TIMEOUT:-1800}s (GATE_TIMEOUT): $name" >&2; echo "GATE FAILED: $name" >&2; exit 1; }
   echo "   ($name: $((SECONDS - t))s)"
 }
-vscode() { (cd editors/vscode && npm run "$@"); }
 
 gate "cargo fmt" cargo fmt --all -- --check
 gate "cargo clippy" cargo clippy "${ws[@]}" --all-targets -- -D warnings
@@ -32,11 +33,11 @@ if [ ${#pkg[@]} -eq 0 ]; then
   if [ $rust_only -eq 0 ]; then
     gate "dotnet build" dotnet build workers/csharp
     gate "dotnet test" dotnet test workers/csharp
-    [ -d editors/vscode/node_modules ] || gate "npm ci" bash -c 'cd editors/vscode && npm ci'
-    gate "vscode typecheck" vscode typecheck
-    gate "vscode lint" vscode lint
-    gate "vscode test" vscode test
-    gate "vscode build" vscode build
+    [ -d editors/vscode/node_modules ] || gate "npm ci" npm --prefix editors/vscode ci
+    gate "vscode typecheck" npm --prefix editors/vscode run typecheck
+    gate "vscode lint" npm --prefix editors/vscode run lint
+    gate "vscode test" npm --prefix editors/vscode run test
+    gate "vscode build" npm --prefix editors/vscode run build
   fi
 fi
 echo "ALL GATES PASSED (${SECONDS}s)"

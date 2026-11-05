@@ -243,6 +243,14 @@ fn main() -> Result<()> {
         };
         return fixed::run(lang, phase, std::path::Path::new(dir));
     }
+    if which == "list" {
+        let dir = args
+            .iter()
+            .position(|a| a == "--inputs")
+            .and_then(|i| args.get(i + 1))
+            .map_or("bench/inputs", String::as_str);
+        return fixed::list(std::path::Path::new(dir));
+    }
     if which == "layout" {
         let lang = args
             .get(1)

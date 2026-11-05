@@ -6,7 +6,7 @@
 ## Scripts (`scripts/`)
 | Script | Use |
 |---|---|
-| `gate.sh [--rust-only] [-p crate]` | The pre-commit gate (prints each step's seconds): fmt, clippy, tests, codegen check, sample plugin fmt+tests, dotnet build+test, vscode typecheck/lint/test/build. `-p` limits to one crate. Must pass before committing. |
+| `gate.sh [--rust-only] [-p crate]` | The pre-commit gate (prints each step's seconds; a step is killed after `GATE_TIMEOUT` seconds, default 1800): fmt, clippy, tests, codegen check, sample plugin fmt+tests, dotnet build+test, vscode typecheck/lint/test/build. `-p` limits to one crate. Must pass before committing. |
 | `ship.sh` | Push the current branch, then watch the CI run for HEAD (`gh run watch`); refuses with staged changes; CI is manual for now (see ci-release.md), so it stops after the push |
 | `dogfood.sh` | Build debug CLI + worker into `target/dogfood/` for the editor |
 | `bench.sh`, `bench-time.sh`, `bench-measure.sh`, `bench-setup-wsl.sh` | [performance/tooling.md](../performance/tooling.md) |
