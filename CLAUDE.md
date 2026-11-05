@@ -7,7 +7,7 @@ Formatter + linter for C#, JSON and YAML. `docs/` describes how everything works
 - .NET worker in `workers/csharp/` (net10.0, roll-forward). Grammars in `grammars/`, WIT in `wit/`, VS Code extension in `editors/vscode/`.
 
 ## Conventions
-- Code is cost. Every line, test fixture and doc line costs agent tokens to write, to read on every later task, and to update on every change. Before adding, look for what to reuse or generalize: a shared rule over grammar tags, a pattern rule (YAML) or a data row of a rule family before a Rust rule, an existing helper before a new one. Fixtures are small and focused on the rule's own cases; never copy a shared input into many folders. When a second or third copy of something appears, generalize it instead.
+- Code is cost. Every line, test fixture and doc line costs agent tokens to write, to read on every later task, and to update on every change. Before adding, look for what to reuse or generalize: a shared rule over grammar tags, a pattern rule (YAML) or a data row of a rule family before a Rust rule, an existing helper before a new one. Fixtures are small and focused on the rule's own cases; never copy a shared input into many folders. When a second or third copy of something appears, generalize it instead. Agents include `scripts/cost.sh` output in their final report.
 - Small focused modules; extract helpers instead of growing entrypoints. No duplicated logic across crates: shared behavior lives in a core crate.
 - Errors: `thiserror` in libraries, `anyhow` only in binaries (`cli`, `lsp`).
 - Snapshot tests use `insta`; fixtures live under `tests/fixtures/<lang>/` or the crate's `tests/`.
@@ -26,5 +26,6 @@ On Windows run the scripts from Git Bash; `bash` in PowerShell resolves to WSL, 
 - `scripts/ship.sh`: push the branch, watch CI for HEAD (refuses with staged changes).
 - `scripts/bench.sh [--base REV] [--time]`: instruction + allocation counts per language and phase against the merge-base (exit 1 on regression; `--time` adds interleaved wall-clock A/B of the CLI). Run it after every feature change; first time on Windows run `scripts/bench-setup-wsl.sh`. History: `bench/history.jsonl`.
 - `cargo xtask new-rule <language> <id> [--rust]`: starter rule (pattern file, or Rust with `--rust`) + fixture; the flow is in docs/development/testing.md.
+- `scripts/cost.sh [<rev-range>]`: added/removed lines per category (Rust src, Rust tests, rule fixtures, other test data, docs, generated, scripts/other); default: merge-base with origin/main to the working tree.
 - `scripts/parity.sh <tool>`: differential test of `sudsy lint` against an upstream tool (yamllint) on `tests/parity/<tool>/`; catalog in `docs/parity/`.
 - `scripts/dogfood.sh`: build debug CLI + worker into `target/dogfood/`, which `.vscode/settings.json` uses so VS Code never locks `target/debug`; restart the server after running it.
