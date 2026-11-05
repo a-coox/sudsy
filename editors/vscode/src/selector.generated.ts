@@ -6,6 +6,7 @@ export const documentSelector = [
   { scheme: "file", language: "toml" },
   { scheme: "file", language: "xml" },
   { scheme: "file", language: "markdown" },
+  { scheme: "file", language: "editorconfig" },
   { scheme: "file", language: "csharp" },
   { scheme: "file", pattern: "**/*.json" },
   { scheme: "file", pattern: "**/*.jsonc" },

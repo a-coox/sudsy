@@ -18,6 +18,7 @@ pub fn provider() -> TreeSitterProvider {
             grammar: grammars::markdown(),
             mapping: &mapping::BLOCK,
             extensions: &["md", "markdown"],
+            file_names: &[],
             schema: option_schema(),
             formatter: &MarkdownFormatter,
             hooks: &core_rules::DEFAULT_HOOKS,

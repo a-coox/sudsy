@@ -16,6 +16,7 @@ lang-yaml.workspace = true
 lang-toml.workspace = true
 lang-xml.workspace = true
 lang-markdown.workspace = true
+lang-editorconfig.workspace = true
 core-workspace.workspace = true
 provider-api.workspace = true
 serde.workspace = true

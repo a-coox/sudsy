@@ -1,0 +1,100 @@
+//! EditorConfig formatting: `[glob]` headers, `key = value` pairs one per line, a blank line before
+//! each section. Keys, globs, values and comments are kept as written.
+
+use crate::generated::kind as k;
+use core_config::{OptionDef, OptionSchema, Preset, shared};
+use core_format::shapes::statement_sequence_with;
+use core_format::{Doc, FormatCtx, FormatError, NodeFormatter, doc};
+use core_syntax::SyntaxNode;
+
+pub const MAX_BLANK_LINES: &str = "max_blank_lines";
+
+pub fn option_schema() -> OptionSchema {
+    OptionSchema::new(vec![
+        shared::final_newline(true),
+        shared::end_of_line(),
+        OptionDef::int(
+            MAX_BLANK_LINES,
+            1,
+            (0, 10),
+            "Largest number of blank lines kept between entries, sections and comments.",
+        ),
+    ])
+    .with_presets(vec![Preset::new(
+        "editorconfig/default",
+        include_str!("../presets/default.yaml"),
+    )])
+}
+
+pub struct EditorConfigFormatter;
+
+impl NodeFormatter for EditorConfigFormatter {
+    fn format_node(
+        &self,
+        node: &SyntaxNode,
+        cx: &FormatCtx<'_>,
+    ) -> Result<Option<Doc>, FormatError> {
+        Ok(Some(match node.kind() {
+            k::DOCUMENT => document(cx, node)?,
+            k::SECTION => section(cx, node)?,
+            k::PAIR => pair(cx, node),
+            _ => return Ok(None),
+        }))
+    }
+}
+
+/// Every section starts after a blank line, the first one after the preamble only.
+fn blank_before_section(_: &FormatCtx<'_>, _: &SyntaxNode, next: &SyntaxNode) -> bool {
+    next.kind() == k::SECTION
+}
+
+fn max_blank_lines(cx: &FormatCtx<'_>) -> usize {
+    cx.options.int(MAX_BLANK_LINES) as usize
+}
+
+fn document(cx: &FormatCtx<'_>, node: &SyntaxNode) -> Result<Doc, FormatError> {
+    let items: Vec<SyntaxNode> = node.children().collect();
+    statement_sequence_with(
+        cx,
+        &items,
+        max_blank_lines(cx),
+        Some(blank_before_section),
+        false,
+    )
+}
+
+/// `[glob]` then its pairs, one per line.
+fn section(cx: &FormatCtx<'_>, node: &SyntaxNode) -> Result<Doc, FormatError> {
+    let mut parts = Vec::new();
+    let pairs: Vec<SyntaxNode> = node.children().filter(|n| n.kind() == k::PAIR).collect();
+    for n in node.children().filter(|n| n.kind() == k::SECTION_HEADER) {
+        parts.push(cx.format(&n)?);
+    }
+    if !pairs.is_empty() {
+        parts.push(doc::hardline());
+        parts.push(statement_sequence_with(
+            cx,
+            &pairs,
+            max_blank_lines(cx),
+            None,
+            false,
+        )?);
+    }
+    Ok(doc::concat(parts))
+}
+
+/// `key = value`; a pair without a value is `key =`.
+fn pair(cx: &FormatCtx<'_>, node: &SyntaxNode) -> Doc {
+    let mut parts = Vec::new();
+    for t in node
+        .children_with_tokens()
+        .filter_map(|e| e.into_token())
+        .filter(|t| !cx.grammar.is_trivia(t.kind()))
+    {
+        if t.kind() != k::KEY {
+            parts.push(doc::lit(" "));
+        }
+        parts.push(cx.token(&t));
+    }
+    doc::concat(parts)
+}

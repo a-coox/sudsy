@@ -19,7 +19,7 @@ mod rule_ids;
 mod schema;
 
 pub use chain::{ConfigChain, Loaded, PluginEntry, PluginKind, PresetRef};
-pub use editorconfig::{EditorConfig, EditorConfigValue};
+pub use editorconfig::{EditorConfig, EditorConfigValue, outline};
 pub use error::{ConfigError, suggest, unknown_name};
 pub use glob::Matcher;
 pub use json_schema::{RuleOptionSchema, RuleSchema, json_schema};

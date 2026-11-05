@@ -123,10 +123,16 @@ pub(crate) fn named_provider(language: &str) -> Box<dyn LanguageProvider> {
 
 /// The provider that claims files with the extension `lang`.
 pub(crate) fn make_provider(lang: &str) -> Result<Box<dyn LanguageProvider>> {
-    let sample = std::path::PathBuf::from(format!("bench.{lang}"));
+    // `.editorconfig` is claimed by file name, the others by extension.
+    let samples = [format!("bench.{lang}"), format!(".{lang}")];
     languages::providers()
         .into_iter()
-        .find(|p| p.file_matchers().iter().any(|m| m.matches(&sample)))
+        .find(|p| {
+            let matchers = p.file_matchers();
+            samples
+                .iter()
+                .any(|s| matchers.iter().any(|m| m.matches(s.as_ref())))
+        })
         .ok_or_else(|| anyhow!("no language claims .{lang} files"))
 }
 

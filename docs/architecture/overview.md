@@ -18,7 +18,7 @@ A Rust core owns everything language-neutral; each language contributes a provid
 | `core-config` | `sudsy.yaml` model, chain, resolution, presets, `.editorconfig`, JSON Schema |
 | `core-workspace` | File discovery (ignore files, hidden dirs, `.git` excluded) |
 | `provider-api` | `LanguageProvider`, out-of-process proxy, protocol types, `format_file`, test harness |
-| <!-- generated:crates -->`lang-csharp`, `lang-json`, `lang-markdown`, `lang-toml`, `lang-xml`, `lang-yaml`<!-- /generated --> | Parser (JSON, YAML; TOML and XML through tree-sitter), formatter, rules, presets; C# adds the worker provider |
+| <!-- generated:crates -->`lang-csharp`, `lang-editorconfig`, `lang-json`, `lang-markdown`, `lang-toml`, `lang-xml`, `lang-yaml`<!-- /generated --> | Parser (JSON, YAML; TOML and XML through tree-sitter), formatter, rules, presets; C# adds the worker provider |
 | `languages` | Built-in provider list, option schemas, `Project` (config found from a directory, validated) |
 | `cli`, `lsp` | Front ends. `lsp` is a library; the server is `sudsy lsp` (one binary) |
 | `plugin-sdk` | Public crate for rule authors |

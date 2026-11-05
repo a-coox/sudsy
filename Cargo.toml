@@ -37,6 +37,7 @@ tree-sitter-toml-ng = "0.7"
 tree-sitter-md = { version = "0.5", default-features = false }
 pulldown-cmark = { version = "0.13", default-features = false, features = ["html"] }
 tree-sitter-xml = "0.7"
+konomanoasa-tree-sitter-editorconfig = "0.9"
 
 core-config = { path = "crates/core-config" }
 core-patterns = { path = "crates/core-patterns" }
@@ -54,6 +55,7 @@ lang-yaml = { path = "crates/lang-yaml" }
 lang-toml = { path = "crates/lang-toml" }
 lang-xml = { path = "crates/lang-xml" }
 lang-markdown = { path = "crates/lang-markdown" }
+lang-editorconfig = { path = "crates/lang-editorconfig" }
 core-treesitter = { path = "crates/core-treesitter" }
 core-syntax = { path = "crates/core-syntax" }
 languages = { path = "crates/languages" }

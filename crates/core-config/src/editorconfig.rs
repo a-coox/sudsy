@@ -173,6 +173,20 @@ fn parse(text: &str) -> Parsed {
     parsed
 }
 
+/// A section's glob and its `(key, value)` pairs.
+pub type Outline = (String, Vec<(String, String)>);
+
+/// What the reader makes of a file: `root`, and per section its glob and its `(key, value)` pairs
+/// (keys lowercased). Tests compare it before and after a rewrite.
+pub fn outline(text: &str) -> (bool, Vec<Outline>) {
+    let parsed = parse(text);
+    let sections = parsed.sections.into_iter().map(|s| {
+        let props = s.props.into_iter().map(|(k, v, _)| (k, v)).collect();
+        (s.pattern, props)
+    });
+    (parsed.root, sections.collect())
+}
+
 /// `{1..3}` becomes `{1,2,3}`; other braces are left to the glob engine.
 fn expand_ranges(pattern: &str) -> String {
     let mut out = String::new();

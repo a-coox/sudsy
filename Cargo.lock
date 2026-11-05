@@ -1260,6 +1260,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "konomanoasa-tree-sitter-editorconfig"
+version = "0.9.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6957c018e2d976eea42ee5cd2a33d8ef19e60e3ad2090874797fda811bcb09a6"
+dependencies = [
+ "cc",
+ "tree-sitter-language",
+]
+
+[[package]]
 name = "lang-csharp"
 version = "0.1.0"
 dependencies = [
@@ -1272,6 +1282,20 @@ dependencies = [
  "insta",
  "provider-api",
  "similar",
+]
+
+[[package]]
+name = "lang-editorconfig"
+version = "0.1.0"
+dependencies = [
+ "core-config",
+ "core-format",
+ "core-rules",
+ "core-syntax",
+ "core-treesitter",
+ "insta",
+ "konomanoasa-tree-sitter-editorconfig",
+ "provider-api",
 ]
 
 [[package]]
@@ -1364,6 +1388,7 @@ dependencies = [
  "core-rules",
  "core-workspace",
  "lang-csharp",
+ "lang-editorconfig",
  "lang-json",
  "lang-markdown",
  "lang-toml",

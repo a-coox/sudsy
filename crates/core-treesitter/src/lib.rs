@@ -295,6 +295,8 @@ impl Converter {
             Entry::Trivia(kind) => {
                 // Blank trivia (a block continuation of indentation) is lexed from the gap.
                 if !src[start..end].trim().is_empty() {
+                    // A grammar may put the comment's line break inside the node.
+                    let end = start + src[start..end].trim_end_matches(['\n', '\r']).len();
                     s.comments.push(Tok { kind, start, end });
                     s.covered = s.covered.max(end);
                 }

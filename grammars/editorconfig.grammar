@@ -1,0 +1,34 @@
+// EditorConfig 0.17, parsed by tree-sitter (konomanoasa-tree-sitter-editorconfig) and mapped by crates/lang-editorconfig/src/mapping.rs.
+// Format: see crates/core-syntax/src/grammar/mod.rs.
+
+language editorconfig 7 "EditorConfig"
+// `;` comments are trivia too, but the shared comment rules know only the `#` marker.
+comments line "#"
+suppress disable-next-line "sudsy-disable-next-line"
+suppress disable-line "sudsy-disable-line"
+suppress disable "sudsy-disable"
+suppress enable "sudsy-enable"
+suppress disable-file "sudsy-disable-file"
+suppress ignore "sudsy-ignore"
+
+token Whitespace #trivia #whitespace
+token Newline #trivia #newline
+token Comment #trivia #comment
+
+token LBracket "[" #punctuation
+token RBracket "]" #punctuation
+token Equals "=" #punctuation
+
+// Section glob, key and value: one token each, their inner structure stays inside.
+token Glob
+token Key
+token Value #literal
+
+token Eof
+token Unknown #error
+
+// The preamble is the pairs before the first section.
+node Document = items:#item* Eof
+node Section #item = header:SectionHeader entries:Pair*
+node SectionHeader = LBracket Glob? RBracket
+node Pair #item = key:Key Equals value:Value?

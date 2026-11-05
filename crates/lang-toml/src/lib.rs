@@ -22,6 +22,7 @@ pub fn provider() -> TreeSitterProvider {
         grammar: grammars::toml(),
         mapping: &mapping::MAPPING,
         extensions: &["toml"],
+        file_names: &[],
         schema: option_schema(),
         formatter: &TomlFormatter,
         hooks: &hooks::TomlHooks,

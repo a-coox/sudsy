@@ -50,6 +50,7 @@ pub fn provider() -> TreeSitterProvider {
         grammar: grammars::xml(),
         mapping: &mapping::MAPPING,
         extensions: EXTENSIONS,
+        file_names: &[],
         schema: option_schema(),
         formatter: &XmlFormatter,
         hooks: &core_rules::DEFAULT_HOOKS,

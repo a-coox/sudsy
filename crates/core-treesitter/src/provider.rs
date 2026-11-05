@@ -6,7 +6,7 @@ use core_format::NodeFormatter;
 use core_rules::{Rule, RuleHooks};
 use core_syntax::{Grammar, LanguageId, SyntaxNode};
 use provider_api::{
-    Capabilities, FileMatcher, FnSnippets, LanguageProvider, ParseError, ParseResult,
+    Capabilities, FileMatcher, FilePattern, FnSnippets, LanguageProvider, ParseError, ParseResult,
     ProviderError, SourceFile,
 };
 use std::sync::Arc;
@@ -18,6 +18,8 @@ pub struct Spec {
     pub mapping: &'static Mapping,
     /// File extensions without the dot.
     pub extensions: &'static [&'static str],
+    /// Exact file names (`.editorconfig`).
+    pub file_names: &'static [&'static str],
     pub schema: OptionSchema,
     pub formatter: &'static dyn NodeFormatter,
     pub hooks: &'static dyn RuleHooks,
@@ -61,6 +63,10 @@ impl TreeSitterProvider {
                 .extensions
                 .iter()
                 .map(|e| FileMatcher::extension(e))
+                .chain(spec.file_names.iter().map(|n| FileMatcher {
+                    pattern: FilePattern::FileName((*n).into()),
+                    dialect: None,
+                }))
                 .collect(),
             schema: spec.schema,
             rules: provider_api::with_pattern_rules(
