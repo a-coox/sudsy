@@ -9,3 +9,4 @@ tests/conformance/corpus/
 
 # dotnet build logs written to the tests' temp dir (.cargo/config.toml); the dir itself must stay unignored
 .cargo/tmp/*.log
+.cargo/tmp/VBCSCompiler/
