@@ -9,7 +9,8 @@ Machine unless noted: AMD Ryzen 5 3600 (6 cores / 12 threads), 32 GB, Windows 11
 | JSON one line 1.1 MB | 386 ms (2.9 MB/s) |
 | YAML 5.0 MB phases: parse / layout / print / re-parse / compare / data model | 522 / 1655 / 202 / 499 / 194 / 732 ms; whole 1.6 MB/s at 4x |
 | TOML (tree-sitter) 5.5 MB generated (`perf-bench toml`) phases: parse / layout / print / re-parse / compare | 2337 / 558 / 142 / 2348 / 69 ms; whole 1.0 MB/s at 4x (parse 2.3 MB/s; 4.1 MB/s on 512 real `Cargo.toml` files in an earlier spike). Tree-sitter is two thirds of the parse, the adapter one third (spike). |
-| Allocations per fixed workload (`scripts/bench.sh`) | json.format 851308, yaml.format 2114000, toml.format 807876, cs.format 140206 |
+| XML (tree-sitter, `lang-xml`) 9.0 MB generated project file (`perf-bench xml`) phases: parse / layout / print / re-parse / compare / attribute check | 4429 / 1704 / 215 / 4796 / 130 / 530 ms; whole 1.4 MB/s at 1x-16x (linear; parse 2.0 MB/s). Slicing the text between tags from the file root instead of the element made the format phase quadratic (rowan walks every token of the file per slice). |
+| Allocations per fixed workload (`scripts/bench.sh`) | json.format 851308, yaml.format 2114000, toml.format 807876, xml.format 2501348 (fixed XML workload: 3 real project files and 2000 generated items), cs.format 140206 |
 | Instructions per fixed workload (`scripts/bench.sh`, valgrind in WSL) | json.format 1.392 G, yaml.format 1.789 G, toml.format 3.189 G (toml.parse 1.279 G; the fixed TOML workload is 22 files, 3 MB generated, so not comparable with the other languages) |
 | C# layout options of `csharp/stylecop` (blank-line rules, `)` placement, expanded empty bodies), `format --check` of the 12 files of `bench/inputs/cs` (0.1 MB), release CLI with worker, cold process, 7 runs x 2 | median 121 ms with `csharp/microsoft`, 122 ms with `csharp/stylecop` (process and worker start dominate; no measurable difference). Default-option allocations are unchanged (the rules are only built when an option asks for them). |
 
@@ -90,6 +91,8 @@ C# cost structure: on CoreLib Roslyn parse ~0.94 s and the mapping walk ~0.83 s 
 `wasmtime` itself already has default features off, with only what the host uses. The ~20 MB Wasm host is Cranelift, so LTO saves 7-12% for 2-3x the build time on every CI platform job: not taken. `strip` changes nothing with the MSVC toolchain (symbols are in the pdb). Reconsider fat LTO only if the size matters more than release build time.
 
 TOML (tree-sitter-toml-ng through `core-treesitter`, `lang-toml`): `sudsy.exe` 29.71 MB without, 29.87 MB with (+0.15 MB, +0.5%), same machine and profile as above. Clean release build of `cli`: 261 s without, 239 s with; the difference is inside the noise of a shared machine (the C compile of the grammar and the runtime takes about a minute on an idle one). In the spike, touching `lang-toml` and rebuilding the CLI took 14.5 s against 15.0 s for `lang-json`.
+
+XML (tree-sitter-xml through `core-treesitter`, `lang-xml`): `sudsy.exe` 30.59 MB with XML and TOML (release, same machine); TOML alone was 29.87 MB, so XML adds about 0.7 MB (+2.4%): the XML parser is 240 KB of generated C and the DTD parser it ships with is linked too (not used).
 
 ## Editor (`lsp-latency`, 300 corpus files as workspace, 20 KB file open, six semantic rules)
 | | Number |
