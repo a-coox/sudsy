@@ -62,11 +62,19 @@ fn pattern_source(lang: &str) -> String {
     }
 }
 
+/// TOML's provider, found by name so that the harness builds against any revision.
+pub(crate) fn toml_provider() -> Box<dyn LanguageProvider> {
+    languages::providers()
+        .into_iter()
+        .find(|p| p.grammar().language == "toml")
+        .expect("TOML is registered")
+}
+
 pub(crate) fn make_provider(lang: &str) -> Result<Box<dyn LanguageProvider>> {
     Ok(match lang {
         "json" => Box::new(lang_json::JsonProvider::new()),
         "yaml" => Box::new(lang_yaml::YamlProvider::new()),
-        "toml" => Box::new(lang_toml::provider()),
+        "toml" => toml_provider(),
         "cs" => Box::new(lang_csharp::provider(
             &lang_csharp::locate_worker().map_err(|e| anyhow!(e))?,
         )),
