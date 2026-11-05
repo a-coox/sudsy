@@ -2,18 +2,19 @@ use core_config::OptionValue;
 use core_format::DirectiveTable;
 use core_format::testing::{Subject, assert_formats};
 use core_syntax::{Grammar, SyntaxNode, print, trivia};
-use lang_toml::{TomlProvider, option_schema};
+use core_treesitter::TreeSitterProvider;
+use lang_toml::option_schema;
 use provider_api::{LanguageProvider, SourceFile, format_file};
 use std::path::{Path, PathBuf};
 
 struct S {
-    provider: TomlProvider,
+    provider: TreeSitterProvider,
     options: Vec<(&'static str, OptionValue)>,
 }
 
 fn subject(options: &[(&'static str, OptionValue)]) -> S {
     S {
-        provider: TomlProvider::new(),
+        provider: lang_toml::provider(),
         options: options.to_vec(),
     }
 }
@@ -115,7 +116,7 @@ fn crlf_is_kept() {
 
 #[test]
 fn errors_are_lossless_and_reported() {
-    let p = TomlProvider::new();
+    let p = lang_toml::provider();
     for src in [
         "a = \n",
         "[x\nb = 1 2\n",
@@ -162,7 +163,7 @@ fn align_comments() {
 }
 
 fn error_codes(src: &str) -> Vec<String> {
-    let r = TomlProvider::new()
+    let r = lang_toml::provider()
         .parse(&SourceFile::new("a.toml", 1, src))
         .unwrap();
     r.errors.into_iter().map(|e| e.code).collect()
@@ -238,7 +239,7 @@ fn fixtures() {
         &mut files,
     );
     assert!(files.len() > 20, "fixtures missing");
-    let p = TomlProvider::new();
+    let p = lang_toml::provider();
     for f in files {
         let text = std::fs::read_to_string(&f).unwrap();
         let r = p.parse(&SourceFile::new("a.toml", 1, &text)).unwrap();
@@ -261,7 +262,7 @@ fn conformance() {
         .join("../../tests/conformance/corpus/toml-test/tests");
     let list = std::fs::read_to_string(root.join("files-toml-1.0.0"))
         .expect("corpus missing, run tests/conformance/fetch-toml-corpus.sh");
-    let p = TomlProvider::new();
+    let p = lang_toml::provider();
     let (mut valid, mut valid_ok, mut invalid, mut invalid_rejected) = (0, 0, 0, 0);
     for rel in list.lines().filter(|l| l.ends_with(".toml")) {
         let bytes = std::fs::read(root.join(rel)).unwrap();

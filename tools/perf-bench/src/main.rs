@@ -305,7 +305,7 @@ fn main() -> Result<()> {
     if matches!(which, "toml" | "all") {
         report(
             "TOML",
-            &lang_toml::TomlProvider::new(),
+            &lang_toml::provider(),
             "bench.toml",
             inputs::toml,
             TOML_ITEMS,

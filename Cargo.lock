@@ -478,6 +478,9 @@ dependencies = [
 name = "core-treesitter"
 version = "0.1.0"
 dependencies = [
+ "core-config",
+ "core-format",
+ "core-rules",
  "core-syntax",
  "provider-api",
  "tree-sitter",

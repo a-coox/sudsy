@@ -18,6 +18,10 @@
 //! Parsing is not incremental and has no depth limit of its own (the walk is iterative; the
 //! formatter recurses). See `docs/architecture/adding-a-language.md`.
 
+mod provider;
+
+pub use provider::{Spec, TreeSitterProvider};
+
 use core_syntax::{Grammar, SyntaxKind, SyntaxNode, TreeBuilder};
 use provider_api::{ParseError, ParseResult};
 use std::sync::{Mutex, OnceLock};
