@@ -92,6 +92,52 @@ pub fn rule_fixtures(provider: &dyn LanguageProvider) {
     );
 }
 
+/// A fixture input that reports something, for the rule documentation.
+#[derive(Clone)]
+pub struct Example {
+    /// The fixture folder.
+    pub folder: String,
+    /// The input without annotations.
+    pub text: String,
+    /// `(line, column, length, rule)` of the reported spans, lines and columns from 1.
+    pub spans: Vec<(usize, usize, usize, String)>,
+    /// The text after the safe fixes, else after the unsafe ones too, if they change anything.
+    pub fixed: Option<String>,
+    /// The input's own `lint.rules` (options), when it has one.
+    pub config: Option<String>,
+}
+
+/// Every input with annotations of the provider's language, in fixture order.
+pub fn examples(provider: &dyn LanguageProvider) -> Vec<Example> {
+    let marker = testing::marker(provider);
+    let mut out = Vec::new();
+    for dir in sorted(&fixture_root(&provider.grammar().language)) {
+        for file in sorted(&dir).into_iter().filter(|p| is_input(p)) {
+            let annotated = testing::split_annotations(
+                &marker,
+                &fs::read_to_string(&file).expect("readable fixture"),
+            );
+            if annotated.expected.is_empty() {
+                continue;
+            }
+            out.push(Example {
+                folder: dir.file_name().expect("a folder").to_string_lossy().into(),
+                text: annotated.text,
+                spans: annotated
+                    .expected
+                    .into_iter()
+                    .map(|(line, column, carets, rule)| (line, column, carets.max(1), rule))
+                    .collect(),
+                fixed: fs::read_to_string(sibling(&file, "fixed"))
+                    .or_else(|_| fs::read_to_string(sibling(&file, "unsafe")))
+                    .ok(),
+                config: fs::read_to_string(sibling(&file, "rules")).ok(),
+            });
+        }
+    }
+    out
+}
+
 fn fixture_root(language: &str) -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("../../tests/rules")

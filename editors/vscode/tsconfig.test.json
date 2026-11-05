@@ -1,5 +1,5 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": { "types": ["node"] },
-  "include": ["src/server.ts", "test"]
+  "include": ["src/server.ts", "src/ruleDocs.ts", "test"]
 }

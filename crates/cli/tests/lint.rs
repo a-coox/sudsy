@@ -263,7 +263,23 @@ fn rules_lists_and_explains() {
     let one = sudsy(t.path(), &["rules", "sorted-keys"]);
     assert_eq!(one.status.code(), Some(0));
     insta::assert_snapshot!(out(&one));
-    let unknown = sudsy(t.path(), &["rules", "sorted-key"]);
+    let unknown = sudsy(t.path(), &["rules", "sorted-kyes"]);
     assert_eq!(unknown.status.code(), Some(2));
     assert!(err(&unknown).contains("did you mean `sorted-keys`"));
+    // An upstream id resolves to the rule; other text searches; --language narrows.
+    let upstream = out(&sudsy(t.path(), &["rules", "truthy"]));
+    assert!(
+        upstream.starts_with(
+            "ambiguous-booleans
+"
+        ),
+        "{upstream}"
+    );
+    assert!(upstream.contains("presets:") && upstream.contains("yaml/yamllint"));
+    assert!(out(&sudsy(t.path(), &["rules", "SA1005"])).starts_with(
+        "comment-space
+"
+    ));
+    let search = out(&sudsy(t.path(), &["rules", "ANCHOR", "--language", "yaml"]));
+    assert!(search.contains("no-unused-anchors") && !search.contains("using-order"));
 }

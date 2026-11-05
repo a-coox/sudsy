@@ -88,9 +88,25 @@ fn tool_name(tool: &str) -> &str {
     }
 }
 
+/// An upstream setting that maps to a rule.
+pub struct Upstream {
+    /// The tool's display name ("StyleCop").
+    pub tool: &'static str,
+    pub id: String,
+    pub partial: bool,
+}
+
+impl std::fmt::Display for Upstream {
+    /// "StyleCop SA1106", with " (partial)" for partial coverage.
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let partial = if self.partial { " (partial)" } else { "" };
+        write!(f, "{} {}{partial}", self.tool, self.id)
+    }
+}
+
 /// The upstream settings that map to the rule `rule` in one of `languages` (`all`: every
-/// language), as "StyleCop SA1106" (partial coverage adds " (partial)"), in catalog order.
-pub fn equivalents(rule: &str, languages: &[&str]) -> Vec<String> {
+/// language), in catalog order.
+pub fn upstream(rule: &str, languages: &[&str]) -> Vec<Upstream> {
     let status = format!("rule: {rule}");
     let mut out = Vec::new();
     for c in all() {
@@ -100,16 +116,34 @@ pub fn equivalents(rule: &str, languages: &[&str]) -> Vec<String> {
             continue;
         }
         for e in &c.entries {
-            if e.sudsy != status || !matches!(e.coverage.as_str(), "covered" | "partial") {
-                continue;
+            if e.sudsy == status && matches!(e.coverage.as_str(), "covered" | "partial") {
+                out.push(Upstream {
+                    tool: tool_name(&c.tool),
+                    id: e.id.clone(),
+                    partial: e.coverage == "partial",
+                });
             }
-            let partial = if e.coverage == "partial" {
-                " (partial)"
-            } else {
-                ""
-            };
-            out.push(format!("{} {}{partial}", tool_name(&c.tool), e.id));
         }
     }
+    out
+}
+
+/// The rules that cover the upstream setting `id` (case-insensitive; the whole id or one of the
+/// settings an entry names).
+pub fn rules_for(id: &str) -> Vec<&'static str> {
+    let mut out: Vec<&str> = all()
+        .iter()
+        .flat_map(|c| &c.entries)
+        .filter(|e| matches!(e.coverage.as_str(), "covered" | "partial"))
+        .filter(|e| {
+            e.id.eq_ignore_ascii_case(id)
+                || e.id
+                    .split([',', '/'])
+                    .any(|p| p.trim().eq_ignore_ascii_case(id))
+        })
+        .filter_map(|e| e.sudsy.strip_prefix("rule: "))
+        .collect();
+    out.sort();
+    out.dedup();
     out
 }

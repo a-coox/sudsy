@@ -1,0 +1,4535 @@
+{
+  "rules": [
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A line comment has text right after its marker. Exempt: nothing but whitespace after the marker, a marker repeated (`////`, `##`), `--` separator lines, and a `#!` shebang on the first line. The fix inserts the space.",
+      "example": {
+        "config": null,
+        "fixed": "{\n  // no space\n  /// fine\n  \"a\": 1, // tail\n  \"b\": 2\n}\n",
+        "input": "{\n  //no space\n  /// fine\n  \"a\": 1, //tail\n  \"b\": 2\n}\n",
+        "language": "json",
+        "spans": [
+          {
+            "column": 3,
+            "length": 2,
+            "line": 2
+          },
+          {
+            "column": 11,
+            "length": 2,
+            "line": 4
+          }
+        ]
+      },
+      "fix": "safe",
+      "id": "comment-space",
+      "languages": [
+        "all"
+      ],
+      "options": [],
+      "presets": [
+        "yaml/yamllint",
+        "csharp/stylecop"
+      ],
+      "upstream": [
+        {
+          "id": "SA1005",
+          "partial": false,
+          "tool": "StyleCop"
+        },
+        {
+          "id": "comments.require-starting-space",
+          "partial": false,
+          "tool": "yamllint"
+        }
+      ]
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A key does not follow one of the allowed naming conventions. The checks are those of eslint-plugin-jsonc: a key with punctuation or whitespace never matches, `camelCase` also rejects `_` and `-`, `snake_case` and `kebab-case` reject capitals. No fix: renaming a key changes the data.",
+      "example": {
+        "config": "key-name-casing:\n  level: warn\n  options:\n    allowed: [snake_case, kebab-case]\n    ignored_keys: [\"^P\"]\n",
+        "fixed": null,
+        "input": "{\"camelCase\": 1, \"snake_case\": 2, \"kebab-case\": 3, \"PascalCase\": 4, \"SCREAMING_SNAKE\": 5, \"a b\": 6}\n",
+        "language": "json",
+        "spans": [
+          {
+            "column": 2,
+            "length": 11,
+            "line": 1
+          },
+          {
+            "column": 69,
+            "length": 17,
+            "line": 1
+          },
+          {
+            "column": 91,
+            "length": 5,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "key-name-casing",
+      "languages": [
+        "all"
+      ],
+      "options": [
+        {
+          "choices": [
+            "camelCase",
+            "PascalCase",
+            "snake_case",
+            "kebab-case",
+            "SCREAMING_SNAKE_CASE"
+          ],
+          "default": [
+            "camelCase"
+          ],
+          "description": "Accepted conventions: `camelCase`, `PascalCase`, `snake_case`, `kebab-case`, `SCREAMING_SNAKE_CASE`. A key is fine when it matches one.",
+          "name": "allowed",
+          "type": "list"
+        },
+        {
+          "default": [],
+          "description": "Regular expressions; matching keys stay where they are and are not compared.",
+          "name": "ignored_keys",
+          "type": "list"
+        }
+      ],
+      "presets": [],
+      "upstream": [
+        {
+          "id": "jsonc/key-name-casing",
+          "partial": false,
+          "tool": "eslint-plugin-jsonc"
+        }
+      ]
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A line is longer than the configured number of characters.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "{\"key\": \"0123456789\"}\n",
+        "language": "json",
+        "spans": [
+          {
+            "column": 11,
+            "length": 11,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "max-line-length",
+      "languages": [
+        "all"
+      ],
+      "options": [
+        {
+          "default": 120,
+          "description": "Longest allowed line, in characters.",
+          "name": "max",
+          "type": "int"
+        },
+        {
+          "default": true,
+          "description": "Do not report a line that has no space after its indentation (and after a leading `#` run or `- `), such as a long URL.",
+          "name": "allow_non_breakable_words",
+          "type": "bool"
+        },
+        {
+          "default": false,
+          "description": "With `allow_non_breakable_words`, also do not report a `key: value` line whose value has no space. Only in languages that have such lines (YAML).",
+          "name": "allow_non_breakable_inline_mappings",
+          "type": "bool"
+        }
+      ],
+      "presets": [
+        "yaml/yamllint"
+      ],
+      "upstream": [
+        {
+          "id": "RCS0056",
+          "partial": true,
+          "tool": "Roslynator"
+        },
+        {
+          "id": "line-length",
+          "partial": false,
+          "tool": "yamllint"
+        },
+        {
+          "id": "line-length.max",
+          "partial": false,
+          "tool": "yamllint"
+        },
+        {
+          "id": "line-length.allow-non-breakable-words",
+          "partial": false,
+          "tool": "yamllint"
+        },
+        {
+          "id": "line-length.allow-non-breakable-inline-mappings",
+          "partial": false,
+          "tool": "yamllint"
+        }
+      ]
+    },
+    {
+      "category": "correctness",
+      "default_level": "error",
+      "description": "A mapping has the same key twice (after decoding escapes and quotes); parsers disagree on which value wins.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "{\"a\": 1, \"\\u0061\": 2, \"b\\/\": 3, \"b/\": 4}\n",
+        "language": "json",
+        "spans": [
+          {
+            "column": 10,
+            "length": 8,
+            "line": 1
+          },
+          {
+            "column": 33,
+            "length": 4,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-duplicate-keys",
+      "languages": [
+        "all"
+      ],
+      "options": [
+        {
+          "choices": [
+            "allow",
+            "forbid"
+          ],
+          "default": "allow",
+          "description": "Languages with a merge key (YAML `<<`) only. `allow` skips merge keys, which may repeat; `forbid` reports a second one like any other duplicate key.",
+          "name": "merge_keys",
+          "type": "string"
+        }
+      ],
+      "presets": [],
+      "upstream": [
+        {
+          "id": "suspicious/noDuplicateObjectKeys",
+          "partial": false,
+          "tool": "Biome"
+        },
+        {
+          "id": "jsonc/no-dupe-keys",
+          "partial": false,
+          "tool": "eslint-plugin-jsonc"
+        },
+        {
+          "id": "key-duplicates",
+          "partial": false,
+          "tool": "yamllint"
+        },
+        {
+          "id": "key-duplicates.forbid-duplicated-merge-keys",
+          "partial": false,
+          "tool": "yamllint"
+        }
+      ]
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A comment has no text. A block comment is reported wherever it is; an empty line comment only when it begins or ends a run of comments, because a bare `//` between two comment lines separates paragraphs.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "{\n  /**/\n  \"b\": 2\n}\n",
+        "language": "json",
+        "spans": [
+          {
+            "column": 3,
+            "length": 4,
+            "line": 2
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-empty-comment",
+      "languages": [
+        "all"
+      ],
+      "options": [],
+      "presets": [
+        "csharp/stylecop"
+      ],
+      "upstream": [
+        {
+          "id": "SA1120",
+          "partial": false,
+          "tool": "StyleCop"
+        }
+      ]
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "A key is empty or only whitespace (after decoding escapes); some consumers cannot address such a property.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "{\"\": 1, \" \\t\": 2, \"a\": 3, \"\\u0020\": 4}\n",
+        "language": "json",
+        "spans": [
+          {
+            "column": 2,
+            "length": 2,
+            "line": 1
+          },
+          {
+            "column": 9,
+            "length": 5,
+            "line": 1
+          },
+          {
+            "column": 27,
+            "length": 8,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-empty-keys",
+      "languages": [
+        "all"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": [
+        {
+          "id": "suspicious/noEmptyObjectKeys",
+          "partial": false,
+          "tool": "Biome"
+        }
+      ]
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "The items of a sequence of only strings or only numbers are not in order (ascending by default; numbers compare as numbers). Sequences of other or mixed items are skipped. The items that would have to move (the fewest) are reported and the first report carries the fix; the fix is unsafe because sequence order can be data.",
+      "example": {
+        "config": "sorted-array-values:\n  level: warn\n  options:\n    direction: desc\n",
+        "fixed": "[\"c\", \"b\", \"a\"]\n",
+        "input": "[\"a\", \"c\", \"b\"]\n",
+        "language": "json",
+        "spans": [
+          {
+            "column": 2,
+            "length": 3,
+            "line": 1
+          }
+        ]
+      },
+      "fix": "unsafe",
+      "id": "sorted-array-values",
+      "languages": [
+        "all"
+      ],
+      "options": [
+        {
+          "choices": [
+            "asc",
+            "desc"
+          ],
+          "default": "asc",
+          "description": "`asc` or `desc`.",
+          "name": "direction",
+          "type": "string"
+        },
+        {
+          "choices": [
+            "ordinal",
+            "case_insensitive",
+            "natural"
+          ],
+          "default": "ordinal",
+          "description": "`ordinal` (code points), `case_insensitive`, or `natural` (digit runs compare as numbers: `a2` before `a10`).",
+          "name": "compare",
+          "type": "string"
+        },
+        {
+          "default": 2,
+          "description": "Sequences with fewer items are not checked.",
+          "name": "min_values",
+          "type": "int"
+        },
+        {
+          "default": false,
+          "description": "Sort each run of entries between blank lines on its own.",
+          "name": "blank_line_groups",
+          "type": "bool"
+        },
+        {
+          "default": [],
+          "description": "Regular expressions; only mappings (sequences) whose key path matches one are checked. The path is `a.b[0].c` (`[\"odd key\"]` for keys that are not identifiers), empty for the root; none listed means everywhere. A TOML table counts as its header key and an array table is not indexed.",
+          "name": "path_patterns",
+          "type": "list"
+        }
+      ],
+      "presets": [],
+      "upstream": [
+        {
+          "id": "jsonc/sort-array-values",
+          "partial": true,
+          "tool": "eslint-plugin-jsonc"
+        },
+        {
+          "id": "reorder_arrays",
+          "partial": true,
+          "tool": "taplo"
+        }
+      ]
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "The keys of a mapping are not in order (alphabetical by default). The keys reported are chosen by `report`, and the first report carries the fix. Comments on lines of their own stay where they are, a comment after an entry moves with it; moving a YAML anchor below its alias breaks the document, so the fix is unsafe.",
+      "example": {
+        "config": "sorted-keys:\n  level: warn\n  options:\n    blank_line_groups: true\n",
+        "fixed": "{\n  \"a\": 2,\n  \"b\": 1,\n\n  \"c\": 4,\n  \"d\": 3\n}\n",
+        "input": "{\n  \"b\": 1,\n  \"a\": 2,\n\n  \"d\": 3,\n  \"c\": 4\n}\n",
+        "language": "json",
+        "spans": [
+          {
+            "column": 3,
+            "length": 3,
+            "line": 2
+          },
+          {
+            "column": 3,
+            "length": 3,
+            "line": 5
+          }
+        ]
+      },
+      "fix": "unsafe",
+      "id": "sorted-keys",
+      "languages": [
+        "all"
+      ],
+      "options": [
+        {
+          "default": [],
+          "description": "Keys that come first, in this order; the rest follow in the configured order.",
+          "name": "order",
+          "type": "list"
+        },
+        {
+          "choices": [
+            "asc",
+            "desc"
+          ],
+          "default": "asc",
+          "description": "`asc` or `desc`.",
+          "name": "direction",
+          "type": "string"
+        },
+        {
+          "choices": [
+            "ordinal",
+            "case_insensitive",
+            "natural"
+          ],
+          "default": "ordinal",
+          "description": "`ordinal` (code points), `case_insensitive`, or `natural` (digit runs compare as numbers: `a2` before `a10`).",
+          "name": "compare",
+          "type": "string"
+        },
+        {
+          "default": [],
+          "description": "Regular expressions; matching keys stay where they are and are not compared.",
+          "name": "ignored_keys",
+          "type": "list"
+        },
+        {
+          "default": 2,
+          "description": "Mappings with fewer keys are not checked.",
+          "name": "min_keys",
+          "type": "int"
+        },
+        {
+          "default": false,
+          "description": "Sort each run of entries between blank lines on its own.",
+          "name": "blank_line_groups",
+          "type": "bool"
+        },
+        {
+          "default": [],
+          "description": "Regular expressions; only mappings (sequences) whose key path matches one are checked. The path is `a.b[0].c` (`[\"odd key\"]` for keys that are not identifiers), empty for the root; none listed means everywhere. A TOML table counts as its header key and an array table is not indexed.",
+          "name": "path_patterns",
+          "type": "list"
+        },
+        {
+          "default": [],
+          "description": "Only mappings that have all of these keys are checked.",
+          "name": "has_properties",
+          "type": "list"
+        },
+        {
+          "choices": [
+            "moved",
+            "misplaced"
+          ],
+          "default": "moved",
+          "description": "Which keys are reported. `moved`: the fewest keys that would have to move (eslint-plugin-jsonc). `misplaced`: every key that sorts before one above it (yamllint).",
+          "name": "report",
+          "type": "string"
+        }
+      ],
+      "presets": [
+        "yaml/yamllint"
+      ],
+      "upstream": [
+        {
+          "id": "assist/source/useSortedKeys",
+          "partial": true,
+          "tool": "Biome"
+        },
+        {
+          "id": "jsonc/sort-keys",
+          "partial": true,
+          "tool": "eslint-plugin-jsonc"
+        },
+        {
+          "id": "reorder_keys",
+          "partial": true,
+          "tool": "taplo"
+        },
+        {
+          "id": "reorder_inline_tables",
+          "partial": true,
+          "tool": "taplo"
+        },
+        {
+          "id": "key-ordering",
+          "partial": true,
+          "tool": "yamllint"
+        },
+        {
+          "id": "key-ordering.ignored-keys",
+          "partial": false,
+          "tool": "yamllint"
+        }
+      ]
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "A number that a double-precision parser (JavaScript, most JSON libraries) cannot hold: an integer beyond 2^53 - 1, a value that overflows to infinity, underflows to zero or is subnormal.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "[9007199254740991, 9007199254740992, -12345678901234567890, 1e999, 1e-999, 5e-324, 0, 0.0e5, 1.5, 12345678901234567890.5]\n",
+        "language": "json",
+        "spans": [
+          {
+            "column": 20,
+            "length": 16,
+            "line": 1
+          },
+          {
+            "column": 38,
+            "length": 21,
+            "line": 1
+          },
+          {
+            "column": 61,
+            "length": 5,
+            "line": 1
+          },
+          {
+            "column": 68,
+            "length": 6,
+            "line": 1
+          },
+          {
+            "column": 76,
+            "length": 6,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "unsafe-numbers",
+      "languages": [
+        "json"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": [
+        {
+          "id": "nursery/noJsonUnsafeValues",
+          "partial": true,
+          "tool": "Biome"
+        }
+      ]
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "A plain `yes`, `no`, `on`, `off`, `True`, `TRUE`, `False` or `FALSE` (in the usual casings): a boolean to YAML 1.1 parsers and a string to YAML 1.2 parsers. Lowercase `true` and `false` are fine.",
+      "example": {
+        "config": null,
+        "fixed": "\"on\": \"True\"\nlist: [\"FALSE\", false, true]\n? \"Yes\"\n: y\n",
+        "input": "on: True\nlist: [FALSE, false, true]\n? Yes\n: y\n",
+        "language": "yaml",
+        "spans": [
+          {
+            "column": 1,
+            "length": 2,
+            "line": 1
+          },
+          {
+            "column": 5,
+            "length": 4,
+            "line": 1
+          },
+          {
+            "column": 8,
+            "length": 5,
+            "line": 2
+          },
+          {
+            "column": 3,
+            "length": 3,
+            "line": 3
+          }
+        ]
+      },
+      "fix": "unsafe",
+      "id": "ambiguous-booleans",
+      "languages": [
+        "yaml"
+      ],
+      "options": [
+        {
+          "default": true,
+          "description": "Also check mapping keys. Turn it off to keep GitHub workflow `on:`.",
+          "name": "check_keys",
+          "type": "bool"
+        },
+        {
+          "default": [],
+          "description": "Spellings that are not reported, for example `[\"on\"]`.",
+          "name": "allowed",
+          "type": "list"
+        },
+        {
+          "default": false,
+          "description": "Also report `true` and `false` (unless listed in `allowed`), for code that wants every boolean quoted or spelled out.",
+          "name": "report_true_false",
+          "type": "bool"
+        }
+      ],
+      "presets": [
+        "yaml/yamllint"
+      ],
+      "upstream": [
+        {
+          "id": "truthy",
+          "partial": false,
+          "tool": "yamllint"
+        },
+        {
+          "id": "truthy.allowed-values",
+          "partial": false,
+          "tool": "yamllint"
+        },
+        {
+          "id": "truthy.check-keys",
+          "partial": false,
+          "tool": "yamllint"
+        }
+      ]
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A document without the `...` end marker (or, with `present: false`, one that has it).",
+      "example": {
+        "config": "document-end:\n  level: warn\n  options:\n    present: false\n",
+        "fixed": null,
+        "input": "a: 1\n...\n",
+        "language": "yaml",
+        "spans": [
+          {
+            "column": 1,
+            "length": 3,
+            "line": 2
+          }
+        ]
+      },
+      "fix": "safe",
+      "id": "document-end",
+      "languages": [
+        "yaml"
+      ],
+      "options": [
+        {
+          "default": true,
+          "description": "`true` requires `...` after every document (fixable); `false` forbids it.",
+          "name": "present",
+          "type": "bool"
+        }
+      ],
+      "presets": [],
+      "upstream": [
+        {
+          "id": "document-end",
+          "partial": false,
+          "tool": "yamllint"
+        }
+      ]
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "The first document does not start with `---`.",
+      "example": {
+        "config": null,
+        "fixed": "---\n# comment\na: 1\n",
+        "input": "# comment\na: 1\n",
+        "language": "yaml",
+        "spans": [
+          {
+            "column": 1,
+            "length": 4,
+            "line": 2
+          }
+        ]
+      },
+      "fix": "safe",
+      "id": "document-start",
+      "languages": [
+        "yaml"
+      ],
+      "options": [],
+      "presets": [
+        "yaml/yamllint"
+      ],
+      "upstream": [
+        {
+          "id": "document-start",
+          "partial": false,
+          "tool": "yamllint"
+        }
+      ]
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "Restricts how plain floats are written. Every option is off until set: `.5` without a leading digit, `1e3` scientific notation, `.nan` and `.inf`. Quoted and tagged scalars are not checked. The fix for `.5` is `0.5`.",
+      "example": {
+        "config": null,
+        "fixed": "x: 0.5\ny: 0.5\nz: 1e3\n",
+        "input": "x: .5\ny: 0.5\nz: 1e3\n",
+        "language": "yaml",
+        "spans": [
+          {
+            "column": 4,
+            "length": 2,
+            "line": 1
+          },
+          {
+            "column": 4,
+            "length": 3,
+            "line": 3
+          }
+        ]
+      },
+      "fix": "safe",
+      "id": "float-style",
+      "languages": [
+        "yaml"
+      ],
+      "options": [
+        {
+          "default": false,
+          "description": "Report `.5`, `-.5e3`: a digit must come before the decimal point.",
+          "name": "require_numeral_before_decimal",
+          "type": "bool"
+        },
+        {
+          "default": false,
+          "description": "Report `1e3`, `1.5E-2`, `.5e3`.",
+          "name": "forbid_scientific_notation",
+          "type": "bool"
+        },
+        {
+          "default": false,
+          "description": "Report `.nan`, `.NaN`, `.NAN`.",
+          "name": "forbid_nan",
+          "type": "bool"
+        },
+        {
+          "default": false,
+          "description": "Report `.inf`, `-.Inf`, `+.INF`.",
+          "name": "forbid_inf",
+          "type": "bool"
+        }
+      ],
+      "presets": [],
+      "upstream": [
+        {
+          "id": "float-values",
+          "partial": false,
+          "tool": "yamllint"
+        },
+        {
+          "id": "float-values.forbid-inf / forbid-nan / forbid-scientific-notation / require-numeral-before-decimal",
+          "partial": false,
+          "tool": "yamllint"
+        }
+      ]
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "An anchor name is defined again in the same document; an alias refers to the latest definition above it, which is easy to misread.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "- &a 1\n- &a 2\n",
+        "language": "yaml",
+        "spans": [
+          {
+            "column": 3,
+            "length": 2,
+            "line": 2
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-duplicate-anchors",
+      "languages": [
+        "yaml"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": [
+        {
+          "id": "anchors.forbid-duplicated-anchors",
+          "partial": false,
+          "tool": "yamllint"
+        }
+      ]
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A mapping key or sequence entry without a value (an implicit null). Values with an anchor or tag are not empty. Reported at the `:` or `-`.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "key:\nlist:\n  -\nfull: 1\n",
+        "language": "yaml",
+        "spans": [
+          {
+            "column": 4,
+            "length": 1,
+            "line": 1
+          },
+          {
+            "column": 3,
+            "length": 1,
+            "line": 3
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-empty-values",
+      "languages": [
+        "yaml"
+      ],
+      "options": [
+        {
+          "default": true,
+          "description": "Check block mappings.",
+          "name": "block_mappings",
+          "type": "bool"
+        },
+        {
+          "default": true,
+          "description": "Check flow mappings (`{a: }`).",
+          "name": "flow_mappings",
+          "type": "bool"
+        },
+        {
+          "default": true,
+          "description": "Check block sequences.",
+          "name": "block_sequences",
+          "type": "bool"
+        }
+      ],
+      "presets": [],
+      "upstream": [
+        {
+          "id": "empty-values",
+          "partial": false,
+          "tool": "yamllint"
+        },
+        {
+          "id": "empty-values.forbid-in-block-mappings / flow-mappings / block-sequences",
+          "partial": false,
+          "tool": "yamllint"
+        }
+      ]
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A flow mapping (`{a: 1}`); write a block mapping instead.",
+      "example": {
+        "config": "no-flow-mappings:\n  level: warn\n  options:\n    allow_empty: true\n",
+        "fixed": null,
+        "input": "a: {x: 1}\nb: {}\n",
+        "language": "yaml",
+        "spans": [
+          {
+            "column": 4,
+            "length": 1,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-flow-mappings",
+      "languages": [
+        "yaml"
+      ],
+      "options": [
+        {
+          "default": false,
+          "description": "Do not report empty collections (`{}`, `[]`).",
+          "name": "allow_empty",
+          "type": "bool"
+        }
+      ],
+      "presets": [],
+      "upstream": [
+        {
+          "id": "braces.forbid",
+          "partial": false,
+          "tool": "yamllint"
+        }
+      ]
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A flow sequence (`[a, b]`); write a block sequence instead.",
+      "example": {
+        "config": "no-flow-sequences:\n  level: warn\n  options:\n    allow_empty: true\n",
+        "fixed": null,
+        "input": "a: [1, 2]\nb: []\n",
+        "language": "yaml",
+        "spans": [
+          {
+            "column": 4,
+            "length": 1,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-flow-sequences",
+      "languages": [
+        "yaml"
+      ],
+      "options": [
+        {
+          "default": false,
+          "description": "Do not report empty collections (`{}`, `[]`).",
+          "name": "allow_empty",
+          "type": "bool"
+        }
+      ],
+      "presets": [],
+      "upstream": [
+        {
+          "id": "brackets.forbid",
+          "partial": false,
+          "tool": "yamllint"
+        }
+      ]
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "A plain `0755` (octal to YAML 1.1 parsers, decimal 755 to YAML 1.2) or `0o755` (octal to YAML 1.2, a string to YAML 1.1). Quoted and tagged scalars are not checked. No fix: the intended value is not known.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "mode: 0755\nname: \"0755\"\n",
+        "language": "yaml",
+        "spans": [
+          {
+            "column": 7,
+            "length": 4,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-octal-values",
+      "languages": [
+        "yaml"
+      ],
+      "options": [
+        {
+          "default": true,
+          "description": "Report `0755`.",
+          "name": "implicit",
+          "type": "bool"
+        },
+        {
+          "default": true,
+          "description": "Report `0o755`.",
+          "name": "explicit",
+          "type": "bool"
+        }
+      ],
+      "presets": [],
+      "upstream": [
+        {
+          "id": "octal-values",
+          "partial": false,
+          "tool": "yamllint"
+        },
+        {
+          "id": "octal-values.forbid-implicit-octal / forbid-explicit-octal",
+          "partial": false,
+          "tool": "yamllint"
+        }
+      ]
+    },
+    {
+      "category": "correctness",
+      "default_level": "error",
+      "description": "An alias names an anchor that is not defined earlier in the same document.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "a: &x 1\n---\nb: *x\n",
+        "language": "yaml",
+        "spans": [
+          {
+            "column": 4,
+            "length": 2,
+            "line": 3
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-undefined-alias",
+      "languages": [
+        "yaml"
+      ],
+      "options": [],
+      "presets": [
+        "yaml/yamllint"
+      ],
+      "upstream": [
+        {
+          "id": "anchors",
+          "partial": false,
+          "tool": "yamllint"
+        },
+        {
+          "id": "anchors.forbid-undeclared-aliases",
+          "partial": false,
+          "tool": "yamllint"
+        }
+      ]
+    },
+    {
+      "category": "cleanup",
+      "default_level": "off",
+      "description": "An anchor that no alias refers to. The fix removes the anchor, which changes nothing about the data.",
+      "example": {
+        "config": null,
+        "fixed": "a: 1\nb: &y 2\nc: *y\n",
+        "input": "a: &x 1\nb: &y 2\nc: *y\n",
+        "language": "yaml",
+        "spans": [
+          {
+            "column": 4,
+            "length": 2,
+            "line": 1
+          }
+        ]
+      },
+      "fix": "safe",
+      "id": "no-unused-anchors",
+      "languages": [
+        "yaml"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": [
+        {
+          "id": "anchors.forbid-unused-anchors",
+          "partial": false,
+          "tool": "yamllint"
+        }
+      ]
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "Which strings are quoted. Plain scalars that are not strings (`12`, `true`, `null`, dates, ...), block scalars and scalars tagged `!!` are never checked. `required: always` wants quotes on every string, `only_when_needed` reports quotes that change nothing (unless `extra_allowed` matches) and plain strings that `extra_required` matches, `optional` only the latter. Fixes: quoting a plain string and switching the quote type keep the value; removing quotes is unsafe because YAML 1.2 parsers read some strings (`1e3`) as numbers.",
+      "example": {
+        "config": null,
+        "fixed": "name: \"bar\"\nquoted: \"baz\"\nnum: 1\n",
+        "input": "name: bar\nquoted: \"baz\"\nnum: 1\n",
+        "language": "yaml",
+        "spans": [
+          {
+            "column": 7,
+            "length": 3,
+            "line": 1
+          }
+        ]
+      },
+      "fix": "unsafe",
+      "id": "quoted-strings",
+      "languages": [
+        "yaml"
+      ],
+      "options": [
+        {
+          "choices": [
+            "any",
+            "single",
+            "double",
+            "consistent"
+          ],
+          "default": "any",
+          "description": "The quotes to use. `consistent`: the first quoted string of the file decides.",
+          "name": "quote_type",
+          "type": "string"
+        },
+        {
+          "choices": [
+            "always",
+            "optional",
+            "only_when_needed"
+          ],
+          "default": "always",
+          "description": "`always`: every string is quoted. `optional`: quotes are free, but must be of `quote_type`. `only_when_needed`: quotes only where the string would otherwise read as something else.",
+          "name": "required",
+          "type": "string"
+        },
+        {
+          "default": [],
+          "description": "Regular expressions; a string they match (searched in the value) must be quoted even with `optional` or `only_when_needed`.",
+          "name": "extra_required",
+          "type": "list"
+        },
+        {
+          "default": [],
+          "description": "Regular expressions; a string they match may be quoted with `only_when_needed`.",
+          "name": "extra_allowed",
+          "type": "list"
+        },
+        {
+          "default": false,
+          "description": "Accept the other quote type when the string contains the wanted quote.",
+          "name": "allow_quoted_quotes",
+          "type": "bool"
+        },
+        {
+          "default": false,
+          "description": "Check mapping keys too.",
+          "name": "check_keys",
+          "type": "bool"
+        }
+      ],
+      "presets": [],
+      "upstream": [
+        {
+          "id": "quoted-strings",
+          "partial": false,
+          "tool": "yamllint"
+        },
+        {
+          "id": "quoted-strings.quote-type",
+          "partial": false,
+          "tool": "yamllint"
+        },
+        {
+          "id": "quoted-strings.required",
+          "partial": false,
+          "tool": "yamllint"
+        },
+        {
+          "id": "quoted-strings.extra-required / extra-allowed",
+          "partial": false,
+          "tool": "yamllint"
+        },
+        {
+          "id": "quoted-strings.allow-quoted-quotes",
+          "partial": false,
+          "tool": "yamllint"
+        },
+        {
+          "id": "quoted-strings.check-keys",
+          "partial": false,
+          "tool": "yamllint"
+        }
+      ]
+    },
+    {
+      "category": "correctness",
+      "default_level": "warn",
+      "description": "An element of a project file (`PackageReference`, `ProjectReference`, `Compile`, ...) has the same `Include` as an earlier element of the same name in the same parent. The duplicate is a restore warning or a build error.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "<Project>\n  <ItemGroup>\n    <PackageReference Include=\"A\" Version=\"1\" />\n    <PackageReference Include=\"B\" Version=\"1\" />\n    <PackageReference Include=\"A\" Version=\"2\"></PackageReference>\n    <Compile Include=\"A\" />\n    <ProjectReference Include=\"B\" />\n  </ItemGroup>\n  <ItemGroup>\n    <PackageReference Include=\"A\" />\n  </ItemGroup>\n</Project>\n",
+        "language": "xml",
+        "spans": [
+          {
+            "column": 31,
+            "length": 3,
+            "line": 5
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-duplicate-include",
+      "languages": [
+        "xml"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "warn",
+      "description": "A `PackageReference` (or `PackageVersion`) whose `Version` contains `*` restores a different package as new versions appear. Reported on the attribute; no fix, because the version to pin is a decision.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "<Project>\n  <ItemGroup>\n    <PackageReference Include=\"A\" Version=\"1.0.0\" />\n    <PackageReference Include=\"B\" Version=\"1.*\" />\n    <PackageVersion Include=\"C\" Version=\"*\" ></PackageVersion>\n    <Other Include=\"D\" Version=\"1.*\" />\n  </ItemGroup>\n</Project>\n",
+        "language": "xml",
+        "spans": [
+          {
+            "column": 35,
+            "length": 13,
+            "line": 4
+          },
+          {
+            "column": 33,
+            "length": 11,
+            "line": 5
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-floating-package-version",
+      "languages": [
+        "xml"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "warn",
+      "description": "A fenced code block in which every line starts with `$ ` shows commands without their output, which makes copying them awkward (markdownlint MD014).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "```sh\n$ npm install\n$ npm test\n```\n\n```sh\n$ npm test\nall passed\n```\n\n```sh\nnpm test\n```\n",
+        "language": "markdown",
+        "spans": [
+          {
+            "column": 1,
+            "length": 1,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "commands-show-output",
+      "languages": [
+        "markdown"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "warn",
+      "description": "Link text that is `click here`, `here`, `link` or `more` (markdownlint MD059).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "[here](https://example.com), [Click here](https://example.com) and [the guide](https://example.com).\n",
+        "language": "markdown",
+        "spans": [
+          {
+            "column": 1,
+            "length": 27,
+            "line": 1
+          },
+          {
+            "column": 30,
+            "length": 33,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "descriptive-link-text",
+      "languages": [
+        "markdown"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "warn",
+      "description": "A fenced code block without an info string (markdownlint MD040); name the language, or `text`.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "```\nno language\n```\n\n```rust\nfn main() {}\n```\n",
+        "language": "markdown",
+        "spans": [
+          {
+            "column": 1,
+            "length": 1,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "fenced-code-language",
+      "languages": [
+        "markdown"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "warn",
+      "description": "A heading is more than one level deeper than the heading before it (an `h4` right after an `h2`). Going back up by any number of levels is fine (markdownlint MD001).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "# One\n\n### Three\n\n## Two\n\n#### Four\n",
+        "language": "markdown",
+        "spans": [
+          {
+            "column": 1,
+            "length": 9,
+            "line": 3
+          },
+          {
+            "column": 1,
+            "length": 9,
+            "line": 7
+          }
+        ]
+      },
+      "fix": null,
+      "id": "heading-increment",
+      "languages": [
+        "markdown"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "warn",
+      "description": "An image with empty alternate text, `![](url)` (markdownlint MD045).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "![](logo.png) and ![Logo](logo.png).\n",
+        "language": "markdown",
+        "spans": [
+          {
+            "column": 1,
+            "length": 13,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-alt-text",
+      "languages": [
+        "markdown"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "warn",
+      "description": "A URL that is neither a link nor an autolink (markdownlint MD034), found when it follows a space or starts the paragraph. Reported on the paragraph.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "https://example.com is bare.\n\n<https://example.com> and [site](https://example.com) are not.\n",
+        "language": "markdown",
+        "spans": [
+          {
+            "column": 1,
+            "length": 28,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-bare-urls",
+      "languages": [
+        "markdown"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "warn",
+      "description": "Two headings have the same text (markdownlint MD024), which makes their anchors ambiguous.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "# Usage\n\n## Install\n\n## Usage\n\nSetext\n------\n\nSetext\n======\n",
+        "language": "markdown",
+        "spans": [
+          {
+            "column": 1,
+            "length": 8,
+            "line": 5
+          },
+          {
+            "column": 1,
+            "length": 6,
+            "line": 10
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-duplicate-heading",
+      "languages": [
+        "markdown"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "warn",
+      "description": "A one-line paragraph that is only emphasized text without closing punctuation (markdownlint MD036); use a heading.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "**Overview**\n\n*Notes*\n\n**A sentence.**\n\nText with **bold** inside.\n",
+        "language": "markdown",
+        "spans": [
+          {
+            "column": 1,
+            "length": 12,
+            "line": 1
+          },
+          {
+            "column": 1,
+            "length": 7,
+            "line": 3
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-emphasis-as-heading",
+      "languages": [
+        "markdown"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "correctness",
+      "default_level": "warn",
+      "description": "A link whose destination is empty or only `#` (markdownlint MD042).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "A [docs]() and [anchor](#) and [ok](#top) link.\n",
+        "language": "markdown",
+        "spans": [
+          {
+            "column": 3,
+            "length": 8,
+            "line": 1
+          },
+          {
+            "column": 16,
+            "length": 11,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-empty-links",
+      "languages": [
+        "markdown"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "warn",
+      "description": "Raw HTML in a document (markdownlint MD033). Comments are not reported. Reported once per HTML block, not per tag.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "Text with <b>bold</b> HTML and <!-- a comment -->.\n\n<div>\nblock\n</div>\n\n<!-- only a comment -->\n",
+        "language": "markdown",
+        "spans": [
+          {
+            "column": 11,
+            "length": 3,
+            "line": 1
+          },
+          {
+            "column": 18,
+            "length": 4,
+            "line": 1
+          },
+          {
+            "column": 1,
+            "length": 1,
+            "line": 3
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-inline-html",
+      "languages": [
+        "markdown"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "correctness",
+      "default_level": "warn",
+      "description": "A paragraph that starts with one to six `#` and no space reads as a heading to people but is plain text to Markdown (markdownlint MD018).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "#Heading\n\n## Fine\n\n###Also missing\n\nText with #hash inside.\n",
+        "language": "markdown",
+        "spans": [
+          {
+            "column": 1,
+            "length": 8,
+            "line": 1
+          },
+          {
+            "column": 1,
+            "length": 15,
+            "line": 5
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-missing-space-atx",
+      "languages": [
+        "markdown"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "correctness",
+      "default_level": "warn",
+      "description": "Link syntax written the wrong way round, `(text)[url]` (markdownlint MD011), at the start of a paragraph or after a blank. Reported on the paragraph; no fix, because `(text)[url]` may be meant literally.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "(Docs)[https://example.com] is reversed, [Docs](https://example.com) is not.\n\nText (with parentheses) and [brackets] stay.\n",
+        "language": "markdown",
+        "spans": [
+          {
+            "column": 1,
+            "length": 76,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-reversed-links",
+      "languages": [
+        "markdown"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "warn",
+      "description": "A code span that starts or ends with a space (markdownlint MD038). A span with a space on both sides of a backtick-led or backtick-ended content is allowed.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "A ` code` and `code ` and `code` span.\n",
+        "language": "markdown",
+        "spans": [
+          {
+            "column": 3,
+            "length": 7,
+            "line": 1
+          },
+          {
+            "column": 15,
+            "length": 7,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-space-in-code",
+      "languages": [
+        "markdown"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "warn",
+      "description": "Link text that starts or ends with a space (markdownlint MD039).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "A [ docs](https://example.com) and [docs ](https://example.com) and [docs](https://example.com).\n",
+        "language": "markdown",
+        "spans": [
+          {
+            "column": 3,
+            "length": 28,
+            "line": 1
+          },
+          {
+            "column": 36,
+            "length": 28,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-space-in-links",
+      "languages": [
+        "markdown"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "warn",
+      "description": "A heading that ends with `.`, `,`, `;`, `:` or `!` (or the full-width forms) reads as a sentence, not a title (markdownlint MD026). `?` is allowed.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "# Introduction.\n\n## Why?\n\n## Setup:\n\nOverview!\n---------\n",
+        "language": "markdown",
+        "spans": [
+          {
+            "column": 3,
+            "length": 13,
+            "line": 1
+          },
+          {
+            "column": 4,
+            "length": 6,
+            "line": 5
+          },
+          {
+            "column": 1,
+            "length": 9,
+            "line": 7
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-trailing-punctuation",
+      "languages": [
+        "markdown"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "warn",
+      "description": "A document has more than one top-level heading (markdownlint MD025). The second and later `h1` are reported.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "# One\n\n## Sub\n\n# Two\n\nThree\n=====\n",
+        "language": "markdown",
+        "spans": [
+          {
+            "column": 1,
+            "length": 5,
+            "line": 5
+          },
+          {
+            "column": 1,
+            "length": 5,
+            "line": 7
+          }
+        ]
+      },
+      "fix": null,
+      "id": "single-title",
+      "languages": [
+        "markdown"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "`get` goes before `set` or `init`, and `add` before `remove`. The fix swaps the two accessors (not offered when a comment stands between or in them).",
+      "example": {
+        "config": null,
+        "fixed": "class A {\n int P { get { return 1; } set { } }\n event System.Action E { add { } remove { } }\n int Q { set { } /* why */ get { return 1; } }\n}\n",
+        "input": "class A {\n int P { set { } get { return 1; } }\n event System.Action E { remove { } add { } }\n int Q { set { } /* why */ get { return 1; } }\n}\n",
+        "language": "csharp",
+        "spans": [
+          {
+            "column": 10,
+            "length": 7,
+            "line": 2
+          },
+          {
+            "column": 26,
+            "length": 6,
+            "line": 3
+          },
+          {
+            "column": 10,
+            "length": 7,
+            "line": 4
+          }
+        ]
+      },
+      "fix": "safe",
+      "id": "accessor-order",
+      "languages": [
+        "csharp"
+      ],
+      "options": [],
+      "presets": [
+        "csharp/stylecop"
+      ],
+      "upstream": [
+        {
+          "id": "SA1212",
+          "partial": false,
+          "tool": "StyleCop"
+        },
+        {
+          "id": "SA1213",
+          "partial": false,
+          "tool": "StyleCop"
+        }
+      ]
+    },
+    {
+      "category": "style",
+      "default_level": "warn",
+      "description": "An async method returning Task or ValueTask has a name that does not end in `Async`. Overrides, explicit interface implementations and `Main` are left alone (their names are not the method's to choose). Renaming needs the binding layer, so there is no fix.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "using System.Threading.Tasks;\ninterface I { Task Run(); }\nclass A : I {\n public async Task Run() { }\n public async Task Other() { }\n}\nclass B {\n class Task { }\n async Task Mine() { }\n}\n",
+        "language": "csharp",
+        "spans": [
+          {
+            "column": 20,
+            "length": 5,
+            "line": 5
+          }
+        ]
+      },
+      "fix": null,
+      "id": "async-suffix",
+      "languages": [
+        "csharp"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": [
+        {
+          "id": "RCS1046",
+          "partial": false,
+          "tool": "Roslynator"
+        }
+      ]
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A comparison with the constant on the left: `null == x` is `x == null`, `1 < x` is `x > 1`. Without the type layer a constant is a literal, `nameof`, `int.MaxValue`-style member or an expression of those; a named constant on the left is not recognised.",
+      "example": {
+        "config": null,
+        "fixed": "class A {\n int a, b;\n Nullable<int> n = 1L < 2 ? null : null;\n void F(object o, int i) {\n  var f = (int x) => { return x; };\n  var g = o == null || i > 1;\n  var h = 1F + (double)2.5;\n }\n}\n",
+        "input": "class A {\n int a, b;\n Nullable<int> n = (long)1 < 2 ? null : null;\n void F(object o, int i) {\n  var f = delegate (int x) { return x; };\n  var g = null == o || 1 < i;\n  var h = (float)1 + (double)2.5;\n }\n}\n",
+        "language": "csharp",
+        "spans": [
+          {
+            "column": 11,
+            "length": 4,
+            "line": 6
+          },
+          {
+            "column": 24,
+            "length": 1,
+            "line": 6
+          }
+        ]
+      },
+      "fix": "safe",
+      "id": "constant-on-right",
+      "languages": [
+        "csharp"
+      ],
+      "options": [],
+      "presets": [
+        "csharp/stylecop"
+      ],
+      "upstream": [
+        {
+          "id": "SA1131",
+          "partial": false,
+          "tool": "StyleCop"
+        }
+      ]
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "The summary of a constructor starts with \"Initializes a new instance of the <see cref=\"T\"/> class\" (struct), \"Initializes static members of the ...\" for a static constructor, and a private constructor may say \"Prevents a default instance of the ... from being created\". The `<see>` is compared with the name of the type. The fix puts the standard sentence before the text.",
+      "example": {
+        "config": null,
+        "fixed": "using System;\n/// <summary>Constructors.</summary>\npublic class Constructors<T>\n{\n    /// <summary>Initializes a new instance of the <see cref=\"Constructors{T}\"/> class.</summary>\n    public Constructors() { }\n    /// <summary>Initializes a new instance of the <see cref=\"Constructors{T}\"/> class. Creates it.</summary>\n    public Constructors(int a) { }\n    /// <summary>Initializes a new instance of the <see cref=\"Constructors{T}\"/> class.</summary>\n    public Constructors(int a, int b) { }\n    /// <summary>Initializes a new instance of the <see cref=\"Constructors{T}\"/> class.</summary>\n    public Constructors(int a, int b, int c) { }\n    /// <summary>Initializes a new instance of the <see cref=\"Constructors{T}\"/> class. Initializes a new instance of the Constructors class.</summary>\n    public Constructors(long a) { }\n    /// <summary>Initializes a new instance of the <see cref=\"Constructors{T}\"/> class and more.</summary>\n    public Constructors(long a, long b) { }\n    /// <summary>\n    /// Initializes a new instance of the <see cref=\"Constructors{T}\"/> class.\n    /// </summary>\n    public Constructors(string a) { }\n    /// <summary>\n    /// Initializes a new instance of the\n    /// <see cref=\"Constructors{T}\"/> class.\n    /// </summary>\n    public Constructors(string a, string b) { }\n    /// <summary>\n    /// Initializes  a new instance of the <see cref=\"Constructors{T}\"/>   class.\n    /// </summary>\n    public Constructors(string a, string b, string c) { }\n    /// <summary>Initializes a new instance of the <see cref=\"Constructors{T}\"/> class.</summary>\n    /// <remarks>More.</remarks>\n    internal Constructors(char a) { }\n    /// <summary>Initializes static members of the <see cref=\"Constructors{T}\"/> class.</summary>\n    static Constructors() { }\n    /// <summary>Prevents a default instance of the <see cref=\"Constructors{T}\"/> class from being created.</summary>\n    private Constructors(char a, char b) { }\n    /// <summary>Initializes a new instance of the <see cref=\"Constructors{T}\"/> class.</summary>\n    private Constructors(char a, char b, char c) { }\n    /// <summary>Initializes a new instance of the <see cref=\"Constructors{T}\"/> class. Private.</summary>\n    private Constructors(char a, char b, char c, char d) { }\n    /// <summary>Initializes a new instance of the <see cref=\"Constructors{T}\"/> class. Prevents a default instance of the <see cref=\"Constructors{T}\"/> class from being created.</summary>\n    protected Constructors(byte a) { }\n    /// <summary>Finalizes an instance of the <see cref=\"Constructors{T}\"/> class.</summary>\n    ~Constructors() { }\n    /// <inheritdoc />\n    protected Constructors(byte a, byte b) { }\n    /// <summary />\n    protected Constructors(byte a, byte b, byte c) { }\n    /// <remarks>No summary.</remarks>\n    protected Constructors(byte a, byte b, byte c, byte d) { }\n}\n",
+        "input": "using System;\n/// <summary>Constructors.</summary>\npublic class Constructors<T>\n{\n    /// <summary>Initializes a new instance of the <see cref=\"Constructors{T}\"/> class.</summary>\n    public Constructors() { }\n    /// <summary>Creates it.</summary>\n    public Constructors(int a) { }\n    /// <summary>Initializes a new instance of the <see cref=\"Other\"/> class.</summary>\n    public Constructors(int a, int b) { }\n    /// <summary>Initializes a new instance of the <see cref=\"Constructors{T}\"/> struct.</summary>\n    public Constructors(int a, int b, int c) { }\n    /// <summary>Initializes a new instance of the Constructors class.</summary>\n    public Constructors(long a) { }\n    /// <summary>Initializes a new instance of the <see cref=\"Constructors{T}\"/> class and more.</summary>\n    public Constructors(long a, long b) { }\n    /// <summary>\n    /// Initializes a new instance of the <see cref=\"Constructors{T}\"/> class.\n    /// </summary>\n    public Constructors(string a) { }\n    /// <summary>\n    /// Initializes a new instance of the\n    /// <see cref=\"Constructors{T}\"/> class.\n    /// </summary>\n    public Constructors(string a, string b) { }\n    /// <summary>\n    /// Initializes  a new instance of the <see cref=\"Constructors{T}\"/>   class.\n    /// </summary>\n    public Constructors(string a, string b, string c) { }\n    /// <summary>Initializes a new instance of the <see cref=\"Constructors{T}\"/> class.</summary>\n    /// <remarks>More.</remarks>\n    internal Constructors(char a) { }\n    /// <summary>Initializes static members of the <see cref=\"Constructors{T}\"/> class.</summary>\n    static Constructors() { }\n    /// <summary>Prevents a default instance of the <see cref=\"Constructors{T}\"/> class from being created.</summary>\n    private Constructors(char a, char b) { }\n    /// <summary>Initializes a new instance of the <see cref=\"Constructors{T}\"/> class.</summary>\n    private Constructors(char a, char b, char c) { }\n    /// <summary>Private.</summary>\n    private Constructors(char a, char b, char c, char d) { }\n    /// <summary>Prevents a default instance of the <see cref=\"Constructors{T}\"/> class from being created.</summary>\n    protected Constructors(byte a) { }\n    /// <summary>Finalizes an instance of the <see cref=\"Constructors{T}\"/> class.</summary>\n    ~Constructors() { }\n    /// <inheritdoc />\n    protected Constructors(byte a, byte b) { }\n    /// <summary />\n    protected Constructors(byte a, byte b, byte c) { }\n    /// <remarks>No summary.</remarks>\n    protected Constructors(byte a, byte b, byte c, byte d) { }\n}\n",
+        "language": "csharp",
+        "spans": [
+          {
+            "column": 9,
+            "length": 30,
+            "line": 7
+          },
+          {
+            "column": 52,
+            "length": 19,
+            "line": 9
+          },
+          {
+            "column": 9,
+            "length": 90,
+            "line": 11
+          },
+          {
+            "column": 9,
+            "length": 72,
+            "line": 13
+          },
+          {
+            "column": 9,
+            "length": 27,
+            "line": 39
+          },
+          {
+            "column": 9,
+            "length": 109,
+            "line": 41
+          }
+        ]
+      },
+      "fix": "unsafe",
+      "id": "constructor-summary-standard-text",
+      "languages": [
+        "csharp"
+      ],
+      "options": [],
+      "presets": [
+        "csharp/stylecop"
+      ],
+      "upstream": [
+        {
+          "id": "SA1642",
+          "partial": true,
+          "tool": "StyleCop"
+        }
+      ]
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "`Debug.Assert` without a message, or with a constant blank one. With the type layer the call is checked against `System.Diagnostics.Debug`; without it any call written `Debug.Assert` is. No fix.",
+      "example": {
+        "config": null,
+        "fixed": "using System;\nusing System.Diagnostics;\nnamespace A.B {\n  using A.C.D;\n  struct S { }\n  interface I { (int, int) Pair(); }\n  class P { public virtual void Run() { } }\n  class Q : P, I {\n    public (int, int) Pair() => (1, 2);\n    public (int, int) Other() => (1, 2);\n    public void Go((int, int) t) {\n      this.Run();\n      var s = default(S);\n      var d = default(DateTime);\n      var g = (1, 2);\n      Debug.Assert(true);\n      Debug.Assert(true, \"why\");\n      Debug.Fail(\"\");\n    }\n    /// <inheritdoc/>\n    public void Own() { }\n  }\n}\nnamespace C.D { }\nnamespace A.C.D { }\n",
+        "input": "using System;\nusing System.Diagnostics;\nnamespace A.B {\n  using C.D;\n  struct S { }\n  interface I { (int, int) Pair(); }\n  class P { public virtual void Run() { } }\n  class Q : P, I {\n    public (int, int) Pair() => (1, 2);\n    public (int, int) Other() => (1, 2);\n    public void Go(ValueTuple<int, int> t) {\n      base.Run();\n      var s = new S();\n      var d = new DateTime();\n      var g = ValueTuple.Create(1, 2);\n      Debug.Assert(true);\n      Debug.Assert(true, \"why\");\n      Debug.Fail(\"\");\n    }\n    /// <inheritdoc/>\n    public void Own() { }\n  }\n}\nnamespace C.D { }\nnamespace A.C.D { }\n",
+        "language": "csharp",
+        "spans": [
+          {
+            "column": 7,
+            "length": 18,
+            "line": 16
+          }
+        ]
+      },
+      "fix": null,
+      "id": "debug-assert-message",
+      "languages": [
+        "csharp"
+      ],
+      "options": [],
+      "presets": [
+        "csharp/stylecop"
+      ],
+      "upstream": [
+        {
+          "id": "SA1405",
+          "partial": false,
+          "tool": "StyleCop"
+        }
+      ]
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "`Debug.Fail` with a constant blank message. With the type layer the call is checked against `System.Diagnostics.Debug`; without it any call written `Debug.Fail` is. No fix.",
+      "example": {
+        "config": null,
+        "fixed": "using System;\nusing System.Diagnostics;\nnamespace A.B {\n  using A.C.D;\n  struct S { }\n  interface I { (int, int) Pair(); }\n  class P { public virtual void Run() { } }\n  class Q : P, I {\n    public (int, int) Pair() => (1, 2);\n    public (int, int) Other() => (1, 2);\n    public void Go((int, int) t) {\n      this.Run();\n      var s = default(S);\n      var d = default(DateTime);\n      var g = (1, 2);\n      Debug.Assert(true);\n      Debug.Assert(true, \"why\");\n      Debug.Fail(\"\");\n    }\n    /// <inheritdoc/>\n    public void Own() { }\n  }\n}\nnamespace C.D { }\nnamespace A.C.D { }\n",
+        "input": "using System;\nusing System.Diagnostics;\nnamespace A.B {\n  using C.D;\n  struct S { }\n  interface I { (int, int) Pair(); }\n  class P { public virtual void Run() { } }\n  class Q : P, I {\n    public (int, int) Pair() => (1, 2);\n    public (int, int) Other() => (1, 2);\n    public void Go(ValueTuple<int, int> t) {\n      base.Run();\n      var s = new S();\n      var d = new DateTime();\n      var g = ValueTuple.Create(1, 2);\n      Debug.Assert(true);\n      Debug.Assert(true, \"why\");\n      Debug.Fail(\"\");\n    }\n    /// <inheritdoc/>\n    public void Own() { }\n  }\n}\nnamespace C.D { }\nnamespace A.C.D { }\n",
+        "language": "csharp",
+        "spans": [
+          {
+            "column": 7,
+            "length": 14,
+            "line": 18
+          }
+        ]
+      },
+      "fix": null,
+      "id": "debug-fail-message",
+      "languages": [
+        "csharp"
+      ],
+      "options": [],
+      "presets": [
+        "csharp/stylecop"
+      ],
+      "upstream": [
+        {
+          "id": "SA1406",
+          "partial": false,
+          "tool": "StyleCop"
+        }
+      ]
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "The summary of a finalizer starts with \"Finalizes an instance of the <see cref=\"T\"/> class.\". The `<see>` is compared with the name of the type. The fix puts the standard sentence before the text.",
+      "example": {
+        "config": null,
+        "fixed": "using System;\n/// <summary>Static.</summary>\npublic class StaticWrong\n{\n    /// <summary>Initializes static members of the <see cref=\"StaticWrong\"/> class. Static.</summary>\n    static StaticWrong() { }\n}\n/// <summary>Struct.</summary>\npublic struct Pair\n{\n    /// <summary>Initializes a new instance of the <see cref=\"Pair\"/> struct.</summary>\n    public Pair(int a) { }\n    /// <summary>Initializes a new instance of the <see cref=\"Pair\"/> struct.</summary>\n    public Pair(int a, int b) { }\n    /// <summary>Prevents a default instance of the <see cref=\"Pair\"/> struct from being created.</summary>\n    private Pair(int a, int b, int c) { }\n    /// <summary>Initializes static members of the <see cref=\"Pair\"/> struct.</summary>\n    static Pair() { }\n}\n/// <summary>Destructors.</summary>\npublic class Destructors<T>\n{\n    /// <summary>Finalizes an instance of the <see cref=\"Destructors{T}\"/> class.</summary>\n    ~Destructors() { }\n}\n/// <summary>Destructors.</summary>\npublic class DestructorsWrong\n{\n    /// <summary>Finalizes an instance of the <see cref=\"DestructorsWrong\"/> class. Cleans up.</summary>\n    ~DestructorsWrong() { }\n}\n/// <summary>Destructors.</summary>\npublic class DestructorsOther\n{\n    /// <summary>Finalizes an instance of the <see cref=\"DestructorsOther\"/> class.</summary>\n    ~DestructorsOther() { }\n}\n/// <summary>Destructors.</summary>\npublic class DestructorsMultiLine\n{\n    /// <summary>\n    /// Finalizes an instance of the <see cref=\"DestructorsMultiLine\"/> class.\n    /// </summary>\n    ~DestructorsMultiLine() { }\n}\n/// <summary>Destructors.</summary>\npublic class DestructorsNoPeriod\n{\n    /// <summary>Finalizes an instance of the <see cref=\"DestructorsNoPeriod\"/> class.</summary>\n    ~DestructorsNoPeriod() { }\n}\n/// <summary>Other.</summary>\npublic class Other { }\n",
+        "input": "using System;\n/// <summary>Static.</summary>\npublic class StaticWrong\n{\n    /// <summary>Static.</summary>\n    static StaticWrong() { }\n}\n/// <summary>Struct.</summary>\npublic struct Pair\n{\n    /// <summary>Initializes a new instance of the <see cref=\"Pair\"/> struct.</summary>\n    public Pair(int a) { }\n    /// <summary>Initializes a new instance of the <see cref=\"Pair\"/> class.</summary>\n    public Pair(int a, int b) { }\n    /// <summary>Prevents a default instance of the <see cref=\"Pair\"/> struct from being created.</summary>\n    private Pair(int a, int b, int c) { }\n    /// <summary>Initializes static members of the <see cref=\"Pair\"/> struct.</summary>\n    static Pair() { }\n}\n/// <summary>Destructors.</summary>\npublic class Destructors<T>\n{\n    /// <summary>Finalizes an instance of the <see cref=\"Destructors{T}\"/> class.</summary>\n    ~Destructors() { }\n}\n/// <summary>Destructors.</summary>\npublic class DestructorsWrong\n{\n    /// <summary>Cleans up.</summary>\n    ~DestructorsWrong() { }\n}\n/// <summary>Destructors.</summary>\npublic class DestructorsOther\n{\n    /// <summary>Finalizes an instance of the <see cref=\"Other\"/> class.</summary>\n    ~DestructorsOther() { }\n}\n/// <summary>Destructors.</summary>\npublic class DestructorsMultiLine\n{\n    /// <summary>\n    /// Finalizes an instance of the <see cref=\"DestructorsMultiLine\"/> class.\n    /// </summary>\n    ~DestructorsMultiLine() { }\n}\n/// <summary>Destructors.</summary>\npublic class DestructorsNoPeriod\n{\n    /// <summary>Finalizes an instance of the <see cref=\"DestructorsNoPeriod\"/> struct.</summary>\n    ~DestructorsNoPeriod() { }\n}\n/// <summary>Other.</summary>\npublic class Other { }\n",
+        "language": "csharp",
+        "spans": [
+          {
+            "column": 9,
+            "length": 29,
+            "line": 29
+          },
+          {
+            "column": 47,
+            "length": 19,
+            "line": 35
+          },
+          {
+            "column": 9,
+            "length": 89,
+            "line": 49
+          }
+        ]
+      },
+      "fix": "unsafe",
+      "id": "destructor-summary-standard-text",
+      "languages": [
+        "csharp"
+      ],
+      "options": [],
+      "presets": [
+        "csharp/stylecop"
+      ],
+      "upstream": [
+        {
+          "id": "SA1643",
+          "partial": true,
+          "tool": "StyleCop"
+        }
+      ]
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "No space between `#` and the directive keyword (`#if`, not `# if`).",
+      "example": {
+        "config": null,
+        "fixed": "class A {\n#region R\n int a;\n#endregion\n#if X\n int b;\n#endif\n}\n",
+        "input": "class A {\n# region R\n int a;\n#  endregion\n# if X\n int b;\n#endif\n}\n",
+        "language": "csharp",
+        "spans": [
+          {
+            "column": 3,
+            "length": 6,
+            "line": 2
+          },
+          {
+            "column": 4,
+            "length": 9,
+            "line": 4
+          },
+          {
+            "column": 3,
+            "length": 2,
+            "line": 5
+          }
+        ]
+      },
+      "fix": "safe",
+      "id": "directive-keyword-space",
+      "languages": [
+        "csharp"
+      ],
+      "options": [],
+      "presets": [
+        "csharp/stylecop"
+      ],
+      "upstream": [
+        {
+          "id": "SA1006",
+          "partial": false,
+          "tool": "StyleCop"
+        }
+      ]
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A documentation line (`///`) starts with a single space. More spaces are allowed to indent continuation lines, not on the first line of the comment; a tab or no space is always reported.",
+      "example": {
+        "config": null,
+        "fixed": "class A {\n //no space\n //\n // paragraph\n //\n // text\n //\n int a; //tail\n /// <summary>x</summary>\n /// <summary>y</summary>\n ///   <summary>z</summary>\n /* */\n int b;\n}\n",
+        "input": "class A {\n //no space\n //\n // paragraph\n //\n // text\n //\n int a; //tail\n /// <summary>x</summary>\n ///<summary>y</summary>\n ///   <summary>z</summary>\n /* */\n int b;\n}\n",
+        "language": "csharp",
+        "spans": [
+          {
+            "column": 5,
+            "length": 1,
+            "line": 10
+          }
+        ]
+      },
+      "fix": "safe",
+      "id": "doc-comment-space",
+      "languages": [
+        "csharp"
+      ],
+      "options": [],
+      "presets": [
+        "csharp/stylecop"
+      ],
+      "upstream": [
+        {
+          "id": "SA1004",
+          "partial": false,
+          "tool": "StyleCop"
+        }
+      ]
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A `<param>` without a `name` attribute, or with an empty one. No fix.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "using System.Threading.Tasks;\n/// <summary>Tags.</summary>\npublic class Values\n{\n    /// <summary>Gets the value.</summary>\n    /// <value></value>\n    public int EmptyValue { get; }\n    /// <summary>Gets the value.</summary>\n    /// <value />\n    public int SelfClosingValue { get; }\n    /// <summary>Gets the value.</summary>\n    /// <value>The value.</value>\n    public int GoodValue { get; }\n    /// <summary>Gets the value.</summary>\n    /// <value>\n    /// </value>\n    public int BlankValue { get; }\n    /// <summary>Gets the value.</summary>\n    /// <value></value>\n    /// <inheritdoc />\n    public int InheritedValue { get; }\n    /// <summary>The field.</summary>\n    /// <value></value>\n    public int Field;\n}\n/// <summary>Parameters.</summary>\npublic class Parameters\n{\n    /// <summary>Sets.</summary>\n    /// <param>No name.</param>\n    /// <param name=\"\">Empty name.</param>\n    /// <param name=\"a\"></param>\n    /// <param name=\"b\" />\n    /// <param name=\"c\">Good.</param>\n    /// <param name=\"d\">\n    /// </param>\n    public void Params(int a, int b, int c, int d) { }\n    /// <summary>Sets.</summary>\n    /// <param name=\"a\"></param>\n    /// <inheritdoc />\n    public void Inherited(int a) { }\n    /// <summary>Sets.</summary>\n    /// <param name=\"a\"></param>\n    private void PrivateParams(int a) { }\n    /// <summary>Delegate.</summary>\n    /// <param name=\"a\"></param>\n    /// <param>No name.</param>\n    public delegate void Callback(int a);\n    /// <summary>Constructor.</summary>\n    /// <param name=\"a\"></param>\n    public Parameters(int a) { }\n    /// <summary>Indexer.</summary>\n    /// <param name=\"a\"></param>\n    /// <param>No name.</param>\n    public int this[int a] => a;\n}\n",
+        "language": "csharp",
+        "spans": [
+          {
+            "column": 9,
+            "length": 23,
+            "line": 30
+          },
+          {
+            "column": 16,
+            "length": 7,
+            "line": 31
+          },
+          {
+            "column": 9,
+            "length": 23,
+            "line": 47
+          },
+          {
+            "column": 9,
+            "length": 23,
+            "line": 54
+          }
+        ]
+      },
+      "fix": null,
+      "id": "doc-param-has-name",
+      "languages": [
+        "csharp"
+      ],
+      "options": [],
+      "presets": [
+        "csharp/stylecop"
+      ],
+      "upstream": [
+        {
+          "id": "SA1613",
+          "partial": false,
+          "tool": "StyleCop"
+        }
+      ]
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A `<param>` without text. Skipped when the comment has `<inheritdoc />`. No fix.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "using System.Threading.Tasks;\n/// <summary>Tags.</summary>\npublic class Values\n{\n    /// <summary>Gets the value.</summary>\n    /// <value></value>\n    public int EmptyValue { get; }\n    /// <summary>Gets the value.</summary>\n    /// <value />\n    public int SelfClosingValue { get; }\n    /// <summary>Gets the value.</summary>\n    /// <value>The value.</value>\n    public int GoodValue { get; }\n    /// <summary>Gets the value.</summary>\n    /// <value>\n    /// </value>\n    public int BlankValue { get; }\n    /// <summary>Gets the value.</summary>\n    /// <value></value>\n    /// <inheritdoc />\n    public int InheritedValue { get; }\n    /// <summary>The field.</summary>\n    /// <value></value>\n    public int Field;\n}\n/// <summary>Parameters.</summary>\npublic class Parameters\n{\n    /// <summary>Sets.</summary>\n    /// <param>No name.</param>\n    /// <param name=\"\">Empty name.</param>\n    /// <param name=\"a\"></param>\n    /// <param name=\"b\" />\n    /// <param name=\"c\">Good.</param>\n    /// <param name=\"d\">\n    /// </param>\n    public void Params(int a, int b, int c, int d) { }\n    /// <summary>Sets.</summary>\n    /// <param name=\"a\"></param>\n    /// <inheritdoc />\n    public void Inherited(int a) { }\n    /// <summary>Sets.</summary>\n    /// <param name=\"a\"></param>\n    private void PrivateParams(int a) { }\n    /// <summary>Delegate.</summary>\n    /// <param name=\"a\"></param>\n    /// <param>No name.</param>\n    public delegate void Callback(int a);\n    /// <summary>Constructor.</summary>\n    /// <param name=\"a\"></param>\n    public Parameters(int a) { }\n    /// <summary>Indexer.</summary>\n    /// <param name=\"a\"></param>\n    /// <param>No name.</param>\n    public int this[int a] => a;\n}\n",
+        "language": "csharp",
+        "spans": [
+          {
+            "column": 9,
+            "length": 24,
+            "line": 32
+          },
+          {
+            "column": 9,
+            "length": 18,
+            "line": 33
+          },
+          {
+            "column": 9,
+            "length": 1,
+            "line": 35
+          },
+          {
+            "column": 9,
+            "length": 24,
+            "line": 43
+          },
+          {
+            "column": 9,
+            "length": 24,
+            "line": 46
+          },
+          {
+            "column": 9,
+            "length": 24,
+            "line": 50
+          },
+          {
+            "column": 9,
+            "length": 24,
+            "line": 53
+          }
+        ]
+      },
+      "fix": null,
+      "id": "doc-param-has-text",
+      "languages": [
+        "csharp"
+      ],
+      "options": [],
+      "presets": [
+        "csharp/stylecop"
+      ],
+      "upstream": [
+        {
+          "id": "SA1614",
+          "partial": false,
+          "tool": "StyleCop"
+        }
+      ]
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A partial type or method without a documentation comment (or with an empty one). Each part is checked on its own; StyleCop (SA1601) accepts one documented part, which needs the other parts of the project. Which elements need documentation follows StyleCop's defaults: everything but private members.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "/// <summary></summary>\npublic class EmptySummary\n{\n    /// <summary>\n    /// </summary>\n    public void Blank() { }\n    /// <summary />\n    public void SelfClosing() { }\n    /// <summary><see cref=\"Blank\"/></summary>\n    public void OnlyCref() { }\n    /// <summary>\n    /// <!-- comment -->\n    /// </summary>\n    public void OnlyComment() { }\n    /// <summary>   </summary>\n    public int Field;\n    /// <summary></summary>\n    public int First, Second;\n}\n/// <summary>Summary description for Defaults.</summary>\npublic class Defaults\n{\n    /// <summary>\n    /// Summary description for Method.\n    /// </summary>\n    public void Method() { }\n    /// <summary><see cref=\"Method\"/> Summary description for x</summary>\n    public void NotFirst() { }\n    /// <summary>summary description for lower case</summary>\n    public void LowerCase() { }\n    /// <summary>\n    ///   Summary description for indented.\n    /// </summary>\n    public int Property { get; }\n    /// <summary>Summary description for.</summary>\n    /// <inheritdoc />\n    public override string ToString() => \"\";\n}\n/// <remarks>Partial without summary.</remarks>\npublic partial class PartialNoSummary { }\n/// <summary></summary>\npublic partial class PartialEmptySummary { }\n/// <content>Content.</content>\npublic partial class PartialContent { }\n/// <content></content>\npublic partial class PartialEmptyContent { }\n/// <inheritdoc />\npublic partial class PartialInherited { }\n/// <summary>Summary description for PartialDefault.</summary>\npublic partial class PartialDefault { }\n/// <remarks>Internal partial.</remarks>\ninternal partial struct PartialInternal { }\npublic partial class PartialUndocumented { }\ninternal partial struct PartialUndocumentedInternal { }\n",
+        "language": "csharp",
+        "spans": [
+          {
+            "column": 22,
+            "length": 19,
+            "line": 42
+          },
+          {
+            "column": 22,
+            "length": 19,
+            "line": 46
+          },
+          {
+            "column": 22,
+            "length": 19,
+            "line": 53
+          },
+          {
+            "column": 25,
+            "length": 27,
+            "line": 54
+          }
+        ]
+      },
+      "fix": null,
+      "id": "doc-partial-required",
+      "languages": [
+        "csharp"
+      ],
+      "options": [],
+      "presets": [
+        "csharp/stylecop"
+      ],
+      "upstream": [
+        {
+          "id": "SA1601",
+          "partial": true,
+          "tool": "StyleCop"
+        }
+      ]
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A documentation comment of a partial type or method without `<summary>` or `<content>` (and without `<inheritdoc />`). Each part is checked on its own. No fix.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "/// <summary></summary>\npublic class EmptySummary\n{\n    /// <summary>\n    /// </summary>\n    public void Blank() { }\n    /// <summary />\n    public void SelfClosing() { }\n    /// <summary><see cref=\"Blank\"/></summary>\n    public void OnlyCref() { }\n    /// <summary>\n    /// <!-- comment -->\n    /// </summary>\n    public void OnlyComment() { }\n    /// <summary>   </summary>\n    public int Field;\n    /// <summary></summary>\n    public int First, Second;\n}\n/// <summary>Summary description for Defaults.</summary>\npublic class Defaults\n{\n    /// <summary>\n    /// Summary description for Method.\n    /// </summary>\n    public void Method() { }\n    /// <summary><see cref=\"Method\"/> Summary description for x</summary>\n    public void NotFirst() { }\n    /// <summary>summary description for lower case</summary>\n    public void LowerCase() { }\n    /// <summary>\n    ///   Summary description for indented.\n    /// </summary>\n    public int Property { get; }\n    /// <summary>Summary description for.</summary>\n    /// <inheritdoc />\n    public override string ToString() => \"\";\n}\n/// <remarks>Partial without summary.</remarks>\npublic partial class PartialNoSummary { }\n/// <summary></summary>\npublic partial class PartialEmptySummary { }\n/// <content>Content.</content>\npublic partial class PartialContent { }\n/// <content></content>\npublic partial class PartialEmptyContent { }\n/// <inheritdoc />\npublic partial class PartialInherited { }\n/// <summary>Summary description for PartialDefault.</summary>\npublic partial class PartialDefault { }\n/// <remarks>Internal partial.</remarks>\ninternal partial struct PartialInternal { }\npublic partial class PartialUndocumented { }\ninternal partial struct PartialUndocumentedInternal { }\n",
+        "language": "csharp",
+        "spans": [
+          {
+            "column": 22,
+            "length": 16,
+            "line": 40
+          },
+          {
+            "column": 25,
+            "length": 15,
+            "line": 52
+          }
+        ]
+      },
+      "fix": null,
+      "id": "doc-partial-summary-required",
+      "languages": [
+        "csharp"
+      ],
+      "options": [],
+      "presets": [
+        "csharp/stylecop"
+      ],
+      "upstream": [
+        {
+          "id": "SA1605",
+          "partial": true,
+          "tool": "StyleCop"
+        }
+      ]
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "The `<summary>` (or `<content>`) of a partial type or method has no text. Each part is checked on its own. No fix.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "/// <summary></summary>\npublic class EmptySummary\n{\n    /// <summary>\n    /// </summary>\n    public void Blank() { }\n    /// <summary />\n    public void SelfClosing() { }\n    /// <summary><see cref=\"Blank\"/></summary>\n    public void OnlyCref() { }\n    /// <summary>\n    /// <!-- comment -->\n    /// </summary>\n    public void OnlyComment() { }\n    /// <summary>   </summary>\n    public int Field;\n    /// <summary></summary>\n    public int First, Second;\n}\n/// <summary>Summary description for Defaults.</summary>\npublic class Defaults\n{\n    /// <summary>\n    /// Summary description for Method.\n    /// </summary>\n    public void Method() { }\n    /// <summary><see cref=\"Method\"/> Summary description for x</summary>\n    public void NotFirst() { }\n    /// <summary>summary description for lower case</summary>\n    public void LowerCase() { }\n    /// <summary>\n    ///   Summary description for indented.\n    /// </summary>\n    public int Property { get; }\n    /// <summary>Summary description for.</summary>\n    /// <inheritdoc />\n    public override string ToString() => \"\";\n}\n/// <remarks>Partial without summary.</remarks>\npublic partial class PartialNoSummary { }\n/// <summary></summary>\npublic partial class PartialEmptySummary { }\n/// <content>Content.</content>\npublic partial class PartialContent { }\n/// <content></content>\npublic partial class PartialEmptyContent { }\n/// <inheritdoc />\npublic partial class PartialInherited { }\n/// <summary>Summary description for PartialDefault.</summary>\npublic partial class PartialDefault { }\n/// <remarks>Internal partial.</remarks>\ninternal partial struct PartialInternal { }\npublic partial class PartialUndocumented { }\ninternal partial struct PartialUndocumentedInternal { }\n",
+        "language": "csharp",
+        "spans": [
+          {
+            "column": 22,
+            "length": 19,
+            "line": 42
+          },
+          {
+            "column": 22,
+            "length": 19,
+            "line": 46
+          }
+        ]
+      },
+      "fix": null,
+      "id": "doc-partial-summary-text",
+      "languages": [
+        "csharp"
+      ],
+      "options": [],
+      "presets": [
+        "csharp/stylecop"
+      ],
+      "upstream": [
+        {
+          "id": "SA1607",
+          "partial": true,
+          "tool": "StyleCop"
+        }
+      ]
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A documented partial generic type (with a `<summary>`) that has no `<typeparam>` for one of its type parameters. Each part is checked on its own. No fix.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "using System.Threading.Tasks;\n/// <summary>Generic.</summary>\n/// <typeparam>No name.</typeparam>\n/// <typeparam name=\"\">Empty name.</typeparam>\n/// <typeparam name=\"T\"></typeparam>\n/// <typeparam name=\"U\" />\n/// <typeparam name=\"V\">Good.</typeparam>\npublic class Generic<T, U, V>\n{\n    /// <summary>Method.</summary>\n    /// <typeparam name=\"X\"></typeparam>\n    /// <typeparam>No name.</typeparam>\n    public void Method<X>() { }\n    /// <summary>Method.</summary>\n    /// <typeparam name=\"X\"></typeparam>\n    /// <inheritdoc />\n    public void Inherited<X>() { }\n    /// <summary>Not generic.</summary>\n    /// <typeparam name=\"X\"></typeparam>\n    public void NotGeneric() { }\n}\n/// <summary>Struct.</summary>\n/// <typeparam name=\"T\"></typeparam>\npublic struct GenericStruct<T> { }\n/// <summary>Interface.</summary>\n/// <typeparam>T</typeparam>\npublic interface IGeneric<T> { }\n/// <summary>Delegate.</summary>\n/// <typeparam name=\"T\"></typeparam>\n/// <typeparam name=\"U\" />\npublic delegate void GenericCallback<T, U>();\n/// <summary>Partial.</summary>\n/// <typeparam name=\"T\">The T.</typeparam>\npublic partial class PartialGeneric<T, U> { }\n/// <summary>Partial.</summary>\npublic partial class PartialGenericNone<T> { }\n/// <summary>Partial.</summary>\n/// <typeparam name=\"U\">The U.</typeparam>\ninternal partial struct PartialGenericStruct<T, U> { }\n/// <summary>Partial.</summary>\n/// <typeparam name=\"T\">The T.</typeparam>\n/// <typeparam name=\"U\">The U.</typeparam>\npublic partial class PartialGenericGood<T, U> { }\n/// <remarks>Partial without summary.</remarks>\npublic partial class PartialGenericNoSummary<T> { }\n/// <inheritdoc />\npublic partial class PartialGenericInherited<T> { }\n/// <summary>Partial, no generics.</summary>\npublic partial class PartialPlain { }\n",
+        "language": "csharp",
+        "spans": [
+          {
+            "column": 40,
+            "length": 1,
+            "line": 34
+          },
+          {
+            "column": 41,
+            "length": 1,
+            "line": 36
+          },
+          {
+            "column": 46,
+            "length": 1,
+            "line": 39
+          }
+        ]
+      },
+      "fix": null,
+      "id": "doc-partial-typeparams",
+      "languages": [
+        "csharp"
+      ],
+      "options": [],
+      "presets": [
+        "csharp/stylecop"
+      ],
+      "upstream": [
+        {
+          "id": "SA1619",
+          "partial": true,
+          "tool": "StyleCop"
+        }
+      ]
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A `<returns>` without text. Skipped when the comment has `<inheritdoc />`. No fix.",
+      "example": {
+        "config": null,
+        "fixed": "using System.Threading.Tasks;\n/// <summary>Return values.</summary>\npublic class Returns\n{\n    /// <summary>Returns.</summary>\n    public int NoReturns() => 0;\n    /// <summary>Returns.</summary>\n    /// <returns></returns>\n    public int EmptyReturns() => 0;\n    /// <summary>Returns.</summary>\n    /// <returns />\n    public int SelfClosingReturns() => 0;\n    /// <summary>Returns.</summary>\n    /// <returns>The value.</returns>\n    public int GoodReturns() => 0;\n    /// <summary>Returns.</summary>\n    /// <returns>\n    /// </returns>\n    public int BlankReturns() => 0;\n    /// <summary>Does.</summary>\n    public void VoidReturns() { }\n    /// <summary>Does.</summary>\n    public void VoidEmptyReturns() { }\n    /// <summary>Does.</summary>\n    public void VoidSelfClosingReturns() { }\n    /// <summary>Does.</summary>\n    public Task AsyncNoReturns() => null;\n    /// <summary>Does.</summary>\n    /// <inheritdoc />\n    public int Inherited() => 0;\n    /// <summary>Does.</summary>\n    /// <returns></returns>\n    /// <inheritdoc />\n    public int InheritedEmpty() => 0;\n    /// <summary>Does.</summary>\n    private int PrivateNoReturns() => 0;\n    /// <summary>Does.</summary>\n    internal int InternalNoReturns() => 0;\n    /// <summary>Does.</summary>\n    protected int ProtectedNoReturns() => 0;\n    /// <summary>Does.</summary>\n    public static int operator +(Returns a, Returns b) => 0;\n    /// <summary>Delegate.</summary>\n    public delegate int Callback();\n    /// <summary>Delegate.</summary>\n    public delegate void VoidCallback();\n    /// <summary>Does.</summary>\n    public ref int RefReturn() => throw null;\n}\n",
+        "input": "using System.Threading.Tasks;\n/// <summary>Return values.</summary>\npublic class Returns\n{\n    /// <summary>Returns.</summary>\n    public int NoReturns() => 0;\n    /// <summary>Returns.</summary>\n    /// <returns></returns>\n    public int EmptyReturns() => 0;\n    /// <summary>Returns.</summary>\n    /// <returns />\n    public int SelfClosingReturns() => 0;\n    /// <summary>Returns.</summary>\n    /// <returns>The value.</returns>\n    public int GoodReturns() => 0;\n    /// <summary>Returns.</summary>\n    /// <returns>\n    /// </returns>\n    public int BlankReturns() => 0;\n    /// <summary>Does.</summary>\n    /// <returns>Nothing.</returns>\n    public void VoidReturns() { }\n    /// <summary>Does.</summary>\n    /// <returns></returns>\n    public void VoidEmptyReturns() { }\n    /// <summary>Does.</summary>\n    /// <returns />\n    public void VoidSelfClosingReturns() { }\n    /// <summary>Does.</summary>\n    public Task AsyncNoReturns() => null;\n    /// <summary>Does.</summary>\n    /// <inheritdoc />\n    public int Inherited() => 0;\n    /// <summary>Does.</summary>\n    /// <returns></returns>\n    /// <inheritdoc />\n    public int InheritedEmpty() => 0;\n    /// <summary>Does.</summary>\n    private int PrivateNoReturns() => 0;\n    /// <summary>Does.</summary>\n    internal int InternalNoReturns() => 0;\n    /// <summary>Does.</summary>\n    protected int ProtectedNoReturns() => 0;\n    /// <summary>Does.</summary>\n    public static int operator +(Returns a, Returns b) => 0;\n    /// <summary>Delegate.</summary>\n    public delegate int Callback();\n    /// <summary>Delegate.</summary>\n    /// <returns>Nothing.</returns>\n    public delegate void VoidCallback();\n    /// <summary>Does.</summary>\n    public ref int RefReturn() => throw null;\n}\n",
+        "language": "csharp",
+        "spans": [
+          {
+            "column": 9,
+            "length": 19,
+            "line": 8
+          },
+          {
+            "column": 9,
+            "length": 11,
+            "line": 11
+          },
+          {
+            "column": 9,
+            "length": 1,
+            "line": 17
+          },
+          {
+            "column": 9,
+            "length": 19,
+            "line": 24
+          },
+          {
+            "column": 9,
+            "length": 11,
+            "line": 27
+          }
+        ]
+      },
+      "fix": null,
+      "id": "doc-returns-has-text",
+      "languages": [
+        "csharp"
+      ],
+      "options": [],
+      "presets": [
+        "csharp/stylecop"
+      ],
+      "upstream": [
+        {
+          "id": "SA1616",
+          "partial": false,
+          "tool": "StyleCop"
+        }
+      ]
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A documented method or delegate that does not return `void` and has no `<returns>` (and no `<inheritdoc />`). Private members are left alone, as in StyleCop's defaults. No fix.",
+      "example": {
+        "config": null,
+        "fixed": "using System.Threading.Tasks;\n/// <summary>Return values.</summary>\npublic class Returns\n{\n    /// <summary>Returns.</summary>\n    public int NoReturns() => 0;\n    /// <summary>Returns.</summary>\n    /// <returns></returns>\n    public int EmptyReturns() => 0;\n    /// <summary>Returns.</summary>\n    /// <returns />\n    public int SelfClosingReturns() => 0;\n    /// <summary>Returns.</summary>\n    /// <returns>The value.</returns>\n    public int GoodReturns() => 0;\n    /// <summary>Returns.</summary>\n    /// <returns>\n    /// </returns>\n    public int BlankReturns() => 0;\n    /// <summary>Does.</summary>\n    public void VoidReturns() { }\n    /// <summary>Does.</summary>\n    public void VoidEmptyReturns() { }\n    /// <summary>Does.</summary>\n    public void VoidSelfClosingReturns() { }\n    /// <summary>Does.</summary>\n    public Task AsyncNoReturns() => null;\n    /// <summary>Does.</summary>\n    /// <inheritdoc />\n    public int Inherited() => 0;\n    /// <summary>Does.</summary>\n    /// <returns></returns>\n    /// <inheritdoc />\n    public int InheritedEmpty() => 0;\n    /// <summary>Does.</summary>\n    private int PrivateNoReturns() => 0;\n    /// <summary>Does.</summary>\n    internal int InternalNoReturns() => 0;\n    /// <summary>Does.</summary>\n    protected int ProtectedNoReturns() => 0;\n    /// <summary>Does.</summary>\n    public static int operator +(Returns a, Returns b) => 0;\n    /// <summary>Delegate.</summary>\n    public delegate int Callback();\n    /// <summary>Delegate.</summary>\n    public delegate void VoidCallback();\n    /// <summary>Does.</summary>\n    public ref int RefReturn() => throw null;\n}\n",
+        "input": "using System.Threading.Tasks;\n/// <summary>Return values.</summary>\npublic class Returns\n{\n    /// <summary>Returns.</summary>\n    public int NoReturns() => 0;\n    /// <summary>Returns.</summary>\n    /// <returns></returns>\n    public int EmptyReturns() => 0;\n    /// <summary>Returns.</summary>\n    /// <returns />\n    public int SelfClosingReturns() => 0;\n    /// <summary>Returns.</summary>\n    /// <returns>The value.</returns>\n    public int GoodReturns() => 0;\n    /// <summary>Returns.</summary>\n    /// <returns>\n    /// </returns>\n    public int BlankReturns() => 0;\n    /// <summary>Does.</summary>\n    /// <returns>Nothing.</returns>\n    public void VoidReturns() { }\n    /// <summary>Does.</summary>\n    /// <returns></returns>\n    public void VoidEmptyReturns() { }\n    /// <summary>Does.</summary>\n    /// <returns />\n    public void VoidSelfClosingReturns() { }\n    /// <summary>Does.</summary>\n    public Task AsyncNoReturns() => null;\n    /// <summary>Does.</summary>\n    /// <inheritdoc />\n    public int Inherited() => 0;\n    /// <summary>Does.</summary>\n    /// <returns></returns>\n    /// <inheritdoc />\n    public int InheritedEmpty() => 0;\n    /// <summary>Does.</summary>\n    private int PrivateNoReturns() => 0;\n    /// <summary>Does.</summary>\n    internal int InternalNoReturns() => 0;\n    /// <summary>Does.</summary>\n    protected int ProtectedNoReturns() => 0;\n    /// <summary>Does.</summary>\n    public static int operator +(Returns a, Returns b) => 0;\n    /// <summary>Delegate.</summary>\n    public delegate int Callback();\n    /// <summary>Delegate.</summary>\n    /// <returns>Nothing.</returns>\n    public delegate void VoidCallback();\n    /// <summary>Does.</summary>\n    public ref int RefReturn() => throw null;\n}\n",
+        "language": "csharp",
+        "spans": [
+          {
+            "column": 12,
+            "length": 3,
+            "line": 6
+          },
+          {
+            "column": 12,
+            "length": 4,
+            "line": 30
+          },
+          {
+            "column": 14,
+            "length": 3,
+            "line": 41
+          },
+          {
+            "column": 15,
+            "length": 3,
+            "line": 43
+          },
+          {
+            "column": 21,
+            "length": 3,
+            "line": 47
+          },
+          {
+            "column": 12,
+            "length": 7,
+            "line": 52
+          }
+        ]
+      },
+      "fix": null,
+      "id": "doc-returns-required",
+      "languages": [
+        "csharp"
+      ],
+      "options": [],
+      "presets": [
+        "csharp/stylecop"
+      ],
+      "upstream": [
+        {
+          "id": "SA1615",
+          "partial": false,
+          "tool": "StyleCop"
+        }
+      ]
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A documentation comment without `<summary>` (and without `<inheritdoc />`) on a type, member or field that StyleCop's defaults ask to document: everything but private members. Partial types and methods are `doc-partial-summary-required`. No fix.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "/// <remarks>No summary.</remarks>\npublic class NoSummary\n{\n    /// <remarks>No summary.</remarks>\n    public int Field;\n    /// <remarks>No summary.</remarks>\n    public int First, Second;\n    /// <remarks>No summary.</remarks>\n    public NoSummary() { }\n    /// <remarks>No summary.</remarks>\n    ~NoSummary() { }\n    /// <remarks>No summary.</remarks>\n    public int this[int index] => index;\n    /// <remarks>No summary.</remarks>\n    public event System.EventHandler Changed;\n    /// <remarks>No summary.</remarks>\n    public delegate void Callback();\n    /// <remarks>No summary.</remarks>\n    public enum Kind\n    {\n        /// <remarks>No summary.</remarks>\n        A,\n    }\n    /// <remarks>No summary.</remarks>\n    private int hidden;\n    /// <remarks>No summary.</remarks>\n    internal int Internal;\n    /// <remarks>No summary.</remarks>\n    protected int Protected;\n    /// <remarks>No summary.</remarks>\n    private class PrivateType\n    {\n        /// <remarks>No summary.</remarks>\n        public int Field;\n    }\n    /// <remarks>No summary.</remarks>\n    public interface IInterface\n    {\n        /// <remarks>No summary.</remarks>\n        void Run();\n    }\n}\n/// <remarks>No summary, internal.</remarks>\ninternal class InternalNoSummary { }\n/// <remarks>No summary, private members.</remarks>\ninternal class InternalHolder\n{\n    /// <remarks>No summary.</remarks>\n    public int Field;\n}\n/// <inheritdoc />\npublic class Inherited : NoSummary { }\n",
+        "language": "csharp",
+        "spans": [
+          {
+            "column": 14,
+            "length": 9,
+            "line": 2
+          },
+          {
+            "column": 16,
+            "length": 5,
+            "line": 5
+          },
+          {
+            "column": 16,
+            "length": 5,
+            "line": 7
+          },
+          {
+            "column": 23,
+            "length": 6,
+            "line": 7
+          },
+          {
+            "column": 12,
+            "length": 9,
+            "line": 9
+          },
+          {
+            "column": 6,
+            "length": 9,
+            "line": 11
+          },
+          {
+            "column": 16,
+            "length": 4,
+            "line": 13
+          },
+          {
+            "column": 38,
+            "length": 7,
+            "line": 15
+          },
+          {
+            "column": 26,
+            "length": 8,
+            "line": 17
+          },
+          {
+            "column": 17,
+            "length": 4,
+            "line": 19
+          },
+          {
+            "column": 18,
+            "length": 8,
+            "line": 27
+          },
+          {
+            "column": 19,
+            "length": 9,
+            "line": 29
+          },
+          {
+            "column": 22,
+            "length": 10,
+            "line": 37
+          },
+          {
+            "column": 14,
+            "length": 3,
+            "line": 40
+          },
+          {
+            "column": 16,
+            "length": 17,
+            "line": 44
+          },
+          {
+            "column": 16,
+            "length": 14,
+            "line": 46
+          },
+          {
+            "column": 16,
+            "length": 5,
+            "line": 49
+          }
+        ]
+      },
+      "fix": null,
+      "id": "doc-summary-required",
+      "languages": [
+        "csharp"
+      ],
+      "options": [],
+      "presets": [
+        "csharp/stylecop"
+      ],
+      "upstream": [
+        {
+          "id": "SA1604",
+          "partial": false,
+          "tool": "StyleCop"
+        }
+      ]
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A `<summary>` without text (`<summary></summary>`; `<summary />` is left alone, as StyleCop does). Partial types and methods are `doc-partial-summary-text`. No fix.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "/// <summary></summary>\npublic class EmptySummary\n{\n    /// <summary>\n    /// </summary>\n    public void Blank() { }\n    /// <summary />\n    public void SelfClosing() { }\n    /// <summary><see cref=\"Blank\"/></summary>\n    public void OnlyCref() { }\n    /// <summary>\n    /// <!-- comment -->\n    /// </summary>\n    public void OnlyComment() { }\n    /// <summary>   </summary>\n    public int Field;\n    /// <summary></summary>\n    public int First, Second;\n}\n/// <summary>Summary description for Defaults.</summary>\npublic class Defaults\n{\n    /// <summary>\n    /// Summary description for Method.\n    /// </summary>\n    public void Method() { }\n    /// <summary><see cref=\"Method\"/> Summary description for x</summary>\n    public void NotFirst() { }\n    /// <summary>summary description for lower case</summary>\n    public void LowerCase() { }\n    /// <summary>\n    ///   Summary description for indented.\n    /// </summary>\n    public int Property { get; }\n    /// <summary>Summary description for.</summary>\n    /// <inheritdoc />\n    public override string ToString() => \"\";\n}\n/// <remarks>Partial without summary.</remarks>\npublic partial class PartialNoSummary { }\n/// <summary></summary>\npublic partial class PartialEmptySummary { }\n/// <content>Content.</content>\npublic partial class PartialContent { }\n/// <content></content>\npublic partial class PartialEmptyContent { }\n/// <inheritdoc />\npublic partial class PartialInherited { }\n/// <summary>Summary description for PartialDefault.</summary>\npublic partial class PartialDefault { }\n/// <remarks>Internal partial.</remarks>\ninternal partial struct PartialInternal { }\npublic partial class PartialUndocumented { }\ninternal partial struct PartialUndocumentedInternal { }\n",
+        "language": "csharp",
+        "spans": [
+          {
+            "column": 14,
+            "length": 12,
+            "line": 2
+          },
+          {
+            "column": 17,
+            "length": 5,
+            "line": 6
+          },
+          {
+            "column": 17,
+            "length": 11,
+            "line": 14
+          },
+          {
+            "column": 16,
+            "length": 5,
+            "line": 16
+          },
+          {
+            "column": 16,
+            "length": 5,
+            "line": 18
+          },
+          {
+            "column": 23,
+            "length": 6,
+            "line": 18
+          }
+        ]
+      },
+      "fix": null,
+      "id": "doc-summary-text",
+      "languages": [
+        "csharp"
+      ],
+      "options": [],
+      "presets": [
+        "csharp/stylecop"
+      ],
+      "upstream": [
+        {
+          "id": "SA1606",
+          "partial": false,
+          "tool": "StyleCop"
+        }
+      ]
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "The last text of an element of a documentation comment does not end with a period (`.` or `.)`). Each paragraph of `<para>` and `<note>` is checked, a paragraph that ends in a colon (except the last), `-or-` and `<seealso>` are left alone, and an inline element (`<see />`, `<c>`, ...) at the end counts as not ending with a period. The fix adds the period, or replaces a trailing comma or semicolon with it.",
+      "example": {
+        "config": null,
+        "fixed": "using System;\n/// <summary>Interface.</summary>\npublic interface IFace\n{\n    /// <summary>Member.</summary>\n    void Run();\n}\n/// <summary>Record.</summary>\npublic record Record(int A);\n",
+        "input": "using System;\n/// <summary>Interface</summary>\npublic interface IFace\n{\n    /// <summary>Member</summary>\n    void Run();\n}\n/// <summary>Record</summary>\npublic record Record(int A);\n",
+        "language": "csharp",
+        "spans": [
+          {
+            "column": 23,
+            "length": 1,
+            "line": 2
+          },
+          {
+            "column": 24,
+            "length": 1,
+            "line": 5
+          },
+          {
+            "column": 20,
+            "length": 1,
+            "line": 8
+          }
+        ]
+      },
+      "fix": "safe",
+      "id": "doc-text-ends-with-period",
+      "languages": [
+        "csharp"
+      ],
+      "options": [],
+      "presets": [
+        "csharp/stylecop"
+      ],
+      "upstream": [
+        {
+          "id": "SA1629",
+          "partial": false,
+          "tool": "StyleCop"
+        }
+      ]
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A `<remarks>`, `<example>`, `<exception>` or `<permission>` element without text, written `<remarks></remarks>` or `<remarks />`. No fix.",
+      "example": {
+        "config": null,
+        "fixed": "using System;\n/// <summary>Text.</summary>\npublic class PlainComments\n{\n    /// plain text on a field\n    public int Field;\n    /// first line\n    /// second line\n    public void Attached() { }\n    /// <summary>Good.</summary>\n    /// extra text after the summary\n    public void Mixed() { }\n    void Body()\n    {\n        // plain in a body\n        int j = 0;\n\n        //\n        int k = 0;\n\n        /// <summary>Not plain.</summary>\n        int l = 0;\n    }\n    /** plain block */\n    public int Block;\n    //// four slashes\n    public int Four;\n    int last; //trailing\n}\n/// <summary>Text.</summary>\npublic class Empties\n{\n    /// <summary>Text.</summary>\n    /// <remarks></remarks>\n    /// <example />\n    /// <exception cref=\"System.Exception\"></exception>\n    /// <exception cref=\"System.ArgumentException\">Thrown.</exception>\n    /// <permission cref=\"System.Security.PermissionSet\" />\n    /// <remarks>\n    /// </remarks>\n    /// <remarks>Text.</remarks>\n    /// <returns></returns>\n    public int Elements() => 0;\n    /// <summary>\n    /// Text.\n    /// <remarks></remarks>\n    /// </summary>\n    public void Nested() { }\n    /// <remarks></remarks>\n    int Hidden;\n    /// <remarks><see cref=\"Hidden\"/>.</remarks>\n    public int Cref;\n    /// <remarks><!-- comment --></remarks>\n    public int Comment;\n}\n",
+        "input": "using System;\n/// <summary>Text.</summary>\npublic class PlainComments\n{\n    /// plain text on a field\n    public int Field;\n    /// first line\n    /// second line\n    public void Attached() { }\n    /// <summary>Good.</summary>\n    /// extra text after the summary\n    public void Mixed() { }\n    void Body()\n    {\n        /// plain in a body\n        int j = 0;\n\n        ///\n        int k = 0;\n\n        /// <summary>Not plain.</summary>\n        int l = 0;\n    }\n    /** plain block */\n    public int Block;\n    //// four slashes\n    public int Four;\n    int last; ///trailing\n}\n/// <summary>Text.</summary>\npublic class Empties\n{\n    /// <summary>Text.</summary>\n    /// <remarks></remarks>\n    /// <example />\n    /// <exception cref=\"System.Exception\"></exception>\n    /// <exception cref=\"System.ArgumentException\">Thrown.</exception>\n    /// <permission cref=\"System.Security.PermissionSet\" />\n    /// <remarks>\n    /// </remarks>\n    /// <remarks>Text.</remarks>\n    /// <returns></returns>\n    public int Elements() => 0;\n    /// <summary>\n    /// Text.\n    /// <remarks></remarks>\n    /// </summary>\n    public void Nested() { }\n    /// <remarks></remarks>\n    int Hidden;\n    /// <remarks><see cref=\"Hidden\"/></remarks>\n    public int Cref;\n    /// <remarks><!-- comment --></remarks>\n    public int Comment;\n}\n",
+        "language": "csharp",
+        "spans": [
+          {
+            "column": 9,
+            "length": 19,
+            "line": 34
+          },
+          {
+            "column": 9,
+            "length": 11,
+            "line": 35
+          },
+          {
+            "column": 9,
+            "length": 47,
+            "line": 36
+          },
+          {
+            "column": 9,
+            "length": 51,
+            "line": 38
+          },
+          {
+            "column": 9,
+            "length": 1,
+            "line": 39
+          },
+          {
+            "column": 9,
+            "length": 19,
+            "line": 46
+          },
+          {
+            "column": 9,
+            "length": 19,
+            "line": 49
+          },
+          {
+            "column": 9,
+            "length": 35,
+            "line": 53
+          }
+        ]
+      },
+      "fix": null,
+      "id": "doc-text-not-empty",
+      "languages": [
+        "csharp"
+      ],
+      "options": [],
+      "presets": [
+        "csharp/stylecop"
+      ],
+      "upstream": [
+        {
+          "id": "SA1627",
+          "partial": false,
+          "tool": "StyleCop"
+        }
+      ]
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A `<typeparam>` without a `name` attribute, or with an empty one, in the documentation of a generic class, struct, interface, method or delegate. No fix.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "using System.Threading.Tasks;\n/// <summary>Generic.</summary>\n/// <typeparam>No name.</typeparam>\n/// <typeparam name=\"\">Empty name.</typeparam>\n/// <typeparam name=\"T\"></typeparam>\n/// <typeparam name=\"U\" />\n/// <typeparam name=\"V\">Good.</typeparam>\npublic class Generic<T, U, V>\n{\n    /// <summary>Method.</summary>\n    /// <typeparam name=\"X\"></typeparam>\n    /// <typeparam>No name.</typeparam>\n    public void Method<X>() { }\n    /// <summary>Method.</summary>\n    /// <typeparam name=\"X\"></typeparam>\n    /// <inheritdoc />\n    public void Inherited<X>() { }\n    /// <summary>Not generic.</summary>\n    /// <typeparam name=\"X\"></typeparam>\n    public void NotGeneric() { }\n}\n/// <summary>Struct.</summary>\n/// <typeparam name=\"T\"></typeparam>\npublic struct GenericStruct<T> { }\n/// <summary>Interface.</summary>\n/// <typeparam>T</typeparam>\npublic interface IGeneric<T> { }\n/// <summary>Delegate.</summary>\n/// <typeparam name=\"T\"></typeparam>\n/// <typeparam name=\"U\" />\npublic delegate void GenericCallback<T, U>();\n/// <summary>Partial.</summary>\n/// <typeparam name=\"T\">The T.</typeparam>\npublic partial class PartialGeneric<T, U> { }\n/// <summary>Partial.</summary>\npublic partial class PartialGenericNone<T> { }\n/// <summary>Partial.</summary>\n/// <typeparam name=\"U\">The U.</typeparam>\ninternal partial struct PartialGenericStruct<T, U> { }\n/// <summary>Partial.</summary>\n/// <typeparam name=\"T\">The T.</typeparam>\n/// <typeparam name=\"U\">The U.</typeparam>\npublic partial class PartialGenericGood<T, U> { }\n/// <remarks>Partial without summary.</remarks>\npublic partial class PartialGenericNoSummary<T> { }\n/// <inheritdoc />\npublic partial class PartialGenericInherited<T> { }\n/// <summary>Partial, no generics.</summary>\npublic partial class PartialPlain { }\n",
+        "language": "csharp",
+        "spans": [
+          {
+            "column": 5,
+            "length": 31,
+            "line": 3
+          },
+          {
+            "column": 22,
+            "length": 1,
+            "line": 4
+          },
+          {
+            "column": 9,
+            "length": 31,
+            "line": 12
+          },
+          {
+            "column": 5,
+            "length": 24,
+            "line": 26
+          }
+        ]
+      },
+      "fix": null,
+      "id": "doc-typeparam-has-name",
+      "languages": [
+        "csharp"
+      ],
+      "options": [],
+      "presets": [
+        "csharp/stylecop"
+      ],
+      "upstream": [
+        {
+          "id": "SA1621",
+          "partial": false,
+          "tool": "StyleCop"
+        }
+      ]
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A `<typeparam>` without text (`<typeparam name=\"T\" />` counts), in the documentation of a generic class, struct, interface, method or delegate. No fix.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "using System.Threading.Tasks;\n/// <summary>Generic.</summary>\n/// <typeparam>No name.</typeparam>\n/// <typeparam name=\"\">Empty name.</typeparam>\n/// <typeparam name=\"T\"></typeparam>\n/// <typeparam name=\"U\" />\n/// <typeparam name=\"V\">Good.</typeparam>\npublic class Generic<T, U, V>\n{\n    /// <summary>Method.</summary>\n    /// <typeparam name=\"X\"></typeparam>\n    /// <typeparam>No name.</typeparam>\n    public void Method<X>() { }\n    /// <summary>Method.</summary>\n    /// <typeparam name=\"X\"></typeparam>\n    /// <inheritdoc />\n    public void Inherited<X>() { }\n    /// <summary>Not generic.</summary>\n    /// <typeparam name=\"X\"></typeparam>\n    public void NotGeneric() { }\n}\n/// <summary>Struct.</summary>\n/// <typeparam name=\"T\"></typeparam>\npublic struct GenericStruct<T> { }\n/// <summary>Interface.</summary>\n/// <typeparam>T</typeparam>\npublic interface IGeneric<T> { }\n/// <summary>Delegate.</summary>\n/// <typeparam name=\"T\"></typeparam>\n/// <typeparam name=\"U\" />\npublic delegate void GenericCallback<T, U>();\n/// <summary>Partial.</summary>\n/// <typeparam name=\"T\">The T.</typeparam>\npublic partial class PartialGeneric<T, U> { }\n/// <summary>Partial.</summary>\npublic partial class PartialGenericNone<T> { }\n/// <summary>Partial.</summary>\n/// <typeparam name=\"U\">The U.</typeparam>\ninternal partial struct PartialGenericStruct<T, U> { }\n/// <summary>Partial.</summary>\n/// <typeparam name=\"T\">The T.</typeparam>\n/// <typeparam name=\"U\">The U.</typeparam>\npublic partial class PartialGenericGood<T, U> { }\n/// <remarks>Partial without summary.</remarks>\npublic partial class PartialGenericNoSummary<T> { }\n/// <inheritdoc />\npublic partial class PartialGenericInherited<T> { }\n/// <summary>Partial, no generics.</summary>\npublic partial class PartialPlain { }\n",
+        "language": "csharp",
+        "spans": [
+          {
+            "column": 5,
+            "length": 32,
+            "line": 5
+          },
+          {
+            "column": 5,
+            "length": 22,
+            "line": 6
+          },
+          {
+            "column": 9,
+            "length": 32,
+            "line": 11
+          },
+          {
+            "column": 5,
+            "length": 32,
+            "line": 23
+          },
+          {
+            "column": 5,
+            "length": 32,
+            "line": 29
+          },
+          {
+            "column": 5,
+            "length": 22,
+            "line": 30
+          }
+        ]
+      },
+      "fix": null,
+      "id": "doc-typeparam-has-text",
+      "languages": [
+        "csharp"
+      ],
+      "options": [],
+      "presets": [
+        "csharp/stylecop"
+      ],
+      "upstream": [
+        {
+          "id": "SA1622",
+          "partial": false,
+          "tool": "StyleCop"
+        }
+      ]
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A property's `<value>` without text (`<value></value>`; `<value />` is left alone, as StyleCop does). Skipped when the comment has `<inheritdoc />`. No fix.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "using System.Threading.Tasks;\n/// <summary>Tags.</summary>\npublic class Values\n{\n    /// <summary>Gets the value.</summary>\n    /// <value></value>\n    public int EmptyValue { get; }\n    /// <summary>Gets the value.</summary>\n    /// <value />\n    public int SelfClosingValue { get; }\n    /// <summary>Gets the value.</summary>\n    /// <value>The value.</value>\n    public int GoodValue { get; }\n    /// <summary>Gets the value.</summary>\n    /// <value>\n    /// </value>\n    public int BlankValue { get; }\n    /// <summary>Gets the value.</summary>\n    /// <value></value>\n    /// <inheritdoc />\n    public int InheritedValue { get; }\n    /// <summary>The field.</summary>\n    /// <value></value>\n    public int Field;\n}\n/// <summary>Parameters.</summary>\npublic class Parameters\n{\n    /// <summary>Sets.</summary>\n    /// <param>No name.</param>\n    /// <param name=\"\">Empty name.</param>\n    /// <param name=\"a\"></param>\n    /// <param name=\"b\" />\n    /// <param name=\"c\">Good.</param>\n    /// <param name=\"d\">\n    /// </param>\n    public void Params(int a, int b, int c, int d) { }\n    /// <summary>Sets.</summary>\n    /// <param name=\"a\"></param>\n    /// <inheritdoc />\n    public void Inherited(int a) { }\n    /// <summary>Sets.</summary>\n    /// <param name=\"a\"></param>\n    private void PrivateParams(int a) { }\n    /// <summary>Delegate.</summary>\n    /// <param name=\"a\"></param>\n    /// <param>No name.</param>\n    public delegate void Callback(int a);\n    /// <summary>Constructor.</summary>\n    /// <param name=\"a\"></param>\n    public Parameters(int a) { }\n    /// <summary>Indexer.</summary>\n    /// <param name=\"a\"></param>\n    /// <param>No name.</param>\n    public int this[int a] => a;\n}\n",
+        "language": "csharp",
+        "spans": [
+          {
+            "column": 16,
+            "length": 10,
+            "line": 7
+          },
+          {
+            "column": 16,
+            "length": 10,
+            "line": 17
+          }
+        ]
+      },
+      "fix": null,
+      "id": "doc-value-text",
+      "languages": [
+        "csharp"
+      ],
+      "options": [],
+      "presets": [
+        "csharp/stylecop"
+      ],
+      "upstream": [
+        {
+          "id": "SA1610",
+          "partial": false,
+          "tool": "StyleCop"
+        }
+      ]
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "The file name, up to its first dot and ignoring case, is the name of the first type in the file; a generic type may also be written `Name{T,U}`. Not checked when that type is partial. No fix.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "class Orders { }\n",
+        "language": "csharp",
+        "spans": [
+          {
+            "column": 7,
+            "length": 6,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "file-name-matches-type",
+      "languages": [
+        "csharp"
+      ],
+      "options": [],
+      "presets": [
+        "csharp/stylecop"
+      ],
+      "upstream": [
+        {
+          "id": "SA1649",
+          "partial": false,
+          "tool": "StyleCop"
+        }
+      ]
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "`<inheritdoc />` without `cref` on a type without a base list, or on a member that neither overrides nor implements anything (a constructor whose signature matches a base constructor is fine). No fix.",
+      "example": {
+        "config": null,
+        "fixed": "using System;\nusing System.Diagnostics;\nnamespace A.B {\n  using A.C.D;\n  struct S { }\n  interface I { (int, int) Pair(); }\n  class P { public virtual void Run() { } }\n  class Q : P, I {\n    public (int, int) Pair() => (1, 2);\n    public (int, int) Other() => (1, 2);\n    public void Go((int, int) t) {\n      this.Run();\n      var s = default(S);\n      var d = default(DateTime);\n      var g = (1, 2);\n      Debug.Assert(true);\n      Debug.Assert(true, \"why\");\n      Debug.Fail(\"\");\n    }\n    /// <inheritdoc/>\n    public void Own() { }\n  }\n}\nnamespace C.D { }\nnamespace A.C.D { }\n",
+        "input": "using System;\nusing System.Diagnostics;\nnamespace A.B {\n  using C.D;\n  struct S { }\n  interface I { (int, int) Pair(); }\n  class P { public virtual void Run() { } }\n  class Q : P, I {\n    public (int, int) Pair() => (1, 2);\n    public (int, int) Other() => (1, 2);\n    public void Go(ValueTuple<int, int> t) {\n      base.Run();\n      var s = new S();\n      var d = new DateTime();\n      var g = ValueTuple.Create(1, 2);\n      Debug.Assert(true);\n      Debug.Assert(true, \"why\");\n      Debug.Fail(\"\");\n    }\n    /// <inheritdoc/>\n    public void Own() { }\n  }\n}\nnamespace C.D { }\nnamespace A.C.D { }\n",
+        "language": "csharp",
+        "spans": [
+          {
+            "column": 9,
+            "length": 13,
+            "line": 20
+          }
+        ]
+      },
+      "fix": null,
+      "id": "inheritdoc-on-inheriting-member",
+      "languages": [
+        "csharp"
+      ],
+      "options": [],
+      "presets": [
+        "csharp/stylecop"
+      ],
+      "upstream": [
+        {
+          "id": "SA1648",
+          "partial": false,
+          "tool": "StyleCop"
+        }
+      ]
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "Members are out of order. Compared with the member before, in the order of the `element_order` option: the kind (fields, constructors, finalizers, delegates, events, enums, interfaces, properties, indexers, operators, methods, structs, classes; in a namespace or file: namespaces, delegates, enums, interfaces, structs, classes), the access (public, internal, protected internal, protected, private protected, private), constants before other fields, static before instance members, readonly fields before the others. A trait only counts between members that agree on the traits listed before it. No fix: moving members would have to take their comments and directives along.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "class A {\n void M() { }\n private int b;\n public int a;\n const int C = 1;\n static int s;\n int i;\n readonly int r;\n static readonly int sr;\n public A() { }\n}\nclass B { }\nenum E { }\n",
+        "language": "csharp",
+        "spans": [
+          {
+            "column": 14,
+            "length": 1,
+            "line": 3
+          },
+          {
+            "column": 13,
+            "length": 1,
+            "line": 4
+          },
+          {
+            "column": 15,
+            "length": 1,
+            "line": 8
+          },
+          {
+            "column": 22,
+            "length": 2,
+            "line": 9
+          },
+          {
+            "column": 6,
+            "length": 1,
+            "line": 13
+          }
+        ]
+      },
+      "fix": null,
+      "id": "member-order",
+      "languages": [
+        "csharp"
+      ],
+      "options": [
+        {
+          "choices": [
+            "kind",
+            "accessibility",
+            "constant",
+            "static",
+            "readonly"
+          ],
+          "default": [
+            "kind",
+            "accessibility",
+            "constant",
+            "static",
+            "readonly"
+          ],
+          "description": "The traits that decide the order, most important first. A trait that is left out is not checked.",
+          "name": "element_order",
+          "type": "list"
+        }
+      ],
+      "presets": [
+        "csharp/stylecop"
+      ],
+      "upstream": [
+        {
+          "id": "SA1201",
+          "partial": false,
+          "tool": "StyleCop"
+        },
+        {
+          "id": "SA1202",
+          "partial": false,
+          "tool": "StyleCop"
+        },
+        {
+          "id": "SA1203",
+          "partial": false,
+          "tool": "StyleCop"
+        },
+        {
+          "id": "SA1204",
+          "partial": false,
+          "tool": "StyleCop"
+        },
+        {
+          "id": "SA1214",
+          "partial": false,
+          "tool": "StyleCop"
+        }
+      ]
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A comment between the head of an `if`, `else`, `while`, `do`, `for`, `foreach`, `lock`, `try`, `catch`, `finally`, `switch`, `checked` or `unchecked` and its `{`. Put it inside the block or above the statement.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "class A { void F(bool x, int y) {\n ;\n if (x); else { }\n while (x) /* c */ { }\n switch (y) { case 1: ; break; default: ; }\n L: ;\n int z = 1;;\n} }\n",
+        "language": "csharp",
+        "spans": [
+          {
+            "column": 12,
+            "length": 7,
+            "line": 4
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-comment-before-block",
+      "languages": [
+        "csharp"
+      ],
+      "options": [],
+      "presets": [
+        "csharp/stylecop"
+      ],
+      "upstream": [
+        {
+          "id": "SA1108",
+          "partial": false,
+          "tool": "StyleCop"
+        }
+      ]
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A `<summary>` that starts with the text Visual Studio generates, \"Summary description for ...\". Skipped when the comment has `<inheritdoc />`. No fix.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "/// <summary></summary>\npublic class EmptySummary\n{\n    /// <summary>\n    /// </summary>\n    public void Blank() { }\n    /// <summary />\n    public void SelfClosing() { }\n    /// <summary><see cref=\"Blank\"/></summary>\n    public void OnlyCref() { }\n    /// <summary>\n    /// <!-- comment -->\n    /// </summary>\n    public void OnlyComment() { }\n    /// <summary>   </summary>\n    public int Field;\n    /// <summary></summary>\n    public int First, Second;\n}\n/// <summary>Summary description for Defaults.</summary>\npublic class Defaults\n{\n    /// <summary>\n    /// Summary description for Method.\n    /// </summary>\n    public void Method() { }\n    /// <summary><see cref=\"Method\"/> Summary description for x</summary>\n    public void NotFirst() { }\n    /// <summary>summary description for lower case</summary>\n    public void LowerCase() { }\n    /// <summary>\n    ///   Summary description for indented.\n    /// </summary>\n    public int Property { get; }\n    /// <summary>Summary description for.</summary>\n    /// <inheritdoc />\n    public override string ToString() => \"\";\n}\n/// <remarks>Partial without summary.</remarks>\npublic partial class PartialNoSummary { }\n/// <summary></summary>\npublic partial class PartialEmptySummary { }\n/// <content>Content.</content>\npublic partial class PartialContent { }\n/// <content></content>\npublic partial class PartialEmptyContent { }\n/// <inheritdoc />\npublic partial class PartialInherited { }\n/// <summary>Summary description for PartialDefault.</summary>\npublic partial class PartialDefault { }\n/// <remarks>Internal partial.</remarks>\ninternal partial struct PartialInternal { }\npublic partial class PartialUndocumented { }\ninternal partial struct PartialUndocumentedInternal { }\n",
+        "language": "csharp",
+        "spans": [
+          {
+            "column": 5,
+            "length": 52,
+            "line": 20
+          },
+          {
+            "column": 9,
+            "length": 1,
+            "line": 23
+          },
+          {
+            "column": 9,
+            "length": 1,
+            "line": 31
+          },
+          {
+            "column": 5,
+            "length": 58,
+            "line": 49
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-default-summary",
+      "languages": [
+        "csharp"
+      ],
+      "options": [],
+      "presets": [
+        "csharp/stylecop"
+      ],
+      "upstream": [
+        {
+          "id": "SA1608",
+          "partial": false,
+          "tool": "StyleCop"
+        }
+      ]
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "`new S()` of a value type with an implicit parameterless constructor and no initializer: write `default(S)` (`Guid.Empty`, `CancellationToken.None`, `IntPtr.Zero`, the enum member with value 0 where they exist). No fix for a target-typed `new()`.",
+      "example": {
+        "config": null,
+        "fixed": "using System;\nusing System.Diagnostics;\nnamespace A.B {\n  using A.C.D;\n  struct S { }\n  interface I { (int, int) Pair(); }\n  class P { public virtual void Run() { } }\n  class Q : P, I {\n    public (int, int) Pair() => (1, 2);\n    public (int, int) Other() => (1, 2);\n    public void Go((int, int) t) {\n      this.Run();\n      var s = default(S);\n      var d = default(DateTime);\n      var g = (1, 2);\n      Debug.Assert(true);\n      Debug.Assert(true, \"why\");\n      Debug.Fail(\"\");\n    }\n    /// <inheritdoc/>\n    public void Own() { }\n  }\n}\nnamespace C.D { }\nnamespace A.C.D { }\n",
+        "input": "using System;\nusing System.Diagnostics;\nnamespace A.B {\n  using C.D;\n  struct S { }\n  interface I { (int, int) Pair(); }\n  class P { public virtual void Run() { } }\n  class Q : P, I {\n    public (int, int) Pair() => (1, 2);\n    public (int, int) Other() => (1, 2);\n    public void Go(ValueTuple<int, int> t) {\n      base.Run();\n      var s = new S();\n      var d = new DateTime();\n      var g = ValueTuple.Create(1, 2);\n      Debug.Assert(true);\n      Debug.Assert(true, \"why\");\n      Debug.Fail(\"\");\n    }\n    /// <inheritdoc/>\n    public void Own() { }\n  }\n}\nnamespace C.D { }\nnamespace A.C.D { }\n",
+        "language": "csharp",
+        "spans": [
+          {
+            "column": 15,
+            "length": 7,
+            "line": 13
+          },
+          {
+            "column": 15,
+            "length": 14,
+            "line": 14
+          }
+        ]
+      },
+      "fix": "safe",
+      "id": "no-default-value-type-constructor",
+      "languages": [
+        "csharp"
+      ],
+      "options": [],
+      "presets": [
+        "csharp/stylecop"
+      ],
+      "upstream": [
+        {
+          "id": "SA1129",
+          "partial": false,
+          "tool": "StyleCop"
+        }
+      ]
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A `<placeholder>` element in a documentation comment. No fix.",
+      "example": {
+        "config": null,
+        "fixed": "using System;\n/// <summary>Text.</summary>\npublic class Placeholders\n{\n    /// <summary>\n    /// <placeholder>todo</placeholder>\n    /// <placeholder />\n    /// </summary>\n    public void Placeholder() { }\n    /// <placeholder>todo.</placeholder>\n    private int Hidden;\n    /// <summary>\n    /// <para><placeholder>nested</placeholder></para>\n    /// </summary>\n    public int Nested;\n}\n",
+        "input": "using System;\n/// <summary>Text.</summary>\npublic class Placeholders\n{\n    /// <summary>\n    /// <placeholder>todo</placeholder>\n    /// <placeholder />\n    /// </summary>\n    public void Placeholder() { }\n    /// <placeholder>todo</placeholder>\n    private int Hidden;\n    /// <summary>\n    /// <para><placeholder>nested</placeholder></para>\n    /// </summary>\n    public int Nested;\n}\n",
+        "language": "csharp",
+        "spans": [
+          {
+            "column": 9,
+            "length": 31,
+            "line": 6
+          },
+          {
+            "column": 9,
+            "length": 15,
+            "line": 7
+          },
+          {
+            "column": 9,
+            "length": 31,
+            "line": 10
+          },
+          {
+            "column": 15,
+            "length": 33,
+            "line": 13
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-doc-placeholder",
+      "languages": [
+        "csharp"
+      ],
+      "options": [],
+      "presets": [
+        "csharp/stylecop"
+      ],
+      "upstream": [
+        {
+          "id": "SA1651",
+          "partial": false,
+          "tool": "StyleCop"
+        }
+      ]
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A `///` comment that holds only text, no XML element: a plain comment written with documentation slashes. The fix writes `//`, unless the comment documents a declaration (it would remove documentation).",
+      "example": {
+        "config": null,
+        "fixed": "using System;\n/// <summary>Text.</summary>\npublic class PlainComments\n{\n    /// plain text on a field\n    public int Field;\n    /// first line\n    /// second line\n    public void Attached() { }\n    /// <summary>Good.</summary>\n    /// extra text after the summary\n    public void Mixed() { }\n    void Body()\n    {\n        // plain in a body\n        int j = 0;\n\n        //\n        int k = 0;\n\n        /// <summary>Not plain.</summary>\n        int l = 0;\n    }\n    /** plain block */\n    public int Block;\n    //// four slashes\n    public int Four;\n    int last; //trailing\n}\n/// <summary>Text.</summary>\npublic class Empties\n{\n    /// <summary>Text.</summary>\n    /// <remarks></remarks>\n    /// <example />\n    /// <exception cref=\"System.Exception\"></exception>\n    /// <exception cref=\"System.ArgumentException\">Thrown.</exception>\n    /// <permission cref=\"System.Security.PermissionSet\" />\n    /// <remarks>\n    /// </remarks>\n    /// <remarks>Text.</remarks>\n    /// <returns></returns>\n    public int Elements() => 0;\n    /// <summary>\n    /// Text.\n    /// <remarks></remarks>\n    /// </summary>\n    public void Nested() { }\n    /// <remarks></remarks>\n    int Hidden;\n    /// <remarks><see cref=\"Hidden\"/>.</remarks>\n    public int Cref;\n    /// <remarks><!-- comment --></remarks>\n    public int Comment;\n}\n",
+        "input": "using System;\n/// <summary>Text.</summary>\npublic class PlainComments\n{\n    /// plain text on a field\n    public int Field;\n    /// first line\n    /// second line\n    public void Attached() { }\n    /// <summary>Good.</summary>\n    /// extra text after the summary\n    public void Mixed() { }\n    void Body()\n    {\n        /// plain in a body\n        int j = 0;\n\n        ///\n        int k = 0;\n\n        /// <summary>Not plain.</summary>\n        int l = 0;\n    }\n    /** plain block */\n    public int Block;\n    //// four slashes\n    public int Four;\n    int last; ///trailing\n}\n/// <summary>Text.</summary>\npublic class Empties\n{\n    /// <summary>Text.</summary>\n    /// <remarks></remarks>\n    /// <example />\n    /// <exception cref=\"System.Exception\"></exception>\n    /// <exception cref=\"System.ArgumentException\">Thrown.</exception>\n    /// <permission cref=\"System.Security.PermissionSet\" />\n    /// <remarks>\n    /// </remarks>\n    /// <remarks>Text.</remarks>\n    /// <returns></returns>\n    public int Elements() => 0;\n    /// <summary>\n    /// Text.\n    /// <remarks></remarks>\n    /// </summary>\n    public void Nested() { }\n    /// <remarks></remarks>\n    int Hidden;\n    /// <remarks><see cref=\"Hidden\"/></remarks>\n    public int Cref;\n    /// <remarks><!-- comment --></remarks>\n    public int Comment;\n}\n",
+        "language": "csharp",
+        "spans": [
+          {
+            "column": 5,
+            "length": 3,
+            "line": 5
+          },
+          {
+            "column": 5,
+            "length": 3,
+            "line": 7
+          },
+          {
+            "column": 5,
+            "length": 3,
+            "line": 8
+          },
+          {
+            "column": 9,
+            "length": 3,
+            "line": 15
+          },
+          {
+            "column": 9,
+            "length": 3,
+            "line": 18
+          },
+          {
+            "column": 15,
+            "length": 3,
+            "line": 28
+          }
+        ]
+      },
+      "fix": "safe",
+      "id": "no-doc-slashes-in-plain-comment",
+      "languages": [
+        "csharp"
+      ],
+      "options": [],
+      "presets": [
+        "csharp/stylecop"
+      ],
+      "upstream": [
+        {
+          "id": "SA1626",
+          "partial": false,
+          "tool": "StyleCop"
+        }
+      ]
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "Two elements of one documentation comment with the same text (a copied and pasted `<param>`, for example). Empty elements and \"The parameter is not used.\" are ignored. No fix.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "using System;\n/// <summary>Text.</summary>\npublic class Duplicates\n{\n    /// <summary>The value.</summary>\n    /// <param name=\"a\">The value.</param>\n    /// <param name=\"b\">The value.</param>\n    /// <param name=\"c\">The parameter is not used.</param>\n    /// <param name=\"d\">The parameter is not used.</param>\n    /// <param name=\"e\" />\n    /// <param name=\"f\" />\n    /// <returns>Other.</returns>\n    public int Dup(int a, int b, int c, int d, int e, int f) => 0;\n    /// <summary>The  value.</summary>\n    /// <remarks>The\n    /// value.</remarks>\n    public void Spacing() { }\n    /// <summary>Inline <see cref=\"Duplicates\"/> text.</summary>\n    /// <remarks>Inline <see cref=\"Duplicates\"/> text.</remarks>\n    /// <seealso cref=\"Duplicates\"/>\n    /// <seealso cref=\"Duplicates\"/>\n    public void Inline() { }\n    /// <summary>Same.</summary>\n    /// <summary>Same.</summary>\n    public void TwoSummaries() { }\n    /// <summary>Same.</summary>\n    /// <inheritdoc />\n    /// <inheritdoc />\n    public void Inherited() { }\n}\n",
+        "language": "csharp",
+        "spans": [
+          {
+            "column": 9,
+            "length": 34,
+            "line": 6
+          },
+          {
+            "column": 9,
+            "length": 34,
+            "line": 7
+          },
+          {
+            "column": 9,
+            "length": 1,
+            "line": 15
+          },
+          {
+            "column": 9,
+            "length": 56,
+            "line": 19
+          },
+          {
+            "column": 9,
+            "length": 28,
+            "line": 21
+          },
+          {
+            "column": 9,
+            "length": 24,
+            "line": 24
+          },
+          {
+            "column": 9,
+            "length": 14,
+            "line": 28
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-duplicate-doc-text",
+      "languages": [
+        "csharp"
+      ],
+      "options": [],
+      "presets": [
+        "csharp/stylecop"
+      ],
+      "upstream": [
+        {
+          "id": "SA1625",
+          "partial": false,
+          "tool": "StyleCop"
+        }
+      ]
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "An attribute with empty parentheses: `[Foo()]` is `[Foo]`. Parentheses with a comment in them are left alone.",
+      "example": {
+        "config": null,
+        "fixed": "[assembly: A]\n[assembly: B]\nclass C {\n [A]\n [B]\n void F([A, B] int p) { }\n [A, // why\n  B]\n int x;\n Action a = delegate() { };\n}\n",
+        "input": "[assembly: A, B]\nclass C {\n [A(), B]\n void F([A, B] int p) { }\n [A, // why\n  B]\n int x;\n Action a = delegate() { };\n}\n",
+        "language": "csharp",
+        "spans": [
+          {
+            "column": 4,
+            "length": 1,
+            "line": 3
+          }
+        ]
+      },
+      "fix": "safe",
+      "id": "no-empty-attribute-parens",
+      "languages": [
+        "csharp"
+      ],
+      "options": [],
+      "presets": [
+        "csharp/stylecop"
+      ],
+      "upstream": [
+        {
+          "id": "SA1411",
+          "partial": false,
+          "tool": "StyleCop"
+        }
+      ]
+    },
+    {
+      "category": "suspicious",
+      "default_level": "warn",
+      "description": "A catch block with no statements and no comment swallows the exception silently.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "class A { void F() {\n try { } catch (Exception) { }\n try { } catch { /* ignored on purpose */ }\n try { } catch { Log(); }\n} }\n",
+        "language": "csharp",
+        "spans": [
+          {
+            "column": 10,
+            "length": 5,
+            "line": 2
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-empty-catch",
+      "languages": [
+        "csharp"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": [
+        {
+          "id": "RCS1075",
+          "partial": false,
+          "tool": "Roslynator"
+        }
+      ]
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "An anonymous method with an empty parameter list: `delegate() { }` is `delegate { }`. The fix is unsafe: without a parameter list the method also converts to delegate types that have parameters, which can change which overload is chosen.",
+      "example": {
+        "config": null,
+        "fixed": "[assembly: A]\n[assembly: B]\nclass C {\n [A]\n [B]\n void F([A, B] int p) { }\n [A, // why\n  B]\n int x;\n Action a = delegate() { };\n}\n",
+        "input": "[assembly: A, B]\nclass C {\n [A(), B]\n void F([A, B] int p) { }\n [A, // why\n  B]\n int x;\n Action a = delegate() { };\n}\n",
+        "language": "csharp",
+        "spans": [
+          {
+            "column": 21,
+            "length": 1,
+            "line": 8
+          }
+        ]
+      },
+      "fix": "unsafe",
+      "id": "no-empty-delegate-parens",
+      "languages": [
+        "csharp"
+      ],
+      "options": [],
+      "presets": [
+        "csharp/stylecop"
+      ],
+      "upstream": [
+        {
+          "id": "SA1410",
+          "partial": false,
+          "tool": "StyleCop"
+        }
+      ]
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "A lone `;` is a statement that does nothing. A statement labelled `label: ;` is allowed. The fix removes the statement (its whole line when it is alone on it), or turns an empty loop or `if` body into `{ }`; it is not offered for the only statement of a switch section. Overlaps compiler CS0642 for `if (x);`.",
+      "example": {
+        "config": null,
+        "fixed": "class A { void F(bool x, int y) {\n if (x){ } else { }\n while (x) /* c */ { }\n switch (y) { case 1:  break; default: ; }\n L: ;\n int z = 1;\n} }\n",
+        "input": "class A { void F(bool x, int y) {\n ;\n if (x); else { }\n while (x) /* c */ { }\n switch (y) { case 1: ; break; default: ; }\n L: ;\n int z = 1;;\n} }\n",
+        "language": "csharp",
+        "spans": [
+          {
+            "column": 2,
+            "length": 1,
+            "line": 2
+          },
+          {
+            "column": 8,
+            "length": 1,
+            "line": 3
+          },
+          {
+            "column": 23,
+            "length": 1,
+            "line": 5
+          },
+          {
+            "column": 41,
+            "length": 1,
+            "line": 5
+          },
+          {
+            "column": 12,
+            "length": 1,
+            "line": 7
+          }
+        ]
+      },
+      "fix": "safe",
+      "id": "no-empty-statement",
+      "languages": [
+        "csharp"
+      ],
+      "options": [],
+      "presets": [
+        "csharp/stylecop"
+      ],
+      "upstream": [
+        {
+          "id": "SA1106",
+          "partial": false,
+          "tool": "StyleCop"
+        }
+      ]
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A `#region` inside a block (a method, accessor or lambda body, or any block in one); regions belong between members. No fix.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "using System.Diagnostics.CodeAnalysis;\n[assembly: SuppressMessage(\"C\", \"I\")]\n[assembly: SuppressMessage(\"C\", \"I\", Justification = \"<Pending>\")]\nnamespace N { class Other { void M() {\n#region R\n#endregion\n} } class B { } struct S { } namespace M { } }\n",
+        "language": "csharp",
+        "spans": [
+          {
+            "column": 1,
+            "length": 1,
+            "line": 5
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-region-in-body",
+      "languages": [
+        "csharp"
+      ],
+      "options": [],
+      "presets": [
+        "csharp/stylecop"
+      ],
+      "upstream": [
+        {
+          "id": "SA1123",
+          "partial": false,
+          "tool": "StyleCop"
+        }
+      ]
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "`#region` hides code behind a label. Reported on every `#region` outside a block (a region inside a block is `no-region-in-body`'s), in disabled `#if` branches too; no fix, because removing a pair is a judgment call.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "class A {\n# region R\n int a;\n#  endregion\n# if X\n int b;\n#endif\n}\n",
+        "language": "csharp",
+        "spans": [
+          {
+            "column": 1,
+            "length": 1,
+            "line": 2
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-regions",
+      "languages": [
+        "csharp"
+      ],
+      "options": [],
+      "presets": [
+        "csharp/stylecop"
+      ],
+      "upstream": [
+        {
+          "id": "SA1124",
+          "partial": false,
+          "tool": "StyleCop"
+        }
+      ]
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A `<returns>` on a method or delegate that returns `void`. The fix removes the element with its line when it is alone on it.",
+      "example": {
+        "config": null,
+        "fixed": "using System.Threading.Tasks;\n/// <summary>Return values.</summary>\npublic class Returns\n{\n    /// <summary>Returns.</summary>\n    public int NoReturns() => 0;\n    /// <summary>Returns.</summary>\n    /// <returns></returns>\n    public int EmptyReturns() => 0;\n    /// <summary>Returns.</summary>\n    /// <returns />\n    public int SelfClosingReturns() => 0;\n    /// <summary>Returns.</summary>\n    /// <returns>The value.</returns>\n    public int GoodReturns() => 0;\n    /// <summary>Returns.</summary>\n    /// <returns>\n    /// </returns>\n    public int BlankReturns() => 0;\n    /// <summary>Does.</summary>\n    public void VoidReturns() { }\n    /// <summary>Does.</summary>\n    public void VoidEmptyReturns() { }\n    /// <summary>Does.</summary>\n    public void VoidSelfClosingReturns() { }\n    /// <summary>Does.</summary>\n    public Task AsyncNoReturns() => null;\n    /// <summary>Does.</summary>\n    /// <inheritdoc />\n    public int Inherited() => 0;\n    /// <summary>Does.</summary>\n    /// <returns></returns>\n    /// <inheritdoc />\n    public int InheritedEmpty() => 0;\n    /// <summary>Does.</summary>\n    private int PrivateNoReturns() => 0;\n    /// <summary>Does.</summary>\n    internal int InternalNoReturns() => 0;\n    /// <summary>Does.</summary>\n    protected int ProtectedNoReturns() => 0;\n    /// <summary>Does.</summary>\n    public static int operator +(Returns a, Returns b) => 0;\n    /// <summary>Delegate.</summary>\n    public delegate int Callback();\n    /// <summary>Delegate.</summary>\n    public delegate void VoidCallback();\n    /// <summary>Does.</summary>\n    public ref int RefReturn() => throw null;\n}\n",
+        "input": "using System.Threading.Tasks;\n/// <summary>Return values.</summary>\npublic class Returns\n{\n    /// <summary>Returns.</summary>\n    public int NoReturns() => 0;\n    /// <summary>Returns.</summary>\n    /// <returns></returns>\n    public int EmptyReturns() => 0;\n    /// <summary>Returns.</summary>\n    /// <returns />\n    public int SelfClosingReturns() => 0;\n    /// <summary>Returns.</summary>\n    /// <returns>The value.</returns>\n    public int GoodReturns() => 0;\n    /// <summary>Returns.</summary>\n    /// <returns>\n    /// </returns>\n    public int BlankReturns() => 0;\n    /// <summary>Does.</summary>\n    /// <returns>Nothing.</returns>\n    public void VoidReturns() { }\n    /// <summary>Does.</summary>\n    /// <returns></returns>\n    public void VoidEmptyReturns() { }\n    /// <summary>Does.</summary>\n    /// <returns />\n    public void VoidSelfClosingReturns() { }\n    /// <summary>Does.</summary>\n    public Task AsyncNoReturns() => null;\n    /// <summary>Does.</summary>\n    /// <inheritdoc />\n    public int Inherited() => 0;\n    /// <summary>Does.</summary>\n    /// <returns></returns>\n    /// <inheritdoc />\n    public int InheritedEmpty() => 0;\n    /// <summary>Does.</summary>\n    private int PrivateNoReturns() => 0;\n    /// <summary>Does.</summary>\n    internal int InternalNoReturns() => 0;\n    /// <summary>Does.</summary>\n    protected int ProtectedNoReturns() => 0;\n    /// <summary>Does.</summary>\n    public static int operator +(Returns a, Returns b) => 0;\n    /// <summary>Delegate.</summary>\n    public delegate int Callback();\n    /// <summary>Delegate.</summary>\n    /// <returns>Nothing.</returns>\n    public delegate void VoidCallback();\n    /// <summary>Does.</summary>\n    public ref int RefReturn() => throw null;\n}\n",
+        "language": "csharp",
+        "spans": [
+          {
+            "column": 9,
+            "length": 27,
+            "line": 21
+          },
+          {
+            "column": 9,
+            "length": 19,
+            "line": 24
+          },
+          {
+            "column": 9,
+            "length": 11,
+            "line": 27
+          },
+          {
+            "column": 9,
+            "length": 27,
+            "line": 49
+          }
+        ]
+      },
+      "fix": "safe",
+      "id": "no-returns-on-void",
+      "languages": [
+        "csharp"
+      ],
+      "options": [],
+      "presets": [
+        "csharp/stylecop"
+      ],
+      "upstream": [
+        {
+          "id": "SA1617",
+          "partial": false,
+          "tool": "StyleCop"
+        }
+      ]
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "`base.M()` or `base[i]` where the type does not override the member, so `this` binds to the same one. The fix writes `this`.",
+      "example": {
+        "config": null,
+        "fixed": "using System;\nusing System.Diagnostics;\nnamespace A.B {\n  using A.C.D;\n  struct S { }\n  interface I { (int, int) Pair(); }\n  class P { public virtual void Run() { } }\n  class Q : P, I {\n    public (int, int) Pair() => (1, 2);\n    public (int, int) Other() => (1, 2);\n    public void Go((int, int) t) {\n      this.Run();\n      var s = default(S);\n      var d = default(DateTime);\n      var g = (1, 2);\n      Debug.Assert(true);\n      Debug.Assert(true, \"why\");\n      Debug.Fail(\"\");\n    }\n    /// <inheritdoc/>\n    public void Own() { }\n  }\n}\nnamespace C.D { }\nnamespace A.C.D { }\n",
+        "input": "using System;\nusing System.Diagnostics;\nnamespace A.B {\n  using C.D;\n  struct S { }\n  interface I { (int, int) Pair(); }\n  class P { public virtual void Run() { } }\n  class Q : P, I {\n    public (int, int) Pair() => (1, 2);\n    public (int, int) Other() => (1, 2);\n    public void Go(ValueTuple<int, int> t) {\n      base.Run();\n      var s = new S();\n      var d = new DateTime();\n      var g = ValueTuple.Create(1, 2);\n      Debug.Assert(true);\n      Debug.Assert(true, \"why\");\n      Debug.Fail(\"\");\n    }\n    /// <inheritdoc/>\n    public void Own() { }\n  }\n}\nnamespace C.D { }\nnamespace A.C.D { }\n",
+        "language": "csharp",
+        "spans": [
+          {
+            "column": 7,
+            "length": 4,
+            "line": 12
+          }
+        ]
+      },
+      "fix": "safe",
+      "id": "no-unneeded-base-prefix",
+      "languages": [
+        "csharp"
+      ],
+      "options": [],
+      "presets": [
+        "csharp/stylecop"
+      ],
+      "upstream": [
+        {
+          "id": "SA1100",
+          "partial": false,
+          "tool": "StyleCop"
+        }
+      ]
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "`int?` instead of `Nullable<int>` or `System.Nullable<int>`. Name-based: a type of your own called `Nullable` is reported too. Not reported in `using` aliases, `nameof`, `typeof(Nullable<>)` and before a member access (`Nullable<int>.Equals`).",
+      "example": {
+        "config": null,
+        "fixed": "class A {\n int a, b;\n int? n = (long)1 < 2 ? null : null;\n void F(object o, int i) {\n  var f = delegate (int x) { return x; };\n  var g = null == o || 1 < i;\n  var h = (float)1 + (double)2.5;\n }\n}\n",
+        "input": "class A {\n int a, b;\n Nullable<int> n = (long)1 < 2 ? null : null;\n void F(object o, int i) {\n  var f = delegate (int x) { return x; };\n  var g = null == o || 1 < i;\n  var h = (float)1 + (double)2.5;\n }\n}\n",
+        "language": "csharp",
+        "spans": [
+          {
+            "column": 2,
+            "length": 13,
+            "line": 3
+          }
+        ]
+      },
+      "fix": "safe",
+      "id": "nullable-shorthand",
+      "languages": [
+        "csharp"
+      ],
+      "options": [],
+      "presets": [
+        "csharp/stylecop"
+      ],
+      "upstream": [
+        {
+          "id": "SA1125",
+          "partial": false,
+          "tool": "StyleCop"
+        }
+      ]
+    },
+    {
+      "category": "correctness",
+      "default_level": "off",
+      "description": "A member or element access on an expression the compiler's nullable analysis says may be null. Only code under `#nullable enable` is checked. Off by default: the compiler reports the same thing as CS8602.",
+      "fix": null,
+      "id": "possible-null-dereference",
+      "languages": [
+        "csharp"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": [
+        {
+          "id": "RCS1202",
+          "partial": false,
+          "tool": "Roslynator"
+        }
+      ]
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A property summary starts with \"Gets\", \"Sets\" or \"Gets or sets\" (\"Gets a value indicating whether\" and so on for `bool`), as the property's accessors reachable from outside the type say. The type is read from the declaration (`bool`, `Boolean`, `System.Boolean`). The fix replaces the start of the text and lower-cases what follows.",
+      "example": {
+        "config": null,
+        "fixed": "using System;\n/// <summary>Properties of an internal class.</summary>\ninternal class InternalProperties\n{\n    /// <summary>Gets or sets the count.</summary>\n    protected internal int Both { get; protected set; }\n\n    /// <summary>Gets or sets the count.</summary>\n    protected internal int GoodBoth { get; protected set; }\n\n    /// <summary>Gets or sets the count.</summary>\n    public int PublicBoth { get; internal set; }\n}\n",
+        "input": "using System;\n/// <summary>Properties of an internal class.</summary>\ninternal class InternalProperties\n{\n    /// <summary>The count.</summary>\n    protected internal int Both { get; protected set; }\n\n    /// <summary>Gets or sets the count.</summary>\n    protected internal int GoodBoth { get; protected set; }\n\n    /// <summary>Gets or sets the count.</summary>\n    public int PublicBoth { get; internal set; }\n}\n",
+        "language": "csharp",
+        "spans": [
+          {
+            "column": 28,
+            "length": 4,
+            "line": 6
+          }
+        ]
+      },
+      "fix": "unsafe",
+      "id": "property-summary-matches-accessors",
+      "languages": [
+        "csharp"
+      ],
+      "options": [],
+      "presets": [
+        "csharp/stylecop"
+      ],
+      "upstream": [
+        {
+          "id": "SA1623",
+          "partial": true,
+          "tool": "StyleCop"
+        }
+      ]
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A property summary says \"Gets or sets\" while one of the accessors is not reachable from outside the type (`private set`, `internal get` on a public property). The fix replaces the start of the text with the one that matches the visible accessor.",
+      "example": {
+        "config": null,
+        "fixed": "using System;\n/// <summary>Properties.</summary>\npublic class Properties\n{\n    /// <summary>Gets a value indicating whether it is ready.</summary>\n    public bool? NullableBool { get; }\n    /// <summary>Gets the count.</summary>\n    internal int InternalBoth { get; private set; }\n    /// <summary>Gets the count.</summary>\n    protected int ProtectedPrivateSet { get; private set; }\n    /// <summary>Gets the count.</summary>\n    protected internal int ProtectedInternalSet { get; internal set; }\n    /// <summary>Gets the count.</summary>\n    public int InternalSet { get; internal set; }\n    /// <summary>Gets or sets the count.</summary>\n    public int ProtectedSet { get; protected set; }\n    /// <summary>Sets the count.</summary>\n    public int InternalGetPublicSet { internal get; set; }\n    /// <summary>Gets the expression.</summary>\n    public int Expression => 1;\n    /// <summary>Gets the expression.</summary>\n    public int GoodExpression => 1;\n    /// <summary>\n    /// <see cref=\"Both\"/> Gets the count.\n    /// </summary>\n    public int StartsWithSee { get; }\n    /// <summary>\n    /// Gets or sets the thing.\n    /// </summary>\n    public string MultiLine { get; set; }\n    /// <summary>\n    /// Gets or sets the thing.\n    /// </summary>\n    public string MultiLineWrong { get; set; }\n    /// <summary></summary>\n    public int Blank { get; }\n    /// <summary />\n    public int SelfClosing { get; }\n    /// <inheritdoc />\n    public int Inherited { get; }\n    /// <summary>The count.</summary>\n    /// <inheritdoc />\n    public int InheritedWithSummary { get; }\n    /// <summary>Gets or sets the count.</summary>\n    private int PrivateProperty { get; set; }\n    /// <summary>Gets or sets the count.</summary>\n    int ImplicitPrivate { get; set; }\n    /// <summary>Gets or sets the count.</summary>\n    public int this[int index] { get => index; }\n    /// <summary>Gets the count.</summary>\n    public ref int RefProperty => throw null;\n}\n",
+        "input": "using System;\n/// <summary>Properties.</summary>\npublic class Properties\n{\n    /// <summary>Gets a value indicating whether it is ready.</summary>\n    public bool? NullableBool { get; }\n    /// <summary>Gets or sets the count.</summary>\n    internal int InternalBoth { get; private set; }\n    /// <summary>Gets or sets the count.</summary>\n    protected int ProtectedPrivateSet { get; private set; }\n    /// <summary>Gets or sets the count.</summary>\n    protected internal int ProtectedInternalSet { get; internal set; }\n    /// <summary>Gets or sets the count.</summary>\n    public int InternalSet { get; internal set; }\n    /// <summary>Gets or sets the count.</summary>\n    public int ProtectedSet { get; protected set; }\n    /// <summary>Gets the count.</summary>\n    public int InternalGetPublicSet { internal get; set; }\n    /// <summary>The expression.</summary>\n    public int Expression => 1;\n    /// <summary>Gets the expression.</summary>\n    public int GoodExpression => 1;\n    /// <summary>\n    /// <see cref=\"Both\"/> Gets the count.\n    /// </summary>\n    public int StartsWithSee { get; }\n    /// <summary>\n    /// Gets or sets the thing.\n    /// </summary>\n    public string MultiLine { get; set; }\n    /// <summary>\n    /// The thing.\n    /// </summary>\n    public string MultiLineWrong { get; set; }\n    /// <summary></summary>\n    public int Blank { get; }\n    /// <summary />\n    public int SelfClosing { get; }\n    /// <inheritdoc />\n    public int Inherited { get; }\n    /// <summary>The count.</summary>\n    /// <inheritdoc />\n    public int InheritedWithSummary { get; }\n    /// <summary>The count.</summary>\n    private int PrivateProperty { get; set; }\n    /// <summary>The count.</summary>\n    int ImplicitPrivate { get; set; }\n    /// <summary>Gets or sets the count.</summary>\n    public int this[int index] { get => index; }\n    /// <summary>The count.</summary>\n    public ref int RefProperty => throw null;\n}\n",
+        "language": "csharp",
+        "spans": [
+          {
+            "column": 18,
+            "length": 12,
+            "line": 8
+          },
+          {
+            "column": 19,
+            "length": 19,
+            "line": 10
+          },
+          {
+            "column": 28,
+            "length": 20,
+            "line": 12
+          },
+          {
+            "column": 16,
+            "length": 11,
+            "line": 14
+          }
+        ]
+      },
+      "fix": "unsafe",
+      "id": "property-summary-omits-restricted-accessor",
+      "languages": [
+        "csharp"
+      ],
+      "options": [],
+      "presets": [
+        "csharp/stylecop"
+      ],
+      "upstream": [
+        {
+          "id": "SA1624",
+          "partial": false,
+          "tool": "StyleCop"
+        }
+      ]
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A `using` directive inside a namespace whose name is not written fully qualified (it resolves relative to the enclosing namespace). The fix writes the full name, unless it has type arguments.",
+      "example": {
+        "config": null,
+        "fixed": "using System;\nusing System.Diagnostics;\nnamespace A.B {\n  using A.C.D;\n  struct S { }\n  interface I { (int, int) Pair(); }\n  class P { public virtual void Run() { } }\n  class Q : P, I {\n    public (int, int) Pair() => (1, 2);\n    public (int, int) Other() => (1, 2);\n    public void Go((int, int) t) {\n      this.Run();\n      var s = default(S);\n      var d = default(DateTime);\n      var g = (1, 2);\n      Debug.Assert(true);\n      Debug.Assert(true, \"why\");\n      Debug.Fail(\"\");\n    }\n    /// <inheritdoc/>\n    public void Own() { }\n  }\n}\nnamespace C.D { }\nnamespace A.C.D { }\n",
+        "input": "using System;\nusing System.Diagnostics;\nnamespace A.B {\n  using C.D;\n  struct S { }\n  interface I { (int, int) Pair(); }\n  class P { public virtual void Run() { } }\n  class Q : P, I {\n    public (int, int) Pair() => (1, 2);\n    public (int, int) Other() => (1, 2);\n    public void Go(ValueTuple<int, int> t) {\n      base.Run();\n      var s = new S();\n      var d = new DateTime();\n      var g = ValueTuple.Create(1, 2);\n      Debug.Assert(true);\n      Debug.Assert(true, \"why\");\n      Debug.Fail(\"\");\n    }\n    /// <inheritdoc/>\n    public void Own() { }\n  }\n}\nnamespace C.D { }\nnamespace A.C.D { }\n",
+        "language": "csharp",
+        "spans": [
+          {
+            "column": 3,
+            "length": 10,
+            "line": 4
+          }
+        ]
+      },
+      "fix": "safe",
+      "id": "qualify-namespace-usings",
+      "languages": [
+        "csharp"
+      ],
+      "options": [],
+      "presets": [
+        "csharp/stylecop"
+      ],
+      "upstream": [
+        {
+          "id": "SA1135",
+          "partial": false,
+          "tool": "StyleCop"
+        }
+      ]
+    },
+    {
+      "category": "cleanup",
+      "default_level": "off",
+      "description": "A `using` directive that nothing in the file needs (the compiler's hidden CS8019, IDE0005 in the SDK analyzers). Not reported in a file that has compiler errors or `#if` regions, because unresolved or inactive code could be the one using it.",
+      "fix": "safe",
+      "id": "remove-unused-usings",
+      "languages": [
+        "csharp"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "One attribute per attribute list: `[A, B]` becomes `[A]` and `[B]`. Lists on parameters and type parameters are left alone. The fix is not offered when the list has a comment in it.",
+      "example": {
+        "config": null,
+        "fixed": "[assembly: A]\n[assembly: B]\nclass C {\n [A]\n [B]\n void F([A, B] int p) { }\n [A, // why\n  B]\n int x;\n Action a = delegate() { };\n}\n",
+        "input": "[assembly: A, B]\nclass C {\n [A(), B]\n void F([A, B] int p) { }\n [A, // why\n  B]\n int x;\n Action a = delegate() { };\n}\n",
+        "language": "csharp",
+        "spans": [
+          {
+            "column": 15,
+            "length": 1,
+            "line": 1
+          },
+          {
+            "column": 8,
+            "length": 1,
+            "line": 3
+          },
+          {
+            "column": 3,
+            "length": 1,
+            "line": 6
+          }
+        ]
+      },
+      "fix": "safe",
+      "id": "separate-attributes",
+      "languages": [
+        "csharp"
+      ],
+      "options": [],
+      "presets": [
+        "csharp/stylecop"
+      ],
+      "upstream": [
+        {
+          "id": "SA1133",
+          "partial": false,
+          "tool": "StyleCop"
+        }
+      ]
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "One field or event per declaration: `int a, b;` becomes `int a;` and `int b;`, each with the attributes, modifiers and type of the original. The fix is not offered when the declaration has a comment in it.",
+      "example": {
+        "config": null,
+        "fixed": "class A {\n int a;\n int b;\n Nullable<int> n = (long)1 < 2 ? null : null;\n void F(object o, int i) {\n  var f = delegate (int x) { return x; };\n  var g = null == o || 1 < i;\n  var h = (float)1 + (double)2.5;\n }\n}\n",
+        "input": "class A {\n int a, b;\n Nullable<int> n = (long)1 < 2 ? null : null;\n void F(object o, int i) {\n  var f = delegate (int x) { return x; };\n  var g = null == o || 1 < i;\n  var h = (float)1 + (double)2.5;\n }\n}\n",
+        "language": "csharp",
+        "spans": [
+          {
+            "column": 2,
+            "length": 4,
+            "line": 2
+          }
+        ]
+      },
+      "fix": "safe",
+      "id": "separate-field-declarations",
+      "languages": [
+        "csharp"
+      ],
+      "options": [],
+      "presets": [
+        "csharp/stylecop"
+      ],
+      "upstream": [
+        {
+          "id": "SA1132",
+          "partial": false,
+          "tool": "StyleCop"
+        }
+      ]
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A file holds one class or record: every later one is reported, more parts of the first class (when it is partial) excepted. Structs, interfaces, enums and delegates are not counted. No fix.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "using System.Diagnostics.CodeAnalysis;\n[assembly: SuppressMessage(\"C\", \"I\")]\n[assembly: SuppressMessage(\"C\", \"I\", Justification = \"<Pending>\")]\nnamespace N { class Other { void M() {\n#region R\n#endregion\n} } class B { } struct S { } namespace M { } }\n",
+        "language": "csharp",
+        "spans": [
+          {
+            "column": 11,
+            "length": 1,
+            "line": 7
+          }
+        ]
+      },
+      "fix": null,
+      "id": "single-class-per-file",
+      "languages": [
+        "csharp"
+      ],
+      "options": [],
+      "presets": [
+        "csharp/stylecop"
+      ],
+      "upstream": [
+        {
+          "id": "SA1402",
+          "partial": false,
+          "tool": "StyleCop"
+        }
+      ]
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A file declares one namespace: every later one, nested ones included, is reported. No fix.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "using System.Diagnostics.CodeAnalysis;\n[assembly: SuppressMessage(\"C\", \"I\")]\n[assembly: SuppressMessage(\"C\", \"I\", Justification = \"<Pending>\")]\nnamespace N { class Other { void M() {\n#region R\n#endregion\n} } class B { } struct S { } namespace M { } }\n",
+        "language": "csharp",
+        "spans": [
+          {
+            "column": 40,
+            "length": 1,
+            "line": 7
+          }
+        ]
+      },
+      "fix": null,
+      "id": "single-namespace-per-file",
+      "languages": [
+        "csharp"
+      ],
+      "options": [],
+      "presets": [
+        "csharp/stylecop"
+      ],
+      "upstream": [
+        {
+          "id": "SA1403",
+          "partial": false,
+          "tool": "StyleCop"
+        }
+      ]
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "`SuppressMessage` needs a `Justification` that says something: not missing, `null`, empty, blank or `\"<Pending>\"`. Matches the attribute by name. No fix.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "using System.Diagnostics.CodeAnalysis;\n[assembly: SuppressMessage(\"C\", \"I\")]\n[assembly: SuppressMessage(\"C\", \"I\", Justification = \"<Pending>\")]\nnamespace N { class Other { void M() {\n#region R\n#endregion\n} } class B { } struct S { } namespace M { } }\n",
+        "language": "csharp",
+        "spans": [
+          {
+            "column": 12,
+            "length": 15,
+            "line": 2
+          },
+          {
+            "column": 38,
+            "length": 27,
+            "line": 3
+          }
+        ]
+      },
+      "fix": null,
+      "id": "suppression-justification",
+      "languages": [
+        "csharp"
+      ],
+      "options": [],
+      "presets": [
+        "csharp/stylecop"
+      ],
+      "upstream": [
+        {
+          "id": "SA1404",
+          "partial": false,
+          "tool": "StyleCop"
+        }
+      ]
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A tuple type in the signature of a method, constructor, property, indexer, conversion operator or delegate whose elements have no names. Overrides and implementations of interface members are left alone (their names are not the member's to choose). No fix.",
+      "example": {
+        "config": null,
+        "fixed": "using System;\nusing System.Diagnostics;\nnamespace A.B {\n  using A.C.D;\n  struct S { }\n  interface I { (int, int) Pair(); }\n  class P { public virtual void Run() { } }\n  class Q : P, I {\n    public (int, int) Pair() => (1, 2);\n    public (int, int) Other() => (1, 2);\n    public void Go((int, int) t) {\n      this.Run();\n      var s = default(S);\n      var d = default(DateTime);\n      var g = (1, 2);\n      Debug.Assert(true);\n      Debug.Assert(true, \"why\");\n      Debug.Fail(\"\");\n    }\n    /// <inheritdoc/>\n    public void Own() { }\n  }\n}\nnamespace C.D { }\nnamespace A.C.D { }\n",
+        "input": "using System;\nusing System.Diagnostics;\nnamespace A.B {\n  using C.D;\n  struct S { }\n  interface I { (int, int) Pair(); }\n  class P { public virtual void Run() { } }\n  class Q : P, I {\n    public (int, int) Pair() => (1, 2);\n    public (int, int) Other() => (1, 2);\n    public void Go(ValueTuple<int, int> t) {\n      base.Run();\n      var s = new S();\n      var d = new DateTime();\n      var g = ValueTuple.Create(1, 2);\n      Debug.Assert(true);\n      Debug.Assert(true, \"why\");\n      Debug.Fail(\"\");\n    }\n    /// <inheritdoc/>\n    public void Own() { }\n  }\n}\nnamespace C.D { }\nnamespace A.C.D { }\n",
+        "language": "csharp",
+        "spans": [
+          {
+            "column": 18,
+            "length": 3,
+            "line": 6
+          },
+          {
+            "column": 23,
+            "length": 3,
+            "line": 6
+          },
+          {
+            "column": 13,
+            "length": 3,
+            "line": 10
+          },
+          {
+            "column": 18,
+            "length": 3,
+            "line": 10
+          }
+        ]
+      },
+      "fix": null,
+      "id": "tuple-element-names-in-signatures",
+      "languages": [
+        "csharp"
+      ],
+      "options": [],
+      "presets": [
+        "csharp/stylecop"
+      ],
+      "upstream": [
+        {
+          "id": "SA1414",
+          "partial": false,
+          "tool": "StyleCop"
+        }
+      ]
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "A statement that can never run. At `fast` depth this is the statement after a `return`, `throw`, `break`, `continue` or `goto`; with the flow layer it also covers constant conditions and calls that do not return (`does_not_return` in `semantics:`). Only the first statement of a run is reported. Removing it is offered as an editor quick fix only, because unreachable code usually signals a bug. Off by default: the compiler already reports unreachable code (CS0162) and the SDK analyzers add IDE0035.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "class A { int F() { return 1; G(); G(); }\n int H(int x) { if (false) { G(); } throw null; x++; } int G() => 1; }\n",
+        "language": "csharp",
+        "spans": [
+          {
+            "column": 31,
+            "length": 4,
+            "line": 1
+          },
+          {
+            "column": 30,
+            "length": 4,
+            "line": 2
+          },
+          {
+            "column": 49,
+            "length": 4,
+            "line": 2
+          }
+        ]
+      },
+      "fix": "suggestion",
+      "id": "unreachable-code",
+      "languages": [
+        "csharp"
+      ],
+      "options": [
+        {
+          "default": true,
+          "description": "Treat the code after a call that never returns (`[DoesNotReturn]`,                       `does_not_return` in `semantics:`) as unreachable. The compiler does not,                       so turn this off to report exactly what it reports (CS0162).",
+          "name": "non_returning_calls",
+          "type": "bool"
+        }
+      ],
+      "presets": [],
+      "upstream": [
+        {
+          "id": "RCS1148",
+          "partial": false,
+          "tool": "Roslynator"
+        }
+      ]
+    },
+    {
+      "category": "cleanup",
+      "default_level": "off",
+      "description": "A value is stored in a local variable and no path reads it before it is overwritten or the variable goes out of scope (a dead store). Variables that are captured or whose address is taken are not checked; a variable that is never read at all is reported by `unused-variable` instead. Overlaps the SDK analyzer IDE0059 (unnecessary assignment).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "class A { int F() { int n = 0; n = G(); return n; } int H() { int m = 0; m = 1; m = G(); return m; } int G() => 1; }\n",
+        "language": "csharp",
+        "spans": [
+          {
+            "column": 25,
+            "length": 5,
+            "line": 1
+          },
+          {
+            "column": 67,
+            "length": 5,
+            "line": 1
+          },
+          {
+            "column": 74,
+            "length": 5,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "unused-assignment",
+      "languages": [
+        "csharp"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": [
+        {
+          "id": "RCS1179",
+          "partial": false,
+          "tool": "Roslynator"
+        },
+        {
+          "id": "RCS1212",
+          "partial": false,
+          "tool": "Roslynator"
+        }
+      ]
+    },
+    {
+      "category": "cleanup",
+      "default_level": "warn",
+      "description": "A private field, method, property or event that no file of the project uses (`analysis: deep`). Members with attributes, overrides, interface implementations, `extern` and `partial` methods are left alone. Overlaps the SDK analyzers IDE0051 (unused private member) and IDE0052 (unread private member).",
+      "fix": null,
+      "id": "unused-private-member",
+      "languages": [
+        "csharp"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": [
+        {
+          "id": "RCS1213",
+          "partial": false,
+          "tool": "Roslynator"
+        }
+      ]
+    },
+    {
+      "category": "cleanup",
+      "default_level": "off",
+      "description": "A local variable or catch variable that is never used (the compiler's CS0168), or is only assigned constants and never read (CS0219). Variables captured by lambdas or local functions count as used. Off by default: the compiler already warns (CS0168, CS0219).",
+      "example": {
+        "config": null,
+        "fixed": "class A { void F() {\n    \n    int a = 1, b = 2;\n    try { F(); } catch (System.Exception) { }\n    System.Console.WriteLine(b + a);\n} }\n",
+        "input": "class A { void F() {\n    int k = 5;\n    int a = 1, b = 2;\n    try { F(); } catch (System.Exception e) { }\n    System.Console.WriteLine(b + a);\n} }\n",
+        "language": "csharp",
+        "spans": [
+          {
+            "column": 9,
+            "length": 1,
+            "line": 2
+          },
+          {
+            "column": 42,
+            "length": 1,
+            "line": 4
+          }
+        ]
+      },
+      "fix": "safe",
+      "id": "unused-variable",
+      "languages": [
+        "csharp"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A lambda instead of an anonymous method. The fix is offered when the anonymous method has a parameter list and no comment before its body; `delegate { }` without one converts to delegate types with any parameters, so it has no fix.",
+      "example": {
+        "config": null,
+        "fixed": "class A {\n int a, b;\n Nullable<int> n = 1L < 2 ? null : null;\n void F(object o, int i) {\n  var f = (int x) => { return x; };\n  var g = o == null || i > 1;\n  var h = 1F + (double)2.5;\n }\n}\n",
+        "input": "class A {\n int a, b;\n Nullable<int> n = (long)1 < 2 ? null : null;\n void F(object o, int i) {\n  var f = delegate (int x) { return x; };\n  var g = null == o || 1 < i;\n  var h = (float)1 + (double)2.5;\n }\n}\n",
+        "language": "csharp",
+        "spans": [
+          {
+            "column": 11,
+            "length": 8,
+            "line": 5
+          }
+        ]
+      },
+      "fix": "safe",
+      "id": "use-lambda",
+      "languages": [
+        "csharp"
+      ],
+      "options": [],
+      "presets": [
+        "csharp/stylecop"
+      ],
+      "upstream": [
+        {
+          "id": "SA1130",
+          "partial": false,
+          "tool": "StyleCop"
+        }
+      ]
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A numeric literal cast to `long`, `ulong`, `uint`, `float`, `double` or `decimal` when the literal's own type differs: `(long)1` is `1L`. Not reported for hexadecimal and binary literals cast to a floating-point type, which have no suffix.",
+      "example": {
+        "config": null,
+        "fixed": "class A {\n int a, b;\n Nullable<int> n = 1L < 2 ? null : null;\n void F(object o, int i) {\n  var f = (int x) => { return x; };\n  var g = o == null || i > 1;\n  var h = 1F + (double)2.5;\n }\n}\n",
+        "input": "class A {\n int a, b;\n Nullable<int> n = (long)1 < 2 ? null : null;\n void F(object o, int i) {\n  var f = delegate (int x) { return x; };\n  var g = null == o || 1 < i;\n  var h = (float)1 + (double)2.5;\n }\n}\n",
+        "language": "csharp",
+        "spans": [
+          {
+            "column": 20,
+            "length": 7,
+            "line": 3
+          },
+          {
+            "column": 11,
+            "length": 8,
+            "line": 7
+          }
+        ]
+      },
+      "fix": "safe",
+      "id": "use-literal-suffix",
+      "languages": [
+        "csharp"
+      ],
+      "options": [],
+      "presets": [
+        "csharp/stylecop"
+      ],
+      "upstream": [
+        {
+          "id": "SA1139",
+          "partial": false,
+          "tool": "StyleCop"
+        }
+      ]
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "`string.Empty` instead of `\"\"` (or `@\"\"`). Not reported where a constant is required: `const`, attribute arguments, default parameter values, `case` labels and patterns.",
+      "example": {
+        "config": null,
+        "fixed": "class A {\n const string C = \"\";\n string F(string s = \"\") {\n  if (s is \"\") { }\n  switch (s) { case \"\": break; }\n  return s ?? string.Empty;\n }\n [System.Obsolete(\"\")] void G() { }\n}\n",
+        "input": "class A {\n const string C = \"\";\n string F(string s = \"\") {\n  if (s is \"\") { }\n  switch (s) { case \"\": break; }\n  return s ?? @\"\";\n }\n [System.Obsolete(\"\")] void G() { }\n}\n",
+        "language": "csharp",
+        "spans": [
+          {
+            "column": 15,
+            "length": 3,
+            "line": 6
+          }
+        ]
+      },
+      "fix": "safe",
+      "id": "use-string-empty",
+      "languages": [
+        "csharp"
+      ],
+      "options": [],
+      "presets": [
+        "csharp/stylecop"
+      ],
+      "upstream": [
+        {
+          "id": "SA1122",
+          "partial": true,
+          "tool": "StyleCop"
+        }
+      ]
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "`ValueTuple<int, int>` and `ValueTuple.Create(a, b)` where tuple syntax `(int, int)` and `(a, b)` is available (not inside an expression tree). The fix is offered for types and `ValueTuple.Create` calls.",
+      "example": {
+        "config": null,
+        "fixed": "using System;\nusing System.Diagnostics;\nnamespace A.B {\n  using A.C.D;\n  struct S { }\n  interface I { (int, int) Pair(); }\n  class P { public virtual void Run() { } }\n  class Q : P, I {\n    public (int, int) Pair() => (1, 2);\n    public (int, int) Other() => (1, 2);\n    public void Go((int, int) t) {\n      this.Run();\n      var s = default(S);\n      var d = default(DateTime);\n      var g = (1, 2);\n      Debug.Assert(true);\n      Debug.Assert(true, \"why\");\n      Debug.Fail(\"\");\n    }\n    /// <inheritdoc/>\n    public void Own() { }\n  }\n}\nnamespace C.D { }\nnamespace A.C.D { }\n",
+        "input": "using System;\nusing System.Diagnostics;\nnamespace A.B {\n  using C.D;\n  struct S { }\n  interface I { (int, int) Pair(); }\n  class P { public virtual void Run() { } }\n  class Q : P, I {\n    public (int, int) Pair() => (1, 2);\n    public (int, int) Other() => (1, 2);\n    public void Go(ValueTuple<int, int> t) {\n      base.Run();\n      var s = new S();\n      var d = new DateTime();\n      var g = ValueTuple.Create(1, 2);\n      Debug.Assert(true);\n      Debug.Assert(true, \"why\");\n      Debug.Fail(\"\");\n    }\n    /// <inheritdoc/>\n    public void Own() { }\n  }\n}\nnamespace C.D { }\nnamespace A.C.D { }\n",
+        "language": "csharp",
+        "spans": [
+          {
+            "column": 20,
+            "length": 20,
+            "line": 11
+          },
+          {
+            "column": 15,
+            "length": 17,
+            "line": 15
+          }
+        ]
+      },
+      "fix": "safe",
+      "id": "use-tuple-syntax",
+      "languages": [
+        "csharp"
+      ],
+      "options": [],
+      "presets": [
+        "csharp/stylecop"
+      ],
+      "upstream": [
+        {
+          "id": "SA1141",
+          "partial": false,
+          "tool": "StyleCop"
+        }
+      ]
+    },
+    {
+      "category": "cleanup",
+      "default_level": "off",
+      "description": "`using` directives of a file or namespace are out of order: System first (`system_first`), names in alphabetical order (`compare`), and with the options `static_position` and `alias_position` set to `after`, `using static` directives after the plain ones and aliases after those, each group sorted. `global using` and `using unsafe` stay where they are, and a list restarts at a directive that has a preprocessor directive in front of it (the fix leaves such lists alone). Comments on lines of their own stay where they are; a comment after a directive moves with it. Overlaps the SDK analyzers' `dotnet_sort_system_directives_first` .editorconfig key.",
+      "example": {
+        "config": null,
+        "fixed": "using System;\nusing static Foo.Bar;\nusing Aa;\nusing X = Y.Z;\nusing Alpha;\nusing static System.Math;\nusing Zeta;\nusing aa;\nusing W = Y.Z;\n\nclass A { }\n",
+        "input": "using Zeta;\nusing static Foo.Bar;\nusing Alpha;\nusing X = Y.Z;\nusing System;\nusing static System.Math;\nusing Aa;\nusing aa;\nusing W = Y.Z;\n\nclass A { }\n",
+        "language": "csharp",
+        "spans": [
+          {
+            "column": 1,
+            "length": 11,
+            "line": 1
+          },
+          {
+            "column": 1,
+            "length": 12,
+            "line": 3
+          },
+          {
+            "column": 1,
+            "length": 13,
+            "line": 5
+          }
+        ]
+      },
+      "fix": "safe",
+      "id": "using-order",
+      "languages": [
+        "csharp"
+      ],
+      "options": [
+        {
+          "default": true,
+          "description": "Put `System` and `System.*` before the other namespaces.",
+          "name": "system_first",
+          "type": "bool"
+        },
+        {
+          "choices": [
+            "ordinal",
+            "culture",
+            "culture_ignore_case"
+          ],
+          "default": "ordinal",
+          "description": "`ordinal` compares code points; `culture` ignores case (and puts                           punctuation before digits before letters, a lower-case name before                           an upper-case one that is otherwise equal); `culture_ignore_case`                           leaves names that differ only in case in their order.",
+          "name": "compare",
+          "type": "string"
+        },
+        {
+          "choices": [
+            "keep",
+            "after"
+          ],
+          "default": "keep",
+          "description": "`after`: `using static` directives come after the plain usings, sorted (System ones first with `system_first`); `keep`: they stay where they are.",
+          "name": "static_position",
+          "type": "string"
+        },
+        {
+          "choices": [
+            "keep",
+            "after"
+          ],
+          "default": "keep",
+          "description": "`after`: alias directives come after all other usings, sorted by alias name; `keep`: they stay where they are.",
+          "name": "alias_position",
+          "type": "string"
+        }
+      ],
+      "presets": [
+        "csharp/stylecop"
+      ],
+      "upstream": [
+        {
+          "id": "dotnet_sort_system_directives_first",
+          "partial": false,
+          "tool": "dotnet-format-editorconfig"
+        },
+        {
+          "id": "RCS0015",
+          "partial": true,
+          "tool": "Roslynator"
+        },
+        {
+          "id": "RCS0037",
+          "partial": true,
+          "tool": "Roslynator"
+        },
+        {
+          "id": "RCS0038",
+          "partial": true,
+          "tool": "Roslynator"
+        },
+        {
+          "id": "SA1208",
+          "partial": false,
+          "tool": "StyleCop"
+        },
+        {
+          "id": "SA1209",
+          "partial": false,
+          "tool": "StyleCop"
+        },
+        {
+          "id": "SA1210",
+          "partial": false,
+          "tool": "StyleCop"
+        },
+        {
+          "id": "SA1211",
+          "partial": false,
+          "tool": "StyleCop"
+        },
+        {
+          "id": "SA1216",
+          "partial": false,
+          "tool": "StyleCop"
+        },
+        {
+          "id": "SA1217",
+          "partial": false,
+          "tool": "StyleCop"
+        }
+      ]
+    }
+  ]
+}

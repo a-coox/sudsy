@@ -12,6 +12,7 @@ pub use project::{Project, ProjectError, describe_error};
 use core_config::{OptionSchema, RuleSchema};
 use core_rules::{Extensions, Rule};
 use provider_api::LanguageProvider;
+use std::collections::BTreeMap;
 use std::path::PathBuf;
 
 /// The providers of the languages Sudsy handles. The C# worker is started on the first C# file
@@ -68,6 +69,36 @@ pub fn rule_ids(providers: &[Box<dyn LanguageProvider>]) -> Vec<&'static str> {
         .collect();
     ids.dedup();
     ids
+}
+
+/// For each rule id, the presets (`csharp/stylecop`) whose `lint.rules` turn it on, read from the
+/// preset files at any depth (a language section, an override).
+pub fn rule_presets(providers: &[Box<dyn LanguageProvider>]) -> BTreeMap<String, Vec<String>> {
+    fn walk(value: &serde_json::Value, in_lint: bool, enabled: &mut Vec<String>) {
+        let Some(map) = value.as_object() else { return };
+        for (key, v) in map {
+            if in_lint && key == "rules" {
+                for (id, level) in v.as_object().into_iter().flatten() {
+                    let level = level.get("level").unwrap_or(level);
+                    if level.as_str() != Some("off") {
+                        enabled.push(id.clone());
+                    }
+                }
+            } else {
+                walk(v, key == "lint", enabled);
+            }
+        }
+    }
+    let mut out: BTreeMap<String, Vec<String>> = BTreeMap::new();
+    for preset in providers.iter().flat_map(|p| p.option_schema().presets()) {
+        let value = serde_saphyr::from_str(preset.text).expect("preset parses");
+        let mut enabled = Vec::new();
+        walk(&value, false, &mut enabled);
+        for id in enabled {
+            out.entry(id).or_default().push(preset.name.clone());
+        }
+    }
+    out
 }
 
 /// The rules as the config's JSON Schema describes them, one per id.

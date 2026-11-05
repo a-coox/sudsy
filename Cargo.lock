@@ -1372,6 +1372,7 @@ dependencies = [
  "provider-api",
  "serde",
  "serde-saphyr",
+ "serde_json",
  "thiserror 2.0.21",
 ]
 

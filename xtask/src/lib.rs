@@ -5,6 +5,7 @@
 
 mod docs;
 mod new_rule;
+mod rules;
 mod vscode;
 
 pub use new_rule::new_rule;

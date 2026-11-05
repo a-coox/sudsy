@@ -36,4 +36,5 @@ One line each; none is committed.
 - Editor extensions other than VS Code (other editors use `sudsy lsp`).
 - Self-contained C# worker for machines without .NET.
 - Repeatable benchmarks for the paths listed in [performance/numbers.md](performance/numbers.md).
+- Documentation site built from `docs/rules/rules.json`; then switch `DOCS_BASE_URL` on and add `codeDescription` links to diagnostics.
 - Release: first Marketplace publish ([development/ci-release.md](development/ci-release.md)).

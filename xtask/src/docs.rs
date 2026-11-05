@@ -4,7 +4,6 @@
 
 use anyhow::{Context, Result, bail};
 use core_config::{OptionKind, OptionSchema, OptionValue};
-use core_rules::{Check, Extensions, Rule};
 use provider_api::LanguageProvider;
 use std::collections::BTreeMap;
 use std::path::PathBuf;
@@ -13,15 +12,18 @@ const END: &str = "<!-- /generated -->";
 
 /// Every doc with generated blocks as (path relative to the repo root, contents).
 pub fn generate(providers: &[Box<dyn LanguageProvider>]) -> Result<Vec<(PathBuf, String)>> {
-    let rules = languages::rules(providers, &Extensions::default());
+    let rule_docs = crate::rules::collect(providers);
     let schemas = languages::schemas(providers);
-    let mut out = vec![splice(
-        "docs/rules/builtin.md",
-        &[(
-            "rules",
-            rules_table(&rules, &schemas.iter().map(|s| s.0).collect::<Vec<_>>()),
-        )],
-    )?];
+    let mut out = vec![
+        splice(
+            "docs/rules/builtin.md",
+            &[("rules", crate::rules::table(&rule_docs))],
+        )?,
+        (
+            "docs/rules/rules.json".into(),
+            crate::rules::json(&rule_docs),
+        ),
+    ];
     for (language, schema) in &schemas {
         out.push(splice(
             &format!("docs/formatting/{language}.md"),
@@ -92,65 +94,6 @@ fn cell(text: &str) -> String {
         .collect::<Vec<_>>()
         .join(" ")
         .replace('|', "\\|")
-}
-
-/// ll first, then the languages in the order of order (the providers').
-fn rules_table(rules: &[(String, &'static dyn Rule)], order: &[&str]) -> String {
-    let mut rows: Vec<_> = rules.iter().collect();
-    let ranks = std::iter::once("all").chain(order.iter().copied());
-    rows.sort_by_key(|(language, rule)| {
-        let rank = ranks.clone().position(|l| l == language);
-        (rank.unwrap_or(usize::MAX), rule.meta().id)
-    });
-    let mut out = String::from(
-        "| Rule | Language | Category | Default | Fix | Description |\n|---|---|---|---|---|---|\n",
-    );
-    for (language, rule) in rows {
-        let m = rule.meta();
-        let mut description = cell(m.description);
-        if !m.options.is_empty() {
-            let options: Vec<String> = m
-                .options
-                .iter()
-                .map(|o| {
-                    let choices = match o.check {
-                        Check::OneOf(values) => format!(
-                            "; one of {}",
-                            values
-                                .iter()
-                                .map(|v| format!("`{v}`"))
-                                .collect::<Vec<_>>()
-                                .join(", ")
-                        ),
-                        _ => String::new(),
-                    };
-                    format!(
-                        "`{}` (default `{}`{choices}): {}",
-                        o.name,
-                        o.default.display(),
-                        cell(o.description).trim_end_matches('.')
-                    )
-                })
-                .collect();
-            description += &format!(" Options: {}", options.join("; "));
-            if !description.ends_with('.') {
-                description.push('.');
-            }
-        }
-        let languages: Vec<&str> = std::iter::once(language.as_str()).collect();
-        let equivalent = languages::catalog::equivalents(m.id, &languages);
-        if !equivalent.is_empty() {
-            description += &format!(" Equivalent: {}.", equivalent.join(", "));
-        }
-        out += &format!(
-            "| `{}` | {language} | {} | {} | {} | {description} |\n",
-            m.id,
-            m.category.as_str(),
-            m.default_level.as_str(),
-            m.fix.map_or("none", |k| k.as_str()),
-        );
-    }
-    out
 }
 
 fn show(value: &OptionValue) -> String {
