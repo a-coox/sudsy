@@ -270,7 +270,7 @@
             },
             "invalid-property-value": {
               "$ref": "#/definitions/rule",
-              "description": "A known EditorConfig or .NET property has a value it does not accept (`indent_style = tabs`, `dotnet_diagnostic.CA1000.severity = high`). Values are case-insensitive, `unset` is always valid, and .NET code-style options may end in `:silent`, `:suggestion`, `:warning` or `:error`. Unknown properties are not checked."
+              "description": "A known EditorConfig or .NET property has a value it does not accept (`indent_style = tabs`, `dotnet_diagnostic.CA1000.severity = high`). Values are case-insensitive, `unset` is always valid, and .NET code-style options may end in `:silent`, `:suggestion`, `:warning` or `:error`; formatting options do not (Roslyn parses them with `bool.TryParse`, EditorConfigValueSerializer.cs). A trailing `# comment` is ignored, as Roslyn does. Unknown properties are not checked."
             },
             "key-name-casing": {
               "description": "A key does not follow one of the allowed naming conventions. The checks are those of eslint-plugin-jsonc: a key with punctuation or whitespace never matches, `camelCase` also rejects `_` and `-`, `snake_case` and `kebab-case` reject capitals. No fix: renaming a key changes the data.",

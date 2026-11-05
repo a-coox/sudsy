@@ -28,7 +28,7 @@ Shared: suppression comments (`# sudsy-disable-next-line <rule>`), `no-empty-com
 
 Language rules (all `warn` by default, correctness; the file is shared with other tools, so nothing is `error`):
 - `unknown-property`: a property name one typo from a known one (`indent_syle`, `dotnet_diagnostic.CA1000.sevrity`), with the suggestion. Names with no close match are not reported, because other tools add properties (`resharper_*`, `ij_*`) and new .NET options appear faster than the list: the `strict` option reports unknown `dotnet_*`, `csharp_*` and `visual_basic_*` names too.
-- `invalid-property-value`: a value a known property does not accept (`indent_style = tabs`, `dotnet_diagnostic.CA1000.severity = high`, `charset = "utf-8-bom"`, a trailing `# comment`, which EditorConfig does not strip). Case-insensitive; `unset` always passes; code-style options may end in a `:severity`.
+- `invalid-property-value`: a value a known property does not accept (`indent_style = tabs`, `dotnet_diagnostic.CA1000.severity = high`, `charset = "utf-8-bom"`, `csharp_preserve_single_line_blocks = true:none`: a formatting option takes no severity). A trailing `# comment` is ignored because the .NET reader (Roslyn `AnalyzerConfig.cs`) ignores it, although EditorConfig itself has no inline comments. Case-insensitive; `unset` always passes; code-style options may end in a `:severity`.
 - `no-duplicate-sections`: the same section glob twice in one file (compared as written).
 - `root-in-section` (pattern rule): `root` inside a section, where it is ignored.
 

@@ -9,6 +9,9 @@
 # Names compare case-insensitively; one `*` in a name stands for any text (`dotnet_diagnostic.*.severity`).
 # Words after the colon, compared case-insensitively (`unset` is always valid):
 #   bool   true false          int   a non-negative number          ...   anything
+#          Checked against dotnet/roslyn Visual-Studio-2026-Version-18.7 (3fdf3c3): plain options are
+#          read with bool.TryParse (Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/Options/
+#          EditorConfigValueSerializer.cs), so only code-style options take `:severity`.
 #   sev    the value may carry a `:none|silent|suggestion|warning|error` suffix (`true:suggestion`)
 #   list   a comma-separated list of the plain words (`all`, `none` and `*` are plain words too)
 #   other  a literal value

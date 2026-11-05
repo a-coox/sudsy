@@ -137,7 +137,12 @@ fn closest(name: &str, original: &str) -> Option<String> {
         .exact
         .keys()
         .map(String::as_str)
-        .chain(filled.iter().map(String::as_str));
+        .chain(filled.iter().map(String::as_str))
+        // Edit distance is costly and a typo keeps the first letter and the length (within 3):
+        // skip the rest, which is nearly all of the names of other tools.
+        .filter(|c| {
+            c.len().abs_diff(name.len()) <= 3 && c.as_bytes().first() == name.as_bytes().first()
+        });
     suggest(name, all).map(String::from)
 }
 
@@ -187,7 +192,9 @@ rule! {
         description: "A known EditorConfig or .NET property has a value it does not accept \
                   (`indent_style = tabs`, `dotnet_diagnostic.CA1000.severity = high`). Values are \
                   case-insensitive, `unset` is always valid, and .NET code-style options may end in \
-                  `:silent`, `:suggestion`, `:warning` or `:error`. Unknown properties are not \
+                  `:silent`, `:suggestion`, `:warning` or `:error`; formatting options do not \
+                  (Roslyn parses them with `bool.TryParse`, EditorConfigValueSerializer.cs). A \
+                  trailing `# comment` is ignored, as Roslyn does. Unknown properties are not \
                   checked.",
         example: "indent_style = tabs   # `tabs` is not a value of `indent_style`; did you mean `tab`?",
         kinds: &[kind::PAIR],
@@ -197,7 +204,12 @@ rule! {
         let (Some(key), value) = pair(node) else { return };
         let name = key.text().trim().to_ascii_lowercase();
         let Some(spec) = lookup(&name) else { return };
-        let text = value.as_ref().map_or("", |v| v.text().trim());
+        // Roslyn's reader (AnalyzerConfig.cs, s_propertyMatcherPattern) drops a trailing `#` or `;`
+        // comment from the value, so the .NET tools accept `true # why`.
+        let text = value.as_ref().map_or("", |v| {
+            let t = v.text();
+            t[..t.find(['#', ';']).unwrap_or(t.len())].trim()
+        });
         if spec.accepts(text) {
             return;
         }

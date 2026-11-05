@@ -5,6 +5,9 @@ indent_size = four
 #             ^^^^ invalid-property-value
 indent_size = 4
 indent_size = TAB
+indent_size = 4 # four
+indent_size = four ; words
+#             ^^^^^^^^^^^^ invalid-property-value
 indent_size = unset
 tab_width =
 ^^^^^^^^^ invalid-property-value
