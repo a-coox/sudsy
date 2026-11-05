@@ -17,7 +17,10 @@ pub fn generate(providers: &[Box<dyn LanguageProvider>]) -> Result<Vec<(PathBuf,
     let schemas = languages::schemas(providers);
     let mut out = vec![splice(
         "docs/rules/builtin.md",
-        &[("rules", rules_table(&rules))],
+        &[(
+            "rules",
+            rules_table(&rules, &schemas.iter().map(|s| s.0).collect::<Vec<_>>()),
+        )],
     )?];
     for (language, schema) in &schemas {
         out.push(splice(
@@ -58,16 +61,14 @@ fn cell(text: &str) -> String {
         .replace('|', "\\|")
 }
 
-fn language_rank(language: &str) -> usize {
-    ["all", "json", "yaml", "toml", "csharp"]
-        .iter()
-        .position(|l| *l == language)
-        .unwrap_or(5)
-}
-
-fn rules_table(rules: &[(String, &'static dyn Rule)]) -> String {
+/// ll first, then the languages in the order of order (the providers').
+fn rules_table(rules: &[(String, &'static dyn Rule)], order: &[&str]) -> String {
     let mut rows: Vec<_> = rules.iter().collect();
-    rows.sort_by_key(|(language, rule)| (language_rank(language), rule.meta().id));
+    let ranks = std::iter::once("all").chain(order.iter().copied());
+    rows.sort_by_key(|(language, rule)| {
+        let rank = ranks.clone().position(|l| l == language);
+        (rank.unwrap_or(usize::MAX), rule.meta().id)
+    });
     let mut out = String::from(
         "| Rule | Language | Category | Default | Fix | Description |\n|---|---|---|---|---|---|\n",
     );

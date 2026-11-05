@@ -27,7 +27,6 @@ impl LanguageId {
     pub const JSON: LanguageId = LanguageId(1);
     pub const CSHARP: LanguageId = LanguageId(2);
     pub const YAML: LanguageId = LanguageId(3);
-    pub const TOML: LanguageId = LanguageId(4);
     /// Largest id that fits the 4-bit namespace.
     pub const MAX: u8 = 15;
 

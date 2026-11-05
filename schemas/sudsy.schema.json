@@ -1072,7 +1072,7 @@
       ]
     }
   },
-  "description": "Configuration of Sudsy, the formatter and linter for C#, JSON, YAML and TOML.",
+  "description": "Configuration of Sudsy, the formatter and linter for source and data files.",
   "properties": {
     "analysis": {
       "default": "standard",

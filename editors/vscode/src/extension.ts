@@ -1,6 +1,7 @@
 import { existsSync } from "node:fs";
 import * as vscode from "vscode";
 import { LanguageClient, type LanguageClientOptions } from "vscode-languageclient/node";
+import { documentSelector } from "./selector.generated";
 import { resolveServer } from "./server";
 
 let client: LanguageClient | undefined;
@@ -37,16 +38,7 @@ async function start(context: vscode.ExtensionContext): Promise<void> {
     vscode.workspace.workspaceFolders?.[0]?.uri.fsPath,
   );
   const options: LanguageClientOptions = {
-    // `.cs` and `.toml` by pattern as well, so that it works without an extension that names the language.
-    documentSelector: [
-      { scheme: "file", language: "csharp" },
-      { scheme: "file", pattern: "**/*.cs" },
-      { scheme: "file", language: "json" },
-      { scheme: "file", language: "jsonc" },
-      { scheme: "file", language: "yaml" },
-      { scheme: "file", language: "toml" },
-      { scheme: "file", pattern: "**/*.toml" },
-    ],
+    documentSelector,
     // Pull diagnostics for every open tab, not just the visible editor.
     diagnosticPullOptions: { onChange: true, onSave: true, onTabs: true },
     outputChannelName: "Sudsy",
