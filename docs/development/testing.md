@@ -9,7 +9,7 @@ Every formatter test checks lossless round trip, idempotency, unchanged meaning 
 | Differential | `csharpier-compat` vs CSharpier 1.3.0 (pinned in `dotnet-tools.json`) | `tests/conformance/csharpier-baseline.sh`, then `--test differential -- --ignored`; writes `hunks.txt`, `summary.txt` |
 | Snapshots | Fixtures per construct and option value (`insta`) | `crates/*/tests`, `tests/fixtures/csharp` (`error_*.cs` must report errors; also run with CRLF) |
 | Presets | Sample input/expected output per preset; hand-written config equals the preset | `tests/fixtures/presets/`, `crates/cli/tests/presets.rs` |
-| Rules | One fixture file per case under `tests/rules/<language>/<rule-id>/`: annotated diagnostics, fix output, fixes keep files parseable and idempotent | `provider_api::fixtures`, run by `lang-*/tests/rule_fixtures.rs`; helpers in `provider_api::testing` |
+| Rules | One fixture file per case under `tests/rules/<language>/<folder>/` (a rule or a family of rules): annotated diagnostics, fix output, fixes keep files parseable and idempotent | `provider_api::fixtures`, run by `lang-*/tests/rule_fixtures.rs`; helpers in `provider_api::testing` |
 | Compiler agreement | Flow rules vs CS0162/CS0168/CS0219 | `lang-csharp/tests/compiler_agreement.rs` |
 | Worker contract | Protocol bytes, version mismatch, crash/restart | `provider-api/tests/proxy_contract.rs` (fake worker), `Sudsy.Worker.Tests` |
 | Engine | Salsa re-execution events (`WillExecute`) | `core-incremental/tests/engine.rs` |
@@ -21,18 +21,19 @@ Every formatter test checks lossless round trip, idempotency, unchanged meaning 
 | Codegen | Generated files and doc tables are fresh | `xtask/tests/codegen_is_fresh.rs` |
 
 ## Rule fixtures
-Adding a rule needs no Rust test: add `tests/rules/<language>/<rule-id>/<name>.<ext>` files (C# fixtures run through the worker).
+Adding a rule needs no Rust test: add `tests/rules/<language>/<folder>/<name>.<ext>` files (C# fixtures run through the worker). A folder is named for a rule (`no-empty-catch`) or for a family of rules that share inputs (`doc-tags`, `type-layer`); inputs are small and cover the rules' own cases, and a shared input is never copied into several folders.
 - `<name>.<ext>` is the input. Expected diagnostics are written under the line they point at, `// ^^^ rule-id` (`#` in YAML; carets give the span length, the marker may be left out when the span starts in the first columns). No annotation means no diagnostic. The id is checked, so a fixture also shows other rules that fire by default.
 - `<name>.fixed.<ext>` is the text after the safe fixes, `<name>.unsafe.<ext>` after the unsafe ones too. A missing file means the fixes change nothing (resp. nothing more). Every fix run also checks that the file stays parseable and that a second run is idempotent.
-- `rules.yaml` in the folder is the `lint.rules` mapping (default `<rule-id>: warn`); `<name>.rules.yaml` next to an input replaces it for that input alone, which is how a case sets options. Shared rules (`sorted-keys`, `no-duplicate-keys`, ...) have fixtures in each language's folder that tags the concept.
+- `rules.yaml` in the folder is the `lint.rules` mapping (default `<folder>: warn`; a family folder lists its rules); `<name>.rules.yaml` next to an input replaces it for that input alone, which is how a case sets options. Shared rules (`sorted-keys`, `no-duplicate-keys`, ...) have fixtures in each language's folder that tags the concept.
 - `SUDSY_BLESS=1 cargo test -p lang-json --test rule_fixtures` (or `lang-yaml`, `lang-csharp`) rewrites the annotations and the `.fixed`/`.unsafe` files from what the rules do now; review the diff.
+- Guards fail the language's test: every rule of the language is named by a folder with an input or by an annotation (a rule that never reports gets a folder named for it with a case that stays silent), no two inputs are the same text with the same rules, and no input is over 60 lines (annotations left out; split it or drop the repeated cases).
 - One test per language lists every failing file with its message. Cases the runner cannot express stay in `crates/*/tests`: option validation errors, config-level on/off, depth and project scope.
 
 ### Adding a rule
 `cargo xtask new-rule <language> <rule-id> [--rust]` does steps 1 and 2 with a starter that reports empty statements (the gate passes as generated; edit the rule and its fixture, then `SUDSY_BLESS=1 cargo test -p lang-<language> --test rule_fixtures`) and prints the parity-catalog lines for step 3. Languages: `csharp`, `json`, `yaml`, `toml`. Without `--rust` it writes the pattern file (`crates/lang-<language>/rules/<id>.yaml`, every language); with `--rust` a `rule!` module under `src/rules/` listed in the language's registry (`src/rules/mod.rs` for C#, `src/rules.rs` for the others). The starter reports an empty `{}` mapping in the data languages (its node kinds are in the language table of `xtask/src/new_rule.rs`; the extension and comment marker come from the provider). Run `cargo fmt` after.
 1. A `rule!` declaration in the rule's module (id, category, description, default, fix, options with checks and descriptions; [../rules/engine.md](../rules/engine.md#rule-trait)) and register the rule.
    A syntax rule that fits a pattern is a file instead: `crates/lang-<language>/rules/<rule-id>.yaml` ([../rules/patterns.md](../rules/patterns.md#built-in-pattern-rules)), no Rust.
-2. A fixture folder `tests/rules/<language>/<rule-id>/` as above.
+2. A fixture folder `tests/rules/<language>/<rule-id>/` (or a case in the family folder) as above.
 3. The matching entry in `docs/parity/<tool>.yaml` (`sudsy: "rule: <id>"`) when another tool has an equivalent.
 4. `cargo xtask codegen`: the rule table, option tables and `sudsy.schema.json` are generated; do not edit them by hand.
 

@@ -1,0 +1,6 @@
+doc-summary-required: warn
+doc-summary-text: warn
+doc-partial-required: warn
+doc-partial-summary-required: warn
+doc-partial-summary-text: warn
+no-default-summary: warn

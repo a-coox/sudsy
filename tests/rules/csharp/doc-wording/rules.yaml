@@ -1,0 +1,4 @@
+property-summary-matches-accessors: warn
+property-summary-omits-restricted-accessor: warn
+constructor-summary-standard-text: warn
+destructor-summary-standard-text: warn

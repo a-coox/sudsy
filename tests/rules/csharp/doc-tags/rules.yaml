@@ -1,0 +1,9 @@
+doc-value-text: warn
+doc-param-has-name: warn
+doc-param-has-text: warn
+doc-returns-required: warn
+doc-returns-has-text: warn
+no-returns-on-void: warn
+doc-partial-typeparams: warn
+doc-typeparam-has-name: warn
+doc-typeparam-has-text: warn

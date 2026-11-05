@@ -1,0 +1,3 @@
+quoted-strings:
+  level: warn
+  options: { required: always }

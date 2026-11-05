@@ -1,0 +1,5 @@
+x: .5
+#  ^^ float-style
+y: 0.5
+z: 1e3
+#  ^^^ float-style

@@ -1,0 +1,2 @@
+unreachable-code: warn
+unused-variable: warn

@@ -1,0 +1,3 @@
+no-empty-attribute-parens: warn
+no-empty-delegate-parens: warn
+separate-attributes: warn

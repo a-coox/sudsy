@@ -1,0 +1,6 @@
+key:
+#  ^ no-empty-values
+list:
+  -
+# ^ no-empty-values
+full: 1

@@ -1,5 +1,7 @@
-//! Rule fixtures: `tests/rules/<language>/<rule-id>/<name>.<ext>`, one input file per case, run
-//! by [`rule_fixtures`] (docs/development/testing.md describes the layout).
+//! Rule fixtures: `tests/rules/<language>/<folder>/<name>.<ext>`, one input file per case, run
+//! by [`rule_fixtures`] (docs/development/testing.md describes the layout). A folder is named for
+//! a rule or for a family of rules that share inputs; inputs are small and cover the rules' own
+//! cases.
 //!
 //! - `<name>.<ext>` is the input with its expected diagnostics written under the lines they point
 //!   at (`// ^^^ rule-id`, see [`crate::testing::expect`]); no annotation means no diagnostic.
@@ -7,7 +9,11 @@
 //!   ones too; a missing file means the fixes change nothing beyond the previous step.
 //! - `rules.yaml` in the folder holds the rule entries (the mapping under `lint.rules`); without
 //!   it the rule runs as `<rule-id>: warn`. `<name>.rules.yaml` next to an input replaces it for
-//!   that input alone (options, other rules).
+//!   that input alone (options, other rules). A folder of several rules lists them in `rules.yaml`.
+//!
+//! Guards, reported with the failures: every rule of the provider is named by a folder that has
+//! an input or by an annotation (a rule cannot be silently untested); no two inputs are the same
+//! text with the same rules; no input is longer than [`MAX_LINES`].
 //!
 //! `SUDSY_BLESS=1` rewrites the annotations and the `.fixed`/`.unsafe` files from what the rules
 //! report now; review the diff before committing.
@@ -15,11 +21,15 @@
 use crate::provider::LanguageProvider;
 use crate::testing;
 use core_rules::Extensions;
+use std::collections::{HashMap, HashSet};
 use std::fs;
 use std::panic::{AssertUnwindSafe, catch_unwind};
 use std::path::{Path, PathBuf};
 
 const CONFIG: &str = "rules.yaml";
+
+/// Longest fixture input, annotations left out.
+const MAX_LINES: usize = 60;
 
 /// Runs every fixture of the provider's language and panics with the failures, each named by its
 /// file.
@@ -27,14 +37,29 @@ pub fn rule_fixtures(provider: &dyn LanguageProvider) {
     let root = fixture_root(&provider.grammar().language);
     let bless = std::env::var_os("SUDSY_BLESS").is_some();
     let (mut count, mut failures) = (0, Vec::new());
+    let marker = testing::marker(provider);
+    let (mut named, mut seen) = (HashSet::new(), HashMap::new());
     for dir in sorted(&root).into_iter().filter(|p| p.is_dir()) {
         let id = dir.file_name().expect("a folder").to_string_lossy();
         let folder_rules =
             fs::read_to_string(dir.join(CONFIG)).unwrap_or_else(|_| format!("{id}: warn"));
         for file in sorted(&dir).into_iter().filter(|p| is_input(p)) {
             count += 1;
+            named.insert(id.to_string());
             let rules = fs::read_to_string(sibling(&file, "rules"))
                 .unwrap_or_else(|_| folder_rules.clone());
+            let annotated = testing::split_annotations(
+                &marker,
+                &fs::read_to_string(&file).expect("readable fixture"),
+            );
+            let lines = annotated.text.lines().count();
+            if lines > MAX_LINES {
+                let at = file.display();
+                failures.push(format!("{at}\nhas {lines} lines; the limit is {MAX_LINES}"));
+            }
+            if let Some(other) = seen.insert((annotated.text, rules.clone()), file.clone()) {
+                failures.push(format!("{}\nrepeats {}", file.display(), other.display()));
+            }
             let run = || check(provider, &file, &rules, bless);
             if let Err(panic) = catch_unwind(AssertUnwindSafe(run)) {
                 let message = panic
@@ -44,25 +69,27 @@ pub fn rule_fixtures(provider: &dyn LanguageProvider) {
                     .unwrap_or("panicked");
                 failures.push(format!("{}\n{message}", file.display()));
             }
+            // Read after the run, which rewrites the annotations when blessing.
+            let after = fs::read_to_string(&file).expect("readable fixture");
+            let annotated = testing::split_annotations(&marker, &after);
+            named.extend(annotated.expected.into_iter().map(|e| e.3));
         }
     }
     assert!(count > 0, "no rule fixtures under {}", root.display());
+    for rule in provider.rules() {
+        let id = rule.meta().id;
+        if !named.contains(id) {
+            failures.push(format!(
+                "rule `{id}` has no fixture: add a folder named {id}, or annotate it"
+            ));
+        }
+    }
     assert!(
         failures.is_empty(),
         "{} of {count} rule fixtures failed:\n\n{}",
         failures.len(),
         failures.join("\n\n")
     );
-}
-
-/// The rule folders of `language` that exist.
-pub fn fixture_rules(language: &str) -> Vec<String> {
-    let root = fixture_root(language);
-    sorted(&root)
-        .into_iter()
-        .filter(|p| p.is_dir())
-        .map(|p| p.file_name().unwrap().to_string_lossy().into_owned())
-        .collect()
 }
 
 fn fixture_root(language: &str) -> PathBuf {

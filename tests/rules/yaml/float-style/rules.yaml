@@ -1,0 +1,3 @@
+float-style:
+  level: warn
+  options: { require_numeral_before_decimal: true, forbid_scientific_notation: true }

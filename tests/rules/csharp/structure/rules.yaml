@@ -1,0 +1,5 @@
+single-class-per-file: warn
+single-namespace-per-file: warn
+suppression-justification: warn
+no-region-in-body: warn
+no-regions: warn

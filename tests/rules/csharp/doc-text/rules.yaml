@@ -1,0 +1,5 @@
+no-duplicate-doc-text: warn
+no-doc-slashes-in-plain-comment: warn
+doc-text-not-empty: warn
+no-doc-placeholder: warn
+doc-text-ends-with-period: warn

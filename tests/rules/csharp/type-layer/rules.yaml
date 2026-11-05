@@ -1,0 +1,8 @@
+debug-assert-message: warn
+debug-fail-message: warn
+inheritdoc-on-inheriting-member: warn
+no-default-value-type-constructor: warn
+no-unneeded-base-prefix: warn
+qualify-namespace-usings: warn
+tuple-element-names-in-signatures: warn
+use-tuple-syntax: warn

@@ -73,3 +73,31 @@ pub fn report(
         ctx.report_fix(range, message(f), fix);
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::super::PATTERN_RULES;
+
+    fn load(family: &str, params: &str) {
+        let source = format!(
+            "id: f\nlanguage: csharp\nfamily: {family}\nparams: {{ {params} }}\nmessage: m\nseverity: warn\n"
+        );
+        let patterns = core_patterns::Patterns {
+            sources: &[&source],
+            families: PATTERN_RULES.families,
+        };
+        crate::provider_with_command(vec!["no-such-host".into()]).with_pattern_rules(patterns);
+    }
+
+    #[test]
+    #[should_panic(expected = "unknown family `nope`")]
+    fn an_unknown_family_is_an_error() {
+        load("nope", "");
+    }
+
+    #[test]
+    #[should_panic(expected = "unknown param `extra`")]
+    fn an_unknown_param_is_an_error() {
+        load("finding", "check: base_call, extra: x");
+    }
+}

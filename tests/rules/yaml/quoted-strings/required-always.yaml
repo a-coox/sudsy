@@ -1,0 +1,4 @@
+name: bar
+#     ^^^ quoted-strings
+quoted: "baz"
+num: 1
