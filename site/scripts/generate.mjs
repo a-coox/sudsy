@@ -23,20 +23,48 @@ const fmt = (v) => (v === undefined ? '' : `\`${JSON.stringify(v)}\``);
 // Pagefind filter chip: the visible text names the filter, the attribute carries the value.
 const chip = (name, value) => `<span data-pagefind-filter="${name}[data-v]" data-v="${value}">${name}: ${value}</span>`;
 
-function example(e) {
+// Comment syntax of the suppression comments per language section (grammars/*.grammar):
+// [title, code block language, comment wrapper].
+const suppress = {
+  csharp: ['C#', 'csharp', (t) => `// ${t}`],
+  json: ['JSON (with comments)', 'jsonc', (t) => `// ${t}`],
+  yaml: ['YAML', 'yaml', (t) => `# ${t}`],
+  toml: ['TOML', 'toml', (t) => `# ${t}`],
+  xml: ['XML', 'xml', (t) => `<!-- ${t} -->`],
+  markdown: ['Markdown', 'markdown', (t) => `<!-- ${t} -->`],
+};
+
+// Rule config as sudsy.yaml takes it: `lint.rules` at the top level for rules of all languages,
+// under the language section otherwise (docs/config/sudsy-yaml.md).
+function configuration(r) {
+  const langs = r.languages.includes('all') ? [null] : r.languages;
+  const indent = (t, n) => t.replace(/^/gm, ' '.repeat(n));
+  const yaml = (entry) =>
+    langs.map((l) => (l ? `${l}:\n  lint:\n    rules:\n${indent(entry, 6)}` : `lint:\n  rules:\n${indent(entry, 4)}`)).join('\n');
+  const opts = r.options.filter((o) => o.default !== undefined);
+  const suppressIn = r.languages.includes('all') ? Object.keys(suppress) : r.languages.filter((l) => suppress[l]);
+  return [
+    '## Configuration',
+    r.default_level === 'off' ? 'Off by default.' : `On by default as \`${r.default_level}\`.`,
+    '### Enable\n\nLevels are `off`, `warn` and `error`.\n\n' + code('yaml', yaml(`${r.id}: warn`)),
+    '### Disable\n\n' + code('yaml', yaml(`${r.id}: off`)),
+    opts.length &&
+      '### With options\n\nEvery option at its default (see the table above).\n\n' +
+        code('yaml', yaml(`${r.id}:\n  level: warn\n  options:\n${opts.map((o) => `    ${o.name}: ${JSON.stringify(o.default)}`).join('\n')}`)),
+    r.presets.length && '### Presets\n\nEnabled by: ' + r.presets.map((p) => `[\`${p}\`](${base}/reference/presets/#${p.replace('/', '')})`).join(', '),
+    '### Suppress in code\n\nIn the language\'s comment syntax. `sudsy-disable-line`, `sudsy-disable` / `sudsy-enable` (a block) and `sudsy-disable-file` work the same way.\n\n' +
+      suppressIn.map((l) => '```' + suppress[l][1] + ` title="${suppress[l][0]}"\n${suppress[l][2](`sudsy-disable-next-line ${r.id}`)}\n` + '```').join('\n\n'),
+  ].filter(Boolean).join('\n\n');
+}
+
+function example(e, id) {
   if (!e) return '';
   const lines = e.input.replace(/\n$/, '').split('\n');
-  const marked = lines.flatMap((l, i) => {
-    const sp = e.spans.filter((s) => s.line === i + 1);
-    if (!sp.length) return [l];
-    const marks = Array(Math.max(...sp.map((s) => s.column - 1 + s.length))).fill(' ');
-    for (const s of sp) marks.fill('^', s.column - 1, s.column - 1 + s.length);
-    return [l, marks.join('')];
-  });
+  const squiggles = e.spans.map((s) => `${s.line}:${s.column}:${s.length}`).join(',');
   return [
     '## Example',
     e.config ? 'Configuration:\n\n' + code('yaml', e.config) : '',
-    'Input, with the reported spans marked:\n\n' + code('text', marked.join('\n')),
+    'Input; hover an underlined span for the rule:\n\n' + code(e.language, lines.join('\n')).replace(/^```(\S*)/, `\`\`\`$1 squiggles="${squiggles}" tip="${id}"`),
     e.fixed ? 'After the fix:\n\n' + code(e.language, e.fixed) : '',
   ].filter(Boolean).join('\n\n');
 }
@@ -50,7 +78,6 @@ for (const r of rules()) {
     ...r.languages.map((v) => (v === 'all' ? `<span>language: all</span>` : chip('language', v))),
     ...(r.languages.includes('all') ? realLanguages.map((v) => `<span hidden data-pagefind-filter="language[data-v]" data-v="${v}"></span>`) : []),
     chip('category', r.category),
-    chip('level', r.default_level),
     chip('fix', r.fix ?? 'none'),
     ...r.presets.map((v) => chip('preset', v)),
     ...[...new Set(r.upstream.map((u) => u.tool))].map((v) => chip('upstream', v)),
@@ -64,8 +91,8 @@ for (const r of rules()) {
     r.upstream.length &&
       '## Upstream equivalents\n\n' +
         table(['Tool', 'Id', 'Coverage'], r.upstream.map((u) => [u.tool, `\`${u.id}\``, u.partial ? 'partial' : 'full'])),
-    r.presets.length && '## Presets\n\nEnabled by: ' + r.presets.map((p) => `[\`${p}\`](${base}/reference/presets/#${p.replace('/', '')})`).join(', '),
-    `<div class="example">\n\n${example(r.example)}\n\n</div>`,
+    `<div class="example">\n\n${example(r.example, r.id)}\n\n</div>`,
+    configuration(r),
   ].filter(Boolean).join('\n\n');
   put(`rule-${r.id}.md`, { title: r.id, slug: `rules/${r.id}`, description: md(r.description).slice(0, 160) }, body);
 

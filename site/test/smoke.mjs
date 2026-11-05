@@ -51,7 +51,7 @@ test('a search term lists rules with working links', async () => {
 
 test('each filter narrows the results', async () => {
   const all = await open('');
-  for (const name of ['language', 'category', 'level', 'fix', 'preset', 'upstream']) {
+  for (const name of ['language', 'category', 'fix', 'preset', 'upstream']) {
     const group = page.locator('#rule-search details', { hasText: new RegExp(`^${name}`) });
     const options = await group.locator('label').allTextContents();
     const smallest = options.map((t) => /^\s*(.*?)\s*\((\d+)\)\s*$/.exec(t)).filter((m) => +m[2] > 0).sort((a, b) => a[2] - b[2])[0];
@@ -65,7 +65,7 @@ test('each filter narrows the results', async () => {
   }
 });
 
-test('query parameters and sidebar links preselect', async () => {
+test('query parameters preselect', async () => {
   const all = await open('');
   assert.ok(await open('?language=csharp') < all);
   await page.fill('#rule-search input[type=search]', 'comment-space'); // a rule for all languages
@@ -73,13 +73,29 @@ test('query parameters and sidebar links preselect', async () => {
   await page.waitForSelector('#rule-search input[type=checkbox]:checked');
   assert.ok(await open('?q=SA1005') > 0);
   assert.equal(await page.inputValue('#rule-search input[type=search]'), 'SA1005');
-  const href = await page.locator('a[href$="/rules/?language=csharp"]').first().getAttribute('href');
-  assert.ok(await open(href.slice(`/sudsy/rules/`.length)) < all);
 });
 
-test('rule page shows its example; an upstream id redirects', async () => {
-  await page.goto(`${B}/rules/comment-space/`);
+test('the sidebar has one Rules entry and there is no level filter', async () => {
+  await open('');
+  const links = page.locator('nav.sidebar a[href*="/rules"]');
+  assert.equal(await links.count(), 1);
+  assert.equal(await links.first().getAttribute('aria-current'), 'page');
+  assert.equal(await page.locator('#rule-search details', { hasText: /^level/ }).count(), 0);
+});
+
+test('rule page shows squiggles, its example and configuration; an upstream id redirects', async () => {
+  await page.goto(`${B}/rules/key-name-casing/`);
   assert.ok(await page.locator('.example pre').count() >= 1);
+  assert.equal(await page.locator('.example .squiggle').count(), 3);
+  assert.equal(await page.locator('.example .squiggle').first().getAttribute('title'), 'key-name-casing');
+  assert.equal(await page.locator('.example pre', { hasText: '^^^' }).count(), 0);
+  assert.equal(await page.locator('.meta', { hasText: 'level' }).count(), 0);
+  assert.match(await page.locator('main').innerText(), /Off by default/);
+  for (const h of ['Enable', 'Disable', 'With options', 'Suppress in code']) assert.ok(await page.getByRole('heading', { name: h }).count(), h);
+  assert.ok(await page.locator('pre', { hasText: 'key-name-casing: warn' }).count() >= 1);
+  assert.ok(await page.locator('pre', { hasText: '// sudsy-disable-next-line key-name-casing' }).count() >= 1);
+  assert.ok(await page.locator('pre', { hasText: '<!-- sudsy-disable-next-line key-name-casing -->' }).count() >= 1);
+  await page.goto(`${B}/rules/comment-space/`);
   await page.goto(`${B}/rules/sa1005/`);
   await page.waitForURL(`${B}/rules/comment-space/`);
 });

@@ -14,7 +14,7 @@
   const count = root.querySelector('.count')!;
   const list = root.querySelector('.results')!;
   const LIMIT = 50;
-  const names = ['language', 'category', 'level', 'fix', 'preset', 'upstream'];
+  const names = ['language', 'category', 'fix', 'preset', 'upstream'];
 
   const params = new URLSearchParams(location.search);
   input.value = params.get('q') ?? '';
@@ -60,7 +60,7 @@
         ...shown.map((d: any) => {
           const li = document.createElement('li');
           const a = Object.assign(document.createElement('a'), { href: d.url, textContent: d.meta.title });
-          const tags = ['language', 'category', 'level'].map((n) => d.filters[n]).flat().join(' · ');
+          const tags = ['language', 'category'].map((n) => d.filters[n]).flat().join(' · ');
           const info = Object.assign(document.createElement('small'), { textContent: ` ${tags}` });
           li.append(a, info);
           if (term) li.insertAdjacentHTML('beforeend', `<p>${d.excerpt}</p>`); // Pagefind escapes the excerpt

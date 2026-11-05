@@ -1,10 +1,9 @@
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
-import { site, base, rules } from './config.mjs';
+import { site, base } from './config.mjs';
 
 // The sidebar never lists rules: Starlight renders it into every page, so it would grow with
-// rules squared. The index page's filters (reachable by language below) are the way in.
-const languages = [...new Set(rules().flatMap((r) => r.languages))].sort();
+// rules squared. The Rules index (search and filters) is the way in.
 
 export default defineConfig({
   site,
@@ -17,14 +16,7 @@ export default defineConfig({
       social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/a-coox/sudsy' }],
       sidebar: [
         { label: 'Getting started', link: '/getting-started/' },
-        {
-          label: 'Rules',
-          collapsed: true,
-          items: [
-            { label: 'Search all rules', link: '/rules/' },
-            ...languages.map((l) => ({ label: l, link: `/rules/?language=${l}` })),
-          ],
-        },
+        { label: 'Rules', link: '/rules/' },
         {
           label: 'Reference',
           items: [
