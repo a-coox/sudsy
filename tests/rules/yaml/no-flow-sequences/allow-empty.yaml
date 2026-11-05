@@ -1,3 +1,5 @@
 a: [1, 2]
 #  ^ no-flow-sequences
 b: []
+c: [ # note
+ ]

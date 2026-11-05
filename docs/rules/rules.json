@@ -900,7 +900,7 @@
       "example": {
         "config": "no-flow-mappings:\n  level: warn\n  options:\n    allow_empty: true\n",
         "fixed": null,
-        "input": "a: {x: 1}\nb: {}\n",
+        "input": "a: {x: 1}\nb: {}\nc: { # note\n }\n",
         "language": "yaml",
         "spans": [
           {
@@ -939,7 +939,7 @@
       "example": {
         "config": "no-flow-sequences:\n  level: warn\n  options:\n    allow_empty: true\n",
         "fixed": null,
-        "input": "a: [1, 2]\nb: []\n",
+        "input": "a: [1, 2]\nb: []\nc: [ # note\n ]\n",
         "language": "yaml",
         "spans": [
           {

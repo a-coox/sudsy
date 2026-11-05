@@ -9,5 +9,5 @@ options:
   - { name: allow_empty, type: bool, default: false, description: "Do not report empty collections (`{}`, `[]`)." }
 rule:
   kind: FlowSequence
-  not: { option: allow_empty, regex: '^\[\s*\]$' }
+  not: { option: allow_empty, regex: '^\[(?:\s|#[^\r\n]*)*\]$' }
 report-on: first-token
