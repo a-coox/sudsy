@@ -33,6 +33,7 @@ pub const MEMBER_CHAIN_KEEP_ACCESSES: &str = "member_chain_keep_accesses";
 pub const MEMBER_CHAIN_BREAK_ON_BLOCK: &str = "member_chain_break_on_block";
 pub const WRAPPED_BRACE_LINE: &str = "wrapped_brace_line";
 pub const INITIALIZER_COLLAPSE: &str = "initializer_collapse";
+pub const PRESERVE_QUERY_BREAKS: &str = "preserve_query_breaks";
 pub const LAMBDA_ARGUMENT_HUG: &str = "lambda_argument_hug";
 pub const CONSTRUCTOR_INITIALIZER_LINE: &str = "constructor_initializer_line";
 pub const BASE_LIST_LAYOUT: &str = "base_list_layout";
@@ -47,6 +48,8 @@ pub const BLANK_LINE_AFTER_COMMENT: &str = "blank_line_after_comment";
 pub const SPACE_AFTER_DELEGATE: &str = "space_after_delegate";
 pub const SPACE_BETWEEN_EMPTY_FOR_CLAUSES: &str = "space_between_empty_for_clauses";
 pub const SORT_USINGS: &str = "sort_usings";
+pub const SORT_USINGS_SYSTEM_FIRST: &str = "sort_usings_system_first";
+pub const SEPARATE_USING_GROUPS: &str = "separate_using_groups";
 
 const CLAUSE_LINE_VALUES: &[&str] = &["inherit", "new_line", "same_line"];
 
@@ -139,7 +142,7 @@ pub fn option_schema() -> OptionSchema {
         OptionDef::boolean(
             PRESERVE_SINGLE_LINE_BLOCKS,
             false,
-            "A block written on one line (`void M() { return; }`, `get { return x; }`,              `if (a)` followed by `{ b(); }`) stays on one line, as `{ a; b; }`, when it has no              comment and no `switch` or label in it. Types, namespaces and `switch` bodies are              not affected.",
+            "A block written on one line (`void M() { return; }`, `get { return x; }`,              `if (a)` followed by `{ b(); }`) stays on one line, as `{ a; b; }`, when it has no comment and no label in it. Type, namespace, enum and `switch` bodies written on one line stay as well.",
         ),
         OptionDef::boolean(
             PRESERVE_SINGLE_LINE_STATEMENTS,
@@ -203,6 +206,11 @@ pub fn option_schema() -> OptionSchema {
             "preserve",
             "Initializers and collection expressions: `preserve` keeps one expanded when the \
              source has a line break in it; `always` puts one on a single line whenever it fits.",
+        ),
+        OptionDef::boolean(
+            PRESERVE_QUERY_BREAKS,
+            false,
+            "A query expression with a line break in the source keeps one clause per line even when it fits on a line.",
         ),
         OptionDef::choice(
             LAMBDA_ARGUMENT_HUG,
@@ -331,7 +339,24 @@ pub fn option_schema() -> OptionSchema {
         OptionDef::boolean(
             SORT_USINGS,
             false,
-            "Sort `using` directives like the `using-order` rule with              `compare: culture_ignore_case`, `static_position: after` and `alias_position:              after` (System first, then the others, `using static`, aliases), and join the              groups: blank lines between directives go, comments above a directive move with              it. Lists with preprocessor directives are left alone.",
+            "Sort `using` directives like the `using-order` rule with `compare: culture_ignore_case`, \
+             `static_position: after` and `alias_position: after` (System first, then the others, \
+             `using static`, aliases), and join the groups: blank lines between directives go, \
+             comments above a directive move with it. `global using` directives come first, \
+             `using global::X` behind the System ones. `#if` regions stay as they are behind the \
+             sorted directives; a list with another preprocessor directive is left alone.",
+        ),
+        OptionDef::boolean(
+            SORT_USINGS_SYSTEM_FIRST,
+            true,
+            "With `sort_usings`: `System` namespaces come before the others (`using static System.*` \
+             before other `using static`).",
+        ),
+        OptionDef::boolean(
+            SEPARATE_USING_GROUPS,
+            false,
+            "With `sort_usings`: one blank line between the System usings and the others (only with \
+             `sort_usings_system_first`).",
         ),
     ])
     .with_presets(presets())
@@ -465,6 +490,10 @@ pub fn initializer_layout(options: &ResolvedOptions) -> ListLayout {
     }
 }
 
+pub fn preserve_query_breaks(options: &ResolvedOptions) -> bool {
+    options.bool(PRESERVE_QUERY_BREAKS)
+}
+
 pub fn hug_only_sole_lambda(options: &ResolvedOptions) -> bool {
     is(options, LAMBDA_ARGUMENT_HUG, "sole")
 }
@@ -503,6 +532,13 @@ pub fn space_after_delegate(options: &ResolvedOptions) -> bool {
 
 pub fn sort_usings(options: &ResolvedOptions) -> bool {
     options.bool(SORT_USINGS)
+}
+
+pub fn using_order(options: &ResolvedOptions) -> (crate::using_sort::Order, bool) {
+    (
+        crate::using_sort::Order::formatter(options.bool(SORT_USINGS_SYSTEM_FIRST)),
+        options.bool(SEPARATE_USING_GROUPS),
+    )
 }
 
 pub fn space_between_empty_for_clauses(options: &ResolvedOptions) -> bool {

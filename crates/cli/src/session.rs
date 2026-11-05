@@ -62,7 +62,7 @@ impl Session {
         let mut seen = std::collections::HashSet::new();
         for (path, file) in self.paths.iter().zip(loaded) {
             let Ok(file) = file else { continue };
-            if path.extension().is_none_or(|e| e != "cs") {
+            if path.extension().is_none_or(|e| e != "cs" && e != "csx") {
                 continue;
             }
             for ignored in &file.editorconfig(&self.db).ignored {

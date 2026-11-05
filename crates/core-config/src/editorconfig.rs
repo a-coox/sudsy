@@ -20,6 +20,8 @@
 //! | `csharp_new_line_before_else`, `_catch`, `_finally` (`true`, `false`) | `else_line`, `catch_line`, `finally_line` (C#) |
 //! | `csharp_indent_labels` (`flush_left`, `one_less_than_current`, `no_change`) | `label_indent` (C#) |
 //! | `csharp_preserve_single_line_blocks`, `_statements` (`true`, `false`) | `preserve_single_line_blocks`, `preserve_single_line_statements` (C#) |
+//! | `csharp_new_line_between_query_expression_clauses` (`true`, `false`) | `preserve_query_breaks` (C#) |
+//! | `dotnet_sort_system_directives_first`, `dotnet_separate_import_directive_groups` (`true`, `false`) | `sort_usings_system_first`, `separate_using_groups` (C#; they act with `sort_usings`) |
 //!
 //! The other `csharp_*` / `dotnet_*` formatting keys are not mapped. One that a file's sections set
 //! to something other than the behavior Sudsy has (a fixed one: `csharp_space_after_cast = true`)
@@ -77,7 +79,7 @@ const BRACE_ELEMENTS: [&str; 9] = [
 
 /// Formatting keys without an option and the value of the behavior Sudsy has instead. A section
 /// that sets one to another value is reported as ignored.
-const FIXED: [(&str, &str); 29] = [
+const FIXED: [(&str, &str); 28] = [
     ("csharp_indent_case_contents", "true"),
     ("csharp_indent_switch_labels", "true"),
     ("csharp_indent_block_contents", "true"),
@@ -87,7 +89,6 @@ const FIXED: [(&str, &str); 29] = [
         "true",
     ),
     ("csharp_new_line_before_members_in_anonymous_types", "true"),
-    ("csharp_new_line_between_query_expression_clauses", "true"),
     ("csharp_space_after_cast", "false"),
     (
         "csharp_space_after_keywords_in_control_flow_statements",
@@ -388,6 +389,18 @@ fn map(props: &Props) -> Vec<EditorConfigValue> {
         (
             "csharp_preserve_single_line_statements",
             "preserve_single_line_statements",
+        ),
+        (
+            "csharp_new_line_between_query_expression_clauses",
+            "preserve_query_breaks",
+        ),
+        (
+            "dotnet_sort_system_directives_first",
+            "sort_usings_system_first",
+        ),
+        (
+            "dotnet_separate_import_directive_groups",
+            "separate_using_groups",
         ),
     ] {
         if let Some((v, ..)) = props.get(key)

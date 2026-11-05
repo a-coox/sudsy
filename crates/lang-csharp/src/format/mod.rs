@@ -23,7 +23,7 @@ pub use options::{
 use self::options::{
     attach_comments, constructor_initializer_on_new_line, hanging_base_list,
     inline_accessor_bodies, label_outdent, sort_usings, switch_arm_as_assignment,
-    unbreakable_single_item_lists,
+    unbreakable_single_item_lists, using_order,
 };
 use self::tags::Tag;
 use crate::generated::kind as k;
@@ -66,7 +66,10 @@ impl NodeFormatter for CSharpFormatter {
         options: &ResolvedOptions,
     ) -> Option<String> {
         sort_usings(options)
-            .then(|| crate::using_sort::sort_all(tree, text, grammar))
+            .then(|| {
+                let (order, separate) = using_order(options);
+                crate::using_sort::sort_all(tree, text, grammar, &order, separate)
+            })
             .flatten()
     }
 

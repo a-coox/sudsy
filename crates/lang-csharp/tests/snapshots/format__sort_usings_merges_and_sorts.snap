@@ -28,10 +28,10 @@ class D { }
 
 using System;
 using System.Linq; // linq
+using global::Foo;
 // about Alpha
 using alpha;
 using Beta;
-using global::Foo;
 using Zeta;
 using static System.Math;
 using X = Y.Z;

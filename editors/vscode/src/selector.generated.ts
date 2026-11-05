@@ -11,4 +11,5 @@ export const documentSelector = [
   { scheme: "file", pattern: "**/*.yml" },
   { scheme: "file", pattern: "**/*.toml" },
   { scheme: "file", pattern: "**/*.cs" },
+  { scheme: "file", pattern: "**/*.csx" },
 ];

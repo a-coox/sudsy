@@ -15,6 +15,7 @@ fn order_of(ctx: &RuleContext<'_>) -> Order {
         },
         statics_after: ctx.options.string("static_position") == "after",
         aliases_after: ctx.options.string("alias_position") == "after",
+        global_first: false,
     }
 }
 

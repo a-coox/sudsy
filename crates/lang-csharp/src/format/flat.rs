@@ -1,12 +1,14 @@
-//! `preserve_single_line_blocks` and `preserve_single_line_statements`: a block or a compound
-//! statement written on one line is printed on one line, everything below it with it.
+//! `preserve_single_line_blocks` and `preserve_single_line_statements`: a block, type, namespace,
+//! `switch` or compound statement written on one line is printed on one line, everything below it
+//! with it.
 
 use super::options::{preserve_single_line_blocks, preserve_single_line_statements};
 use super::seq::R;
+use super::tags::{self, Tag};
 use crate::generated::kind as k;
 use core_format::FormatCtx;
 use core_format::doc;
-use core_syntax::{SyntaxElement, SyntaxKind, SyntaxNode, TextRange};
+use core_syntax::{SyntaxElement, SyntaxKind, SyntaxNode, SyntaxToken, TextRange};
 
 /// Statements whose whole text is kept on its line by `preserve_single_line_statements`.
 fn is_compound(kind: SyntaxKind) -> bool {
@@ -27,8 +29,8 @@ fn is_compound(kind: SyntaxKind) -> bool {
     )
 }
 
-/// Is `node` written on one line, without comments and without a `switch` or a label (which
-/// always break lines)?
+/// Is `node` written on one line, without comments and without a label (which always breaks
+/// lines)?
 fn on_one_line(cx: &FormatCtx<'_>, node: &SyntaxNode) -> bool {
     let (Some(first), Some(last)) = (cx.first_token(node), cx.last_token(node)) else {
         return false;
@@ -36,18 +38,20 @@ fn on_one_line(cx: &FormatCtx<'_>, node: &SyntaxNode) -> bool {
     let range = TextRange::new(first.text_range().start(), last.text_range().end());
     !cx.has_line_break(node, range)
         && !node.descendants_with_tokens().any(|e| match e {
-            SyntaxElement::Node(n) => {
-                matches!(n.kind(), k::SWITCH_STATEMENT | k::LABELED_STATEMENT)
-            }
+            SyntaxElement::Node(n) => n.kind() == k::LABELED_STATEMENT,
             SyntaxElement::Token(t) => cx.grammar.has_tag(t.kind(), "comment"),
         })
 }
 
-/// A block that `preserve_single_line_blocks` keeps on its line, or a compound statement that
-/// `preserve_single_line_statements` keeps on its line.
+/// A block, type, namespace or `switch` that `preserve_single_line_blocks` keeps on its line, or a
+/// compound statement that `preserve_single_line_statements` keeps on its line.
 pub fn is_root(cx: &FormatCtx<'_>, node: &SyntaxNode) -> bool {
     let kind = node.kind();
-    let wanted = if kind == k::BLOCK {
+    let braced = kind == k::BLOCK
+        || kind == k::SWITCH_STATEMENT
+        || tags::has(cx.grammar, kind, Tag::TypeDeclaration)
+        || tags::has(cx.grammar, kind, Tag::Namespace);
+    let wanted = if braced {
         preserve_single_line_blocks(cx.options)
     } else {
         preserve_single_line_statements(cx.options) && is_compound(kind)
@@ -77,10 +81,14 @@ pub fn follows_on_line(cx: &FormatCtx<'_>, statement: &SyntaxNode) -> bool {
         && on_one_line(cx, statement)
 }
 
-/// `{ a; b; }` for a block that prints on one line (not an empty one).
-pub fn block(cx: &FormatCtx<'_>, block: &SyntaxNode) -> R {
+/// `{ a; b; }`: the braces of `node` with what is between them on one line (not an empty body).
+pub fn block(cx: &FormatCtx<'_>, node: &SyntaxNode, open: &SyntaxToken, close: &SyntaxToken) -> R {
+    let range = TextRange::new(open.text_range().start(), close.text_range().end());
     let mut parts = vec![];
-    for e in block.children_with_tokens() {
+    for e in node.children_with_tokens() {
+        if !range.contains_range(e.text_range()) {
+            continue;
+        }
         match e {
             SyntaxElement::Token(t) if cx.grammar.is_trivia(t.kind()) => {}
             SyntaxElement::Node(n) if cx.grammar.is_trivia(n.kind()) => {}

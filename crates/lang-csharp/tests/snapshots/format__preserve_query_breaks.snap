@@ -1,0 +1,18 @@
+---
+source: crates/lang-csharp/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+class C { void M() { var q = from x in xs where x > 1
+ select x; var r = from x in xs where x > 1 select x; } }
+-----
+class C
+{
+    void M()
+    {
+        var q =
+            from x in xs
+            where x > 1
+            select x;
+        var r = from x in xs where x > 1 select x;
+    }
+}

@@ -113,7 +113,7 @@ pub fn provider_with_command(command: Vec<OsString>) -> OutOfProcessProvider {
     OutOfProcessProvider::new(
         LanguageId::CSHARP,
         grammar,
-        vec![FileMatcher::extension("cs")],
+        vec![FileMatcher::extension("cs"), FileMatcher::extension("csx")],
         config,
     )
     .with_format(Box::new(CSharpFormatter), option_schema())

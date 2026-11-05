@@ -1,0 +1,14 @@
+---
+source: crates/lang-csharp/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+using Zeta;
+using System;
+using Alpha;
+class C { }
+
+-----
+using Alpha;
+using System;
+using Zeta;
+class C { }

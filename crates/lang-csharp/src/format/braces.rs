@@ -107,7 +107,9 @@ fn with_braces(
     let mut parts = Vec::new();
     if oi > 0 {
         parts.push(seq_of(cx, node, &els[..oi])?);
-        let sep = if is_empty_braces(cx, &open, &close) && keeps_empty_inline(cx, node) {
+        let sep = if (is_empty_braces(cx, &open, &close) && keeps_empty_inline(cx, node))
+            || flat::inside(cx, node)
+        {
             Sep::Space
         } else {
             Sep::Brace(braced_element(node.kind()))
@@ -238,8 +240,8 @@ fn blank_rule(cx: &FormatCtx<'_>) -> Option<BlankRule> {
 
 /// Blocks, namespaces, types and switch statements.
 pub fn braced(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
-    if node.kind() == k::BLOCK && flat::inside(cx, node) && !block_is_empty(cx, node) {
-        return flat::block(cx, node);
+    if flat::inside(cx, node) && !block_is_empty(cx, node) {
+        return with_braces(cx, node, |open, close| flat::block(cx, node, open, close));
     }
     let style = BlockStyle {
         force_blank: blank_rule(cx),
@@ -406,6 +408,16 @@ pub fn switch_section(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
     let (labels, statements): (Vec<_>, Vec<_>) = nodes_of(&sig(cx, node))
         .into_iter()
         .partition(|n| tags::has(g, n.kind(), Tag::SwitchLabel));
+    if flat::inside(cx, node) {
+        let mut parts = Vec::new();
+        for n in labels.iter().chain(&statements) {
+            if !parts.is_empty() {
+                parts.push(doc::lit(" "));
+            }
+            parts.push(cx.format(n)?);
+        }
+        return Ok(doc::concat(parts));
+    }
     let mut parts = Vec::new();
     for (i, label) in labels.iter().enumerate() {
         if i > 0 {
@@ -441,8 +453,14 @@ pub fn switch_section(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
 }
 
 fn arms_style(cx: &FormatCtx<'_>, node: &SyntaxNode, close: &SyntaxToken) -> ListStyle {
+    let enum_in_line = node.kind() == k::ENUM_DECLARATION && flat::inside(cx, node);
     ListStyle {
-        layout: ListLayout::Break,
+        layout: if enum_in_line {
+            ListLayout::Flat
+        } else {
+            ListLayout::Break
+        },
+        padding: enum_in_line,
         trailing_comma: list_trailing_comma(cx, node, close),
         empty: empty_braces(cx.options),
         expand_empty: node.kind() == k::ENUM_DECLARATION && !keeps_empty_inline(cx, node),

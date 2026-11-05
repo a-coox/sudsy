@@ -32,16 +32,22 @@ pub struct Order {
     pub statics_after: bool,
     /// Aliases move behind everything else.
     pub aliases_after: bool,
+    /// `global using` directives sort first (by name, `System` first) instead of keeping their
+    /// place, and `using global::X` sits behind the System usings instead of among the others.
+    pub global_first: bool,
 }
 
 impl Order {
     /// The order of the formatter's `sort_usings`.
-    pub const FORMATTER: Order = Order {
-        system_first: true,
-        compare: Compare::CultureIgnoreCase,
-        statics_after: true,
-        aliases_after: true,
-    };
+    pub fn formatter(system_first: bool) -> Order {
+        Order {
+            system_first,
+            compare: Compare::CultureIgnoreCase,
+            statics_after: true,
+            aliases_after: true,
+            global_first: true,
+        }
+    }
 }
 
 /// One directive of a list.
@@ -51,6 +57,8 @@ pub struct Entry {
     pub is_static: bool,
     /// `global using` and `using unsafe` keep their place.
     pub fixed: bool,
+    /// A `global using`.
+    pub global: bool,
     /// The first name is `System` (`global::System` does not count: see `qualified`).
     pub system: bool,
     /// The name has a `global::` or other alias qualifier.
@@ -92,6 +100,7 @@ pub fn entries(usings: &[UsingDirective], source: &str, g: &Grammar) -> Vec<Entr
                 is_alias,
                 is_static: u.static_keyword().is_some(),
                 fixed: u.global_keyword().is_some() || u.unsafe_keyword().is_some(),
+                global: u.global_keyword().is_some(),
                 system: !is_alias && name.split(['.', '<']).next() == Some("System"),
                 qualified: name.contains("::"),
                 name,
@@ -153,15 +162,21 @@ fn compare_aliases(a: &str, b: &str) -> Ordering {
 /// The group a directive is sorted into: plain System, plain, static System, static, alias.
 fn group(e: &Entry, o: &Order) -> u8 {
     let system = o.system_first && e.system;
-    match (e.is_alias, e.is_static) {
-        (true, _) => 4,
-        (_, true) => 2 + u8::from(!system),
-        _ => u8::from(!(system && !e.qualified)),
+    if o.global_first && e.global {
+        return u8::from(!system); // before everything; statics and aliases are not set apart
+    }
+    let behind_system =
+        o.global_first && e.name.starts_with("global::") && !e.name.starts_with("global::System");
+    2 + match (e.is_alias, e.is_static) {
+        (true, _) => 5,
+        (_, true) => 3 + u8::from(!system),
+        _ if system && !e.qualified => 0,
+        _ => 1 + u8::from(!behind_system),
     }
 }
 
 fn moves(e: &Entry, o: &Order) -> bool {
-    !e.fixed
+    (!e.fixed || (e.global && o.global_first))
         && if e.is_alias {
             o.aliases_after
         } else if e.is_static {
@@ -428,10 +443,104 @@ pub fn list_span(entries: &[Entry], source: &str, g: &Grammar) -> Option<(TextRa
     Some((span, has_directive(inside)))
 }
 
-/// `source` with the using lists sorted by [`Order::FORMATTER`]: every directive keeps the
-/// comments on the lines above it, and the blank lines between directives go. Lists with
-/// preprocessor directives are left alone.
-pub fn sort_all(root: &SyntaxNode, source: &str, g: &Grammar) -> Option<String> {
+/// How the formatter's `sort_usings` treats one list: `#if` regions stay verbatim behind the
+/// sorted directives.
+struct Plan {
+    /// From the first directive (or `#if` region) to the end of the last.
+    span: TextRange,
+    /// Per entry: inside an `#if` region.
+    in_region: Vec<bool>,
+    /// Where the lead (comments above) of each entry starts, after any region before it.
+    lead_from: Vec<usize>,
+    /// The regions, `#if` line start to `#endif` line end, in source order.
+    regions: Vec<(usize, usize)>,
+}
+
+/// Walks the lines of `source[from..to]`, counting `#if` nesting. `None` for another directive
+/// or an `#endif` without `#if`.
+fn scan(source: &str, from: usize, to: usize, state: &mut Scan, first: bool) -> Option<()> {
+    let mut at = from;
+    for line in source[from..to].split_inclusive('\n') {
+        let t = line.trim_start();
+        if t.starts_with("#if") {
+            if state.depth == 0 {
+                state.start = if first { at } else { from.max(state.consumed) };
+            }
+            state.depth += 1;
+        } else if t.starts_with("#endif") {
+            state.depth = state.depth.checked_sub(1)?;
+            if state.depth == 0 {
+                state.consumed = at + line.trim_end().len();
+                state.regions.push((state.start, state.consumed));
+            }
+        } else if t.starts_with('#') && !t.starts_with("#el") {
+            return None;
+        }
+        at += line.len();
+    }
+    Some(())
+}
+
+#[derive(Default)]
+struct Scan {
+    depth: usize,
+    start: usize,
+    consumed: usize,
+    regions: Vec<(usize, usize)>,
+}
+
+/// Splits the list at its `#if` regions. `None` for any other directive or an unbalanced `#if`.
+fn plan(entries: &[Entry], source: &str, g: &Grammar, span: TextRange) -> Option<Plan> {
+    let mut st = Scan::default();
+    let (mut in_region, mut lead_from) = (Vec::new(), Vec::new());
+    let mut span_start = usize::from(span.start());
+    let mut prev_end = 0;
+    for (i, e) in entries.iter().enumerate() {
+        let from = if i == 0 {
+            usize::from(e.node.text_range().start())
+        } else {
+            prev_end
+        }
+        .max(st.consumed);
+        scan(
+            source,
+            from,
+            usize::from(code_start(&e.node, g)),
+            &mut st,
+            i == 0,
+        )?;
+        if i == 0 && st.depth > 0 {
+            span_start = st.start;
+        }
+        lead_from.push(st.consumed.max(from));
+        in_region.push(st.depth > 0);
+        prev_end = usize::from(entry_range(&e.node, g).end());
+    }
+    let mut end = usize::from(span.end());
+    if st.depth > 0 {
+        let to = end + source[end..].find("#endif")? + 6;
+        scan(source, end, to, &mut st, false)?;
+        end = st.consumed.max(to);
+    }
+    (st.depth == 0).then_some(Plan {
+        span: TextRange::new(span_start.try_into().ok()?, end.try_into().ok()?),
+        in_region,
+        lead_from,
+        regions: st.regions,
+    })
+}
+
+/// `source` with the using lists sorted by `order`: every directive keeps the comments on the
+/// lines above it, the blank lines between directives go (`separate`: one stays between the
+/// System usings and the others), and `#if` regions stay as they are behind the sorted
+/// directives. Lists with other preprocessor directives are left alone.
+pub fn sort_all(
+    root: &SyntaxNode,
+    source: &str,
+    g: &Grammar,
+    order: &Order,
+    separate: bool,
+) -> Option<String> {
     let mut edits: Vec<(TextRange, String)> = Vec::new();
     for node in root.descendants() {
         if !matches!(
@@ -446,13 +555,14 @@ pub fn sort_all(root: &SyntaxNode, source: &str, g: &Grammar) -> Option<String> 
             continue;
         };
         let entries = entries(&usings, source, g);
-        let Some((span, directives)) = list_span(&entries, source, g) else {
+        let Some((span, _)) = list_span(&entries, source, g) else {
             continue;
         };
-        if directives {
+        let Some(plan) = plan(&entries, source, g, span) else {
             continue;
-        }
-        edits.push((span, sorted_list(&entries, source, g)));
+        };
+        let new = sorted_list(&entries, &plan, source, g, order, separate);
+        edits.push((plan.span, new));
     }
     if edits.is_empty() {
         return None;
@@ -464,7 +574,14 @@ pub fn sort_all(root: &SyntaxNode, source: &str, g: &Grammar) -> Option<String> 
     Some(out)
 }
 
-fn sorted_list(entries: &[Entry], source: &str, g: &Grammar) -> String {
+fn sorted_list(
+    entries: &[Entry],
+    plan: &Plan,
+    source: &str,
+    g: &Grammar,
+    order: &Order,
+    separate: bool,
+) -> String {
     let newline = if source.contains("\r\n") {
         "\r\n"
     } else {
@@ -479,9 +596,8 @@ fn sorted_list(entries: &[Entry], source: &str, g: &Grammar) -> String {
             if i == 0 {
                 return String::new();
             }
-            let from = usize::from(bodies[i - 1].end());
             let to = usize::from(code_start(&e.node, g));
-            source[from..to]
+            source[plan.lead_from[i]..to]
                 .lines()
                 .filter(|l| !l.trim().is_empty())
                 .map(|l| {
@@ -496,14 +612,28 @@ fn sorted_list(entries: &[Entry], source: &str, g: &Grammar) -> String {
                 .collect()
         })
         .collect();
-    sorted(entries, &Order::FORMATTER)
+    let main: Vec<usize> = sorted(entries, order)
         .into_iter()
-        .map(|i| {
-            let b = bodies[i];
-            format!("{}{}", leads[i], &source[b])
-        })
-        .collect::<Vec<_>>()
-        .join(newline)
+        .filter(|&i| !plan.in_region[i])
+        .collect();
+    let mut out = String::new();
+    for (n, &i) in main.iter().enumerate() {
+        if n > 0 {
+            out.push_str(newline);
+            if separate && order.system_first && entries[main[n - 1]].system != entries[i].system {
+                out.push_str(newline);
+            }
+        }
+        out.push_str(&leads[i]);
+        out.push_str(&source[bodies[i]]);
+    }
+    for &(from, to) in &plan.regions {
+        if !out.is_empty() {
+            out.push_str(newline);
+        }
+        out.push_str(source[from..to].trim_start_matches(['\r', '\n']));
+    }
+    out
 }
 
 #[cfg(test)]

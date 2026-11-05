@@ -473,14 +473,44 @@ class D { }
     [("sort_usings", OptionValue::Bool(true))]
 );
 snap!(
-    sort_usings_leaves_directive_lists,
+    sort_usings_keeps_if_regions_behind,
     "using Zeta;
+global using Y;
+using System;
 #if X
+using Beta;
 using Alpha;
 #endif
+using Abc;
+global using X;
 class C { }
 ",
     [("sort_usings", OptionValue::Bool(true))]
+);
+snap!(
+    sort_usings_leaves_other_directives,
+    "using Zeta;
+#pragma warning disable
+using Alpha;
+class C { }
+",
+    [("sort_usings", OptionValue::Bool(true))]
+);
+snap!(
+    sort_usings_groups_options,
+    "using Zeta;\nusing System;\nusing Alpha;\nclass C { }\n",
+    [
+        ("sort_usings", OptionValue::Bool(true)),
+        ("separate_using_groups", OptionValue::Bool(true))
+    ]
+);
+snap!(
+    sort_usings_without_system_first,
+    "using Zeta;\nusing System;\nusing Alpha;\nclass C { }\n",
+    [
+        ("sort_usings", OptionValue::Bool(true)),
+        ("sort_usings_system_first", OptionValue::Bool(false))
+    ]
 );
 snap!(
     sort_usings_file_scoped_namespace,
@@ -494,6 +524,14 @@ class C { }
     [("sort_usings", OptionValue::Bool(true))]
 );
 
+// Query breaks ------------------------------------------------------------------------------------------
+
+snap!(
+    preserve_query_breaks,
+    "class C { void M() { var q = from x in xs where x > 1\n select x; var r = from x in xs where x > 1 select x; } }",
+    [("preserve_query_breaks", OptionValue::Bool(true))]
+);
+
 // preserve_single_line_* ----------------------------------------------------------------------------------------------
 
 const SINGLE_LINE_SOURCE: &str = "class C\n{\n    int P { get { return 1; } set { value++; } }\n    int R() { return 1; }\n    void M(int x)\n    {\n        if (x > 1) { x++; } else { x--; }\n        int a = 1; int b = 2;\n        while (x > 0) { if (a > 1) { b++; } x--; }\n        try { x++; } catch (E) { x--; } finally { x = 0; }\n        if (x > 1) { // c\n            x++; }\n        switch (x) { case 1: break; }\n        Action f = () => { x++; };\n        { x = 1; y = 2; }\n    }\n}\n";
@@ -501,6 +539,11 @@ const SINGLE_LINE_SOURCE: &str = "class C\n{\n    int P { get { return 1; } set 
 snap!(
     preserve_single_line_blocks,
     SINGLE_LINE_SOURCE,
+    [("preserve_single_line_blocks", OptionValue::Bool(true))]
+);
+snap!(
+    preserve_single_line_blocks_types,
+    "namespace N { class C { int X; void M() { } } enum E { A, B } }\nclass D { void M() { switch (1) { case 1: break; } } }\n",
     [("preserve_single_line_blocks", OptionValue::Bool(true))]
 );
 snap!(

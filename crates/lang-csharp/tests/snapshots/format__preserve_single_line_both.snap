@@ -35,10 +35,7 @@ class C
         { // c
             x++;
         }
-        switch (x)
-        {
-            case 1: break;
-        }
+        switch (x) { case 1: break; }
         Action f = () => { x++; };
         { x = 1; y = 2; }
     }

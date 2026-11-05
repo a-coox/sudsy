@@ -1,6 +1,7 @@
 //! LINQ query expressions: `from x in xs where ... select ...` on one line if it fits, else one
 //! clause per line below the `from`.
 
+use super::options::preserve_query_breaks;
 use super::seq::{R, element_doc, seq, sig};
 use super::tags::{self, Tag};
 use crate::generated::kind as k;
@@ -18,6 +19,11 @@ pub fn query_expression(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
         p.kind() == k::EQUALS_VALUE_CLAUSE || tags::has(cx.grammar, p.kind(), Tag::Assignment)
     });
     Ok(doc::group(doc::concat(vec![
+        if preserve_query_breaks(cx.options) && cx.has_line_break(node, node.text_range()) {
+            doc::break_parent()
+        } else {
+            doc::nil()
+        },
         cx.format(from)?,
         if after_equals {
             clauses
