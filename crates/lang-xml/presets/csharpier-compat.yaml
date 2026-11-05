@@ -1,0 +1,8 @@
+# CSharpier 1.x formats XML with these defaults: 100 columns, two spaces, line endings kept.
+xml:
+  format:
+    line_width: 100
+    indent_size: 2
+    indent_style: space
+    end_of_line: auto
+    max_blank_lines: 1

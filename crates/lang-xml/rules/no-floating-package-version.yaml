@@ -1,0 +1,19 @@
+id: no-floating-package-version
+language: xml
+message: the package version floats; pin it so builds are reproducible
+description: >-
+  A `PackageReference` (or `PackageVersion`) whose `Version` contains `*` restores a different
+  package as new versions appear. Reported on the attribute; no fix, because the version to pin is
+  a decision.
+example: '<PackageReference Include="X" Version="1.*" />   <!-- Version="1.2.3" -->'
+severity: warn
+category: suspicious
+rule:
+  kind: Attribute
+  regex: '^Version\s*=\s*["''][^"'']*\*'
+  inside:
+    any:
+      - kind: STag
+        regex: '^<Package(Reference|Version)\b'
+      - kind: EmptyTag
+        regex: '^<Package(Reference|Version)\b'

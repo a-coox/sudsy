@@ -18,6 +18,7 @@
     "onLanguage:jsonc",
     "onLanguage:yaml",
     "onLanguage:toml",
+    "onLanguage:xml",
     "onLanguage:csharp",
     "workspaceContains:**/sudsy.{yaml,yml}"
   ],

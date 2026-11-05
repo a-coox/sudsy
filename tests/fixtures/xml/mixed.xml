@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<!DOCTYPE note [<!ENTITY e "x">]>
+<?xml-stylesheet href="a.xsl"?>
+<!-- before -->
+<note id='1' title='say "hi"'>
+  <p>text &amp; &#65; <b>bold</b>
+  more</p>
+  <code><![CDATA[ <raw> ]]></code>
+  <pre xml:space="preserve">
+    kept   </pre>
+  <e>&lt;</e>
+  <empty   />
+  <!-- inside --> <b/> <!-- trailing -->
+</note>
+<!-- after -->

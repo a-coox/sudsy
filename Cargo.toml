@@ -34,6 +34,7 @@ tempfile = "3"
 thiserror = "2"
 tree-sitter = "0.27"
 tree-sitter-toml-ng = "0.7"
+tree-sitter-xml = "0.7"
 
 core-config = { path = "crates/core-config" }
 core-patterns = { path = "crates/core-patterns" }
@@ -49,6 +50,7 @@ lang-csharp = { path = "crates/lang-csharp" }
 lang-json = { path = "crates/lang-json" }
 lang-yaml = { path = "crates/lang-yaml" }
 lang-toml = { path = "crates/lang-toml" }
+lang-xml = { path = "crates/lang-xml" }
 core-treesitter = { path = "crates/core-treesitter" }
 core-syntax = { path = "crates/core-syntax" }
 languages = { path = "crates/languages" }

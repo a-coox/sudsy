@@ -1,0 +1,45 @@
+// XML 1.0, parsed by tree-sitter (tree-sitter-xml) and mapped by crates/lang-xml/src/mapping.rs.
+// Format: see crates/core-syntax/src/grammar/mod.rs.
+
+language xml 5
+comments block "<!--" "-->"
+suppress disable-next-line "sudsy-disable-next-line"
+suppress disable-line "sudsy-disable-line"
+suppress disable "sudsy-disable"
+suppress enable "sudsy-enable"
+suppress disable-file "sudsy-disable-file"
+suppress ignore "sudsy-ignore"
+
+token Whitespace #trivia #whitespace
+token Newline #trivia #newline
+token Comment #trivia #comment
+
+token Lt "<" #punctuation
+token LtSlash "</" #punctuation
+token Gt ">" #punctuation
+token SlashGt "/>" #punctuation
+token Equals "=" #punctuation
+
+token Name
+// Quotes included. XmlFormatter::extra_check compares the text without them.
+token AttValue #literal #string #restyle #checked
+// Text with its surrounding blanks, references, CDATA sections, processing instructions, the XML
+// declaration and the DOCTYPE; the adapter wraps each in a Chunk.
+token CharData #chunk #checked
+token Reference #chunk #checked
+token CData #chunk #checked
+token PI #chunk #checked
+token XmlDecl #chunk #checked
+// Errors inside a `#checked` token are reported; not inside a DOCTYPE, whose declarations tree-sitter-xml cannot always parse.
+token Doctype #chunk
+
+token Eof
+token Unknown #error
+
+node Chunk #content #misc = value:#chunk
+node Document = items:#misc* root:Element tail:#misc* Eof
+node Element #content = start:#start-tag content:#content* end:ETag?
+node STag #start-tag #mapping = Lt Name entries:Attribute* Gt
+node EmptyTag #start-tag #mapping = Lt Name entries:Attribute* SlashGt
+node ETag = LtSlash Name Gt
+node Attribute #key-value = key:Name Equals value:AttValue

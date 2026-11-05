@@ -57,6 +57,14 @@ const LANGUAGES: &[Lang] = &[
         column: 4,
         width: 2,
     },
+    Lang {
+        name: "xml",
+        kind: "EmptyTag",
+        case: "<a>\n  <b/>\n",
+        close: "</a>\n",
+        column: 2,
+        width: 4,
+    },
 ];
 
 fn pascal(id: &str) -> String {
@@ -68,7 +76,7 @@ fn pascal(id: &str) -> String {
 fn yaml_rule(lang: &Lang, id: &str) -> String {
     let Lang { name, kind, .. } = lang;
     // The node kinds of the data languages match filled mappings as well.
-    let empty = if *name == "csharp" {
+    let empty = if matches!(*name, "csharp" | "xml") {
         ""
     } else {
         "  regex: '^\\{\\s*\\}$'\n"

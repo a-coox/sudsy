@@ -1,0 +1,6 @@
+<a>
+  <!-- -->
+//^^^^^^^^ no-empty-comment
+  <!---->
+//^^^^^^^ no-empty-comment
+</a>

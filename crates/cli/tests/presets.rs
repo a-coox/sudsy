@@ -158,10 +158,12 @@ fn no_tool_names_in_formatter_sources() {
         if path.is_dir() {
             stack.extend(fs::read_dir(&path).unwrap().map(|e| e.unwrap().path()));
         } else if path.extension().is_some_and(|e| e == "rs") {
-            // The provider's list of preset files (`"csharp/<name>"`, `include_str!`) names them; nothing else may.
+            // The provider's list of preset files (`"csharp/<name>"`, `"xml/<name>"`, `include_str!`) names them; nothing else may.
             let text = fs::read_to_string(&path).unwrap().to_lowercase();
             let code = text.lines().filter(|l| {
-                !(l.contains("include_str!") || l.trim_start().starts_with("\"csharp/"))
+                !(l.contains("include_str!")
+                    || l.trim_start().starts_with("\"csharp/")
+                    || l.trim_start().starts_with("\"xml/"))
             });
             assert!(
                 !code.collect::<String>().contains("csharpier"),

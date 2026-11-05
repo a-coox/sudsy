@@ -1,0 +1,13 @@
+<Project>
+  <ItemGroup>
+    <PackageReference Include="A" Version="1" />
+    <PackageReference Include="B" Version="1" />
+    <PackageReference Include="A" Version="2"></PackageReference>
+//                            ^^^ no-duplicate-include
+    <Compile Include="A" />
+    <ProjectReference Include="B" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="A" />
+  </ItemGroup>
+</Project>
