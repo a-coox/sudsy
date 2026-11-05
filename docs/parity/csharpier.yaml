@@ -1,6 +1,6 @@
 tool: "csharpier"
 version: "1.3.0 (NuGet latest; also the version pinned by the repo's dotnet-tools.json and used for the differential test)"
-languages: ["csharp"]
+languages: ["csharp", "xml"]
 sources:
   - "https://api.nuget.org/v3-flatcontainer/csharpier/index.json"
   - "https://csharpier.com/docs/Configuration"
@@ -45,9 +45,10 @@ entries:
     name: "xmlWhitespaceSensitivity"
     default: "strict"
     kind: "format-option"
-    sudsy: "wontfix: XML (csproj, props, xaml, config) is not a Sudsy language"
-    coverage: "wontfix"
-    notes: ""
+    sudsy: "formatter"
+    coverage: "partial"
+    notes: "Sudsy's XML formatter (`xml/csharpier-compat`) always keeps whitespace in text (`strict`); there is no `ignore` mode (roadmap). Parity: `scripts/parity.sh format csharpier-xml`, differences in `tests/parity/csharpier-xml/expected-diff.txt`."
+    gap: "no `ignore` mode (CSharpier's default for xaml and axaml); CSharpier also wraps text in `ignore` mode"
   - id: "overrides"
     name: "overrides[].files / formatter / options"
     default: "[]"

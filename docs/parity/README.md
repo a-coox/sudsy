@@ -26,7 +26,7 @@ The differential runner [`scripts/parity.sh`](../development/parity.md) compares
 | Tool | Entries | Covered | Partial | Missing | SDK | Wontfix | Deferred | Planned |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|
 | biome | 34 | 13 | 6 | 2 | 0 | 13 | 0 | 2 |
-| csharpier | 16 | 11 | 4 | 0 | 0 | 1 | 0 | 0 |
+| csharpier | 16 | 11 | 5 | 0 | 0 | 0 | 0 | 0 |
 | dotnet-format-editorconfig | 56 | 50 | 3 | 0 | 1 | 2 | 0 | 0 |
 | eslint-plugin-jsonc | 44 | 36 | 6 | 0 | 0 | 2 | 0 | 0 |
 | prettier | 28 | 15 | 4 | 1 | 0 | 8 | 0 | 1 |

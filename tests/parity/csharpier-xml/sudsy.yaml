@@ -1,0 +1,3 @@
+# The Sudsy side of the comparison with CSharpier's XML formatter.
+extends:
+  - preset:xml/csharpier-compat

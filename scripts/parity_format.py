@@ -1,6 +1,6 @@
 """Compares `sudsy format` with Prettier, Biome, taplo or `dotnet format whitespace` on tests/parity/<tool>/ (run by `scripts/parity.sh format`).
 
-Usage: parity_format.py <prettier|biome|taplo|dotnet-format|csharpier> <version> <sudsy-binary> <tool-prefix>
+Usage: parity_format.py <prettier|biome|taplo|dotnet-format|csharpier|csharpier-xml> <version> <sudsy-binary> <tool-prefix>
 
 Every fixture is formatted by the tool and by Sudsy (with the fixture folder's sudsy.yaml, which
 extends the matching preset); the outputs must be equal. A fixture listed in the folder's
@@ -69,12 +69,39 @@ def taplo_fixtures(folder):
 
 def csharpier(prefix, fixture, work):
     exe = prefix / "csharpier.exe"
-    run([exe if exe.exists() else prefix / "csharpier", "format", fixture.name], work)
-    return fixture.read_bytes().decode("utf-8")
+    # CSharpier formats in place, so it gets a copy: Sudsy formats the original.
+    theirs = work / "csharpier" / fixture.name
+    theirs.parent.mkdir(exist_ok=True)
+    shutil.copy(fixture, theirs)
+    try:
+        run([exe if exe.exists() else prefix / "csharpier", "format", theirs.name], theirs.parent)
+    except SystemExit:
+        return None  # CSharpier rejects the file
+    return theirs.read_bytes().decode("utf-8")
+
+
+XML_SUFFIXES = {".csproj", ".props", ".targets", ".config", ".resx", ".xml", ".slnx", ".xaml"}
+
+
+def xml_fixtures(folder):
+    """The folder's own files, those of tests/fixtures/xml and the fetched project files (named
+    `corpus/<path>`), as (name, path)."""
+    out = [(p.name, p) for p in sorted(folder.iterdir()) if p.suffix in XML_SUFFIXES]
+    out += [(f"fixtures/{p.name}", p) for p in sorted((ROOT / "tests/fixtures/xml").iterdir()) if p.suffix in XML_SUFFIXES]
+    corpus = ROOT / "tests/conformance/corpus/xml-projects"
+    out += [
+        (f"corpus/{p.relative_to(corpus).as_posix()}", p)
+        for p in sorted(corpus.rglob("*"))
+        if p.suffix in XML_SUFFIXES and ".git" not in p.parts
+    ]
+    return out
 
 
 def sudsy_format(sudsy, fixture, work):
-    run([sudsy, "format", fixture.name], work)
+    try:
+        run([sudsy, "format", fixture.name], work)
+    except SystemExit:
+        return None  # Sudsy rejects the file
     return fixture.read_bytes().decode("utf-8")
 
 
@@ -135,6 +162,7 @@ def expected_diffs(folder):
 
 
 def main():
+    sys.stdout.reconfigure(encoding="utf-8")
     tool, version, sudsy, prefix = sys.argv[1:5]
     if tool == "dotnet-format":
         return dotnet_format_main(version, sudsy)
@@ -144,10 +172,12 @@ def main():
     shutil.rmtree(work, ignore_errors=True)
     work.mkdir(parents=True)
     shutil.copy(folder / "sudsy.yaml", work / "sudsy.yaml")
-    upstream_format = {"prettier": prettier, "biome": biome, "csharpier": csharpier, "taplo": taplo}[tool]
+    upstream_format = {"prettier": prettier, "biome": biome, "csharpier": csharpier, "csharpier-xml": csharpier, "taplo": taplo}[tool]
     known = expected_diffs(folder)
     if tool == "taplo":
         fixtures = taplo_fixtures(folder)
+    elif tool == "csharpier-xml":
+        fixtures = xml_fixtures(folder)
     else:
         fixtures = sorted(
             (p.name, p) for p in folder.iterdir() if p.suffix in SUFFIXES and p.name != "sudsy.yaml"
@@ -174,7 +204,7 @@ def main():
         else:
             print(f"{name}: DIFFERENT")
             sys.stdout.writelines(
-                difflib.unified_diff(theirs.splitlines(True), ours.splitlines(True), tool, "sudsy")
+                difflib.unified_diff((theirs or "").splitlines(True), (ours or "").splitlines(True), tool, "sudsy")
             )
             bad += 1
     print(f"{len(fixtures)} fixtures, {bad} mismatch(es) ({tool} {version})")
