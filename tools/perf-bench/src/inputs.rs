@@ -87,6 +87,26 @@ pub fn toml(items: usize) -> String {
     s
 }
 
+/// A project file: `items` item groups with package references, a property group and a target
+/// each. About 450 bytes per item.
+pub fn xml(items: usize) -> String {
+    let mut r = Rng::new(0x58d1);
+    let mut s = String::with_capacity(items * 460);
+    s.push_str("<Project Sdk=\"Microsoft.NET.Sdk\">\n");
+    for i in 0..items {
+        let (a, b, c) = (r.word(), r.word(), r.word());
+        s.push_str(&format!(
+            "  <PropertyGroup Condition=\"'$(Config)' == '{a}'\">\n    <Name{i}>{b} {c}</Name{i}>\n    <Weight>{}</Weight>\n  </PropertyGroup>\n  <ItemGroup>\n    <PackageReference Include=\"{a}.{b}\" Version=\"1.{}.{}\" />\n    <PackageReference Include=\"{c}\" Version=\"2.{}.0\"><PrivateAssets>all</PrivateAssets></PackageReference>\n  </ItemGroup>\n  <!-- {c} -->\n  <Target Name=\"{b}{i}\"><Message Text=\"{a} {b} {c}\" Importance=\"high\" /></Target>\n",
+            r.below(100_000),
+            r.below(100),
+            r.below(100),
+            r.below(100),
+        ));
+    }
+    s.push_str("</Project>\n");
+    s
+}
+
 /// One-line minified JSON: an object of `members` members with small flat arrays. The printer
 /// has to break the object and measure every array on its own.
 pub fn json_flat(members: usize) -> String {

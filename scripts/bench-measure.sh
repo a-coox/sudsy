@@ -5,7 +5,7 @@
 # perf-bench build (--features count); `instr` runs each phase under callgrind and reads the
 # instructions executed between entry and exit of fixed::measured (the phase, not the set-up).
 set -euo pipefail
-src= target= inputs= out= mode= langs="json yaml toml cs"
+src= target= inputs= out= mode= langs="json yaml toml xml cs"
 while [ $# -gt 0 ]; do
   case "$1" in
     --src) src=$2 ;; --target) target=$2 ;; --inputs) inputs=$2 ;; --out) out=$2 ;;
@@ -32,7 +32,7 @@ esac
 
 phases() { # phases LANG
   case "$1" in json) echo parse format format-query lint lint-all patterns plugins ;; yaml) echo parse format format-query lint lint-all patterns ;;
-    toml) echo parse format format-query lint lint-all ;;
+    toml|xml) echo parse format format-query lint lint-all ;;
     cs) echo parse format format-query lint lint-all lint-docs patterns plugins ;; esac; }
 
 one() { # one LANG PHASE -> metric lines on stdout

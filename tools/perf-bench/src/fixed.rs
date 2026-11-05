@@ -1,7 +1,7 @@
 //! `perf-bench fixed LANG PHASE [--inputs DIR]`: one fixed, deterministic workload for scripts/bench.sh,
 //! which runs it under callgrind (instruction counts) and with `--features count` (allocations).
-//! LANG is json, yaml, toml or cs; PHASE is parse, format, format-query, lint, lint-all, lint-docs (C#), patterns or plugins. Inputs are the
-//! committed files under DIR (default bench/inputs/<lang>) plus generated JSON, YAML and TOML. Only the
+//! LANG is json, yaml, toml, xml or cs; PHASE is parse, format, format-query, lint, lint-all, lint-docs (C#), patterns or plugins. Inputs are the
+//! committed files under DIR (default bench/inputs/<lang>) plus generated JSON, YAML, TOML and XML. Only the
 //! work inside `measured` is counted; callgrind is told to collect between its entry and exit.
 
 use crate::extensions::{self, Parsed};
@@ -41,6 +41,7 @@ pub(crate) fn texts(lang: &str, dir: &Path) -> Result<Vec<(String, String)>> {
         "json" => out.push(("gen.json".into(), inputs::json(4_000))),
         "yaml" => out.push(("gen.yaml".into(), inputs::yaml(6_000))),
         "toml" => out.push(("gen.toml".into(), inputs::toml(3_000))),
+        "xml" => out.push(("gen.xml".into(), inputs::xml(2_000))),
         _ => {}
     }
     Ok(out)
@@ -62,23 +63,24 @@ fn pattern_source(lang: &str) -> String {
     }
 }
 
-/// TOML's provider, found by name so that the harness builds against any revision.
-pub(crate) fn toml_provider() -> Box<dyn LanguageProvider> {
+/// The provider of a tree-sitter language, found by name so that the harness builds against any
+/// revision.
+pub(crate) fn named_provider(language: &str) -> Box<dyn LanguageProvider> {
     languages::providers()
         .into_iter()
-        .find(|p| p.grammar().language == "toml")
-        .expect("TOML is registered")
+        .find(|p| p.grammar().language == language)
+        .unwrap_or_else(|| panic!("{language} is registered"))
 }
 
 pub(crate) fn make_provider(lang: &str) -> Result<Box<dyn LanguageProvider>> {
     Ok(match lang {
         "json" => Box::new(lang_json::JsonProvider::new()),
         "yaml" => Box::new(lang_yaml::YamlProvider::new()),
-        "toml" => toml_provider(),
+        "toml" | "xml" => named_provider(lang),
         "cs" => Box::new(lang_csharp::provider(
             &lang_csharp::locate_worker().map_err(|e| anyhow!(e))?,
         )),
-        _ => bail!("LANG is json, yaml, toml or cs"),
+        _ => bail!("LANG is json, yaml, toml, xml or cs"),
     })
 }
 
