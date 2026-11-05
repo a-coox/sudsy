@@ -5,11 +5,13 @@
 use crate::{Rule, RuleMeta};
 use std::collections::BTreeMap;
 
-/// A family: `build` makes the rule from its metadata (read from the file) and its `params`.
+/// Makes the rule from its metadata (read from the file) and its `params`.
+pub type Build = fn(&'static RuleMeta, Params) -> Result<Box<dyn Rule>, String>;
+
 #[derive(Clone, Copy)]
 pub struct Family {
     pub name: &'static str,
-    pub build: fn(&'static RuleMeta, Params) -> Result<Box<dyn Rule>, String>,
+    pub build: Build,
 }
 
 /// The `params:` of a rule file (plus its `message`, under `message`). A family takes what it
