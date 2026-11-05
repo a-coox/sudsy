@@ -53,7 +53,7 @@ for (const r of rules()) {
     ...[...new Set(r.upstream.map((u) => u.tool))].map((v) => chip('upstream', v)),
   ];
   const body = [
-    `<div class="meta">${chips.join('')}</div>`,
+    `<div class="meta" data-pagefind-sort="id[data-id]" data-id="${r.id}">${chips.join('')}</div>`,
     md(r.description),
     r.options.length &&
       '## Options\n\n' +

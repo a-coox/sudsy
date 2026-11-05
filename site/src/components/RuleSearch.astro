@@ -1,23 +1,81 @@
-<div id="rule-search"></div>
+<div id="rule-search">
+  <input type="search" placeholder="Search rules" aria-label="Search rules" />
+  <div class="filters"></div>
+  <p class="count" role="status"></p>
+  <ul class="results"></ul>
+</div>
 
 <script>
-  import { PagefindUI } from '@pagefind/default-ui';
-  import '@pagefind/default-ui/css/ui.css';
+  // Pagefind's JS API directly: the default UI shows nothing without a search term, and these
+  // filters (the data-pagefind-filter chips of the generated rule pages) must work without one.
+  const root = document.querySelector('#rule-search')!;
+  const input = root.querySelector('input')!;
+  const filterBox = root.querySelector('.filters')!;
+  const count = root.querySelector('.count')!;
+  const list = root.querySelector('.results')!;
+  const LIMIT = 50;
+  const names = ['language', 'category', 'level', 'fix', 'preset', 'upstream'];
 
-  // Pagefind's own UI: the filters are the data-pagefind-filter values of the generated pages.
-  const ui = new PagefindUI({
-    element: '#rule-search',
-    bundlePath: `${import.meta.env.BASE_URL.replace(/\/$/, '')}/pagefind/`,
-    showImages: false,
-    showSubResults: false,
-    openFilters: ['language'],
-  });
-  // `?language=csharp` (the sidebar links) preselects filters; `?q=` the search term.
   const params = new URLSearchParams(location.search);
-  const filters: Record<string, string[]> = {};
-  for (const key of ['language', 'category', 'preset', 'fix', 'level', 'upstream']) {
-    if (params.has(key)) filters[key] = params.getAll(key);
+  input.value = params.get('q') ?? '';
+  const selected: Record<string, Set<string>> = Object.fromEntries(names.map((n) => [n, new Set(params.getAll(n))]));
+  const counts: Record<string, Record<string, HTMLElement>> = {};
+
+  try {
+    const pf = await import(/* @vite-ignore */ `${import.meta.env.BASE_URL.replace(/\/$/, '')}/pagefind/pagefind.js`);
+    const all = await pf.filters();
+    // Only rule pages carry a category, so defaulting to every category leaves out the other pages.
+    const rulePages = Object.keys(all.category);
+
+    for (const name of names) {
+      const details = document.createElement('details');
+      details.open = selected[name].size > 0 || name === 'language';
+      details.append(Object.assign(document.createElement('summary'), { textContent: name }));
+      counts[name] = {};
+      for (const value of Object.keys(all[name] ?? {}).sort()) {
+        const label = document.createElement('label');
+        const box = Object.assign(document.createElement('input'), { type: 'checkbox', checked: selected[name].has(value) });
+        box.addEventListener('change', () => {
+          selected[name][box.checked ? 'add' : 'delete'](value);
+          run();
+        });
+        counts[name][value] = document.createElement('span');
+        label.append(box, ` ${value} `, counts[name][value]);
+        details.append(label);
+      }
+      filterBox.append(details);
+    }
+
+    async function run() {
+      const filters: Record<string, { any: string[] }> = { category: { any: rulePages } };
+      for (const n of names) if (selected[n].size) filters[n] = { any: [...selected[n]] };
+      const term = input.value.trim() || null;
+      const res = await pf.search(term, { filters, ...(term ? {} : { sort: { id: 'asc' } }) });
+      for (const n of names) {
+        for (const [value, el] of Object.entries(counts[n])) el.textContent = `(${res.filters[n]?.[value] ?? 0})`;
+      }
+      const shown = await Promise.all(res.results.slice(0, LIMIT).map((r: any) => r.data()));
+      count.textContent = `${res.results.length} rules` + (res.results.length > LIMIT ? `, showing the first ${LIMIT}: narrow with the filters` : '');
+      list.replaceChildren(
+        ...shown.map((d: any) => {
+          const li = document.createElement('li');
+          const a = Object.assign(document.createElement('a'), { href: d.url, textContent: d.meta.title });
+          const tags = ['language', 'category', 'level'].map((n) => d.filters[n]).flat().join(' · ');
+          const info = Object.assign(document.createElement('small'), { textContent: ` ${tags}` });
+          li.append(a, info);
+          if (term) li.insertAdjacentHTML('beforeend', `<p>${d.excerpt}</p>`); // Pagefind escapes the excerpt
+          return li;
+        }),
+      );
+    }
+    let timer: number;
+    input.addEventListener('input', () => {
+      clearTimeout(timer);
+      timer = setTimeout(run, 150);
+    });
+    run();
+  } catch (e) {
+    count.textContent = 'Search is only available in the built site (scripts/site.sh build).';
+    console.error(e);
   }
-  if (Object.keys(filters).length) ui.triggerFilters(filters);
-  if (params.has('q')) ui.triggerSearch(params.get('q'));
 </script>
