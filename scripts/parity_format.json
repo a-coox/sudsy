@@ -1,0 +1,65 @@
+{
+  "prettier": {
+    "catalog": "prettier",
+    "install": {"npm": "prettier"},
+    "command": ["node", "{prefix}/node_modules/prettier/bin/prettier.cjs", "--no-config", "--no-editorconfig", "{file}"],
+    "input": "arg",
+    "fixtures": [{"suffixes": [".json", ".jsonc", ".yaml", ".yml"]}]
+  },
+  "biome": {
+    "catalog": "biome",
+    "install": {"npm": "@biomejs/biome"},
+    "command": ["node", "{prefix}/node_modules/@biomejs/biome/bin/biome", "format", "--stdin-file-path={file}"],
+    "input": "stdin",
+    "fixtures": [{"suffixes": [".json", ".jsonc", ".yaml", ".yml"]}]
+  },
+  "taplo": {
+    "catalog": "taplo",
+    "install": {
+      "release": "https://github.com/tamasfe/taplo/releases/download/{version}/{asset}",
+      "assets": {
+        "windows": "taplo-windows-x86_64.zip",
+        "linux-x86_64": "taplo-linux-x86_64.gz",
+        "darwin-arm64": "taplo-darwin-aarch64.gz",
+        "darwin-x86_64": "taplo-darwin-x86_64.gz"
+      },
+      "exe": "taplo"
+    },
+    "fetch": ["tests/conformance/fetch-toml-corpus.sh"],
+    "command": ["{exe}", "fmt", "--no-auto-config", "-"],
+    "input": "stdin",
+    "tool_may_reject": true,
+    "fixtures": [
+      {"suffixes": [".toml"]},
+      {"dir": "tests/fixtures/toml", "suffixes": [".toml"], "prefix": "fixtures/"},
+      {"dir": "tests/conformance/corpus/toml-test/tests", "list": "files-toml-1.0.0", "starts": "valid/", "suffixes": [".toml"]}
+    ]
+  },
+  "csharpier": {
+    "catalog": "csharpier",
+    "install": {"dotnet-tool": "csharpier", "exe": "csharpier"},
+    "needs": ["worker"],
+    "command": ["{exe}", "format", "{file}"],
+    "input": "in-place",
+    "tool_may_reject": true,
+    "fixtures": [{"suffixes": [".cs"]}]
+  },
+  "csharpier-xml": {
+    "catalog": "csharpier",
+    "install": {"dotnet-tool": "csharpier", "exe": "csharpier"},
+    "fetch": ["tests/conformance/fetch-xml-projects.sh"],
+    "command": ["{exe}", "format", "{file}"],
+    "input": "in-place",
+    "tool_may_reject": true,
+    "fixtures": [
+      {"suffixes": [".csproj", ".props", ".targets", ".config", ".resx", ".xml", ".slnx", ".xaml"]},
+      {"dir": "tests/fixtures/xml", "suffixes": [".csproj", ".props", ".targets", ".config", ".resx", ".xml", ".slnx", ".xaml"], "prefix": "fixtures/"},
+      {"dir": "tests/conformance/corpus/xml-projects", "suffixes": [".csproj", ".props", ".targets", ".config", ".resx", ".xml", ".slnx", ".xaml"], "prefix": "corpus/", "recursive": true}
+    ]
+  },
+  "dotnet-format": {
+    "version_command": ["dotnet", "--version"],
+    "needs": ["worker"],
+    "kind": "editorconfig-cases"
+  }
+}

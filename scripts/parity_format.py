@@ -1,153 +1,119 @@
-"""Compares `sudsy format` with Prettier, Biome, taplo or `dotnet format whitespace` on tests/parity/<tool>/ (run by `scripts/parity.sh format`).
+"""Compares `sudsy format` with an upstream formatter on tests/parity/<tool>/ (run by `scripts/parity.sh format`).
 
-Usage: parity_format.py <prettier|biome|taplo|dotnet-format|csharpier|csharpier-xml> <version> <sudsy-binary> <tool-prefix>
+Usage: parity_format.py <tool> <sudsy-binary> <target-dir>
 
-Every fixture is formatted by the tool and by Sudsy (with the fixture folder's sudsy.yaml, which
-extends the matching preset); the outputs must be equal. A fixture listed in the folder's
-`expected-diff.txt` (`<fixture>: <reason>` per line) may differ; it is reported as known, and as
-stale when the outputs are in fact equal.
+The tools are the entries of parity_format.json (documented in docs/development/parity.md): version
+(from docs/parity/<catalog>.yaml), how to install it, its command, how it takes its input and which
+files are the fixtures. Every fixture is formatted by the tool and by Sudsy (with the fixture
+folder's sudsy.yaml, which extends the matching preset); the outputs must be equal. A fixture listed
+in the folder's `expected-diff.txt` (`<fixture>: <reason>` per line) may differ; it is reported as
+known, and as stale when the outputs are in fact equal.
 """
 import difflib
+import json
 import os
+import platform
+import re
 import shutil
 import subprocess
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-PARITY = ROOT / os.environ.get("CARGO_TARGET_DIR", "target") / "parity"
-SUFFIXES = {".json", ".jsonc", ".yaml", ".yml", ".cs", ".toml"}
 
 
-def run(cmd, cwd, stdin=None):
+def run(cmd, cwd, stdin=None, check=True):
     data = stdin.encode("utf-8") if stdin is not None else None
+    cmd = [shutil.which(cmd[0]) or cmd[0], *map(str, cmd[1:])]
     r = subprocess.run(cmd, cwd=cwd, input=data, capture_output=True, check=False)
-    if r.returncode != 0:
+    if check and r.returncode != 0:
         raise SystemExit(f"{' '.join(map(str, cmd))} failed:\n{r.stderr.decode()}{r.stdout.decode()}")
-    return r.stdout.decode("utf-8")
+    return r
 
 
-def prettier(prefix, fixture, work):
-    script = prefix / "node_modules/prettier/bin/prettier.cjs"
-    return run(["node", script, "--no-config", "--no-editorconfig", fixture.name], work)
+def catalog_version(name):
+    text = (ROOT / "docs/parity" / f"{name}.yaml").read_text(encoding="utf-8")
+    return re.search(r'^version: "([0-9][0-9.]*)', text, re.M).group(1)
 
 
-def biome(prefix, fixture, work):
-    script = prefix / "node_modules/@biomejs/biome/bin/biome"
-    text = fixture.read_bytes().decode("utf-8")
-    return run(["node", script, "format", f"--stdin-file-path={fixture.name}"], work, text)
+def executable(prefix, name):
+    exe = prefix / f"{name}.exe"
+    return exe if exe.exists() else prefix / name
 
 
-def taplo(prefix, fixture, work):
-    exe = prefix / "taplo.exe"
-    text = fixture.read_bytes().decode("utf-8")
-    try:
-        return run([exe if exe.exists() else prefix / "taplo", "fmt", "--no-auto-config", "-"], work, text)
-    except SystemExit:
-        return None  # taplo rejects the file (it is valid TOML for Sudsy)
+def install(spec, catalog, version, prefix):
+    """Installs the tool into prefix unless it is there."""
+    if "npm" in spec:
+        if not (prefix / "node_modules" / spec["npm"]).is_dir():
+            prefix.mkdir(parents=True, exist_ok=True)
+            run(["npm", "install", "--silent", "--no-audit", "--no-fund", "--prefix", prefix, f"{spec['npm']}@{version}"], ROOT)
+    elif "dotnet-tool" in spec:
+        if not executable(prefix, spec["exe"]).exists():
+            run(["dotnet", "tool", "install", spec["dotnet-tool"], "--version", version, "--tool-path", prefix], ROOT)
+    elif "release" in spec:
+        if not executable(prefix, spec["exe"]).exists():
+            prefix.mkdir(parents=True, exist_ok=True)
+            system = {"win32": "windows", "linux": "linux", "darwin": "darwin"}.get(sys.platform, sys.platform)
+            key = system if system == "windows" else f"{system}-{platform.machine().lower()}"
+            asset = spec["assets"].get(key) or sys.exit(f"parity: no {catalog} release for {key}")
+            archive = prefix / asset
+            run(["curl", "-fsSL", "-o", archive, spec["release"].format(version=version, asset=asset)], ROOT)
+            if asset.endswith(".zip"):
+                run(["unzip", "-oq", archive, "-d", prefix], ROOT)
+            else:
+                target = prefix / spec["exe"]
+                run(["gunzip", "-f", archive], ROOT)
+                (prefix / asset[: -len(".gz")]).rename(target)
+                target.chmod(0o755)
 
 
-def taplo_fixtures(folder):
-    """The folder's own fixtures, the TOML files of tests/fixtures/toml and the toml-test valid
-    files of the 1.0 list (when fetched), as (name, path); names are the keys of expected-diff.txt."""
-    out = [(p.name, p) for p in sorted(folder.glob("*.toml"))]
-    out += [(f"fixtures/{p.name}", p) for p in sorted((ROOT / "tests/fixtures/toml").glob("*.toml"))]
-    tests = ROOT / "tests/conformance/corpus/toml-test/tests"
-    if (tests / "files-toml-1.0.0").exists():
-        for rel in (tests / "files-toml-1.0.0").read_text().splitlines():
-            path = tests / rel
-            if rel.startswith("valid/") and rel.endswith(".toml"):
-                try:
-                    path.read_bytes().decode("utf-8")
-                except UnicodeDecodeError:
-                    continue
-                out.append((rel, path))
-    else:
-        print("toml-test corpus not fetched (tests/conformance/fetch-toml-corpus.sh): corpus files skipped")
+def fixtures(config, folder):
+    """The fixtures as (name, path); names are the keys of expected-diff.txt."""
+    out = []
+    for source in config["fixtures"]:
+        base = ROOT / source["dir"] if "dir" in source else folder
+        suffixes = tuple(source["suffixes"])
+        if "list" in source:
+            listing = base / source["list"]
+            if not listing.exists():
+                print(f"{source['dir']} not fetched: its files are skipped")
+                continue
+            paths = [(rel, base / rel) for rel in listing.read_text().splitlines() if rel.startswith(source["starts"])]
+        else:
+            walk = base.rglob("*") if source.get("recursive") else base.iterdir()
+            paths = [(p.relative_to(base).as_posix(), p) for p in sorted(walk) if p.is_file() and ".git" not in p.parts]
+        for rel, path in paths:
+            if not rel.endswith(suffixes) or path.name == "sudsy.yaml":
+                continue
+            try:
+                path.read_bytes().decode("utf-8")
+            except UnicodeDecodeError:
+                continue
+            out.append((source.get("prefix", "") + rel, path))
     return out
 
 
-def csharpier(prefix, fixture, work):
-    exe = prefix / "csharpier.exe"
-    # CSharpier formats in place, so it gets a copy: Sudsy formats the original.
-    theirs = work / "csharpier" / fixture.name
-    theirs.parent.mkdir(exist_ok=True)
-    shutil.copy(fixture, theirs)
-    try:
-        run([exe if exe.exists() else prefix / "csharpier", "format", theirs.name], theirs.parent)
-    except SystemExit:
-        return None  # CSharpier rejects the file
-    return theirs.read_bytes().decode("utf-8")
-
-
-XML_SUFFIXES = {".csproj", ".props", ".targets", ".config", ".resx", ".xml", ".slnx", ".xaml"}
-
-
-def xml_fixtures(folder):
-    """The folder's own files, those of tests/fixtures/xml and the fetched project files (named
-    `corpus/<path>`), as (name, path)."""
-    out = [(p.name, p) for p in sorted(folder.iterdir()) if p.suffix in XML_SUFFIXES]
-    out += [(f"fixtures/{p.name}", p) for p in sorted((ROOT / "tests/fixtures/xml").iterdir()) if p.suffix in XML_SUFFIXES]
-    corpus = ROOT / "tests/conformance/corpus/xml-projects"
-    out += [
-        (f"corpus/{p.relative_to(corpus).as_posix()}", p)
-        for p in sorted(corpus.rglob("*"))
-        if p.suffix in XML_SUFFIXES and ".git" not in p.parts
-    ]
-    return out
+def upstream(config, prefix, version, copy, work):
+    """The tool's output for the copy of a fixture, or None when it rejects the file."""
+    exe = executable(prefix, config.get("install", {}).get("exe", ""))
+    mode = config["input"]
+    text = copy.read_bytes().decode("utf-8")
+    if mode == "in-place":  # the tool rewrites its file: it gets a copy of the copy
+        copy = work / "theirs" / copy.name
+        copy.parent.mkdir(exist_ok=True)
+        shutil.copy(work / copy.name, copy)
+    command = [str(a).format(prefix=prefix, exe=exe, file=copy.name) for a in config["command"]]
+    r = run(command, copy.parent if mode == "in-place" else work, text if mode == "stdin" else None, check=False)
+    if r.returncode != 0:
+        if config.get("tool_may_reject"):
+            return None
+        raise SystemExit(f"{' '.join(command)} failed:\n{r.stderr.decode()}{r.stdout.decode()}")
+    return copy.read_bytes().decode("utf-8") if mode == "in-place" else r.stdout.decode("utf-8")
 
 
 def sudsy_format(sudsy, fixture, work):
-    try:
-        run([sudsy, "format", fixture.name], work)
-    except SystemExit:
-        return None  # Sudsy rejects the file
-    return fixture.read_bytes().decode("utf-8")
-
-
-def dotnet_format(case, work):
-    """`dotnet format whitespace` on a case folder (an `.editorconfig` and `input.cs`)."""
-    run(["dotnet", "format", "whitespace", str(case), "--folder"], work)
-    return (case / "input.cs").read_bytes().decode("utf-8")
-
-
-def dotnet_format_main(version, sudsy):
-    """One case per `<case>.editorconfig`: `<case>.cs`, else the shared `input.cs`, formatted under it."""
-    folder = ROOT / "tests/parity/dotnet-format"
-    known = expected_diffs(folder)
-    cases = sorted(p.stem for p in folder.glob("*.editorconfig"))
-    bad = 0
-    for name in cases:
-        outputs = []
-        for side in ("dotnet-format", "sudsy"):
-            case = PARITY / f"dotnet-format-work/{side}/{name}"
-            shutil.rmtree(case, ignore_errors=True)
-            case.mkdir(parents=True)
-            shutil.copy(folder / f"{name}.editorconfig", case / ".editorconfig")
-            own = folder / f"{name}.cs"
-            shutil.copy(own if own.exists() else folder / "input.cs", case / "input.cs")
-            shutil.copy(folder / "sudsy.yaml", case / "sudsy.yaml")
-            if side == "sudsy":
-                outputs.append(sudsy_format(sudsy, case / "input.cs", case))
-            else:
-                outputs.append(dotnet_format(case, case))
-        theirs, ours = outputs
-        same = theirs == ours
-        if same and name in known:
-            print(f"{name}: STALE expected-diff entry (outputs are equal)")
-            bad += 1
-        elif same:
-            print(f"{name}: ok")
-        elif name in known:
-            print(f"{name}: known difference ({known[name]})")
-        else:
-            print(f"{name}: DIFFERENT")
-            sys.stdout.writelines(
-                difflib.unified_diff(theirs.splitlines(True), ours.splitlines(True), "dotnet-format", "sudsy")
-            )
-            bad += 1
-    print(f"{len(cases)} cases, {bad} mismatch(es) (dotnet format {version})")
-    return 1 if bad else 0
+    r = run([sudsy, "format", fixture.name], work, check=False)
+    return fixture.read_bytes().decode("utf-8") if r.returncode == 0 else None  # None: Sudsy rejects the file
 
 
 def expected_diffs(folder):
@@ -161,53 +127,86 @@ def expected_diffs(folder):
     return out
 
 
+def verdict(name, theirs, ours, known, label):
+    """Prints the result of one fixture; returns 1 for a mismatch."""
+    same = theirs == ours
+    if theirs is None:
+        print(f"{name}: known difference ({known[name]})" if name in known else f"{name}: DIFFERENT (the tool rejects the file)")
+        return name not in known
+    if same and name in known:
+        print(f"{name}: STALE expected-diff entry (outputs are equal)")
+        return 1
+    if same:
+        print(f"{name}: ok")
+        return 0
+    if name in known:
+        print(f"{name}: known difference ({known[name]})")
+        return 0
+    print(f"{name}: DIFFERENT")
+    sys.stdout.writelines(difflib.unified_diff((theirs or "").splitlines(True), (ours or "").splitlines(True), label, "sudsy"))
+    return 1
+
+
+def editorconfig_cases(version, sudsy, parity):
+    """One case per `<case>.editorconfig` of tests/parity/dotnet-format: `<case>.cs`, else the
+    shared `input.cs`, formatted by `dotnet format whitespace` and by Sudsy in a folder that holds the
+    `.editorconfig` and the folder's sudsy.yaml."""
+    folder = ROOT / "tests/parity/dotnet-format"
+    known = expected_diffs(folder)
+    cases = sorted(p.stem for p in folder.glob("*.editorconfig"))
+    bad = 0
+    for name in cases:
+        outputs = []
+        for side in ("dotnet-format", "sudsy"):
+            case = parity / f"dotnet-format-work/{side}/{name}"
+            shutil.rmtree(case, ignore_errors=True)
+            case.mkdir(parents=True)
+            shutil.copy(folder / f"{name}.editorconfig", case / ".editorconfig")
+            own = folder / f"{name}.cs"
+            shutil.copy(own if own.exists() else folder / "input.cs", case / "input.cs")
+            shutil.copy(folder / "sudsy.yaml", case / "sudsy.yaml")
+            if side == "sudsy":
+                outputs.append(sudsy_format(sudsy, case / "input.cs", case))
+            else:
+                run(["dotnet", "format", "whitespace", case, "--folder"], case)
+                outputs.append((case / "input.cs").read_bytes().decode("utf-8"))
+        bad += verdict(name, *outputs, known, "dotnet-format")
+    print(f"{len(cases)} cases, {bad} mismatch(es) (dotnet format {version})")
+    return bad
+
+
 def main():
     sys.stdout.reconfigure(encoding="utf-8")
-    tool, version, sudsy, prefix = sys.argv[1:5]
-    if tool == "dotnet-format":
-        return dotnet_format_main(version, sudsy)
-    prefix = Path(prefix).resolve()
+    tool, sudsy, target = sys.argv[1:4]
+    config = json.loads((ROOT / "scripts/parity_format.json").read_text())[tool]
+    parity = Path(target).resolve() / "parity"
+    if "worker" in config.get("needs", []):
+        run(["dotnet", "build", "--nologo", "-v:q", "workers/csharp/Sudsy.Worker"], ROOT)
+        os.environ.setdefault("SUDSY_CSHARP_WORKER", str(ROOT / "workers/csharp/Sudsy.Worker/bin/Debug/net10.0/Sudsy.Worker.dll"))
+    for script in config.get("fetch", []):
+        run(["bash", script], ROOT)
+    if "catalog" in config:
+        version = catalog_version(config["catalog"])
+        prefix = parity / f"{config['catalog']}-{version}"
+        install(config["install"], config["catalog"], version, prefix)
+    else:
+        version = run(config["version_command"], ROOT).stdout.decode().strip()
+    if config.get("kind") == "editorconfig-cases":
+        return 1 if editorconfig_cases(version, sudsy, parity) else 0
     folder = ROOT / "tests/parity" / tool
-    work = PARITY / f"{tool}-work"
+    work = parity / f"{tool}-work"
     shutil.rmtree(work, ignore_errors=True)
     work.mkdir(parents=True)
     shutil.copy(folder / "sudsy.yaml", work / "sudsy.yaml")
-    upstream_format = {"prettier": prettier, "biome": biome, "csharpier": csharpier, "csharpier-xml": csharpier, "taplo": taplo}[tool]
     known = expected_diffs(folder)
-    if tool == "taplo":
-        fixtures = taplo_fixtures(folder)
-    elif tool == "csharpier-xml":
-        fixtures = xml_fixtures(folder)
-    else:
-        fixtures = sorted(
-            (p.name, p) for p in folder.iterdir() if p.suffix in SUFFIXES and p.name != "sudsy.yaml"
-        )
+    found = fixtures(config, folder)
     bad = 0
-    for name, fixture in fixtures:
+    for name, fixture in found:
         copy = work / name.replace("/", "__")
         shutil.copy(fixture, copy)
-        theirs = upstream_format(prefix, copy, work)
-        ours = sudsy_format(sudsy, copy, work)
-        same = theirs == ours
-        if theirs is None and name in known:
-            print(f"{name}: known difference ({known[name]})")
-        elif theirs is None:
-            print(f"{name}: DIFFERENT (the tool rejects the file)")
-            bad += 1
-        elif same and name in known:
-            print(f"{name}: STALE expected-diff entry (outputs are equal)")
-            bad += 1
-        elif same:
-            print(f"{name}: ok")
-        elif name in known:
-            print(f"{name}: known difference ({known[name]})")
-        else:
-            print(f"{name}: DIFFERENT")
-            sys.stdout.writelines(
-                difflib.unified_diff((theirs or "").splitlines(True), (ours or "").splitlines(True), tool, "sudsy")
-            )
-            bad += 1
-    print(f"{len(fixtures)} fixtures, {bad} mismatch(es) ({tool} {version})")
+        theirs = upstream(config, prefix, version, copy, work)
+        bad += verdict(name, theirs, sudsy_format(sudsy, copy, work), known, tool)
+    print(f"{len(found)} fixtures, {bad} mismatch(es) ({tool} {version})")
     return 1 if bad else 0
 
 

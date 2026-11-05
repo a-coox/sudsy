@@ -5,99 +5,30 @@
 # Tools: yamllint (installed at the catalog's version into a venv under target/parity/), eslint-jsonc
 # (ESLint 9 + eslint-plugin-jsonc at the catalog's version, installed with npm), stylecop
 # (StyleCop.Analyzers at the catalog's version, restored by `dotnet build` of the fixture project).
-# Format mode: scripts/parity.sh format prettier|biome|taplo|dotnet-format|csharpier|csharpier-xml (see docs/development/parity.md).
+# Format mode: scripts/parity.sh format <tool>, the tools of scripts/parity_format.json (see docs/development/parity.md).
 set -euo pipefail
 cd "$(dirname "$0")/.."
 tdir=${CARGO_TARGET_DIR:-$PWD/target}
 tool=${1:-}
 if [ "$tool" = format ]; then
   # Format mode: `sudsy format` under the matching preset against the tool's own output, on
-  # tests/parity/<tool>/. The tool is installed with npm at the catalog's version
-  # (dotnet-format is the SDK's `dotnet format whitespace`, nothing to install).
+  # tests/parity/<tool>/. The tools are the entries of scripts/parity_format.json; the runner
+  # (parity_format.py) installs the tool at the catalog's version and compares.
   tool=${2:-}
-  case "$tool" in
-    prettier|biome|taplo|dotnet-format|csharpier|csharpier-xml) ;;
-    *) echo "usage: scripts/parity.sh format prettier|biome|taplo|dotnet-format|csharpier|csharpier-xml" >&2; exit 2 ;;
-  esac
-  if [ "$tool" = csharpier ] || [ "$tool" = csharpier-xml ]; then
-    version=$(sed -nE 's/^version: "([0-9][0-9.]*).*/\1/p' docs/parity/csharpier.yaml | head -n1)
-    dir="$tdir/parity/csharpier-$version"
-    [ -x "$dir/csharpier" ] || [ -x "$dir/csharpier.exe" ] || dotnet tool install csharpier --version "$version" --tool-path "$dir"
-    if [ "$tool" = csharpier-xml ]; then
-      bash tests/conformance/fetch-xml-projects.sh >/dev/null
-    else
-      dotnet build --nologo -v:q workers/csharp/Sudsy.Worker
-      export SUDSY_CSHARP_WORKER=${SUDSY_CSHARP_WORKER:-$PWD/workers/csharp/Sudsy.Worker/bin/Debug/net10.0/Sudsy.Worker.dll}
-    fi
-    cargo build --quiet -p cli
-    sudsy=$tdir/debug/sudsy; [ -x "$sudsy" ] || sudsy=$sudsy.exe
-    py=
-    for candidate in python3 python; do
-      if "$candidate" -c 'import sys' >/dev/null 2>&1; then py=$candidate; break; fi
-    done
-    [ -n "$py" ] || { echo "parity.sh: python 3 is required" >&2; exit 2; }
-    exec "$py" scripts/parity_format.py "$tool" "$version" "$sudsy" "$dir"
-  fi
-  if [ "$tool" = taplo ]; then
-    # taplo's release binary at the catalog's version; the toml-test valid files join the fixtures.
-    version=$(sed -nE 's/^version: "([0-9][0-9.]*).*/\1/p' docs/parity/taplo.yaml | head -n1)
-    dir="$tdir/parity/taplo-$version"
-    if [ ! -x "$dir/taplo" ] && [ ! -x "$dir/taplo.exe" ]; then
-      mkdir -p "$dir"
-      case "$(uname -s)-$(uname -m)" in
-        MINGW*|MSYS*|CYGWIN*) asset=taplo-windows-x86_64.zip ;;
-        Linux-x86_64) asset=taplo-linux-x86_64.gz ;;
-        Darwin-arm64) asset=taplo-darwin-aarch64.gz ;;
-        Darwin-x86_64) asset=taplo-darwin-x86_64.gz ;;
-        *) echo "parity.sh: no taplo release for this platform" >&2; exit 2 ;;
-      esac
-      curl -fsSL -o "$dir/$asset" "https://github.com/tamasfe/taplo/releases/download/$version/$asset"
-      case "$asset" in
-        *.zip) unzip -oq "$dir/$asset" -d "$dir" ;;
-        *) gunzip -c "$dir/$asset" > "$dir/taplo"; chmod +x "$dir/taplo" ;;
-      esac
-    fi
-    bash tests/conformance/fetch-toml-corpus.sh >/dev/null
-    cargo build --quiet -p cli
-    sudsy=$tdir/debug/sudsy; [ -x "$sudsy" ] || sudsy=$sudsy.exe
-    py=
-    for candidate in python3 python; do
-      if "$candidate" -c 'import sys' >/dev/null 2>&1; then py=$candidate; break; fi
-    done
-    [ -n "$py" ] || { echo "parity.sh: python 3 is required" >&2; exit 2; }
-    exec "$py" scripts/parity_format.py taplo "$version" "$sudsy" "$dir"
-  fi
-  if [ "$tool" = dotnet-format ]; then
-    dotnet build --nologo -v:q workers/csharp/Sudsy.Worker
-    export SUDSY_CSHARP_WORKER=${SUDSY_CSHARP_WORKER:-$PWD/workers/csharp/Sudsy.Worker/bin/Debug/net10.0/Sudsy.Worker.dll}
-    cargo build --quiet -p cli
-    sudsy=$tdir/debug/sudsy; [ -x "$sudsy" ] || sudsy=$sudsy.exe
-    py=
-    for candidate in python3 python; do
-      if "$candidate" -c 'import sys' >/dev/null 2>&1; then py=$candidate; break; fi
-    done
-    [ -n "$py" ] || { echo "parity.sh: python 3 is required" >&2; exit 2; }
-    exec "$py" scripts/parity_format.py dotnet-format "$(dotnet --version)" "$sudsy" "$tdir/parity"
-  fi
-  version=$(sed -nE 's/^version: "([0-9][0-9.]*).*/\1/p' "docs/parity/$tool.yaml" | head -n1)
-  dir="$tdir/parity/$tool-$version"
-  pkg=$tool; [ "$tool" = biome ] && pkg=@biomejs/biome
-  if [ ! -d "$dir/node_modules/$pkg" ]; then
-    mkdir -p "$dir"
-    npm install --silent --no-audit --no-fund --prefix "$dir" "$pkg@$version"
-  fi
-  cargo build --quiet -p cli
-  sudsy=$tdir/debug/sudsy; [ -x "$sudsy" ] || sudsy=$sudsy.exe
   py=
   for candidate in python3 python; do
     if "$candidate" -c 'import sys' >/dev/null 2>&1; then py=$candidate; break; fi
   done
   [ -n "$py" ] || { echo "parity.sh: python 3 is required" >&2; exit 2; }
-  exec "$py" scripts/parity_format.py "$tool" "$version" "$sudsy" "$dir"
+  "$py" -c 'import json,sys; sys.exit(sys.argv[1] not in json.load(open("scripts/parity_format.json")))' "$tool" ||
+    { echo "usage: scripts/parity.sh format <$("$py" -c 'import json; print("|".join(json.load(open("scripts/parity_format.json"))))')>" >&2; exit 2; }
+  cargo build --quiet -p cli
+  sudsy=$tdir/debug/sudsy; [ -x "$sudsy" ] || sudsy=$sudsy.exe
+  exec "$py" scripts/parity_format.py "$tool" "$sudsy" "$tdir"
 fi
 case "$tool" in
   yamllint|stylecop|eslint-jsonc) ;;
-  *) echo "usage: scripts/parity.sh yamllint|stylecop|eslint-jsonc | format prettier|biome|taplo|dotnet-format|csharpier|csharpier-xml" >&2; exit 2 ;;
+  *) echo "usage: scripts/parity.sh yamllint|stylecop|eslint-jsonc | format <tool>" >&2; exit 2 ;;
 esac
 
 py=
