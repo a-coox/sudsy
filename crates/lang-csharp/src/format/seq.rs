@@ -425,9 +425,40 @@ pub fn seq_of(cx: &FormatCtx<'_>, node: &SyntaxNode, els: &[SyntaxElement]) -> R
         } else {
             Sep::None
         };
-        let body = match condition {
-            Some((open, expr, close)) => paren_group(cx, open, expr, close)?,
-            None => element_doc(cx, e)?,
+        // `foreach ( ... )`: everything up to the closing parenthesis may move below `(`.
+        let foreach_close = match e {
+            SyntaxElement::Token(open)
+                if open.kind() == k::OPEN_PAREN_TOKEN
+                    && matches!(pk, k::FOR_EACH_STATEMENT | k::FOR_EACH_VARIABLE_STATEMENT) =>
+            {
+                els[i..].iter().position(
+                    |x| matches!(x, SyntaxElement::Token(t) if t.kind() == k::CLOSE_PAREN_TOKEN),
+                )
+            }
+            _ => None,
+        };
+        let body = match (condition, foreach_close) {
+            (Some((open, expr, close)), _) => paren_group(cx, open, expr, close)?,
+            (None, Some(n)) => {
+                let (SyntaxElement::Token(open), SyntaxElement::Token(close)) = (e, &els[i + n])
+                else {
+                    unreachable!("a parenthesis token")
+                };
+                doc::concat(vec![
+                    doc::group(doc::concat(vec![
+                        cx.token(open),
+                        doc::indent(doc::concat(vec![
+                            doc::softline(),
+                            seq_of(cx, node, &els[i + 1..i + n])?,
+                        ])),
+                        doc::softline(),
+                        cx.leading_comments_doc(close),
+                        cx.token_text(close),
+                    ])),
+                    cx.trailing_comments_doc(close),
+                ])
+            }
+            (None, None) => element_doc(cx, e)?,
         };
         if sep == Sep::Embedded {
             parts.push(doc::indent(doc::concat(vec![doc::hardline(), body])));
@@ -435,7 +466,11 @@ pub fn seq_of(cx: &FormatCtx<'_>, node: &SyntaxNode, els: &[SyntaxElement]) -> R
             parts.push(sep_doc(cx, sep));
             parts.push(body);
         }
-        i += if condition.is_some() { 3 } else { 1 };
+        i += match (condition.is_some(), foreach_close) {
+            (true, _) => 3,
+            (_, Some(n)) => n + 1,
+            _ => 1,
+        };
     }
     Ok(doc::concat(parts))
 }

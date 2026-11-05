@@ -159,6 +159,7 @@ fn has_body_or_members(member: &SyntaxNode) -> bool {
             | k::RECORD_STRUCT_DECLARATION
             | k::ENUM_DECLARATION
             | k::NAMESPACE_DECLARATION
+            | k::FILE_SCOPED_NAMESPACE_DECLARATION
     )
 }
 
@@ -189,6 +190,17 @@ fn blank_between(cx: &FormatCtx<'_>, prev: &SyntaxNode, next: &SyntaxNode) -> bo
         .map(|t| comments::leading_comments(cx.grammar, &t))
         .unwrap_or_default();
     let directive = |c: &comments::Comment| c.text().trim_start().starts_with('#');
+    // A `#pragma` that follows an item without a blank line and has one after it belongs to that
+    // item: the blank line after it is the separation.
+    if leading
+        .last()
+        .is_some_and(|c| c.text().trim_start().starts_with("#pragma") && c.breaks_after >= 2)
+        && cx
+            .first_token(next)
+            .is_some_and(|t| comments::blank_lines_before(cx.grammar, &t) == 0)
+    {
+        return false;
+    }
     // A conditional directive or one that closes a region in front of the item (`#if`, `#else`,
     // `#endif`, `#endregion`): the blank line, if any, is the source's, since the item may start
     // after the directive. Other directives (`#nullable`, `#pragma`, `#region`) stay with the
@@ -440,11 +452,21 @@ pub fn switch_section(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
     } else if !statements.is_empty() {
         let on_label_line = preserve_single_line_statements(cx.options)
             && flat::follows_on_line(cx, &statements[0]);
+        // A blank line after the last label stays.
+        let blank_after_label = !on_label_line
+            && cx
+                .first_token(&statements[0])
+                .is_some_and(|t| comments::blank_lines_before(g, &t) > 0);
         parts.push(doc::indent(doc::concat(vec![
             if on_label_line {
                 doc::lit(" ")
             } else {
                 doc::hardline()
+            },
+            if blank_after_label {
+                doc::hardline()
+            } else {
+                doc::Doc::Nil
             },
             statement_sequence_with(
                 cx,

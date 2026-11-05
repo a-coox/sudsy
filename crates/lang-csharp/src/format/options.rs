@@ -38,6 +38,7 @@ pub const PRESERVE_QUERY_BREAKS: &str = "preserve_query_breaks";
 pub const INITIALIZER_EXPAND: &str = "initializer_expand";
 pub const LAMBDA_ARGUMENT_HUG: &str = "lambda_argument_hug";
 pub const CONSTRUCTOR_INITIALIZER_LINE: &str = "constructor_initializer_line";
+pub const PARAMETER_ATTRIBUTE_LAYOUT: &str = "parameter_attribute_layout";
 pub const BASE_LIST_LAYOUT: &str = "base_list_layout";
 pub const UNBREAKABLE_SINGLE_ITEM_LISTS: &str = "unbreakable_single_item_lists";
 pub const DO_WHILE_LINE: &str = "do_while_line";
@@ -174,7 +175,7 @@ pub fn option_schema() -> OptionSchema {
              `compact` moves a binary expression, a conditional or a query to the next line and \
              leaves any other value on the line; `fluid` also moves strings, collection \
              expressions and property initializers, and any other value whose first line does \
-             not fit after the operator.",
+             not fit after the operator; a string that spans lines stays on the operator's              line, and the body of an expression lambda moves below `=>` when the lambda does              not fit.",
         ),
         OptionDef::choice(
             SWITCH_ARM_LAYOUT,
@@ -245,6 +246,12 @@ pub fn option_schema() -> OptionSchema {
             "same_line",
             "The `: base(...)` or `: this(...)` initializer of a constructor: `same_line` keeps \
              it after the parameter list; `new_line` puts it on its own indented line.",
+        ),
+        OptionDef::choice(
+            PARAMETER_ATTRIBUTE_LAYOUT,
+            &["inline", "hanging"],
+            "inline",
+            "A parameter with attribute lists: `inline` keeps them in front of the parameter;              `hanging` keeps them there when the parameter fits and otherwise puts the rest of              the parameter on an indented line below them.",
         ),
         OptionDef::choice(
             BASE_LIST_LAYOUT,
@@ -530,6 +537,10 @@ pub fn expand_crowded_initializers(options: &ResolvedOptions) -> bool {
 
 pub fn hug_only_sole_lambda(options: &ResolvedOptions) -> bool {
     is(options, LAMBDA_ARGUMENT_HUG, "sole")
+}
+
+pub fn hanging_parameter_attributes(options: &ResolvedOptions) -> bool {
+    is(options, PARAMETER_ATTRIBUTE_LAYOUT, "hanging")
 }
 
 pub fn constructor_initializer_on_new_line(options: &ResolvedOptions) -> bool {

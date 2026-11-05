@@ -6,7 +6,7 @@ use super::options::{
     empty_braces, expand_crowded_initializers, hug_closing_paren, hug_only_sole_lambda,
     initializer_layout, nested_brace_on_new_line, trailing_comma,
 };
-use super::seq::{R, Sep, direct_tokens, sep_doc, separator, seq_of, sig};
+use super::seq::{R, Sep, direct_tokens, element_doc, sep_doc, separator, seq_of, sig};
 use crate::generated::kind as k;
 use core_format::shapes::{
     ListLayout, ListStyle, TrailingComma, delimited_list, delimited_list_between,
@@ -377,4 +377,26 @@ pub fn argument_list(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
         doc::lit(")"),
     ]));
     Ok(doc::conditional_group(vec![hugged, expanded]))
+}
+
+/// `parameter_attribute_layout: hanging`: the attribute lists, then the rest of the parameter on
+/// an indented line below them when the whole parameter does not fit.
+pub fn parameter_with_attributes(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
+    let els = sig(cx, node);
+    let split = els
+        .iter()
+        .position(|e| !matches!(e, SyntaxElement::Node(n) if n.kind() == k::ATTRIBUTE_LIST))
+        .unwrap_or(els.len());
+    let (lists, rest) = els.split_at(split);
+    if rest.is_empty() {
+        return seq_of(cx, node, &els);
+    }
+    let lists = lists
+        .iter()
+        .map(|e| element_doc(cx, e))
+        .collect::<Result<Vec<_>, _>>()?;
+    Ok(doc::group(doc::concat(vec![
+        doc::join(&doc::lit(" "), lists),
+        doc::indent(doc::concat(vec![doc::line(), seq_of(cx, node, rest)?])),
+    ])))
 }

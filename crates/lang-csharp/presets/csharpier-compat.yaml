@@ -18,6 +18,7 @@ csharp:
     initializer_expand: crowded
     lambda_argument_hug: sole
     constructor_initializer_line: new_line
+    parameter_attribute_layout: hanging
     base_list_layout: hanging
     unbreakable_single_item_lists: true
     do_while_line: same_line

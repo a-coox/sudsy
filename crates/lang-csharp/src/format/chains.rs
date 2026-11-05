@@ -4,7 +4,7 @@
 use super::options::{
     chain_break_on_block, fluid_assignments, indent_nested_binary, keep_accesses_with_call,
 };
-use super::seq::{R, paren_group, sig};
+use super::seq::{R, paren_group, seq_of, sig};
 use super::tags::{self, Tag};
 use crate::generated::kind as k;
 use core_format::doc::{self, Doc};
@@ -42,6 +42,10 @@ fn fluid_rhs(cx: &FormatCtx<'_>, lead: Doc, rhs: &SyntaxNode, rhs_doc: Doc) -> D
         rhs.kind(),
         k::STRING_LITERAL_EXPRESSION | k::INTERPOLATED_STRING_EXPRESSION
     );
+    // A string that spans lines starts on the line of the operator.
+    if string && !has_comment && rhs.text().contains_char('\n') {
+        return doc::concat(vec![lead, doc::lit(" "), rhs_doc]);
+    }
     if has_comment
         || property_initializer
         || string
@@ -131,6 +135,23 @@ pub fn arrow_clause(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
         ])));
     }
     with_rhs(cx, lead, op, value)
+}
+
+/// A lambda with an expression body for `assignment_layout: fluid`: the body moves to its own
+/// line when the lambda does not fit. `None` for a block body or a comment after `=>`.
+pub fn lambda(cx: &FormatCtx<'_>, node: &SyntaxNode) -> Result<Option<Doc>, FormatError> {
+    let els = sig(cx, node);
+    let Some((SyntaxElement::Node(body), head)) = els.split_last() else {
+        return Ok(None);
+    };
+    let arrow = head.last().and_then(|e| e.as_token());
+    if body.kind() == k::BLOCK || arrow.is_none_or(|op| ends_in_line_comment(cx, op)) {
+        return Ok(None);
+    }
+    Ok(Some(doc::group(doc::concat(vec![
+        seq_of(cx, node, head)?,
+        doc::indent(doc::concat(vec![doc::line(), cx.format(body)?])),
+    ]))))
 }
 
 /// `pattern => expr` in a switch expression, laid out like an assignment (`switch_arm_layout`).

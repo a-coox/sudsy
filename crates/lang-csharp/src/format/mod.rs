@@ -21,9 +21,9 @@ pub use options::{
 };
 
 use self::options::{
-    attach_comments, constructor_initializer_on_new_line, hanging_base_list,
-    inline_accessor_bodies, label_outdent, sort_usings, switch_arm_as_assignment,
-    unbreakable_single_item_lists, using_order,
+    attach_comments, constructor_initializer_on_new_line, fluid_assignments, hanging_base_list,
+    hanging_parameter_attributes, inline_accessor_bodies, label_outdent, sort_usings,
+    switch_arm_as_assignment, unbreakable_single_item_lists, using_order,
 };
 use self::tags::Tag;
 use crate::generated::kind as k;
@@ -35,14 +35,14 @@ use core_syntax::SyntaxNode;
 pub struct CSharpFormatter;
 
 /// Does the list have exactly one child node, of one of these kinds?
-fn single_child(list: &SyntaxNode, kinds: &[core_syntax::SyntaxKind]) -> bool {
-    let mut children = list.children();
+fn single_child(cx: &FormatCtx<'_>, list: &SyntaxNode, kinds: &[core_syntax::SyntaxKind]) -> bool {
+    let mut children = list.children().filter(|c| !cx.grammar.is_trivia(c.kind()));
     matches!((children.next(), children.next()), (Some(c), None) if kinds.contains(&c.kind()))
 }
 
 /// `a[0]`, `a[i]`, `a["key"]`: an index that is one name or literal never breaks.
-fn simple_index(list: &SyntaxNode) -> bool {
-    let mut args = list.children();
+fn simple_index(cx: &FormatCtx<'_>, list: &SyntaxNode) -> bool {
+    let mut args = list.children().filter(|c| !cx.grammar.is_trivia(c.kind()));
     let (Some(arg), None) = (args.next(), args.next()) else {
         return false;
     };
@@ -97,6 +97,14 @@ impl NodeFormatter for CSharpFormatter {
     ) -> Result<Option<Doc>, FormatError> {
         let kind = node.kind();
         let g = cx.grammar;
+        if matches!(
+            kind,
+            k::SIMPLE_LAMBDA_EXPRESSION | k::PARENTHESIZED_LAMBDA_EXPRESSION
+        ) && fluid_assignments(cx.options)
+            && let Some(doc) = chains::lambda(cx, node)?
+        {
+            return Ok(Some(doc));
+        }
         let doc = match kind {
             k::COMPILATION_UNIT => braces::compilation_unit(cx, node)?,
             k::FILE_SCOPED_NAMESPACE_DECLARATION => braces::file_scoped_namespace(cx, node)?,
@@ -127,15 +135,22 @@ impl NodeFormatter for CSharpFormatter {
             k::SWITCH_EXPRESSION => braces::switch_expression(cx, node)?,
             k::ENUM_DECLARATION => braces::enum_declaration(cx, node)?,
             k::ARGUMENT_LIST => lists::argument_list(cx, node)?,
+            k::PARAMETER
+                if hanging_parameter_attributes(cx.options)
+                    && node.children().any(|c| c.kind() == k::ATTRIBUTE_LIST) =>
+            {
+                lists::parameter_with_attributes(cx, node)?
+            }
             k::ATTRIBUTE_LIST
                 if unbreakable_single_item_lists(cx.options)
-                    && single_child(node, &[k::ATTRIBUTE]) =>
+                    && single_child(cx, node, &[k::ATTRIBUTE]) =>
             {
                 lists::unbreakable_list(cx, node)?
             }
             k::TYPE_ARGUMENT_LIST
                 if unbreakable_single_item_lists(cx.options)
                     && single_child(
+                        cx,
                         node,
                         &[k::PREDEFINED_TYPE, k::IDENTIFIER_NAME, k::QUALIFIED_NAME],
                     ) =>
@@ -143,7 +158,7 @@ impl NodeFormatter for CSharpFormatter {
                 lists::unbreakable_list(cx, node)?
             }
             k::BRACKETED_ARGUMENT_LIST
-                if unbreakable_single_item_lists(cx.options) && simple_index(node) =>
+                if unbreakable_single_item_lists(cx.options) && simple_index(cx, node) =>
             {
                 lists::unbreakable_list(cx, node)?
             }

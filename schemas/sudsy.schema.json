@@ -1109,7 +1109,7 @@
             },
             "assignment_layout": {
               "default": "compact",
-              "description": "Where the value after `=` or the body after `=>` goes when the line is too long: `compact` moves a binary expression, a conditional or a query to the next line and leaves any other value on the line; `fluid` also moves strings, collection expressions and property initializers, and any other value whose first line does not fit after the operator.",
+              "description": "Where the value after `=` or the body after `=>` goes when the line is too long: `compact` moves a binary expression, a conditional or a query to the next line and leaves any other value on the line; `fluid` also moves strings, collection expressions and property initializers, and any other value whose first line does not fit after the operator; a string that spans lines stays on the operator's              line, and the body of an expression lambda moves below `=>` when the lambda does              not fit.",
               "enum": [
                 "compact",
                 "fluid"
@@ -1375,6 +1375,15 @@
               "maximum": 1000,
               "minimum": 1,
               "type": "integer"
+            },
+            "parameter_attribute_layout": {
+              "default": "inline",
+              "description": "A parameter with attribute lists: `inline` keeps them in front of the parameter;              `hanging` keeps them there when the parameter fits and otherwise puts the rest of              the parameter on an indented line below them.",
+              "enum": [
+                "inline",
+                "hanging"
+              ],
+              "type": "string"
             },
             "preprocessor_symbol_sets": {
               "default": [],
@@ -1734,7 +1743,7 @@
                   },
                   "assignment_layout": {
                     "default": "compact",
-                    "description": "Where the value after `=` or the body after `=>` goes when the line is too long: `compact` moves a binary expression, a conditional or a query to the next line and leaves any other value on the line; `fluid` also moves strings, collection expressions and property initializers, and any other value whose first line does not fit after the operator.",
+                    "description": "Where the value after `=` or the body after `=>` goes when the line is too long: `compact` moves a binary expression, a conditional or a query to the next line and leaves any other value on the line; `fluid` also moves strings, collection expressions and property initializers, and any other value whose first line does not fit after the operator; a string that spans lines stays on the operator's              line, and the body of an expression lambda moves below `=>` when the lambda does              not fit.",
                     "enum": [
                       "compact",
                       "fluid"
@@ -2000,6 +2009,15 @@
                     "maximum": 1000,
                     "minimum": 1,
                     "type": "integer"
+                  },
+                  "parameter_attribute_layout": {
+                    "default": "inline",
+                    "description": "A parameter with attribute lists: `inline` keeps them in front of the parameter;              `hanging` keeps them there when the parameter fits and otherwise puts the rest of              the parameter on an indented line below them.",
+                    "enum": [
+                      "inline",
+                      "hanging"
+                    ],
+                    "type": "string"
                   },
                   "preprocessor_symbol_sets": {
                     "default": [],
