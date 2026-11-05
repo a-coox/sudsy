@@ -7,7 +7,7 @@ Formatter + linter for C#, JSON and YAML. `docs/` describes how everything works
 - .NET worker in `workers/csharp/` (net10.0, roll-forward). Grammars in `grammars/`, WIT in `wit/`, VS Code extension in `editors/vscode/`.
 
 ## Conventions
-- Code is cost. Every line, test fixture and doc line costs agent tokens to write, to read on every later task, and to update on every change. Before adding, look for what to reuse or generalize: a shared rule over grammar tags, a pattern rule (YAML) or a data row of a rule family before a Rust rule, an existing helper before a new one. Fixtures are small and focused on the rule's own cases; never copy a shared input into many folders. When a second or third copy of something appears, generalize it instead. Agents include `scripts/cost.sh` output in their final report.
+- Code is cost. Every line, test fixture and doc line costs agent tokens to write, to read on every later task, and to update on every change. Before adding, look for what to reuse or generalize: a shared rule over grammar tags, a pattern rule (YAML) or a data row of a rule family before a Rust rule, an existing helper before a new one. Fixtures are small and focused on the rule's own cases; never copy a shared input into many folders. When a second or third copy of something appears, generalize it instead.
 - Small focused modules; extract helpers instead of growing entrypoints. No duplicated logic across crates: shared behavior lives in a core crate.
 - Errors: `thiserror` in libraries, `anyhow` only in binaries (`cli`, `lsp`).
 - Snapshot tests use `insta`; fixtures live under `tests/fixtures/<lang>/` or the crate's `tests/`.
@@ -17,6 +17,13 @@ Formatter + linter for C#, JSON and YAML. `docs/` describes how everything works
 - Measure performance of everything you add or change on a hot path (load, parse, format, lint, plugins, editor requests): record method, machine and numbers in `docs/performance/numbers.md` (latest values only), behind a script or `perf-bench` mode so it can be re-run. Unmeasured is unfinished.
 - No speculative features: build what `docs/roadmap.md` does not defer and the task needs (style options needed to express a preset are not speculative). When a detail is open, pick the simplest option.
 - Docs describe current state, not history: update the relevant `docs/` file in the same commit as the change (behavior, options, numbers, roadmap items). No milestone names or "was/used to" prose.
+
+## Working as an agent
+- Own worktree and build slot (`CARGO_TARGET_DIR`, see `docs/development/dev-loop.md`); write nothing outside them (not `%TEMP%`, not another slot). Don't kill processes you did not start.
+- `scripts/gate.sh -p <crate>` while iterating, the full gate once before pushing, `scripts/bench.sh` once at the end. Check the gate's exit status before pushing (no piping into `tail`); never push after a failure. Rebase onto origin/main and fast-forward push. No tags or releases.
+- Long steps (gate, bench, corpus runs): run them in the background and wait for the completion notice; don't poll, re-arm watches or re-run a step to check on it.
+- Commit messages: a subject saying what changed, then 2-5 lines on why and what the diff does not show (behaviour change, trade-off, numbers); end with the Co-Authored-By trailer.
+- Final report: what changed, measured results, `scripts/cost.sh` output, commits, open items.
 
 ## Commands
 Run scripts in `scripts/` instead of retyping commands; reuse one before writing a new one.
