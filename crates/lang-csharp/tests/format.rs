@@ -442,7 +442,10 @@ snap!(
 snap!(
     for_semicolons_spaced,
     "class C { void M() { for (;;) { } for (int i = 0;;) { } for (; i < 3;) { } } }",
-    [("space_between_empty_for_clauses", OptionValue::Bool(true))]
+    [
+        ("space_between_empty_for_clauses", OptionValue::Bool(true)),
+        ("space_after_empty_last_for_clause", OptionValue::Bool(true))
+    ]
 );
 
 // Sorting usings ---------------------------------------------------------------------------------
@@ -522,6 +525,61 @@ using Aa;
 class C { }
 ",
     [("sort_usings", OptionValue::Bool(true))]
+);
+
+// Layout details ----------------------------------------------------------------------------------------------------
+
+snap!(
+    initializer_expand_crowded,
+    "class C { void M() { var a = new D { X = 1, Y = 2 }; var b = new D { X = 1, Y = 2, Z = 3 }; var c = new[] { new D { X = 1 }, null }; var d = new[] { 1, 2, 3 }; var e = new { A = 1, B = 2, C = 3 }; } }",
+    [("initializer_expand", OptionValue::String("crowded".into()))]
+);
+snap!(
+    chain_with_block_lambda_in_the_middle,
+    "class C { void M() { var h = Create().Configure(w => { w.Use(); }).Build(); var k = Task.Run(() => 1).Wait(); } }",
+    [("member_chain_break_on_block", OptionValue::Bool(true))]
+);
+snap!(
+    for_header_with_prefix_increment,
+    "class C { void M() { for (int i = 0; i < n; ++i) { } for (int i = n; i > 0; --i) { } } }"
+);
+
+snap!(
+    collection_blank_lines_removed,
+    "class C { void M() { var l = new List<int> {
+1,
+
+// c
+2,
+}; var o = new D {
+X = 1,
+
+Y = 2,
+}; } }",
+    [(
+        "collection_blank_lines",
+        OptionValue::String("remove".into())
+    )]
+);
+snap!(
+    blank_lines_and_directives_between_members,
+    "class C
+{
+    void A() { }
+#nullable disable
+    [Theory]
+    void B() { }
+#region R
+    int X;
+    void C1() { }
+#endregion
+    int D;
+}
+",
+    [(
+        "blank_lines_between_members",
+        OptionValue::String("separate".into())
+    )]
 );
 
 // Query breaks ------------------------------------------------------------------------------------------

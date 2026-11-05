@@ -33,7 +33,7 @@ esac
 phases() { # phases LANG
   case "$1" in json) echo parse format format-query lint lint-all patterns plugins ;; yaml) echo parse format format-query lint lint-all patterns ;;
     toml) echo parse format format-query lint lint-all ;;
-    cs) echo parse format format-query lint lint-docs patterns plugins ;; esac; }
+    cs) echo parse format format-query lint lint-all lint-docs patterns plugins ;; esac; }
 
 one() { # one LANG PHASE -> metric lines on stdout
   local lang=$1 phase=$2 res

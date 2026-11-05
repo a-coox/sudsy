@@ -1,0 +1,33 @@
+---
+source: crates/lang-csharp/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+class C
+{
+    void A() { }
+#nullable disable
+    [Theory]
+    void B() { }
+#region R
+    int X;
+    void C1() { }
+#endregion
+    int D;
+}
+
+-----
+class C
+{
+    void A() { }
+
+#nullable disable
+    [Theory]
+    void B() { }
+
+    #region R
+    int X;
+
+    void C1() { }
+    #endregion
+    int D;
+}

@@ -72,7 +72,9 @@ pub fn member_chain(chain: MemberChain) -> Doc {
         force_break,
         break_on_inner_break,
     } = chain;
-    if groups.is_empty() || (calls < min_calls && !force_break) {
+    // A short chain is never broken at the dots, unless a call in the middle has a block lambda.
+    let short = calls < min_calls && !force_break;
+    if groups.is_empty() || (short && !(break_on_inner_break && groups.len() >= 2)) {
         let mut parts = head;
         parts.extend(groups.into_iter().flatten());
         return doc::concat(parts);
@@ -84,11 +86,16 @@ pub fn member_chain(chain: MemberChain) -> Doc {
         .into_iter()
         .map(|g| doc::shared(doc::concat(g)))
         .collect();
-    let force_break = force_break
-        || (break_on_inner_break
-            && groups
-                .split_last()
-                .is_some_and(|(_, init)| init.iter().any(|g| g.clone().propagate_breaks())));
+    let inner_break = break_on_inner_break
+        && groups
+            .split_last()
+            .is_some_and(|(_, init)| init.iter().any(|g| g.clone().propagate_breaks()));
+    if short && !inner_break {
+        let mut parts = vec![head];
+        parts.extend(groups);
+        return doc::concat(parts);
+    }
+    let force_break = force_break || inner_break;
     let flat = (!force_break).then(|| {
         let mut parts = vec![head.clone()];
         parts.extend(groups.iter().cloned());

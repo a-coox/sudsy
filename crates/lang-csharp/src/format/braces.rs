@@ -184,16 +184,21 @@ fn in_member_list(cx: &FormatCtx<'_>, node: &SyntaxNode) -> bool {
 /// Does a blank line have to stand between two neighbours (the previous item's last node and the
 /// next item's first) although the source has none? The blank line options decide.
 fn blank_between(cx: &FormatCtx<'_>, prev: &SyntaxNode, next: &SyntaxNode) -> bool {
-    // A directive in front of the item (`#if`, `#endif`): the blank line, if any, is the
-    // source's, since the item may start after the directive.
     let leading = cx
         .first_token(next)
         .map(|t| comments::leading_comments(cx.grammar, &t))
         .unwrap_or_default();
-    if leading
-        .iter()
-        .any(|c| c.kind == comments::CommentKind::Directive)
-    {
+    let directive = |c: &comments::Comment| c.text().trim_start().starts_with('#');
+    // A conditional directive or one that closes a region in front of the item (`#if`, `#else`,
+    // `#endif`, `#endregion`): the blank line, if any, is the source's, since the item may start
+    // after the directive. Other directives (`#nullable`, `#pragma`, `#region`) stay with the
+    // item and a required blank line goes in front of them.
+    if leading.iter().any(|c| {
+        let t = c.text();
+        ["#if", "#el", "#endif", "#endregion"]
+            .iter()
+            .any(|d| t.trim_start().starts_with(d))
+    }) {
         return false;
     }
     let o = cx.options;
@@ -220,7 +225,8 @@ fn blank_between(cx: &FormatCtx<'_>, prev: &SyntaxNode, next: &SyntaxNode) -> bo
     }
     // Usings in a row stay in a row, comments above one of them or not.
     let usings = prev.kind() == k::USING_DIRECTIVE && next.kind() == k::USING_DIRECTIVE;
-    let decorated = !leading.is_empty() || next.children().any(|c| c.kind() == k::ATTRIBUTE_LIST);
+    let decorated = leading.iter().any(|c| !directive(c))
+        || next.children().any(|c| c.kind() == k::ATTRIBUTE_LIST);
     (decorated && !usings)
         || (!enum_member
             && if separate_all_members(o) {

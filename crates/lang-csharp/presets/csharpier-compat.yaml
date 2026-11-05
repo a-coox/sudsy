@@ -5,6 +5,7 @@ csharp:
     trailing_commas: multiline
     blank_lines_between_members: separate
     accessor_blank_lines: remove
+    collection_blank_lines: remove
     inline_accessor_bodies: true
     indent_switch_section_block: false
     assignment_layout: fluid
@@ -14,10 +15,13 @@ csharp:
     member_chain_break_on_block: true
     wrapped_brace_line: all
     initializer_collapse: always
+    initializer_expand: crowded
     lambda_argument_hug: sole
     constructor_initializer_line: new_line
     base_list_layout: hanging
     unbreakable_single_item_lists: true
     do_while_line: same_line
+    space_between_empty_for_clauses: true
+    space_after_empty_last_for_clause: true
     sort_usings: true
     derive_symbol_sets: true

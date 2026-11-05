@@ -417,14 +417,15 @@ fn has_line_comment(cx: &FormatCtx<'_>, links: &[Link]) -> bool {
 }
 
 /// Is the head short enough, or a name that reads as a type, to stay on the first line with
-/// the first call (`this.Foo()`, `Task.Run()`, `x.Foo()`)?
-fn merges_first_group(cx: &FormatCtx<'_>, head: &SyntaxNode) -> bool {
+/// the first call (`this.Foo()`, `Task.Run()`, `x.Foo()`)? A capitalized head that is itself
+/// called (`Create().Foo()`) is a call, not a type name.
+fn merges_first_group(cx: &FormatCtx<'_>, head: &SyntaxNode, called: bool) -> bool {
     match head.kind() {
         k::THIS_EXPRESSION | k::BASE_EXPRESSION | k::PREDEFINED_TYPE => true,
         k::IDENTIFIER_NAME => {
             let text = head.text().to_string();
             let text = text.trim();
-            text.chars().next().is_some_and(char::is_uppercase)
+            (!called && text.chars().next().is_some_and(char::is_uppercase))
                 || text.chars().count() <= cx.options.int("indent_size") as usize
         }
         _ => false,
@@ -477,7 +478,7 @@ pub fn member_chain(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
     } else {
         cx.options.int(super::options::MEMBER_CHAIN_MIN_CALLS) as usize
     };
-    if merges_first_group(cx, &head) && !groups.is_empty() {
+    if merges_first_group(cx, &head, head_parts.len() > 1) && !groups.is_empty() {
         head_parts.extend(groups.remove(0));
     }
     Ok(member_chain_shape(MemberChain {

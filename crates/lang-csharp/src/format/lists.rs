@@ -2,12 +2,15 @@
 //! attribute lists, and the hook that keeps a lambda as the last argument on the call's line.
 
 use super::options::{
-    anonymous_type_brace_on_new_line, creation_brace_on_new_line, empty_braces, hug_closing_paren,
-    hug_only_sole_lambda, initializer_layout, nested_brace_on_new_line, trailing_comma,
+    anonymous_type_brace_on_new_line, collection_blank_lines, creation_brace_on_new_line,
+    empty_braces, expand_crowded_initializers, hug_closing_paren, hug_only_sole_lambda,
+    initializer_layout, nested_brace_on_new_line, trailing_comma,
 };
 use super::seq::{R, Sep, direct_tokens, sep_doc, separator, seq_of, sig};
 use crate::generated::kind as k;
-use core_format::shapes::{ListStyle, TrailingComma, delimited_list, delimited_list_between};
+use core_format::shapes::{
+    ListLayout, ListStyle, TrailingComma, delimited_list, delimited_list_between,
+};
 use core_format::{Doc, FormatCtx, FormatError, comments, doc};
 use core_syntax::{SyntaxElement, SyntaxKind, SyntaxNode, SyntaxToken};
 
@@ -118,6 +121,38 @@ fn creation_parent(kind: Option<SyntaxKind>) -> bool {
     )
 }
 
+/// Does `node` (an initializer or anonymous type) create an object with an initializer, or is it
+/// an assignment of one?
+fn creates_with_initializer(node: &SyntaxNode) -> bool {
+    match node.kind() {
+        k::OBJECT_CREATION_EXPRESSION | k::IMPLICIT_OBJECT_CREATION_EXPRESSION => node
+            .children()
+            .any(|c| c.kind() == k::OBJECT_INITIALIZER_EXPRESSION),
+        k::SIMPLE_ASSIGNMENT_EXPRESSION => node
+            .children()
+            .last()
+            .is_some_and(|c| creates_with_initializer(&c)),
+        _ => false,
+    }
+}
+
+/// `initializer_expand: crowded`: three or more member assignments, or two or more items one of
+/// which creates an object with an initializer.
+fn crowded(cx: &FormatCtx<'_>, node: &SyntaxNode) -> bool {
+    let items: Vec<SyntaxNode> = node
+        .children()
+        .filter(|c| !cx.grammar.is_trivia(c.kind()))
+        .collect();
+    let assignments = items.iter().all(|c| {
+        matches!(
+            c.kind(),
+            k::SIMPLE_ASSIGNMENT_EXPRESSION | k::ANONYMOUS_OBJECT_MEMBER_DECLARATOR
+        )
+    });
+    (items.len() >= 3 && assignments)
+        || (items.len() >= 2 && items.iter().any(creates_with_initializer))
+}
+
 fn brace_style(cx: &FormatCtx<'_>, node: &SyntaxNode, close: &SyntaxToken) -> ListStyle {
     ListStyle {
         padding: true,
@@ -127,7 +162,19 @@ fn brace_style(cx: &FormatCtx<'_>, node: &SyntaxNode, close: &SyntaxToken) -> Li
         } else {
             list_trailing_comma(cx, node, close)
         },
-        layout: initializer_layout(cx.options),
+        layout: if expand_crowded_initializers(cx.options) && crowded(cx, node) {
+            ListLayout::Break
+        } else {
+            initializer_layout(cx.options)
+        },
+        max_blank_lines: if matches!(
+            node.kind(),
+            k::COLLECTION_INITIALIZER_EXPRESSION | k::ARRAY_INITIALIZER_EXPRESSION
+        ) {
+            collection_blank_lines(cx.options)
+        } else {
+            1
+        },
         empty: empty_braces(cx.options),
         ..ListStyle::default()
     }
@@ -154,6 +201,7 @@ pub fn collection_expression(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
         padding: false,
         trailing_comma: list_trailing_comma(cx, node, &close),
         layout: initializer_layout(cx.options),
+        max_blank_lines: collection_blank_lines(cx.options),
         ..ListStyle::default()
     };
     delimited_list(cx, node, &style)

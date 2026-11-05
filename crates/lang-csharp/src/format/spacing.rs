@@ -26,7 +26,15 @@ fn parent_kind(t: &SyntaxToken) -> Option<SyntaxKind> {
 pub fn space(prev: &SyntaxToken, next: &SyntaxToken, parent: SyntaxKind) -> bool {
     let (p, n) = (prev.text(), next.text());
     match n {
-        ")" | "]" | "," | ";" | "." | "?." | "::" | "->" | "++" | "--" | ".." => return false,
+        ")" | "]" | "," | ";" | "." | "?." | "::" | "->" | ".." => return false,
+        "++" | "--"
+            if matches!(
+                parent_kind(next),
+                Some(k::POST_INCREMENT_EXPRESSION | k::POST_DECREMENT_EXPRESSION)
+            ) =>
+        {
+            return false;
+        }
         _ => {}
     }
     if p == ".." && parent_kind(prev) == Some(k::SPREAD_ELEMENT) {

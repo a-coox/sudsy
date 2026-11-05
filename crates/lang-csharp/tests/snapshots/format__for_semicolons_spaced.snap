@@ -8,8 +8,8 @@ class C
 {
     void M()
     {
-        for (; ;) { }
-        for (int i = 0; ;) { }
-        for (; i < 3;) { }
+        for (; ; ) { }
+        for (int i = 0; ; ) { }
+        for (; i < 3; ) { }
     }
 }

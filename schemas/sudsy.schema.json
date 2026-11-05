@@ -1199,6 +1199,15 @@
               ],
               "type": "string"
             },
+            "collection_blank_lines": {
+              "default": "preserve",
+              "description": "Blank lines between the elements of a collection initializer, array initializer or collection expression: `preserve` keeps the source's (at most one); `remove` drops them. The members of an object initializer keep theirs.",
+              "enum": [
+                "preserve",
+                "remove"
+              ],
+              "type": "string"
+            },
             "constructor_initializer_line": {
               "default": "same_line",
               "description": "The `: base(...)` or `: this(...)` initializer of a constructor: `same_line` keeps it after the parameter list; `new_line` puts it on its own indented line.",
@@ -1302,6 +1311,15 @@
               ],
               "type": "string"
             },
+            "initializer_expand": {
+              "default": "fit",
+              "description": "Initializers (and anonymous types) that fit on a line: `fit` keeps them on it; `crowded` puts one item per line when there are three or more member assignments, or two or more items one of which creates an object with an initializer.",
+              "enum": [
+                "fit",
+                "crowded"
+              ],
+              "type": "string"
+            },
             "inline_accessor_bodies": {
               "default": false,
               "description": "Keep the body of an accessor on its line (`get { return x; }`) when it is one simple statement without comments and fits; otherwise the braces go on their own lines.",
@@ -1402,6 +1420,11 @@
             "space_after_delegate": {
               "default": true,
               "description": "A space between `delegate` and the parameter list of an anonymous method (`delegate (int x) { }`); when false `delegate(int x) { }`.",
+              "type": "boolean"
+            },
+            "space_after_empty_last_for_clause": {
+              "default": false,
+              "description": "A space before the `)` of a `for` whose last clause is empty (`for (int i = 0; i < n; )`); when false `for (int i = 0; i < n;)`.",
               "type": "boolean"
             },
             "space_between_empty_for_clauses": {
@@ -1799,6 +1822,15 @@
                     ],
                     "type": "string"
                   },
+                  "collection_blank_lines": {
+                    "default": "preserve",
+                    "description": "Blank lines between the elements of a collection initializer, array initializer or collection expression: `preserve` keeps the source's (at most one); `remove` drops them. The members of an object initializer keep theirs.",
+                    "enum": [
+                      "preserve",
+                      "remove"
+                    ],
+                    "type": "string"
+                  },
                   "constructor_initializer_line": {
                     "default": "same_line",
                     "description": "The `: base(...)` or `: this(...)` initializer of a constructor: `same_line` keeps it after the parameter list; `new_line` puts it on its own indented line.",
@@ -1902,6 +1934,15 @@
                     ],
                     "type": "string"
                   },
+                  "initializer_expand": {
+                    "default": "fit",
+                    "description": "Initializers (and anonymous types) that fit on a line: `fit` keeps them on it; `crowded` puts one item per line when there are three or more member assignments, or two or more items one of which creates an object with an initializer.",
+                    "enum": [
+                      "fit",
+                      "crowded"
+                    ],
+                    "type": "string"
+                  },
                   "inline_accessor_bodies": {
                     "default": false,
                     "description": "Keep the body of an accessor on its line (`get { return x; }`) when it is one simple statement without comments and fits; otherwise the braces go on their own lines.",
@@ -2002,6 +2043,11 @@
                   "space_after_delegate": {
                     "default": true,
                     "description": "A space between `delegate` and the parameter list of an anonymous method (`delegate (int x) { }`); when false `delegate(int x) { }`.",
+                    "type": "boolean"
+                  },
+                  "space_after_empty_last_for_clause": {
+                    "default": false,
+                    "description": "A space before the `)` of a `for` whose last clause is empty (`for (int i = 0; i < n; )`); when false `for (int i = 0; i < n;)`.",
                     "type": "boolean"
                   },
                   "space_between_empty_for_clauses": {

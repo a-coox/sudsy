@@ -1,0 +1,19 @@
+---
+source: crates/lang-csharp/tests/format.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+class C { void M() { var h = Create().Configure(w => { w.Use(); }).Build(); var k = Task.Run(() => 1).Wait(); } }
+-----
+class C
+{
+    void M()
+    {
+        var h = Create()
+            .Configure(w =>
+            {
+                w.Use();
+            })
+            .Build();
+        var k = Task.Run(() => 1).Wait();
+    }
+}

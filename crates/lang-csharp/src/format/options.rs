@@ -22,6 +22,7 @@ pub const PREPROCESSOR_SYMBOL_SETS: &str = "preprocessor_symbol_sets";
 pub const DERIVE_SYMBOL_SETS: &str = "derive_symbol_sets";
 pub const BLANK_LINES_BETWEEN_MEMBERS: &str = "blank_lines_between_members";
 pub const ACCESSOR_BLANK_LINES: &str = "accessor_blank_lines";
+pub const COLLECTION_BLANK_LINES: &str = "collection_blank_lines";
 pub const INLINE_ACCESSOR_BODIES: &str = "inline_accessor_bodies";
 pub const PRESERVE_SINGLE_LINE_BLOCKS: &str = "preserve_single_line_blocks";
 pub const PRESERVE_SINGLE_LINE_STATEMENTS: &str = "preserve_single_line_statements";
@@ -34,6 +35,7 @@ pub const MEMBER_CHAIN_BREAK_ON_BLOCK: &str = "member_chain_break_on_block";
 pub const WRAPPED_BRACE_LINE: &str = "wrapped_brace_line";
 pub const INITIALIZER_COLLAPSE: &str = "initializer_collapse";
 pub const PRESERVE_QUERY_BREAKS: &str = "preserve_query_breaks";
+pub const INITIALIZER_EXPAND: &str = "initializer_expand";
 pub const LAMBDA_ARGUMENT_HUG: &str = "lambda_argument_hug";
 pub const CONSTRUCTOR_INITIALIZER_LINE: &str = "constructor_initializer_line";
 pub const BASE_LIST_LAYOUT: &str = "base_list_layout";
@@ -47,6 +49,7 @@ pub const BLANK_LINE_BEFORE_COMMENT: &str = "blank_line_before_comment";
 pub const BLANK_LINE_AFTER_COMMENT: &str = "blank_line_after_comment";
 pub const SPACE_AFTER_DELEGATE: &str = "space_after_delegate";
 pub const SPACE_BETWEEN_EMPTY_FOR_CLAUSES: &str = "space_between_empty_for_clauses";
+pub const SPACE_AFTER_EMPTY_LAST_FOR_CLAUSE: &str = "space_after_empty_last_for_clause";
 pub const SORT_USINGS: &str = "sort_usings";
 pub const SORT_USINGS_SYSTEM_FIRST: &str = "sort_usings_system_first";
 pub const SEPARATE_USING_GROUPS: &str = "separate_using_groups";
@@ -133,6 +136,14 @@ pub fn option_schema() -> OptionSchema {
             "Blank lines between the accessors of a property that is laid out on several lines: \
              `preserve` keeps the source's (at most one); `remove` drops them.",
         ),
+        OptionDef::choice(
+            COLLECTION_BLANK_LINES,
+            &["preserve", "remove"],
+            "preserve",
+            "Blank lines between the elements of a collection initializer, array initializer or \
+             collection expression: `preserve` keeps the source's (at most one); `remove` drops \
+             them. The members of an object initializer keep theirs.",
+        ),
         OptionDef::boolean(
             INLINE_ACCESSOR_BODIES,
             false,
@@ -211,6 +222,14 @@ pub fn option_schema() -> OptionSchema {
             PRESERVE_QUERY_BREAKS,
             false,
             "A query expression with a line break in the source keeps one clause per line even when it fits on a line.",
+        ),
+        OptionDef::choice(
+            INITIALIZER_EXPAND,
+            &["fit", "crowded"],
+            "fit",
+            "Initializers (and anonymous types) that fit on a line: `fit` keeps them on it; \
+             `crowded` puts one item per line when there are three or more member assignments, or \
+             two or more items one of which creates an object with an initializer.",
         ),
         OptionDef::choice(
             LAMBDA_ARGUMENT_HUG,
@@ -337,6 +356,12 @@ pub fn option_schema() -> OptionSchema {
              (`for (; ;)`); when false `for (;;)`.",
         ),
         OptionDef::boolean(
+            SPACE_AFTER_EMPTY_LAST_FOR_CLAUSE,
+            false,
+            "A space before the `)` of a `for` whose last clause is empty (`for (int i = 0; i < n; )`); \
+             when false `for (int i = 0; i < n;)`.",
+        ),
+        OptionDef::boolean(
             SORT_USINGS,
             false,
             "Sort `using` directives like the `using-order` rule with `compare: culture_ignore_case`, \
@@ -423,6 +448,11 @@ pub fn expand_empty_bodies(options: &ResolvedOptions) -> bool {
     is(options, EMPTY_BRACES, "expanded")
 }
 
+/// Blank lines allowed between the elements of a collection (not object) initializer.
+pub fn collection_blank_lines(options: &ResolvedOptions) -> usize {
+    usize::from(!is(options, COLLECTION_BLANK_LINES, "remove"))
+}
+
 pub fn remove_accessor_blank_lines(options: &ResolvedOptions) -> bool {
     is(options, ACCESSOR_BLANK_LINES, "remove")
 }
@@ -494,6 +524,10 @@ pub fn preserve_query_breaks(options: &ResolvedOptions) -> bool {
     options.bool(PRESERVE_QUERY_BREAKS)
 }
 
+pub fn expand_crowded_initializers(options: &ResolvedOptions) -> bool {
+    is(options, INITIALIZER_EXPAND, "crowded")
+}
+
 pub fn hug_only_sole_lambda(options: &ResolvedOptions) -> bool {
     is(options, LAMBDA_ARGUMENT_HUG, "sole")
 }
@@ -539,6 +573,10 @@ pub fn using_order(options: &ResolvedOptions) -> (crate::using_sort::Order, bool
         crate::using_sort::Order::formatter(options.bool(SORT_USINGS_SYSTEM_FIRST)),
         options.bool(SEPARATE_USING_GROUPS),
     )
+}
+
+pub fn space_after_empty_last_for_clause(options: &ResolvedOptions) -> bool {
+    options.bool(SPACE_AFTER_EMPTY_LAST_FOR_CLAUSE)
 }
 
 pub fn space_between_empty_for_clauses(options: &ResolvedOptions) -> bool {
