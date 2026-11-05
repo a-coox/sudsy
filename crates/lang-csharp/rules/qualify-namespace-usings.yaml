@@ -1,0 +1,11 @@
+id: qualify-namespace-usings
+language: csharp
+family: finding
+params: { check: unqualified_using, fix-title: "Qualify the using" }
+message: "the using is not fully qualified (`{text}`)"
+description: "A `using` directive inside a namespace whose name is not written fully qualified (it resolves relative to the enclosing namespace). The fix writes the full name, unless it has type arguments."
+example: "namespace A.B { using C.D; }   // C.D is A.C.D here: write using A.C.D;"
+severity: off
+category: style
+requires: [types]
+fix-kind: safe

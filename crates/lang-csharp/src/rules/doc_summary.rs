@@ -1,20 +1,13 @@
 //! The `<summary>` rules (SA1601, SA1604-SA1608). A partial type or method is checked part by
 //! part: StyleCop accepts one documented part, which needs the whole project.
 
-use super::doc_comments::{
-    DOC_KINDS, Decl, Declaration, Documented, Element, doc_of, documented, normalized_text,
-};
+use super::doc_comments::{DOC_KINDS, Decl, Declaration, doc_of, documented, normalized_text};
 use super::kind;
 use core_rules::RuleContext;
 use core_rules::rule;
 use core_syntax::SyntaxNode;
 
 const DEFAULT_SUMMARY: &str = "Summary description for";
-
-/// The element the partial-element rules read: `<summary>`, else `<content>`.
-fn summary_or_content(d: &Documented) -> Option<&Element> {
-    d.doc.first("summary").or_else(|| d.doc.first("content"))
-}
 
 rule! {
     pub DocPartialRequired {
@@ -52,116 +45,6 @@ rule! {
         }
         for range in decl.names() {
             ctx.report(range, "partial elements should be documented");
-        }
-    }
-}
-
-rule! {
-    pub DocSummaryRequired {
-        id: "doc-summary-required",
-        category: Style,
-        default: Off,
-        description: "A documentation comment without `<summary>` (and without `<inheritdoc />`) on a type, \
-                  member or field that StyleCop's defaults ask to document: everything but private \
-                  members. Partial types and methods are `doc-partial-summary-required`. No fix.",
-        example: "/// <remarks>x</remarks>\npublic int Count;   // add a <summary>",
-        kinds: DOC_KINDS,
-    }
-
-    fn check(&self, node: &SyntaxNode, ctx: &mut RuleContext<'_>) {
-        let Some(d) = documented(node, ctx, Decl::takes_summary) else {
-            return;
-        };
-        if d.is_partial_element() || !d.needs_comment() {
-            return;
-        }
-        if d.doc.first("summary").is_some() || d.doc.has_inheritdoc() {
-            return;
-        }
-        for range in d.names() {
-            ctx.report(range, "the documentation should have a <summary>");
-        }
-    }
-}
-
-rule! {
-    pub DocPartialSummaryRequired {
-        id: "doc-partial-summary-required",
-        category: Style,
-        default: Off,
-        description: "A documentation comment of a partial type or method without `<summary>` or `<content>` \
-                  (and without `<inheritdoc />`). Each part is checked on its own. No fix.",
-        example: "/// <remarks>x</remarks>\npublic partial class A { }   // add a <summary>",
-        kinds: DOC_KINDS,
-    }
-
-    fn check(&self, node: &SyntaxNode, ctx: &mut RuleContext<'_>) {
-        let Some(d) = documented(node, ctx, Decl::takes_summary) else {
-            return;
-        };
-        if !d.is_partial_element() || !d.needs_comment() || d.doc.has_inheritdoc() {
-            return;
-        }
-        if summary_or_content(&d).is_some() {
-            return;
-        }
-        for range in d.names() {
-            ctx.report(
-                range,
-                "the documentation of a partial element should have a <summary>",
-            );
-        }
-    }
-}
-
-rule! {
-    pub DocSummaryText {
-        id: "doc-summary-text",
-        category: Style,
-        default: Off,
-        description: "A `<summary>` without text (`<summary></summary>`; `<summary />` is left alone, as StyleCop \
-                  does). Partial types and methods are `doc-partial-summary-text`. No fix.",
-        example: "/// <summary></summary>\npublic int Count;   // describe it",
-        kinds: DOC_KINDS,
-    }
-
-    fn check(&self, node: &SyntaxNode, ctx: &mut RuleContext<'_>) {
-        let Some(d) = documented(node, ctx, Decl::takes_summary) else {
-            return;
-        };
-        if d.is_partial_element() {
-            return;
-        }
-        if d.doc.first("summary").is_some_and(|s| s.is_blank(false)) {
-            for range in d.names() {
-                ctx.report(range, "the <summary> should have text");
-            }
-        }
-    }
-}
-
-rule! {
-    pub DocPartialSummaryText {
-        id: "doc-partial-summary-text",
-        category: Style,
-        default: Off,
-        description: "The `<summary>` (or `<content>`) of a partial type or method has no text. Each part is \
-                  checked on its own. No fix.",
-        example: "/// <summary></summary>\npublic partial class A { }   // describe it",
-        kinds: DOC_KINDS,
-    }
-
-    fn check(&self, node: &SyntaxNode, ctx: &mut RuleContext<'_>) {
-        let Some(d) = documented(node, ctx, Decl::takes_summary) else {
-            return;
-        };
-        if !d.is_partial_element() || d.doc.has_inheritdoc() {
-            return;
-        }
-        if summary_or_content(&d).is_some_and(|s| s.is_blank(false)) {
-            for range in d.names() {
-                ctx.report(range, "the <summary> of a partial element should have text");
-            }
         }
     }
 }

@@ -1,0 +1,9 @@
+id: doc-summary-required
+language: csharp
+family: doc-element
+params: { check: required, element: summary, scope: summary, partial: no, skip-inheritdoc: true, report: names }
+message: "the documentation should have a <summary>"
+description: "A documentation comment without `<summary>` (and without `<inheritdoc />`) on a type, member or field that StyleCop's defaults ask to document: everything but private members. Partial types and methods are `doc-partial-summary-required`. No fix."
+example: "/// <remarks>x</remarks>\npublic int Count;   // add a <summary>"
+severity: off
+category: style

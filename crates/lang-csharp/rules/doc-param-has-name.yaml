@@ -1,0 +1,9 @@
+id: doc-param-has-name
+language: csharp
+family: doc-element
+params: { check: name, element: param, scope: element, report: attribute }
+message: "the <param> should declare the parameter name"
+description: "A `<param>` without a `name` attribute, or with an empty one. No fix."
+example: "/// <param>The value.</param>   // write <param name=\"value\">\nvoid Set(int value) { }"
+severity: off
+category: style

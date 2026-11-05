@@ -1,0 +1,9 @@
+id: doc-partial-summary-text
+language: csharp
+family: doc-element
+params: { check: text, element: summary, scope: summary, partial: only, skip-inheritdoc: true, fallback: content, report: names }
+message: "the <summary> of a partial element should have text"
+description: "The `<summary>` (or `<content>`) of a partial type or method has no text. Each part is checked on its own. No fix."
+example: "/// <summary></summary>\npublic partial class A { }   // describe it"
+severity: off
+category: style

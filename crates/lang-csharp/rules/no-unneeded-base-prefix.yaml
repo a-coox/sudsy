@@ -1,0 +1,11 @@
+id: no-unneeded-base-prefix
+language: csharp
+family: finding
+params: { check: base_call, fix-title: "Use `this`" }
+message: "do not prefix the call with `base`: this type does not override the member"
+description: "`base.M()` or `base[i]` where the type does not override the member, so `this` binds to the same one. The fix writes `this`."
+example: "class B : A { void M() { base.Run(); } }   // no override of Run: write this.Run()"
+severity: off
+category: style
+requires: [types]
+fix-kind: safe

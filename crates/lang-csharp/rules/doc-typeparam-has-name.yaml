@@ -1,0 +1,9 @@
+id: doc-typeparam-has-name
+language: csharp
+family: doc-element
+params: { check: name, element: typeparam, scope: generic, skip-inheritdoc: true, report: identifier }
+message: "the <typeparam> should declare the type parameter name"
+description: "A `<typeparam>` without a `name` attribute, or with an empty one, in the documentation of a generic class, struct, interface, method or delegate. No fix."
+example: "/// <typeparam>The item.</typeparam>   // write <typeparam name=\"T\">\nvoid Add<T>() { }"
+severity: off
+category: style

@@ -2,7 +2,7 @@
 
 use crate::provider::{LanguageProvider, ParseResult, SourceFile};
 use core_patterns::SnippetParser;
-use core_rules::Rule;
+use core_rules::{Family, Rule};
 use core_syntax::{Grammar, SyntaxNode};
 use std::sync::Arc;
 
@@ -58,18 +58,25 @@ pub fn with_pattern_rules(
     sources: &[&str],
     parser: Arc<dyn SnippetParser + Send + Sync>,
 ) -> &'static [&'static dyn Rule] {
+    with_pattern_families(own, language, sources, &[], parser)
+}
+
+/// [`with_pattern_rules`] where the files may also name one of `families`.
+pub fn with_pattern_families(
+    own: &'static [&'static dyn Rule],
+    language: &str,
+    sources: &[&str],
+    families: &[Family],
+    parser: Arc<dyn SnippetParser + Send + Sync>,
+) -> &'static [&'static dyn Rule] {
     if sources.is_empty() {
         return own;
     }
     let mut rules = own.to_vec();
     for source in sources {
-        let loaded = core_patterns::load_lazy(source, language, &parser)
+        let loaded = core_patterns::load_lazy(source, language, &parser, families)
             .unwrap_or_else(|e| panic!("built-in pattern file: {e}"));
-        rules.extend(
-            loaded
-                .into_iter()
-                .map(|r| &*Box::leak(Box::new(r)) as &dyn Rule),
-        );
+        rules.extend(loaded.into_iter().map(|r| &*Box::leak(r)));
     }
     Box::leak(rules.into_boxed_slice())
 }

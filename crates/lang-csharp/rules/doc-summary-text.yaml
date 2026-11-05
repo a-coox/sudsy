@@ -1,0 +1,9 @@
+id: doc-summary-text
+language: csharp
+family: doc-element
+params: { check: text, element: summary, scope: summary, partial: no, report: names }
+message: "the <summary> should have text"
+description: "A `<summary>` without text (`<summary></summary>`; `<summary />` is left alone, as StyleCop does). Partial types and methods are `doc-partial-summary-text`. No fix."
+example: "/// <summary></summary>\npublic int Count;   // describe it"
+severity: off
+category: style

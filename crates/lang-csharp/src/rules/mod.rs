@@ -8,12 +8,14 @@ mod declarations;
 mod directives;
 mod doc_comment_space;
 mod doc_comments;
+mod doc_element;
 mod doc_summary;
 mod doc_tags;
 mod doc_text;
 mod doc_wording;
 mod empty_catch;
 mod expressions;
+mod finding;
 mod file_layout;
 mod flow;
 mod member_order;
@@ -23,8 +25,11 @@ mod syntax_forms;
 mod usings;
 
 use crate::generated::kind;
-use core_rules::Rule;
+use core_rules::{Family, Rule};
 use core_syntax::{SyntaxKind, SyntaxNode};
+
+/// The families the rule files of `rules/` name.
+pub static FAMILIES: &[Family] = &[doc_element::FAMILY, finding::FAMILY];
 
 pub static RULES: &[&dyn Rule] = &[
     &empty_catch::NoEmptyCatch,
@@ -40,20 +45,9 @@ pub static RULES: &[&dyn Rule] = &[
     &binding::UnusedPrivateMember,
     &doc_comment_space::DocCommentSpace,
     &doc_summary::DocPartialRequired,
-    &doc_summary::DocSummaryRequired,
-    &doc_summary::DocPartialSummaryRequired,
-    &doc_summary::DocSummaryText,
-    &doc_summary::DocPartialSummaryText,
     &doc_summary::NoDefaultSummary,
-    &doc_tags::DocValueText,
-    &doc_tags::DocParamHasName,
-    &doc_tags::DocParamHasText,
-    &doc_tags::DocReturnsRequired,
-    &doc_tags::DocReturnsHasText,
     &doc_tags::NoReturnsOnVoid,
     &doc_tags::DocPartialTypeparams,
-    &doc_tags::DocTypeparamHasName,
-    &doc_tags::DocTypeparamHasText,
     &doc_wording::PropertySummaryMatchesAccessors,
     &doc_wording::PropertySummaryOmitsRestrictedAccessor,
     &doc_wording::ConstructorSummaryStandardText,
@@ -77,14 +71,8 @@ pub static RULES: &[&dyn Rule] = &[
     &statements::NoCommentBeforeBlock,
     &syntax_forms::SeparateAttributes,
     &syntax_forms::NoEmptyDelegateParens,
-    &symbol_checks::NoUnneededBasePrefix,
-    &symbol_checks::NoDefaultValueTypeConstructor,
-    &symbol_checks::QualifyNamespaceUsings,
-    &symbol_checks::UseTupleSyntax,
-    &symbol_checks::TupleElementNamesInSignatures,
     &symbol_checks::DebugAssertMessage,
     &symbol_checks::DebugFailMessage,
-    &symbol_checks::InheritdocOnInheritingMember,
 ];
 
 /// Methods, constructors, local functions, lambdas and anonymous methods: what body-scope rules

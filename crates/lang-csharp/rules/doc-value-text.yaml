@@ -1,0 +1,9 @@
+id: doc-value-text
+language: csharp
+family: doc-element
+params: { check: text, element: value, scope: property, skip-inheritdoc: true, report: names }
+message: "the <value> should have text"
+description: "A property's `<value>` without text (`<value></value>`; `<value />` is left alone, as StyleCop does). Skipped when the comment has `<inheritdoc />`. No fix."
+example: "/// <value></value>\npublic int Count { get; }   // describe it"
+severity: off
+category: style

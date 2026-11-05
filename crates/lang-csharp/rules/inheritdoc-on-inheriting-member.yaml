@@ -1,0 +1,10 @@
+id: inheritdoc-on-inheriting-member
+language: csharp
+family: finding
+params: { check: inheritdoc }
+message: "`inheritdoc` is only for members that override or implement something"
+description: "`<inheritdoc />` without `cref` on a type without a base list, or on a member that neither overrides nor implements anything (a constructor whose signature matches a base constructor is fine). No fix."
+example: "/// <inheritdoc />\npublic void Run() { }   // implements nothing"
+severity: off
+category: style
+requires: [types]

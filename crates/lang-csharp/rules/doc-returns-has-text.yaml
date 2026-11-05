@@ -1,0 +1,9 @@
+id: doc-returns-has-text
+language: csharp
+family: doc-element
+params: { check: text, element: returns, scope: element, skip-inheritdoc: true, report: element }
+message: "the <returns> should have text"
+description: "A `<returns>` without text. Skipped when the comment has `<inheritdoc />`. No fix."
+example: "/// <returns></returns>   // describe the result\npublic int Count() => 0;"
+severity: off
+category: style

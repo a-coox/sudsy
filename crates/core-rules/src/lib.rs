@@ -15,6 +15,7 @@ mod declare;
 pub mod diagnostic;
 pub mod engine;
 pub mod extension;
+pub mod family;
 pub mod fixes;
 pub mod hooks;
 pub mod keys;
@@ -36,6 +37,7 @@ pub use diagnostic::{
 };
 pub use engine::{ActiveRule, FileReport, layers_needed, run_file, run_project, run_rules};
 pub use extension::{ALL_LANGUAGES, ExtensionRule, Extensions};
+pub use family::{Family, Params};
 pub use fixes::{Analysis, FixOutcome, fix_loop};
 pub use hooks::{DEFAULT_HOOKS, DefaultHooks, RuleHooks, Scalar};
 pub use layout::{Attach, LayoutRole, attached, run_layout};

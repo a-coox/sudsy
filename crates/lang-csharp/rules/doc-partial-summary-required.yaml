@@ -1,0 +1,9 @@
+id: doc-partial-summary-required
+language: csharp
+family: doc-element
+params: { check: required, element: summary, scope: summary, partial: only, skip-inheritdoc: true, fallback: content, report: names }
+message: "the documentation of a partial element should have a <summary>"
+description: "A documentation comment of a partial type or method without `<summary>` or `<content>` (and without `<inheritdoc />`). Each part is checked on its own. No fix."
+example: "/// <remarks>x</remarks>\npublic partial class A { }   // add a <summary>"
+severity: off
+category: style

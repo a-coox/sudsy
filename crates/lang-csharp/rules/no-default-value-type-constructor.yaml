@@ -1,0 +1,11 @@
+id: no-default-value-type-constructor
+language: csharp
+family: finding
+params: { check: default_value_constructor, empty: default, fix-title: "Replace the constructor call" }
+message: "do not use the default constructor of a value type: use `{text}`"
+description: "`new S()` of a value type with an implicit parameterless constructor and no initializer: write `default(S)` (`Guid.Empty`, `CancellationToken.None`, `IntPtr.Zero`, the enum member with value 0 where they exist). No fix for a target-typed `new()`."
+example: "var d = new DateTime();   // write: default(DateTime)"
+severity: off
+category: style
+requires: [types]
+fix-kind: safe

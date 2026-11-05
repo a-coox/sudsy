@@ -1,0 +1,9 @@
+id: doc-returns-required
+language: csharp
+family: doc-element
+params: { check: required, element: returns, scope: returning, skip-inheritdoc: true, report: return-type }
+message: "the return value should be documented with <returns>"
+description: "A documented method or delegate that does not return `void` and has no `<returns>` (and no `<inheritdoc />`). Private members are left alone, as in StyleCop's defaults. No fix."
+example: "/// <summary>Counts.</summary>\npublic int Count() => 0;   // add <returns>"
+severity: off
+category: style

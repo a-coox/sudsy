@@ -5,7 +5,7 @@ use crate::provider::{
 use crate::proxy::{ProxyError, WorkerConfig, WorkerProxy};
 use core_config::OptionSchema;
 use core_format::{DefaultFormatter, NodeFormatter};
-use core_rules::Rule;
+use core_rules::{Family, Rule};
 use core_semantics::{BehaviorSummaries, CompilerDiagnostic, FileSemantics, Layers};
 use core_syntax::{Grammar, LanguageId, SyntaxKind, SyntaxNode};
 
@@ -19,6 +19,7 @@ pub struct OutOfProcessProvider {
     schema: OptionSchema,
     rules: &'static [&'static dyn Rule],
     body_kinds: &'static [SyntaxKind],
+    families: &'static [Family],
     summaries: BehaviorSummaries,
 }
 
@@ -39,6 +40,7 @@ impl OutOfProcessProvider {
             schema: OptionSchema::default(),
             rules: &[],
             body_kinds: &[],
+            families: &[],
             summaries: BehaviorSummaries::default(),
         }
     }
@@ -68,6 +70,13 @@ impl OutOfProcessProvider {
         self
     }
 
+    /// The rule families the built-in pattern files may name; call before
+    /// [`with_pattern_rules`](Self::with_pattern_rules).
+    pub fn with_families(mut self, families: &'static [Family]) -> Self {
+        self.families = families;
+        self
+    }
+
     /// The language's built-in pattern rules (the `rules/*.yaml` files, as text), added to its
     /// own. Their patterns compile when a rule first runs, so building them starts no worker.
     pub fn with_pattern_rules(mut self, sources: &[&str]) -> Self {
@@ -75,10 +84,11 @@ impl OutOfProcessProvider {
             grammar: self.grammar,
             proxy: self.proxy.clone(),
         });
-        self.rules = crate::snippets::with_pattern_rules(
+        self.rules = crate::snippets::with_pattern_families(
             self.rules,
             &self.grammar.language,
             sources,
+            self.families,
             parser,
         );
         self

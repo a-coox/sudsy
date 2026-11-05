@@ -29,8 +29,8 @@ use core_config::Level;
 use core_format::Directive;
 use core_rules::tree::significant_range;
 use core_rules::{
-    Category, Check, Edit, Fix, FixKind, LayoutRole, Opt, OptionDecl, Rule, RuleContext, RuleMeta,
-    RuleOptions,
+    Category, Check, Edit, Family, Fix, FixKind, Layer, LayoutRole, Opt, OptionDecl, Params, Rule,
+    RuleContext, RuleMeta, RuleOptions,
 };
 use core_syntax::{Grammar, SyntaxKind, SyntaxNode, TextRange};
 use regex::Regex;
@@ -59,6 +59,30 @@ enum FixKindSpec {
     Safe,
     Unsafe,
     Suggestion,
+}
+
+#[derive(Clone, Copy, Debug, Deserialize)]
+#[serde(rename_all = "lowercase")]
+enum LayerSpec {
+    Binding,
+    Types,
+    Values,
+    Flow,
+    Project,
+}
+
+fn layers(specs: &[LayerSpec]) -> &'static [Layer] {
+    let layers: Vec<Layer> = specs
+        .iter()
+        .map(|l| match l {
+            LayerSpec::Binding => Layer::Binding,
+            LayerSpec::Types => Layer::Types,
+            LayerSpec::Values => Layer::Values,
+            LayerSpec::Flow => Layer::Flow,
+            LayerSpec::Project => Layer::Project,
+        })
+        .collect();
+    Box::leak(layers.into_boxed_slice())
 }
 
 #[derive(Debug, Deserialize)]
@@ -117,7 +141,16 @@ struct FileSpec {
     category: Option<CategorySpec>,
     description: Option<String>,
     example: Option<String>,
-    rule: Spec,
+    rule: Option<Spec>,
+    /// Built-in rules only: the Rust family that implements the rule, with its `params`, in
+    /// place of `rule`.
+    family: Option<String>,
+    #[serde(default)]
+    params: BTreeMap<String, String>,
+    #[serde(default)]
+    requires: Vec<LayerSpec>,
+    #[serde(default)]
+    uses: Vec<LayerSpec>,
     #[serde(default)]
     constraints: BTreeMap<String, Constraint>,
     fix: Option<String>,
@@ -355,7 +388,8 @@ fn compile_body(
     parser: &dyn SnippetParser,
     options: &[OptionDecl],
 ) -> Result<Body, String> {
-    let expr = Expr::compile(&spec.rule, parser)?;
+    let rule = spec.rule.as_ref().ok_or("the rule has no `rule:`")?;
+    let expr = Expr::compile(rule, parser)?;
     let mut captured = Vec::new();
     expr.metas(&mut captured);
     let known = |name: &str| captured.iter().any(|m| m.name == name);
@@ -469,8 +503,8 @@ fn meta_of(spec: &FileSpec) -> Result<&'static RuleMeta, String> {
     let example = spec.example.clone().unwrap_or_else(|| {
         let pattern = spec
             .rule
-            .pattern
-            .as_deref()
+            .as_ref()
+            .and_then(|r| r.pattern.as_deref())
             .unwrap_or("(see the rule file)");
         format!("{pattern}\n{summary}")
     });
@@ -486,9 +520,13 @@ fn meta_of(spec: &FileSpec) -> Result<&'static RuleMeta, String> {
         description: leak(description),
         example: leak(example),
         default_level: spec.severity.unwrap_or(Level::Warn),
-        fix: spec.fix.as_ref().map(|_| fix_kind(spec.fix_kind)),
-        requires: &[],
-        uses: &[],
+        fix: if spec.family.is_some() {
+            spec.fix_kind.map(|k| fix_kind(Some(k)))
+        } else {
+            spec.fix.as_ref().map(|_| fix_kind(spec.fix_kind))
+        },
+        requires: layers(&spec.requires),
+        uses: layers(&spec.uses),
         options: declared_options(&spec.options)?,
     })))
 }
@@ -506,6 +544,26 @@ fn read_specs(source: &str) -> Result<Vec<FileSpec>, PatternError> {
     if specs.is_empty() {
         return Err(PatternError("the file holds no rule".into()));
     }
+    for s in &specs {
+        let pattern_keys = s.rule.is_some()
+            || s.fix.is_some()
+            || !s.layout.is_empty()
+            || s.report_on.is_some()
+            || !s.constraints.is_empty();
+        let err = |m: &str| Err(PatternError(format!("rule `{}`: {m}", s.id)));
+        match (&s.family, pattern_keys) {
+            (Some(_), true) => {
+                return err(
+                    "`family` takes `params`, not `rule`, `fix`, `layout`, `constraints` or `report-on`",
+                );
+            }
+            (None, _) if !s.params.is_empty() => return err("`params` go with `family`"),
+            (None, _) if s.rule.is_none() => {
+                return err("give the rule a `rule:` (or a `family:`)");
+            }
+            _ => {}
+        }
+    }
     Ok(specs)
 }
 
@@ -519,6 +577,11 @@ pub fn load<'p>(
         .into_iter()
         .map(|spec| {
             let (id, language) = (spec.id.clone(), spec.language.clone());
+            if spec.family.is_some() {
+                return Err(PatternError(format!(
+                    "rule `{id}`: `family` is for built-in rules"
+                )));
+            }
             let parser = parser_of(&language).ok_or_else(|| {
                 PatternError(format!("rule `{id}`: unknown language `{language}`"))
             })?;
@@ -545,12 +608,14 @@ fn compile_eager(spec: FileSpec, parser: &dyn SnippetParser) -> Result<PatternRu
 /// Reads the rules of a built-in rule file, of `language`, without compiling their patterns:
 /// the metadata (options included) is there at once, and the patterns compile when the rule
 /// first runs, through `parser`. Compiling parses snippets with the language's provider, which
-/// for C# starts the worker, so a run that never lints C# never pays for it.
+/// for C# starts the worker, so a run that never lints C# never pays for it. A rule with `family`
+/// is built by that one of `families` instead (it has no patterns).
 pub fn load_lazy(
     source: &str,
     language: &str,
     parser: &Arc<dyn SnippetParser + Send + Sync>,
-) -> Result<Vec<PatternRule>, PatternError> {
+    families: &[Family],
+) -> Result<Vec<Box<dyn Rule>>, PatternError> {
     read_specs(source)?
         .into_iter()
         .map(|spec| {
@@ -560,7 +625,14 @@ pub fn load_lazy(
                 return Err(err(format!("language must be `{language}`")));
             }
             let meta = meta_of(&spec).map_err(err)?;
-            Ok(PatternRule {
+            if let Some(name) = &spec.family {
+                let family = families.iter().find(|f| f.name == *name);
+                let family = family.ok_or_else(|| err(format!("unknown family `{name}`")))?;
+                let mut params = spec.params.clone();
+                params.extend(spec.message.clone().map(|m| ("message".to_string(), m)));
+                return (family.build)(meta, Params::new(params)).map_err(err);
+            }
+            Ok(Box::new(PatternRule {
                 meta,
                 message: spec.message.clone(),
                 has_layout: !spec.layout.is_empty(),
@@ -570,7 +642,7 @@ pub fn load_lazy(
                     spec,
                     parser: parser.clone(),
                 }),
-            })
+            }) as Box<dyn Rule>)
         })
         .collect()
 }

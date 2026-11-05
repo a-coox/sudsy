@@ -94,4 +94,22 @@ rule:
 ## Built-in pattern rules
 A language crate ships rules as pattern files: `crates/lang-<language>/rules/*.yaml` (every language). Adding a file is the whole change: the crate's `build = "../../build/embed-rules.rs"` lists the directory for `include_str!` (`provider_api::pattern_files!()`), the provider hands the text to `provider_api::with_pattern_rules` with its Rust rules (`OutOfProcessProvider::with_pattern_rules`, `Spec::pattern_files`), and they are built-in rules in every respect (`sudsy rules`, the generated rule table and schema, levels, suppressions, fixes). They use the same format and features as a user's file; `severity` is the default level and a rule that is off by default says `severity: off`.
 
-The YAML is read when the provider is built (metadata and options need nothing more); the patterns compile when the rule first runs, through the provider's worker, once per process. A run that never lints that language never starts its worker for them. If the compile fails then (the worker is down), the rule is skipped for that file, the failure is not remembered (the next file tries again) and it is reported once per run through the same warning as an unavailable semantic model (`Rule::unavailable`). A broken file is a bug: `every_embedded_pattern_compiles` (`crates/lang-csharp/tests/builtin_patterns.rs`) compiles all of them. A rule that needs semantics, flow, project scope or logic a pattern cannot say stays in Rust; the fixture folder under `tests/rules/<language>/<id>/` is the same either way.
+The YAML is read when the provider is built (metadata and options need nothing more); the patterns compile when the rule first runs, through the provider's worker, once per process. A run that never lints that language never starts its worker for them. If the compile fails then (the worker is down), the rule is skipped for that file, the failure is not remembered (the next file tries again) and it is reported once per run through the same warning as an unavailable semantic model (`Rule::unavailable`). A broken file is a bug: `every_embedded_pattern_compiles` (`crates/lang-csharp/tests/builtin_patterns.rs`) compiles all of them. A rule that needs semantics, flow, project scope or logic a pattern cannot say stays in Rust; its fixtures under `tests/rules/<language>/` are the same either way.
+
+### Families
+A built-in file can instead name a family, Rust code that implements a group of similar rules, and give it `params`:
+
+```yaml
+id: doc-param-has-text
+language: csharp
+family: doc-element
+params: { check: text, element: param, scope: element, skip-inheritdoc: true, report: element }
+message: the <param> should have text
+description: ...
+example: ...
+severity: off
+category: style
+requires: [types]      # optional, patterns too: layers the rule needs (`uses`: layers it improves with)
+fix-kind: safe         # a family rule that fixes
+```
+The provider lists its families (`OutOfProcessProvider::with_families`; `Family` and `Params` are in `core-rules`); a family builds the rule from its metadata, the file's `message` and its params, and rejects unknown ones, which `every_embedded_pattern_compiles` catches. Everything else (id, severity, options, description) is the file's, so a family rule is a built-in rule in every respect. `rule`, `fix` and the other pattern keys do not go with `family`. C# families: `doc-element` (a documentation element must exist, have text or declare a name; params in `rules/doc_element.rs`) and `finding` (reports what a worker check found).

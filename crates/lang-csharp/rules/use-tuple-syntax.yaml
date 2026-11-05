@@ -1,0 +1,11 @@
+id: use-tuple-syntax
+language: csharp
+family: finding
+params: { check: value_tuple, fix-title: "Use tuple syntax" }
+message: "use tuple syntax instead of `ValueTuple`"
+description: "`ValueTuple<int, int>` and `ValueTuple.Create(a, b)` where tuple syntax `(int, int)` and `(a, b)` is available (not inside an expression tree). The fix is offered for types and `ValueTuple.Create` calls."
+example: "ValueTuple<int, int> p;   // write: (int, int) p;"
+severity: off
+category: style
+requires: [types]
+fix-kind: safe

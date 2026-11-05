@@ -1,0 +1,9 @@
+id: doc-param-has-text
+language: csharp
+family: doc-element
+params: { check: text, element: param, scope: element, skip-inheritdoc: true, report: element }
+message: "the <param> should have text"
+description: "A `<param>` without text. Skipped when the comment has `<inheritdoc />`. No fix."
+example: "/// <param name=\"value\"></param>   // describe the parameter\nvoid Set(int value) { }"
+severity: off
+category: style
