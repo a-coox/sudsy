@@ -118,6 +118,9 @@ Method: `CARGO_TARGET_DIR=C:/Coding/.sudsy-targets/slot1`, Git Bash, wall second
 | `scripts/parity.sh yamllint` (venv install + CLI build reused) | 86 s | |
 | `scripts/gate.sh -p lang-json` from another checkout path with the warm slot | | 38 s (only workspace crates and a few small dependencies recompile; wasmtime and cranelift are reused) |
 
+## Documentation site (`scripts/site.sh scale-test`, [development/site.md](../development/site.md))
+Astro 7.4.7 + Starlight 0.42.9, same machine, Node 24, one run, 10 000 synthetic rules (copies of the 101 real ones with unique ids): 21 986 pages (rules, upstream-id stubs, fixed pages), full build 165 s, output 690 MB (about 31 KB per page; GitHub Pages allows 1 GB), Pagefind index 50 MB. The real 101 rules: 225 pages, 8 s with `npm ci` cached.
+
 ## Not measured repeatably
 - LSP completion/hover/format request latency in `bench.sh`.
 - Config load and discovery on a large repository.

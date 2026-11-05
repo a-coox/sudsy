@@ -1,0 +1,23 @@
+<div id="rule-search"></div>
+
+<script>
+  import { PagefindUI } from '@pagefind/default-ui';
+  import '@pagefind/default-ui/css/ui.css';
+
+  // Pagefind's own UI: the filters are the data-pagefind-filter values of the generated pages.
+  const ui = new PagefindUI({
+    element: '#rule-search',
+    bundlePath: `${import.meta.env.BASE_URL.replace(/\/$/, '')}/pagefind/`,
+    showImages: false,
+    showSubResults: false,
+    openFilters: ['language'],
+  });
+  // `?language=csharp` (the sidebar links) preselects filters; `?q=` the search term.
+  const params = new URLSearchParams(location.search);
+  const filters: Record<string, string[]> = {};
+  for (const key of ['language', 'category', 'preset', 'fix', 'level', 'upstream']) {
+    if (params.has(key)) filters[key] = params.getAll(key);
+  }
+  if (Object.keys(filters).length) ui.triggerFilters(filters);
+  if (params.has('q')) ui.triggerSearch(params.get('q'));
+</script>

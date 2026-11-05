@@ -86,7 +86,7 @@ Any editor with an LSP client can start `sudsy lsp` (stdio). See [docs/editor/vs
 
 ## Documentation
 
-[docs/README.md](docs/README.md) indexes everything: architecture, per-language formatting options, the rule engine and built-in rules, pattern rules, plugins, performance, CI and release. Planned and deliberately skipped work: [docs/roadmap.md](docs/roadmap.md). Changes: [CHANGELOG.md](CHANGELOG.md).
+[docs/README.md](docs/README.md) indexes everything: architecture, per-language formatting options, the rule engine and built-in rules, pattern rules, plugins, performance, CI and release. The rule reference is also built as a searchable site ([docs/development/site.md](docs/development/site.md)). Planned and deliberately skipped work: [docs/roadmap.md](docs/roadmap.md). Changes: [CHANGELOG.md](CHANGELOG.md).
 
 ## License and contributing
 
