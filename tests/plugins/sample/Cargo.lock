@@ -343,7 +343,6 @@ dependencies = [
  "core-config",
  "core-flow",
  "core-format",
- "core-patterns",
  "core-rules",
  "core-semantics",
  "core-syntax",
