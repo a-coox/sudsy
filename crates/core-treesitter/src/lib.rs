@@ -42,7 +42,7 @@ pub struct Mapping {
 #[derive(Clone, Copy)]
 enum Entry {
     Node(SyntaxKind),
-    Token(SyntaxKind, Option<SyntaxKind>),
+    Token(SyntaxKind, Option<SyntaxKind>, bool),
     Trivia(SyntaxKind),
     Transparent,
 }
@@ -93,6 +93,7 @@ impl Converter {
                             .iter()
                             .find(|(t, _)| t == target)
                             .map(|(_, w)| kind(w)),
+                        grammar.has_tag(k, "checked"),
                     ),
                     (true, true) => Entry::Trivia(k),
                 };
@@ -111,7 +112,7 @@ impl Converter {
 
     fn convert(&self, src: &str, root: Node) -> ParseResult {
         let mut s = Scan::default();
-        self.scan(root, &mut s);
+        self.scan(src, root, &mut s);
         // The root's last event is its Exit: the Eof token goes just before it.
         s.real.push(Tok {
             kind: self.eof,
@@ -130,11 +131,11 @@ impl Converter {
     }
 
     /// Depth-first walk collecting structure events, real tokens, comments and errors.
-    fn scan(&self, root: Node, s: &mut Scan) {
+    fn scan(&self, src: &str, root: Node, s: &mut Scan) {
         let mut cursor = root.walk();
         let mut pushed_stack: Vec<bool> = Vec::new();
         loop {
-            let (pushed, descend) = self.enter(cursor.node(), s);
+            let (pushed, descend) = self.enter(src, cursor.node(), s);
             if descend && cursor.goto_first_child() {
                 pushed_stack.push(pushed);
                 continue;
@@ -157,7 +158,7 @@ impl Converter {
     }
 
     /// Returns (a node was opened, descend into the children).
-    fn enter(&self, n: Node, s: &mut Scan) -> (bool, bool) {
+    fn enter(&self, src: &str, n: Node, s: &mut Scan) -> (bool, bool) {
         let (start, end) = (n.start_byte(), n.end_byte());
         let id = n.kind_id() as usize;
         let name = self.names.get(id).map_or("?", String::as_str);
@@ -182,8 +183,16 @@ impl Converter {
                 s.evs.push(Ev::Enter(k));
                 (true, true)
             }
-            Entry::Token(kind, wrap) => {
-                if end > start {
+            Entry::Token(kind, wrap, string) => {
+                // The children of a token are swallowed: an error inside a `#checked` token is reported here.
+                if string && n.has_error() {
+                    s.error(start, end - start, "syntax error".into());
+                }
+                // Blank text (XML character data between tags) is whitespace trivia, not a token.
+                let blank = src.as_bytes()[start..end]
+                    .iter()
+                    .all(|b| matches!(b, b' ' | b'\t' | b'\n' | b'\r'));
+                if !blank {
                     let wrap = wrap.filter(|w| !self.parent_is(n, *w));
                     s.evs.extend(wrap.map(Ev::Enter));
                     s.token(Tok { kind, start, end });
