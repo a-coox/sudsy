@@ -19,6 +19,7 @@
     "onLanguage:yaml",
     "onLanguage:toml",
     "onLanguage:xml",
+    "onLanguage:markdown",
     "onLanguage:csharp",
     "workspaceContains:**/sudsy.{yaml,yml}"
   ],

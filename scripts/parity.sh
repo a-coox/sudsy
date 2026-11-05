@@ -27,8 +27,8 @@ if [ "$tool" = format ]; then
   exec "$py" scripts/parity_format.py "$tool" "$sudsy" "$tdir"
 fi
 case "$tool" in
-  yamllint|stylecop|eslint-jsonc) ;;
-  *) echo "usage: scripts/parity.sh yamllint|stylecop|eslint-jsonc | format <tool>" >&2; exit 2 ;;
+  yamllint|stylecop|eslint-jsonc|markdownlint) ;;
+  *) echo "usage: scripts/parity.sh yamllint|stylecop|eslint-jsonc|markdownlint | format <tool>" >&2; exit 2 ;;
 esac
 
 py=
@@ -45,7 +45,7 @@ case "$tool" in
 esac
 venv="$tdir/parity/$tool-$version"
 # eslint-jsonc: the npm install lives in that folder; PyYAML for the comparison goes below it.
-[ "$tool" = eslint-jsonc ] && venv="$venv/venv"
+[ "$tool" = eslint-jsonc ] || [ "$tool" = markdownlint ] && venv="$venv/venv"
 if [ ! -d "$venv" ]; then
   "$py" -m venv "$venv"
   vpy="$venv/bin/python"; [ -x "$vpy" ] || vpy="$venv/Scripts/python.exe"
@@ -60,6 +60,14 @@ if [ "$tool" = eslint-jsonc ]; then
   if [ ! -d "$dir/node_modules/eslint-plugin-jsonc" ]; then
     mkdir -p "$dir"
     npm install --silent --no-audit --no-fund --prefix "$dir" eslint@9 "eslint-plugin-jsonc@$version"
+  fi
+fi
+if [ "$tool" = markdownlint ]; then
+  # markdownlint-cli2 at the catalog's version (needs Node and network on first use).
+  dir="$tdir/parity/markdownlint-$version"
+  if [ ! -d "$dir/node_modules/markdownlint-cli2" ]; then
+    mkdir -p "$dir"
+    npm install --silent --no-audit --no-fund --prefix "$dir" "markdownlint-cli2@$version"
   fi
 fi
 if [ "$tool" = stylecop ]; then

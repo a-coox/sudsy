@@ -1,0 +1,13 @@
+---
+source: crates/lang-markdown/tests/markdown.rs
+expression: "fmt(\"<div>\\n  raw   html\\n</div>\\n\\n`code   span` and <b>x</b> and http://a/_b_c\\n\\n    indented   code\\n\\n[ref]: http://x  \\\"t\\\"\\n\")"
+---
+<div>
+  raw   html
+</div>
+
+`code   span` and <b>x</b> and http://a/_b_c
+
+    indented   code
+
+[ref]: http://x "t"

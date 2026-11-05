@@ -1,0 +1,30 @@
+[package]
+name = "lang-markdown"
+edition.workspace = true
+license.workspace = true
+version.workspace = true
+publish.workspace = true
+build = "../../build/lang-crate.rs"
+
+[dependencies]
+core-config.workspace = true
+core-format.workspace = true
+core-rules.workspace = true
+core-syntax.workspace = true
+core-treesitter.workspace = true
+provider-api.workspace = true
+rowan.workspace = true
+tree-sitter.workspace = true
+tree-sitter-md.workspace = true
+unicode-width.workspace = true
+
+[dev-dependencies]
+insta.workspace = true
+pulldown-cmark.workspace = true
+serde_json.workspace = true
+
+[build-dependencies]
+core-syntax.workspace = true
+
+[lints]
+workspace = true

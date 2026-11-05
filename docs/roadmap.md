@@ -10,7 +10,7 @@ One line each; none is committed.
 - `MSBuildWorkspace` / project- and NuGet-aware binding with syntax-only fallback (replaces `Workspace.cs` without a protocol change).
 - Point queries (`symbol_of`, `type_of(span)`) and the pattern predicate `type_matches` that needs them.
 - Taint and resource-state analyses on `core-flow`; call-graph rules; `must_use_result`, ownership and taint summaries; a consumer for `pure`.
-- Embedded-language detection (tree, wire and plugin interface already support the node).
+- Embedded-language detection: formatting and linting the code of Markdown fences and Razor with the language they name (tree, wire and plugin interface already support the node; the composite adapter parses Markdown's inline text, see [architecture/adding-a-language.md](architecture/adding-a-language.md#composite-languages)).
 - `preprocessor_symbols` come from config only, language version is not configurable.
 - Rules: `var-preference`, `prefer-collection-expression`; a rename fix for `async-suffix`; rules using reaching definitions / definite assignment.
 - Semantic requests in parallel (one workspace per core).

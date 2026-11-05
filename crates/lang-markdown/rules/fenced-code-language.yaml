@@ -1,0 +1,11 @@
+id: fenced-code-language
+language: markdown
+message: the fenced code block has no language
+description: >-
+  A fenced code block without an info string (markdownlint MD040); name the language, or `text`.
+example: 'a fence with no word after it'
+severity: warn
+category: style
+rule:
+  kind: FencedCode
+  regex: '\A(?:`{3,}|~{3,})[ \t]*(?:\n|\z)'

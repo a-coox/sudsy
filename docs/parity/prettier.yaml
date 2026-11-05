@@ -1,13 +1,13 @@
 tool: "prettier"
 version: "3.9.10 (npm latest; the options page does not print the version)"
-languages: ["yaml", "json"]
+languages: ["yaml", "json", "markdown"]
 sources:
   - "https://registry.npmjs.org/prettier/latest"
   - "https://prettier.io/docs/options"
   - "https://prettier.io/docs/rationale"
   - "https://raw.githubusercontent.com/prettier/prettier/main/src/language-yaml/options.js (YAML-specific options: bracketSpacing, singleQuote, proseWrap)"
   - "https://prettier.io/blog/2024/01/12/3.2.0"
-scope: "YAML and JSON/JSONC only; formatter has no lint rules"
+scope: "YAML, JSON/JSONC and Markdown only; formatter has no lint rules"
 legend:
   sudsy: "rule: <id> | option: <language>.format.<name> | formatter | sdk: <id> | config: <text> | planned | deferred | wontfix: <reason>"
   coverage: "covered | partial | missing | sdk | wontfix | deferred (planned counts as missing; partial keeps its primary mapping and states the gap)"
@@ -235,3 +235,14 @@ entries:
     sudsy: "formatter"
     coverage: "covered"
     notes: "`sudsy-ignore` before an entry and `-start`/`-end` pairs in block collections (YAML); JSONC comment markers."
+  - id: "markdown: formatting at proseWrap=preserve"
+    name: "Markdown"
+    default: "automatic"
+    kind: "format-option"
+    sudsy: "formatter"
+    coverage: "covered"
+    notes: "`markdown/prettier-compat` against Prettier 3.9 with embeddedLanguageFormatting=off on the repo's docs, a fixture and 23 files of dotnet/runtime docs: 56 of 64 identical (`scripts/parity.sh format prettier`). Setext headings, escapes and code stay as written, as in Prettier 3.9."
+    gap: "Code spans with three backticks, blocks with tabs and lists that would parse differently when restyled are kept as written; trailing blanks in code are kept; no front matter or embedded code formatting."
+    priority: "p2"
+    batch: "B14 markdown-defaults"
+    usage: "medium"

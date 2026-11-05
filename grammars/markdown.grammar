@@ -1,0 +1,69 @@
+// Markdown (CommonMark, GFM tables and task lists, front matter), parsed by tree-sitter-md's block
+// and inline grammars (the inline one inside Inline and Cell) and mapped by crates/lang-markdown/src/mapping.rs.
+// Format: see crates/core-syntax/src/grammar/mod.rs.
+
+language markdown 6 "Markdown"
+comments block "<!--" "-->"
+suppress disable-next-line "sudsy-disable-next-line"
+suppress disable-line "sudsy-disable-line"
+suppress disable "sudsy-disable"
+suppress enable "sudsy-enable"
+suppress disable-file "sudsy-disable-file"
+suppress ignore "sudsy-ignore"
+
+token Whitespace #trivia #whitespace
+token Newline #trivia #newline
+// Quote prefixes (`> `) carved out of the text of a paragraph's lines.
+token Prefix #trivia
+// Markers the formatter rewrites in ways that move or add tokens: heading `#`s and setext underlines.
+token Marker #trivia
+
+// A line of prose between the tokens below, blanks trimmed. The formatter escapes `*` and `_`.
+token Text #restyle
+// Raw multi-line text: re-indented into the container it is in, otherwise kept (MarkdownFormatter::extra_check).
+token CodeText #restyle
+token IndentedCode #restyle
+token HtmlBlock #restyle
+token FrontMatter
+token HtmlComment #comment #restyle
+token Fence #restyle
+token Info
+token LinkDef #restyle
+token ThematicBreak #restyle
+token ListMarker #restyle
+token TaskMarker #restyle
+token QuoteMarker #restyle
+token Pipe #punctuation #separator
+token TableDelimiter #restyle
+token EmphasisDelim #restyle
+token Strike #punctuation
+token CodeSpan #restyle
+token HtmlInline
+token HardBreak
+token Autolink
+token LinkDest
+token LinkTitle
+token LinkLabel
+
+token Eof
+token Unknown #error
+
+node Document = items:#block-item* Eof
+node Heading #block-item = Inline
+node BlockQuote #block-item = QuoteMarker items:#block-item*
+node List #block-item = items:ListItem*
+node ListItem = ListMarker TaskMarker? items:#block-item*
+node FencedCode #block-item = Fence Info? CodeText? Fence?
+node Table #block-item = rows:TableRow*
+node TableRow = Pipe Cell*
+node Cell = items:#inline-item*
+// A paragraph, or the text of a heading.
+node Inline #block-item = items:#inline-item*
+// Wrap the tokens of the same names so that rules (which match nodes) can see them.
+node Html #block-item #inline-item = value:HtmlBlock
+node Code #inline-item = CodeSpan
+node Emphasis #inline-item = EmphasisDelim items:#inline-item* EmphasisDelim
+node Strong #inline-item = EmphasisDelim items:#inline-item* EmphasisDelim
+node Strikethrough #inline-item = Strike items:#inline-item* Strike
+node Link #inline-item = items:#inline-item*
+node Image #inline-item = items:#inline-item*

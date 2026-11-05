@@ -2,9 +2,14 @@
   "prettier": {
     "catalog": "prettier",
     "install": {"npm": "prettier"},
-    "command": ["node", "{prefix}/node_modules/prettier/bin/prettier.cjs", "--no-config", "--no-editorconfig", "{file}"],
+    "fetch": ["tests/conformance/fetch-markdown-corpus.sh"],
+    "command": ["node", "{prefix}/node_modules/prettier/bin/prettier.cjs", "--no-config", "--no-editorconfig", "--embedded-language-formatting=off", "{file}"],
     "input": "arg",
-    "fixtures": [{"suffixes": [".json", ".jsonc", ".yaml", ".yml"]}]
+    "fixtures": [
+      {"suffixes": [".json", ".jsonc", ".yaml", ".yml", ".md"]},
+      {"dir": "docs", "suffixes": [".md"], "prefix": "docs/", "recursive": true},
+      {"dir": "tests/conformance/corpus/runtime-docs/docs", "suffixes": [".md"], "prefix": "runtime-docs/", "recursive": true}
+    ]
   },
   "biome": {
     "catalog": "biome",

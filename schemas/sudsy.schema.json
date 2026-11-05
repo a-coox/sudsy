@@ -71,6 +71,10 @@
               "$ref": "#/definitions/rule",
               "description": "An async method returning Task or ValueTask has a name that does not end in `Async`. Overrides, explicit interface implementations and `Main` are left alone (their names are not the method's to choose). Renaming needs the binding layer, so there is no fix."
             },
+            "commands-show-output": {
+              "$ref": "#/definitions/rule",
+              "description": "A fenced code block in which every line starts with `$ ` shows commands without their output, which makes copying them awkward (markdownlint MD014)."
+            },
             "comment-space": {
               "$ref": "#/definitions/rule",
               "description": "A line comment has text right after its marker. Exempt: nothing but whitespace after the marker, a marker repeated (`////`, `##`), `--` separator lines, and a `#!` shebang on the first line. The fix inserts the space."
@@ -90,6 +94,10 @@
             "debug-fail-message": {
               "$ref": "#/definitions/rule",
               "description": "`Debug.Fail` with a constant blank message. With the type layer the call is checked against `System.Diagnostics.Debug`; without it any call written `Debug.Fail` is. No fix."
+            },
+            "descriptive-link-text": {
+              "$ref": "#/definitions/rule",
+              "description": "Link text that is `click here`, `here`, `link` or `more` (markdownlint MD059)."
             },
             "destructor-summary-standard-text": {
               "$ref": "#/definitions/rule",
@@ -198,6 +206,10 @@
               "$ref": "#/definitions/rule",
               "description": "The first document does not start with `---`."
             },
+            "fenced-code-language": {
+              "$ref": "#/definitions/rule",
+              "description": "A fenced code block without an info string (markdownlint MD040); name the language, or `text`."
+            },
             "file-name-matches-type": {
               "$ref": "#/definitions/rule",
               "description": "The file name, up to its first dot and ignoring case, is the name of the first type in the file; a generic type may also be written `Name{T,U}`. Not checked when that type is partial. No fix."
@@ -247,6 +259,10 @@
                   "type": "object"
                 }
               ]
+            },
+            "heading-increment": {
+              "$ref": "#/definitions/rule",
+              "description": "A heading is more than one level deeper than the heading before it (an `h4` right after an `h2`). Going back up by any number of levels is fine (markdownlint MD001)."
             },
             "inheritdoc-on-inheriting-member": {
               "$ref": "#/definitions/rule",
@@ -391,6 +407,14 @@
                 }
               ]
             },
+            "no-alt-text": {
+              "$ref": "#/definitions/rule",
+              "description": "An image with empty alternate text, `![](url)` (markdownlint MD045)."
+            },
+            "no-bare-urls": {
+              "$ref": "#/definitions/rule",
+              "description": "A URL that is neither a link nor an autolink (markdownlint MD034), found when it follows a space or starts the paragraph. Reported on the paragraph."
+            },
             "no-comment-before-block": {
               "$ref": "#/definitions/rule",
               "description": "A comment between the head of an `if`, `else`, `while`, `do`, `for`, `foreach`, `lock`, `try`, `catch`, `finally`, `switch`, `checked` or `unchecked` and its `{`. Put it inside the block or above the statement."
@@ -418,6 +442,10 @@
             "no-duplicate-doc-text": {
               "$ref": "#/definitions/rule",
               "description": "Two elements of one documentation comment with the same text (a copied and pasted `<param>`, for example). Empty elements and \"The parameter is not used.\" are ignored. No fix."
+            },
+            "no-duplicate-heading": {
+              "$ref": "#/definitions/rule",
+              "description": "Two headings have the same text (markdownlint MD024), which makes their anchors ambiguous."
             },
             "no-duplicate-include": {
               "$ref": "#/definitions/rule",
@@ -458,6 +486,10 @@
                 }
               ]
             },
+            "no-emphasis-as-heading": {
+              "$ref": "#/definitions/rule",
+              "description": "A one-line paragraph that is only emphasized text without closing punctuation (markdownlint MD036); use a heading."
+            },
             "no-empty-attribute-parens": {
               "$ref": "#/definitions/rule",
               "description": "An attribute with empty parentheses: `[Foo()]` is `[Foo]`. Parentheses with a comment in them are left alone."
@@ -477,6 +509,10 @@
             "no-empty-keys": {
               "$ref": "#/definitions/rule",
               "description": "A key is empty or only whitespace (after decoding escapes); some consumers cannot address such a property."
+            },
+            "no-empty-links": {
+              "$ref": "#/definitions/rule",
+              "description": "A link whose destination is empty or only `#` (markdownlint MD042)."
             },
             "no-empty-statement": {
               "$ref": "#/definitions/rule",
@@ -589,6 +625,14 @@
                 }
               ]
             },
+            "no-inline-html": {
+              "$ref": "#/definitions/rule",
+              "description": "Raw HTML in a document (markdownlint MD033). Comments are not reported. Reported once per HTML block, not per tag."
+            },
+            "no-missing-space-atx": {
+              "$ref": "#/definitions/rule",
+              "description": "A paragraph that starts with one to six `#` and no space reads as a heading to people but is plain text to Markdown (markdownlint MD018)."
+            },
             "no-octal-values": {
               "description": "A plain `0755` (octal to YAML 1.1 parsers, decimal 755 to YAML 1.2) or `0o755` (octal to YAML 1.2, a string to YAML 1.1). Quoted and tagged scalars are not checked. No fix: the intended value is not known.",
               "oneOf": [
@@ -636,6 +680,22 @@
             "no-returns-on-void": {
               "$ref": "#/definitions/rule",
               "description": "A `<returns>` on a method or delegate that returns `void`. The fix removes the element with its line when it is alone on it."
+            },
+            "no-reversed-links": {
+              "$ref": "#/definitions/rule",
+              "description": "Link syntax written the wrong way round, `(text)[url]` (markdownlint MD011), at the start of a paragraph or after a blank. Reported on the paragraph; no fix, because `(text)[url]` may be meant literally."
+            },
+            "no-space-in-code": {
+              "$ref": "#/definitions/rule",
+              "description": "A code span that starts or ends with a space (markdownlint MD038). A span with a space on both sides of a backtick-led or backtick-ended content is allowed."
+            },
+            "no-space-in-links": {
+              "$ref": "#/definitions/rule",
+              "description": "Link text that starts or ends with a space (markdownlint MD039)."
+            },
+            "no-trailing-punctuation": {
+              "$ref": "#/definitions/rule",
+              "description": "A heading that ends with `.`, `,`, `;`, `:` or `!` (or the full-width forms) reads as a sentence, not a title (markdownlint MD026). `?` is allowed."
             },
             "no-undefined-alias": {
               "$ref": "#/definitions/rule",
@@ -761,6 +821,10 @@
             "single-namespace-per-file": {
               "$ref": "#/definitions/rule",
               "description": "A file declares one namespace: every later one, nested ones included, is reported. No fix."
+            },
+            "single-title": {
+              "$ref": "#/definitions/rule",
+              "description": "A document has more than one top-level heading (markdownlint MD025). The second and later `h1` are reported."
             },
             "sorted-array-values": {
               "description": "The items of a sequence of only strings or only numbers are not in order (ascending by default; numbers compare as numbers). Sequences of other or mixed items are skipped. The items that would have to move (the fewest) are reported and the first report carries the fix; the fix is unsafe because sequence order can be data.",
@@ -1532,6 +1596,7 @@
           "preset:json/biome",
           "preset:json/default",
           "preset:json/prettier-compat",
+          "preset:markdown/prettier-compat",
           "preset:toml/default",
           "preset:toml/taplo-compat",
           "preset:xml/csharpier-compat",
@@ -1721,6 +1786,64 @@
     },
     "lint": {
       "$ref": "#/definitions/lint"
+    },
+    "markdown": {
+      "additionalProperties": false,
+      "properties": {
+        "format": {
+          "additionalProperties": false,
+          "properties": {
+            "end_of_line": {
+              "default": "auto",
+              "description": "Line break style of the output: `lf`, `crlf`, or `auto` to keep the file's first              line break.",
+              "enum": [
+                "auto",
+                "lf",
+                "crlf"
+              ],
+              "type": "string"
+            },
+            "final_newline": {
+              "default": true,
+              "description": "End the file with a newline.",
+              "type": "boolean"
+            },
+            "indent_size": {
+              "default": 2,
+              "description": "Columns per indentation level (also the width of a tab).",
+              "maximum": 16,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          "type": "object"
+        },
+        "lint": {
+          "$ref": "#/definitions/lint"
+        },
+        "semantics": {
+          "additionalProperties": false,
+          "description": "Facts about methods that the flow analyses use.",
+          "properties": {
+            "does_not_return": {
+              "description": "Qualified method names without parameter lists; every overload is covered.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "pure": {
+              "description": "Qualified method names without parameter lists; every overload is covered.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          "type": "object"
+        }
+      },
+      "type": "object"
     },
     "overrides": {
       "items": {
@@ -2325,6 +2448,64 @@
           },
           "lint": {
             "$ref": "#/definitions/lint"
+          },
+          "markdown": {
+            "additionalProperties": false,
+            "properties": {
+              "format": {
+                "additionalProperties": false,
+                "properties": {
+                  "end_of_line": {
+                    "default": "auto",
+                    "description": "Line break style of the output: `lf`, `crlf`, or `auto` to keep the file's first              line break.",
+                    "enum": [
+                      "auto",
+                      "lf",
+                      "crlf"
+                    ],
+                    "type": "string"
+                  },
+                  "final_newline": {
+                    "default": true,
+                    "description": "End the file with a newline.",
+                    "type": "boolean"
+                  },
+                  "indent_size": {
+                    "default": 2,
+                    "description": "Columns per indentation level (also the width of a tab).",
+                    "maximum": 16,
+                    "minimum": 1,
+                    "type": "integer"
+                  }
+                },
+                "type": "object"
+              },
+              "lint": {
+                "$ref": "#/definitions/lint"
+              },
+              "semantics": {
+                "additionalProperties": false,
+                "description": "Facts about methods that the flow analyses use.",
+                "properties": {
+                  "does_not_return": {
+                    "description": "Qualified method names without parameter lists; every overload is covered.",
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "pure": {
+                    "description": "Qualified method names without parameter lists; every overload is covered.",
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  }
+                },
+                "type": "object"
+              }
+            },
+            "type": "object"
           },
           "toml": {
             "additionalProperties": false,

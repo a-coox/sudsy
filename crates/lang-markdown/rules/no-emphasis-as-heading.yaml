@@ -1,0 +1,14 @@
+id: no-emphasis-as-heading
+language: markdown
+message: emphasis is used instead of a heading
+description: >-
+  A one-line paragraph that is only emphasized text without closing punctuation (markdownlint
+  MD036); use a heading.
+example: '**Overview**   # ## Overview'
+severity: warn
+category: style
+rule:
+  kind: Inline
+  regex: '^(\*\*[^*\n]*[^*\n.,;:!?。，；：！？]\*\*|__[^_\n]*[^_\n.,;:!?。，；：！？]__|\*[^*\n]*[^*\n.,;:!?。，；：！？]\*|_[^_\n]*[^_\n.,;:!?。，；：！？]_)$'
+  not-inside:
+    kind: Heading

@@ -1,6 +1,6 @@
 //! A [`LanguageProvider`] for a language parsed by tree-sitter, configured by data.
 
-use crate::{Engine, Mapping};
+use crate::{Composite, Engine, Mapping};
 use core_config::OptionSchema;
 use core_format::NodeFormatter;
 use core_rules::{Rule, RuleHooks};
@@ -43,7 +43,17 @@ pub struct TreeSitterProvider {
 
 impl TreeSitterProvider {
     pub fn new(spec: Spec) -> Self {
-        let engine = Arc::new(Engine::new(spec.language, spec.grammar, spec.mapping));
+        Self::with_composite(spec, None)
+    }
+
+    /// A provider whose language is assembled from several grammars.
+    pub fn with_composite(spec: Spec, composite: Option<Composite>) -> Self {
+        let engine = Arc::new(Engine::with_composite(
+            spec.language,
+            spec.grammar,
+            spec.mapping,
+            composite,
+        ));
         let parser = engine.clone();
         TreeSitterProvider {
             grammar: spec.grammar,

@@ -1,0 +1,21 @@
+---
+source: crates/lang-markdown/tests/markdown.rs
+expression: "fmt(\"> quote *a*\\nlazy\\n> - item\\n>   more\\n\\n- one\\n\\n  para\\n\\n      code\\n- [X] two\\n\\n1. a\\n   ```\\n   x\\n   ```\\n\")"
+---
+> quote _a_
+> lazy
+>
+> - item
+>   more
+
+- one
+
+  para
+
+      code
+- [X] two
+
+1. a
+   ```
+   x
+   ```

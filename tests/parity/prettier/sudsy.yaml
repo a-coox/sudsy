@@ -1,2 +1,2 @@
 # The Sudsy side of the comparison with `prettier --no-config`.
-extends: [preset:json/prettier-compat, preset:yaml/prettier-compat]
+extends: [preset:json/prettier-compat, preset:yaml/prettier-compat, preset:markdown/prettier-compat]

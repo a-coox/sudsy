@@ -15,6 +15,12 @@
 //!   parent already maps to that node (tree-sitter hides one-part keys and literals as bare
 //!   tokens, while shapes such as lists and key-values want nodes).
 //!
+//! A [`Composite`] adds what a language made of several tree-sitter grammars needs: a host node
+//! whose text a second grammar parses (Markdown's `inline` blocks; later code blocks, or C# in
+//! Razor) becomes a node whose children are the injected tree's, text no mapped node covers
+//! becomes tokens of one text kind, and a token whose text starts a given way gets another kind
+//! (an HTML comment).
+//!
 //! Parsing is not incremental and has no depth limit of its own (the walk is iterative; the
 //! formatter recurses). See `docs/architecture/adding-a-language.md`.
 
@@ -25,7 +31,7 @@ pub use provider::{Spec, TreeSitterProvider};
 use core_syntax::{Grammar, SyntaxKind, SyntaxNode, TreeBuilder};
 use provider_api::{ParseError, ParseResult};
 use std::sync::{Mutex, OnceLock};
-use tree_sitter::{Language, Node, Parser};
+use tree_sitter::{Language, Node, Parser, Range};
 
 /// Grammar kind names the adapter itself emits, and the tree-sitter name -> kind name table.
 pub struct Mapping {
@@ -37,6 +43,27 @@ pub struct Mapping {
     pub kinds: &'static [(&'static str, &'static str)],
     /// Token kind name -> node kind name wrapping it.
     pub wrap: &'static [(&'static str, &'static str)],
+}
+
+/// How a language made of several tree-sitter grammars is assembled (see the module docs).
+#[derive(Clone, Copy)]
+pub struct Composite {
+    /// Kind name of the token for text that no mapped node covers (blanks excepted, per line).
+    /// With it, an unmapped leaf is text rather than an error.
+    pub text: &'static str,
+    /// Grammars parsed inside host nodes.
+    pub injected: &'static [Injected],
+    /// `(token name, text prefix, kind name)`: a mapped token whose text starts with the prefix
+    /// is the other kind.
+    pub refine: &'static [(&'static str, &'static str, &'static str)],
+}
+
+/// A grammar parsed inside the nodes named `host` of the host grammar. The host node's own named
+/// children are carved out of the injected text and handled by the host mapping.
+pub struct Injected {
+    pub host: &'static str,
+    pub language: fn() -> Language,
+    pub mapping: &'static Mapping,
 }
 
 #[derive(Clone, Copy)]
@@ -51,10 +78,23 @@ enum Entry {
 struct Converter {
     table: Vec<Entry>,
     names: Vec<String>,
+    text: Option<SyntaxKind>,
+    /// `(node id, prefix, kind)` of [`Composite::refine`].
+    refine: Vec<(usize, &'static str, SyntaxKind)>,
+    /// Node id -> index into `injected`.
+    inject: Vec<Option<usize>>,
+    injected: Vec<Inj>,
     ws: SyntaxKind,
     nl: SyntaxKind,
     eof: SyntaxKind,
     unknown: SyntaxKind,
+}
+
+/// A resolved [`Injected`]: its converter and a parser pool.
+struct Inj {
+    conv: Converter,
+    pool: Mutex<Vec<Parser>>,
+    language: Language,
 }
 
 #[derive(Clone, Copy)]
@@ -72,7 +112,12 @@ enum Ev {
 }
 
 impl Converter {
-    fn new(language: &Language, grammar: &'static Grammar, m: &Mapping) -> Self {
+    fn new(
+        language: &Language,
+        grammar: &'static Grammar,
+        m: &Mapping,
+        comp: Option<Composite>,
+    ) -> Self {
         let kind = |n: &str| {
             grammar
                 .kind_by_name(n)
@@ -100,9 +145,36 @@ impl Converter {
             }
             names[id] = name.to_string();
         }
+        let id_of = |n: &str| names.iter().position(|x| x == n);
+        let mut inject = vec![None; count];
+        let (mut injected, mut refine, mut text) = (Vec::new(), Vec::new(), None);
+        if let Some(c) = comp {
+            text = Some(kind(c.text));
+            for (token, prefix, to) in c.refine {
+                if let Some(id) = id_of(token) {
+                    refine.push((id, *prefix, kind(to)));
+                }
+            }
+            for inj in c.injected {
+                let host = id_of(inj.host).unwrap_or_else(|| panic!("no node `{}`", inj.host));
+                inject[host] = Some(injected.len());
+                let language = (inj.language)();
+                // The injected grammar is converted with the same text kind and refinements.
+                let inner = Composite { injected: &[], ..c };
+                injected.push(Inj {
+                    conv: Converter::new(&language, grammar, inj.mapping, Some(inner)),
+                    pool: Mutex::new(Vec::new()),
+                    language,
+                });
+            }
+        }
         Converter {
             table,
             names,
+            text,
+            refine,
+            inject,
+            injected,
             ws: kind(m.whitespace),
             nl: kind(m.newline),
             eof: kind(m.eof),
@@ -141,6 +213,7 @@ impl Converter {
                 continue;
             }
             if pushed {
+                self.fill(src, s, cursor.node().end_byte());
                 s.evs.push(Ev::Exit);
             }
             loop {
@@ -151,6 +224,7 @@ impl Converter {
                     return;
                 }
                 if pushed_stack.pop() == Some(true) {
+                    self.fill(src, s, cursor.node().end_byte());
                     s.evs.push(Ev::Exit);
                 }
             }
@@ -165,6 +239,14 @@ impl Converter {
         if n.is_missing() {
             s.error(start, 0, format!("missing {name}"));
             return (false, false);
+        }
+        // An unmapped leaf is text and joins the text before it.
+        let text_leaf = self.text.is_some()
+            && n.child_count() == 0
+            && !n.is_error()
+            && matches!(self.table.get(id), Some(Entry::Transparent));
+        if !text_leaf {
+            self.fill(src, s, start);
         }
         if n.is_error() {
             s.error(start, end - start, "syntax error".into());
@@ -181,7 +263,13 @@ impl Converter {
         match self.table.get(id).copied().unwrap_or(Entry::Transparent) {
             Entry::Node(k) => {
                 s.evs.push(Ev::Enter(k));
-                (true, true)
+                match self.inject[id] {
+                    Some(i) => {
+                        self.inject_into(src, n, &self.injected[i], s);
+                        (true, false)
+                    }
+                    None => (true, true),
+                }
             }
             Entry::Token(kind, wrap, string) => {
                 // The children of a token are swallowed: an error inside a `#checked` token is reported here.
@@ -193,6 +281,10 @@ impl Converter {
                     .iter()
                     .all(|b| matches!(b, b' ' | b'\t' | b'\n' | b'\r'));
                 if !blank {
+                    let text = &src[start..end];
+                    let kind = (self.refine.iter())
+                        .find(|(i, prefix, _)| *i == id && text.starts_with(prefix))
+                        .map_or(kind, |r| r.2);
                     let wrap = wrap.filter(|w| !self.parent_is(n, *w));
                     s.evs.extend(wrap.map(Ev::Enter));
                     s.token(Tok { kind, start, end });
@@ -201,10 +293,16 @@ impl Converter {
                 (false, false)
             }
             Entry::Trivia(kind) => {
-                s.comments.push(Tok { kind, start, end });
+                // Blank trivia (a block continuation of indentation) is lexed from the gap.
+                if !src[start..end].trim().is_empty() {
+                    s.comments.push(Tok { kind, start, end });
+                    s.covered = s.covered.max(end);
+                }
                 (false, false)
             }
             Entry::Transparent if n.child_count() > 0 => (false, true),
+            // An unmapped leaf is text; the next `fill` makes it a token.
+            Entry::Transparent if self.text.is_some() => (false, false),
             Entry::Transparent => {
                 if end > start {
                     s.error(start, end - start, format!("unexpected {name}"));
@@ -217,6 +315,91 @@ impl Converter {
                 (false, false)
             }
         }
+    }
+
+    /// Parses the host node's text with the injected grammar and scans the result in place of
+    /// the host's children. The host's own named children (block continuations) are carved out
+    /// of the parsed text and emitted as trivia where they fall.
+    fn inject_into(&self, src: &str, host: Node, inj: &Inj, s: &mut Scan) {
+        let (mut ranges, mut carved) = (Vec::new(), Vec::new());
+        let (mut from_b, mut from_p) = (host.start_byte(), host.start_position());
+        let mut cursor = host.walk();
+        for c in host.named_children(&mut cursor) {
+            ranges.push(Range {
+                start_byte: from_b,
+                end_byte: c.start_byte(),
+                start_point: from_p,
+                end_point: c.start_position(),
+            });
+            (from_b, from_p) = (c.end_byte(), c.end_position());
+            let (start, end) = (c.start_byte(), c.end_byte());
+            if let Some(Entry::Trivia(kind)) = self.table.get(c.kind_id() as usize)
+                && !src[start..end].trim().is_empty()
+            {
+                carved.push(Tok {
+                    kind: *kind,
+                    start,
+                    end,
+                });
+            }
+        }
+        ranges.push(Range {
+            start_byte: from_b,
+            end_byte: host.end_byte(),
+            start_point: from_p,
+            end_point: host.end_position(),
+        });
+        let mut parser = inj.pool.lock().unwrap().pop().unwrap_or_else(|| {
+            let mut p = Parser::new();
+            p.set_language(&inj.language)
+                .expect("the grammar's ABI version matches the tree-sitter runtime");
+            p
+        });
+        let tree = parser
+            .set_included_ranges(&ranges)
+            .ok()
+            .and_then(|()| parser.parse(src, None));
+        inj.pool.lock().unwrap().push(parser);
+        carved.reverse();
+        s.pending = carved;
+        if let Some(tree) = tree {
+            inj.conv.scan(src, tree.root_node(), s);
+        }
+        self.fill(src, s, host.end_byte());
+        s.pending.clear();
+    }
+
+    /// Makes the text up to `upto` that no token covers tokens of the text kind, one per line
+    /// with its blanks trimmed; the carved-out trivia of an injection are emitted in order.
+    fn fill(&self, src: &str, s: &mut Scan, upto: usize) {
+        let Some(text) = self.text else { return };
+        while let Some(c) = s.pending.last().copied().filter(|c| c.start < upto) {
+            s.pending.pop();
+            self.text_run(src, s, text, c.start);
+            s.comments.push(c);
+            s.covered = s.covered.max(c.end);
+        }
+        self.text_run(src, s, text, upto);
+    }
+
+    fn text_run(&self, src: &str, s: &mut Scan, text: SyntaxKind, upto: usize) {
+        let mut pos = s.covered;
+        while pos < upto {
+            let end = src[pos..upto].find('\n').map_or(upto, |i| pos + i);
+            let line = &src[pos..end];
+            let trimmed = line.trim_start_matches([' ', '\t', '\r']);
+            let start = pos + (line.len() - trimmed.len());
+            let stop = start + trimmed.trim_end_matches([' ', '\t', '\r']).len();
+            if stop > start {
+                s.token(Tok {
+                    kind: text,
+                    start,
+                    end: stop,
+                });
+            }
+            pos = end + 1;
+        }
+        s.covered = s.covered.max(upto);
     }
 
     fn parent_is(&self, n: Node, kind: SyntaxKind) -> bool {
@@ -322,6 +505,10 @@ struct Scan {
     evs: Vec<Ev>,
     real: Vec<Tok>,
     comments: Vec<Tok>,
+    /// End of the text already made tokens or trivia.
+    covered: usize,
+    /// Trivia carved out of the injected text being scanned, last first.
+    pending: Vec<Tok>,
     /// Next comment not yet placed by `gap`.
     ci: usize,
     errors: Vec<ParseError>,
@@ -329,6 +516,7 @@ struct Scan {
 
 impl Scan {
     fn token(&mut self, t: Tok) {
+        self.covered = self.covered.max(t.end);
         self.real.push(t);
         self.evs.push(Ev::Real);
     }
@@ -348,16 +536,27 @@ pub struct Engine {
     language: Language,
     grammar: &'static Grammar,
     mapping: &'static Mapping,
+    composite: Option<Composite>,
     converter: OnceLock<Converter>,
     pool: Mutex<Vec<Parser>>,
 }
 
 impl Engine {
     pub fn new(language: Language, grammar: &'static Grammar, mapping: &'static Mapping) -> Self {
+        Self::with_composite(language, grammar, mapping, None)
+    }
+
+    pub fn with_composite(
+        language: Language,
+        grammar: &'static Grammar,
+        mapping: &'static Mapping,
+        composite: Option<Composite>,
+    ) -> Self {
         Engine {
             language,
             grammar,
             mapping,
+            composite,
             converter: OnceLock::new(),
             pool: Mutex::new(Vec::new()),
         }
@@ -387,9 +586,9 @@ impl Engine {
 
     /// Adapter conversion alone (the second step of [`Engine::parse`]).
     pub fn convert(&self, text: &str, tree: &tree_sitter::Tree) -> ParseResult {
-        let conv = self
-            .converter
-            .get_or_init(|| Converter::new(&tree.language(), self.grammar, self.mapping));
+        let conv = self.converter.get_or_init(|| {
+            Converter::new(&tree.language(), self.grammar, self.mapping, self.composite)
+        });
         conv.convert(text, tree.root_node())
     }
 

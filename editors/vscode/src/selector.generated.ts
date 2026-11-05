@@ -5,6 +5,7 @@ export const documentSelector = [
   { scheme: "file", language: "yaml" },
   { scheme: "file", language: "toml" },
   { scheme: "file", language: "xml" },
+  { scheme: "file", language: "markdown" },
   { scheme: "file", language: "csharp" },
   { scheme: "file", pattern: "**/*.json" },
   { scheme: "file", pattern: "**/*.jsonc" },
@@ -39,6 +40,8 @@ export const documentSelector = [
   { scheme: "file", pattern: "**/*.xsl" },
   { scheme: "file", pattern: "**/*.svg" },
   { scheme: "file", pattern: "**/*.plist" },
+  { scheme: "file", pattern: "**/*.md" },
+  { scheme: "file", pattern: "**/*.markdown" },
   { scheme: "file", pattern: "**/*.cs" },
   { scheme: "file", pattern: "**/*.csx" },
 ];

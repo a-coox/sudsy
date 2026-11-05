@@ -1,1 +1,9 @@
 # Fixtures where Sudsy and Prettier legitimately differ: "<fixture>: <reason>" per line.
+runtime-docs/coding-guidelines/adding-api-guidelines.md: a code span with three backticks (tree-sitter-md does not read it as code) is kept; Prettier writes one backtick
+runtime-docs/coding-guidelines/coding-style.md: a code span with three backticks (tree-sitter-md does not read it as code) is kept; Prettier writes one backtick
+runtime-docs/coding-guidelines/breaking-change-rules.md: a list item holding a paragraph, a nested list and an indented continuation: Prettier's looseness differs from the blank lines of the source
+runtime-docs/coding-guidelines/clr-code-guide.md: a table of contents with nested lists indented by three columns is kept as written because the output would not parse to the same lists
+runtime-docs/coding-guidelines/cross-platform-performance-and-eventing.md: a block with a tab is kept as written (the width of a tab depends on its column); Prettier re-indents the nested list
+runtime-docs/coding-guidelines/EventLogging.md: a block with a tab is kept as written (the width of a tab depends on its column); Prettier re-indents the nested list
+runtime-docs/coding-guidelines/mono-code-guide.md: a code span over two lines in a list item: Prettier removes the indentation of the second line from the span, Sudsy keeps the text of the span
+runtime-docs/coding-guidelines/vectorization-guidelines.md: trailing blanks inside a code block are code; Prettier removes them

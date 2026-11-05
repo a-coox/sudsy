@@ -1,0 +1,27 @@
+---
+source: crates/lang-markdown/tests/markdown.rs
+expression: "fmt(\"Title\\n=====\\n\\nSub\\n---\\n\\n## Closed ##\\n\\n*em* and __strong__ and snake_case and 2 * 3\\n\\n* a\\n* b\\n\\n+ c\\n\\n3. x\\n3. y\\n\\n~~~rs\\nlet x = 1;\\n~~~\\n\\n***\\n\")"
+---
+Title
+=====
+
+Sub
+---
+
+## Closed
+
+_em_ and **strong** and snake_case and 2 * 3
+
+- a
+- b
+
+* c
+
+3. x
+4. y
+
+```rs
+let x = 1;
+```
+
+---

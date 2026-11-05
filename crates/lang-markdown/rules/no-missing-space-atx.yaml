@@ -1,0 +1,14 @@
+id: no-missing-space-atx
+language: markdown
+message: there is no space after the # of the heading
+description: >-
+  A paragraph that starts with one to six `#` and no space reads as a heading to people but is
+  plain text to Markdown (markdownlint MD018).
+example: '#Heading   # # Heading'
+severity: warn
+category: correctness
+rule:
+  kind: Inline
+  regex: '^#{1,6}[^#\s]'
+  not-inside:
+    kind: Heading

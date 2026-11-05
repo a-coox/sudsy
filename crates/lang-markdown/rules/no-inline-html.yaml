@@ -1,0 +1,12 @@
+id: no-inline-html
+language: markdown
+message: inline HTML is not Markdown
+description: >-
+  Raw HTML in a document (markdownlint MD033). Comments are not reported. Reported once per HTML
+  block, not per tag.
+example: '<b>bold</b>   # **bold**'
+severity: warn
+category: style
+rule:
+  kind: Html
+  regex: '^<[^!]'

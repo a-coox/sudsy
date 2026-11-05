@@ -1,0 +1,2 @@
+# The Sudsy side of the comparison with .markdownlint.jsonc: the equivalent rules are on by default.
+lint: {}

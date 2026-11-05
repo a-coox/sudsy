@@ -25,4 +25,12 @@ A language whose tree-sitter grammar exists and is good enough costs a grammar f
 - Tree-sitter is 4-10x slower than the hand-written parsers and its trees need the adapter pass; the printer dominates the end-to-end cost anyway.
 - A grammar that lags its language spec (TOML 1.1 today) needs a fork or an upstream fix, which the language then carries. Tree-sitter accepts documents that are syntactically fine and semantically invalid (duplicate keys, bad dates); the provider checks those after the parse and reports them as parse errors (`lang-toml/src/validate.rs`), so such a file is refused like a syntax error.
 - Error recovery is tree-sitter's: a bad line may swallow a large span into one `ERROR`. The formatter refuses a file with errors, so this only affects messages.
-- Not covered by the adapter: incremental reparse, a depth limit (the walk is iterative; the formatter recurses), dialects, embedded languages.
+- Not covered by the adapter: incremental reparse, a depth limit (the walk is iterative; the formatter recurses), dialects, embedded code in another language (Markdown fences, Razor).
+
+## Composite languages
+A language made of several tree-sitter grammars (`lang-markdown`: the block grammar, and the inline grammar inside its `inline` and `pipe_table_cell` nodes) passes a `core_treesitter::Composite` to `TreeSitterProvider::with_composite`; the grammar file and the formatter stay one per language.
+- `Injected { host, language, mapping }`: when the converter enters a node named `host`, it parses the node's text with the second grammar (`set_included_ranges`: the host range minus the host's own named children, which are the block continuations of quotes and lists) and scans the result with the second mapping in place of the host's children. The carved-out children are emitted as trivia where they fall. One parser pool per injected grammar; the second tree is dropped after the walk, so the cost is one extra parse per host node and a second mapping table.
+- `text`: the kind of the token for text no mapped node covers, one token per line with its blanks trimmed; an unmapped leaf is then text, not an error. The converter tracks the end of what it has emitted and fills the gaps before each node and at each exit.
+- `refine`: a mapped token whose text starts with a prefix is another kind (`<!--` makes an HTML block or tag an `HtmlComment`, a `#comment` token, so suppression comments and `no-empty-comment` work).
+- Pattern rules match nodes only: wrap a token a rule needs in a node with `Mapping::wrap`.
+- Embedded code in another language (the code of a fence) would be one more `Injected` whose mapping targets that language's grammar kinds; none exists yet.

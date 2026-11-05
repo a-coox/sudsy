@@ -96,6 +96,27 @@ def eslint_jsonc(version, folder):
     }
 
 
+def markdownlint(version, folder):
+    """`{fixture name: {(upstream rule, line, 0)}}` of the `.md` fixtures (markdownlint reports a column
+    for some rules only, so the column is left out of the comparison; Sudsy's is zeroed alike).
+    markdownlint-cli2 is installed by parity.sh into target/parity/markdownlint-<version>/; the
+    fixtures and their `.markdownlint.jsonc` are copied below it."""
+    install = PARITY / f"markdownlint-{version}"
+    work = install / "work"
+    shutil.rmtree(work, ignore_errors=True)
+    shutil.copytree(folder, work, ignore=shutil.ignore_patterns("sudsy.yaml"))
+    run = subprocess.run(
+        ["node", str(install / "node_modules/markdownlint-cli2/markdownlint-cli2-bin.mjs"), "*.md"],
+        cwd=work, capture_output=True, text=True, check=False,
+    )
+    found = {p.name: set() for p in work.glob("*.md")}
+    for line in (run.stdout + run.stderr).splitlines():
+        m = re.match(r"^(\S+\.md):(\d+)(?::\d+)? \S+ (MD\d+)", line)
+        if m:
+            found[m.group(1)].add((m.group(3), int(m.group(2)), 0))
+    return found
+
+
 def sudsy_lint(sudsy, fixture, cwd, only=None):
     """`{(rule, line, column)}`; with `only`, the diagnostics of those rules."""
     out = subprocess.run(
@@ -104,7 +125,7 @@ def sudsy_lint(sudsy, fixture, cwd, only=None):
     )
     report = json.loads(out.stdout)
     return {
-        (d["rule"], d["range"]["start"]["line"], d["range"]["start"]["column"])
+        (d["rule"], d["range"]["start"]["line"], 0 if fixture.suffix == ".md" else d["range"]["start"]["column"])
         for d in report["diagnostics"]
         if only is None or d["rule"] in only
     }
@@ -187,9 +208,9 @@ def main():
         return stylecop(sudsy, version)
     mapping = rule_map(tool)
     folder = ROOT / "tests/parity" / tool
-    suffixes = (".json",) if tool == "eslint-jsonc" else (".yaml", ".yml")
+    suffixes = {"eslint-jsonc": (".json",), "markdownlint": (".md",)}.get(tool, (".yaml", ".yml"))
     fixtures = sorted(p for p in folder.iterdir() if p.suffix in suffixes and p.name != "sudsy.yaml")
-    eslint = eslint_jsonc(version, folder) if tool == "eslint-jsonc" else None
+    eslint = {"eslint-jsonc": eslint_jsonc, "markdownlint": markdownlint}[tool](version, folder) if tool in ("eslint-jsonc", "markdownlint") else None
     mismatches = 0
     for fixture in fixtures:
         found = eslint.get(fixture.name, set()) if eslint is not None else yamllint(fixture, folder)

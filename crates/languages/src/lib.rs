@@ -24,6 +24,7 @@ pub fn providers() -> Vec<Box<dyn LanguageProvider>> {
         Box::new(lang_yaml::YamlProvider::new()),
         Box::new(lang_toml::provider()),
         Box::new(lang_xml::provider()),
+        Box::new(lang_markdown::provider()),
         Box::new(lang_csharp::provider(&worker)),
     ]
 }

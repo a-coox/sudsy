@@ -1,0 +1,7 @@
+# Formats like Prettier's Markdown with its defaults: prose kept as written (`proseWrap: preserve`),
+# two-space tab width for list alignment, LF.
+markdown:
+  format:
+    indent_size: 2
+    end_of_line: lf
+    final_newline: true

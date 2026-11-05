@@ -1,0 +1,7 @@
+---
+source: crates/lang-markdown/tests/markdown.rs
+expression: "fmt(\"a|b\\n-|:-:\\nlong cell|x\\n\")"
+---
+| a         |  b  |
+| --------- | :-: |
+| long cell |  x  |

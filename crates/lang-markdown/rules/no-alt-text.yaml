@@ -1,0 +1,11 @@
+id: no-alt-text
+language: markdown
+message: the image has no alternate text
+description: >-
+  An image with empty alternate text, `![](url)` (markdownlint MD045).
+example: '![](logo.png)   # ![Logo](logo.png)'
+severity: warn
+category: style
+rule:
+  kind: Image
+  regex: '^!\[\]'

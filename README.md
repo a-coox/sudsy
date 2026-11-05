@@ -1,10 +1,10 @@
 # Sudsy
 
-A formatter and linter for <!-- generated:languages -->C#, JSON, TOML, XML and YAML<!-- /generated --> (JSON includes JSONC; XML covers `.csproj`, `.props`, `.targets`, `.config`, ...), configured from one `sudsy.yaml`.
+A formatter and linter for <!-- generated:languages -->C#, JSON, Markdown, TOML, XML and YAML<!-- /generated --> (JSON includes JSONC; XML covers `.csproj`, `.props`, `.targets`, `.config`, ...), configured from one `sudsy.yaml`.
 
 - **Formatting**: every layout decision is a named option; presets reproduce the styles of Microsoft, the .NET runtime, Google, CSharpier and Prettier. Each result is checked to have the same syntax tree (and for YAML the same data) as the input before it is written.
 - **Linting**: built-in rules for every language, semantic C# rules (types, control and data flow), safe and unsafe fixes, suppression comments, [pattern rules](docs/rules/patterns.md) in YAML and [Wasm plugins](docs/rules/plugins.md) (unstable API).
-- **Implementation**: a Rust core. JSON and YAML are parsed natively and TOML and XML by embedded tree-sitter grammars; C# is parsed and analysed by a Roslyn-backed .NET worker that the CLI starts when it needs it.
+- **Implementation**: a Rust core. JSON and YAML are parsed natively and TOML, XML and Markdown by embedded tree-sitter grammars; C# is parsed and analysed by a Roslyn-backed .NET worker that the CLI starts when it needs it.
 
 Measured speed against CSharpier, Prettier, Biome and dprint, with the method and machine: [docs/performance/numbers.md](docs/performance/numbers.md).
 

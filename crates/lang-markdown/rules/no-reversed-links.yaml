@@ -1,0 +1,13 @@
+id: no-reversed-links
+language: markdown
+message: the link syntax is reversed; write [text](url)
+description: >-
+  Link syntax written the wrong way round, `(text)[url]` (markdownlint MD011), at the start of a
+  paragraph or after a blank. Reported on the paragraph; no fix, because `(text)[url]` may be
+  meant literally.
+example: '(Docs)[https://example.com]   # [Docs](https://example.com)'
+severity: warn
+category: correctness
+rule:
+  kind: Inline
+  regex: '(?:^|\s)\([^()\n]*\)\[[^\]\n]*\]'

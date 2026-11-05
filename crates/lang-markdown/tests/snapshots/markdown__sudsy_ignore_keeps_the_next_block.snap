@@ -1,0 +1,10 @@
+---
+source: crates/lang-markdown/tests/markdown.rs
+expression: "fmt(\"<!-- sudsy-ignore -->\\n* a\\n*   b\\n\\n* c\\n\")"
+---
+<!-- sudsy-ignore -->
+
+* a
+*   b
+
+* c
