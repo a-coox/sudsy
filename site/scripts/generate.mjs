@@ -3,7 +3,7 @@
 // crates/lang-*/presets/*.yaml and the notes column of docs/formatting/presets.md.
 import { mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { base, site, rules } from '../config.mjs';
+import { base, site, rules, languages } from '../config.mjs';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const out = fileURLToPath(new URL('../src/content/docs/generated/', import.meta.url));
@@ -23,16 +23,14 @@ const fmt = (v) => (v === undefined ? '' : `\`${JSON.stringify(v)}\``);
 // Pagefind filter chip: the visible text names the filter, the attribute carries the value.
 const chip = (name, value) => `<span data-pagefind-filter="${name}[data-v]" data-v="${value}">${name}: ${value}</span>`;
 
-// Comment syntax of the suppression comments per language section (grammars/*.grammar):
+// A suppression comment in each language's own syntax (rules.json `languages`, from the grammars):
 // [title, code block language, comment wrapper].
-const suppress = {
-  csharp: ['C#', 'csharp', (t) => `// ${t}`],
-  json: ['JSON (with comments)', 'jsonc', (t) => `// ${t}`],
-  yaml: ['YAML', 'yaml', (t) => `# ${t}`],
-  toml: ['TOML', 'toml', (t) => `# ${t}`],
-  xml: ['XML', 'xml', (t) => `<!-- ${t} -->`],
-  markdown: ['Markdown', 'markdown', (t) => `<!-- ${t} -->`],
-};
+const suppress = Object.fromEntries(
+  Object.entries(languages()).map(([id, l]) => [
+    id,
+    [l.title, id, (t) => (l.line_comment ? `${l.line_comment} ${t}` : `${l.block_comment[0]} ${t} ${l.block_comment[1]}`)],
+  ]),
+);
 
 // Rule config as sudsy.yaml takes it: `lint.rules` at the top level for rules of all languages,
 // under the language section otherwise (docs/config/sudsy-yaml.md).

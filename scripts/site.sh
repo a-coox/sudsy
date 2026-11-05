@@ -19,14 +19,15 @@ case "${1:-build}" in
     rm -rf "$dir" && mkdir -p "$dir"
     node -e '
       const [src, dst, n] = process.argv.slice(1);
-      const real = JSON.parse(require("fs").readFileSync(src, "utf8")).rules;
+      const data = JSON.parse(require("fs").readFileSync(src, "utf8"));
+      const real = data.rules;
       const rules = Array.from({ length: +n }, (_, i) => {
         const r = structuredClone(real[i % real.length]);
         r.id += `-${i}`;
         r.upstream.forEach((u) => (u.id += `${i}`));
         return r;
       });
-      require("fs").writeFileSync(dst, JSON.stringify({ rules }));
+      require("fs").writeFileSync(dst, JSON.stringify({ languages: data.languages, rules }));
     ' ../docs/rules/rules.json "$dir/rules.json" "$n"
     npm ci
     export SUDSY_RULES_JSON=$(cd "$dir" && pwd)/rules.json SITE_OUT=$(cd "$dir" && pwd)/dist

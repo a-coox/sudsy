@@ -34,4 +34,5 @@ const squiggles = () =>
     },
   });
 
-export default { plugins: [squiggles()] };
+// Code block languages are Sudsy's language ids; Shiki has no EditorConfig grammar, INI fits it.
+export default { plugins: [squiggles()], shiki: { langAlias: { editorconfig: 'ini' } } };

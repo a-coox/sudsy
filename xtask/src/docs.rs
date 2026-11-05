@@ -21,7 +21,7 @@ pub fn generate(providers: &[Box<dyn LanguageProvider>]) -> Result<Vec<(PathBuf,
         )?,
         (
             "docs/rules/rules.json".into(),
-            crate::rules::json(&rule_docs),
+            crate::rules::json(&rule_docs, providers),
         ),
     ];
     for (language, schema) in &schemas {

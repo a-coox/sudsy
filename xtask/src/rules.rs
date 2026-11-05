@@ -80,9 +80,22 @@ fn default_json(default: Opt) -> Value {
 }
 
 /// The text of `docs/rules/rules.json`.
-pub fn json(docs: &[RuleDoc]) -> String {
+/// The rules, and per language its title and comment syntax (from the grammar), so the readers
+/// need no list of languages of their own.
+pub fn json(docs: &[RuleDoc], providers: &[Box<dyn LanguageProvider>]) -> String {
     let rules: Vec<Value> = docs.iter().map(entry).collect();
-    serde_json::to_string_pretty(&json!({ "rules": rules })).expect("serializes") + "\n"
+    let languages: serde_json::Map<String, Value> = providers
+        .iter()
+        .map(|p| {
+            let g = p.grammar();
+            let block = g.comments.block.as_ref().map(|(open, close)| [open, close]);
+            let syntax = json!({ "title": g.title, "line_comment": g.comments.line, "block_comment": block });
+            (g.language.clone(), syntax)
+        })
+        .collect();
+    serde_json::to_string_pretty(&json!({ "languages": languages, "rules": rules }))
+        .expect("serializes")
+        + "\n"
 }
 
 fn entry(d: &RuleDoc) -> Value {

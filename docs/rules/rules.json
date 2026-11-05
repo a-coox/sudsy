@@ -1,4 +1,53 @@
 {
+  "languages": {
+    "csharp": {
+      "block_comment": [
+        "/*",
+        "*/"
+      ],
+      "line_comment": "//",
+      "title": "C#"
+    },
+    "editorconfig": {
+      "block_comment": null,
+      "line_comment": "#",
+      "title": "EditorConfig"
+    },
+    "json": {
+      "block_comment": [
+        "/*",
+        "*/"
+      ],
+      "line_comment": "//",
+      "title": "JSON"
+    },
+    "markdown": {
+      "block_comment": [
+        "<!--",
+        "-->"
+      ],
+      "line_comment": null,
+      "title": "Markdown"
+    },
+    "toml": {
+      "block_comment": null,
+      "line_comment": "#",
+      "title": "TOML"
+    },
+    "xml": {
+      "block_comment": [
+        "<!--",
+        "-->"
+      ],
+      "line_comment": null,
+      "title": "XML"
+    },
+    "yaml": {
+      "block_comment": null,
+      "line_comment": "#",
+      "title": "YAML"
+    }
+  },
   "rules": [
     {
       "category": "style",
