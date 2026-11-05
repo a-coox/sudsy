@@ -3431,7 +3431,7 @@
       "example": {
         "config": null,
         "fixed": null,
-        "input": "class A { void F() {\n try { } catch (Exception) { }\n try { } catch { /* ignored on purpose */ }\n try { } catch { Log(); }\n} }\n",
+        "input": "class A { void F() {\n try { } catch (Exception) { }\n try { } catch { /* ignored on purpose */ }\n try { } catch { Log(); }\n try { } catch { try { } catch { Log(); } }\n} }\n",
         "language": "csharp",
         "spans": [
           {
@@ -3459,7 +3459,7 @@
     {
       "category": "style",
       "default_level": "off",
-      "description": "An anonymous method with an empty parameter list: `delegate() { }` is `delegate { }`. The fix is unsafe: without a parameter list the method also converts to delegate types that have parameters, which can change which overload is chosen.",
+      "description": "An anonymous method with an empty parameter list: `delegate() { }` is `delegate { }`. Parentheses with a comment in them are left alone. The fix is unsafe: without a parameter list the method also converts to delegate types that have parameters, which can change which overload is chosen.",
       "example": {
         "config": null,
         "fixed": "[assembly: A]\n[assembly: B]\nclass C {\n [A]\n [B]\n void F([A, B] int p) { }\n [A, // why\n  B]\n int x;\n Action a = delegate() { };\n}\n",

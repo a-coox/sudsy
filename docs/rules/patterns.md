@@ -83,7 +83,22 @@ rule:
 - Cost bound: a rule gets 1,000,000 match steps per node (its `inside`/`has` walks included), because several `$$$` in one pattern are O(n^k). Past that the rule reports "the pattern took too many steps" once and is off for the rest of that file.
 - A pattern is a snippet of the language, parsed by its own provider. Metavariables are first written as identifiers (`__SUDSY_S_X__`, `__SUDSY_M_X__`), or as strings when that does not parse (JSON). The snippet is tried as is, with a `;` after it, and inside `{ }` (a JSON member); the node spanning all of it is the pattern.
 - `$X` matches one node or token; `$$$ARGS` any run of siblings (also none, separators included, by backtracking); the same name twice must capture equal text; `$_X` captures nothing. In statement position write `$$$BODY;`.
-- `rule` keys: `pattern`, `kind` (node kinds of the language's grammar), `regex` (node text without trivia), `inside`, `not-inside`, `has`, `not-has` (nested rules), `all`, `any`, `not`. Keys at one level all must hold. `inside`/`has` drop their captures.
+- `rule` keys: `pattern`, `kind` (node kinds of the language's grammar), `regex` (node text without trivia), `inside`, `not-inside`, `has`, `not-has`, `parent`, `child` (nested rules), `option`, `all`, `any`, `not`. Keys at one level all must hold. The relations drop their captures.
+- `parent` (the direct parent holds the rule) and `child` (some direct child does) are the one-level forms of `inside` and `has`, which look at every level. `option: NAME` holds when that `bool` option is true. Write a negation with `not`:
+
+```yaml
+rule:
+  kind: CatchClause
+  child: { kind: Block, regex: '^\{\s*\}$' }          # its own block, not one in a nested try
+---
+rule:
+  kind: ParameterList
+  parent: { kind: AnonymousMethodExpression }         # not the list of a local function inside one
+---
+rule:
+  kind: FlowMapping
+  not: { option: allow_empty, regex: '^\{\s*\}$' }    # `{}` is fine when allow_empty is on
+```
 - A rule must pin where it starts: a `pattern` or `kind` at the top (or in every `any` branch). `kinds()` is that root kind, so the engine calls the rule for those kinds only. A rule that pins none (regex or relation alone) is a config error: it would cost 1.6 ms per file per rule.
 - `message` and `fix` substitute captured source text. The fix replaces the matched node; fix loop and formatter do the rest.
 - `type_matches` is not available (see roadmap).

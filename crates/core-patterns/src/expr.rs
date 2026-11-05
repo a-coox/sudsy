@@ -5,6 +5,7 @@
 use crate::matcher::{Captures, Pattern, SnippetParser};
 use crate::metavar::Meta;
 use core_rules::tree::significant_range;
+use core_rules::{Opt, OptionDecl, RuleOptions};
 use core_syntax::{Grammar, SyntaxKind, SyntaxNode};
 use regex::Regex;
 use serde::Deserialize;
@@ -23,6 +24,11 @@ pub struct Spec {
     pub has: Option<Box<Spec>>,
     #[serde(rename = "not-has")]
     pub not_has: Option<Box<Spec>>,
+    /// The direct parent / a direct child holds the rule (`inside`/`has` look at every level).
+    pub parent: Option<Box<Spec>>,
+    pub child: Option<Box<Spec>>,
+    /// The bool option of this name is true.
+    pub option: Option<String>,
     pub all: Option<Vec<Spec>>,
     pub any: Option<Vec<Spec>>,
     pub not: Option<Box<Spec>>,
@@ -32,6 +38,7 @@ pub struct Spec {
 pub struct Ctx<'a> {
     pub grammar: &'a Grammar,
     pub text: &'a str,
+    pub options: &'a RuleOptions,
     /// Matching steps left for this evaluation (see [`STEP_BUDGET`]); 0 means it ran out and
     /// the result is not to be trusted.
     pub budget: Cell<u32>,
@@ -56,15 +63,22 @@ pub enum Expr {
     Regex(Regex),
     Inside(Box<Expr>),
     Has(Box<Expr>),
+    Parent(Box<Expr>),
+    Child(Box<Expr>),
+    Option(String),
     All(Vec<Expr>),
     Any(Vec<Expr>),
     Not(Box<Expr>),
 }
 
 impl Expr {
-    pub fn compile(spec: &Spec, parser: &dyn SnippetParser) -> Result<Expr, String> {
+    pub fn compile(
+        spec: &Spec,
+        parser: &dyn SnippetParser,
+        options: &[OptionDecl],
+    ) -> Result<Expr, String> {
         let mut all = Vec::new();
-        let sub = |s: &Spec| Expr::compile(s, parser);
+        let sub = |s: &Spec| Expr::compile(s, parser, options);
         if let Some(text) = &spec.pattern {
             all.push(Expr::Pattern(Pattern::compile(text, parser)?));
         }
@@ -93,6 +107,19 @@ impl Expr {
         if let Some(s) = &spec.not_has {
             all.push(Expr::Not(Box::new(Expr::Has(Box::new(sub(s)?)))));
         }
+        if let Some(s) = &spec.parent {
+            all.push(Expr::Parent(Box::new(sub(s)?)));
+        }
+        if let Some(s) = &spec.child {
+            all.push(Expr::Child(Box::new(sub(s)?)));
+        }
+        if let Some(name) = &spec.option {
+            let bool_option = |o: &&OptionDecl| o.name == name && matches!(o.default, Opt::Bool(_));
+            if !options.iter().any(|o| bool_option(&o)) {
+                return Err(format!("option `{name}` is not a declared `bool` option"));
+            }
+            all.push(Expr::Option(name.clone()));
+        }
         if let Some(list) = &spec.all {
             all.push(Expr::All(list.iter().map(sub).collect::<Result<_, _>>()?));
         }
@@ -105,7 +132,7 @@ impl Expr {
         match all.len() {
             0 => Err(
                 "a rule needs at least one of pattern, kind, regex, inside, not-inside, \
-                      has, not-has, all, any, not"
+                      has, not-has, parent, child, option, all, any, not"
                     .into(),
             ),
             1 => Ok(all.remove(0)),
@@ -133,6 +160,15 @@ impl Expr {
                 .skip(1)
                 .any(|d| cx.spend() && e.matches(&d, cx).is_some())
                 .then(Captures::new),
+            Expr::Parent(e) => node
+                .parent()
+                .is_some_and(|p| e.matches(&p, cx).is_some())
+                .then(Captures::new),
+            Expr::Child(e) => node
+                .children()
+                .any(|c| cx.spend() && e.matches(&c, cx).is_some())
+                .then(Captures::new),
+            Expr::Option(name) => cx.options.bool(name).then(Captures::new),
             Expr::All(list) => {
                 let mut captures = Captures::new();
                 for e in list {
@@ -154,8 +190,8 @@ impl Expr {
             Expr::Pattern(p) => p.metas().iter().any(|m| m.multi),
             Expr::Inside(_) | Expr::Has(_) => true,
             Expr::All(list) | Expr::Any(list) => list.iter().any(Expr::superlinear),
-            Expr::Not(e) => e.superlinear(),
-            Expr::Kind(_) | Expr::Regex(_) => false,
+            Expr::Not(e) | Expr::Parent(e) | Expr::Child(e) => e.superlinear(),
+            Expr::Kind(_) | Expr::Regex(_) | Expr::Option(_) => false,
         }
     }
 
@@ -183,7 +219,14 @@ impl Expr {
         match self {
             Expr::Pattern(p) => out.extend(p.metas().iter().cloned()),
             Expr::All(list) | Expr::Any(list) => list.iter().for_each(|e| e.metas(out)),
-            Expr::Kind(_) | Expr::Regex(_) | Expr::Inside(_) | Expr::Has(_) | Expr::Not(_) => {}
+            Expr::Kind(_)
+            | Expr::Regex(_)
+            | Expr::Option(_)
+            | Expr::Inside(_)
+            | Expr::Has(_)
+            | Expr::Parent(_)
+            | Expr::Child(_)
+            | Expr::Not(_) => {}
         }
     }
 }

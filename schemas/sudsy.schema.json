@@ -504,7 +504,7 @@
             },
             "no-empty-delegate-parens": {
               "$ref": "#/definitions/rule",
-              "description": "An anonymous method with an empty parameter list: `delegate() { }` is `delegate { }`. The fix is unsafe: without a parameter list the method also converts to delegate types that have parameters, which can change which overload is chosen."
+              "description": "An anonymous method with an empty parameter list: `delegate() { }` is `delegate { }`. Parentheses with a comment in them are left alone. The fix is unsafe: without a parameter list the method also converts to delegate types that have parameters, which can change which overload is chosen."
             },
             "no-empty-keys": {
               "$ref": "#/definitions/rule",

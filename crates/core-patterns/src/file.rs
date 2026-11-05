@@ -234,7 +234,9 @@ fn declared_options(specs: &[OptionSpec]) -> Result<&'static [OptionDecl], Strin
         let check = match (o.ty, &o.choices) {
             (OptionType::Regex, None) => Check::Regex,
             (OptionType::String | OptionType::List, Some(c)) => Check::OneOf(list(c)),
-            (OptionType::String | OptionType::List, None) => Check::Any,
+            (OptionType::Bool | OptionType::Int | OptionType::String | OptionType::List, None) => {
+                Check::Any
+            }
             _ => {
                 return Err(format!(
                     "option `{}`: `choices` go with `string` and `list` only, and a `regex` has none",
@@ -389,7 +391,7 @@ fn compile_body(
     options: &[OptionDecl],
 ) -> Result<Body, String> {
     let rule = spec.rule.as_ref().ok_or("the rule has no `rule:`")?;
-    let expr = Expr::compile(rule, parser)?;
+    let expr = Expr::compile(rule, parser, options)?;
     let mut captured = Vec::new();
     expr.metas(&mut captured);
     let known = |name: &str| captured.iter().any(|m| m.name == name);
@@ -813,6 +815,7 @@ impl Rule for PatternRule {
         let cx = Ctx {
             grammar: file.grammar,
             text: file.text,
+            options: ctx.options,
             budget: Cell::new(STEP_BUDGET),
         };
         let found = body.expr.matches(node, &cx);

@@ -1,10 +1,10 @@
-//! Rules about how a construct is written: `separate-attributes` and `no-empty-delegate-parens`.
+//! Rules about how a construct is written: `separate-attributes` (`no-empty-delegate-parens` is a pattern file in `rules/`).
 
 use super::{kind, line_separator, text_of};
 use core_rules::rule;
 use core_rules::tree::significant_range;
 use core_rules::{Edit, RuleContext};
-use core_syntax::{SyntaxNode, TextRange};
+use core_syntax::SyntaxNode;
 
 rule! {
     pub SeparateAttributes {
@@ -56,51 +56,6 @@ rule! {
             significant_range(second, grammar),
             "combined attributes: put each attribute in its own list",
             fix,
-        );
-    }
-}
-
-/// The range from the whitespace before `list` to its end, when only whitespace sits between the
-/// parentheses of `list` (an empty list with no comment in it).
-fn empty_parens_with_leading_space(list: &SyntaxNode, ctx: &RuleContext<'_>) -> Option<TextRange> {
-    let range = significant_range(list, ctx.file.grammar);
-    let text = ctx.file.text;
-    let inner = text[range].strip_prefix('(')?.strip_suffix(')')?;
-    if !inner.trim().is_empty() {
-        return None;
-    }
-    let before = &text[..usize::from(range.start())];
-    let start = before.trim_end_matches([' ', '\t']).len();
-    Some(TextRange::new((start as u32).into(), range.end()))
-}
-
-rule! {
-    pub NoEmptyDelegateParens {
-        id: "no-empty-delegate-parens",
-        category: Style,
-        default: Off,
-        fix: Unsafe,
-        description: "An anonymous method with an empty parameter list: `delegate() { }` is \
-                  `delegate { }`. The fix is unsafe: without a parameter list the method also \
-                  converts to delegate types that have parameters, which can change which \
-                  overload is chosen.",
-        example: "Action a = delegate() { };   // write: delegate { }",
-        kinds: &[kind::PARAMETER_LIST],
-    }
-
-    fn check(&self, node: &SyntaxNode, ctx: &mut RuleContext<'_>) {
-        let anonymous = node
-            .parent()
-            .is_some_and(|p| p.kind() == kind::ANONYMOUS_METHOD_EXPRESSION);
-        if !anonymous || node.children().any(|c| c.kind() == kind::PARAMETER) {
-            return;
-        }
-        let range = significant_range(node, ctx.file.grammar);
-        let remove = empty_parens_with_leading_space(node, ctx);
-        ctx.report_fix(
-            TextRange::at(range.start(), 1.into()),
-            "the anonymous method has an empty parameter list",
-            remove.map(|remove| ("Remove the parentheses", vec![Edit::delete(remove)])),
         );
     }
 }

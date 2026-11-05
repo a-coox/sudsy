@@ -13,7 +13,6 @@ mod doc_summary;
 mod doc_tags;
 mod doc_text;
 mod doc_wording;
-mod empty_catch;
 mod expressions;
 mod file_layout;
 mod finding;
@@ -32,7 +31,6 @@ use core_syntax::{SyntaxKind, SyntaxNode};
 pub static FAMILIES: &[Family] = &[doc_element::FAMILY, finding::FAMILY];
 
 pub static RULES: &[&dyn Rule] = &[
-    &empty_catch::NoEmptyCatch,
     &async_suffix::AsyncSuffix,
     &usings::UsingOrder,
     &member_order::MemberOrder,
@@ -70,7 +68,6 @@ pub static RULES: &[&dyn Rule] = &[
     &statements::NoEmptyStatement,
     &statements::NoCommentBeforeBlock,
     &syntax_forms::SeparateAttributes,
-    &syntax_forms::NoEmptyDelegateParens,
     &symbol_checks::DebugAssertMessage,
     &symbol_checks::DebugFailMessage,
 ];

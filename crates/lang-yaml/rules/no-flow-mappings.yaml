@@ -1,0 +1,13 @@
+id: no-flow-mappings
+language: yaml
+message: flow mappings are not allowed
+description: "A flow mapping (`{a: 1}`); write a block mapping instead."
+example: "point: {x: 1}   # reported; write the entries on their own lines"
+severity: off
+category: style
+options:
+  - { name: allow_empty, type: bool, default: false, description: "Do not report empty collections (`{}`, `[]`)." }
+rule:
+  kind: FlowMapping
+  not: { option: allow_empty, regex: '^\{\s*\}$' }
+report-on: first-token

@@ -1,0 +1,19 @@
+id: no-octal-values
+language: yaml
+message: forbidden octal value
+description: >-
+  A plain `0755` (octal to YAML 1.1 parsers, decimal 755 to YAML 1.2) or `0o755` (octal to YAML 1.2,
+  a string to YAML 1.1). Quoted and tagged scalars are not checked. No fix: the intended value is
+  not known.
+example: "mode: 0755   # quote it (a string) or write the decimal value"
+severity: off
+category: suspicious
+options:
+  - { name: implicit, type: bool, default: true, description: "Report `0755`." }
+  - { name: explicit, type: bool, default: true, description: "Report `0o755`." }
+rule:
+  kind: Scalar
+  not: { parent: { kind: PropertyNode, regex: '(^|\s)!' } }
+  any:
+    - { option: implicit, regex: '^0[0-7]+$' }
+    - { option: explicit, regex: '^0o[0-7]+$' }

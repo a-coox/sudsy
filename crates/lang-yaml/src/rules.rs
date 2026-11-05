@@ -2,7 +2,7 @@
 //! rules on values in `value_rules` and `quoted_strings`.
 
 use crate::generated::{BlockMappingEntry, FlowPair, Scalar, kind};
-use crate::{anchor_rules, flow_rules, quoted_strings, value_rules};
+use crate::{anchor_rules, quoted_strings, value_rules};
 use core_rules::rule;
 use core_rules::tree::significant_range;
 use core_rules::{Check, Edit, Opt, OptionDecl, Rule, RuleContext};
@@ -13,11 +13,8 @@ pub static RULES: &[&dyn Rule] = &[
     &anchor_rules::NoUndefinedAlias,
     &anchor_rules::NoDuplicateAnchors,
     &anchor_rules::NoUnusedAnchors,
-    &flow_rules::NoFlowMappings,
-    &flow_rules::NoFlowSequences,
     &value_rules::NoEmptyValues,
     &value_rules::FloatStyle,
-    &value_rules::NoOctalValues,
     &quoted_strings::QuotedStrings,
     &AmbiguousBooleans,
     &DocumentStart,

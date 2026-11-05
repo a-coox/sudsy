@@ -4,7 +4,6 @@
 mod format;
 core_syntax::include_generated!();
 mod anchor_rules;
-mod flow_rules;
 mod hooks;
 pub mod model;
 mod parser;
