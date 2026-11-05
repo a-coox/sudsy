@@ -96,6 +96,8 @@ TOML (tree-sitter-toml-ng through `core-treesitter`, `lang-toml`): `sudsy.exe` 2
 
 XML (tree-sitter-xml through `core-treesitter`, `lang-xml`): `sudsy.exe` 30.59 MB with XML and TOML (release, same machine); TOML alone was 29.87 MB, so XML adds about 0.7 MB (+2.4%): the XML parser is 240 KB of generated C and the DTD parser it ships with is linked too (not used).
 
+Markdown instruction counts (`scripts/bench.sh`, the six committed docs, 59.6 KB): md.parse 269.7 M and 5046 allocations, md.format-query 939.4 M and 176055 allocations (parse, render, then parse and compare each block and the whole output), md.lint-all 19.5 M. The composite changes in `core-treesitter` (a text-kind check and a `covered` update per node) cost the existing tree-sitter languages toml.parse +0.18%, xml.parse +0.13%.
+
 Markdown (tree-sitter-md block and inline grammars through `core-treesitter` as a composite, `lang-markdown`): `sudsy.exe` 30,638,592 bytes without, 31,531,008 with (+0.89 MB, +2.9%), release, same machine. The injection costs one parser pool and one mapping table per injected grammar and one extra parse per `inline` or table cell node (the grammar is built once per process); the text fill adds one token per line of prose.
 
 ## Editor (`lsp-latency`, 300 corpus files as workspace, 20 KB file open, six semantic rules)
