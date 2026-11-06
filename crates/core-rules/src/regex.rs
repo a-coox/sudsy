@@ -16,21 +16,21 @@ pub struct Re {
     source: String,
     /// `None` inside: the pattern needs Unicode.
     ascii: OnceLock<Option<bytes::Regex>>,
-    full: OnceLock<Regex>,
+    /// `None` inside: the full form exceeds the regex size limit.
+    full: OnceLock<Option<Regex>>,
 }
 
 impl Re {
     /// Compiles the ASCII form now (or the full one, when the pattern needs Unicode), which
     /// checks the syntax. A counted repetition of more than a literal (`\w{n,m}`) is the way to
     /// multiply a Unicode class past the regex size limit, so such a pattern is built in full
-    /// too, and an error here says it is too large.
-    // shortcut: any other pattern is not built in full here, so one that is still too large
-    // panics on first use on non-ASCII text; build every pattern in full if one is ever seen.
+    /// too, and an error here says it is too large. Any other pattern whose full form turns out
+    /// too large on first use matches non-ASCII text with its ASCII form instead of failing.
     pub fn new(source: &str) -> Result<Re, String> {
         let re = Self::unbuilt(source);
         if re.ascii().is_none() || counts_more_than_a_literal(source) {
             let full = Regex::new(source).map_err(|e| e.to_string())?;
-            re.full.get_or_init(|| full);
+            re.full.get_or_init(|| Some(full));
         }
         Ok(re)
     }
@@ -84,9 +84,11 @@ impl Re {
         {
             return re.is_match(text.as_bytes());
         }
-        self.full
-            .get_or_init(|| Regex::new(&self.source).expect("the syntax was checked"))
-            .is_match(text)
+        // The syntax was checked; only the size limit can fail here.
+        match self.full.get_or_init(|| Regex::new(&self.source).ok()) {
+            Some(full) => full.is_match(text),
+            None => self.ascii().is_some_and(|re| re.is_match(text.as_bytes())),
+        }
     }
 }
 
