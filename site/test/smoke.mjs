@@ -103,6 +103,16 @@ test('rule page shows squiggles, its example and configuration; an upstream id r
   await page.waitForURL(`${B}/rules/comment-space/`);
 });
 
+test('rule pages have no horizontal overflow on desktop and phone', async () => {
+  for (const width of [1200, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto(`${B}/rules/sorted-keys/`);
+    const [scroll, client] = await page.evaluate(() => [document.documentElement.scrollWidth, document.documentElement.clientWidth]);
+    assert.ok(scroll <= client, `${width}px: scrollWidth ${scroll} > clientWidth ${client}`);
+  }
+  await page.setViewportSize({ width: 1280, height: 720 });
+});
+
 test('the header search finds rules', async () => {
   await page.goto(`${B}/getting-started/`);
   await page.locator('button[data-open-modal]').first().click();
