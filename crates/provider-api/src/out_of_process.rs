@@ -3,6 +3,7 @@ use crate::provider::{
     Capabilities, FileMatcher, LanguageProvider, ParseError, ParseResult, ProviderError, SourceFile,
 };
 use crate::proxy::{ProxyError, WorkerConfig, WorkerProxy};
+use crate::snippets::LazyRules;
 use core_config::OptionSchema;
 use core_format::{DefaultFormatter, NodeFormatter};
 use core_rules::{Family, Rule};
@@ -17,7 +18,7 @@ pub struct OutOfProcessProvider {
     proxy: std::sync::Arc<WorkerProxy>,
     formatter: Box<dyn NodeFormatter>,
     schema: OptionSchema,
-    rules: &'static [&'static dyn Rule],
+    rules: LazyRules,
     body_kinds: &'static [SyntaxKind],
     families: &'static [Family],
     summaries: BehaviorSummaries,
@@ -38,7 +39,7 @@ impl OutOfProcessProvider {
             proxy: std::sync::Arc::new(WorkerProxy::new(worker)),
             formatter: Box::new(DefaultFormatter),
             schema: OptionSchema::default(),
-            rules: &[],
+            rules: LazyRules::own(&[]),
             body_kinds: &[],
             families: &[],
             summaries: BehaviorSummaries::default(),
@@ -59,7 +60,7 @@ impl OutOfProcessProvider {
         rules: &'static [&'static dyn Rule],
         body_kinds: &'static [SyntaxKind],
     ) -> Self {
-        self.rules = rules;
+        self.rules = LazyRules::own(rules);
         self.body_kinds = body_kinds;
         self
     }
@@ -78,14 +79,15 @@ impl OutOfProcessProvider {
     }
 
     /// The language's built-in pattern rules (the `rules/*.yaml` files, as text), added to its
-    /// own. Their patterns compile when a rule first runs, so building them starts no worker.
-    pub fn with_pattern_rules(mut self, sources: &[&str]) -> Self {
+    /// own. They are read when the rules are first asked for and their patterns compile when a
+    /// rule first runs, so building them starts no worker.
+    pub fn with_pattern_rules(mut self, sources: &'static [&'static str]) -> Self {
         let parser = std::sync::Arc::new(WorkerSnippets {
             grammar: self.grammar,
             proxy: self.proxy.clone(),
         });
-        self.rules = crate::snippets::with_pattern_families(
-            self.rules,
+        self.rules = LazyRules::new(
+            self.rules.rust(),
             &self.grammar.language,
             sources,
             self.families,
@@ -136,7 +138,11 @@ impl LanguageProvider for OutOfProcessProvider {
     }
 
     fn rules(&self) -> &'static [&'static dyn Rule] {
-        self.rules
+        self.rules.all()
+    }
+
+    fn rust_rules(&self) -> &'static [&'static dyn Rule] {
+        self.rules.rust()
     }
 
     fn body_kinds(&self) -> &'static [SyntaxKind] {

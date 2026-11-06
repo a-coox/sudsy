@@ -6,8 +6,8 @@ use core_format::NodeFormatter;
 use core_rules::{Family, Rule, RuleHooks};
 use core_syntax::{Grammar, LanguageId, SyntaxNode};
 use provider_api::{
-    Capabilities, FileMatcher, FilePattern, FnSnippets, LanguageProvider, ParseError, ParseResult,
-    ProviderError, SourceFile,
+    Capabilities, FileMatcher, FilePattern, FnSnippets, LanguageProvider, LazyRules, ParseError,
+    ParseResult, ProviderError, SourceFile,
 };
 use std::sync::Arc;
 
@@ -41,7 +41,7 @@ pub struct TreeSitterProvider {
     engine: Arc<Engine>,
     formatter: &'static dyn NodeFormatter,
     hooks: &'static dyn RuleHooks,
-    rules: &'static [&'static dyn Rule],
+    rules: LazyRules,
     validate: Option<fn(&SyntaxNode, &str) -> Vec<ParseError>>,
 }
 
@@ -71,7 +71,7 @@ impl TreeSitterProvider {
                 }))
                 .collect(),
             schema: spec.schema,
-            rules: provider_api::with_pattern_families(
+            rules: LazyRules::new(
                 spec.rules,
                 &spec.grammar.language,
                 spec.pattern_files,
@@ -125,7 +125,11 @@ impl LanguageProvider for TreeSitterProvider {
     }
 
     fn rules(&self) -> &'static [&'static dyn Rule] {
-        self.rules
+        self.rules.all()
+    }
+
+    fn rust_rules(&self) -> &'static [&'static dyn Rule] {
+        self.rules.rust()
     }
 
     fn rule_hooks(&self) -> &dyn RuleHooks {

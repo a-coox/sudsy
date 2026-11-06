@@ -451,6 +451,7 @@ dependencies = [
  "lang-json",
  "provider-api",
  "regex",
+ "regex-syntax",
 ]
 
 [[package]]
@@ -1295,7 +1296,6 @@ dependencies = [
  "core-treesitter",
  "insta",
  "provider-api",
- "regex",
  "tree-sitter-containerfile",
 ]
 

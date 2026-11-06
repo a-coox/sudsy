@@ -110,7 +110,7 @@ pub fn layout(db: &dyn Db, file: File) -> Result<DirectiveTable, Failure> {
     let language = &provider.grammar().language;
     let layout_rules = || {
         extensions
-            .with_own(provider.rules(), language)
+            .with_own(provider.rust_rules(), language)
             .filter(|r| r.layout_role().attaches())
     };
     if layout_rules().next().is_none() {

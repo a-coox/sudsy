@@ -1,6 +1,7 @@
 //! Helpers over the shared tree that several languages' rules need.
 
 use core_syntax::{Grammar, SyntaxNode, SyntaxToken, TextRange};
+use std::cell::Cell;
 
 /// The span of a node from its first token that is not trivia to the end of its last one:
 /// comments and blank space around the node are not part of it. Found from the two ends, so it
@@ -32,6 +33,38 @@ pub fn significant_range(node: &SyntaxNode, grammar: &Grammar) -> TextRange {
             TextRange::new(first.text_range().start(), last.text_range().end())
         }
         _ => whole,
+    }
+}
+
+/// What the rules run on one file share: the last [`significant_range`] computed (the rules a
+/// node is dispatched to ask for it one after the other; it depends on the node's range only, so
+/// equal ranges share the answer) and whether the file text is ASCII.
+#[derive(Default)]
+pub struct TraversalCache {
+    range: Cell<Option<(TextRange, TextRange)>>,
+    ascii: Cell<Option<bool>>,
+}
+
+impl TraversalCache {
+    pub fn significant_range(&self, node: &SyntaxNode, grammar: &Grammar) -> TextRange {
+        let whole = node.text_range();
+        match self.range.get() {
+            Some((key, range)) if key == whole => range,
+            _ => {
+                let range = significant_range(node, grammar);
+                self.range.set(Some((whole, range)));
+                range
+            }
+        }
+    }
+
+    /// Is the file's `text` ASCII? Scanned on the first ask.
+    pub fn ascii(&self, text: &str) -> bool {
+        self.ascii.get().unwrap_or_else(|| {
+            let ascii = text.is_ascii();
+            self.ascii.set(Some(ascii));
+            ascii
+        })
     }
 }
 

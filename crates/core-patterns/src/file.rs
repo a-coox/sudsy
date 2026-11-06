@@ -27,13 +27,12 @@ use crate::matcher::{Captures, SnippetParser};
 use crate::metavar::rewrite;
 use core_config::Level;
 use core_format::Directive;
-use core_rules::tree::significant_range;
+use core_rules::tree::{TraversalCache, significant_range};
 use core_rules::{
-    Category, Check, Edit, Family, Fix, FixKind, Layer, LayoutRole, Opt, OptionDecl, Params, Rule,
-    RuleContext, RuleMeta, RuleOptions,
+    Category, Check, Edit, Family, Fix, FixKind, Layer, LayoutRole, Opt, OptionDecl, Params, Re,
+    Rule, RuleContext, RuleMeta, RuleOptions,
 };
 use core_syntax::{Grammar, SyntaxKind, SyntaxNode, TextRange};
-use regex::Regex;
 use serde::Deserialize;
 use std::cell::Cell;
 use std::collections::BTreeMap;
@@ -171,8 +170,8 @@ struct FileSpec {
 }
 
 struct CompiledConstraint {
-    regex: Option<Regex>,
-    not_regex: Option<Regex>,
+    regex: Option<Re>,
+    not_regex: Option<Re>,
     kind: Option<SyntaxKind>,
     /// The list option (true) or string option (false) the capture must be in or equal.
     in_option: Option<(String, bool)>,
@@ -331,7 +330,7 @@ fn compile_constraint(
 ) -> Result<CompiledConstraint, String> {
     let regex = |text: &Option<String>| {
         text.as_deref()
-            .map(|t| Regex::new(t).map_err(|e| format!("constraint {name}: regex `{t}`: {e}")))
+            .map(|t| Re::new(t).map_err(|e| format!("constraint {name}: regex `{t}`: {e}")))
             .transpose()
     };
     let kind =
@@ -626,6 +625,9 @@ pub fn load_lazy(
             if spec.language != language {
                 return Err(err(format!("language must be `{language}`")));
             }
+            if !spec.layout.is_empty() {
+                return Err(err("a built-in rule cannot have `layout`".into()));
+            }
             let meta = meta_of(&spec).map_err(err)?;
             if let Some(name) = &spec.family {
                 let family = families.iter().find(|f| f.name == *name);
@@ -757,7 +759,7 @@ impl PatternRule {
                     }
                 })
                 && c.regex_option.as_ref().is_none_or(|option| {
-                    Regex::new(options.string(option)).is_ok_and(|re| re.is_match(captured))
+                    Re::new(options.string(option)).is_ok_and(|re| re.is_match(captured))
                 })
         })
     }
@@ -812,11 +814,14 @@ impl Rule for PatternRule {
         if body.metered && ctx.has_reported(OVER_BUDGET) {
             return; // the rule is off for this file
         }
+        let local = TraversalCache::default();
+        let ranges = ctx.ranges().unwrap_or(&local);
         let cx = Ctx {
             grammar: file.grammar,
             text: file.text,
             options: ctx.options,
             budget: Cell::new(STEP_BUDGET),
+            ranges,
         };
         let found = body.expr.matches(node, &cx);
         if body.metered && cx.budget.get() == 0 {
@@ -831,7 +836,7 @@ impl Rule for PatternRule {
         if !self.constraints_hold(&captures, file.text, ctx.options) {
             return;
         }
-        let range = significant_range(node, file.grammar);
+        let range = ranges.significant_range(node, file.grammar);
         if ctx.laying_out() {
             self.attach_layout(node, &captures, ctx);
         } else if let Some(message) = &self.message {

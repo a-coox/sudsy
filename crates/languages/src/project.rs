@@ -44,9 +44,13 @@ impl Project {
         };
         chain.validate(&crate::schemas(providers)).map_err(fail)?;
         let extensions = crate::load_extensions(&chain, providers, &root).map_err(fail)?;
-        let mut ids = crate::rule_ids(providers);
-        ids.extend(extensions.ids());
-        chain.validate_rule_ids(&ids).map_err(fail)?;
+        chain
+            .validate_rule_ids(|| {
+                let mut ids = crate::rule_ids(providers);
+                ids.extend(extensions.ids());
+                ids
+            })
+            .map_err(fail)?;
         Ok(Project {
             root,
             chain,

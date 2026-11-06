@@ -87,6 +87,7 @@ pub fn list(dir: &Path) -> Result<()> {
         .filter_map(|e| e.ok()?.file_name().into_string().ok())
         .collect();
     langs.sort();
+    println!("startup native providers format lint");
     for lang in langs {
         let Ok(provider) = make_provider(&lang) else {
             continue;
@@ -136,7 +137,50 @@ pub(crate) fn make_provider(lang: &str) -> Result<Box<dyn LanguageProvider>> {
         .ok_or_else(|| anyhow!("no language claims .{lang} files"))
 }
 
+/// Process start-up as the CLI pays it, one tiny JSON file: `providers` builds them all,
+/// `format` also formats the file, `lint` also loads the project and lints it with the default
+/// rules. Whatever is not needed for JSON should not show up here.
+fn startup(phase: &str) -> Result<()> {
+    let text = "{\"a\": 1}
+";
+    let work = measured(&mut || {
+        let providers = languages::providers();
+        if phase == "providers" {
+            return providers.len();
+        }
+        let p = providers
+            .iter()
+            .find(|p| p.grammar().language == "json")
+            .expect("json is registered")
+            .as_ref();
+        if phase == "format" {
+            let (f, o) = file(p, "a.json", 1, text);
+            let table = DirectiveTable::default();
+            return provider_api::format_file(p, &f, &o, &table).map_or(0, |_| 1);
+        }
+        let root = Path::new(std::path::MAIN_SEPARATOR_STR);
+        let project = languages::Project::load(root, &providers).expect("project loads");
+        let files = extensions::parse_all(p, vec![text.into()]);
+        let rules = activate(own_and_shared(p), &BTreeMap::new(), |_| false).expect("activate");
+        project.extensions.rules.len() + diagnostics(p, &files, &rules)
+    });
+    let allocs = if cfg!(feature = "count") {
+        format!(" allocs={}", work.1)
+    } else {
+        String::new()
+    };
+    println!(
+        "RESULT startup {phase} files=1 bytes={} work={}{allocs}",
+        text.len(),
+        work.0
+    );
+    Ok(())
+}
+
 pub fn run(lang: &str, phase: &str, dir: &Path) -> Result<()> {
+    if lang == "startup" {
+        return startup(phase);
+    }
     let provider = make_provider(lang)?;
     let p = provider.as_ref();
     let texts = texts(lang, dir)?;

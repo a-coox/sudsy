@@ -81,6 +81,7 @@ pub(crate) fn traverse(
             }
         }
     }
+    let ranges = crate::tree::TraversalCache::default();
     let mut run = |index: usize, f: &mut dyn FnMut(&dyn Rule, &mut RuleContext<'_>)| {
         let a = &active[index];
         let mut ctx = RuleContext::new(
@@ -91,6 +92,7 @@ pub(crate) fn traverse(
             &mut diagnostics,
         );
         ctx.layout = layout.as_deref_mut();
+        ctx.ranges = Some(&ranges);
         f(a.rule, &mut ctx);
     };
     for node in file.root.descendants() {

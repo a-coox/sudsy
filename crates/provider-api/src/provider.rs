@@ -30,8 +30,16 @@ pub trait LanguageProvider: Send + Sync {
     fn option_schema(&self) -> &OptionSchema;
 
     /// The language's own rules; the rules every language shares are `core_rules::shared::RULES`.
+    /// A provider that reads its built-in pattern files on the first call lets a run that never
+    /// lints the language skip them.
     fn rules(&self) -> &'static [&'static dyn Rule] {
         &[]
+    }
+
+    /// [`rules`](Self::rules) without the built-in pattern files, which cannot lay out: what
+    /// `format` consults, so that formatting reads no rule file.
+    fn rust_rules(&self) -> &'static [&'static dyn Rule] {
+        self.rules()
     }
 
     /// What the shared rules ask this language about its keys and scalars (see

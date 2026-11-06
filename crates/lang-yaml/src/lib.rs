@@ -25,14 +25,15 @@ use core_format::NodeFormatter;
 use core_rules::{Rule, RuleHooks};
 use core_syntax::{Grammar, LanguageId, grammars};
 use provider_api::{
-    Capabilities, FileMatcher, FnSnippets, LanguageProvider, ParseResult, ProviderError, SourceFile,
+    Capabilities, FileMatcher, FnSnippets, LanguageProvider, LazyRules, ParseResult, ProviderError,
+    SourceFile,
 };
 
 pub struct YamlProvider {
     matchers: Vec<FileMatcher>,
     schema: OptionSchema,
     formatter: YamlFormatter,
-    rules: &'static [&'static dyn Rule],
+    rules: LazyRules,
 }
 
 impl Default for YamlProvider {
@@ -50,10 +51,11 @@ impl YamlProvider {
             ],
             schema: option_schema(),
             formatter: YamlFormatter,
-            rules: provider_api::with_pattern_rules(
+            rules: LazyRules::new(
                 rules::RULES,
                 &grammars::yaml().language,
                 provider_api::pattern_files!(),
+                &[],
                 FnSnippets::new(grammars::yaml(), parse_result),
             ),
         }
@@ -98,7 +100,11 @@ impl LanguageProvider for YamlProvider {
     }
 
     fn rules(&self) -> &'static [&'static dyn Rule] {
-        self.rules
+        self.rules.all()
+    }
+
+    fn rust_rules(&self) -> &'static [&'static dyn Rule] {
+        self.rules.rust()
     }
 
     fn rule_hooks(&self) -> &dyn RuleHooks {

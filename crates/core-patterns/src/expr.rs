@@ -4,10 +4,9 @@
 
 use crate::matcher::{Captures, Pattern, SnippetParser};
 use crate::metavar::Meta;
-use core_rules::tree::significant_range;
-use core_rules::{Opt, OptionDecl, RuleOptions};
+use core_rules::tree::TraversalCache;
+use core_rules::{Opt, OptionDecl, Re, RuleOptions};
 use core_syntax::{Grammar, SyntaxKind, SyntaxNode};
-use regex::Regex;
 use serde::Deserialize;
 use std::cell::Cell;
 
@@ -42,6 +41,8 @@ pub struct Ctx<'a> {
     /// Matching steps left for this evaluation (see [`STEP_BUDGET`]); 0 means it ran out and
     /// the result is not to be trusted.
     pub budget: Cell<u32>,
+    /// Shared with the other rules run on the same node.
+    pub ranges: &'a TraversalCache,
 }
 
 impl Ctx<'_> {
@@ -60,7 +61,7 @@ pub const STEP_BUDGET: u32 = 1_000_000;
 pub enum Expr {
     Pattern(Pattern),
     Kind(SyntaxKind),
-    Regex(Regex),
+    Regex(Re),
     Inside(Box<Expr>),
     Has(Box<Expr>),
     Parent(Box<Expr>),
@@ -92,7 +93,7 @@ impl Expr {
         }
         if let Some(text) = &spec.regex {
             all.push(Expr::Regex(
-                Regex::new(text).map_err(|e| format!("regex `{text}`: {e}"))?,
+                Re::new(text).map_err(|e| format!("regex `{text}`: {e}"))?,
             ));
         }
         if let Some(s) = &spec.inside {
@@ -146,9 +147,10 @@ impl Expr {
             Expr::Pattern(p) => p.matches(node, cx.grammar, &cx.budget),
             Expr::Kind(k) => (node.kind() == *k).then(Captures::new),
             Expr::Regex(re) => {
-                let range = significant_range(node, cx.grammar);
+                let range = cx.ranges.significant_range(node, cx.grammar);
                 let text = &cx.text[range];
-                re.is_match(text).then(Captures::new)
+                re.is_match_in(text, cx.ranges.ascii(cx.text))
+                    .then(Captures::new)
             }
             Expr::Inside(e) => node
                 .ancestors()

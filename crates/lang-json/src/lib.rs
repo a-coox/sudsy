@@ -18,7 +18,7 @@ use core_format::NodeFormatter;
 use core_rules::{Rule, RuleHooks};
 use core_syntax::{Grammar, LanguageId, grammars};
 use provider_api::{
-    Capabilities, FileMatcher, FilePattern, FnSnippets, LanguageProvider, ParseResult,
+    Capabilities, FileMatcher, FilePattern, FnSnippets, LanguageProvider, LazyRules, ParseResult,
     ProviderError, SourceFile,
 };
 use std::path::Path;
@@ -27,7 +27,7 @@ pub struct JsonProvider {
     matchers: Vec<FileMatcher>,
     schema: OptionSchema,
     formatter: JsonFormatter,
-    rules: &'static [&'static dyn Rule],
+    rules: LazyRules,
 }
 
 impl Default for JsonProvider {
@@ -58,10 +58,11 @@ impl JsonProvider {
             ],
             schema: option_schema(),
             formatter: JsonFormatter,
-            rules: provider_api::with_pattern_rules(
+            rules: LazyRules::new(
                 rules::RULES,
                 &grammars::json().language,
                 provider_api::pattern_files!(),
+                &[],
                 FnSnippets::new(grammars::json(), |text| parse_result(text, Dialect::Json)),
             ),
         }
@@ -125,7 +126,11 @@ impl LanguageProvider for JsonProvider {
     }
 
     fn rules(&self) -> &'static [&'static dyn Rule] {
-        self.rules
+        self.rules.all()
+    }
+
+    fn rust_rules(&self) -> &'static [&'static dyn Rule] {
+        self.rules.rust()
     }
 
     fn rule_hooks(&self) -> &dyn RuleHooks {

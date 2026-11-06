@@ -628,7 +628,7 @@ fn rule_ids_are_checked_against_the_known_rules() {
         "lint:\n  rules:\n    sorted-keys: warn\n    team/own-rule: error\ncsharp:\n  lint:\n    rules:\n      no-empty-catch: error\n",
     )
     .unwrap();
-    ok.validate_rule_ids(&known).unwrap();
+    ok.validate_rule_ids(|| known.to_vec()).unwrap();
 
     // A plugin rule is known once its plugin is loaded; until then it is as unknown as any id.
     let unloaded = ConfigChain::parse(
@@ -638,7 +638,7 @@ fn rule_ids_are_checked_against_the_known_rules() {
 ",
     )
     .unwrap();
-    assert!(unloaded.validate_rule_ids(&known).is_err());
+    assert!(unloaded.validate_rule_ids(|| known.to_vec()).is_err());
 
     // The error points at the value of the unknown rule, in every kind of section.
     for (text, line) in [
@@ -651,7 +651,7 @@ fn rule_ids_are_checked_against_the_known_rules() {
     ] {
         let e = ConfigChain::parse(text)
             .unwrap()
-            .validate_rule_ids(&known)
+            .validate_rule_ids(|| known.to_vec())
             .unwrap_err();
         assert_eq!(e.line, Some(line), "{text}");
         assert!(

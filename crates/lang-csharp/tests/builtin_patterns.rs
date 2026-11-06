@@ -30,7 +30,7 @@ fn every_embedded_pattern_compiles() {
 /// skipped and says why, instead of panicking.
 #[test]
 fn a_rule_that_cannot_compile_is_skipped_not_a_panic() {
-    let source = "id: needs-worker
+    const SOURCE: &str = "id: needs-worker
 language: csharp
 message: m
 description: d
@@ -40,7 +40,7 @@ category: style
 rule:
   pattern: Foo($A)
 ";
-    let p = provider_with_command(vec!["no-such-host".into()]).with_pattern_rules(&[source]);
+    let p = provider_with_command(vec!["no-such-host".into()]).with_pattern_rules(&[SOURCE]);
     let rule = p
         .rules()
         .iter()
@@ -60,7 +60,7 @@ fn measure_startup_cost() {
     let n = 200;
     let start = std::time::Instant::now();
     for _ in 0..n {
-        std::hint::black_box(provider_with_command(command()));
+        std::hint::black_box(provider_with_command(command()).rules());
     }
     println!(
         "provider with pattern rules: {:?} each",

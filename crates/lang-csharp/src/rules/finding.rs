@@ -77,12 +77,14 @@ pub fn report(
 #[cfg(test)]
 mod tests {
     fn load(family: &str, params: &str) {
+        use provider_api::LanguageProvider;
         let source = format!(
             "id: f\nlanguage: csharp\nfamily: {family}\nparams: {{ {params} }}\nmessage: m\nseverity: warn\n"
         );
-        crate::provider_with_command(vec!["no-such-host".into()])
+        let provider = crate::provider_with_command(vec!["no-such-host".into()])
             .with_families(super::super::FAMILIES)
-            .with_pattern_rules(&[&source]);
+            .with_pattern_rules(Box::leak(Box::new([&*source.leak()])));
+        provider.rules();
     }
 
     #[test]

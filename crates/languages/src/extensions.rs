@@ -84,7 +84,8 @@ pub fn load_extensions(
     providers: &[Box<dyn LanguageProvider>],
     root: &Path,
 ) -> Result<Extensions, ConfigError> {
-    let builtin = crate::rule_ids(providers);
+    // Only a project's own rules are checked against these, so they are collected when it has some.
+    let mut builtin = None;
     let mut extensions = Extensions::default();
     let mut origin: HashMap<(&'static str, &'static str), PathBuf> = HashMap::new();
     for entry in chain.plugin_entries() {
@@ -130,7 +131,10 @@ pub fn load_extensions(
                         core_config::unknown_name("language", language, known)
                     )));
                 }
-                if builtin.contains(&id) {
+                if builtin
+                    .get_or_insert_with(|| crate::rule_ids(providers))
+                    .contains(&id)
+                {
                     return Err(at(format!("rule `{id}` is the id of a built-in rule")));
                 }
                 if let Some(first) = origin.insert((language, id), path.clone()) {

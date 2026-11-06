@@ -6,6 +6,7 @@ use crate::layout::{LayoutRole, LayoutSink};
 use crate::lines::LineIndex;
 use crate::options::{Check, OptionDecl, RuleOptions};
 use crate::project::{ProjectContext, ProjectFacts};
+use crate::tree::TraversalCache;
 use core_config::{RuleOptionSchema, RuleSchema};
 use core_semantics::{BodyFlow, SemanticView};
 use core_syntax::{Grammar, SyntaxNode, TextRange};
@@ -91,6 +92,7 @@ pub struct RuleContext<'a> {
     pub(crate) severity: Severity,
     pub(crate) out: &'a mut Vec<Diagnostic>,
     pub(crate) layout: Option<&'a mut LayoutSink>,
+    pub(crate) ranges: Option<&'a TraversalCache>,
 }
 
 impl<'a> RuleContext<'a> {
@@ -108,7 +110,14 @@ impl<'a> RuleContext<'a> {
             severity,
             out,
             layout: None,
+            ranges: None,
         }
+    }
+
+    /// The cache of [`crate::tree::significant_range`] shared by the rules run on one node (the
+    /// engine sets it).
+    pub fn ranges(&self) -> Option<&'a TraversalCache> {
+        self.ranges
     }
 
     /// Has this rule already reported exactly `message` in this context?

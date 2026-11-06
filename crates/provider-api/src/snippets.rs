@@ -4,7 +4,7 @@ use crate::provider::{LanguageProvider, ParseResult, SourceFile};
 use core_patterns::SnippetParser;
 use core_rules::{Family, Rule};
 use core_syntax::{Grammar, SyntaxNode};
-use std::sync::Arc;
+use std::sync::{Arc, OnceLock};
 
 /// A language provider as a [`SnippetParser`]: a snippet parses when its provider reports no
 /// syntax errors.
@@ -50,35 +50,77 @@ impl SnippetParser for FnSnippets {
     }
 }
 
-/// `own` plus the built-in pattern files `sources` (see [`pattern_files!`]). The patterns compile
-/// when a rule first runs, through `parser`: a worker language starts no worker to be listed.
-pub fn with_pattern_rules(
+/// A provider's rules: its own, plus the built-in pattern files (see [`pattern_files!`]), which
+/// are read (and leaked) the first time [`LazyRules::all`] is asked, so a process that never lints
+/// the language does not pay for them. The patterns compile when a rule first runs, through
+/// `parser`: a worker language starts no worker to be listed.
+pub struct LazyRules {
     own: &'static [&'static dyn Rule],
-    language: &str,
-    sources: &[&str],
-    parser: Arc<dyn SnippetParser + Send + Sync>,
-) -> &'static [&'static dyn Rule] {
-    with_pattern_families(own, language, sources, &[], parser)
+    files: Option<Files>,
+    all: OnceLock<&'static [&'static dyn Rule]>,
 }
 
-/// [`with_pattern_rules`] where the files may also name one of `families`.
-pub fn with_pattern_families(
-    own: &'static [&'static dyn Rule],
-    language: &str,
-    sources: &[&str],
-    families: &[Family],
+struct Files {
+    language: String,
+    sources: &'static [&'static str],
+    families: &'static [Family],
     parser: Arc<dyn SnippetParser + Send + Sync>,
-) -> &'static [&'static dyn Rule] {
-    if sources.is_empty() {
-        return own;
+}
+
+impl LazyRules {
+    /// No pattern files.
+    pub fn own(own: &'static [&'static dyn Rule]) -> Self {
+        LazyRules {
+            own,
+            files: None,
+            all: OnceLock::new(),
+        }
     }
-    let mut rules = own.to_vec();
-    for source in sources {
-        let loaded = core_patterns::load_lazy(source, language, &parser, families)
-            .unwrap_or_else(|e| panic!("built-in pattern file: {e}"));
-        rules.extend(loaded.into_iter().map(|r| &*Box::leak(r)));
+
+    /// `own` plus the pattern files `sources`, which may also name one of `families`.
+    pub fn new(
+        own: &'static [&'static dyn Rule],
+        language: &str,
+        sources: &'static [&'static str],
+        families: &'static [Family],
+        parser: Arc<dyn SnippetParser + Send + Sync>,
+    ) -> Self {
+        LazyRules {
+            files: (!sources.is_empty()).then(|| Files {
+                language: language.into(),
+                sources,
+                families,
+                parser,
+            }),
+            ..Self::own(own)
+        }
     }
-    Box::leak(rules.into_boxed_slice())
+
+    /// The Rust rules alone: they can lay out, the pattern files cannot.
+    pub fn rust(&self) -> &'static [&'static dyn Rule] {
+        self.own
+    }
+
+    /// Every rule; reads the pattern files on the first call.
+    pub fn all(&self) -> &'static [&'static dyn Rule] {
+        let Some(files) = &self.files else {
+            return self.own;
+        };
+        self.all.get_or_init(|| {
+            let mut rules = self.own.to_vec();
+            for source in files.sources {
+                let loaded = core_patterns::load_lazy(
+                    source,
+                    &files.language,
+                    &files.parser,
+                    files.families,
+                )
+                .unwrap_or_else(|e| panic!("built-in pattern file: {e}"));
+                rules.extend(loaded.into_iter().map(|r| &*Box::leak(r)));
+            }
+            Box::leak(rules.into_boxed_slice())
+        })
+    }
 }
 
 /// The text of the crate's `rules/*.yaml`, listed by `build/lang-crate.rs` (set it as the
