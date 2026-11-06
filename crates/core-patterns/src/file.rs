@@ -907,6 +907,13 @@ impl Rule for PatternRule {
         if body.metered && ctx.has_reported(OVER_BUDGET) {
             return; // the rule is off for this file
         }
+        if let Some(t) = body.token.as_ref().filter(|t| !t.needs.is_empty()) {
+            let r = node.text_range();
+            let text = &file.text[usize::from(r.start())..usize::from(r.end())];
+            if !t.needs.iter().any(|&c| text.contains(c)) {
+                return;
+            }
+        }
         let local = TraversalCache::default();
         let ranges = ctx.ranges().unwrap_or(&local);
         let cx = Ctx {
@@ -931,11 +938,6 @@ impl Rule for PatternRule {
         }
         if let Some(t) = &body.token {
             if ctx.laying_out() {
-                return;
-            }
-            let r = node.text_range();
-            let text = &file.text[usize::from(r.start())..usize::from(r.end())];
-            if !t.needs.is_empty() && !t.needs.iter().any(|&c| text.contains(c)) {
                 return;
             }
             let ascii = ranges.ascii(file.text);
