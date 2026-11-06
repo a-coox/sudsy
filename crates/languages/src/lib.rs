@@ -27,6 +27,7 @@ pub fn providers() -> Vec<Box<dyn LanguageProvider>> {
         Box::new(lang_xml::provider()),
         Box::new(lang_markdown::provider()),
         Box::new(lang_editorconfig::provider()),
+        Box::new(lang_dockerfile::provider()),
         Box::new(lang_csharp::provider(&worker)),
     ]
 }

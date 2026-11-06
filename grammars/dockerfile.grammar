@@ -1,0 +1,42 @@
+// Dockerfile and Containerfile, parsed by tree-sitter (tree-sitter-containerfile) and mapped by crates/lang-dockerfile/src/mapping.rs.
+// Format: see crates/core-syntax/src/grammar/mod.rs.
+
+language dockerfile 8 "Dockerfile"
+comments line "#"
+suppress disable-next-line "sudsy-disable-next-line"
+suppress disable-line "sudsy-disable-line"
+suppress disable "sudsy-disable"
+suppress enable "sudsy-enable"
+suppress disable-file "sudsy-disable-file"
+suppress ignore "sudsy-ignore"
+
+token Whitespace #trivia #whitespace
+token Newline #trivia #newline
+// Includes the parser directives (`# syntax=`, `# escape=`).
+token Comment #trivia #comment
+
+// Tokens whose text may change (case, blanks around line breaks) are `#restyle`: DockerfileFormatter::extra_check compares them.
+// An instruction name, or `AS`.
+token Keyword #arg #restyle
+// `\` (or the `# escape=` character) ending a line inside an instruction.
+token LineContinuation #arg
+// An argument the formatter keeps as written: an option, a path, an image, a `KEY=value` pair, a quoted string.
+token Word #arg #literal #restyle
+// The command of RUN, CMD, ENTRYPOINT and HEALTHCHECK: shell text, its line breaks are re-indented.
+token ShellCommand #arg #restyle
+// STOPSIGNAL, MAINTAINER and CROSS_BUILD, whole: the rest of the line is tokens the parser hides.
+token Raw #arg #restyle
+// A heredoc body with its delimiter line, kept as written.
+token Heredoc #arg #restyle
+token Colon ":" #arg
+token LBracket "[" #punctuation #arg
+token RBracket "]" #punctuation #arg
+token Comma "," #punctuation #arg
+token JsonString #literal #arg
+
+token Eof
+token Unknown #error
+
+node Document = items:#item* Eof
+// ONBUILD and HEALTHCHECK hold an instruction of their own.
+node Instruction #item = Keyword? args:#arg* nested:Instruction?

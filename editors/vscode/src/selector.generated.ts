@@ -7,6 +7,7 @@ export const documentSelector = [
   { scheme: "file", language: "xml" },
   { scheme: "file", language: "markdown" },
   { scheme: "file", language: "editorconfig" },
+  { scheme: "file", language: "dockerfile" },
   { scheme: "file", language: "csharp" },
   { scheme: "file", pattern: "**/*.json" },
   { scheme: "file", pattern: "**/*.jsonc" },
@@ -43,6 +44,7 @@ export const documentSelector = [
   { scheme: "file", pattern: "**/*.plist" },
   { scheme: "file", pattern: "**/*.md" },
   { scheme: "file", pattern: "**/*.markdown" },
+  { scheme: "file", pattern: "**/*.dockerfile" },
   { scheme: "file", pattern: "**/*.cs" },
   { scheme: "file", pattern: "**/*.csx" },
 ];

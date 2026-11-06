@@ -5,6 +5,7 @@ One line each; none is committed.
 ## Languages and analysis
 - TOML: TOML 1.1 syntax (the tree-sitter grammar targets 1.0; needs an upstream fix or a fork), format `Cargo.lock` (cargo writes arrays indented by one space, so formatting it with the defaults rewrites the whole file; it needs a file-name matcher plus a preset).
 - XML: the inside of a DOCTYPE (the grammar cannot parse every DTD declaration) and DTD-dependent well-formedness (entities, attribute defaults); reflowing text (the formatter keeps mixed content as written); a `xmlWhitespaceSensitivity: ignore` mode; sorting `PackageReference` items.
+- Dockerfile: rules (hadolint parity); shell code inside `RUN` as a Shell language injected through the composite adapter (the formatter keeps it as written); fixing the grammar scanner for consecutive `[`-led continuation lines ([formatting/dockerfile.md](formatting/dockerfile.md)).
 - More tree-sitter languages ([architecture/adding-a-language.md](architecture/adding-a-language.md)); replacing one with a hand-written parser where speed or error messages matter.
 - Native C# parser (Roslyn stays the only one; the conformance suite and addressing by `(file, version, span, kind)` keep the door open).
 - `MSBuildWorkspace` / project- and NuGet-aware binding with syntax-only fallback (replaces `Workspace.cs` without a protocol change).
