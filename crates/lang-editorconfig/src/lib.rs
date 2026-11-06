@@ -15,7 +15,7 @@ use core_treesitter::{Spec, TreeSitterProvider};
 pub fn provider() -> TreeSitterProvider {
     TreeSitterProvider::new(Spec {
         language: konomanoasa_tree_sitter_editorconfig::LANGUAGE.into(),
-        grammar: grammars::editorconfig(),
+        grammar: grammars::EDITORCONFIG,
         mapping: &mapping::MAPPING,
         extensions: &[],
         file_names: &[".editorconfig"],

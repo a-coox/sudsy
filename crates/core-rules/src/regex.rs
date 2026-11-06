@@ -21,10 +21,14 @@ pub struct Re {
 
 impl Re {
     /// Compiles the ASCII form now (or the full one, when the pattern needs Unicode), which
-    /// checks the syntax.
+    /// checks the syntax. A counted repetition (`x{n,m}`) is the way to multiply a Unicode class
+    /// past the regex size limit, so such a pattern is built in full too, and an error here
+    /// says it is too large.
+    // shortcut: a pattern without `{` is not built in full here, so one that is still too large
+    // panics on first use on non-ASCII text; build every pattern in full if one is ever seen.
     pub fn new(source: &str) -> Result<Re, String> {
         let re = Self::unbuilt(source);
-        if re.ascii().is_none() {
+        if re.ascii().is_none() || source.contains('{') {
             let full = Regex::new(source).map_err(|e| e.to_string())?;
             re.full.get_or_init(|| full);
         }
@@ -80,8 +84,6 @@ impl Re {
         {
             return re.is_match(text.as_bytes());
         }
-        // shortcut: a pattern whose compiled form exceeds the regex size limit panics here, on
-        // first use; surface it from `new` if it is ever seen.
         self.full
             .get_or_init(|| Regex::new(&self.source).expect("the syntax was checked"))
             .is_match(text)
@@ -126,5 +128,13 @@ mod tests {
             }
         }
         assert!(Re::new("(").is_err() && Re::lazy("(").is_err());
+    }
+
+    /// A pattern whose Unicode form is over the size limit is an error from `new`, not a panic
+    /// on non-ASCII text.
+    #[test]
+    fn a_pattern_too_large_for_unicode_is_an_error() {
+        assert!(Re::new(r"\w{1000}\w{1000}\w{1000}").is_err());
+        assert!(Re::new(r"\w{3}").is_ok());
     }
 }

@@ -47,7 +47,7 @@ const EXTENSIONS: &[&str] = &[
 pub fn provider() -> TreeSitterProvider {
     TreeSitterProvider::new(Spec {
         language: tree_sitter_xml::LANGUAGE_XML.into(),
-        grammar: grammars::xml(),
+        grammar: grammars::XML,
         mapping: &mapping::MAPPING,
         extensions: EXTENSIONS,
         file_names: &[],

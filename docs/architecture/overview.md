@@ -39,7 +39,7 @@ Other: `xtask` (`cargo xtask codegen [--check]`), `tools/perf-bench`, `tools/wir
 ## Provider (`provider_api::LanguageProvider`)
 A provider parses with a hand-written parser (JSON, YAML), the .NET worker (C#) or tree-sitter through `core-treesitter` (TOML, XML, Markdown, EditorConfig, Dockerfile, Shell; [adding-a-language.md](adding-a-language.md)), so a language with a good tree-sitter grammar costs a mapping table and a formatter instead of a parser.
 
-`id`, `grammar`, `file_matchers`, `capabilities`, `parse` (fallible: an out-of-process provider can be unavailable), formatter and option schema, presets, `rules`/`body_kinds`, `open_workspace`, `semantics(file, layers)`, `summaries`, `compiler_diagnostics` (test gate only). For C#, only parse, semantics and flow go to the worker.
+`id`, `language` (the name), `grammar` (parsed on first use: a built-in grammar is a `grammars::LazyGrammar` known by name and id, and `startup` costs the same for any number of languages), `file_matchers`, `capabilities`, `parse` (fallible: an out-of-process provider can be unavailable), formatter and option schema, presets, `rules`/`body_kinds`, `open_workspace`, `semantics(file, layers)`, `summaries`, `compiler_diagnostics` (test gate only). For C#, only parse, semantics and flow go to the worker.
 
 ## Versioned boundaries
 Each is checked at handshake or load; a mismatch is refused. Why: workers and plugins are separate artifacts, and drift would mean reading kinds that mean something else.

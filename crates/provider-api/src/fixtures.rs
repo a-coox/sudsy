@@ -34,7 +34,7 @@ const MAX_LINES: usize = 60;
 /// Runs every fixture of the provider's language and panics with the failures, each named by its
 /// file.
 pub fn rule_fixtures(provider: &dyn LanguageProvider) {
-    let root = fixture_root(&provider.grammar().language);
+    let root = fixture_root(provider.language());
     let bless = std::env::var_os("SUDSY_BLESS").is_some();
     let (mut count, mut failures) = (0, Vec::new());
     let marker = testing::marker(provider);
@@ -111,7 +111,7 @@ pub struct Example {
 pub fn examples(provider: &dyn LanguageProvider) -> Vec<Example> {
     let marker = testing::marker(provider);
     let mut out = Vec::new();
-    for dir in sorted(&fixture_root(&provider.grammar().language)) {
+    for dir in sorted(&fixture_root(provider.language())) {
         for file in sorted(&dir).into_iter().filter(|p| is_input(p)) {
             let annotated = testing::split_annotations(
                 &marker,

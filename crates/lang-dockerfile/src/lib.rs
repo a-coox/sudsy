@@ -15,7 +15,7 @@ use core_treesitter::{Spec, TreeSitterProvider};
 pub fn provider() -> TreeSitterProvider {
     TreeSitterProvider::new(Spec {
         language: tree_sitter_containerfile::LANGUAGE.into(),
-        grammar: grammars::dockerfile(),
+        grammar: grammars::DOCKERFILE,
         mapping: &mapping::MAPPING,
         extensions: &["dockerfile"],
         file_names: &[

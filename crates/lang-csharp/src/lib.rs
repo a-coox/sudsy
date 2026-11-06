@@ -12,7 +12,7 @@ pub use format::{
 };
 
 use core_semantics::BehaviorSummaries;
-use core_syntax::{LanguageId, grammars};
+use core_syntax::grammars;
 use provider_api::{FileMatcher, OutOfProcessProvider, WorkerConfig};
 use std::ffi::OsString;
 use std::path::{Path, PathBuf};
@@ -102,16 +102,15 @@ pub fn provider(worker_dll: &Path) -> OutOfProcessProvider {
 
 /// A C# provider whose worker is started with `command` (tests use a host that cannot run).
 pub fn provider_with_command(command: Vec<OsString>) -> OutOfProcessProvider {
-    let grammar = grammars::csharp();
-    let mut config = WorkerConfig::new(command, grammar.hash());
+    let mut config = WorkerConfig::new(command, "");
+    config.grammar = Some(grammars::CSHARP);
     config.pool_size = pool_size();
     // The worker is a batch process: start counting calls at once, so that its hot methods
     // reach optimized code in the first second instead of after the default 100 ms of quiet.
     config.warmup_source = WARMUP_SOURCE.into();
     config.env = vec![("DOTNET_TC_CallCountingDelayMs".into(), "0".into())];
     OutOfProcessProvider::new(
-        LanguageId::CSHARP,
-        grammar,
+        grammars::CSHARP,
         vec![FileMatcher::extension("cs"), FileMatcher::extension("csx")],
         config,
     )

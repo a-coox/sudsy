@@ -3,6 +3,7 @@
 use crate::provider::{LanguageProvider, ParseResult, SourceFile};
 use core_patterns::SnippetParser;
 use core_rules::{Family, Rule};
+use core_syntax::grammars::LazyGrammar;
 use core_syntax::{Grammar, SyntaxNode};
 use std::sync::{Arc, OnceLock};
 
@@ -25,14 +26,11 @@ impl SnippetParser for ProviderSnippets<'_> {
 }
 
 /// Snippets of an in-process language, parsed by a function of the text.
-pub struct FnSnippets(
-    &'static Grammar,
-    Box<dyn Fn(&str) -> ParseResult + Send + Sync>,
-);
+pub struct FnSnippets(LazyGrammar, Box<dyn Fn(&str) -> ParseResult + Send + Sync>);
 
 impl FnSnippets {
     pub fn new(
-        grammar: &'static Grammar,
+        grammar: LazyGrammar,
         parse: impl Fn(&str) -> ParseResult + Send + Sync + 'static,
     ) -> Arc<Self> {
         Arc::new(FnSnippets(grammar, Box::new(parse)))
@@ -41,7 +39,7 @@ impl FnSnippets {
 
 impl SnippetParser for FnSnippets {
     fn grammar(&self) -> &Grammar {
-        self.0
+        self.0.get()
     }
 
     fn parse(&self, text: &str) -> Result<Option<SyntaxNode>, String> {

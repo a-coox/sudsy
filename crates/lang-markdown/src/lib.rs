@@ -15,7 +15,7 @@ pub fn provider() -> TreeSitterProvider {
     TreeSitterProvider::with_composite(
         Spec {
             language: tree_sitter_md::LANGUAGE.into(),
-            grammar: grammars::markdown(),
+            grammar: grammars::MARKDOWN,
             mapping: &mapping::BLOCK,
             extensions: &["md", "markdown"],
             file_names: &[],

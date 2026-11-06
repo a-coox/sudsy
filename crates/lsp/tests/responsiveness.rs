@@ -99,6 +99,9 @@ impl LanguageProvider for Gated {
     fn id(&self) -> LanguageId {
         self.0.id()
     }
+    fn language(&self) -> &str {
+        self.0.language()
+    }
     fn grammar(&self) -> &Grammar {
         self.0.grammar()
     }

@@ -35,7 +35,7 @@ use core_rules::{
 use core_syntax::{Grammar, SyntaxKind, SyntaxNode, TextRange};
 use serde::Deserialize;
 use std::cell::Cell;
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashMap};
 use std::sync::{Arc, Mutex, OnceLock};
 
 #[derive(Debug, thiserror::Error)]
@@ -175,7 +175,31 @@ struct CompiledConstraint {
     kind: Option<SyntaxKind>,
     /// The list option (true) or string option (false) the capture must be in or equal.
     in_option: Option<(String, bool)>,
-    regex_option: Option<String>,
+    regex_option: Option<OptionRegex>,
+}
+
+/// The `regex` option a constraint matches against, compiled once for each value it takes.
+struct OptionRegex {
+    option: String,
+    compiled: Mutex<HashMap<String, Option<Arc<Re>>>>,
+}
+
+impl OptionRegex {
+    fn is_match(&self, options: &RuleOptions, text: &str) -> bool {
+        let value = options.string(&self.option);
+        let re = {
+            let mut cache = self.compiled.lock().unwrap();
+            match cache.get(value) {
+                Some(re) => re.clone(),
+                None => {
+                    let re = Re::new(value).ok().map(Arc::new);
+                    cache.insert(value.to_string(), re.clone());
+                    re
+                }
+            }
+        };
+        re.is_some_and(|re| re.is_match(text))
+    }
 }
 
 /// Where a diagnostic points: the matched node or what a metavariable captured, or the first
@@ -366,7 +390,10 @@ fn compile_constraint(
     let regex_option = option(&c.regex_option, "regex-option")?
         .map(|d| {
             if d.check == Check::Regex {
-                Ok(d.name.to_string())
+                Ok(OptionRegex {
+                    option: d.name.to_string(),
+                    compiled: Mutex::default(),
+                })
             } else {
                 Err(format!(
                     "constraint {name}: regex-option `{}` must be a `regex` option",
@@ -758,9 +785,9 @@ impl PatternRule {
                         options.string(option) == captured
                     }
                 })
-                && c.regex_option.as_ref().is_none_or(|option| {
-                    Re::new(options.string(option)).is_ok_and(|re| re.is_match(captured))
-                })
+                && c.regex_option
+                    .as_ref()
+                    .is_none_or(|o| o.is_match(options, captured))
         })
     }
 

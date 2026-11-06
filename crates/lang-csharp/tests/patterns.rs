@@ -188,6 +188,7 @@ fn option_declarations_and_uses_are_checked() {
         "options:\n  - { name: a, type: bool, default: 1, description: d }\n",
         "options:\n  - { name: a, type: regex, default: 'x', choices: [x], description: d }\n",
         "constraints:\n  N: { in-option: nope }\n",
+        "constraints:\n  N: { regex: '\\w{1000}\\w{1000}\\w{1000}' }\n",
         "options:\n  - { name: a, type: bool, default: true, description: d }\nconstraints:\n  N: { in-option: a }\n",
     ] {
         let source = format!("{head}{bad}");

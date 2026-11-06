@@ -36,7 +36,7 @@ pub fn generate(providers: &[Box<dyn LanguageProvider>]) -> Result<Vec<(PathBuf,
     )?);
     let mut titles: Vec<(&str, &str)> = providers
         .iter()
-        .map(|p| (p.grammar().title.as_str(), p.grammar().language.as_str()))
+        .map(|p| (p.grammar().title.as_str(), p.language()))
         .collect();
     titles.sort();
     let (last, rest) = titles.split_last().expect("a language");

@@ -28,6 +28,7 @@ mod provider;
 
 pub use provider::{Spec, TreeSitterProvider};
 
+use core_syntax::grammars::LazyGrammar;
 use core_syntax::{Grammar, SyntaxKind, SyntaxNode, TreeBuilder};
 use provider_api::{ParseError, ParseResult};
 use std::sync::{Mutex, OnceLock};
@@ -550,7 +551,7 @@ impl Scan {
 /// A parser pool plus the resolved mapping: one per language, shared by threads.
 pub struct Engine {
     language: Language,
-    grammar: &'static Grammar,
+    grammar: LazyGrammar,
     mapping: &'static Mapping,
     composite: Option<Composite>,
     converter: OnceLock<Converter>,
@@ -558,13 +559,13 @@ pub struct Engine {
 }
 
 impl Engine {
-    pub fn new(language: Language, grammar: &'static Grammar, mapping: &'static Mapping) -> Self {
+    pub fn new(language: Language, grammar: LazyGrammar, mapping: &'static Mapping) -> Self {
         Self::with_composite(language, grammar, mapping, None)
     }
 
     pub fn with_composite(
         language: Language,
-        grammar: &'static Grammar,
+        grammar: LazyGrammar,
         mapping: &'static Mapping,
         composite: Option<Composite>,
     ) -> Self {
@@ -603,7 +604,12 @@ impl Engine {
     /// Adapter conversion alone (the second step of [`Engine::parse`]).
     pub fn convert(&self, text: &str, tree: &tree_sitter::Tree) -> ParseResult {
         let conv = self.converter.get_or_init(|| {
-            Converter::new(&tree.language(), self.grammar, self.mapping, self.composite)
+            Converter::new(
+                &tree.language(),
+                self.grammar.get(),
+                self.mapping,
+                self.composite,
+            )
         });
         conv.convert(text, tree.root_node())
     }

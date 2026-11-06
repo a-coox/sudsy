@@ -80,7 +80,7 @@ fn analyze(
     let chain = ConfigChain::parse(&yaml).expect("the test config is valid");
     let resolved = chain
         .rules(
-            &FileInput::language(&provider.grammar().language),
+            &FileInput::language(provider.language()),
             provider.option_schema(),
         )
         .expect("the test rules resolve");
@@ -108,7 +108,7 @@ fn analyze(
     }
     let capabilities = provider.capabilities();
     let active = activate(
-        extensions.with_own(provider.rules(), &provider.grammar().language),
+        extensions.with_own(provider.rules(), provider.language()),
         &resolved,
         |l| capabilities.contains(l),
     )

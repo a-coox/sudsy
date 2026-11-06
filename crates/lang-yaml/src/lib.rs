@@ -53,10 +53,10 @@ impl YamlProvider {
             formatter: YamlFormatter,
             rules: LazyRules::new(
                 rules::RULES,
-                &grammars::yaml().language,
+                grammars::YAML.language,
                 provider_api::pattern_files!(),
                 &[],
-                FnSnippets::new(grammars::yaml(), parse_result),
+                FnSnippets::new(grammars::YAML, parse_result),
             ),
         }
     }
@@ -75,8 +75,12 @@ impl LanguageProvider for YamlProvider {
         LanguageId::YAML
     }
 
+    fn language(&self) -> &str {
+        grammars::YAML.language
+    }
+
     fn grammar(&self) -> &Grammar {
-        grammars::yaml()
+        grammars::YAML.get()
     }
 
     fn file_matchers(&self) -> &[FileMatcher] {

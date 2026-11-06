@@ -8,12 +8,12 @@ use core_config::OptionSchema;
 use core_format::{DefaultFormatter, NodeFormatter};
 use core_rules::{Family, Rule};
 use core_semantics::{BehaviorSummaries, CompilerDiagnostic, FileSemantics, Layers};
+use core_syntax::grammars::LazyGrammar;
 use core_syntax::{Grammar, LanguageId, SyntaxKind, SyntaxNode};
 
 /// A provider whose parser runs in a worker process.
 pub struct OutOfProcessProvider {
-    id: LanguageId,
-    grammar: &'static Grammar,
+    grammar: LazyGrammar,
     matchers: Vec<FileMatcher>,
     proxy: std::sync::Arc<WorkerProxy>,
     formatter: Box<dyn NodeFormatter>,
@@ -26,14 +26,8 @@ pub struct OutOfProcessProvider {
 
 impl OutOfProcessProvider {
     /// The worker is started lazily, on the first call that needs it.
-    pub fn new(
-        id: LanguageId,
-        grammar: &'static Grammar,
-        matchers: Vec<FileMatcher>,
-        worker: WorkerConfig,
-    ) -> Self {
+    pub fn new(grammar: LazyGrammar, matchers: Vec<FileMatcher>, worker: WorkerConfig) -> Self {
         OutOfProcessProvider {
-            id,
             grammar,
             matchers,
             proxy: std::sync::Arc::new(WorkerProxy::new(worker)),
@@ -88,7 +82,7 @@ impl OutOfProcessProvider {
         });
         self.rules = LazyRules::new(
             self.rules.rust(),
-            &self.grammar.language,
+            self.grammar.language,
             sources,
             self.families,
             parser,
@@ -114,11 +108,15 @@ fn to_provider_error(e: ProxyError) -> ProviderError {
 
 impl LanguageProvider for OutOfProcessProvider {
     fn id(&self) -> LanguageId {
-        self.id
+        self.grammar.id
+    }
+
+    fn language(&self) -> &str {
+        self.grammar.language
     }
 
     fn grammar(&self) -> &Grammar {
-        self.grammar
+        self.grammar.get()
     }
 
     fn file_matchers(&self) -> &[FileMatcher] {
@@ -283,13 +281,13 @@ fn parse_with(proxy: &WorkerProxy, file: &SourceFile) -> Result<ParseResult, Pro
 /// Parses pattern snippets through a worker proxy: what a built-in pattern rule holds to compile
 /// itself on first use, when the provider itself is out of reach.
 pub struct WorkerSnippets {
-    grammar: &'static Grammar,
+    grammar: LazyGrammar,
     proxy: std::sync::Arc<WorkerProxy>,
 }
 
 impl core_patterns::SnippetParser for WorkerSnippets {
     fn grammar(&self) -> &Grammar {
-        self.grammar
+        self.grammar.get()
     }
 
     fn parse(&self, text: &str) -> Result<Option<SyntaxNode>, String> {

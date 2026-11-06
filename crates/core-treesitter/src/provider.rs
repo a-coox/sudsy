@@ -4,6 +4,7 @@ use crate::{Composite, Engine, Mapping};
 use core_config::OptionSchema;
 use core_format::NodeFormatter;
 use core_rules::{Family, Rule, RuleHooks};
+use core_syntax::grammars::LazyGrammar;
 use core_syntax::{Grammar, LanguageId, SyntaxNode};
 use provider_api::{
     Capabilities, FileMatcher, FilePattern, FnSnippets, LanguageProvider, LazyRules, ParseError,
@@ -14,7 +15,7 @@ use std::sync::Arc;
 /// What makes a tree-sitter language a provider.
 pub struct Spec {
     pub language: tree_sitter::Language,
-    pub grammar: &'static Grammar,
+    pub grammar: LazyGrammar,
     pub mapping: &'static Mapping,
     /// File extensions without the dot.
     pub extensions: &'static [&'static str],
@@ -35,7 +36,7 @@ pub struct Spec {
 }
 
 pub struct TreeSitterProvider {
-    grammar: &'static Grammar,
+    grammar: LazyGrammar,
     matchers: Vec<FileMatcher>,
     schema: OptionSchema,
     engine: Arc<Engine>,
@@ -73,7 +74,7 @@ impl TreeSitterProvider {
             schema: spec.schema,
             rules: LazyRules::new(
                 spec.rules,
-                &spec.grammar.language,
+                spec.grammar.language,
                 spec.pattern_files,
                 spec.families,
                 FnSnippets::new(spec.grammar, move |text| parser.parse(text)),
@@ -93,11 +94,15 @@ impl TreeSitterProvider {
 
 impl LanguageProvider for TreeSitterProvider {
     fn id(&self) -> LanguageId {
-        self.grammar.language_id
+        self.grammar.id
+    }
+
+    fn language(&self) -> &str {
+        self.grammar.language
     }
 
     fn grammar(&self) -> &Grammar {
-        self.grammar
+        self.grammar.get()
     }
 
     fn file_matchers(&self) -> &[FileMatcher] {

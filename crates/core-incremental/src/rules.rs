@@ -71,7 +71,7 @@ pub struct LintSettings {
 pub fn lint_settings(db: &dyn Db, file: File) -> Result<LintSettings, Failure> {
     let provider = provider_of(db, file)?;
     let config = config(db).as_ref().map_err(Clone::clone)?;
-    let input = FileInput::language(&provider.grammar().language).with_path(file.path(db));
+    let input = FileInput::language(provider.language()).with_path(file.path(db));
     let rules = config
         .rules(&input, provider.option_schema())
         .map_err(|e| Failure::new(Stage::Config, &e))?;
@@ -91,7 +91,7 @@ fn active_rules(db: &dyn Db, file: File) -> Result<(Vec<ActiveRule<'static>>, De
     let depth = settings.depth;
     let caps = provider.capabilities();
     let extensions = ExtensionSet::get(db).extensions(db);
-    let rules = extensions.with_own(provider.rules(), &provider.grammar().language);
+    let rules = extensions.with_own(provider.rules(), provider.language());
     let mut active = activate(rules, &settings.rules, |l| has_layer(depth, caps, l))
         .map_err(|e| Failure::new(Stage::Config, &e))?;
     // A layout-only rule has nothing to report; `layout` runs it.
@@ -107,7 +107,7 @@ fn active_rules(db: &dyn Db, file: File) -> Result<(Vec<ActiveRule<'static>>, De
 pub fn layout(db: &dyn Db, file: File) -> Result<DirectiveTable, Failure> {
     let provider = provider_of(db, file)?;
     let extensions = ExtensionSet::get(db).extensions(db);
-    let language = &provider.grammar().language;
+    let language = provider.language();
     let layout_rules = || {
         extensions
             .with_own(provider.rust_rules(), language)

@@ -229,12 +229,10 @@ fn syntax_errors_are_values() {
 }
 
 fn unreachable_worker() -> Box<dyn LanguageProvider> {
-    let grammar = grammars::csharp();
     Box::new(OutOfProcessProvider::new(
-        core_syntax::LanguageId::CSHARP,
-        grammar,
+        grammars::CSHARP,
         vec![FileMatcher::extension("cs")],
-        WorkerConfig::new(vec!["sudsy-no-such-worker-binary".into()], grammar.hash()),
+        WorkerConfig::new(vec!["sudsy-no-such-worker-binary".into()], ""),
     ))
 }
 

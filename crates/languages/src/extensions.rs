@@ -38,7 +38,7 @@ fn load_patterns(source: &str, providers: &[Box<dyn LanguageProvider>]) -> Resul
     cached(&PATTERNS, source, || {
         let snippets: Vec<(String, ProviderSnippets)> = providers
             .iter()
-            .map(|p| (p.grammar().language.clone(), ProviderSnippets(p.as_ref())))
+            .map(|p| (p.language().to_string(), ProviderSnippets(p.as_ref())))
             .collect();
         let rules = core_patterns::load(source, &|language| {
             snippets
@@ -123,9 +123,9 @@ pub fn load_extensions(
             for (language, rule) in rules {
                 let id = rule.meta().id;
                 if language != core_rules::ALL_LANGUAGES
-                    && !providers.iter().any(|p| p.grammar().language == language)
+                    && !providers.iter().any(|p| p.language() == language)
                 {
-                    let known = providers.iter().map(|p| p.grammar().language.as_str());
+                    let known = providers.iter().map(|p| p.language());
                     return Err(at(format!(
                         "rule `{id}`: {}",
                         core_config::unknown_name("language", language, known)

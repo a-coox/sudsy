@@ -15,7 +15,7 @@ pub fn provider() -> TreeSitterProvider {
     TreeSitterProvider::with_composite(
         Spec {
             language: tree_sitter_bash::LANGUAGE.into(),
-            grammar: grammars::shell(),
+            grammar: grammars::SHELL,
             mapping: &mapping::MAPPING,
             extensions: &["sh", "bash"],
             file_names: &[".bashrc", ".bash_profile", ".profile"],

@@ -72,12 +72,7 @@ fn grammar_hash_mismatch_is_refused() {
         vec!["dotnet".into(), common::worker_dll().into_os_string()],
         "stale",
     );
-    let p = provider_api::OutOfProcessProvider::new(
-        core_syntax::LanguageId::CSHARP,
-        grammars::csharp(),
-        vec![],
-        config,
-    );
+    let p = provider_api::OutOfProcessProvider::new(grammars::CSHARP, vec![], config);
     let e = p
         .parse(&SourceFile::new("a.cs", 1, "class A {}"))
         .unwrap_err();
@@ -125,12 +120,7 @@ fn semantic_requests_reach_the_workspace() {
 #[test]
 fn missing_dotnet_assembly_is_unavailable_not_a_panic() {
     let config = WorkerConfig::new(vec!["dotnet".into(), OsString::from("missing.dll")], "h");
-    let p = provider_api::OutOfProcessProvider::new(
-        core_syntax::LanguageId::CSHARP,
-        grammars::csharp(),
-        vec![],
-        config,
-    );
+    let p = provider_api::OutOfProcessProvider::new(grammars::CSHARP, vec![], config);
     assert!(matches!(
         p.parse(&SourceFile::new("a.cs", 1, "")),
         Err(ProviderError::Unavailable(_))

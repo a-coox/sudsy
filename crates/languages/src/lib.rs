@@ -37,7 +37,7 @@ pub fn providers() -> Vec<Box<dyn LanguageProvider>> {
 pub fn schemas(providers: &[Box<dyn LanguageProvider>]) -> Vec<(&str, &OptionSchema)> {
     providers
         .iter()
-        .map(|p| (p.grammar().language.as_str(), p.option_schema()))
+        .map(|p| (p.language(), p.option_schema()))
         .collect()
 }
 
@@ -53,7 +53,7 @@ pub fn rules(
         .map(|r| (ALL.to_string(), *r))
         .collect();
     for provider in providers {
-        let language = provider.grammar().language.clone();
+        let language = provider.language().to_string();
         out.extend(provider.rules().iter().map(|r| (language.clone(), *r)));
     }
     out.extend(extensions.rules.iter().map(|r| match r.language {

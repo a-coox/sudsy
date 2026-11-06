@@ -25,7 +25,7 @@ pub fn collect(providers: &[Box<dyn LanguageProvider>]) -> Vec<RuleDoc> {
     let mut presets = languages::rule_presets(providers);
     let mut examples: Vec<(String, Example)> = Vec::new();
     for p in providers {
-        let language = p.grammar().language.clone();
+        let language = p.language().to_string();
         examples.extend(
             fixtures::examples(p.as_ref())
                 .into_iter()
@@ -61,7 +61,7 @@ pub fn collect(providers: &[Box<dyn LanguageProvider>]) -> Vec<RuleDoc> {
         doc.upstream = catalog::upstream(doc.meta.id, &languages);
     }
     let order: Vec<&str> = std::iter::once("all")
-        .chain(providers.iter().map(|p| p.grammar().language.as_str()))
+        .chain(providers.iter().map(|p| p.language()))
         .collect();
     docs.sort_by_key(|d| {
         let rank = order.iter().position(|l| *l == d.languages[0]);

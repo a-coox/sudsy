@@ -60,10 +60,10 @@ impl JsonProvider {
             formatter: JsonFormatter,
             rules: LazyRules::new(
                 rules::RULES,
-                &grammars::json().language,
+                grammars::JSON.language,
                 provider_api::pattern_files!(),
                 &[],
-                FnSnippets::new(grammars::json(), |text| parse_result(text, Dialect::Json)),
+                FnSnippets::new(grammars::JSON, |text| parse_result(text, Dialect::Json)),
             ),
         }
     }
@@ -101,8 +101,12 @@ impl LanguageProvider for JsonProvider {
         LanguageId::JSON
     }
 
+    fn language(&self) -> &str {
+        grammars::JSON.language
+    }
+
     fn grammar(&self) -> &Grammar {
-        grammars::json()
+        grammars::JSON.get()
     }
 
     fn file_matchers(&self) -> &[FileMatcher] {

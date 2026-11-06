@@ -13,7 +13,7 @@ fn language_ids(provider: &dyn LanguageProvider) -> Vec<String> {
         .filter_map(|m| m.dialect.clone())
         .collect();
     if ids.is_empty() {
-        ids.push(provider.grammar().language.clone());
+        ids.push(provider.language().to_string());
     }
     ids.dedup();
     ids

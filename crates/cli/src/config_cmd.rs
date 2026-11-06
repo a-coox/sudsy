@@ -100,7 +100,7 @@ fn language(
     provider: &dyn LanguageProvider,
     file: Option<&Path>,
 ) -> Result<()> {
-    let name = provider.grammar().language.as_str();
+    let name = provider.language();
     let editorconfig = file.map(EditorConfig::for_file);
     let mut input = FileInput::language(name);
     if let Some(path) = file {

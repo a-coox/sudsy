@@ -10,7 +10,10 @@ use std::path::{Path, PathBuf};
 pub trait LanguageProvider: Send + Sync {
     fn id(&self) -> LanguageId;
 
-    /// Kinds, fields and category tags.
+    /// The language's name (`csharp`), known without loading the grammar.
+    fn language(&self) -> &str;
+
+    /// Kinds, fields and category tags; parsed on the first call, so ask only when needed.
     fn grammar(&self) -> &Grammar;
 
     /// Extensions, known file names and dialects.

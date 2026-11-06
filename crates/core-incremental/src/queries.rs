@@ -78,7 +78,7 @@ pub fn config(db: &dyn Db) -> Result<ConfigChain, Failure> {
     let schemas: Vec<(&str, &core_config::OptionSchema)> = db
         .providers()
         .iter()
-        .map(|p| (p.grammar().language.as_str(), p.option_schema()))
+        .map(|p| (p.language(), p.option_schema()))
         .collect();
     chain
         .validate(&schemas)
@@ -106,7 +106,7 @@ pub fn options(db: &dyn Db, file: File) -> Result<FileOptions, Failure> {
     };
     let config = config(db).as_ref().map_err(Clone::clone)?;
     let provider = &db.providers()[sel.provider];
-    let input = FileInput::language(&provider.grammar().language)
+    let input = FileInput::language(provider.language())
         .with_path(file.path(db))
         .with_editorconfig(file.editorconfig(db));
     let mut resolved = config

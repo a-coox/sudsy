@@ -15,6 +15,16 @@ fn main() {
     names.sort();
     let mut out = String::new();
     for name in &names {
+        let text = fs::read_to_string(dir.join(format!("{name}.grammar"))).unwrap();
+        let header = text.lines().find(|l| l.starts_with("language ")).unwrap();
+        let mut parts = header.split_whitespace().skip(1);
+        let (language, id) = (parts.next().unwrap(), parts.next().unwrap());
+        out += &format!(
+            "pub const {}: LazyGrammar = LazyGrammar::new(\"{language}\", {id}, {name});
+
+",
+            name.to_uppercase()
+        );
         out += &format!(
             "pub fn {name}() -> &'static Grammar {{\n    static G: OnceLock<Grammar> = OnceLock::new();\n    \
              load(&G, include_str!(concat!(env!(\"CARGO_MANIFEST_DIR\"), \"/../../grammars/{name}.grammar\")))\n}}\n\n"

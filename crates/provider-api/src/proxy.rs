@@ -23,6 +23,8 @@ pub struct WorkerConfig {
     pub command: Vec<OsString>,
     /// The grammar version the worker must have been built from.
     pub grammar_hash: String,
+    /// When set, its hash replaces `grammar_hash`; the grammar is parsed when a worker starts.
+    pub grammar: Option<core_syntax::grammars::LazyGrammar>,
     pub handshake_timeout: Duration,
     /// A request taking longer than this counts as a hang.
     pub request_timeout: Duration,
@@ -45,6 +47,7 @@ impl WorkerConfig {
         WorkerConfig {
             command,
             grammar_hash: grammar_hash.into(),
+            grammar: None,
             handshake_timeout: Duration::from_secs(30),
             request_timeout: Duration::from_secs(120),
             max_restarts: 1,
@@ -440,7 +443,10 @@ impl WorkerProxy {
         };
         let ours = Hello {
             protocol_version: PROTOCOL_VERSION,
-            grammar_hash: self.config.grammar_hash.clone(),
+            grammar_hash: match self.config.grammar {
+                Some(g) => g.get().hash().to_string(),
+                None => self.config.grammar_hash.clone(),
+            },
             flow_graph_format: FLOW_GRAPH_FORMAT_VERSION,
             wire_format: WIRE_VERSION,
             capabilities: vec![],
