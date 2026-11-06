@@ -1,0 +1,75 @@
+id: no-plain-text-password
+language: powershell
+message: a password parameter should be a SecureString or a PSCredential, not a string
+description: A `[string]` parameter whose name contains `password` or `passphrase`.
+example: 'param([string]$Password)'
+severity: warn
+category: suspicious
+rule: { kind: ParamDecl, regex: '(?is)\[string\]\s*\$\w*(password|passphrase)\w*(\s|=|,|$)' }
+---
+id: no-default-true-switch
+language: powershell
+message: a switch parameter should not default to $true; the caller cannot turn it off
+description: A `[switch]` parameter with the default value `$true`.
+example: 'param([switch]$Force = $true)'
+severity: warn
+category: suspicious
+rule: { kind: ParamDecl, regex: '(?is)\[switch\]\s*\$\w+\s*=\s*\$true\b' }
+---
+id: empty-catch-block
+language: powershell
+message: the catch block is empty; handle the error or write why it is ignored
+description: A `catch` clause whose block has no statement.
+example: 'try { f } catch { }'
+severity: warn
+category: suspicious
+rule:
+  kind: CatchClause
+  child: { kind: Block, regex: '^\{\s*\}$' }
+---
+id: approved-verbs
+language: powershell
+message: the verb of the function name is not an approved PowerShell verb (see Get-Verb)
+description: A function named `Verb-Noun` whose verb is not in the list `Get-Verb` returns. Names without a dash are not checked.
+example: 'function Fetch-Data { }'
+severity: warn
+category: style
+rule: { kind: Function }
+token:
+  kind: [Word]
+  regex: '^([A-Za-z]+:)?[A-Za-z]+-[A-Za-z]'
+  not-regex: '(?i)^([A-Za-z]+:)?(Add|Approve|Assert|Backup|Block|Build|Checkpoint|Clear|Close|Compare|Complete|Compress|Confirm|Connect|Convert|ConvertFrom|ConvertTo|Copy|Debug|Deny|Deploy|Disable|Disconnect|Dismount|Edit|Enable|Enter|Exit|Expand|Export|Find|Format|Get|Grant|Group|Hide|Import|Initialize|Install|Invoke|Join|Limit|Lock|Measure|Merge|Mount|Move|New|Open|Optimize|Out|Ping|Pop|Protect|Publish|Push|Read|Receive|Redo|Register|Remove|Rename|Repair|Request|Reset|Resize|Resolve|Restart|Restore|Resume|Revoke|Save|Search|Select|Send|Set|Show|Skip|Split|Start|Step|Stop|Submit|Suspend|Switch|Sync|Test|Trace|Unblock|Undo|Uninstall|Unlock|Unprotect|Unpublish|Unregister|Update|Use|Wait|Watch|Write)-'
+---
+id: no-global-vars
+language: powershell
+message: avoid the global scope; pass the value as a parameter or use the script or module scope
+description: A variable in the `global:` scope.
+example: '$global:count = 1'
+severity: warn
+category: suspicious
+rule:
+  any: [{ kind: Program }, { kind: Command }, { kind: AssignStmt }, { kind: Binary }, { kind: Unary }, { kind: HashEntry }, { kind: ParamDecl }]
+token: { kind: [Word], needs: ':', regex: '(?i)^[$@](\{)?global:' }
+---
+id: no-automatic-variable-assignment
+language: powershell
+message: do not assign to an automatic variable
+description: An assignment to a read-only or engine-owned automatic variable (`$true`, `$null`, `$args`, `$input`, `$PSItem`, `$_`, `$PWD`, `$Host`, ...).
+example: '$input = 1'
+severity: warn
+category: correctness
+rule:
+  kind: AssignStmt
+  regex: '(?i)^\$(true|false|null|args|input|psitem|_|pid|home|host|pshome|shellid|pwd|psversiontable|myinvocation|pscmdlet|psscriptroot|pscommandpath|executioncontext|psboundparameters)\s*[-+*/%?]*=([^=]|$)'
+---
+id: null-comparison-side
+language: powershell
+message: put $null on the left of the comparison; with an array on the left `$x -eq $null` filters instead of testing
+description: A `-eq`, `-ne` (or case variant) comparison with `$null` on the right.
+example: 'if ($x -eq $null) { }'
+severity: warn
+category: correctness
+rule:
+  kind: Binary
+  regex: '(?i)\s-[ci]?(eq|ne)\s+\$null$'
+  not: { regex: '(?i)\s-(and|or|xor)\s' }

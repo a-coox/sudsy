@@ -5,7 +5,7 @@
 //! formatter walks the tokens.
 
 use crate::generated::kind as k;
-use core_config::{OptionDef, OptionSchema, shared};
+use core_config::{OptionDef, OptionSchema, Preset, shared};
 use core_format::comments::{self, Comment, CommentStyle};
 use core_format::{Doc, FormatCtx, FormatError, NodeFormatter, doc};
 use core_syntax::{Grammar, SyntaxKind, SyntaxNode, SyntaxToken};
@@ -31,6 +31,10 @@ pub fn option_schema() -> OptionSchema {
             "Largest number of blank lines kept between statements and comments.",
         ),
     ])
+    .with_presets(vec![Preset::new(
+        "powershell/psscriptanalyzer",
+        include_str!("../presets/psscriptanalyzer.yaml"),
+    )])
 }
 
 pub struct PowerShellFormatter;

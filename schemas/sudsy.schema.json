@@ -79,6 +79,10 @@
               "$ref": "#/definitions/rule",
               "description": "An apk add package without a version."
             },
+            "approved-verbs": {
+              "$ref": "#/definitions/rule",
+              "description": "A function named `Verb-Noun` whose verb is not in the list `Get-Verb` returns. Names without a dash are not checked."
+            },
             "apt-get-no-recommends": {
               "$ref": "#/definitions/rule",
               "description": "apt-get install that installs recommended packages."
@@ -265,6 +269,10 @@
             "duplicate-stage-name": {
               "$ref": "#/definitions/rule",
               "description": "Two FROM instructions name their stage alike."
+            },
+            "empty-catch-block": {
+              "$ref": "#/definitions/rule",
+              "description": "A `catch` clause whose block has no statement."
             },
             "expose-port-range": {
               "$ref": "#/definitions/rule",
@@ -519,6 +527,10 @@
               "$ref": "#/definitions/rule",
               "description": "A RUN that calls apt."
             },
+            "no-automatic-variable-assignment": {
+              "$ref": "#/definitions/rule",
+              "description": "An assignment to a read-only or engine-owned automatic variable (`$true`, `$null`, `$args`, `$input`, `$PSItem`, `$_`, `$PWD`, `$Host`, ...)."
+            },
             "no-backticks": {
               "$ref": "#/definitions/rule",
               "description": "A command substitution written with backticks."
@@ -526,6 +538,10 @@
             "no-bare-urls": {
               "$ref": "#/definitions/rule",
               "description": "A URL that is neither a link nor an autolink (markdownlint MD034), found when it follows a space or starts the paragraph. Reported on the paragraph."
+            },
+            "no-cmdlet-aliases": {
+              "$ref": "#/definitions/rule",
+              "description": "A command written with one of the default aliases of Windows PowerShell and PowerShell 7 (`gci`, `ls`, `%`, `?`, `iex`, ...). The table is the one of a Windows host; PSScriptAnalyzer reads the aliases of the host it runs on."
             },
             "no-comment-before-block": {
               "$ref": "#/definitions/rule",
@@ -538,6 +554,10 @@
             "no-default-summary": {
               "$ref": "#/definitions/rule",
               "description": "A `<summary>` that starts with the text Visual Studio generates, \"Summary description for ...\". Skipped when the comment has `<inheritdoc />`. No fix."
+            },
+            "no-default-true-switch": {
+              "$ref": "#/definitions/rule",
+              "description": "A `[switch]` parameter with the default value `$true`."
             },
             "no-default-value-type-constructor": {
               "$ref": "#/definitions/rule",
@@ -753,6 +773,10 @@
               "$ref": "#/definitions/rule",
               "description": "A FROM with a fixed `--platform`; a variable such as `$BUILDPLATFORM` is fine."
             },
+            "no-global-vars": {
+              "$ref": "#/definitions/rule",
+              "description": "A variable in the `global:` scope."
+            },
             "no-inline-html": {
               "$ref": "#/definitions/rule",
               "description": "Raw HTML in a document (markdownlint MD033). Comments are not reported. Reported once per HTML block, not per tag."
@@ -760,6 +784,10 @@
             "no-interactive-commands": {
               "$ref": "#/definitions/rule",
               "description": "A RUN that calls ssh, vim, shutdown, service, ps, free, top, kill or mount."
+            },
+            "no-invoke-expression": {
+              "$ref": "#/definitions/rule",
+              "description": "A call of `Invoke-Expression` or its alias `iex`."
             },
             "no-latest-tag": {
               "$ref": "#/definitions/rule",
@@ -772,6 +800,10 @@
             "no-maintainer": {
               "$ref": "#/definitions/rule",
               "description": "A MAINTAINER instruction."
+            },
+            "no-misleading-backtick": {
+              "$ref": "#/definitions/rule",
+              "description": "A backtick that is followed by blanks before the end of the line, so it does not continue the line."
             },
             "no-missing-space-atx": {
               "$ref": "#/definitions/rule",
@@ -816,6 +848,14 @@
                   "type": "object"
                 }
               ]
+            },
+            "no-plain-text-password": {
+              "$ref": "#/definitions/rule",
+              "description": "A `[string]` parameter whose name contains `password` or `passphrase`."
+            },
+            "no-plain-text-secure-string": {
+              "$ref": "#/definitions/rule",
+              "description": "A call of `ConvertTo-SecureString` with `-AsPlainText`."
             },
             "no-ps-grep": {
               "$ref": "#/definitions/rule",
@@ -885,9 +925,21 @@
               "$ref": "#/definitions/rule",
               "description": "A call of `which`."
             },
+            "no-wmi-cmdlets": {
+              "$ref": "#/definitions/rule",
+              "description": "A call of `Get-WmiObject`, `Invoke-WmiMethod`, `Register-WmiEvent`, `Remove-WmiObject` or `Set-WmiInstance`."
+            },
+            "no-write-host": {
+              "$ref": "#/definitions/rule",
+              "description": "A call of `Write-Host`."
+            },
             "npm-pin-versions": {
               "$ref": "#/definitions/rule",
               "description": "An npm install package without a version."
+            },
+            "null-comparison-side": {
+              "$ref": "#/definitions/rule",
+              "description": "A `-eq`, `-ne` (or case variant) comparison with `$null` on the right."
             },
             "nullable-shorthand": {
               "$ref": "#/definitions/rule",
@@ -2058,6 +2110,7 @@
           "preset:json/default",
           "preset:json/prettier-compat",
           "preset:markdown/prettier-compat",
+          "preset:powershell/psscriptanalyzer",
           "preset:shell/shellcheck",
           "preset:toml/default",
           "preset:toml/taplo-compat",

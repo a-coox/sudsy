@@ -124,6 +124,19 @@ Twenty-four rules read the `///` and `/** */` comment of a declaration (StyleCop
 | `trap-expands-now` | shell | suspicious | warn | none | A `trap` whose double-quoted command contains an expansion. |
 | `useless-cat` | shell | style | off | none | A pipeline that starts with `cat file`. |
 | `useless-echo` | shell | style | off | none | An `echo` whose only argument is a command substitution. |
+| `approved-verbs` | powershell | style | warn | none | A function named `Verb-Noun` whose verb is not in the list `Get-Verb` returns. Names without a dash are not checked. |
+| `empty-catch-block` | powershell | suspicious | warn | none | A `catch` clause whose block has no statement. |
+| `no-automatic-variable-assignment` | powershell | correctness | warn | none | An assignment to a read-only or engine-owned automatic variable (`$true`, `$null`, `$args`, `$input`, `$PSItem`, `$_`, `$PWD`, `$Host`, ...). |
+| `no-cmdlet-aliases` | powershell | style | warn | none | A command written with one of the default aliases of Windows PowerShell and PowerShell 7 (`gci`, `ls`, `%`, `?`, `iex`, ...). The table is the one of a Windows host; PSScriptAnalyzer reads the aliases of the host it runs on. |
+| `no-default-true-switch` | powershell | suspicious | warn | none | A `[switch]` parameter with the default value `$true`. |
+| `no-global-vars` | powershell | suspicious | warn | none | A variable in the `global:` scope. |
+| `no-invoke-expression` | powershell | suspicious | warn | none | A call of `Invoke-Expression` or its alias `iex`. |
+| `no-misleading-backtick` | powershell | correctness | warn | none | A backtick that is followed by blanks before the end of the line, so it does not continue the line. |
+| `no-plain-text-password` | powershell | suspicious | warn | none | A `[string]` parameter whose name contains `password` or `passphrase`. |
+| `no-plain-text-secure-string` | powershell | suspicious | error | none | A call of `ConvertTo-SecureString` with `-AsPlainText`. |
+| `no-wmi-cmdlets` | powershell | suspicious | warn | none | A call of `Get-WmiObject`, `Invoke-WmiMethod`, `Register-WmiEvent`, `Remove-WmiObject` or `Set-WmiInstance`. |
+| `no-write-host` | powershell | suspicious | warn | none | A call of `Write-Host`. |
+| `null-comparison-side` | powershell | correctness | warn | none | A `-eq`, `-ne` (or case variant) comparison with `$null` on the right. |
 | `accessor-order` | csharp | style | off | safe | `get` goes before `set` or `init`, and `add` before `remove`. The fix swaps the two accessors (not offered when a comment stands between or in them). Equivalent: StyleCop SA1212, StyleCop SA1213. |
 | `async-suffix` | csharp | style | warn | none | An async method returning Task or ValueTask has a name that does not end in `Async`. Overrides, explicit interface implementations and `Main` are left alone (their names are not the method's to choose). Renaming needs the binding layer, so there is no fix. Equivalent: Roslynator RCS1046. |
 | `constant-on-right` | csharp | style | off | safe | A comparison with the constant on the left: `null == x` is `x == null`, `1 < x` is `x > 1`. Without the type layer a constant is a literal, `nameof`, `int.MaxValue`-style member or an expression of those; a named constant on the left is not recognised. Equivalent: StyleCop SA1131. |

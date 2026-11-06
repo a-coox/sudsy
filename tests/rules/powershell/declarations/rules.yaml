@@ -1,0 +1,7 @@
+no-plain-text-password: warn
+no-default-true-switch: warn
+empty-catch-block: warn
+approved-verbs: warn
+no-global-vars: warn
+no-automatic-variable-assignment: warn
+null-comparison-side: warn

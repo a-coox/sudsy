@@ -1,5 +1,5 @@
 //! tree-sitter-powershell node name -> `grammars/powershell.grammar` kind. The tree is flat:
-//! strings are one token each, and only binary and unary expressions and hashtables are nodes. A leaf the
+//! strings are one token each, and only the nodes the formatter and the rules read are mapped. A leaf the
 //! mapping does not name (identifiers, variables, numbers, `.`, `::`) is a `Word` through the
 //! composite text kind.
 
@@ -24,6 +24,13 @@ pub const MAPPING: Mapping = Mapping {
         ("unary_expression", "Unary"),
         ("hashtable_expression", "Hash"),
         ("hash_entry", "HashEntry"),
+        ("command", "Command"),
+        ("function_definition", "Function"),
+        ("script_block", "ScriptBlock"),
+        ("parameter", "ParamDecl"),
+        ("assignment_statement", "AssignStmt"),
+        ("catch_clause", "CatchClause"),
+        ("statement_block", "Block"),
         ("comment", "Comment"),
         // A backtick before a line break is whitespace; the formatter reads it from the gap.
         ("line_continuation", "Whitespace"),

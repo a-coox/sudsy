@@ -1,0 +1,4 @@
+no-write-host: warn
+no-invoke-expression: warn
+no-plain-text-secure-string: error
+no-wmi-cmdlets: warn

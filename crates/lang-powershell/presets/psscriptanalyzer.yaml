@@ -1,0 +1,16 @@
+# PSScriptAnalyzer's rules that Sudsy has, at its severities (Error is error, Warning is warn).
+powershell:
+  lint:
+    rules:
+      no-cmdlet-aliases: warn
+      no-write-host: warn
+      no-invoke-expression: warn
+      no-plain-text-secure-string: error
+      no-wmi-cmdlets: warn
+      no-plain-text-password: warn
+      no-default-true-switch: warn
+      empty-catch-block: warn
+      approved-verbs: warn
+      no-global-vars: warn
+      no-automatic-variable-assignment: warn
+      null-comparison-side: warn

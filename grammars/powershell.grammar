@@ -1,5 +1,5 @@
 // PowerShell, parsed by tree-sitter (woodruffw-trough-tree-sitter-powershell) and mapped by crates/lang-powershell/src/mapping.rs.
-// The tree is flat: statements are not nodes, only the shapes the formatter needs are.
+// The tree is flat: only the shapes the formatter and the rules read are nodes.
 // Format: see crates/core-syntax/src/grammar/mod.rs.
 
 language powershell 10 "PowerShell"
@@ -54,3 +54,17 @@ node Unary #el = parts:#el*
 node Hash #el = parts:#el*
 // `key = value` in a hashtable.
 node HashEntry #el = parts:#el*
+// `Get-Item -Path x`: a command with its name, parameters and arguments.
+node Command #el = parts:#el*
+// `function Name(...) { }`, `filter`, `workflow`: the name is the first `Word` after the keyword.
+node Function #el = parts:#el*
+// The `{ }` body of a function and a script block used as a value.
+node ScriptBlock #el = parts:#el*
+// A declared parameter: `[Parameter()][string]$Name = 'x'`.
+node ParamDecl #el = parts:#el*
+// `$x = ...`, `$x += ...`
+node AssignStmt #el = parts:#el*
+// `catch [Type] { }`
+node CatchClause #el = parts:#el*
+// The `{ }` of a statement (`if`, `try`, `catch`, ...).
+node Block #el = parts:#el*

@@ -4181,6 +4181,448 @@
     },
     {
       "category": "style",
+      "default_level": "warn",
+      "description": "A function named `Verb-Noun` whose verb is not in the list `Get-Verb` returns. Names without a dash are not checked.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "function Fetch-Data {\n    param(\n        [string]$Password,\n        [Parameter(Mandatory)][string] $UserPassphrase = 'x',\n        [securestring]$Secret,\n        [string]$Name,\n        [switch]$Force = $true,\n        [switch]$Quiet\n    )\n    try { Get-Item x } catch { }\n    try { Get-Item x } catch {\n        # ignored\n    }\n    try { Get-Item x } catch { Write-Error $_ }\n    try { 1 } catch { try { 2 } catch { throw } }\n}\nfunction Get-Thing { }\nfunction Fetch { }\nfunction global:Make-Thing { }\n$global:count = 1\n$x = $global:count + 1\nSet-Item $env:Path -Value $Global:Foo\n$script:count = 1\n$input = 1\n$true = 0\n$count = 1\n$x -eq $null\n$null -eq $x\nif ($a -ne $null -and $b -ceq $null) { }\n$x -eq $nullable\n",
+        "language": "powershell",
+        "spans": [
+          {
+            "column": 10,
+            "length": 10,
+            "line": 1
+          },
+          {
+            "column": 10,
+            "length": 17,
+            "line": 19
+          }
+        ]
+      },
+      "fix": null,
+      "id": "approved-verbs",
+      "languages": [
+        "powershell"
+      ],
+      "options": [],
+      "presets": [
+        "powershell/psscriptanalyzer"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "warn",
+      "description": "A `catch` clause whose block has no statement.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "function Fetch-Data {\n    param(\n        [string]$Password,\n        [Parameter(Mandatory)][string] $UserPassphrase = 'x',\n        [securestring]$Secret,\n        [string]$Name,\n        [switch]$Force = $true,\n        [switch]$Quiet\n    )\n    try { Get-Item x } catch { }\n    try { Get-Item x } catch {\n        # ignored\n    }\n    try { Get-Item x } catch { Write-Error $_ }\n    try { 1 } catch { try { 2 } catch { throw } }\n}\nfunction Get-Thing { }\nfunction Fetch { }\nfunction global:Make-Thing { }\n$global:count = 1\n$x = $global:count + 1\nSet-Item $env:Path -Value $Global:Foo\n$script:count = 1\n$input = 1\n$true = 0\n$count = 1\n$x -eq $null\n$null -eq $x\nif ($a -ne $null -and $b -ceq $null) { }\n$x -eq $nullable\n",
+        "language": "powershell",
+        "spans": [
+          {
+            "column": 24,
+            "length": 9,
+            "line": 10
+          }
+        ]
+      },
+      "fix": null,
+      "id": "empty-catch-block",
+      "languages": [
+        "powershell"
+      ],
+      "options": [],
+      "presets": [
+        "powershell/psscriptanalyzer"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "correctness",
+      "default_level": "warn",
+      "description": "An assignment to a read-only or engine-owned automatic variable (`$true`, `$null`, `$args`, `$input`, `$PSItem`, `$_`, `$PWD`, `$Host`, ...).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "function Fetch-Data {\n    param(\n        [string]$Password,\n        [Parameter(Mandatory)][string] $UserPassphrase = 'x',\n        [securestring]$Secret,\n        [string]$Name,\n        [switch]$Force = $true,\n        [switch]$Quiet\n    )\n    try { Get-Item x } catch { }\n    try { Get-Item x } catch {\n        # ignored\n    }\n    try { Get-Item x } catch { Write-Error $_ }\n    try { 1 } catch { try { 2 } catch { throw } }\n}\nfunction Get-Thing { }\nfunction Fetch { }\nfunction global:Make-Thing { }\n$global:count = 1\n$x = $global:count + 1\nSet-Item $env:Path -Value $Global:Foo\n$script:count = 1\n$input = 1\n$true = 0\n$count = 1\n$x -eq $null\n$null -eq $x\nif ($a -ne $null -and $b -ceq $null) { }\n$x -eq $nullable\n",
+        "language": "powershell",
+        "spans": [
+          {
+            "column": 1,
+            "length": 10,
+            "line": 24
+          },
+          {
+            "column": 1,
+            "length": 9,
+            "line": 25
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-automatic-variable-assignment",
+      "languages": [
+        "powershell"
+      ],
+      "options": [],
+      "presets": [
+        "powershell/psscriptanalyzer"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "warn",
+      "description": "A command written with one of the default aliases of Windows PowerShell and PowerShell 7 (`gci`, `ls`, `%`, `?`, `iex`, ...). The table is the one of a Windows host; PSScriptAnalyzer reads the aliases of the host it runs on.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "gci -Recurse | % { $_ }\nGet-ChildItem | ? Name -eq x\nls\n& ls\nGet-ChildItem | Where-Object { $_ } | foreach { $_ }\n$x = dir\nWrite-Output ls\n",
+        "language": "powershell",
+        "spans": [
+          {
+            "column": 1,
+            "length": 3,
+            "line": 1
+          },
+          {
+            "column": 16,
+            "length": 1,
+            "line": 1
+          },
+          {
+            "column": 17,
+            "length": 1,
+            "line": 2
+          },
+          {
+            "column": 1,
+            "length": 2,
+            "line": 3
+          },
+          {
+            "column": 39,
+            "length": 7,
+            "line": 5
+          },
+          {
+            "column": 6,
+            "length": 3,
+            "line": 6
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-cmdlet-aliases",
+      "languages": [
+        "powershell"
+      ],
+      "options": [],
+      "presets": [
+        "powershell/psscriptanalyzer"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "warn",
+      "description": "A `[switch]` parameter with the default value `$true`.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "function Fetch-Data {\n    param(\n        [string]$Password,\n        [Parameter(Mandatory)][string] $UserPassphrase = 'x',\n        [securestring]$Secret,\n        [string]$Name,\n        [switch]$Force = $true,\n        [switch]$Quiet\n    )\n    try { Get-Item x } catch { }\n    try { Get-Item x } catch {\n        # ignored\n    }\n    try { Get-Item x } catch { Write-Error $_ }\n    try { 1 } catch { try { 2 } catch { throw } }\n}\nfunction Get-Thing { }\nfunction Fetch { }\nfunction global:Make-Thing { }\n$global:count = 1\n$x = $global:count + 1\nSet-Item $env:Path -Value $Global:Foo\n$script:count = 1\n$input = 1\n$true = 0\n$count = 1\n$x -eq $null\n$null -eq $x\nif ($a -ne $null -and $b -ceq $null) { }\n$x -eq $nullable\n",
+        "language": "powershell",
+        "spans": [
+          {
+            "column": 9,
+            "length": 22,
+            "line": 7
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-default-true-switch",
+      "languages": [
+        "powershell"
+      ],
+      "options": [],
+      "presets": [
+        "powershell/psscriptanalyzer"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "warn",
+      "description": "A variable in the `global:` scope.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "function Fetch-Data {\n    param(\n        [string]$Password,\n        [Parameter(Mandatory)][string] $UserPassphrase = 'x',\n        [securestring]$Secret,\n        [string]$Name,\n        [switch]$Force = $true,\n        [switch]$Quiet\n    )\n    try { Get-Item x } catch { }\n    try { Get-Item x } catch {\n        # ignored\n    }\n    try { Get-Item x } catch { Write-Error $_ }\n    try { 1 } catch { try { 2 } catch { throw } }\n}\nfunction Get-Thing { }\nfunction Fetch { }\nfunction global:Make-Thing { }\n$global:count = 1\n$x = $global:count + 1\nSet-Item $env:Path -Value $Global:Foo\n$script:count = 1\n$input = 1\n$true = 0\n$count = 1\n$x -eq $null\n$null -eq $x\nif ($a -ne $null -and $b -ceq $null) { }\n$x -eq $nullable\n",
+        "language": "powershell",
+        "spans": [
+          {
+            "column": 1,
+            "length": 13,
+            "line": 20
+          },
+          {
+            "column": 6,
+            "length": 13,
+            "line": 21
+          },
+          {
+            "column": 27,
+            "length": 11,
+            "line": 22
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-global-vars",
+      "languages": [
+        "powershell"
+      ],
+      "options": [],
+      "presets": [
+        "powershell/psscriptanalyzer"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "warn",
+      "description": "A call of `Invoke-Expression` or its alias `iex`.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "Write-Host \"hi\"\nwrite-host\nWrite-Output \"ok\"\nGet-Help Write-Host\niex $script\nInvoke-Expression -Command $c\nConvertTo-SecureString $p -AsPlainText -Force\nConvertTo-SecureString $p\nConvertTo-SecureString `\n    $p -AsPlainText\nGet-WmiObject Win32_Process\nGet-CimInstance Win32_Process\n",
+        "language": "powershell",
+        "spans": [
+          {
+            "column": 1,
+            "length": 3,
+            "line": 5
+          },
+          {
+            "column": 1,
+            "length": 17,
+            "line": 6
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-invoke-expression",
+      "languages": [
+        "powershell"
+      ],
+      "options": [],
+      "presets": [
+        "powershell/psscriptanalyzer"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "correctness",
+      "default_level": "warn",
+      "description": "A backtick that is followed by blanks before the end of the line, so it does not continue the line.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "Get-ChildItem `  \n    -Force `\n    -Name\n$x = 1 + `\t\n    2\n",
+        "language": "powershell",
+        "spans": [
+          {
+            "column": 15,
+            "length": 1,
+            "line": 1
+          },
+          {
+            "column": 10,
+            "length": 1,
+            "line": 4
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-misleading-backtick",
+      "languages": [
+        "powershell"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "warn",
+      "description": "A `[string]` parameter whose name contains `password` or `passphrase`.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "function Fetch-Data {\n    param(\n        [string]$Password,\n        [Parameter(Mandatory)][string] $UserPassphrase = 'x',\n        [securestring]$Secret,\n        [string]$Name,\n        [switch]$Force = $true,\n        [switch]$Quiet\n    )\n    try { Get-Item x } catch { }\n    try { Get-Item x } catch {\n        # ignored\n    }\n    try { Get-Item x } catch { Write-Error $_ }\n    try { 1 } catch { try { 2 } catch { throw } }\n}\nfunction Get-Thing { }\nfunction Fetch { }\nfunction global:Make-Thing { }\n$global:count = 1\n$x = $global:count + 1\nSet-Item $env:Path -Value $Global:Foo\n$script:count = 1\n$input = 1\n$true = 0\n$count = 1\n$x -eq $null\n$null -eq $x\nif ($a -ne $null -and $b -ceq $null) { }\n$x -eq $nullable\n",
+        "language": "powershell",
+        "spans": [
+          {
+            "column": 9,
+            "length": 17,
+            "line": 3
+          },
+          {
+            "column": 9,
+            "length": 52,
+            "line": 4
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-plain-text-password",
+      "languages": [
+        "powershell"
+      ],
+      "options": [],
+      "presets": [
+        "powershell/psscriptanalyzer"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "error",
+      "description": "A call of `ConvertTo-SecureString` with `-AsPlainText`.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "Write-Host \"hi\"\nwrite-host\nWrite-Output \"ok\"\nGet-Help Write-Host\niex $script\nInvoke-Expression -Command $c\nConvertTo-SecureString $p -AsPlainText -Force\nConvertTo-SecureString $p\nConvertTo-SecureString `\n    $p -AsPlainText\nGet-WmiObject Win32_Process\nGet-CimInstance Win32_Process\n",
+        "language": "powershell",
+        "spans": [
+          {
+            "column": 1,
+            "length": 22,
+            "line": 7
+          },
+          {
+            "column": 1,
+            "length": 22,
+            "line": 9
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-plain-text-secure-string",
+      "languages": [
+        "powershell"
+      ],
+      "options": [],
+      "presets": [
+        "powershell/psscriptanalyzer"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "warn",
+      "description": "A call of `Get-WmiObject`, `Invoke-WmiMethod`, `Register-WmiEvent`, `Remove-WmiObject` or `Set-WmiInstance`.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "Write-Host \"hi\"\nwrite-host\nWrite-Output \"ok\"\nGet-Help Write-Host\niex $script\nInvoke-Expression -Command $c\nConvertTo-SecureString $p -AsPlainText -Force\nConvertTo-SecureString $p\nConvertTo-SecureString `\n    $p -AsPlainText\nGet-WmiObject Win32_Process\nGet-CimInstance Win32_Process\n",
+        "language": "powershell",
+        "spans": [
+          {
+            "column": 1,
+            "length": 13,
+            "line": 11
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-wmi-cmdlets",
+      "languages": [
+        "powershell"
+      ],
+      "options": [],
+      "presets": [
+        "powershell/psscriptanalyzer"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "warn",
+      "description": "A call of `Write-Host`.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "Write-Host \"hi\"\nwrite-host\nWrite-Output \"ok\"\nGet-Help Write-Host\niex $script\nInvoke-Expression -Command $c\nConvertTo-SecureString $p -AsPlainText -Force\nConvertTo-SecureString $p\nConvertTo-SecureString `\n    $p -AsPlainText\nGet-WmiObject Win32_Process\nGet-CimInstance Win32_Process\n",
+        "language": "powershell",
+        "spans": [
+          {
+            "column": 1,
+            "length": 10,
+            "line": 1
+          },
+          {
+            "column": 1,
+            "length": 10,
+            "line": 2
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-write-host",
+      "languages": [
+        "powershell"
+      ],
+      "options": [],
+      "presets": [
+        "powershell/psscriptanalyzer"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "correctness",
+      "default_level": "warn",
+      "description": "A `-eq`, `-ne` (or case variant) comparison with `$null` on the right.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "function Fetch-Data {\n    param(\n        [string]$Password,\n        [Parameter(Mandatory)][string] $UserPassphrase = 'x',\n        [securestring]$Secret,\n        [string]$Name,\n        [switch]$Force = $true,\n        [switch]$Quiet\n    )\n    try { Get-Item x } catch { }\n    try { Get-Item x } catch {\n        # ignored\n    }\n    try { Get-Item x } catch { Write-Error $_ }\n    try { 1 } catch { try { 2 } catch { throw } }\n}\nfunction Get-Thing { }\nfunction Fetch { }\nfunction global:Make-Thing { }\n$global:count = 1\n$x = $global:count + 1\nSet-Item $env:Path -Value $Global:Foo\n$script:count = 1\n$input = 1\n$true = 0\n$count = 1\n$x -eq $null\n$null -eq $x\nif ($a -ne $null -and $b -ceq $null) { }\n$x -eq $nullable\n",
+        "language": "powershell",
+        "spans": [
+          {
+            "column": 1,
+            "length": 12,
+            "line": 27
+          },
+          {
+            "column": 5,
+            "length": 12,
+            "line": 29
+          },
+          {
+            "column": 23,
+            "length": 13,
+            "line": 29
+          }
+        ]
+      },
+      "fix": null,
+      "id": "null-comparison-side",
+      "languages": [
+        "powershell"
+      ],
+      "options": [],
+      "presets": [
+        "powershell/psscriptanalyzer"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
       "default_level": "off",
       "description": "`get` goes before `set` or `init`, and `add` before `remove`. The fix swaps the two accessors (not offered when a comment stands between or in them).",
       "example": {
