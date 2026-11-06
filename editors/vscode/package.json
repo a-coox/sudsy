@@ -23,6 +23,7 @@
     "onLanguage:editorconfig",
     "onLanguage:dockerfile",
     "onLanguage:shell",
+    "onLanguage:powershell",
     "onLanguage:csharp",
     "workspaceContains:**/sudsy.{yaml,yml}"
   ],

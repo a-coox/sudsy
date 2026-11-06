@@ -9,6 +9,7 @@ export const documentSelector = [
   { scheme: "file", language: "editorconfig" },
   { scheme: "file", language: "dockerfile" },
   { scheme: "file", language: "shell" },
+  { scheme: "file", language: "powershell" },
   { scheme: "file", language: "csharp" },
   { scheme: "file", pattern: "**/*.json" },
   { scheme: "file", pattern: "**/*.jsonc" },
@@ -48,6 +49,9 @@ export const documentSelector = [
   { scheme: "file", pattern: "**/*.dockerfile" },
   { scheme: "file", pattern: "**/*.sh" },
   { scheme: "file", pattern: "**/*.bash" },
+  { scheme: "file", pattern: "**/*.ps1" },
+  { scheme: "file", pattern: "**/*.psm1" },
+  { scheme: "file", pattern: "**/*.psd1" },
   { scheme: "file", pattern: "**/*.cs" },
   { scheme: "file", pattern: "**/*.csx" },
 ];

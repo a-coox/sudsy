@@ -61,6 +61,19 @@
       {"dir": "tests/conformance/corpus/shell", "suffixes": [".sh", ".bash"], "prefix": "corpus/", "recursive": true}
     ]
   },
+  "invoke-formatter": {
+    "catalog": "psscriptanalyzer",
+    "install": {"psmodule": "PSScriptAnalyzer"},
+    "fetch": ["tests/conformance/fetch-powershell-corpus.sh"],
+    "command": ["pwsh", "-NoProfile", "-File", "{root}/scripts/parity_invoke_formatter.ps1", "{prefix}", "{file}"],
+    "input": "arg",
+    "tool_may_reject": true,
+    "ignore_trailing_blanks": true,
+    "fixtures": [
+      {"suffixes": [".ps1"]},
+      {"dir": "tests/conformance/corpus/powershell", "suffixes": [".ps1", ".psm1"], "prefix": "corpus/", "recursive": true}
+    ]
+  },
   "csharpier": {
     "catalog": "csharpier",
     "install": {"dotnet-tool": "csharpier", "exe": "csharpier"},

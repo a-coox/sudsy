@@ -1,0 +1,56 @@
+// PowerShell, parsed by tree-sitter (woodruffw-trough-tree-sitter-powershell) and mapped by crates/lang-powershell/src/mapping.rs.
+// The tree is flat: statements are not nodes, only the shapes the formatter needs are.
+// Format: see crates/core-syntax/src/grammar/mod.rs.
+
+language powershell 10 "PowerShell"
+comments line "#" block "<#" "#>"
+suppress disable-next-line "sudsy-disable-next-line"
+suppress disable-line "sudsy-disable-line"
+suppress disable "sudsy-disable"
+suppress enable "sudsy-enable"
+suppress disable-file "sudsy-disable-file"
+suppress ignore "sudsy-ignore"
+
+token Whitespace #trivia #whitespace
+token Newline #trivia #newline
+token Comment #trivia #comment
+
+// Identifiers, variables, numbers, member names, `.` and `::`: whatever the grammar does not name.
+token Word #literal
+// `-Name` in a command.
+token Parameter
+// Reserved words (`if`, `else`, `function`, `param`, ...).
+token Keyword
+// Single-quoted and double-quoted strings, whole, with their variables and `$(...)` inside.
+token String #string
+// `@'...'@` and `@"..."@`, whole.
+token HereString #string
+// `=`, `+=`, `-=`, ...
+token Assign
+// `+`, `-`, `-eq`, `-and`, `!`, `-not`, `..`, ...
+token Op
+token Comma ","
+token Semi ";"
+token Pipe "|"
+token OpenBrace "{"
+token CloseBrace "}"
+// `@{`
+token HashOpen
+// `(`, `$(` and `@(`
+token OpenParen
+token CloseParen ")"
+token OpenBracket "["
+token CloseBracket "]"
+
+token Eof
+token Unknown #error
+
+node Program = items:#el* Eof
+// `a + b`, `a -eq b`: the operators of a binary expression.
+node Binary #el = parts:#el*
+// `-not a`, `-1`, `a++`, `-split a`: the operators of a unary expression.
+node Unary #el = parts:#el*
+// `@{ ... }`
+node Hash #el = parts:#el*
+// `key = value` in a hashtable.
+node HashEntry #el = parts:#el*

@@ -1,0 +1,16 @@
+# Files where Sudsy differs from Invoke-Formatter, with the reason.
+corpus/install-scripts/src/dotnet-install.ps1: Invoke-Formatter indents the lines after a pipeline or call that continues after a closing brace or a blank line differently (its indentation follows the syntax tree, Sudsy the lines)
+corpus/Pester/src/functions/Pester.SessionState.Mock.ps1: same indentation difference after a multi-line pipeline
+corpus/Pester/src/Pester.RSpec.ps1: Invoke-Formatter outdents the script block that follows a backtick continuation
+corpus/Pester/src/Pester.Runtime.ps1: same indentation difference after a multi-line pipeline
+corpus/PowerShell/build.psm1: same indentation difference after a multi-line pipeline
+corpus/PowerShell/test/tools/CodeCoverageAutomation/Start-CodeCoverageRun.ps1: a hashtable whose first entry is on the `@{` line is aligned to the column of that entry; Invoke-Formatter also joins a `{` that follows a comment
+corpus/PowerShell/test/tools/Modules/HttpListener/HttpListener.psm1: a `{` on its own line after a switch clause that is a string is joined by Invoke-Formatter and not by Sudsy
+corpus/PowerShell/test/tools/Modules/PSSysLog/PSSysLog.psm1: Invoke-Formatter aligns the `=` of enum members; Sudsy aligns hashtables only
+corpus/PowerShell/tools/clearlyDefined/src/ClearlyDefined/ClearlyDefined.psm1: same indentation difference after a multi-line pipeline
+corpus/PowerShell/tools/packaging/packaging.psm1: same indentation difference after a multi-line pipeline; Invoke-Formatter aligns the comments of an operator chain
+corpus/PowerShell/tools/releaseTools.psm1: same indentation difference after a multi-line pipeline
+corpus/PowerShell/tools/ResxGen/ResxGen.psm1: Invoke-Formatter aligns the `=` of enum members; Sudsy aligns hashtables only
+corpus/PSScriptAnalyzer/build.psm1: same indentation difference after a multi-line pipeline
+corpus/PSScriptAnalyzer/Tests/Engine/CSharp.ps1: not PowerShell (C# source): Sudsy rejects the file
+corpus/PSScriptAnalyzer/Tests/Engine/CustomRuleNREAssets/MyCustom.psm1: a hashtable whose first entry is on the `@{` line is aligned to the column of that entry

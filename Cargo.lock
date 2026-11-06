@@ -1346,6 +1346,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "lang-powershell"
+version = "0.1.0"
+dependencies = [
+ "core-config",
+ "core-format",
+ "core-rules",
+ "core-syntax",
+ "core-treesitter",
+ "provider-api",
+ "woodruffw-trough-tree-sitter-powershell",
+]
+
+[[package]]
 name = "lang-shell"
 version = "0.1.0"
 dependencies = [
@@ -1421,6 +1434,7 @@ dependencies = [
  "lang-editorconfig",
  "lang-json",
  "lang-markdown",
+ "lang-powershell",
  "lang-shell",
  "lang-toml",
  "lang-xml",
@@ -3270,6 +3284,16 @@ dependencies = [
  "serde_json",
  "unicode-ident",
  "wasmparser 0.262.0",
+]
+
+[[package]]
+name = "woodruffw-trough-tree-sitter-powershell"
+version = "0.1.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5904ee65902fd293f2e7ce1ff4ddc73e1a4e1711318468f57ee0d3cb7d357f10"
+dependencies = [
+ "cc",
+ "tree-sitter-language",
 ]
 
 [[package]]

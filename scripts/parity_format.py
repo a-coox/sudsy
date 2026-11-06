@@ -50,6 +50,10 @@ def install(spec, catalog, version, prefix):
     elif "dotnet-tool" in spec:
         if not executable(prefix, spec["exe"]).exists():
             run(["dotnet", "tool", "install", spec["dotnet-tool"], "--version", version, "--tool-path", prefix], ROOT)
+    elif "psmodule" in spec:
+        if not (prefix / spec["psmodule"]).is_dir():
+            prefix.mkdir(parents=True, exist_ok=True)
+            run(["pwsh", "-NoProfile", "-Command", f"Save-Module {spec['psmodule']} -RequiredVersion {version} -Path '{prefix}'"], ROOT)
     elif "release" in spec:
         if not executable(prefix, spec["exe"]).exists():
             prefix.mkdir(parents=True, exist_ok=True)
@@ -106,7 +110,7 @@ def upstream(config, prefix, version, copy, work):
         copy = work / "theirs" / copy.name
         copy.parent.mkdir(exist_ok=True)
         shutil.copy(work / copy.name, copy)
-    command = [str(a).format(prefix=prefix, exe=exe, file=copy.name) for a in config["command"]]
+    command = [str(a).format(prefix=prefix, exe=exe, file=copy.name, root=ROOT) for a in config["command"]]
     r = run(command, copy.parent if mode == "in-place" else work, text if mode == "stdin" else None, check=False)
     if r.returncode != 0:
         if config.get("tool_may_reject"):
@@ -208,8 +212,10 @@ def main():
     for name, fixture in found:
         copy = work / name.replace("/", "__")
         shutil.copy(fixture, copy)
-        theirs = upstream(config, prefix, version, copy, work)
-        bad += verdict(name, theirs, sudsy_format(sudsy, copy, work), known, tool)
+        theirs, ours = upstream(config, prefix, version, copy, work), sudsy_format(sudsy, copy, work)
+        if config.get("ignore_trailing_blanks"):  # the tool keeps the trailing blanks of a line, Sudsy never does
+            theirs, ours = (re.sub(r"[ 	]+$", "", t, flags=re.M) if t is not None else None for t in (theirs, ours))
+        bad += verdict(name, theirs, ours, known, tool)
     print(f"{len(found)} fixtures, {bad} mismatch(es) ({tool} {version})")
     return 1 if bad else 0
 

@@ -41,6 +41,7 @@ tree-sitter-xml = "0.7"
 konomanoasa-tree-sitter-editorconfig = "0.9"
 tree-sitter-containerfile = "0.9"
 tree-sitter-bash = "0.25"
+woodruffw-trough-tree-sitter-powershell = "0.1"
 
 core-config = { path = "crates/core-config" }
 core-patterns = { path = "crates/core-patterns" }
@@ -61,6 +62,7 @@ lang-markdown = { path = "crates/lang-markdown" }
 lang-editorconfig = { path = "crates/lang-editorconfig" }
 lang-dockerfile = { path = "crates/lang-dockerfile" }
 lang-shell = { path = "crates/lang-shell" }
+lang-powershell = { path = "crates/lang-powershell" }
 core-treesitter = { path = "crates/core-treesitter" }
 core-syntax = { path = "crates/core-syntax" }
 languages = { path = "crates/languages" }

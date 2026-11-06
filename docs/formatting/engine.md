@@ -18,12 +18,12 @@ Options declared by more than one language, generated from the option schemas; p
 | `array_bracket_spacing` | bool | json `false`, yaml `false`, toml `false` |
 | `bracket_spacing` | bool | json `true`, yaml `true`, toml `true` |
 | `collapse` | json: `preserve`, `always`, `never`, `opening_break`; toml: `preserve`, `always`, `never` | json `preserve`, toml `preserve` |
-| `end_of_line` | `auto`, `lf`, `crlf` | json `auto`, yaml `auto`, toml `auto`, xml `auto`, markdown `auto`, editorconfig `auto`, dockerfile `auto`, shell `auto`, csharp `auto` |
-| `final_newline` | bool | json `true`, yaml `true`, toml `true`, xml `true`, markdown `true`, editorconfig `true`, dockerfile `true`, shell `true`, csharp `true` |
-| `indent_size` | int 1-16 | json `2`, yaml `2`, toml `2`, xml `2`, markdown `2`, dockerfile `4`, shell `4`, csharp `4` |
-| `indent_style` | `space`, `tab` | json `space`, toml `space`, xml `space`, dockerfile `space`, shell `tab`, csharp `space` |
+| `end_of_line` | `auto`, `lf`, `crlf` | json `auto`, yaml `auto`, toml `auto`, xml `auto`, markdown `auto`, editorconfig `auto`, dockerfile `auto`, shell `auto`, powershell `auto`, csharp `auto` |
+| `final_newline` | bool | json `true`, yaml `true`, toml `true`, xml `true`, markdown `true`, editorconfig `true`, dockerfile `true`, shell `true`, powershell `true`, csharp `true` |
+| `indent_size` | int 1-16 | json `2`, yaml `2`, toml `2`, xml `2`, markdown `2`, dockerfile `4`, shell `4`, powershell `4`, csharp `4` |
+| `indent_style` | `space`, `tab` | json `space`, toml `space`, xml `space`, dockerfile `space`, shell `tab`, powershell `space`, csharp `space` |
 | `line_width` | int 20-1000 | json `80`, yaml `80`, toml `80`, xml `100`, csharp `120` |
-| `max_blank_lines` | int 0-10 | yaml `1`, toml `1`, xml `1`, editorconfig `1`, dockerfile `1`, shell `1` |
+| `max_blank_lines` | int 0-10 | yaml `1`, toml `1`, xml `1`, editorconfig `1`, dockerfile `1`, shell `1`, powershell `10` |
 | `trailing_commas` | json: `never`, `multiline`; toml: `never`, `multiline`; csharp: `preserve`, `never`, `multiline` | json `never`, toml `multiline`, csharp `preserve` |
 <!-- /generated -->
 
