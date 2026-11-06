@@ -3,7 +3,7 @@
 // crates/lang-*/presets/*.yaml and the notes column of docs/formatting/presets.md.
 import { mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { base, site, rules, languages } from '../config.mjs';
+import { base, site, rules } from '../config.mjs';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const out = fileURLToPath(new URL('../src/content/docs/generated/', import.meta.url));
@@ -23,15 +23,6 @@ const fmt = (v) => (v === undefined ? '' : `\`${JSON.stringify(v)}\``);
 // Pagefind filter chip: the visible text names the filter, the attribute carries the value.
 const chip = (name, value) => `<span data-pagefind-filter="${name}[data-v]" data-v="${value}">${name}: ${value}</span>`;
 
-// A suppression comment in each language's own syntax (rules.json `languages`, from the grammars):
-// [title, code block language, comment wrapper].
-const suppress = Object.fromEntries(
-  Object.entries(languages()).map(([id, l]) => [
-    id,
-    [l.title, id, (t) => (l.line_comment ? `${l.line_comment} ${t}` : `${l.block_comment[0]} ${t} ${l.block_comment[1]}`)],
-  ]),
-);
-
 // Rule config as sudsy.yaml takes it: `lint.rules` at the top level for rules of all languages,
 // under the language section otherwise (docs/config/sudsy-yaml.md).
 function configuration(r) {
@@ -40,18 +31,16 @@ function configuration(r) {
   const yaml = (entry) =>
     langs.map((l) => (l ? `${l}:\n  lint:\n    rules:\n${indent(entry, 6)}` : `lint:\n  rules:\n${indent(entry, 4)}`)).join('\n');
   const opts = r.options.filter((o) => o.default !== undefined);
-  const suppressIn = r.languages.includes('all') ? Object.keys(suppress) : r.languages.filter((l) => suppress[l]);
+  const levels = ['off', 'warn', 'error'].map((l) => (l === r.default_level ? `${l} (default)` : l)).join(', ');
+  const entry = `${r.id}:\n  level: ${r.default_level === 'off' ? 'warn' : r.default_level}  # ${levels}` +
+    (opts.length ? `\n  options:\n${opts.map((o) => `    ${o.name}: ${JSON.stringify(o.default)}`).join('\n')}` : '');
   return [
     '## Configuration',
-    r.default_level === 'off' ? 'Off by default.' : `On by default as \`${r.default_level}\`.`,
-    '### Enable\n\nLevels are `off`, `warn` and `error`.\n\n' + code('yaml', yaml(`${r.id}: warn`)),
-    '### Disable\n\n' + code('yaml', yaml(`${r.id}: off`)),
-    opts.length &&
-      '### With options\n\nEvery option at its default (see the table above).\n\n' +
-        code('yaml', yaml(`${r.id}:\n  level: warn\n  options:\n${opts.map((o) => `    ${o.name}: ${JSON.stringify(o.default)}`).join('\n')}`)),
-    r.presets.length && '### Presets\n\nEnabled by: ' + r.presets.map((p) => `[\`${p}\`](${base}/reference/presets/#${p.replace('/', '')})`).join(', '),
-    '### Suppress in code\n\nIn the language\'s comment syntax. `sudsy-disable-line`, `sudsy-disable` / `sudsy-enable` (a block) and `sudsy-disable-file` work the same way.\n\n' +
-      suppressIn.map((l) => '```' + suppress[l][1] + ` title="${suppress[l][0]}"\n${suppress[l][2](`sudsy-disable-next-line ${r.id}`)}\n` + '```').join('\n\n'),
+    code('yaml', yaml(entry)),
+    r.options.length &&
+      table(['Option', 'Type', 'Default', 'Values', 'Description'], r.options.map((o) => [`\`${o.name}\``, o.type, fmt(o.default), o.choices ? o.choices.map((c) => `\`${c}\``).join(', ') : '', cell(o.description)])),
+    r.presets.length && 'Enabled by the presets: ' + r.presets.map((p) => `[\`${p}\`](${base}/reference/presets/#${p.replace('/', '')})`).join(', ') + '.',
+    `Suppress one line with \`sudsy-disable-next-line ${r.id}\` in a comment of the file's language.`,
   ].filter(Boolean).join('\n\n');
 }
 
@@ -62,7 +51,7 @@ function example(e, id) {
   return [
     '## Example',
     e.config ? 'Configuration:\n\n' + code('yaml', e.config) : '',
-    'Input; hover an underlined span for the rule:\n\n' + code(e.language, lines.join('\n')).replace(/^```(\S*)/, `\`\`\`$1 squiggles="${squiggles}" tip="${id}"`),
+    code(e.language, lines.join('\n')).replace(/^```(\S*)/, `\`\`\`$1 squiggles="${squiggles}" tip="${id}"`),
     e.fixed ? 'After the fix:\n\n' + code(e.language, e.fixed) : '',
   ].filter(Boolean).join('\n\n');
 }
@@ -83,9 +72,6 @@ for (const r of rules()) {
   const body = [
     `<div class="meta" data-pagefind-sort="id[data-id]" data-id="${r.id}">${chips.join('')}</div>`,
     md(r.description),
-    r.options.length &&
-      '## Options\n\n' +
-        table(['Option', 'Type', 'Default', 'Values', 'Description'], r.options.map((o) => [`\`${o.name}\``, o.type, fmt(o.default), o.choices ? o.choices.map((c) => `\`${c}\``).join(', ') : '', cell(o.description)])),
     r.upstream.length &&
       '## Upstream equivalents\n\n' +
         table(['Tool', 'Id', 'Coverage'], r.upstream.map((u) => [u.tool, `\`${u.id}\``, u.partial ? 'partial' : 'full'])),
