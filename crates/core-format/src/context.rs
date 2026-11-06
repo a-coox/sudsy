@@ -417,7 +417,7 @@ pub fn trailing_comments_doc(st: &CommentStyle, cs: &[Comment]) -> Doc {
     }
     let mut parts = Vec::new();
     for c in cs {
-        let body = doc::concat(vec![st.gap_doc(), verbatim_text(&c.text())]);
+        let body = doc::concat(vec![st.gap_before(c), verbatim_text(&c.text())]);
         match c.kind {
             CommentKind::Line | CommentKind::Lines | CommentKind::Directive => {
                 parts.push(doc::line_suffix(body));

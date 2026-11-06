@@ -56,6 +56,8 @@ pub struct Composite {
     /// `(token name, text prefix, kind name)`: a mapped token whose text starts with the prefix
     /// is the other kind.
     pub refine: &'static [(&'static str, &'static str, &'static str)],
+    /// A `\` that ends a line is whitespace trivia, not text (shell line continuations).
+    pub continuation: bool,
 }
 
 /// A grammar parsed inside the nodes named `host` of the host grammar. The host node's own named
@@ -79,6 +81,7 @@ struct Converter {
     table: Vec<Entry>,
     names: Vec<String>,
     text: Option<SyntaxKind>,
+    continuation: bool,
     /// `(node id, prefix, kind)` of [`Composite::refine`].
     refine: Vec<(usize, &'static str, SyntaxKind)>,
     /// Node id -> index into `injected`.
@@ -148,6 +151,7 @@ impl Converter {
         let id_of = |n: &str| names.iter().position(|x| x == n);
         let mut inject = vec![None; count];
         let (mut injected, mut refine, mut text) = (Vec::new(), Vec::new(), None);
+        let continuation = comp.is_some_and(|c| c.continuation);
         if let Some(c) = comp {
             text = Some(kind(c.text));
             for (token, prefix, to) in c.refine {
@@ -172,6 +176,7 @@ impl Converter {
             table,
             names,
             text,
+            continuation,
             refine,
             inject,
             injected,
@@ -391,7 +396,14 @@ impl Converter {
             let line = &src[pos..end];
             let trimmed = line.trim_start_matches([' ', '\t', '\r']);
             let start = pos + (line.len() - trimmed.len());
-            let stop = start + trimmed.trim_end_matches([' ', '\t', '\r']).len();
+            let mut stop = start + trimmed.trim_end_matches([' ', '\t', '\r']).len();
+            // A line continuation (`\` alone or after a blank) is trivia, which `gap` lexes.
+            if self.continuation && src[start..stop].ends_with('\\') {
+                let before = src[start..stop - 1].trim_end_matches([' ', '\t']);
+                if before.len() < stop - 1 - start || before.is_empty() {
+                    stop = start + before.len();
+                }
+            }
             if stop > start {
                 s.token(Tok {
                     kind: text,
@@ -433,6 +445,8 @@ impl Converter {
                 .get(s.ci)
                 .map_or(b, |c| c.start.clamp(pos + 1, b));
             let (kind, len) = match bytes[pos] {
+                b'\\' if self.continuation && bytes[pos + 1..].starts_with(b"\n") => (self.ws, 2),
+                b'\\' if self.continuation && bytes[pos + 1..].starts_with(b"\r\n") => (self.ws, 3),
                 b'\n' => (self.nl, 1),
                 b'\r' => (
                     self.nl,

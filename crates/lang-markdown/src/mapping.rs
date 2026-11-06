@@ -89,6 +89,7 @@ pub static INLINE: Mapping = mapping(
 
 pub static COMPOSITE: Composite = Composite {
     text: "Text",
+    continuation: false,
     injected: &[
         Injected {
             host: "inline",

@@ -55,15 +55,19 @@ def install(spec, catalog, version, prefix):
             prefix.mkdir(parents=True, exist_ok=True)
             system = {"win32": "windows", "linux": "linux", "darwin": "darwin"}.get(sys.platform, sys.platform)
             key = system if system == "windows" else f"{system}-{platform.machine().lower()}"
-            asset = spec["assets"].get(key) or sys.exit(f"parity: no {catalog} release for {key}")
+            asset = (spec["assets"].get(key) or sys.exit(f"parity: no {catalog} release for {key}")).format(version=version)
             archive = prefix / asset
             run(["curl", "-fsSL", "-o", archive, spec["release"].format(version=version, asset=asset)], ROOT)
             if asset.endswith(".zip"):
                 run(["unzip", "-oq", archive, "-d", prefix], ROOT)
-            else:
+            elif asset.endswith(".gz"):
                 target = prefix / spec["exe"]
                 run(["gunzip", "-f", archive], ROOT)
                 (prefix / asset[: -len(".gz")]).rename(target)
+                target.chmod(0o755)
+            else:  # the asset is the executable
+                target = prefix / (spec["exe"] + (".exe" if asset.endswith(".exe") else ""))
+                archive.replace(target)
                 target.chmod(0o755)
 
 

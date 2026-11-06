@@ -75,6 +75,9 @@ pub struct CommentStyle {
     /// the blank lines after the last comment in front of a token are dropped, except in front
     /// of the first token of a file and after a `////` comment.
     pub attach_comments: bool,
+    /// A comment after code keeps the blanks the source has before it when they are more than
+    /// `gap` (comments aligned in a column stay aligned).
+    pub keep_gap: bool,
 }
 
 impl Default for CommentStyle {
@@ -82,6 +85,7 @@ impl Default for CommentStyle {
         CommentStyle {
             gap: 1,
             attach_comments: false,
+            keep_gap: false,
         }
     }
 }
@@ -91,6 +95,22 @@ impl CommentStyle {
         match self.gap {
             1 => crate::doc::lit(" "),
             n => crate::doc::text(" ".repeat(n)),
+        }
+    }
+
+    /// The gap before `c`: `gap`, or the blanks the source has when `keep_gap` and they are more.
+    pub fn gap_before(&self, c: &Comment) -> crate::Doc {
+        let source = match (&c.element, self.keep_gap) {
+            (SyntaxElement::Token(t), true) => t
+                .prev_token()
+                .filter(|p| p.text().bytes().all(|b| b == b' ' || b == b'\t'))
+                .map_or(0, |p| p.text().len()),
+            _ => 0,
+        };
+        if source > self.gap {
+            crate::doc::text(" ".repeat(source))
+        } else {
+            self.gap_doc()
         }
     }
 }
