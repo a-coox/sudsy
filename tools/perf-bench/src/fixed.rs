@@ -183,6 +183,8 @@ pub fn run(lang: &str, phase: &str, dir: &Path) -> Result<()> {
     }
     let provider = make_provider(lang)?;
     let p = provider.as_ref();
+    // A grammar is parsed on first use; that is set-up, not the measured work.
+    p.grammar();
     let texts = texts(lang, dir)?;
     let bytes: usize = texts.iter().map(|t| t.1.len()).sum();
     let parsed = || extensions::parse_all(p, texts.iter().map(|t| t.1.clone()).collect());
