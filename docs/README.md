@@ -17,6 +17,7 @@ Current state only; history is in git. Update the doc for the area you change in
 | [formatting/xml.md](formatting/xml.md) | XML parser (tree-sitter), well-formedness checks, formatter, options, conformance |
 | [formatting/editorconfig.md](formatting/editorconfig.md) | `.editorconfig` parser (tree-sitter), formatter, options, conformance |
 | [formatting/dockerfile.md](formatting/dockerfile.md) | Dockerfile parser (tree-sitter), formatter, options, grammar gap, conformance |
+| [formatting/shell.md](formatting/shell.md) | Shell (sh and Bash) parser (tree-sitter), formatter after shfmt, parser limits, conformance |
 | [formatting/markdown.md](formatting/markdown.md) | Markdown parser (two tree-sitter grammars), formatter, safety checks, rules, conformance |
 | [formatting/presets.md](formatting/presets.md) | Preset list and notes |
 | [parity/README.md](parity/README.md) | Parity catalog: what yamllint, Prettier, Biome, eslint-plugin-jsonc, StyleCop, CSharpier do and where Sudsy stands |

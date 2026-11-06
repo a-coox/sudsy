@@ -18,6 +18,7 @@ lang-xml.workspace = true
 lang-markdown.workspace = true
 lang-editorconfig.workspace = true
 lang-dockerfile.workspace = true
+lang-shell.workspace = true
 core-workspace.workspace = true
 provider-api.workspace = true
 serde.workspace = true

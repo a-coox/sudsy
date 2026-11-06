@@ -40,6 +40,27 @@
       {"dir": "tests/conformance/corpus/toml-test/tests", "list": "files-toml-1.0.0", "starts": "valid/", "suffixes": [".toml"]}
     ]
   },
+  "shfmt": {
+    "catalog": "shfmt",
+    "install": {
+      "release": "https://github.com/mvdan/sh/releases/download/v{version}/{asset}",
+      "assets": {
+        "windows": "shfmt_v{version}_windows_amd64.exe",
+        "linux-x86_64": "shfmt_v{version}_linux_amd64",
+        "darwin-arm64": "shfmt_v{version}_darwin_arm64",
+        "darwin-x86_64": "shfmt_v{version}_darwin_amd64"
+      },
+      "exe": "shfmt"
+    },
+    "fetch": ["tests/conformance/fetch-shell-corpus.sh"],
+    "command": ["{exe}", "{file}"],
+    "input": "arg",
+    "tool_may_reject": true,
+    "fixtures": [
+      {"suffixes": [".sh"]},
+      {"dir": "tests/conformance/corpus/shell", "suffixes": [".sh", ".bash"], "prefix": "corpus/", "recursive": true}
+    ]
+  },
   "csharpier": {
     "catalog": "csharpier",
     "install": {"dotnet-tool": "csharpier", "exe": "csharpier"},

@@ -240,9 +240,9 @@ checksum = "fc652a48c352aef3ea3aed32080501cf3ef6ed5da78602a020c991775b0aff04"
 
 [[package]]
 name = "cc"
-version = "1.11.0"
+version = "1.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "375989decec1a0fa424442bed520fa12ede43a48475ce8c7417d2c69b32b5f6b"
+checksum = "86e055fa6e3e40ad6187ba25b6855eeb635d5271f8e0f0e1e9a5826b8d75bea0"
 dependencies = [
  "find-msvc-tools",
  "jobserver",
@@ -1261,9 +1261,9 @@ dependencies = [
 
 [[package]]
 name = "konomanoasa-tree-sitter-editorconfig"
-version = "0.9.1"
+version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6957c018e2d976eea42ee5cd2a33d8ef19e60e3ad2090874797fda811bcb09a6"
+checksum = "10856efa0a95ab9cb5aeb4ca51078cd03baa7e88831ca765f42f2ad5d76d0c0c"
 dependencies = [
  "cc",
  "tree-sitter-language",
@@ -1346,6 +1346,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "lang-shell"
+version = "0.1.0"
+dependencies = [
+ "core-config",
+ "core-format",
+ "core-rules",
+ "core-syntax",
+ "core-treesitter",
+ "provider-api",
+ "tree-sitter-bash",
+]
+
+[[package]]
 name = "lang-toml"
 version = "0.1.0"
 dependencies = [
@@ -1407,6 +1420,7 @@ dependencies = [
  "lang-editorconfig",
  "lang-json",
  "lang-markdown",
+ "lang-shell",
  "lang-toml",
  "lang-xml",
  "lang-yaml",
@@ -2567,6 +2581,16 @@ dependencies = [
  "regex",
  "serde_json",
  "streaming-iterator",
+ "tree-sitter-language",
+]
+
+[[package]]
+name = "tree-sitter-bash"
+version = "0.25.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9e5ec769279cc91b561d3df0d8a5deb26b0ad40d183127f409494d6d8fc53062"
+dependencies = [
+ "cc",
  "tree-sitter-language",
 ]
 

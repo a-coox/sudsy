@@ -18,7 +18,7 @@ A Rust core owns everything language-neutral; each language contributes a provid
 | `core-config` | `sudsy.yaml` model, chain, resolution, presets, `.editorconfig`, JSON Schema |
 | `core-workspace` | File discovery (ignore files, hidden dirs, `.git` excluded) |
 | `provider-api` | `LanguageProvider`, out-of-process proxy, protocol types, `format_file`, test harness |
-| <!-- generated:crates -->`lang-csharp`, `lang-dockerfile`, `lang-editorconfig`, `lang-json`, `lang-markdown`, `lang-toml`, `lang-xml`, `lang-yaml`<!-- /generated --> | Parser (JSON, YAML; TOML, XML and the rest through tree-sitter), formatter, rules, presets; C# adds the worker provider |
+| <!-- generated:crates -->`lang-csharp`, `lang-dockerfile`, `lang-editorconfig`, `lang-json`, `lang-markdown`, `lang-shell`, `lang-toml`, `lang-xml`, `lang-yaml`<!-- /generated --> | Parser (JSON, YAML; TOML, XML and the rest through tree-sitter), formatter, rules, presets; C# adds the worker provider |
 | `languages` | Built-in provider list, option schemas, `Project` (config found from a directory, validated) |
 | `cli`, `lsp` | Front ends. `lsp` is a library; the server is `sudsy lsp` (one binary) |
 | `plugin-sdk` | Public crate for rule authors |
@@ -37,7 +37,7 @@ Other: `xtask` (`cargo xtask codegen [--check]`), `tools/perf-bench`, `tools/wir
 `discover files -> File input -> config -> selection -> options -> parse (provider; C# via worker) -> format | lint -> fix loop`. CLI and LSP set inputs on one database and read queries; see [incremental.md](incremental.md).
 
 ## Provider (`provider_api::LanguageProvider`)
-A provider parses with a hand-written parser (JSON, YAML), the .NET worker (C#) or tree-sitter through `core-treesitter` (TOML, XML, Markdown, EditorConfig, Dockerfile; [adding-a-language.md](adding-a-language.md)), so a language with a good tree-sitter grammar costs a mapping table and a formatter instead of a parser.
+A provider parses with a hand-written parser (JSON, YAML), the .NET worker (C#) or tree-sitter through `core-treesitter` (TOML, XML, Markdown, EditorConfig, Dockerfile, Shell; [adding-a-language.md](adding-a-language.md)), so a language with a good tree-sitter grammar costs a mapping table and a formatter instead of a parser.
 
 `id`, `grammar`, `file_matchers`, `capabilities`, `parse` (fallible: an out-of-process provider can be unavailable), formatter and option schema, presets, `rules`/`body_kinds`, `open_workspace`, `semantics(file, layers)`, `summaries`, `compiler_diagnostics` (test gate only). For C#, only parse, semantics and flow go to the worker.
 

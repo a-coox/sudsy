@@ -43,6 +43,7 @@ pub fn all() -> &'static [Catalog] {
         "eslint-plugin-jsonc",
         "prettier",
         "roslynator",
+        "shfmt",
         "stylecop",
         "taplo",
         "yamllint"

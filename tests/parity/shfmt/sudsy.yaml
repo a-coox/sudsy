@@ -1,0 +1,2 @@
+# The Sudsy side of the comparison with shfmt's defaults (tabs, no flags): Sudsy's own defaults.
+extends: []

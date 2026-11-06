@@ -1,0 +1,61 @@
+// POSIX sh and Bash, parsed by tree-sitter (tree-sitter-bash) and mapped by crates/lang-shell/src/mapping.rs.
+// Format: see crates/core-syntax/src/grammar/mod.rs.
+
+language shell 9 "Shell"
+comments line "#"
+suppress disable-next-line "sudsy-disable-next-line"
+suppress disable-line "sudsy-disable-line"
+suppress disable "sudsy-disable"
+suppress enable "sudsy-enable"
+suppress disable-file "sudsy-disable-file"
+suppress ignore "sudsy-ignore"
+
+token Whitespace #trivia #whitespace
+token Newline #trivia #newline
+token Comment #trivia #comment
+
+// Reserved words and the brackets of compound commands (`if`, `then`, `{`, `(`, `)`, `!`, ...).
+token Keyword
+// `;` ends a statement; the formatter adds and drops it by layout, so the safety check ignores it.
+token Semi ";" #separator
+// `&`, `&&`, `||`, `|`, `|&` and the ends of a case arm (`;;`, `;&`, `;;&`).
+token Op
+// A word, however complex: quoting, expansions and substitutions stay inside as written. A lone `\` is a line continuation.
+token Word #literal
+// `name=value`, `[[ ... ]]` and `[ ... ]` as written.
+token Assign #literal #restyle
+token Test #literal
+// A redirection (`> file`, `2>&1`, `<<< word`); blanks after the operator may go.
+token Redirect #restyle
+// `<<` or `<<-`, the delimiter word follows.
+token HeredocOp
+token HeredocBody
+token HeredocEnd
+
+token Eof
+token Unknown #error
+
+node Program = items:#el* Eof
+// A simple command, assignments only, `[[ ... ]]`, or a declaration (`export x=1`): words and redirects.
+node Command #el = parts:#el*
+node Pipeline #el = parts:#el*
+// `a && b || c`
+node List #el = parts:#el*
+// A statement with redirects (`done < file`, `cmd 2>&1`).
+node Redirected #el = parts:#el*
+node Negated #el = parts:#el*
+node Subshell #el = parts:#el*
+// `{ ...; }`, or `(( ... ))`.
+node Group #el = parts:#el*
+node If #el = parts:#el*
+node Elif #el = parts:#el*
+node Else #el = parts:#el*
+node While #el = parts:#el*
+node For #el = parts:#el*
+node CFor #el = parts:#el*
+node DoGroup #el = parts:#el*
+node Case #el = parts:#el*
+node CaseItem #el = parts:#el*
+node Function #el = parts:#el*
+// `<<EOF`, and what stands on its line after it, then the body and the delimiter line.
+node HeredocRedirect #el = parts:#el*

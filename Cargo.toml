@@ -39,6 +39,7 @@ pulldown-cmark = { version = "0.13", default-features = false, features = ["html
 tree-sitter-xml = "0.7"
 konomanoasa-tree-sitter-editorconfig = "0.9"
 tree-sitter-containerfile = "0.9"
+tree-sitter-bash = "0.25"
 
 core-config = { path = "crates/core-config" }
 core-patterns = { path = "crates/core-patterns" }
@@ -58,6 +59,7 @@ lang-xml = { path = "crates/lang-xml" }
 lang-markdown = { path = "crates/lang-markdown" }
 lang-editorconfig = { path = "crates/lang-editorconfig" }
 lang-dockerfile = { path = "crates/lang-dockerfile" }
+lang-shell = { path = "crates/lang-shell" }
 core-treesitter = { path = "crates/core-treesitter" }
 core-syntax = { path = "crates/core-syntax" }
 languages = { path = "crates/languages" }

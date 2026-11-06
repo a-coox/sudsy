@@ -1,0 +1,26 @@
+# Fixtures where Sudsy and shfmt legitimately differ: "<fixture>: <reason>" per line.
+# Sudsy keeps words, expansions, substitutions and arrays as written (a token each); shfmt reformats what is inside them.
+corpus/asdf/test/utils.bash: the lines of a multi-line `$(...)` keep the source indentation (shfmt re-indents them)
+corpus/bats-core/contrib/release.sh: multi-line `$(...)` and array elements keep the source indentation
+corpus/bats-core/lib/bats-core/common.bash: `(( ))` keeps the blanks inside and `for ((i=0; ...))` is not re-spaced; a comment after code that changed length keeps the source blanks (shfmt keeps its column)
+corpus/bats-core/lib/bats-core/formatter.bash: `(( ++i ))` keeps the blanks inside (shfmt removes them)
+corpus/bats-core/lib/bats-core/test_functions.bash: `(( ))` keeps the blanks inside, `[[ a  ]]` keeps its blanks, multi-line `$(...)` keeps the source indentation
+corpus/bats-core/lib/bats-core/tracing.bash: `(( ))` and `$(( ))` keep the blanks inside, multi-line `$(...)` keeps the source indentation, an `if` whose condition spans several lines with comments is kept as written
+corpus/bats-core/lib/bats-core/warnings.bash: array elements on several lines keep the source indentation
+corpus/bats-core/shellcheck.sh: the lines of a multi-line `<(...)` keep the source indentation
+corpus/bats-core/test/fixtures/suite_setup_teardown/call_load/test_helper.bash: a file of one empty line: shfmt keeps the line, Sudsy writes an empty file
+corpus/docker-install/install.sh: `$(( ))` and `$( cmd )` keep the blanks inside, the tabs of a `<<-` heredoc body are kept (shfmt re-indents them)
+corpus/install/install.sh: multi-line `$(...)` and array elements keep the source indentation, `<<EOF` bodies inside them are kept, backslash-continued case patterns are re-indented by shfmt only
+corpus/install/uninstall.sh: multi-line `$(...)` and array elements keep the source indentation
+corpus/install-scripts/src/dotnet-install.sh: command substitutions are kept as written (shfmt aligns and re-lays `$(a; b)` and rewrites `${v//x/}` to `${v//x}`)
+corpus/mysql/8.4/docker-entrypoint.sh: `$(< f)` and `<( cmd )` keep the blanks inside (shfmt removes them)
+corpus/nvm/install.sh: multi-line `$(...)` keeps the source indentation; `$(a ; b)` on one line is kept (shfmt breaks it into lines)
+corpus/nvm/nvm.sh: tree-sitter-bash cannot parse the file; Sudsy refuses it
+corpus/postgres/18/trixie/docker-entrypoint.sh: `$(< f)` keeps the blank inside (shfmt removes it)
+corpus/pyenv/plugins/pyenv-binary/test/test_helper.bash: backticks are kept (shfmt rewrites them to `$(...)`); the arms of a `case` used as an `if` condition are not indented a level further
+corpus/pyenv/plugins/pyenv-link/test/test_helper.bash: backticks are kept (shfmt rewrites them to `$(...)`); the arms of a `case` used as an `if` condition are not indented a level further
+corpus/pyenv/plugins/python-build/scripts/backport.sh: command substitutions are kept as written (shfmt breaks `$(a; b)` into lines and spaces `$((a+b))`)
+corpus/pyenv/pyenv.d/install/latest.bash: an array whose elements are a backslash-continued pipeline is kept as written
+corpus/pyenv/pyenv.d/rehash/conda.bash: tree-sitter-bash cannot parse `for x do`; Sudsy refuses the file
+corpus/pyenv/test/test_helper.bash: backticks are kept (shfmt rewrites them to `$(...)`); the arms of a `case` used as an `if` condition are not indented a level further
+corpus/rustup/rustup-init.sh: tree-sitter-bash cannot parse `grep -q 404$;`; Sudsy refuses the file
