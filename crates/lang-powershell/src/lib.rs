@@ -16,7 +16,7 @@ pub fn provider() -> TreeSitterProvider {
     TreeSitterProvider::with_composite(
         Spec {
             language: woodruffw_trough_tree_sitter_powershell::LANGUAGE.into(),
-            grammar: grammars::powershell(),
+            grammar: grammars::POWERSHELL,
             mapping: &mapping::MAPPING,
             extensions: &["ps1", "psm1", "psd1"],
             file_names: &[],
