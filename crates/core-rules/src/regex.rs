@@ -2,6 +2,7 @@
 
 use regex::{Regex, bytes};
 use regex_syntax::ParserBuilder;
+use regex_syntax::hir::{Hir, HirKind};
 use std::sync::OnceLock;
 
 /// The longest text checked for ASCII (and so matched by the ASCII form).
@@ -21,14 +22,14 @@ pub struct Re {
 
 impl Re {
     /// Compiles the ASCII form now (or the full one, when the pattern needs Unicode), which
-    /// checks the syntax. A counted repetition (`x{n,m}`) is the way to multiply a Unicode class
-    /// past the regex size limit, so such a pattern is built in full too, and an error here
-    /// says it is too large.
-    // shortcut: a pattern without `{` is not built in full here, so one that is still too large
+    /// checks the syntax. A counted repetition of more than a literal (`\w{n,m}`) is the way to
+    /// multiply a Unicode class past the regex size limit, so such a pattern is built in full
+    /// too, and an error here says it is too large.
+    // shortcut: any other pattern is not built in full here, so one that is still too large
     // panics on first use on non-ASCII text; build every pattern in full if one is ever seen.
     pub fn new(source: &str) -> Result<Re, String> {
         let re = Self::unbuilt(source);
-        if re.ascii().is_none() || source.contains('{') {
+        if re.ascii().is_none() || counts_more_than_a_literal(source) {
             let full = Regex::new(source).map_err(|e| e.to_string())?;
             re.full.get_or_init(|| full);
         }
@@ -88,6 +89,28 @@ impl Re {
             .get_or_init(|| Regex::new(&self.source).expect("the syntax was checked"))
             .is_match(text)
     }
+}
+
+/// Whether the pattern repeats anything but a literal a counted number of times (`{n}`,
+/// `{n,}`, `{n,m}` with a count over one).
+fn counts_more_than_a_literal(source: &str) -> bool {
+    fn walk(hir: &Hir) -> bool {
+        match hir.kind() {
+            HirKind::Repetition(r) => {
+                let counted = r.min > 1 || r.max.is_some_and(|m| m > 1);
+                (counted && !matches!(r.sub.kind(), HirKind::Literal(_))) || walk(&r.sub)
+            }
+            HirKind::Capture(c) => walk(&c.sub),
+            HirKind::Concat(hs) | HirKind::Alternation(hs) => hs.iter().any(walk),
+            _ => false,
+        }
+    }
+    ParserBuilder::new()
+        .unicode(false)
+        .utf8(false)
+        .build()
+        .parse(source)
+        .is_ok_and(|hir| walk(&hir))
 }
 
 #[cfg(test)]
