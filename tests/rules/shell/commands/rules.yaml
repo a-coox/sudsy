@@ -1,0 +1,11 @@
+useless-cat: warn
+useless-echo: warn
+read-without-raw: warn
+printf-variable-format: warn
+trap-expands-now: warn
+no-ls-grep: warn
+no-ps-grep: warn
+grep-count: warn
+no-egrep: warn
+no-which: warn
+and-or-is-not-if-else: warn

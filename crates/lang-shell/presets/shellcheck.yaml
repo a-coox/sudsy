@@ -1,0 +1,28 @@
+# shellcheck's checks that Sudsy has, at shellcheck's severities (error is error; warning, info and style are warn).
+shell:
+  lint:
+    rules:
+      quote-command-substitution: warn
+      quote-variable: warn
+      quote-at-expansion: error
+      quote-star-expansion: warn
+      no-backticks: warn
+      declare-and-assign-separately: warn
+      cd-without-exit: warn
+      useless-cat: warn
+      useless-echo: warn
+      read-without-raw: warn
+      printf-variable-format: warn
+      trap-expands-now: warn
+      no-ls-grep: warn
+      no-ps-grep: warn
+      grep-count: warn
+      no-egrep: warn
+      no-which: warn
+      test-exit-status: warn
+      test-and-or: warn
+      test-negated-empty: warn
+      and-or-is-not-if-else: warn
+      iterate-ls-output: warn
+      iterate-find-output: warn
+      find-xargs-print0: warn

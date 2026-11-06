@@ -5,7 +5,7 @@
 //! them changes.
 
 use crate::generated::kind as k;
-use core_config::{OptionDef, OptionSchema, shared};
+use core_config::{OptionDef, OptionSchema, Preset, shared};
 use core_format::shapes::dangling_comments;
 use core_format::{Doc, FormatCtx, FormatError, NodeFormatter, comments, doc};
 use core_syntax::{SyntaxElement, SyntaxNode, SyntaxToken, TextRange};
@@ -30,6 +30,10 @@ pub fn option_schema() -> OptionSchema {
             "Largest number of blank lines kept between statements and comments.",
         ),
     ])
+    .with_presets(vec![Preset::new(
+        "shell/shellcheck",
+        include_str!("../presets/shellcheck.yaml"),
+    )])
 }
 
 pub struct ShellFormatter;

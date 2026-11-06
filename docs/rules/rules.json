@@ -3358,6 +3358,803 @@
       "upstream": []
     },
     {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "A list `a && b || c` of three commands.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "cat in.txt | grep x\ncat -n in.txt | grep x\ncat a b | grep x\ngrep x in.txt\necho $(date)\necho \"$(date)\"\necho `date`\necho \"$(date) now\" $x\nread line\nread -r line\nread -p \"x\" -r line\nprintf \"$fmt\"\nprintf \"%s $x\\n\" y\nprintf '%s' \"$x\" \"a $b\"\nprintf 'literal $x'\ntrap \"rm $tmp\" EXIT\ntrap 'rm $tmp' EXIT\ntrap \"echo bye\" EXIT\nls | grep txt\nps aux | grep nginx\ngrep x f | wc -l\negrep x f\nfgrep x f\nwhich git\ntest -f x && echo yes || echo no\na && b\na || b && c\nls -l | grep txt | wc -l\nwhich git\n",
+        "language": "shell",
+        "spans": [
+          {
+            "column": 1,
+            "length": 32,
+            "line": 25
+          }
+        ]
+      },
+      "fix": null,
+      "id": "and-or-is-not-if-else",
+      "languages": [
+        "shell"
+      ],
+      "options": [],
+      "presets": [
+        "shell/shellcheck"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "warn",
+      "description": "`cd`, `pushd` or `popd` whose failure is not handled (`cd dir || exit`). Not reported with `set -e`, for `cd ..` or `cd /`, or for `popd -n`.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "cd build\ncd .. && make\ncd /\ncd build || exit\ncd build && make\nmake && cd build\nif cd build; then make; fi\nwhile cd build; do break; done\ncd build | cat\npushd build\npopd -n\npopd\n{\n\tcd build\n}\nf() { cd build; }\n",
+        "language": "shell",
+        "spans": [
+          {
+            "column": 1,
+            "length": 2,
+            "line": 1
+          },
+          {
+            "column": 9,
+            "length": 2,
+            "line": 6
+          },
+          {
+            "column": 1,
+            "length": 5,
+            "line": 10
+          },
+          {
+            "column": 1,
+            "length": 4,
+            "line": 12
+          },
+          {
+            "column": 2,
+            "length": 2,
+            "line": 14
+          },
+          {
+            "column": 7,
+            "length": 2,
+            "line": 16
+          }
+        ]
+      },
+      "fix": null,
+      "id": "cd-without-exit",
+      "languages": [
+        "shell"
+      ],
+      "options": [],
+      "presets": [
+        "shell/shellcheck"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "warn",
+      "description": "`export`, `local`, `declare`, `readonly` or `typeset` with a command substitution as the value reports the status of the declaration, not of the command.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "rm $(cat list)\nrm \"$(cat list)\"\nrm a$(b) `c`\nrm '$(literal)' \"$(ok)\"\necho $((1 + 2))\nrm $file ${dir}/x \"$file\" '$file' $1 $?\nrm --opt=$value \"x $y\"\ncp $@ dir\ncp \"$@\" dir \"${arr[@]}\" ${arr[@]}\ncp $* dir ${arr[*]}\nnow=`date`\necho `date` \"`date`\" 'a`b`'\n[ -n `foo` ]\nexport out=$(make)\nlocal out=\"$(make)\" x=1\ndeclare plain=1\nfor f in $files; do :; done\n",
+        "language": "shell",
+        "spans": [
+          {
+            "column": 1,
+            "length": 18,
+            "line": 14
+          },
+          {
+            "column": 1,
+            "length": 23,
+            "line": 15
+          }
+        ]
+      },
+      "fix": null,
+      "id": "declare-and-assign-separately",
+      "languages": [
+        "shell"
+      ],
+      "options": [],
+      "presets": [
+        "shell/shellcheck"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "warn",
+      "description": "A pipeline from `find` into `xargs` without `-print0`/`-0`.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "if [ $? -eq 0 ]; then :; fi\nif [ \"$?\" != 0 ]; then :; fi\n[ $x -eq 0 ]\n[ -f a -o -f b ]\n[ -a file ]\n[[ -f a && -f b ]]\n[ ! -z \"$x\" ]\n[ ! -n \"$x\" ]\n[ -z \"$x\" ]\nfor f in $(ls); do :; done\nfor f in `ls /tmp`; do :; done\nfor f in *.txt; do :; done\nfor f in $(find . -name x); do :; done\nfind . | xargs rm\nfind . -print0 | xargs -0 rm\nfind . | xargs -0 rm\nfind . -name x | wc -l\n",
+        "language": "shell",
+        "spans": [
+          {
+            "column": 1,
+            "length": 17,
+            "line": 14
+          }
+        ]
+      },
+      "fix": null,
+      "id": "find-xargs-print0",
+      "languages": [
+        "shell"
+      ],
+      "options": [],
+      "presets": [
+        "shell/shellcheck"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A pipeline from `grep` into `wc -l`.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "cat in.txt | grep x\ncat -n in.txt | grep x\ncat a b | grep x\ngrep x in.txt\necho $(date)\necho \"$(date)\"\necho `date`\necho \"$(date) now\" $x\nread line\nread -r line\nread -p \"x\" -r line\nprintf \"$fmt\"\nprintf \"%s $x\\n\" y\nprintf '%s' \"$x\" \"a $b\"\nprintf 'literal $x'\ntrap \"rm $tmp\" EXIT\ntrap 'rm $tmp' EXIT\ntrap \"echo bye\" EXIT\nls | grep txt\nps aux | grep nginx\ngrep x f | wc -l\negrep x f\nfgrep x f\nwhich git\ntest -f x && echo yes || echo no\na && b\na || b && c\nls -l | grep txt | wc -l\nwhich git\n",
+        "language": "shell",
+        "spans": [
+          {
+            "column": 1,
+            "length": 16,
+            "line": 21
+          }
+        ]
+      },
+      "fix": null,
+      "id": "grep-count",
+      "languages": [
+        "shell"
+      ],
+      "options": [],
+      "presets": [
+        "shell/shellcheck"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "warn",
+      "description": "A `for` loop over the output of `find`.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "if [ $? -eq 0 ]; then :; fi\nif [ \"$?\" != 0 ]; then :; fi\n[ $x -eq 0 ]\n[ -f a -o -f b ]\n[ -a file ]\n[[ -f a && -f b ]]\n[ ! -z \"$x\" ]\n[ ! -n \"$x\" ]\n[ -z \"$x\" ]\nfor f in $(ls); do :; done\nfor f in `ls /tmp`; do :; done\nfor f in *.txt; do :; done\nfor f in $(find . -name x); do :; done\nfind . | xargs rm\nfind . -print0 | xargs -0 rm\nfind . | xargs -0 rm\nfind . -name x | wc -l\n",
+        "language": "shell",
+        "spans": [
+          {
+            "column": 1,
+            "length": 38,
+            "line": 13
+          }
+        ]
+      },
+      "fix": null,
+      "id": "iterate-find-output",
+      "languages": [
+        "shell"
+      ],
+      "options": [],
+      "presets": [
+        "shell/shellcheck"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "warn",
+      "description": "A `for` loop over the output of `ls`.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "if [ $? -eq 0 ]; then :; fi\nif [ \"$?\" != 0 ]; then :; fi\n[ $x -eq 0 ]\n[ -f a -o -f b ]\n[ -a file ]\n[[ -f a && -f b ]]\n[ ! -z \"$x\" ]\n[ ! -n \"$x\" ]\n[ -z \"$x\" ]\nfor f in $(ls); do :; done\nfor f in `ls /tmp`; do :; done\nfor f in *.txt; do :; done\nfor f in $(find . -name x); do :; done\nfind . | xargs rm\nfind . -print0 | xargs -0 rm\nfind . | xargs -0 rm\nfind . -name x | wc -l\n",
+        "language": "shell",
+        "spans": [
+          {
+            "column": 1,
+            "length": 26,
+            "line": 10
+          },
+          {
+            "column": 1,
+            "length": 30,
+            "line": 11
+          }
+        ]
+      },
+      "fix": null,
+      "id": "iterate-ls-output",
+      "languages": [
+        "shell"
+      ],
+      "options": [],
+      "presets": [
+        "shell/shellcheck"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A command substitution written with backticks.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "rm $(cat list)\nrm \"$(cat list)\"\nrm a$(b) `c`\nrm '$(literal)' \"$(ok)\"\necho $((1 + 2))\nrm $file ${dir}/x \"$file\" '$file' $1 $?\nrm --opt=$value \"x $y\"\ncp $@ dir\ncp \"$@\" dir \"${arr[@]}\" ${arr[@]}\ncp $* dir ${arr[*]}\nnow=`date`\necho `date` \"`date`\" 'a`b`'\n[ -n `foo` ]\nexport out=$(make)\nlocal out=\"$(make)\" x=1\ndeclare plain=1\nfor f in $files; do :; done\n",
+        "language": "shell",
+        "spans": [
+          {
+            "column": 10,
+            "length": 3,
+            "line": 3
+          },
+          {
+            "column": 1,
+            "length": 10,
+            "line": 11
+          },
+          {
+            "column": 6,
+            "length": 6,
+            "line": 12
+          },
+          {
+            "column": 13,
+            "length": 8,
+            "line": 12
+          },
+          {
+            "column": 1,
+            "length": 12,
+            "line": 13
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-backticks",
+      "languages": [
+        "shell"
+      ],
+      "options": [],
+      "presets": [
+        "shell/shellcheck"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A call of `egrep` or `fgrep`.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "cat in.txt | grep x\ncat -n in.txt | grep x\ncat a b | grep x\ngrep x in.txt\necho $(date)\necho \"$(date)\"\necho `date`\necho \"$(date) now\" $x\nread line\nread -r line\nread -p \"x\" -r line\nprintf \"$fmt\"\nprintf \"%s $x\\n\" y\nprintf '%s' \"$x\" \"a $b\"\nprintf 'literal $x'\ntrap \"rm $tmp\" EXIT\ntrap 'rm $tmp' EXIT\ntrap \"echo bye\" EXIT\nls | grep txt\nps aux | grep nginx\ngrep x f | wc -l\negrep x f\nfgrep x f\nwhich git\ntest -f x && echo yes || echo no\na && b\na || b && c\nls -l | grep txt | wc -l\nwhich git\n",
+        "language": "shell",
+        "spans": [
+          {
+            "column": 1,
+            "length": 9,
+            "line": 22
+          },
+          {
+            "column": 1,
+            "length": 9,
+            "line": 23
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-egrep",
+      "languages": [
+        "shell"
+      ],
+      "options": [],
+      "presets": [
+        "shell/shellcheck"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "warn",
+      "description": "A pipeline from `ls` into `grep`.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "cat in.txt | grep x\ncat -n in.txt | grep x\ncat a b | grep x\ngrep x in.txt\necho $(date)\necho \"$(date)\"\necho `date`\necho \"$(date) now\" $x\nread line\nread -r line\nread -p \"x\" -r line\nprintf \"$fmt\"\nprintf \"%s $x\\n\" y\nprintf '%s' \"$x\" \"a $b\"\nprintf 'literal $x'\ntrap \"rm $tmp\" EXIT\ntrap 'rm $tmp' EXIT\ntrap \"echo bye\" EXIT\nls | grep txt\nps aux | grep nginx\ngrep x f | wc -l\negrep x f\nfgrep x f\nwhich git\ntest -f x && echo yes || echo no\na && b\na || b && c\nls -l | grep txt | wc -l\nwhich git\n",
+        "language": "shell",
+        "spans": [
+          {
+            "column": 1,
+            "length": 13,
+            "line": 19
+          },
+          {
+            "column": 1,
+            "length": 24,
+            "line": 28
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-ls-grep",
+      "languages": [
+        "shell"
+      ],
+      "options": [],
+      "presets": [
+        "shell/shellcheck"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A pipeline from `ps` into `grep`.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "cat in.txt | grep x\ncat -n in.txt | grep x\ncat a b | grep x\ngrep x in.txt\necho $(date)\necho \"$(date)\"\necho `date`\necho \"$(date) now\" $x\nread line\nread -r line\nread -p \"x\" -r line\nprintf \"$fmt\"\nprintf \"%s $x\\n\" y\nprintf '%s' \"$x\" \"a $b\"\nprintf 'literal $x'\ntrap \"rm $tmp\" EXIT\ntrap 'rm $tmp' EXIT\ntrap \"echo bye\" EXIT\nls | grep txt\nps aux | grep nginx\ngrep x f | wc -l\negrep x f\nfgrep x f\nwhich git\ntest -f x && echo yes || echo no\na && b\na || b && c\nls -l | grep txt | wc -l\nwhich git\n",
+        "language": "shell",
+        "spans": [
+          {
+            "column": 1,
+            "length": 19,
+            "line": 20
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-ps-grep",
+      "languages": [
+        "shell"
+      ],
+      "options": [],
+      "presets": [
+        "shell/shellcheck"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A call of `which`.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "cat in.txt | grep x\ncat -n in.txt | grep x\ncat a b | grep x\ngrep x in.txt\necho $(date)\necho \"$(date)\"\necho `date`\necho \"$(date) now\" $x\nread line\nread -r line\nread -p \"x\" -r line\nprintf \"$fmt\"\nprintf \"%s $x\\n\" y\nprintf '%s' \"$x\" \"a $b\"\nprintf 'literal $x'\ntrap \"rm $tmp\" EXIT\ntrap 'rm $tmp' EXIT\ntrap \"echo bye\" EXIT\nls | grep txt\nps aux | grep nginx\ngrep x f | wc -l\negrep x f\nfgrep x f\nwhich git\ntest -f x && echo yes || echo no\na && b\na || b && c\nls -l | grep txt | wc -l\nwhich git\n",
+        "language": "shell",
+        "spans": [
+          {
+            "column": 1,
+            "length": 9,
+            "line": 24
+          },
+          {
+            "column": 1,
+            "length": 9,
+            "line": 29
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-which",
+      "languages": [
+        "shell"
+      ],
+      "options": [],
+      "presets": [
+        "shell/shellcheck"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "A `printf` whose format string contains an expansion.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "cat in.txt | grep x\ncat -n in.txt | grep x\ncat a b | grep x\ngrep x in.txt\necho $(date)\necho \"$(date)\"\necho `date`\necho \"$(date) now\" $x\nread line\nread -r line\nread -p \"x\" -r line\nprintf \"$fmt\"\nprintf \"%s $x\\n\" y\nprintf '%s' \"$x\" \"a $b\"\nprintf 'literal $x'\ntrap \"rm $tmp\" EXIT\ntrap 'rm $tmp' EXIT\ntrap \"echo bye\" EXIT\nls | grep txt\nps aux | grep nginx\ngrep x f | wc -l\negrep x f\nfgrep x f\nwhich git\ntest -f x && echo yes || echo no\na && b\na || b && c\nls -l | grep txt | wc -l\nwhich git\n",
+        "language": "shell",
+        "spans": [
+          {
+            "column": 1,
+            "length": 13,
+            "line": 12
+          },
+          {
+            "column": 1,
+            "length": 18,
+            "line": 13
+          }
+        ]
+      },
+      "fix": null,
+      "id": "printf-variable-format",
+      "languages": [
+        "shell"
+      ],
+      "options": [],
+      "presets": [
+        "shell/shellcheck"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "correctness",
+      "default_level": "error",
+      "description": "An unquoted `$@` or `${array[@]}` in a command's arguments.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "rm $(cat list)\nrm \"$(cat list)\"\nrm a$(b) `c`\nrm '$(literal)' \"$(ok)\"\necho $((1 + 2))\nrm $file ${dir}/x \"$file\" '$file' $1 $?\nrm --opt=$value \"x $y\"\ncp $@ dir\ncp \"$@\" dir \"${arr[@]}\" ${arr[@]}\ncp $* dir ${arr[*]}\nnow=`date`\necho `date` \"`date`\" 'a`b`'\n[ -n `foo` ]\nexport out=$(make)\nlocal out=\"$(make)\" x=1\ndeclare plain=1\nfor f in $files; do :; done\n",
+        "language": "shell",
+        "spans": [
+          {
+            "column": 4,
+            "length": 2,
+            "line": 8
+          },
+          {
+            "column": 25,
+            "length": 9,
+            "line": 9
+          }
+        ]
+      },
+      "fix": null,
+      "id": "quote-at-expansion",
+      "languages": [
+        "shell"
+      ],
+      "options": [],
+      "presets": [
+        "shell/shellcheck"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "warn",
+      "description": "An unquoted `$(...)` or backtick substitution in a command's arguments is split into words and globbed.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "cat in.txt | grep x\ncat -n in.txt | grep x\ncat a b | grep x\ngrep x in.txt\necho $(date)\necho \"$(date)\"\necho `date`\necho \"$(date) now\" $x\nread line\nread -r line\nread -p \"x\" -r line\nprintf \"$fmt\"\nprintf \"%s $x\\n\" y\nprintf '%s' \"$x\" \"a $b\"\nprintf 'literal $x'\ntrap \"rm $tmp\" EXIT\ntrap 'rm $tmp' EXIT\ntrap \"echo bye\" EXIT\nls | grep txt\nps aux | grep nginx\ngrep x f | wc -l\negrep x f\nfgrep x f\nwhich git\ntest -f x && echo yes || echo no\na && b\na || b && c\nls -l | grep txt | wc -l\nwhich git\n",
+        "language": "shell",
+        "spans": [
+          {
+            "column": 6,
+            "length": 7,
+            "line": 5
+          },
+          {
+            "column": 6,
+            "length": 6,
+            "line": 7
+          }
+        ]
+      },
+      "fix": null,
+      "id": "quote-command-substitution",
+      "languages": [
+        "shell"
+      ],
+      "options": [],
+      "presets": [
+        "shell/shellcheck"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "warn",
+      "description": "An unquoted `$*` or `${array[*]}` in a command's arguments.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "rm $(cat list)\nrm \"$(cat list)\"\nrm a$(b) `c`\nrm '$(literal)' \"$(ok)\"\necho $((1 + 2))\nrm $file ${dir}/x \"$file\" '$file' $1 $?\nrm --opt=$value \"x $y\"\ncp $@ dir\ncp \"$@\" dir \"${arr[@]}\" ${arr[@]}\ncp $* dir ${arr[*]}\nnow=`date`\necho `date` \"`date`\" 'a`b`'\n[ -n `foo` ]\nexport out=$(make)\nlocal out=\"$(make)\" x=1\ndeclare plain=1\nfor f in $files; do :; done\n",
+        "language": "shell",
+        "spans": [
+          {
+            "column": 4,
+            "length": 2,
+            "line": 10
+          },
+          {
+            "column": 11,
+            "length": 9,
+            "line": 10
+          }
+        ]
+      },
+      "fix": null,
+      "id": "quote-star-expansion",
+      "languages": [
+        "shell"
+      ],
+      "options": [],
+      "presets": [
+        "shell/shellcheck"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "An unquoted `$var` or `${var}` in a command's arguments is split into words and globbed. Does not know which variables hold only a number or a single word.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "rm $(cat list)\nrm \"$(cat list)\"\nrm a$(b) `c`\nrm '$(literal)' \"$(ok)\"\necho $((1 + 2))\nrm $file ${dir}/x \"$file\" '$file' $1 $?\nrm --opt=$value \"x $y\"\ncp $@ dir\ncp \"$@\" dir \"${arr[@]}\" ${arr[@]}\ncp $* dir ${arr[*]}\nnow=`date`\necho `date` \"`date`\" 'a`b`'\n[ -n `foo` ]\nexport out=$(make)\nlocal out=\"$(make)\" x=1\ndeclare plain=1\nfor f in $files; do :; done\n",
+        "language": "shell",
+        "spans": [
+          {
+            "column": 4,
+            "length": 5,
+            "line": 6
+          },
+          {
+            "column": 10,
+            "length": 8,
+            "line": 6
+          },
+          {
+            "column": 35,
+            "length": 2,
+            "line": 6
+          },
+          {
+            "column": 4,
+            "length": 12,
+            "line": 7
+          }
+        ]
+      },
+      "fix": null,
+      "id": "quote-variable",
+      "languages": [
+        "shell"
+      ],
+      "options": [],
+      "presets": [
+        "shell/shellcheck"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "A `read` without the `-r` flag.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "cat in.txt | grep x\ncat -n in.txt | grep x\ncat a b | grep x\ngrep x in.txt\necho $(date)\necho \"$(date)\"\necho `date`\necho \"$(date) now\" $x\nread line\nread -r line\nread -p \"x\" -r line\nprintf \"$fmt\"\nprintf \"%s $x\\n\" y\nprintf '%s' \"$x\" \"a $b\"\nprintf 'literal $x'\ntrap \"rm $tmp\" EXIT\ntrap 'rm $tmp' EXIT\ntrap \"echo bye\" EXIT\nls | grep txt\nps aux | grep nginx\ngrep x f | wc -l\negrep x f\nfgrep x f\nwhich git\ntest -f x && echo yes || echo no\na && b\na || b && c\nls -l | grep txt | wc -l\nwhich git\n",
+        "language": "shell",
+        "spans": [
+          {
+            "column": 1,
+            "length": 9,
+            "line": 9
+          }
+        ]
+      },
+      "fix": null,
+      "id": "read-without-raw",
+      "languages": [
+        "shell"
+      ],
+      "options": [],
+      "presets": [
+        "shell/shellcheck"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "warn",
+      "description": "A `[ ]` test that joins conditions with `-a` or `-o`.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "if [ $? -eq 0 ]; then :; fi\nif [ \"$?\" != 0 ]; then :; fi\n[ $x -eq 0 ]\n[ -f a -o -f b ]\n[ -a file ]\n[[ -f a && -f b ]]\n[ ! -z \"$x\" ]\n[ ! -n \"$x\" ]\n[ -z \"$x\" ]\nfor f in $(ls); do :; done\nfor f in `ls /tmp`; do :; done\nfor f in *.txt; do :; done\nfor f in $(find . -name x); do :; done\nfind . | xargs rm\nfind . -print0 | xargs -0 rm\nfind . | xargs -0 rm\nfind . -name x | wc -l\n",
+        "language": "shell",
+        "spans": [
+          {
+            "column": 1,
+            "length": 16,
+            "line": 4
+          }
+        ]
+      },
+      "fix": null,
+      "id": "test-and-or",
+      "languages": [
+        "shell"
+      ],
+      "options": [],
+      "presets": [
+        "shell/shellcheck"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A test that compares `$?` with a number.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "if [ $? -eq 0 ]; then :; fi\nif [ \"$?\" != 0 ]; then :; fi\n[ $x -eq 0 ]\n[ -f a -o -f b ]\n[ -a file ]\n[[ -f a && -f b ]]\n[ ! -z \"$x\" ]\n[ ! -n \"$x\" ]\n[ -z \"$x\" ]\nfor f in $(ls); do :; done\nfor f in `ls /tmp`; do :; done\nfor f in *.txt; do :; done\nfor f in $(find . -name x); do :; done\nfind . | xargs rm\nfind . -print0 | xargs -0 rm\nfind . | xargs -0 rm\nfind . -name x | wc -l\n",
+        "language": "shell",
+        "spans": [
+          {
+            "column": 4,
+            "length": 12,
+            "line": 1
+          },
+          {
+            "column": 4,
+            "length": 13,
+            "line": 2
+          }
+        ]
+      },
+      "fix": null,
+      "id": "test-exit-status",
+      "languages": [
+        "shell"
+      ],
+      "options": [],
+      "presets": [
+        "shell/shellcheck"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A test that negates `-z` or `-n`.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "if [ $? -eq 0 ]; then :; fi\nif [ \"$?\" != 0 ]; then :; fi\n[ $x -eq 0 ]\n[ -f a -o -f b ]\n[ -a file ]\n[[ -f a && -f b ]]\n[ ! -z \"$x\" ]\n[ ! -n \"$x\" ]\n[ -z \"$x\" ]\nfor f in $(ls); do :; done\nfor f in `ls /tmp`; do :; done\nfor f in *.txt; do :; done\nfor f in $(find . -name x); do :; done\nfind . | xargs rm\nfind . -print0 | xargs -0 rm\nfind . | xargs -0 rm\nfind . -name x | wc -l\n",
+        "language": "shell",
+        "spans": [
+          {
+            "column": 1,
+            "length": 13,
+            "line": 7
+          },
+          {
+            "column": 1,
+            "length": 13,
+            "line": 8
+          }
+        ]
+      },
+      "fix": null,
+      "id": "test-negated-empty",
+      "languages": [
+        "shell"
+      ],
+      "options": [],
+      "presets": [
+        "shell/shellcheck"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "warn",
+      "description": "A `trap` whose double-quoted command contains an expansion.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "cat in.txt | grep x\ncat -n in.txt | grep x\ncat a b | grep x\ngrep x in.txt\necho $(date)\necho \"$(date)\"\necho `date`\necho \"$(date) now\" $x\nread line\nread -r line\nread -p \"x\" -r line\nprintf \"$fmt\"\nprintf \"%s $x\\n\" y\nprintf '%s' \"$x\" \"a $b\"\nprintf 'literal $x'\ntrap \"rm $tmp\" EXIT\ntrap 'rm $tmp' EXIT\ntrap \"echo bye\" EXIT\nls | grep txt\nps aux | grep nginx\ngrep x f | wc -l\negrep x f\nfgrep x f\nwhich git\ntest -f x && echo yes || echo no\na && b\na || b && c\nls -l | grep txt | wc -l\nwhich git\n",
+        "language": "shell",
+        "spans": [
+          {
+            "column": 1,
+            "length": 19,
+            "line": 16
+          }
+        ]
+      },
+      "fix": null,
+      "id": "trap-expands-now",
+      "languages": [
+        "shell"
+      ],
+      "options": [],
+      "presets": [
+        "shell/shellcheck"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A pipeline that starts with `cat file`.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "cat in.txt | grep x\ncat -n in.txt | grep x\ncat a b | grep x\ngrep x in.txt\necho $(date)\necho \"$(date)\"\necho `date`\necho \"$(date) now\" $x\nread line\nread -r line\nread -p \"x\" -r line\nprintf \"$fmt\"\nprintf \"%s $x\\n\" y\nprintf '%s' \"$x\" \"a $b\"\nprintf 'literal $x'\ntrap \"rm $tmp\" EXIT\ntrap 'rm $tmp' EXIT\ntrap \"echo bye\" EXIT\nls | grep txt\nps aux | grep nginx\ngrep x f | wc -l\negrep x f\nfgrep x f\nwhich git\ntest -f x && echo yes || echo no\na && b\na || b && c\nls -l | grep txt | wc -l\nwhich git\n",
+        "language": "shell",
+        "spans": [
+          {
+            "column": 1,
+            "length": 19,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "useless-cat",
+      "languages": [
+        "shell"
+      ],
+      "options": [],
+      "presets": [
+        "shell/shellcheck"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "An `echo` whose only argument is a command substitution.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "cat in.txt | grep x\ncat -n in.txt | grep x\ncat a b | grep x\ngrep x in.txt\necho $(date)\necho \"$(date)\"\necho `date`\necho \"$(date) now\" $x\nread line\nread -r line\nread -p \"x\" -r line\nprintf \"$fmt\"\nprintf \"%s $x\\n\" y\nprintf '%s' \"$x\" \"a $b\"\nprintf 'literal $x'\ntrap \"rm $tmp\" EXIT\ntrap 'rm $tmp' EXIT\ntrap \"echo bye\" EXIT\nls | grep txt\nps aux | grep nginx\ngrep x f | wc -l\negrep x f\nfgrep x f\nwhich git\ntest -f x && echo yes || echo no\na && b\na || b && c\nls -l | grep txt | wc -l\nwhich git\n",
+        "language": "shell",
+        "spans": [
+          {
+            "column": 1,
+            "length": 12,
+            "line": 5
+          },
+          {
+            "column": 1,
+            "length": 14,
+            "line": 6
+          },
+          {
+            "column": 1,
+            "length": 11,
+            "line": 7
+          }
+        ]
+      },
+      "fix": null,
+      "id": "useless-echo",
+      "languages": [
+        "shell"
+      ],
+      "options": [],
+      "presets": [
+        "shell/shellcheck"
+      ],
+      "upstream": []
+    },
+    {
       "category": "style",
       "default_level": "off",
       "description": "`get` goes before `set` or `init`, and `add` before `remove`. The fix swaps the two accessors (not offered when a comment stands between or in them).",

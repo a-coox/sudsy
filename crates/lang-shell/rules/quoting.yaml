@@ -1,0 +1,66 @@
+id: quote-command-substitution
+language: shell
+message: quote the command substitution to prevent word splitting
+description: >-
+  An unquoted `$(...)` or backtick substitution in a command's arguments is split into words
+  and globbed.
+example: 'rm $(cat list)'
+severity: warn
+category: suspicious
+family: word
+params: { regex: '^[^"''\\]*(\$\([^(]|`)' }
+---
+id: quote-variable
+language: shell
+message: quote the expansion to prevent word splitting and globbing
+description: >-
+  An unquoted `$var` or `${var}` in a command's arguments is split into words and globbed.
+  Does not know which variables hold only a number or a single word.
+example: 'rm $file'
+severity: off
+category: suspicious
+family: word
+params: { regex: '^[^"''`\\(]*\$(?:[A-Za-z_0-9]|\{!?[A-Za-z_0-9]+(?:[^\[A-Za-z0-9_]|\[[^@*]))' }
+---
+id: quote-at-expansion
+language: shell
+message: quote `$@` and `${array[@]}` so the elements are not split again
+description: An unquoted `$@` or `${array[@]}` in a command's arguments.
+example: 'cp $@ dir'
+severity: error
+category: correctness
+family: word
+params: { regex: '^[^"''`\\(]*\$(@|\{@\}|\{[A-Za-z_][A-Za-z0-9_]*\[@\]\})' }
+---
+id: quote-star-expansion
+language: shell
+message: use "$@" (with quotes) to keep the arguments apart
+description: An unquoted `$*` or `${array[*]}` in a command's arguments.
+example: 'cp $* dir'
+severity: warn
+category: suspicious
+family: word
+params: { regex: '^[^"''`\\(]*\$(\*|\{\*\}|\{[A-Za-z_][A-Za-z0-9_]*\[\*\]\})' }
+---
+id: no-backticks
+language: shell
+message: use $(...) instead of backticks
+description: A command substitution written with backticks.
+example: 'now=`date`'
+severity: off
+category: style
+family: word
+params: { regex: '^[^''\\]*`', tokens: 'Word Assign Test', in: 'Command For' }
+---
+id: declare-and-assign-separately
+language: shell
+message: declare and assign separately, or the exit status of the substitution is lost
+description: >-
+  `export`, `local`, `declare`, `readonly` or `typeset` with a command substitution as the
+  value reports the status of the declaration, not of the command.
+example: 'local out=$(make)'
+severity: warn
+category: suspicious
+rule:
+  kind: Command
+  regex: '^(export|local|declare|readonly|typeset)\s[^|;&]*=("?\$\(|"?`)'

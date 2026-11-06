@@ -1,0 +1,191 @@
+id: useless-cat
+language: shell
+message: pass the file to the command or redirect it (`cmd < $F`) instead of cat
+description: A pipeline that starts with `cat file`.
+example: 'cat in.txt | grep x'
+severity: off
+category: style
+rule:
+  pattern: 'cat $F | $$$REST'
+constraints:
+  F: { not-regex: '^-' }
+---
+id: useless-echo
+language: shell
+message: run the command itself instead of echoing its output
+description: An `echo` whose only argument is a command substitution.
+example: 'echo $(date)'
+severity: off
+category: style
+rule:
+  pattern: 'echo $A'
+constraints:
+  A: { regex: '^"?(\$\([^()]*\)|`[^`]*`)"?$' }
+---
+id: read-without-raw
+language: shell
+message: use `read -r`, or backslashes in the input are mangled
+description: A `read` without the `-r` flag.
+example: 'read line'
+severity: off
+category: suspicious
+rule:
+  pattern: 'read $$$ARGS'
+  not: { regex: '^read(\s.*)?\s-[A-Za-z]*r' }
+---
+id: printf-variable-format
+language: shell
+message: do not put variables in the printf format; use printf '%s' "$x"
+description: A `printf` whose format string contains an expansion.
+example: 'printf "$fmt"'
+severity: off
+category: suspicious
+rule:
+  pattern: 'printf $F $$$ARGS'
+constraints:
+  F: { regex: '^[^'']*[^\\]\$[A-Za-z_{(]|^\$[A-Za-z_{(]' }
+---
+id: trap-expands-now
+language: shell
+message: use single quotes, or the command expands now instead of when the trap fires
+description: A `trap` whose double-quoted command contains an expansion.
+example: 'trap "rm $tmp" EXIT'
+severity: warn
+category: suspicious
+rule:
+  pattern: 'trap $CMD $$$SIGNALS'
+constraints:
+  CMD: { regex: '^"([^"$\\]|\\.)*\$[A-Za-z_{(]' }
+---
+id: no-ls-grep
+language: shell
+message: do not filter ls with grep; use a glob or find
+description: A pipeline from `ls` into `grep`.
+example: 'ls | grep txt'
+severity: warn
+category: suspicious
+rule:
+  kind: Pipeline
+  regex: '^ls\b[^|]*\|\s*grep\b'
+---
+id: no-ps-grep
+language: shell
+message: use pgrep instead of grepping ps output
+description: A pipeline from `ps` into `grep`.
+example: 'ps aux | grep nginx'
+severity: off
+category: style
+rule:
+  kind: Pipeline
+  regex: '^ps\b[^|]*\|\s*grep\b'
+---
+id: grep-count
+language: shell
+message: use grep -c instead of piping to wc -l
+description: A pipeline from `grep` into `wc -l`.
+example: 'grep x f | wc -l'
+severity: off
+category: style
+rule:
+  kind: Pipeline
+  regex: '^grep\b[^|]*\|\s*wc\s+-l\b'
+---
+id: no-egrep
+language: shell
+message: egrep and fgrep are deprecated; use grep -E and grep -F
+description: A call of `egrep` or `fgrep`.
+example: 'egrep x f'
+severity: off
+category: style
+rule:
+  any:
+    - { pattern: 'egrep $$$ARGS' }
+    - { pattern: 'fgrep $$$ARGS' }
+---
+id: no-which
+language: shell
+message: which is non-standard; use `command -v`
+description: A call of `which`.
+example: 'which git'
+severity: off
+category: style
+rule:
+  pattern: 'which $$$ARGS'
+---
+id: test-exit-status
+language: shell
+message: check the exit status directly (`if cmd; then`), not through $?
+description: A test that compares `$?` with a number.
+example: 'if [ $? -eq 0 ]; then'
+severity: off
+category: style
+rule:
+  kind: Command
+  regex: '^\[\[?\s+"?\$\?"?\s+(-eq|-ne|=|==|!=)\s'
+---
+id: test-and-or
+language: shell
+message: use [ a ] && [ b ] instead of -a and -o inside one test
+description: A `[ ]` test that joins conditions with `-a` or `-o`.
+example: '[ -f a -o -f b ]'
+severity: warn
+category: suspicious
+rule:
+  kind: Command
+  regex: '^\[\s+\S.*\s-[ao]\s'
+---
+id: test-negated-empty
+language: shell
+message: use -n instead of ! -z, and -z instead of ! -n
+description: A test that negates `-z` or `-n`.
+example: '[ ! -z "$x" ]'
+severity: off
+category: style
+rule:
+  kind: Command
+  regex: '^\[\[?\s+!\s+-[zn]\s'
+---
+id: and-or-is-not-if-else
+language: shell
+message: A && B || C is not if-then-else; C also runs when B fails
+description: A list `a && b || c` of three commands.
+example: 'test -f x && echo yes || echo no'
+severity: off
+category: suspicious
+rule:
+  kind: List
+  regex: '^[^&|;]+&&[^&|;]+\|\|[^&|;]+$'
+---
+id: iterate-ls-output
+language: shell
+message: do not loop over ls output; use a glob
+description: A `for` loop over the output of `ls`.
+example: 'for f in $(ls); do'
+severity: warn
+category: suspicious
+rule:
+  kind: For
+  regex: '^for\s+\S+\s+in\s+("?\$\(|"?`)\s*ls\b'
+---
+id: iterate-find-output
+language: shell
+message: do not loop over find output; use find -exec or a while read loop
+description: A `for` loop over the output of `find`.
+example: 'for f in $(find .); do'
+severity: warn
+category: suspicious
+rule:
+  kind: For
+  regex: '^for\s+\S+\s+in\s+("?\$\(|"?`)\s*find\b'
+---
+id: find-xargs-print0
+language: shell
+message: use find -print0 with xargs -0, or find -exec, for names with blanks
+description: A pipeline from `find` into `xargs` without `-print0`/`-0`.
+example: 'find . | xargs rm'
+severity: warn
+category: suspicious
+rule:
+  kind: Pipeline
+  regex: '^find\b[^|]*\|\s*xargs\b'
+  not: { regex: 'print0|\s-0|--null' }

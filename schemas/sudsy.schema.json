@@ -67,6 +67,10 @@
                 }
               ]
             },
+            "and-or-is-not-if-else": {
+              "$ref": "#/definitions/rule",
+              "description": "A list `a && b || c` of three commands."
+            },
             "apk-no-cache": {
               "$ref": "#/definitions/rule",
               "description": "apk add without --no-cache."
@@ -90,6 +94,10 @@
             "async-suffix": {
               "$ref": "#/definitions/rule",
               "description": "An async method returning Task or ValueTask has a name that does not end in `Async`. Overrides, explicit interface implementations and `Main` are left alone (their names are not the method's to choose). Renaming needs the binding layer, so there is no fix."
+            },
+            "cd-without-exit": {
+              "$ref": "#/definitions/rule",
+              "description": "`cd`, `pushd` or `popd` whose failure is not handled (`cd dir || exit`). Not reported with `set -e`, for `cd ..` or `cd /`, or for `popd -n`."
             },
             "commands-show-output": {
               "$ref": "#/definitions/rule",
@@ -130,6 +138,10 @@
             "debug-fail-message": {
               "$ref": "#/definitions/rule",
               "description": "`Debug.Fail` with a constant blank message. With the type layer the call is checked against `System.Diagnostics.Debug`; without it any call written `Debug.Fail` is. No fix."
+            },
+            "declare-and-assign-separately": {
+              "$ref": "#/definitions/rule",
+              "description": "`export`, `local`, `declare`, `readonly` or `typeset` with a command substitution as the value reports the status of the declaration, not of the command."
             },
             "descriptive-link-text": {
               "$ref": "#/definitions/rule",
@@ -266,6 +278,10 @@
               "$ref": "#/definitions/rule",
               "description": "The file name, up to its first dot and ignoring case, is the name of the first type in the file; a generic type may also be written `Name{T,U}`. Not checked when that type is partial. No fix."
             },
+            "find-xargs-print0": {
+              "$ref": "#/definitions/rule",
+              "description": "A pipeline from `find` into `xargs` without `-print0`/`-0`."
+            },
             "float-style": {
               "description": "Restricts how plain floats are written. Every option is off until set: `.5` without a leading digit, `1e3` scientific notation, `.nan` and `.inf`. Quoted and tagged scalars are not checked. The fix for `.5` is `0.5`.",
               "oneOf": [
@@ -324,6 +340,10 @@
               "$ref": "#/definitions/rule",
               "description": "A go install or get package without a version (or at latest)."
             },
+            "grep-count": {
+              "$ref": "#/definitions/rule",
+              "description": "A pipeline from `grep` into `wc -l`."
+            },
             "heading-increment": {
               "$ref": "#/definitions/rule",
               "description": "A heading is more than one level deeper than the heading before it (an `h4` right after an `h2`). Going back up by any number of levels is fine (markdownlint MD001)."
@@ -335,6 +355,14 @@
             "invalid-property-value": {
               "$ref": "#/definitions/rule",
               "description": "A known EditorConfig or .NET property has a value it does not accept (`indent_style = tabs`, `dotnet_diagnostic.CA1000.severity = high`). Values are case-insensitive, `unset` is always valid, and .NET code-style options may end in `:silent`, `:suggestion`, `:warning` or `:error`; formatting options do not (Roslyn parses them with `bool.TryParse`, EditorConfigValueSerializer.cs). A trailing `# comment` is ignored, as Roslyn does. Unknown properties are not checked."
+            },
+            "iterate-find-output": {
+              "$ref": "#/definitions/rule",
+              "description": "A `for` loop over the output of `find`."
+            },
+            "iterate-ls-output": {
+              "$ref": "#/definitions/rule",
+              "description": "A `for` loop over the output of `ls`."
             },
             "json-cmd-entrypoint": {
               "$ref": "#/definitions/rule",
@@ -491,6 +519,10 @@
               "$ref": "#/definitions/rule",
               "description": "A RUN that calls apt."
             },
+            "no-backticks": {
+              "$ref": "#/definitions/rule",
+              "description": "A command substitution written with backticks."
+            },
             "no-bare-urls": {
               "$ref": "#/definitions/rule",
               "description": "A URL that is neither a link nor an autolink (markdownlint MD034), found when it follows a space or starts the paragraph. Reported on the paragraph."
@@ -573,6 +605,10 @@
             "no-duplicate-sections": {
               "$ref": "#/definitions/rule",
               "description": "Two sections of one file have the same glob. Both apply, the later one winning, which is rarely the intent; merge them."
+            },
+            "no-egrep": {
+              "$ref": "#/definitions/rule",
+              "description": "A call of `egrep` or `fgrep`."
             },
             "no-emphasis-as-heading": {
               "$ref": "#/definitions/rule",
@@ -729,6 +765,10 @@
               "$ref": "#/definitions/rule",
               "description": "A FROM image tagged `latest` (without a digest)."
             },
+            "no-ls-grep": {
+              "$ref": "#/definitions/rule",
+              "description": "A pipeline from `ls` into `grep`."
+            },
             "no-maintainer": {
               "$ref": "#/definitions/rule",
               "description": "A MAINTAINER instruction."
@@ -776,6 +816,10 @@
                   "type": "object"
                 }
               ]
+            },
+            "no-ps-grep": {
+              "$ref": "#/definitions/rule",
+              "description": "A pipeline from `ps` into `grep`."
             },
             "no-redundant-target-platform": {
               "$ref": "#/definitions/rule",
@@ -837,6 +881,10 @@
               "$ref": "#/definitions/rule",
               "description": "An anchor that no alias refers to. The fix removes the anchor, which changes nothing about the data."
             },
+            "no-which": {
+              "$ref": "#/definitions/rule",
+              "description": "A call of `which`."
+            },
             "npm-pin-versions": {
               "$ref": "#/definitions/rule",
               "description": "An npm install package without a version."
@@ -857,6 +905,10 @@
               "$ref": "#/definitions/rule",
               "description": "A member or element access on an expression the compiler's nullable analysis says may be null. Only code under `#nullable enable` is checked. Off by default: the compiler reports the same thing as CS8602."
             },
+            "printf-variable-format": {
+              "$ref": "#/definitions/rule",
+              "description": "A `printf` whose format string contains an expansion."
+            },
             "property-summary-matches-accessors": {
               "$ref": "#/definitions/rule",
               "description": "A property summary starts with \"Gets\", \"Sets\" or \"Gets or sets\" (\"Gets a value indicating whether\" and so on for `bool`), as the property's accessors reachable from outside the type say. The type is read from the declaration (`bool`, `Boolean`, `System.Boolean`). The fix replaces the start of the text and lower-cases what follows."
@@ -868,6 +920,22 @@
             "qualify-namespace-usings": {
               "$ref": "#/definitions/rule",
               "description": "A `using` directive inside a namespace whose name is not written fully qualified (it resolves relative to the enclosing namespace). The fix writes the full name, unless it has type arguments."
+            },
+            "quote-at-expansion": {
+              "$ref": "#/definitions/rule",
+              "description": "An unquoted `$@` or `${array[@]}` in a command's arguments."
+            },
+            "quote-command-substitution": {
+              "$ref": "#/definitions/rule",
+              "description": "An unquoted `$(...)` or backtick substitution in a command's arguments is split into words and globbed."
+            },
+            "quote-star-expansion": {
+              "$ref": "#/definitions/rule",
+              "description": "An unquoted `$*` or `${array[*]}` in a command's arguments."
+            },
+            "quote-variable": {
+              "$ref": "#/definitions/rule",
+              "description": "An unquoted `$var` or `${var}` in a command's arguments is split into words and globbed. Does not know which variables hold only a number or a single word."
             },
             "quoted-strings": {
               "description": "Which strings are quoted. Plain scalars that are not strings (`12`, `true`, `null`, dates, ...), block scalars and scalars tagged `!!` are never checked. `required: always` wants quotes on every string, `only_when_needed` reports quotes that change nothing (unless `extra_allowed` matches) and plain strings that `extra_required` matches, `optional` only the latter. Fixes: quoting a plain string and switching the quote type keep the value; removing quotes is unsafe because YAML 1.2 parsers read some strings (`1e3`) as numbers.",
@@ -941,6 +1009,10 @@
                   "type": "object"
                 }
               ]
+            },
+            "read-without-raw": {
+              "$ref": "#/definitions/rule",
+              "description": "A `read` without the `-r` flag."
             },
             "remove-unused-usings": {
               "$ref": "#/definitions/rule",
@@ -1149,6 +1221,22 @@
               "$ref": "#/definitions/rule",
               "description": "`SuppressMessage` needs a `Justification` that says something: not missing, `null`, empty, blank or `\"<Pending>\"`. Matches the attribute by name. No fix."
             },
+            "test-and-or": {
+              "$ref": "#/definitions/rule",
+              "description": "A `[ ]` test that joins conditions with `-a` or `-o`."
+            },
+            "test-exit-status": {
+              "$ref": "#/definitions/rule",
+              "description": "A test that compares `$?` with a number."
+            },
+            "test-negated-empty": {
+              "$ref": "#/definitions/rule",
+              "description": "A test that negates `-z` or `-n`."
+            },
+            "trap-expands-now": {
+              "$ref": "#/definitions/rule",
+              "description": "A `trap` whose double-quoted command contains an expansion."
+            },
             "tuple-element-names-in-signatures": {
               "$ref": "#/definitions/rule",
               "description": "A tuple type in the signature of a method, constructor, property, indexer, conversion operator or delegate whose elements have no names. Overrides and implementations of interface members are left alone (their names are not the member's to choose). No fix."
@@ -1254,6 +1342,14 @@
             "use-workdir-not-cd": {
               "$ref": "#/definitions/rule",
               "description": "A RUN that calls cd."
+            },
+            "useless-cat": {
+              "$ref": "#/definitions/rule",
+              "description": "A pipeline that starts with `cat file`."
+            },
+            "useless-echo": {
+              "$ref": "#/definitions/rule",
+              "description": "An `echo` whose only argument is a command substitution."
             },
             "using-order": {
               "description": "`using` directives of a file or namespace are out of order: System first (`system_first`), names in alphabetical order (`compare`), and with the options `static_position` and `alias_position` set to `after`, `using static` directives after the plain ones and aliases after those, each group sorted. `global using` and `using unsafe` stay where they are, and a list restarts at a directive that has a preprocessor directive in front of it (the fix leaves such lists alone). Comments on lines of their own stay where they are; a comment after a directive moves with it. Overlaps the SDK analyzers' `dotnet_sort_system_directives_first` .editorconfig key.",
@@ -1962,6 +2058,7 @@
           "preset:json/default",
           "preset:json/prettier-compat",
           "preset:markdown/prettier-compat",
+          "preset:shell/shellcheck",
           "preset:toml/default",
           "preset:toml/taplo-compat",
           "preset:xml/csharpier-compat",

@@ -1,0 +1,6 @@
+quote-command-substitution: warn
+quote-variable: warn
+quote-at-expansion: error
+quote-star-expansion: warn
+no-backticks: warn
+declare-and-assign-separately: warn

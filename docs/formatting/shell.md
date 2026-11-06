@@ -37,10 +37,13 @@ shfmt is the comparable tool; `scripts/parity.sh format shfmt` compares the outp
 <!-- /generated -->
 
 ## Presets
-None: the defaults are shfmt's.
+`shell/shellcheck`: turns on the rules that have a shellcheck equivalent ([../parity/shellcheck.yaml](../parity/shellcheck.yaml)) at shellcheck's severities (error stays error; warning, info and style become `warn`). The formatter defaults are shfmt's.
 
 ## Rules
-Shared: suppression comments (`# sudsy-disable-next-line <rule>`), `no-empty-comment`, `comment-space`, `max-line-length`. The grammar has no `#mapping` or `#sequence` nodes, so the key rules do not apply. Language rules (a shellcheck subset) come later.
+Shared: suppression comments (`# sudsy-disable-next-line <rule>`), `no-empty-comment`, `comment-space`, `max-line-length`. The grammar has no `#mapping` or `#sequence` nodes, so the key rules do not apply. The language rules are a shellcheck subset, listed in [../rules/builtin.md](../rules/builtin.md); the catalog maps each SC code to its rule or says why it is deferred.
+- Defaults follow shellcheck: its errors and warnings are on (`warn`/`error`), info and style are `off`.
+- Forms: pattern files in `crates/lang-shell/rules/` (`commands.yaml`, `quoting.yaml`); the `word` family (a regex on the word tokens of a command, which patterns cannot reach: `quote-*`, `no-backticks`; params in `src/rules/word.rs`); `cd-without-exit` in Rust (`src/rules.rs`).
+- Syntax only: quoting is judged from the word's text, so `quote-variable` reads the arguments of a command, not assignments, loop lists or `[[ ]]`, and cannot know a variable holds a number. Data flow (`SC2034`, `SC2154`), the target dialect (`SC3xxx`) and knowledge of other commands' options are deferred.
 
 ## Conformance
 `tests/conformance/fetch-shell-corpus.sh` fetches 82 shell scripts at pinned commits: the install scripts of dotnet, nvm, rustup, docker and Homebrew, the docker-library entrypoints of postgres and mysql, and the Bash sources of pyenv, bats-core and asdf. `cargo test --profile corpus -p lang-shell --test shell -- --ignored --nocapture conformance` checks that each file that tree-sitter parses (79 of 82) round-trips, formats with the same tokens (the safety check, comments compared as well) and formats idempotently. `tests/parity/shfmt/` compares with shfmt on the same files: 58 of 82 are identical, the 24 others are listed with their reasons in `expected-diff.txt`.

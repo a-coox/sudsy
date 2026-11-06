@@ -100,6 +100,30 @@ Twenty-four rules read the `///` and `/** */` comment of a declaration (StyleCop
 | `zypper-no-dist-upgrade` | dockerfile | suspicious | warn | none | A zypper dist-upgrade. |
 | `zypper-pin-versions` | dockerfile | suspicious | warn | none | A zypper install package without a version. |
 | `zypper-yes` | dockerfile | correctness | warn | none | zypper install without -y. |
+| `and-or-is-not-if-else` | shell | suspicious | off | none | A list `a && b \|\| c` of three commands. |
+| `cd-without-exit` | shell | suspicious | warn | none | `cd`, `pushd` or `popd` whose failure is not handled (`cd dir \|\| exit`). Not reported with `set -e`, for `cd ..` or `cd /`, or for `popd -n`. |
+| `declare-and-assign-separately` | shell | suspicious | warn | none | `export`, `local`, `declare`, `readonly` or `typeset` with a command substitution as the value reports the status of the declaration, not of the command. |
+| `find-xargs-print0` | shell | suspicious | warn | none | A pipeline from `find` into `xargs` without `-print0`/`-0`. |
+| `grep-count` | shell | style | off | none | A pipeline from `grep` into `wc -l`. |
+| `iterate-find-output` | shell | suspicious | warn | none | A `for` loop over the output of `find`. |
+| `iterate-ls-output` | shell | suspicious | warn | none | A `for` loop over the output of `ls`. |
+| `no-backticks` | shell | style | off | none | A command substitution written with backticks. |
+| `no-egrep` | shell | style | off | none | A call of `egrep` or `fgrep`. |
+| `no-ls-grep` | shell | suspicious | warn | none | A pipeline from `ls` into `grep`. |
+| `no-ps-grep` | shell | style | off | none | A pipeline from `ps` into `grep`. |
+| `no-which` | shell | style | off | none | A call of `which`. |
+| `printf-variable-format` | shell | suspicious | off | none | A `printf` whose format string contains an expansion. |
+| `quote-at-expansion` | shell | correctness | error | none | An unquoted `$@` or `${array[@]}` in a command's arguments. |
+| `quote-command-substitution` | shell | suspicious | warn | none | An unquoted `$(...)` or backtick substitution in a command's arguments is split into words and globbed. |
+| `quote-star-expansion` | shell | suspicious | warn | none | An unquoted `$*` or `${array[*]}` in a command's arguments. |
+| `quote-variable` | shell | suspicious | off | none | An unquoted `$var` or `${var}` in a command's arguments is split into words and globbed. Does not know which variables hold only a number or a single word. |
+| `read-without-raw` | shell | suspicious | off | none | A `read` without the `-r` flag. |
+| `test-and-or` | shell | suspicious | warn | none | A `[ ]` test that joins conditions with `-a` or `-o`. |
+| `test-exit-status` | shell | style | off | none | A test that compares `$?` with a number. |
+| `test-negated-empty` | shell | style | off | none | A test that negates `-z` or `-n`. |
+| `trap-expands-now` | shell | suspicious | warn | none | A `trap` whose double-quoted command contains an expansion. |
+| `useless-cat` | shell | style | off | none | A pipeline that starts with `cat file`. |
+| `useless-echo` | shell | style | off | none | An `echo` whose only argument is a command substitution. |
 | `accessor-order` | csharp | style | off | safe | `get` goes before `set` or `init`, and `add` before `remove`. The fix swaps the two accessors (not offered when a comment stands between or in them). Equivalent: StyleCop SA1212, StyleCop SA1213. |
 | `async-suffix` | csharp | style | warn | none | An async method returning Task or ValueTask has a name that does not end in `Async`. Overrides, explicit interface implementations and `Main` are left alone (their names are not the method's to choose). Renaming needs the binding layer, so there is no fix. Equivalent: Roslynator RCS1046. |
 | `constant-on-right` | csharp | style | off | safe | A comparison with the constant on the left: `null == x` is `x == null`, `1 < x` is `x > 1`. Without the type layer a constant is a literal, `nameof`, `int.MaxValue`-style member or an expression of those; a named constant on the left is not recognised. Equivalent: StyleCop SA1131. |

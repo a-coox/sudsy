@@ -1,0 +1,6 @@
+test-exit-status: warn
+test-and-or: warn
+test-negated-empty: warn
+iterate-ls-output: warn
+iterate-find-output: warn
+find-xargs-print0: warn
