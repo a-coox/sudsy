@@ -2,7 +2,6 @@
 
 use regex::{Regex, bytes};
 use regex_syntax::ParserBuilder;
-use regex_syntax::hir::{Hir, HirKind};
 use std::sync::OnceLock;
 
 /// The longest text checked for ASCII (and so matched by the ASCII form).
@@ -91,26 +90,20 @@ impl Re {
     }
 }
 
-/// Whether the pattern repeats anything but a literal a counted number of times (`{n}`,
-/// `{n,}`, `{n,m}` with a count over one).
+/// Whether the pattern counts a repetition (`{n`) of a class, group or `.` (a literal repeats
+/// cheaply). Read from the text, as parsing again would cost more than it saves.
 fn counts_more_than_a_literal(source: &str) -> bool {
-    fn walk(hir: &Hir) -> bool {
-        match hir.kind() {
-            HirKind::Repetition(r) => {
-                let counted = r.min > 1 || r.max.is_some_and(|m| m > 1);
-                (counted && !matches!(r.sub.kind(), HirKind::Literal(_))) || walk(&r.sub)
+    let b = source.as_bytes();
+    (1..b.len()).any(|i| {
+        let escapes = b[..i - 1].iter().rev().take_while(|&&c| c == b'\\').count();
+        b[i] == b'{'
+            && b.get(i + 1).is_some_and(u8::is_ascii_digit)
+            && match b[i - 1] {
+                b']' | b')' | b'}' | b'.' => escapes % 2 == 0,
+                b'w' | b'W' | b's' | b'S' | b'd' | b'D' => escapes % 2 == 1,
+                _ => false,
             }
-            HirKind::Capture(c) => walk(&c.sub),
-            HirKind::Concat(hs) | HirKind::Alternation(hs) => hs.iter().any(walk),
-            _ => false,
-        }
-    }
-    ParserBuilder::new()
-        .unicode(false)
-        .utf8(false)
-        .build()
-        .parse(source)
-        .is_ok_and(|hir| walk(&hir))
+    })
 }
 
 #[cfg(test)]
