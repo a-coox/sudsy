@@ -1,0 +1,181 @@
+id: workdir-absolute
+language: dockerfile
+message: 'WORKDIR should be an absolute path'
+description: >-
+  A WORKDIR whose path is not absolute (a leading `/`, a drive letter or a variable).
+example: 'WORKDIR app'
+severity: error
+category: correctness
+rule:
+  kind: Instruction
+  regex: '(?is)^workdir\s+\S'
+  not: { regex: '(?is)^workdir\s+["'']?(?:[/$]|[A-Za-z]:)' }
+---
+id: no-latest-tag
+language: dockerfile
+message: 'pin the base image to a release tag, not latest'
+description: >-
+  A FROM image tagged `latest` (without a digest).
+example: 'FROM alpine:latest'
+severity: warn
+category: suspicious
+rule:
+  kind: Instruction
+  regex: '(?is)^from\s+(?:--\S+\s+)*[^\s@]*:latest(?:\s|$)'
+---
+id: expose-port-range
+language: dockerfile
+message: 'valid ports range from 0 to 65535'
+description: >-
+  An EXPOSE with a port above 65535.
+example: 'EXPOSE 70000'
+severity: error
+category: correctness
+rule:
+  kind: Instruction
+  regex: '(?is)^expose\s(?:.*[\s-])?(?:6553[6-9]|655[4-9]\d|65[6-9]\d\d|6[6-9]\d{3}|[7-9]\d{4}|\d{6,})(?:\s|/|$)'
+---
+id: json-cmd-entrypoint
+language: dockerfile
+message: 'use the JSON form for CMD and ENTRYPOINT'
+description: >-
+  A CMD, ENTRYPOINT or HEALTHCHECK CMD in shell form, which runs under `sh -c` and does not get signals.
+example: 'CMD node server.js'
+severity: warn
+category: suspicious
+rule:
+  kind: Instruction
+  regex: '(?is)^(?:cmd|entrypoint)\s+[^\[\s]'
+  not: { parent: { regex: '(?is)^onbuild\b' } }
+---
+id: no-from-platform
+language: dockerfile
+message: 'do not set --platform on FROM'
+description: >-
+  A FROM with a fixed `--platform`; a variable such as `$BUILDPLATFORM` is fine.
+example: 'FROM --platform=linux/amd64 alpine:3'
+severity: warn
+category: suspicious
+rule:
+  kind: Instruction
+  regex: '(?is)^from\s+--platform='
+  not: { regex: '(?is)^from\s+--platform=\S*(?:BUILDPLATFORM|TARGETPLATFORM)' }
+---
+id: no-redundant-target-platform
+language: dockerfile
+message: 'the target platform is the default platform of FROM; drop the option'
+description: >-
+  A FROM with `--platform=$TARGETPLATFORM`, which is what it does without the option.
+example: 'FROM --platform=$TARGETPLATFORM alpine:3'
+severity: warn
+category: cleanup
+rule:
+  kind: Instruction
+  regex: '(?is)^from\s+--platform=\$\{?TARGETPLATFORM\}?(?:\s|$)'
+---
+id: no-nested-onbuild
+language: dockerfile
+message: 'ONBUILD cannot trigger ONBUILD, FROM or MAINTAINER'
+description: >-
+  An ONBUILD whose instruction is ONBUILD, FROM or MAINTAINER.
+example: 'ONBUILD FROM alpine'
+severity: error
+category: correctness
+rule:
+  kind: Instruction
+  regex: '(?is)^onbuild\b'
+  child: { kind: Instruction, regex: '(?is)^(?:onbuild|from|maintainer)\b' }
+---
+id: no-reserved-stage-name
+language: dockerfile
+message: 'the stage name is a reserved word'
+description: >-
+  A stage named `scratch` or `context`.
+example: 'FROM alpine:3 AS scratch'
+severity: warn
+category: suspicious
+rule:
+  kind: Instruction
+  regex: '(?is)^from\s.*\sas\s+(?:scratch|context)\s*$'
+---
+id: no-maintainer
+language: dockerfile
+message: 'MAINTAINER is deprecated; use LABEL maintainer=...'
+description: >-
+  A MAINTAINER instruction.
+example: 'MAINTAINER a@b.c'
+severity: error
+category: cleanup
+rule:
+  kind: Instruction
+  regex: '(?is)^maintainer\b'
+---
+id: no-copy-whole-stage
+language: dockerfile
+message: 'do not copy an entire filesystem from another stage'
+description: >-
+  A `COPY --from` with `/` as a source and as the target.
+example: 'COPY --from=build / /'
+severity: warn
+category: suspicious
+rule:
+  kind: Instruction
+  regex: '(?is)^copy\s.*--from=\S.*\s["'']?/["'']?(?:\s+\S+)*?\s+["'']?/["'']?\s*$'
+---
+id: copy-instead-of-add
+language: dockerfile
+message: 'use COPY instead of ADD for files and folders'
+description: >-
+  An ADD with no URL and no archive (`.tar`, `.gz`, `.tgz`, `.xz` and the like) among its arguments,
+  which ADD would extract or download.
+example: 'ADD app.js /app/'
+severity: error
+category: suspicious
+rule:
+  kind: Instruction
+  regex: '(?is)^add\s'
+  not:
+    regex: '(?i)(?:\bhttps?://|\.(?:tar|z|bz2|gz|lz|lzma|tz|tb2|tbz|tbz2|tgz|tlz|tpz|txz|xz)["'']?(?:\s|$))'
+---
+id: copy-many-needs-directory
+language: dockerfile
+message: 'COPY with several sources needs a target ending in /'
+description: >-
+  A COPY with more than one source whose last argument does not end with `/`.
+example: 'COPY a b /app'
+severity: error
+category: correctness
+rule:
+  kind: Instruction
+  all:
+    - regex: '(?is)^copy\s+(?:--\S+\s+)*[^\s\[-]\S*\s+\S+\s+(?:\S+\s+)*\S*[^/\s]\s*$'
+    - not: { regex: '<<' }
+---
+id: numeric-user-id
+language: dockerfile
+message: 'a non-numeric user may not be resolvable by the host; use a numeric id'
+description: >-
+  A USER that is a name rather than a numeric id (a variable is accepted).
+example: 'USER app'
+severity: off
+category: suspicious
+rule:
+  kind: Instruction
+  regex: '(?is)^user\s+\S'
+  not: { regex: '(?is)^user\s+["'']?(?:\d+(?:[:"''\s]|$)|\$)' }
+---
+id: no-secret-in-env
+language: dockerfile
+message: 'potentially sensitive data should not be set with ARG or ENV'
+description: >-
+  An ARG or ENV whose name contains `api_key`, `client_key`, `password`, `private`, `secret`, `token`
+  or `username`, or is a well-known credential variable. Build secrets belong in `--mount=type=secret`.
+example: 'ENV DB_PASSWORD=x'
+severity: warn
+category: suspicious
+rule:
+  kind: Instruction
+  any:
+    - regex: '(?is)^arg\s+\w*(?:api_key|client_key|password|private|secret|token|username)\w*(?:[=\s]|$)'
+    - regex: '(?is)^env\s+(?:\w+=\S*\s+)*\w*(?:api_key|client_key|password|private|secret|token|username)\w*[=\s]'
+    - regex: '(?s)^(?i:arg|env)\s+(?:\w+=\S*\s+)*(?:APPLICATION_KEY|AWS_ACCESS_KEY_ID|CI_DEPLOY_USER|DOCKER_EMAIL|FACEBOOK_APP_ID|HEROKU_API_USER|OKTA_AUTHN_GROUPID|OKTA_CLIENT_ORGURL|OKTA_OAUTH2_CLIENTID|STRIPE_DEVICE_NAME|TRAVIS_OS_NAME|TRAVIS_SECURE_ENV_VARS|TRAVIS_SUDO)(?:[=\s]|$)'

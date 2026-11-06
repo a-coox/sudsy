@@ -1,0 +1,51 @@
+# hadolint's rules that Sudsy has, at hadolint's severities (error is error; warning, info and style are warn).
+dockerfile:
+  lint:
+    rules:
+      workdir-absolute: error
+      no-interactive-commands: warn
+      last-user-not-root: warn
+      use-workdir-not-cd: warn
+      no-sudo: error
+      untagged-base-image: warn
+      no-latest-tag: warn
+      apt-get-pin-versions: warn
+      expose-port-range: error
+      single-healthcheck: error
+      pip-pin-versions: warn
+      apt-get-yes: warn
+      apt-get-no-recommends: warn
+      npm-pin-versions: warn
+      apk-pin-versions: warn
+      apk-no-cache: warn
+      copy-instead-of-add: error
+      copy-many-needs-directory: error
+      copy-from-unknown-stage: warn
+      copy-from-own-stage: error
+      duplicate-stage-name: error
+      json-cmd-entrypoint: warn
+      no-apt: warn
+      gem-pin-versions: warn
+      no-from-platform: warn
+      yum-yes: warn
+      yum-clean: warn
+      rpm-pin-versions: warn
+      zypper-yes: warn
+      zypper-no-dist-upgrade: warn
+      zypper-clean: warn
+      zypper-pin-versions: warn
+      dnf-yes: warn
+      dnf-clean: warn
+      no-nested-onbuild: error
+      wget-progress: warn
+      from-first: error
+      go-pin-versions: warn
+      no-reserved-stage-name: warn
+      no-secret-in-env: warn
+      no-redundant-target-platform: warn
+      numeric-user-id: warn
+      no-copy-whole-stage: warn
+      no-maintainer: error
+      single-cmd: warn
+      single-entrypoint: error
+      no-shell-symlink: warn

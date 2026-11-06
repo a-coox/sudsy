@@ -24,6 +24,7 @@ pub fn provider() -> TreeSitterProvider {
         hooks: &hooks::EditorConfigHooks,
         rules: rules::RULES,
         pattern_files: provider_api::pattern_files!(),
+        families: &[],
         validate: None,
     })
 }

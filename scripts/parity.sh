@@ -4,7 +4,8 @@
 # through docs/parity/<tool>.yaml), line and column. Prints every mismatch; exit 1 on any.
 # Tools: yamllint (installed at the catalog's version into a venv under target/parity/), eslint-jsonc
 # (ESLint 9 + eslint-plugin-jsonc at the catalog's version, installed with npm), stylecop
-# (StyleCop.Analyzers at the catalog's version, restored by `dotnet build` of the fixture project).
+# (StyleCop.Analyzers at the catalog's version, restored by `dotnet build` of the fixture project),
+# hadolint (the release binary at the catalog's version, downloaded from GitHub).
 # Format mode: scripts/parity.sh format <tool>, the tools of scripts/parity_format.json (see docs/development/parity.md).
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -27,8 +28,8 @@ if [ "$tool" = format ]; then
   exec "$py" scripts/parity_format.py "$tool" "$sudsy" "$tdir"
 fi
 case "$tool" in
-  yamllint|stylecop|eslint-jsonc|markdownlint) ;;
-  *) echo "usage: scripts/parity.sh yamllint|stylecop|eslint-jsonc|markdownlint | format <tool>" >&2; exit 2 ;;
+  yamllint|stylecop|eslint-jsonc|markdownlint|hadolint) ;;
+  *) echo "usage: scripts/parity.sh yamllint|stylecop|eslint-jsonc|markdownlint|hadolint | format <tool>" >&2; exit 2 ;;
 esac
 
 py=
@@ -70,10 +71,26 @@ if [ "$tool" = markdownlint ]; then
     npm install --silent --no-audit --no-fund --prefix "$dir" "markdownlint-cli2@$version"
   fi
 fi
+extra=
+if [ "$tool" = hadolint ]; then
+  # The release binary at the catalog's version (needs network on first use).
+  case "$(uname -s)" in
+    MINGW*|MSYS*|CYGWIN*) asset=hadolint-windows-x86_64.exe; exe=hadolint.exe ;;
+    Darwin) asset=hadolint-macos-$(uname -m | sed 's/aarch64/arm64/'); exe=hadolint ;;
+    *) asset=hadolint-linux-$(uname -m | sed 's/aarch64/arm64/'); exe=hadolint ;;
+  esac
+  dir="$tdir/parity/hadolint-$version"
+  if [ ! -x "$dir/$exe" ]; then
+    mkdir -p "$dir"
+    curl -fsSL -o "$dir/$exe" "https://github.com/hadolint/hadolint/releases/download/v$version/$asset"
+    chmod +x "$dir/$exe"
+  fi
+  extra="$dir/$exe"
+fi
 if [ "$tool" = stylecop ]; then
   dotnet build --nologo -v:q workers/csharp/Sudsy.Worker
   export SUDSY_CSHARP_WORKER=${SUDSY_CSHARP_WORKER:-$PWD/workers/csharp/Sudsy.Worker/bin/Debug/net10.0/Sudsy.Worker.dll}
 fi
 sudsy=$tdir/debug/sudsy; [ -x "$sudsy" ] || sudsy=$sudsy.exe
 
-exec "$vpy" scripts/parity_compare.py "$tool" "$version" "$sudsy"
+exec "$vpy" scripts/parity_compare.py "$tool" "$version" "$sudsy" $extra

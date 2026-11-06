@@ -1,0 +1,98 @@
+id: yum-yes
+language: dockerfile
+family: run-command
+params: { program: 'yum', args: 'install groupinstall localinstall', needs: '-y --assumeyes' }
+message: 'use yum install -y to avoid a prompt'
+description: >-
+  yum install without -y.
+example: 'RUN yum install curl'
+severity: warn
+category: correctness
+---
+id: yum-clean
+language: dockerfile
+family: run-command
+params: { program: 'yum', args: 'install', cleaned-by: 'yum clean all | rm -rf /var/cache/yum/*' }
+message: 'run yum clean all after yum install'
+description: >-
+  yum install with no yum clean all after it.
+example: 'RUN yum install -y curl'
+severity: warn
+category: performance
+---
+id: dnf-yes
+language: dockerfile
+family: run-command
+params: { program: 'dnf|microdnf', args: 'install groupinstall localinstall', needs: '-y --assumeyes' }
+message: 'use dnf install -y to avoid a prompt'
+description: >-
+  dnf install without -y.
+example: 'RUN dnf install curl'
+severity: warn
+category: correctness
+---
+id: dnf-clean
+language: dockerfile
+family: run-command
+params: { program: 'dnf|microdnf', args: 'install in upgrade up upgrade-minimal up-min reinstall rei', cleaned-by: 'dnf clean all | microdnf clean all | rm -rf /var/cache/libdnf5*' }
+message: 'run dnf clean all after dnf install'
+description: >-
+  dnf install with no dnf clean all after it.
+example: 'RUN dnf install -y curl'
+severity: warn
+category: performance
+---
+id: rpm-pin-versions
+language: dockerfile
+family: run-command
+params: { program: 'yum|dnf|microdnf', args: 'install', pinned: '^[^-]+-.*[0-9]|^[^-]+-.*\.rpm$|\$', unless: 'module group' }
+message: 'pin the versions in yum and dnf install: pkg-version'
+description: >-
+  A yum or dnf install package without a version.
+example: 'RUN yum install -y curl'
+severity: warn
+category: suspicious
+---
+id: zypper-yes
+language: dockerfile
+family: run-command
+params: { program: 'zypper', args: 'install in remove rm source-install si patch', needs: '-n --non-interactive --no-confirm -y' }
+message: 'use zypper install -y to avoid a prompt'
+description: >-
+  zypper install without -y.
+example: 'RUN zypper install curl'
+severity: warn
+category: correctness
+---
+id: zypper-no-dist-upgrade
+language: dockerfile
+family: run-command
+params: { program: 'zypper', args: 'dist-upgrade dup' }
+message: 'do not use zypper dist-upgrade'
+description: >-
+  A zypper dist-upgrade.
+example: 'RUN zypper dist-upgrade'
+severity: warn
+category: suspicious
+---
+id: zypper-clean
+language: dockerfile
+family: run-command
+params: { program: 'zypper', args: 'install in', cleaned-by: 'zypper clean | zypper cc', cache-dir: '/var/cache/zypp' }
+message: 'run zypper clean after zypper install'
+description: >-
+  zypper install with no zypper clean after it.
+example: 'RUN zypper install -y curl'
+severity: warn
+category: performance
+---
+id: zypper-pin-versions
+language: dockerfile
+family: run-command
+params: { program: 'zypper', args: 'install in', pinned: '[=<>]|\.rpm$' }
+message: 'pin the versions in zypper install: pkg=version'
+description: >-
+  A zypper install package without a version.
+example: 'RUN zypper install -y curl'
+severity: warn
+category: suspicious

@@ -1,0 +1,32 @@
+id: apt-get-yes
+language: dockerfile
+family: run-command
+params: { program: 'apt-get', args: 'install', needs: '-y --yes --assume-yes -q*2 --quiet*2 -q=2' }
+message: 'use apt-get install -y to avoid a prompt'
+description: >-
+  apt-get install without -y.
+example: 'RUN apt-get install curl'
+severity: warn
+category: correctness
+---
+id: apt-get-no-recommends
+language: dockerfile
+family: run-command
+params: { program: 'apt-get', args: 'install', needs: '--no-install-recommends APT::Install-Recommends=false' }
+message: 'use apt-get install --no-install-recommends'
+description: >-
+  apt-get install that installs recommended packages.
+example: 'RUN apt-get install -y curl'
+severity: off
+category: performance
+---
+id: apt-get-pin-versions
+language: dockerfile
+family: run-command
+params: { program: 'apt-get', args: 'install', pinned: '=|/|\.deb$', skip-flag-args: 't target-release' }
+message: 'pin the versions in apt-get install: pkg=version'
+description: >-
+  An apt-get install package without a version.
+example: 'RUN apt-get install -y curl'
+severity: warn
+category: suspicious

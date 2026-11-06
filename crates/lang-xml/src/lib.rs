@@ -56,6 +56,7 @@ pub fn provider() -> TreeSitterProvider {
         hooks: &core_rules::DEFAULT_HOOKS,
         rules: rules::RULES,
         pattern_files: provider_api::pattern_files!(),
+        families: &[],
         validate: Some(validate::validate),
     })
 }

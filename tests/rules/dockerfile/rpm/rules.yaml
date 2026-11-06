@@ -1,0 +1,9 @@
+yum-yes: warn
+yum-clean: warn
+dnf-yes: warn
+dnf-clean: warn
+rpm-pin-versions: warn
+zypper-yes: warn
+zypper-no-dist-upgrade: warn
+zypper-clean: warn
+zypper-pin-versions: warn

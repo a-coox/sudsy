@@ -12,6 +12,7 @@ core-format.workspace = true
 core-rules.workspace = true
 core-syntax.workspace = true
 core-treesitter.workspace = true
+regex.workspace = true
 tree-sitter-containerfile.workspace = true
 provider-api.workspace = true
 

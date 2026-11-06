@@ -5,6 +5,7 @@ core_syntax::include_generated!();
 mod format;
 mod mapping;
 mod rules;
+mod shell;
 
 pub use format::{DockerfileFormatter, option_schema};
 
@@ -28,6 +29,7 @@ pub fn provider() -> TreeSitterProvider {
         hooks: &core_rules::DEFAULT_HOOKS,
         rules: rules::RULES,
         pattern_files: provider_api::pattern_files!(),
+        families: rules::FAMILIES,
         validate: None,
     })
 }

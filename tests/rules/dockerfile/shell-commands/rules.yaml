@@ -1,0 +1,6 @@
+no-sudo: warn
+use-workdir-not-cd: warn
+no-interactive-commands: warn
+no-apt: warn
+wget-progress: warn
+no-shell-symlink: warn

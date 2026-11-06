@@ -1,0 +1,8 @@
+untagged-base-image: warn
+last-user-not-root: warn
+duplicate-stage-name: warn
+copy-from-unknown-stage: warn
+copy-from-own-stage: warn
+single-cmd: warn
+single-entrypoint: warn
+single-healthcheck: warn

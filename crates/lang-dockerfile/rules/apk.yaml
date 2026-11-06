@@ -1,0 +1,21 @@
+id: apk-pin-versions
+language: dockerfile
+family: run-command
+params: { program: 'apk', args: 'add', pinned: '[=~<>]|\.apk$', skip-flag-args: 't virtual repository X' }
+message: 'pin the versions in apk add: pkg=version'
+description: >-
+  An apk add package without a version.
+example: 'RUN apk add curl'
+severity: warn
+category: suspicious
+---
+id: apk-no-cache
+language: dockerfile
+family: run-command
+params: { program: 'apk', args: 'add', needs: '--no-cache', cache-dir: '/var/cache/apk' }
+message: 'use apk add --no-cache'
+description: >-
+  apk add without --no-cache.
+example: 'RUN apk add curl=1'
+severity: off
+category: performance

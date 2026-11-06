@@ -1,0 +1,3 @@
+apt-get-yes: warn
+apt-get-no-recommends: warn
+apt-get-pin-versions: warn

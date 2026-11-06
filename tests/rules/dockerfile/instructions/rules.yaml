@@ -1,0 +1,14 @@
+workdir-absolute: warn
+no-latest-tag: warn
+expose-port-range: warn
+json-cmd-entrypoint: warn
+no-from-platform: warn
+no-redundant-target-platform: warn
+no-nested-onbuild: warn
+no-reserved-stage-name: warn
+no-maintainer: warn
+no-copy-whole-stage: warn
+copy-instead-of-add: warn
+copy-many-needs-directory: warn
+numeric-user-id: warn
+no-secret-in-env: warn

@@ -1295,6 +1295,7 @@ dependencies = [
  "core-treesitter",
  "insta",
  "provider-api",
+ "regex",
  "tree-sitter-containerfile",
 ]
 

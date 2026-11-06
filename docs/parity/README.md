@@ -1,6 +1,6 @@
 # Parity catalog
 
-What the tools Sudsy aims to replace do, and where Sudsy stands. One file per tool: `yamllint.yaml`, `prettier.yaml` (YAML, JSON and Markdown), `markdownlint.yaml` (markdownlint 0.42, rules MD001-MD060), `biome.yaml` (JSON), `eslint-plugin-jsonc.yaml`, `stylecop.yaml` (StyleCop.Analyzers 1.2.0-beta.556), `taplo.yaml` (TOML), `csharpier.yaml`, `dotnet-format-editorconfig.yaml` (the IDE0055 formatting options and `.editorconfig` keys), `roslynator.yaml` (overlaps with the others only). Upstream versions are in each file's `version`. Sudsy facts were observed on a debug build; entries without a "Verified" note follow from the documentation of the tool.
+What the tools Sudsy aims to replace do, and where Sudsy stands. One file per tool: `yamllint.yaml`, `prettier.yaml` (YAML, JSON and Markdown), `markdownlint.yaml` (markdownlint 0.42, rules MD001-MD060), `biome.yaml` (JSON), `eslint-plugin-jsonc.yaml`, `hadolint.yaml` (hadolint 2.15.1, rules DL1001-DL4006; the ShellCheck rules it runs on RUN are out of scope), `stylecop.yaml` (StyleCop.Analyzers 1.2.0-beta.556), `taplo.yaml` (TOML), `csharpier.yaml`, `dotnet-format-editorconfig.yaml` (the IDE0055 formatting options and `.editorconfig` keys), `roslynator.yaml` (overlaps with the others only). Upstream versions are in each file's `version`. Sudsy facts were observed on a debug build; entries without a "Verified" note follow from the documentation of the tool.
 
 The differential runner [`scripts/parity.sh`](../development/parity.md) compares a tool's output with `sudsy lint` on fixtures. A test (`crates/languages/tests/parity.rs`) fails when a `rule:` or `option:` status names something that does not exist, or when the counts below are stale.
 
@@ -29,6 +29,7 @@ The differential runner [`scripts/parity.sh`](../development/parity.md) compares
 | csharpier | 16 | 11 | 5 | 0 | 0 | 0 | 0 | 0 |
 | dotnet-format-editorconfig | 56 | 50 | 3 | 0 | 1 | 2 | 0 | 0 |
 | eslint-plugin-jsonc | 44 | 36 | 6 | 0 | 0 | 2 | 0 | 0 |
+| hadolint | 71 | 38 | 10 | 0 | 0 | 1 | 22 | 0 |
 | markdownlint | 53 | 25 | 16 | 0 | 0 | 0 | 12 | 0 |
 | prettier | 29 | 16 | 4 | 1 | 0 | 8 | 0 | 1 |
 | roslynator | 67 | 23 | 7 | 16 | 18 | 1 | 2 | 16 |
@@ -56,6 +57,7 @@ Planned work is grouped so related entries land together.
 | B13 existing-rule-options | options of rules that exist |
 | B14 markdown-defaults | markdownlint rules on by default that Sudsy covers by rule or formatter |
 | B15 markdown-deferred | markdownlint rules not built: configured structure, anchors and references, sibling checks |
+| B16 dockerfile-hadolint | hadolint rules not built: label schema, stage-level analysis (apt lists, WORKDIR, pip cache), shell structure |
 
 ## Migration
 `sudsy init --from <tool>` ([config/cli.md](../config/cli.md#init---from)) turns a tool's config into a `sudsy.yaml` with this catalog as the source of truth: the catalog files are embedded in the binary, the reason printed for a setting that cannot be migrated is the entry's `gap` (or its status), and the C# `.editorconfig` entries that switch off covered SA rules come from the `covered` StyleCop entries. The option and rule values are mapped in code (`crates/cli/src/init/`); each mapping names its catalog entry and debug builds fail when the entry points elsewhere. A new `rule:` or `option:` status therefore changes what `init` writes for the settings that use it; the fixtures under `tests/fixtures/init/` show the result.

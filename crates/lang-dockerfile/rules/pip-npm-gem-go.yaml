@@ -1,0 +1,43 @@
+id: pip-pin-versions
+language: dockerfile
+family: run-command
+params: { program: 'pip(?:[^e].*)?', args: 'install', pinned: '[=<>!~]|\.whl$|\.tar\.gz$|/', unpinned: '^(?:git|hg|svn|bzr)[^@]*$', unless: '-r --requirement -c --constraint .', skip-flag-args: 'abi b build e editable extra-index-url f find-links i index-url implementation no-binary only-binary platform prefix progress-bar proxy python python-version root root-user-action src t target trusted-host upgrade-strategy' }
+message: 'pin the versions in pip install: pkg==version'
+description: >-
+  A pip install package without a version.
+example: 'RUN pip install flask'
+severity: warn
+category: suspicious
+---
+id: npm-pin-versions
+language: dockerfile
+family: run-command
+params: { program: 'npm', args: 'install', pinned: '^@[^/]+/[^@]+@|^[^@]+@|#|\.tar$|\.tar\.gz$|\.tgz$|^(?:/|\./|\.\./|~/)', unpinned: '^git(?:\+\w+)?://[^#]*$', skip-flag-args: 'loglevel registry' }
+message: 'pin the versions in npm install: pkg@version'
+description: >-
+  An npm install package without a version.
+example: 'RUN npm install express'
+severity: warn
+category: suspicious
+---
+id: gem-pin-versions
+language: dockerfile
+family: run-command
+params: { program: 'gem', args: 'install i', pinned: ':', unless: '-v --version', skip-flag-args: '*' }
+message: 'pin the versions in gem install: gem:version'
+description: >-
+  A gem install gem without a version.
+example: 'RUN gem install rails'
+severity: warn
+category: suspicious
+---
+id: go-pin-versions
+language: dockerfile
+family: run-command
+params: { program: 'go', args: 'install get', pinned: '@|^[./]', unpinned: '@(?:latest|none)$' }
+message: 'pin the versions in go install: package@version'
+description: >-
+  A go install or get package without a version (or at latest).
+example: 'RUN go install example.com/x'
+severity: warn
+category: suspicious

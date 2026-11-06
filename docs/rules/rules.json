@@ -1922,6 +1922,1442 @@
       "upstream": []
     },
     {
+      "category": "performance",
+      "default_level": "off",
+      "description": "apk add without --no-cache.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "FROM alpine:3\nRUN apk add curl\nRUN apk add --no-cache curl=8.5.0-r0\nRUN apk add --no-cache --virtual .deps gcc=13.2.1-r0 musl-dev=1.2.4-r2\nRUN apk add --no-cache ./pkg.apk\nRUN --mount=type=cache,target=/var/cache/apk apk add curl=8\n",
+        "language": "dockerfile",
+        "spans": [
+          {
+            "column": 1,
+            "length": 16,
+            "line": 2
+          }
+        ]
+      },
+      "fix": null,
+      "id": "apk-no-cache",
+      "languages": [
+        "dockerfile"
+      ],
+      "options": [],
+      "presets": [
+        "dockerfile/hadolint"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "warn",
+      "description": "An apk add package without a version.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "FROM alpine:3\nRUN apk add curl\nRUN apk add --no-cache curl=8.5.0-r0\nRUN apk add --no-cache --virtual .deps gcc=13.2.1-r0 musl-dev=1.2.4-r2\nRUN apk add --no-cache ./pkg.apk\nRUN --mount=type=cache,target=/var/cache/apk apk add curl=8\n",
+        "language": "dockerfile",
+        "spans": [
+          {
+            "column": 1,
+            "length": 16,
+            "line": 2
+          }
+        ]
+      },
+      "fix": null,
+      "id": "apk-pin-versions",
+      "languages": [
+        "dockerfile"
+      ],
+      "options": [],
+      "presets": [
+        "dockerfile/hadolint"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "performance",
+      "default_level": "off",
+      "description": "apt-get install that installs recommended packages.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "FROM debian:12\nRUN apt-get update && apt-get install curl\nRUN apt-get install -y curl=7.88 wget=1.21\nRUN apt-get install -y --no-install-recommends curl\nRUN apt-get install -qq -y -t stable curl=7.88\nRUN apt-get -y install foo/stable\nRUN apt-get install -yq ./a.deb\nRUN apt-get install --yes \\\n    curl \\\n    git\nRUN apt-get update\n",
+        "language": "dockerfile",
+        "spans": [
+          {
+            "column": 1,
+            "length": 42,
+            "line": 2
+          },
+          {
+            "column": 1,
+            "length": 42,
+            "line": 3
+          },
+          {
+            "column": 1,
+            "length": 46,
+            "line": 5
+          },
+          {
+            "column": 1,
+            "length": 33,
+            "line": 6
+          },
+          {
+            "column": 1,
+            "length": 31,
+            "line": 7
+          },
+          {
+            "column": 1,
+            "length": 1,
+            "line": 8
+          }
+        ]
+      },
+      "fix": null,
+      "id": "apt-get-no-recommends",
+      "languages": [
+        "dockerfile"
+      ],
+      "options": [],
+      "presets": [
+        "dockerfile/hadolint"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "warn",
+      "description": "An apt-get install package without a version.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "FROM debian:12\nRUN apt-get update && apt-get install curl\nRUN apt-get install -y curl=7.88 wget=1.21\nRUN apt-get install -y --no-install-recommends curl\nRUN apt-get install -qq -y -t stable curl=7.88\nRUN apt-get -y install foo/stable\nRUN apt-get install -yq ./a.deb\nRUN apt-get install --yes \\\n    curl \\\n    git\nRUN apt-get update\n",
+        "language": "dockerfile",
+        "spans": [
+          {
+            "column": 1,
+            "length": 42,
+            "line": 2
+          },
+          {
+            "column": 1,
+            "length": 51,
+            "line": 4
+          },
+          {
+            "column": 1,
+            "length": 1,
+            "line": 8
+          }
+        ]
+      },
+      "fix": null,
+      "id": "apt-get-pin-versions",
+      "languages": [
+        "dockerfile"
+      ],
+      "options": [],
+      "presets": [
+        "dockerfile/hadolint"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "correctness",
+      "default_level": "warn",
+      "description": "apt-get install without -y.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "FROM debian:12\nRUN apt-get update && apt-get install curl\nRUN apt-get install -y curl=7.88 wget=1.21\nRUN apt-get install -y --no-install-recommends curl\nRUN apt-get install -qq -y -t stable curl=7.88\nRUN apt-get -y install foo/stable\nRUN apt-get install -yq ./a.deb\nRUN apt-get install --yes \\\n    curl \\\n    git\nRUN apt-get update\n",
+        "language": "dockerfile",
+        "spans": [
+          {
+            "column": 1,
+            "length": 42,
+            "line": 2
+          }
+        ]
+      },
+      "fix": null,
+      "id": "apt-get-yes",
+      "languages": [
+        "dockerfile"
+      ],
+      "options": [],
+      "presets": [
+        "dockerfile/hadolint"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "correctness",
+      "default_level": "error",
+      "description": "A `COPY --from` that names the stage it is in.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "FROM alpine\nFROM alpine:3 AS build\nFROM build\nFROM scratch\nFROM alpine:3 AS build\nFROM $BASE\nFROM localhost:5000/img\nFROM alpine@sha256:abc\nUSER root\nUSER app\nUSER 0:0\nCOPY --from=build /a /b\nCOPY --from=nope /a /b\nCOPY --from=0 /a /b\nCOPY --from=9 /a /b\nCOPY --from=alpine:3 /a /b\nCMD [\"a\"]\nCMD [\"b\"]\nENTRYPOINT [\"a\"]\nENTRYPOINT [\"b\"]\nHEALTHCHECK CMD a\nHEALTHCHECK CMD b\nFROM alpine:3 AS last\nCOPY --from=last /a /b\nUSER app\nCMD [\"a\"]\nUSER root\n",
+        "language": "dockerfile",
+        "spans": [
+          {
+            "column": 1,
+            "length": 22,
+            "line": 24
+          }
+        ]
+      },
+      "fix": null,
+      "id": "copy-from-own-stage",
+      "languages": [
+        "dockerfile"
+      ],
+      "options": [],
+      "presets": [
+        "dockerfile/hadolint"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "correctness",
+      "default_level": "warn",
+      "description": "A `COPY --from` that names no earlier stage: not a stage name, not the index of an earlier stage, and not an image (no `:`).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "FROM alpine\nFROM alpine:3 AS build\nFROM build\nFROM scratch\nFROM alpine:3 AS build\nFROM $BASE\nFROM localhost:5000/img\nFROM alpine@sha256:abc\nUSER root\nUSER app\nUSER 0:0\nCOPY --from=build /a /b\nCOPY --from=nope /a /b\nCOPY --from=0 /a /b\nCOPY --from=9 /a /b\nCOPY --from=alpine:3 /a /b\nCMD [\"a\"]\nCMD [\"b\"]\nENTRYPOINT [\"a\"]\nENTRYPOINT [\"b\"]\nHEALTHCHECK CMD a\nHEALTHCHECK CMD b\nFROM alpine:3 AS last\nCOPY --from=last /a /b\nUSER app\nCMD [\"a\"]\nUSER root\n",
+        "language": "dockerfile",
+        "spans": [
+          {
+            "column": 1,
+            "length": 22,
+            "line": 13
+          },
+          {
+            "column": 1,
+            "length": 19,
+            "line": 15
+          }
+        ]
+      },
+      "fix": null,
+      "id": "copy-from-unknown-stage",
+      "languages": [
+        "dockerfile"
+      ],
+      "options": [],
+      "presets": [
+        "dockerfile/hadolint"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "error",
+      "description": "An ADD with no URL and no archive (`.tar`, `.gz`, `.tgz`, `.xz` and the like) among its arguments, which ADD would extract or download.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "FROM alpine:latest\nFROM --platform=linux/amd64 alpine:3\nFROM --platform=$TARGETPLATFORM alpine:3\nFROM --platform=$BUILDPLATFORM alpine:3 AS scratch\nFROM alpine:3@sha256:abc\nWORKDIR app\nWORKDIR /app\nWORKDIR $HOME\nEXPOSE 8080 70000\nEXPOSE 80/tcp 443\nCMD node server.js\nCMD [\"node\", \"server.js\"]\nENTRYPOINT /run.sh\nONBUILD CMD echo hi\nONBUILD ONBUILD RUN x\nMAINTAINER a@b.c\nCOPY --from=0 / /\nCOPY a b /dest\nCOPY a b /dest/\nCOPY a /dest\nADD app.js /app/\nADD app.tar.gz /app/\nADD https://example.com/f /app/\nUSER app\nUSER 1000:1000\nUSER $UID\nENV DB_PASSWORD=x\nENV A=1 NPM_TOKEN=y\nARG GITHUB_TOKEN\nARG VERSION=1\nENV AWS_ACCESS_KEY_ID=x\n",
+        "language": "dockerfile",
+        "spans": [
+          {
+            "column": 1,
+            "length": 16,
+            "line": 21
+          }
+        ]
+      },
+      "fix": null,
+      "id": "copy-instead-of-add",
+      "languages": [
+        "dockerfile"
+      ],
+      "options": [],
+      "presets": [
+        "dockerfile/hadolint"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "correctness",
+      "default_level": "error",
+      "description": "A COPY with more than one source whose last argument does not end with `/`.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "FROM alpine:latest\nFROM --platform=linux/amd64 alpine:3\nFROM --platform=$TARGETPLATFORM alpine:3\nFROM --platform=$BUILDPLATFORM alpine:3 AS scratch\nFROM alpine:3@sha256:abc\nWORKDIR app\nWORKDIR /app\nWORKDIR $HOME\nEXPOSE 8080 70000\nEXPOSE 80/tcp 443\nCMD node server.js\nCMD [\"node\", \"server.js\"]\nENTRYPOINT /run.sh\nONBUILD CMD echo hi\nONBUILD ONBUILD RUN x\nMAINTAINER a@b.c\nCOPY --from=0 / /\nCOPY a b /dest\nCOPY a b /dest/\nCOPY a /dest\nADD app.js /app/\nADD app.tar.gz /app/\nADD https://example.com/f /app/\nUSER app\nUSER 1000:1000\nUSER $UID\nENV DB_PASSWORD=x\nENV A=1 NPM_TOKEN=y\nARG GITHUB_TOKEN\nARG VERSION=1\nENV AWS_ACCESS_KEY_ID=x\n",
+        "language": "dockerfile",
+        "spans": [
+          {
+            "column": 1,
+            "length": 14,
+            "line": 18
+          }
+        ]
+      },
+      "fix": null,
+      "id": "copy-many-needs-directory",
+      "languages": [
+        "dockerfile"
+      ],
+      "options": [],
+      "presets": [
+        "dockerfile/hadolint"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "performance",
+      "default_level": "warn",
+      "description": "dnf install with no dnf clean all after it.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "FROM fedora:40\nRUN yum install curl\nRUN yum install -y curl-7.0 && yum clean all\nRUN yum install -y curl-7.0 && rm -rf /var/cache/yum/*\nRUN yum install -y nginx-1.2 && yum clean all\nRUN dnf install curl\nRUN dnf install -y curl-7.0\nRUN dnf install -y curl-7.0 && dnf clean all\nRUN microdnf install -y curl-7.0\nRUN dnf install -y ./a.rpm && dnf clean all\nRUN zypper install curl\nRUN zypper install -y curl=7.0 && zypper clean\nRUN zypper install -y curl\nRUN zypper dist-upgrade\nRUN zypper -n in curl=1 && zypper cc\n",
+        "language": "dockerfile",
+        "spans": [
+          {
+            "column": 1,
+            "length": 20,
+            "line": 6
+          },
+          {
+            "column": 1,
+            "length": 27,
+            "line": 7
+          },
+          {
+            "column": 1,
+            "length": 32,
+            "line": 9
+          }
+        ]
+      },
+      "fix": null,
+      "id": "dnf-clean",
+      "languages": [
+        "dockerfile"
+      ],
+      "options": [],
+      "presets": [
+        "dockerfile/hadolint"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "correctness",
+      "default_level": "warn",
+      "description": "dnf install without -y.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "FROM fedora:40\nRUN yum install curl\nRUN yum install -y curl-7.0 && yum clean all\nRUN yum install -y curl-7.0 && rm -rf /var/cache/yum/*\nRUN yum install -y nginx-1.2 && yum clean all\nRUN dnf install curl\nRUN dnf install -y curl-7.0\nRUN dnf install -y curl-7.0 && dnf clean all\nRUN microdnf install -y curl-7.0\nRUN dnf install -y ./a.rpm && dnf clean all\nRUN zypper install curl\nRUN zypper install -y curl=7.0 && zypper clean\nRUN zypper install -y curl\nRUN zypper dist-upgrade\nRUN zypper -n in curl=1 && zypper cc\n",
+        "language": "dockerfile",
+        "spans": [
+          {
+            "column": 1,
+            "length": 20,
+            "line": 6
+          }
+        ]
+      },
+      "fix": null,
+      "id": "dnf-yes",
+      "languages": [
+        "dockerfile"
+      ],
+      "options": [],
+      "presets": [
+        "dockerfile/hadolint"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "correctness",
+      "default_level": "error",
+      "description": "Two FROM instructions name their stage alike.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "FROM alpine\nFROM alpine:3 AS build\nFROM build\nFROM scratch\nFROM alpine:3 AS build\nFROM $BASE\nFROM localhost:5000/img\nFROM alpine@sha256:abc\nUSER root\nUSER app\nUSER 0:0\nCOPY --from=build /a /b\nCOPY --from=nope /a /b\nCOPY --from=0 /a /b\nCOPY --from=9 /a /b\nCOPY --from=alpine:3 /a /b\nCMD [\"a\"]\nCMD [\"b\"]\nENTRYPOINT [\"a\"]\nENTRYPOINT [\"b\"]\nHEALTHCHECK CMD a\nHEALTHCHECK CMD b\nFROM alpine:3 AS last\nCOPY --from=last /a /b\nUSER app\nCMD [\"a\"]\nUSER root\n",
+        "language": "dockerfile",
+        "spans": [
+          {
+            "column": 1,
+            "length": 22,
+            "line": 5
+          }
+        ]
+      },
+      "fix": null,
+      "id": "duplicate-stage-name",
+      "languages": [
+        "dockerfile"
+      ],
+      "options": [],
+      "presets": [
+        "dockerfile/hadolint"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "correctness",
+      "default_level": "error",
+      "description": "An EXPOSE with a port above 65535.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "FROM alpine:latest\nFROM --platform=linux/amd64 alpine:3\nFROM --platform=$TARGETPLATFORM alpine:3\nFROM --platform=$BUILDPLATFORM alpine:3 AS scratch\nFROM alpine:3@sha256:abc\nWORKDIR app\nWORKDIR /app\nWORKDIR $HOME\nEXPOSE 8080 70000\nEXPOSE 80/tcp 443\nCMD node server.js\nCMD [\"node\", \"server.js\"]\nENTRYPOINT /run.sh\nONBUILD CMD echo hi\nONBUILD ONBUILD RUN x\nMAINTAINER a@b.c\nCOPY --from=0 / /\nCOPY a b /dest\nCOPY a b /dest/\nCOPY a /dest\nADD app.js /app/\nADD app.tar.gz /app/\nADD https://example.com/f /app/\nUSER app\nUSER 1000:1000\nUSER $UID\nENV DB_PASSWORD=x\nENV A=1 NPM_TOKEN=y\nARG GITHUB_TOKEN\nARG VERSION=1\nENV AWS_ACCESS_KEY_ID=x\n",
+        "language": "dockerfile",
+        "spans": [
+          {
+            "column": 1,
+            "length": 17,
+            "line": 9
+          }
+        ]
+      },
+      "fix": null,
+      "id": "expose-port-range",
+      "languages": [
+        "dockerfile"
+      ],
+      "options": [],
+      "presets": [
+        "dockerfile/hadolint"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "correctness",
+      "default_level": "error",
+      "description": "An instruction other than ARG before the first FROM.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "ARG V=1\nRUN echo hi\nFROM alpine:3\nRUN echo ok\n",
+        "language": "dockerfile",
+        "spans": [
+          {
+            "column": 1,
+            "length": 11,
+            "line": 2
+          }
+        ]
+      },
+      "fix": null,
+      "id": "from-first",
+      "languages": [
+        "dockerfile"
+      ],
+      "options": [],
+      "presets": [
+        "dockerfile/hadolint"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "warn",
+      "description": "A gem install gem without a version.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "FROM node:20\nRUN pip install flask\nRUN pip install flask==2.0 \"requests>=2\"\nRUN pip3 install -r requirements.txt\nRUN pip install --no-cache-dir -i https://x/simple flask==1\nRUN pip install .\nRUN pip install git+https://github.com/a/b\nRUN pip install git+https://github.com/a/b@v1\nRUN npm install\nRUN npm install express\nRUN npm install express@4 @scope/pkg@1\nRUN npm install --loglevel verbose express@4\nRUN npm install ./local\nRUN gem install rails\nRUN gem install rails:7.0\nRUN gem install rails -v 7.0\nRUN go install example.com/x\nRUN go install example.com/x@v1\nRUN go install example.com/x@latest\n",
+        "language": "dockerfile",
+        "spans": [
+          {
+            "column": 1,
+            "length": 21,
+            "line": 14
+          }
+        ]
+      },
+      "fix": null,
+      "id": "gem-pin-versions",
+      "languages": [
+        "dockerfile"
+      ],
+      "options": [],
+      "presets": [
+        "dockerfile/hadolint"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "warn",
+      "description": "A go install or get package without a version (or at latest).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "FROM node:20\nRUN pip install flask\nRUN pip install flask==2.0 \"requests>=2\"\nRUN pip3 install -r requirements.txt\nRUN pip install --no-cache-dir -i https://x/simple flask==1\nRUN pip install .\nRUN pip install git+https://github.com/a/b\nRUN pip install git+https://github.com/a/b@v1\nRUN npm install\nRUN npm install express\nRUN npm install express@4 @scope/pkg@1\nRUN npm install --loglevel verbose express@4\nRUN npm install ./local\nRUN gem install rails\nRUN gem install rails:7.0\nRUN gem install rails -v 7.0\nRUN go install example.com/x\nRUN go install example.com/x@v1\nRUN go install example.com/x@latest\n",
+        "language": "dockerfile",
+        "spans": [
+          {
+            "column": 1,
+            "length": 28,
+            "line": 17
+          },
+          {
+            "column": 1,
+            "length": 35,
+            "line": 19
+          }
+        ]
+      },
+      "fix": null,
+      "id": "go-pin-versions",
+      "languages": [
+        "dockerfile"
+      ],
+      "options": [],
+      "presets": [
+        "dockerfile/hadolint"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "warn",
+      "description": "A CMD, ENTRYPOINT or HEALTHCHECK CMD in shell form, which runs under `sh -c` and does not get signals.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "FROM alpine:latest\nFROM --platform=linux/amd64 alpine:3\nFROM --platform=$TARGETPLATFORM alpine:3\nFROM --platform=$BUILDPLATFORM alpine:3 AS scratch\nFROM alpine:3@sha256:abc\nWORKDIR app\nWORKDIR /app\nWORKDIR $HOME\nEXPOSE 8080 70000\nEXPOSE 80/tcp 443\nCMD node server.js\nCMD [\"node\", \"server.js\"]\nENTRYPOINT /run.sh\nONBUILD CMD echo hi\nONBUILD ONBUILD RUN x\nMAINTAINER a@b.c\nCOPY --from=0 / /\nCOPY a b /dest\nCOPY a b /dest/\nCOPY a /dest\nADD app.js /app/\nADD app.tar.gz /app/\nADD https://example.com/f /app/\nUSER app\nUSER 1000:1000\nUSER $UID\nENV DB_PASSWORD=x\nENV A=1 NPM_TOKEN=y\nARG GITHUB_TOKEN\nARG VERSION=1\nENV AWS_ACCESS_KEY_ID=x\n",
+        "language": "dockerfile",
+        "spans": [
+          {
+            "column": 1,
+            "length": 18,
+            "line": 11
+          },
+          {
+            "column": 1,
+            "length": 18,
+            "line": 13
+          }
+        ]
+      },
+      "fix": null,
+      "id": "json-cmd-entrypoint",
+      "languages": [
+        "dockerfile"
+      ],
+      "options": [],
+      "presets": [
+        "dockerfile/hadolint"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "correctness",
+      "default_level": "warn",
+      "description": "A stage whose last USER is root (`root`, `0`, `root:group`, `0:group`).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "FROM alpine\nFROM alpine:3 AS build\nFROM build\nFROM scratch\nFROM alpine:3 AS build\nFROM $BASE\nFROM localhost:5000/img\nFROM alpine@sha256:abc\nUSER root\nUSER app\nUSER 0:0\nCOPY --from=build /a /b\nCOPY --from=nope /a /b\nCOPY --from=0 /a /b\nCOPY --from=9 /a /b\nCOPY --from=alpine:3 /a /b\nCMD [\"a\"]\nCMD [\"b\"]\nENTRYPOINT [\"a\"]\nENTRYPOINT [\"b\"]\nHEALTHCHECK CMD a\nHEALTHCHECK CMD b\nFROM alpine:3 AS last\nCOPY --from=last /a /b\nUSER app\nCMD [\"a\"]\nUSER root\n",
+        "language": "dockerfile",
+        "spans": [
+          {
+            "column": 1,
+            "length": 8,
+            "line": 11
+          },
+          {
+            "column": 1,
+            "length": 9,
+            "line": 27
+          }
+        ]
+      },
+      "fix": null,
+      "id": "last-user-not-root",
+      "languages": [
+        "dockerfile"
+      ],
+      "options": [],
+      "presets": [
+        "dockerfile/hadolint"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "warn",
+      "description": "A RUN that calls apt.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "FROM alpine:3\nRUN sudo make install\nRUN cd /app && make\nRUN service nginx start\nRUN apt update\nRUN wget https://example.com/f\nRUN wget -q https://example.com/f\nRUN ln -sf /bin/bash /bin/sh\nRUN echo sudo cd ps\nRUN make && \\\n    sudo make install\nONBUILD RUN sudo make\nRUN [\"sudo\", \"make\"]\n",
+        "language": "dockerfile",
+        "spans": [
+          {
+            "column": 1,
+            "length": 14,
+            "line": 5
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-apt",
+      "languages": [
+        "dockerfile"
+      ],
+      "options": [],
+      "presets": [
+        "dockerfile/hadolint"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "warn",
+      "description": "A `COPY --from` with `/` as a source and as the target.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "FROM alpine:latest\nFROM --platform=linux/amd64 alpine:3\nFROM --platform=$TARGETPLATFORM alpine:3\nFROM --platform=$BUILDPLATFORM alpine:3 AS scratch\nFROM alpine:3@sha256:abc\nWORKDIR app\nWORKDIR /app\nWORKDIR $HOME\nEXPOSE 8080 70000\nEXPOSE 80/tcp 443\nCMD node server.js\nCMD [\"node\", \"server.js\"]\nENTRYPOINT /run.sh\nONBUILD CMD echo hi\nONBUILD ONBUILD RUN x\nMAINTAINER a@b.c\nCOPY --from=0 / /\nCOPY a b /dest\nCOPY a b /dest/\nCOPY a /dest\nADD app.js /app/\nADD app.tar.gz /app/\nADD https://example.com/f /app/\nUSER app\nUSER 1000:1000\nUSER $UID\nENV DB_PASSWORD=x\nENV A=1 NPM_TOKEN=y\nARG GITHUB_TOKEN\nARG VERSION=1\nENV AWS_ACCESS_KEY_ID=x\n",
+        "language": "dockerfile",
+        "spans": [
+          {
+            "column": 1,
+            "length": 17,
+            "line": 17
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-copy-whole-stage",
+      "languages": [
+        "dockerfile"
+      ],
+      "options": [],
+      "presets": [
+        "dockerfile/hadolint"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "warn",
+      "description": "A FROM with a fixed `--platform`; a variable such as `$BUILDPLATFORM` is fine.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "FROM alpine:latest\nFROM --platform=linux/amd64 alpine:3\nFROM --platform=$TARGETPLATFORM alpine:3\nFROM --platform=$BUILDPLATFORM alpine:3 AS scratch\nFROM alpine:3@sha256:abc\nWORKDIR app\nWORKDIR /app\nWORKDIR $HOME\nEXPOSE 8080 70000\nEXPOSE 80/tcp 443\nCMD node server.js\nCMD [\"node\", \"server.js\"]\nENTRYPOINT /run.sh\nONBUILD CMD echo hi\nONBUILD ONBUILD RUN x\nMAINTAINER a@b.c\nCOPY --from=0 / /\nCOPY a b /dest\nCOPY a b /dest/\nCOPY a /dest\nADD app.js /app/\nADD app.tar.gz /app/\nADD https://example.com/f /app/\nUSER app\nUSER 1000:1000\nUSER $UID\nENV DB_PASSWORD=x\nENV A=1 NPM_TOKEN=y\nARG GITHUB_TOKEN\nARG VERSION=1\nENV AWS_ACCESS_KEY_ID=x\n",
+        "language": "dockerfile",
+        "spans": [
+          {
+            "column": 1,
+            "length": 36,
+            "line": 2
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-from-platform",
+      "languages": [
+        "dockerfile"
+      ],
+      "options": [],
+      "presets": [
+        "dockerfile/hadolint"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "A RUN that calls ssh, vim, shutdown, service, ps, free, top, kill or mount.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "FROM alpine:3\nRUN sudo make install\nRUN cd /app && make\nRUN service nginx start\nRUN apt update\nRUN wget https://example.com/f\nRUN wget -q https://example.com/f\nRUN ln -sf /bin/bash /bin/sh\nRUN echo sudo cd ps\nRUN make && \\\n    sudo make install\nONBUILD RUN sudo make\nRUN [\"sudo\", \"make\"]\n",
+        "language": "dockerfile",
+        "spans": [
+          {
+            "column": 1,
+            "length": 23,
+            "line": 4
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-interactive-commands",
+      "languages": [
+        "dockerfile"
+      ],
+      "options": [],
+      "presets": [
+        "dockerfile/hadolint"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "warn",
+      "description": "A FROM image tagged `latest` (without a digest).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "FROM alpine:latest\nFROM --platform=linux/amd64 alpine:3\nFROM --platform=$TARGETPLATFORM alpine:3\nFROM --platform=$BUILDPLATFORM alpine:3 AS scratch\nFROM alpine:3@sha256:abc\nWORKDIR app\nWORKDIR /app\nWORKDIR $HOME\nEXPOSE 8080 70000\nEXPOSE 80/tcp 443\nCMD node server.js\nCMD [\"node\", \"server.js\"]\nENTRYPOINT /run.sh\nONBUILD CMD echo hi\nONBUILD ONBUILD RUN x\nMAINTAINER a@b.c\nCOPY --from=0 / /\nCOPY a b /dest\nCOPY a b /dest/\nCOPY a /dest\nADD app.js /app/\nADD app.tar.gz /app/\nADD https://example.com/f /app/\nUSER app\nUSER 1000:1000\nUSER $UID\nENV DB_PASSWORD=x\nENV A=1 NPM_TOKEN=y\nARG GITHUB_TOKEN\nARG VERSION=1\nENV AWS_ACCESS_KEY_ID=x\n",
+        "language": "dockerfile",
+        "spans": [
+          {
+            "column": 1,
+            "length": 18,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-latest-tag",
+      "languages": [
+        "dockerfile"
+      ],
+      "options": [],
+      "presets": [
+        "dockerfile/hadolint"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "cleanup",
+      "default_level": "error",
+      "description": "A MAINTAINER instruction.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "FROM alpine:latest\nFROM --platform=linux/amd64 alpine:3\nFROM --platform=$TARGETPLATFORM alpine:3\nFROM --platform=$BUILDPLATFORM alpine:3 AS scratch\nFROM alpine:3@sha256:abc\nWORKDIR app\nWORKDIR /app\nWORKDIR $HOME\nEXPOSE 8080 70000\nEXPOSE 80/tcp 443\nCMD node server.js\nCMD [\"node\", \"server.js\"]\nENTRYPOINT /run.sh\nONBUILD CMD echo hi\nONBUILD ONBUILD RUN x\nMAINTAINER a@b.c\nCOPY --from=0 / /\nCOPY a b /dest\nCOPY a b /dest/\nCOPY a /dest\nADD app.js /app/\nADD app.tar.gz /app/\nADD https://example.com/f /app/\nUSER app\nUSER 1000:1000\nUSER $UID\nENV DB_PASSWORD=x\nENV A=1 NPM_TOKEN=y\nARG GITHUB_TOKEN\nARG VERSION=1\nENV AWS_ACCESS_KEY_ID=x\n",
+        "language": "dockerfile",
+        "spans": [
+          {
+            "column": 1,
+            "length": 16,
+            "line": 16
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-maintainer",
+      "languages": [
+        "dockerfile"
+      ],
+      "options": [],
+      "presets": [
+        "dockerfile/hadolint"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "correctness",
+      "default_level": "error",
+      "description": "An ONBUILD whose instruction is ONBUILD, FROM or MAINTAINER.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "FROM alpine:latest\nFROM --platform=linux/amd64 alpine:3\nFROM --platform=$TARGETPLATFORM alpine:3\nFROM --platform=$BUILDPLATFORM alpine:3 AS scratch\nFROM alpine:3@sha256:abc\nWORKDIR app\nWORKDIR /app\nWORKDIR $HOME\nEXPOSE 8080 70000\nEXPOSE 80/tcp 443\nCMD node server.js\nCMD [\"node\", \"server.js\"]\nENTRYPOINT /run.sh\nONBUILD CMD echo hi\nONBUILD ONBUILD RUN x\nMAINTAINER a@b.c\nCOPY --from=0 / /\nCOPY a b /dest\nCOPY a b /dest/\nCOPY a /dest\nADD app.js /app/\nADD app.tar.gz /app/\nADD https://example.com/f /app/\nUSER app\nUSER 1000:1000\nUSER $UID\nENV DB_PASSWORD=x\nENV A=1 NPM_TOKEN=y\nARG GITHUB_TOKEN\nARG VERSION=1\nENV AWS_ACCESS_KEY_ID=x\n",
+        "language": "dockerfile",
+        "spans": [
+          {
+            "column": 1,
+            "length": 21,
+            "line": 15
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-nested-onbuild",
+      "languages": [
+        "dockerfile"
+      ],
+      "options": [],
+      "presets": [
+        "dockerfile/hadolint"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "cleanup",
+      "default_level": "warn",
+      "description": "A FROM with `--platform=$TARGETPLATFORM`, which is what it does without the option.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "FROM alpine:latest\nFROM --platform=linux/amd64 alpine:3\nFROM --platform=$TARGETPLATFORM alpine:3\nFROM --platform=$BUILDPLATFORM alpine:3 AS scratch\nFROM alpine:3@sha256:abc\nWORKDIR app\nWORKDIR /app\nWORKDIR $HOME\nEXPOSE 8080 70000\nEXPOSE 80/tcp 443\nCMD node server.js\nCMD [\"node\", \"server.js\"]\nENTRYPOINT /run.sh\nONBUILD CMD echo hi\nONBUILD ONBUILD RUN x\nMAINTAINER a@b.c\nCOPY --from=0 / /\nCOPY a b /dest\nCOPY a b /dest/\nCOPY a /dest\nADD app.js /app/\nADD app.tar.gz /app/\nADD https://example.com/f /app/\nUSER app\nUSER 1000:1000\nUSER $UID\nENV DB_PASSWORD=x\nENV A=1 NPM_TOKEN=y\nARG GITHUB_TOKEN\nARG VERSION=1\nENV AWS_ACCESS_KEY_ID=x\n",
+        "language": "dockerfile",
+        "spans": [
+          {
+            "column": 1,
+            "length": 40,
+            "line": 3
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-redundant-target-platform",
+      "languages": [
+        "dockerfile"
+      ],
+      "options": [],
+      "presets": [
+        "dockerfile/hadolint"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "warn",
+      "description": "A stage named `scratch` or `context`.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "FROM alpine:latest\nFROM --platform=linux/amd64 alpine:3\nFROM --platform=$TARGETPLATFORM alpine:3\nFROM --platform=$BUILDPLATFORM alpine:3 AS scratch\nFROM alpine:3@sha256:abc\nWORKDIR app\nWORKDIR /app\nWORKDIR $HOME\nEXPOSE 8080 70000\nEXPOSE 80/tcp 443\nCMD node server.js\nCMD [\"node\", \"server.js\"]\nENTRYPOINT /run.sh\nONBUILD CMD echo hi\nONBUILD ONBUILD RUN x\nMAINTAINER a@b.c\nCOPY --from=0 / /\nCOPY a b /dest\nCOPY a b /dest/\nCOPY a /dest\nADD app.js /app/\nADD app.tar.gz /app/\nADD https://example.com/f /app/\nUSER app\nUSER 1000:1000\nUSER $UID\nENV DB_PASSWORD=x\nENV A=1 NPM_TOKEN=y\nARG GITHUB_TOKEN\nARG VERSION=1\nENV AWS_ACCESS_KEY_ID=x\n",
+        "language": "dockerfile",
+        "spans": [
+          {
+            "column": 1,
+            "length": 50,
+            "line": 4
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-reserved-stage-name",
+      "languages": [
+        "dockerfile"
+      ],
+      "options": [],
+      "presets": [
+        "dockerfile/hadolint"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "warn",
+      "description": "An ARG or ENV whose name contains `api_key`, `client_key`, `password`, `private`, `secret`, `token` or `username`, or is a well-known credential variable. Build secrets belong in `--mount=type=secret`.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "FROM alpine:latest\nFROM --platform=linux/amd64 alpine:3\nFROM --platform=$TARGETPLATFORM alpine:3\nFROM --platform=$BUILDPLATFORM alpine:3 AS scratch\nFROM alpine:3@sha256:abc\nWORKDIR app\nWORKDIR /app\nWORKDIR $HOME\nEXPOSE 8080 70000\nEXPOSE 80/tcp 443\nCMD node server.js\nCMD [\"node\", \"server.js\"]\nENTRYPOINT /run.sh\nONBUILD CMD echo hi\nONBUILD ONBUILD RUN x\nMAINTAINER a@b.c\nCOPY --from=0 / /\nCOPY a b /dest\nCOPY a b /dest/\nCOPY a /dest\nADD app.js /app/\nADD app.tar.gz /app/\nADD https://example.com/f /app/\nUSER app\nUSER 1000:1000\nUSER $UID\nENV DB_PASSWORD=x\nENV A=1 NPM_TOKEN=y\nARG GITHUB_TOKEN\nARG VERSION=1\nENV AWS_ACCESS_KEY_ID=x\n",
+        "language": "dockerfile",
+        "spans": [
+          {
+            "column": 1,
+            "length": 17,
+            "line": 27
+          },
+          {
+            "column": 1,
+            "length": 19,
+            "line": 28
+          },
+          {
+            "column": 1,
+            "length": 16,
+            "line": 29
+          },
+          {
+            "column": 1,
+            "length": 23,
+            "line": 31
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-secret-in-env",
+      "languages": [
+        "dockerfile"
+      ],
+      "options": [],
+      "presets": [
+        "dockerfile/hadolint"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "warn",
+      "description": "A RUN that links /bin/sh.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "FROM alpine:3\nRUN sudo make install\nRUN cd /app && make\nRUN service nginx start\nRUN apt update\nRUN wget https://example.com/f\nRUN wget -q https://example.com/f\nRUN ln -sf /bin/bash /bin/sh\nRUN echo sudo cd ps\nRUN make && \\\n    sudo make install\nONBUILD RUN sudo make\nRUN [\"sudo\", \"make\"]\n",
+        "language": "dockerfile",
+        "spans": [
+          {
+            "column": 1,
+            "length": 28,
+            "line": 8
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-shell-symlink",
+      "languages": [
+        "dockerfile"
+      ],
+      "options": [],
+      "presets": [
+        "dockerfile/hadolint"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "correctness",
+      "default_level": "error",
+      "description": "A RUN that calls sudo.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "FROM alpine:3\nRUN sudo make install\nRUN cd /app && make\nRUN service nginx start\nRUN apt update\nRUN wget https://example.com/f\nRUN wget -q https://example.com/f\nRUN ln -sf /bin/bash /bin/sh\nRUN echo sudo cd ps\nRUN make && \\\n    sudo make install\nONBUILD RUN sudo make\nRUN [\"sudo\", \"make\"]\n",
+        "language": "dockerfile",
+        "spans": [
+          {
+            "column": 1,
+            "length": 21,
+            "line": 2
+          },
+          {
+            "column": 1,
+            "length": 1,
+            "line": 10
+          },
+          {
+            "column": 9,
+            "length": 13,
+            "line": 12
+          },
+          {
+            "column": 1,
+            "length": 20,
+            "line": 13
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-sudo",
+      "languages": [
+        "dockerfile"
+      ],
+      "options": [],
+      "presets": [
+        "dockerfile/hadolint"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "warn",
+      "description": "An npm install package without a version.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "FROM node:20\nRUN pip install flask\nRUN pip install flask==2.0 \"requests>=2\"\nRUN pip3 install -r requirements.txt\nRUN pip install --no-cache-dir -i https://x/simple flask==1\nRUN pip install .\nRUN pip install git+https://github.com/a/b\nRUN pip install git+https://github.com/a/b@v1\nRUN npm install\nRUN npm install express\nRUN npm install express@4 @scope/pkg@1\nRUN npm install --loglevel verbose express@4\nRUN npm install ./local\nRUN gem install rails\nRUN gem install rails:7.0\nRUN gem install rails -v 7.0\nRUN go install example.com/x\nRUN go install example.com/x@v1\nRUN go install example.com/x@latest\n",
+        "language": "dockerfile",
+        "spans": [
+          {
+            "column": 1,
+            "length": 23,
+            "line": 10
+          }
+        ]
+      },
+      "fix": null,
+      "id": "npm-pin-versions",
+      "languages": [
+        "dockerfile"
+      ],
+      "options": [],
+      "presets": [
+        "dockerfile/hadolint"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "A USER that is a name rather than a numeric id (a variable is accepted).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "FROM alpine:latest\nFROM --platform=linux/amd64 alpine:3\nFROM --platform=$TARGETPLATFORM alpine:3\nFROM --platform=$BUILDPLATFORM alpine:3 AS scratch\nFROM alpine:3@sha256:abc\nWORKDIR app\nWORKDIR /app\nWORKDIR $HOME\nEXPOSE 8080 70000\nEXPOSE 80/tcp 443\nCMD node server.js\nCMD [\"node\", \"server.js\"]\nENTRYPOINT /run.sh\nONBUILD CMD echo hi\nONBUILD ONBUILD RUN x\nMAINTAINER a@b.c\nCOPY --from=0 / /\nCOPY a b /dest\nCOPY a b /dest/\nCOPY a /dest\nADD app.js /app/\nADD app.tar.gz /app/\nADD https://example.com/f /app/\nUSER app\nUSER 1000:1000\nUSER $UID\nENV DB_PASSWORD=x\nENV A=1 NPM_TOKEN=y\nARG GITHUB_TOKEN\nARG VERSION=1\nENV AWS_ACCESS_KEY_ID=x\n",
+        "language": "dockerfile",
+        "spans": [
+          {
+            "column": 1,
+            "length": 8,
+            "line": 24
+          }
+        ]
+      },
+      "fix": null,
+      "id": "numeric-user-id",
+      "languages": [
+        "dockerfile"
+      ],
+      "options": [],
+      "presets": [
+        "dockerfile/hadolint"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "warn",
+      "description": "A pip install package without a version.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "FROM node:20\nRUN pip install flask\nRUN pip install flask==2.0 \"requests>=2\"\nRUN pip3 install -r requirements.txt\nRUN pip install --no-cache-dir -i https://x/simple flask==1\nRUN pip install .\nRUN pip install git+https://github.com/a/b\nRUN pip install git+https://github.com/a/b@v1\nRUN npm install\nRUN npm install express\nRUN npm install express@4 @scope/pkg@1\nRUN npm install --loglevel verbose express@4\nRUN npm install ./local\nRUN gem install rails\nRUN gem install rails:7.0\nRUN gem install rails -v 7.0\nRUN go install example.com/x\nRUN go install example.com/x@v1\nRUN go install example.com/x@latest\n",
+        "language": "dockerfile",
+        "spans": [
+          {
+            "column": 1,
+            "length": 21,
+            "line": 2
+          },
+          {
+            "column": 1,
+            "length": 42,
+            "line": 7
+          }
+        ]
+      },
+      "fix": null,
+      "id": "pip-pin-versions",
+      "languages": [
+        "dockerfile"
+      ],
+      "options": [],
+      "presets": [
+        "dockerfile/hadolint"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "warn",
+      "description": "A yum or dnf install package without a version.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "FROM fedora:40\nRUN yum install curl\nRUN yum install -y curl-7.0 && yum clean all\nRUN yum install -y curl-7.0 && rm -rf /var/cache/yum/*\nRUN yum install -y nginx-1.2 && yum clean all\nRUN dnf install curl\nRUN dnf install -y curl-7.0\nRUN dnf install -y curl-7.0 && dnf clean all\nRUN microdnf install -y curl-7.0\nRUN dnf install -y ./a.rpm && dnf clean all\nRUN zypper install curl\nRUN zypper install -y curl=7.0 && zypper clean\nRUN zypper install -y curl\nRUN zypper dist-upgrade\nRUN zypper -n in curl=1 && zypper cc\n",
+        "language": "dockerfile",
+        "spans": [
+          {
+            "column": 1,
+            "length": 20,
+            "line": 2
+          },
+          {
+            "column": 1,
+            "length": 20,
+            "line": 6
+          },
+          {
+            "column": 1,
+            "length": 43,
+            "line": 10
+          }
+        ]
+      },
+      "fix": null,
+      "id": "rpm-pin-versions",
+      "languages": [
+        "dockerfile"
+      ],
+      "options": [],
+      "presets": [
+        "dockerfile/hadolint"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "warn",
+      "description": "A second CMD in one stage.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "FROM alpine:latest\nFROM --platform=linux/amd64 alpine:3\nFROM --platform=$TARGETPLATFORM alpine:3\nFROM --platform=$BUILDPLATFORM alpine:3 AS scratch\nFROM alpine:3@sha256:abc\nWORKDIR app\nWORKDIR /app\nWORKDIR $HOME\nEXPOSE 8080 70000\nEXPOSE 80/tcp 443\nCMD node server.js\nCMD [\"node\", \"server.js\"]\nENTRYPOINT /run.sh\nONBUILD CMD echo hi\nONBUILD ONBUILD RUN x\nMAINTAINER a@b.c\nCOPY --from=0 / /\nCOPY a b /dest\nCOPY a b /dest/\nCOPY a /dest\nADD app.js /app/\nADD app.tar.gz /app/\nADD https://example.com/f /app/\nUSER app\nUSER 1000:1000\nUSER $UID\nENV DB_PASSWORD=x\nENV A=1 NPM_TOKEN=y\nARG GITHUB_TOKEN\nARG VERSION=1\nENV AWS_ACCESS_KEY_ID=x\n",
+        "language": "dockerfile",
+        "spans": [
+          {
+            "column": 1,
+            "length": 25,
+            "line": 12
+          }
+        ]
+      },
+      "fix": null,
+      "id": "single-cmd",
+      "languages": [
+        "dockerfile"
+      ],
+      "options": [],
+      "presets": [
+        "dockerfile/hadolint"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "error",
+      "description": "A second ENTRYPOINT in one stage.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "FROM alpine\nFROM alpine:3 AS build\nFROM build\nFROM scratch\nFROM alpine:3 AS build\nFROM $BASE\nFROM localhost:5000/img\nFROM alpine@sha256:abc\nUSER root\nUSER app\nUSER 0:0\nCOPY --from=build /a /b\nCOPY --from=nope /a /b\nCOPY --from=0 /a /b\nCOPY --from=9 /a /b\nCOPY --from=alpine:3 /a /b\nCMD [\"a\"]\nCMD [\"b\"]\nENTRYPOINT [\"a\"]\nENTRYPOINT [\"b\"]\nHEALTHCHECK CMD a\nHEALTHCHECK CMD b\nFROM alpine:3 AS last\nCOPY --from=last /a /b\nUSER app\nCMD [\"a\"]\nUSER root\n",
+        "language": "dockerfile",
+        "spans": [
+          {
+            "column": 1,
+            "length": 16,
+            "line": 20
+          }
+        ]
+      },
+      "fix": null,
+      "id": "single-entrypoint",
+      "languages": [
+        "dockerfile"
+      ],
+      "options": [],
+      "presets": [
+        "dockerfile/hadolint"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "error",
+      "description": "A second HEALTHCHECK in one stage.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "FROM alpine\nFROM alpine:3 AS build\nFROM build\nFROM scratch\nFROM alpine:3 AS build\nFROM $BASE\nFROM localhost:5000/img\nFROM alpine@sha256:abc\nUSER root\nUSER app\nUSER 0:0\nCOPY --from=build /a /b\nCOPY --from=nope /a /b\nCOPY --from=0 /a /b\nCOPY --from=9 /a /b\nCOPY --from=alpine:3 /a /b\nCMD [\"a\"]\nCMD [\"b\"]\nENTRYPOINT [\"a\"]\nENTRYPOINT [\"b\"]\nHEALTHCHECK CMD a\nHEALTHCHECK CMD b\nFROM alpine:3 AS last\nCOPY --from=last /a /b\nUSER app\nCMD [\"a\"]\nUSER root\n",
+        "language": "dockerfile",
+        "spans": [
+          {
+            "column": 1,
+            "length": 17,
+            "line": 22
+          }
+        ]
+      },
+      "fix": null,
+      "id": "single-healthcheck",
+      "languages": [
+        "dockerfile"
+      ],
+      "options": [],
+      "presets": [
+        "dockerfile/hadolint"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "warn",
+      "description": "A FROM image with neither a tag nor a digest, which builds on whatever `latest` is. `scratch`, a variable and an earlier stage's name are fine.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "FROM alpine\nFROM alpine:3 AS build\nFROM build\nFROM scratch\nFROM alpine:3 AS build\nFROM $BASE\nFROM localhost:5000/img\nFROM alpine@sha256:abc\nUSER root\nUSER app\nUSER 0:0\nCOPY --from=build /a /b\nCOPY --from=nope /a /b\nCOPY --from=0 /a /b\nCOPY --from=9 /a /b\nCOPY --from=alpine:3 /a /b\nCMD [\"a\"]\nCMD [\"b\"]\nENTRYPOINT [\"a\"]\nENTRYPOINT [\"b\"]\nHEALTHCHECK CMD a\nHEALTHCHECK CMD b\nFROM alpine:3 AS last\nCOPY --from=last /a /b\nUSER app\nCMD [\"a\"]\nUSER root\n",
+        "language": "dockerfile",
+        "spans": [
+          {
+            "column": 1,
+            "length": 11,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "untagged-base-image",
+      "languages": [
+        "dockerfile"
+      ],
+      "options": [],
+      "presets": [
+        "dockerfile/hadolint"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "warn",
+      "description": "A RUN that calls cd.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "FROM alpine:3\nRUN sudo make install\nRUN cd /app && make\nRUN service nginx start\nRUN apt update\nRUN wget https://example.com/f\nRUN wget -q https://example.com/f\nRUN ln -sf /bin/bash /bin/sh\nRUN echo sudo cd ps\nRUN make && \\\n    sudo make install\nONBUILD RUN sudo make\nRUN [\"sudo\", \"make\"]\n",
+        "language": "dockerfile",
+        "spans": [
+          {
+            "column": 1,
+            "length": 19,
+            "line": 3
+          }
+        ]
+      },
+      "fix": null,
+      "id": "use-workdir-not-cd",
+      "languages": [
+        "dockerfile"
+      ],
+      "options": [],
+      "presets": [
+        "dockerfile/hadolint"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A wget call with no progress, quiet or log-file flag.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "FROM alpine:3\nRUN sudo make install\nRUN cd /app && make\nRUN service nginx start\nRUN apt update\nRUN wget https://example.com/f\nRUN wget -q https://example.com/f\nRUN ln -sf /bin/bash /bin/sh\nRUN echo sudo cd ps\nRUN make && \\\n    sudo make install\nONBUILD RUN sudo make\nRUN [\"sudo\", \"make\"]\n",
+        "language": "dockerfile",
+        "spans": [
+          {
+            "column": 1,
+            "length": 30,
+            "line": 6
+          }
+        ]
+      },
+      "fix": null,
+      "id": "wget-progress",
+      "languages": [
+        "dockerfile"
+      ],
+      "options": [],
+      "presets": [
+        "dockerfile/hadolint"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "correctness",
+      "default_level": "error",
+      "description": "A WORKDIR whose path is not absolute (a leading `/`, a drive letter or a variable).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "FROM alpine:latest\nFROM --platform=linux/amd64 alpine:3\nFROM --platform=$TARGETPLATFORM alpine:3\nFROM --platform=$BUILDPLATFORM alpine:3 AS scratch\nFROM alpine:3@sha256:abc\nWORKDIR app\nWORKDIR /app\nWORKDIR $HOME\nEXPOSE 8080 70000\nEXPOSE 80/tcp 443\nCMD node server.js\nCMD [\"node\", \"server.js\"]\nENTRYPOINT /run.sh\nONBUILD CMD echo hi\nONBUILD ONBUILD RUN x\nMAINTAINER a@b.c\nCOPY --from=0 / /\nCOPY a b /dest\nCOPY a b /dest/\nCOPY a /dest\nADD app.js /app/\nADD app.tar.gz /app/\nADD https://example.com/f /app/\nUSER app\nUSER 1000:1000\nUSER $UID\nENV DB_PASSWORD=x\nENV A=1 NPM_TOKEN=y\nARG GITHUB_TOKEN\nARG VERSION=1\nENV AWS_ACCESS_KEY_ID=x\n",
+        "language": "dockerfile",
+        "spans": [
+          {
+            "column": 1,
+            "length": 11,
+            "line": 6
+          }
+        ]
+      },
+      "fix": null,
+      "id": "workdir-absolute",
+      "languages": [
+        "dockerfile"
+      ],
+      "options": [],
+      "presets": [
+        "dockerfile/hadolint"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "performance",
+      "default_level": "warn",
+      "description": "yum install with no yum clean all after it.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "FROM fedora:40\nRUN yum install curl\nRUN yum install -y curl-7.0 && yum clean all\nRUN yum install -y curl-7.0 && rm -rf /var/cache/yum/*\nRUN yum install -y nginx-1.2 && yum clean all\nRUN dnf install curl\nRUN dnf install -y curl-7.0\nRUN dnf install -y curl-7.0 && dnf clean all\nRUN microdnf install -y curl-7.0\nRUN dnf install -y ./a.rpm && dnf clean all\nRUN zypper install curl\nRUN zypper install -y curl=7.0 && zypper clean\nRUN zypper install -y curl\nRUN zypper dist-upgrade\nRUN zypper -n in curl=1 && zypper cc\n",
+        "language": "dockerfile",
+        "spans": [
+          {
+            "column": 1,
+            "length": 20,
+            "line": 2
+          }
+        ]
+      },
+      "fix": null,
+      "id": "yum-clean",
+      "languages": [
+        "dockerfile"
+      ],
+      "options": [],
+      "presets": [
+        "dockerfile/hadolint"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "correctness",
+      "default_level": "warn",
+      "description": "yum install without -y.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "FROM fedora:40\nRUN yum install curl\nRUN yum install -y curl-7.0 && yum clean all\nRUN yum install -y curl-7.0 && rm -rf /var/cache/yum/*\nRUN yum install -y nginx-1.2 && yum clean all\nRUN dnf install curl\nRUN dnf install -y curl-7.0\nRUN dnf install -y curl-7.0 && dnf clean all\nRUN microdnf install -y curl-7.0\nRUN dnf install -y ./a.rpm && dnf clean all\nRUN zypper install curl\nRUN zypper install -y curl=7.0 && zypper clean\nRUN zypper install -y curl\nRUN zypper dist-upgrade\nRUN zypper -n in curl=1 && zypper cc\n",
+        "language": "dockerfile",
+        "spans": [
+          {
+            "column": 1,
+            "length": 20,
+            "line": 2
+          }
+        ]
+      },
+      "fix": null,
+      "id": "yum-yes",
+      "languages": [
+        "dockerfile"
+      ],
+      "options": [],
+      "presets": [
+        "dockerfile/hadolint"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "performance",
+      "default_level": "warn",
+      "description": "zypper install with no zypper clean after it.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "FROM fedora:40\nRUN yum install curl\nRUN yum install -y curl-7.0 && yum clean all\nRUN yum install -y curl-7.0 && rm -rf /var/cache/yum/*\nRUN yum install -y nginx-1.2 && yum clean all\nRUN dnf install curl\nRUN dnf install -y curl-7.0\nRUN dnf install -y curl-7.0 && dnf clean all\nRUN microdnf install -y curl-7.0\nRUN dnf install -y ./a.rpm && dnf clean all\nRUN zypper install curl\nRUN zypper install -y curl=7.0 && zypper clean\nRUN zypper install -y curl\nRUN zypper dist-upgrade\nRUN zypper -n in curl=1 && zypper cc\n",
+        "language": "dockerfile",
+        "spans": [
+          {
+            "column": 1,
+            "length": 23,
+            "line": 11
+          },
+          {
+            "column": 1,
+            "length": 26,
+            "line": 13
+          }
+        ]
+      },
+      "fix": null,
+      "id": "zypper-clean",
+      "languages": [
+        "dockerfile"
+      ],
+      "options": [],
+      "presets": [
+        "dockerfile/hadolint"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "warn",
+      "description": "A zypper dist-upgrade.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "FROM fedora:40\nRUN yum install curl\nRUN yum install -y curl-7.0 && yum clean all\nRUN yum install -y curl-7.0 && rm -rf /var/cache/yum/*\nRUN yum install -y nginx-1.2 && yum clean all\nRUN dnf install curl\nRUN dnf install -y curl-7.0\nRUN dnf install -y curl-7.0 && dnf clean all\nRUN microdnf install -y curl-7.0\nRUN dnf install -y ./a.rpm && dnf clean all\nRUN zypper install curl\nRUN zypper install -y curl=7.0 && zypper clean\nRUN zypper install -y curl\nRUN zypper dist-upgrade\nRUN zypper -n in curl=1 && zypper cc\n",
+        "language": "dockerfile",
+        "spans": [
+          {
+            "column": 1,
+            "length": 23,
+            "line": 14
+          }
+        ]
+      },
+      "fix": null,
+      "id": "zypper-no-dist-upgrade",
+      "languages": [
+        "dockerfile"
+      ],
+      "options": [],
+      "presets": [
+        "dockerfile/hadolint"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "warn",
+      "description": "A zypper install package without a version.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "FROM fedora:40\nRUN yum install curl\nRUN yum install -y curl-7.0 && yum clean all\nRUN yum install -y curl-7.0 && rm -rf /var/cache/yum/*\nRUN yum install -y nginx-1.2 && yum clean all\nRUN dnf install curl\nRUN dnf install -y curl-7.0\nRUN dnf install -y curl-7.0 && dnf clean all\nRUN microdnf install -y curl-7.0\nRUN dnf install -y ./a.rpm && dnf clean all\nRUN zypper install curl\nRUN zypper install -y curl=7.0 && zypper clean\nRUN zypper install -y curl\nRUN zypper dist-upgrade\nRUN zypper -n in curl=1 && zypper cc\n",
+        "language": "dockerfile",
+        "spans": [
+          {
+            "column": 1,
+            "length": 23,
+            "line": 11
+          },
+          {
+            "column": 1,
+            "length": 26,
+            "line": 13
+          }
+        ]
+      },
+      "fix": null,
+      "id": "zypper-pin-versions",
+      "languages": [
+        "dockerfile"
+      ],
+      "options": [],
+      "presets": [
+        "dockerfile/hadolint"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "correctness",
+      "default_level": "warn",
+      "description": "zypper install without -y.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "FROM fedora:40\nRUN yum install curl\nRUN yum install -y curl-7.0 && yum clean all\nRUN yum install -y curl-7.0 && rm -rf /var/cache/yum/*\nRUN yum install -y nginx-1.2 && yum clean all\nRUN dnf install curl\nRUN dnf install -y curl-7.0\nRUN dnf install -y curl-7.0 && dnf clean all\nRUN microdnf install -y curl-7.0\nRUN dnf install -y ./a.rpm && dnf clean all\nRUN zypper install curl\nRUN zypper install -y curl=7.0 && zypper clean\nRUN zypper install -y curl\nRUN zypper dist-upgrade\nRUN zypper -n in curl=1 && zypper cc\n",
+        "language": "dockerfile",
+        "spans": [
+          {
+            "column": 1,
+            "length": 23,
+            "line": 11
+          }
+        ]
+      },
+      "fix": null,
+      "id": "zypper-yes",
+      "languages": [
+        "dockerfile"
+      ],
+      "options": [],
+      "presets": [
+        "dockerfile/hadolint"
+      ],
+      "upstream": []
+    },
+    {
       "category": "style",
       "default_level": "off",
       "description": "`get` goes before `set` or `init`, and `add` before `remove`. The fix swaps the two accessors (not offered when a comment stands between or in them).",

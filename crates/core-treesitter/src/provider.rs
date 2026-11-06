@@ -3,7 +3,7 @@
 use crate::{Composite, Engine, Mapping};
 use core_config::OptionSchema;
 use core_format::NodeFormatter;
-use core_rules::{Rule, RuleHooks};
+use core_rules::{Family, Rule, RuleHooks};
 use core_syntax::{Grammar, LanguageId, SyntaxNode};
 use provider_api::{
     Capabilities, FileMatcher, FilePattern, FnSnippets, LanguageProvider, ParseError, ParseResult,
@@ -27,6 +27,8 @@ pub struct Spec {
     pub rules: &'static [&'static dyn Rule],
     /// The text of the built-in pattern files (`provider_api::pattern_files!()`).
     pub pattern_files: &'static [&'static str],
+    /// The families the pattern files may name.
+    pub families: &'static [Family],
     /// Semantic checks the grammar cannot express; run on a tree without recovery nodes, and
     /// reported as parse errors.
     pub validate: Option<fn(&SyntaxNode, &str) -> Vec<ParseError>>,
@@ -69,10 +71,11 @@ impl TreeSitterProvider {
                 }))
                 .collect(),
             schema: spec.schema,
-            rules: provider_api::with_pattern_rules(
+            rules: provider_api::with_pattern_families(
                 spec.rules,
                 &spec.grammar.language,
                 spec.pattern_files,
+                spec.families,
                 FnSnippets::new(spec.grammar, move |text| parser.parse(text)),
             ),
             engine,

@@ -20,4 +20,4 @@ pub use provider::{
     ProviderError, RUNTIME_MISSING, RUNTIME_URL, SourceError, SourceFile,
 };
 pub use proxy::{ProxyError, WorkerConfig, WorkerProxy};
-pub use snippets::{FnSnippets, ProviderSnippets, with_pattern_rules};
+pub use snippets::{FnSnippets, ProviderSnippets, with_pattern_families, with_pattern_rules};

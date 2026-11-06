@@ -28,6 +28,7 @@ pub fn provider() -> TreeSitterProvider {
         hooks: &hooks::TomlHooks,
         rules: rules::RULES,
         pattern_files: provider_api::pattern_files!(),
+        families: &[],
         validate: Some(validate::validate),
     })
 }

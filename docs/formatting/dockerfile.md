@@ -19,8 +19,7 @@ Known gap: the grammar fails on a shell line that starts with `[` right after an
 dockerfmt (reteps/dockerfmt) is the comparable tool; it rewrites shell code with mvdan/sh, converts legacy `ENV` and `MAINTAINER`, and ships Linux and macOS binaries only, so there is no parity entry: its output would differ on nearly every `RUN`, and Sudsy's conservative layout leaves shell code to a later Shell language.
 
 ## Options
-<!-- generated:options -->
-| Option | Values | Default | Description |
+<!-- generated:options -->| Option | Values | Default | Description |
 |---|---|---|---|
 | `indent_size` | int 1-16 | `4` | Columns per indentation level (also the width of a tab). |
 | `indent_style` | `space`, `tab` | `space` | Indent with spaces or tabs. |
@@ -30,10 +29,15 @@ dockerfmt (reteps/dockerfmt) is the comparable tool; it rewrites shell code with
 <!-- /generated -->
 
 ## Presets
-None.
+`dockerfile/hadolint`: turns on the rules that have a hadolint equivalent ([../parity/hadolint.yaml](../parity/hadolint.yaml)) at hadolint's severities (error stays error; warning, info and style become `warn`).
 
 ## Rules
-Shared: suppression comments (`# sudsy-disable-next-line <rule>`), `no-empty-comment`, `comment-space`, `max-line-length`. The grammar has no `#mapping` or `#sequence` nodes, so the key rules do not apply. Language rules come later.
+Shared: suppression comments (`# sudsy-disable-next-line <rule>`), `no-empty-comment`, `comment-space`, `max-line-length`. The grammar has no `#mapping` or `#sequence` nodes, so the key rules do not apply. The language rules are listed in [../rules/builtin.md](../rules/builtin.md); the equivalents of hadolint's DL rules are in the catalog.
+- Instruction shape (`rules/instructions.yaml`): pattern rules with a regex over the instruction text (WORKDIR, FROM, EXPOSE, CMD, COPY, ADD, USER, ENV).
+- Commands of `RUN` (`rules/*.yaml` naming the `run-command` family, `src/rules/run_command.rs`): `shell.rs` reads the script into simple commands (`&&`, `;`, `|`, `(`, line breaks separate them; quotes, redirections and `VAR=x` prefixes are dropped; the script of `RUN <<EOT` and the JSON form count), and a rule selects a program and subcommand, then needs a flag, a pinned package, a later clean command, or just reports the call. It is not a shell parser: `$(...)` is read as a command, nothing is expanded, and a `--mount` of type cache or tmpfs on a directory exempts the cleanup rules for it.
+- Stages (`src/rules/stages.rs`, `rules/once-per-stage.yaml`): untagged base image, last `USER` root, stage names, `COPY --from`, the first instruction, a second `CMD`, `ENTRYPOINT` or `HEALTHCHECK` in a stage.
+- Rules for informational hadolint checks are off by default (`apt-get-no-recommends`, `apk-no-cache`, `no-interactive-commands`, `wget-progress`, `numeric-user-id`); the preset turns them on.
+- Known gap: a `#` inside an `ADD` source (`ADD ${REPO}#${REF} /`) makes the parser take the following lines into the instruction.
 
 ## Conformance
 `tests/conformance/fetch-dockerfile-corpus.sh` fetches the Dockerfiles of dotnet/dotnet-docker (samples and the 10.0 runtime, aspnet and sdk images), docker-library (golang, python, nginx, postgres), moby and buildx at pinned commits (211 files); `cargo test --profile corpus -p lang-dockerfile --test dockerfile -- --ignored --nocapture conformance` checks that each file parses (but for the gap above), round-trips, keeps its instructions and arguments (the safety check, with comments compared as well) and formats idempotently.

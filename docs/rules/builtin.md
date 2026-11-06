@@ -53,6 +53,53 @@ Twenty-four rules read the `///` and `/** */` comment of a declaration (StyleCop
 | `no-duplicate-sections` | editorconfig | correctness | warn | none | Two sections of one file have the same glob. Both apply, the later one winning, which is rarely the intent; merge them. |
 | `root-in-section` | editorconfig | correctness | warn | none | The `root` property stops the search for parent `.editorconfig` files, but only as a preamble pair (before the first `[section]`); inside a section editors ignore it. No fix: moving it into the preamble is the author's call. |
 | `unknown-property` | editorconfig | correctness | warn | none | A property name that is not an EditorConfig or .NET (`dotnet_*`, `csharp_*`, `visual_basic_*`, `dotnet_diagnostic.<ID>.severity`, naming rule) property but is one typo away from one: the setting is silently ignored. Names of other tools (`resharper_*`, `ij_*`) are left alone. Known properties and values: `crates/lang-editorconfig/data/properties.txt`. Options: `strict` (default `false`): Also report `dotnet_*`, `csharp_*` and `visual_basic_*` names that are close to no known property (the list may lag behind new .NET options). |
+| `apk-no-cache` | dockerfile | performance | off | none | apk add without --no-cache. |
+| `apk-pin-versions` | dockerfile | suspicious | warn | none | An apk add package without a version. |
+| `apt-get-no-recommends` | dockerfile | performance | off | none | apt-get install that installs recommended packages. |
+| `apt-get-pin-versions` | dockerfile | suspicious | warn | none | An apt-get install package without a version. |
+| `apt-get-yes` | dockerfile | correctness | warn | none | apt-get install without -y. |
+| `copy-from-own-stage` | dockerfile | correctness | error | none | A `COPY --from` that names the stage it is in. |
+| `copy-from-unknown-stage` | dockerfile | correctness | warn | none | A `COPY --from` that names no earlier stage: not a stage name, not the index of an earlier stage, and not an image (no `:`). |
+| `copy-instead-of-add` | dockerfile | suspicious | error | none | An ADD with no URL and no archive (`.tar`, `.gz`, `.tgz`, `.xz` and the like) among its arguments, which ADD would extract or download. |
+| `copy-many-needs-directory` | dockerfile | correctness | error | none | A COPY with more than one source whose last argument does not end with `/`. |
+| `dnf-clean` | dockerfile | performance | warn | none | dnf install with no dnf clean all after it. |
+| `dnf-yes` | dockerfile | correctness | warn | none | dnf install without -y. |
+| `duplicate-stage-name` | dockerfile | correctness | error | none | Two FROM instructions name their stage alike. |
+| `expose-port-range` | dockerfile | correctness | error | none | An EXPOSE with a port above 65535. |
+| `from-first` | dockerfile | correctness | error | none | An instruction other than ARG before the first FROM. |
+| `gem-pin-versions` | dockerfile | suspicious | warn | none | A gem install gem without a version. |
+| `go-pin-versions` | dockerfile | suspicious | warn | none | A go install or get package without a version (or at latest). |
+| `json-cmd-entrypoint` | dockerfile | suspicious | warn | none | A CMD, ENTRYPOINT or HEALTHCHECK CMD in shell form, which runs under `sh -c` and does not get signals. |
+| `last-user-not-root` | dockerfile | correctness | warn | none | A stage whose last USER is root (`root`, `0`, `root:group`, `0:group`). |
+| `no-apt` | dockerfile | suspicious | warn | none | A RUN that calls apt. |
+| `no-copy-whole-stage` | dockerfile | suspicious | warn | none | A `COPY --from` with `/` as a source and as the target. |
+| `no-from-platform` | dockerfile | suspicious | warn | none | A FROM with a fixed `--platform`; a variable such as `$BUILDPLATFORM` is fine. |
+| `no-interactive-commands` | dockerfile | suspicious | off | none | A RUN that calls ssh, vim, shutdown, service, ps, free, top, kill or mount. |
+| `no-latest-tag` | dockerfile | suspicious | warn | none | A FROM image tagged `latest` (without a digest). |
+| `no-maintainer` | dockerfile | cleanup | error | none | A MAINTAINER instruction. |
+| `no-nested-onbuild` | dockerfile | correctness | error | none | An ONBUILD whose instruction is ONBUILD, FROM or MAINTAINER. |
+| `no-redundant-target-platform` | dockerfile | cleanup | warn | none | A FROM with `--platform=$TARGETPLATFORM`, which is what it does without the option. |
+| `no-reserved-stage-name` | dockerfile | suspicious | warn | none | A stage named `scratch` or `context`. |
+| `no-secret-in-env` | dockerfile | suspicious | warn | none | An ARG or ENV whose name contains `api_key`, `client_key`, `password`, `private`, `secret`, `token` or `username`, or is a well-known credential variable. Build secrets belong in `--mount=type=secret`. |
+| `no-shell-symlink` | dockerfile | suspicious | warn | none | A RUN that links /bin/sh. |
+| `no-sudo` | dockerfile | correctness | error | none | A RUN that calls sudo. |
+| `npm-pin-versions` | dockerfile | suspicious | warn | none | An npm install package without a version. |
+| `numeric-user-id` | dockerfile | suspicious | off | none | A USER that is a name rather than a numeric id (a variable is accepted). |
+| `pip-pin-versions` | dockerfile | suspicious | warn | none | A pip install package without a version. |
+| `rpm-pin-versions` | dockerfile | suspicious | warn | none | A yum or dnf install package without a version. |
+| `single-cmd` | dockerfile | suspicious | warn | none | A second CMD in one stage. |
+| `single-entrypoint` | dockerfile | suspicious | error | none | A second ENTRYPOINT in one stage. |
+| `single-healthcheck` | dockerfile | suspicious | error | none | A second HEALTHCHECK in one stage. |
+| `untagged-base-image` | dockerfile | suspicious | warn | none | A FROM image with neither a tag nor a digest, which builds on whatever `latest` is. `scratch`, a variable and an earlier stage's name are fine. |
+| `use-workdir-not-cd` | dockerfile | style | warn | none | A RUN that calls cd. |
+| `wget-progress` | dockerfile | style | off | none | A wget call with no progress, quiet or log-file flag. |
+| `workdir-absolute` | dockerfile | correctness | error | none | A WORKDIR whose path is not absolute (a leading `/`, a drive letter or a variable). |
+| `yum-clean` | dockerfile | performance | warn | none | yum install with no yum clean all after it. |
+| `yum-yes` | dockerfile | correctness | warn | none | yum install without -y. |
+| `zypper-clean` | dockerfile | performance | warn | none | zypper install with no zypper clean after it. |
+| `zypper-no-dist-upgrade` | dockerfile | suspicious | warn | none | A zypper dist-upgrade. |
+| `zypper-pin-versions` | dockerfile | suspicious | warn | none | A zypper install package without a version. |
+| `zypper-yes` | dockerfile | correctness | warn | none | zypper install without -y. |
 | `accessor-order` | csharp | style | off | safe | `get` goes before `set` or `init`, and `add` before `remove`. The fix swaps the two accessors (not offered when a comment stands between or in them). Equivalent: StyleCop SA1212, StyleCop SA1213. |
 | `async-suffix` | csharp | style | warn | none | An async method returning Task or ValueTask has a name that does not end in `Async`. Overrides, explicit interface implementations and `Main` are left alone (their names are not the method's to choose). Renaming needs the binding layer, so there is no fix. Equivalent: Roslynator RCS1046. |
 | `constant-on-right` | csharp | style | off | safe | A comparison with the constant on the left: `null == x` is `x == null`, `1 < x` is `x > 1`. Without the type layer a constant is a literal, `nameof`, `int.MaxValue`-style member or an expression of those; a named constant on the left is not recognised. Equivalent: StyleCop SA1131. |

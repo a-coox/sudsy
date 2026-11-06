@@ -67,6 +67,26 @@
                 }
               ]
             },
+            "apk-no-cache": {
+              "$ref": "#/definitions/rule",
+              "description": "apk add without --no-cache."
+            },
+            "apk-pin-versions": {
+              "$ref": "#/definitions/rule",
+              "description": "An apk add package without a version."
+            },
+            "apt-get-no-recommends": {
+              "$ref": "#/definitions/rule",
+              "description": "apt-get install that installs recommended packages."
+            },
+            "apt-get-pin-versions": {
+              "$ref": "#/definitions/rule",
+              "description": "An apt-get install package without a version."
+            },
+            "apt-get-yes": {
+              "$ref": "#/definitions/rule",
+              "description": "apt-get install without -y."
+            },
             "async-suffix": {
               "$ref": "#/definitions/rule",
               "description": "An async method returning Task or ValueTask has a name that does not end in `Async`. Overrides, explicit interface implementations and `Main` are left alone (their names are not the method's to choose). Renaming needs the binding layer, so there is no fix."
@@ -87,6 +107,22 @@
               "$ref": "#/definitions/rule",
               "description": "The summary of a constructor starts with \"Initializes a new instance of the <see cref=\"T\"/> class\" (struct), \"Initializes static members of the ...\" for a static constructor, and a private constructor may say \"Prevents a default instance of the ... from being created\". The `<see>` is compared with the name of the type. The fix puts the standard sentence before the text."
             },
+            "copy-from-own-stage": {
+              "$ref": "#/definitions/rule",
+              "description": "A `COPY --from` that names the stage it is in."
+            },
+            "copy-from-unknown-stage": {
+              "$ref": "#/definitions/rule",
+              "description": "A `COPY --from` that names no earlier stage: not a stage name, not the index of an earlier stage, and not an image (no `:`)."
+            },
+            "copy-instead-of-add": {
+              "$ref": "#/definitions/rule",
+              "description": "An ADD with no URL and no archive (`.tar`, `.gz`, `.tgz`, `.xz` and the like) among its arguments, which ADD would extract or download."
+            },
+            "copy-many-needs-directory": {
+              "$ref": "#/definitions/rule",
+              "description": "A COPY with more than one source whose last argument does not end with `/`."
+            },
             "debug-assert-message": {
               "$ref": "#/definitions/rule",
               "description": "`Debug.Assert` without a message, or with a constant blank one. With the type layer the call is checked against `System.Diagnostics.Debug`; without it any call written `Debug.Assert` is. No fix."
@@ -106,6 +142,14 @@
             "directive-keyword-space": {
               "$ref": "#/definitions/rule",
               "description": "No space between `#` and the directive keyword (`#if`, not `# if`)."
+            },
+            "dnf-clean": {
+              "$ref": "#/definitions/rule",
+              "description": "dnf install with no dnf clean all after it."
+            },
+            "dnf-yes": {
+              "$ref": "#/definitions/rule",
+              "description": "dnf install without -y."
             },
             "doc-comment-space": {
               "$ref": "#/definitions/rule",
@@ -206,6 +250,14 @@
               "$ref": "#/definitions/rule",
               "description": "The first document does not start with `---`."
             },
+            "duplicate-stage-name": {
+              "$ref": "#/definitions/rule",
+              "description": "Two FROM instructions name their stage alike."
+            },
+            "expose-port-range": {
+              "$ref": "#/definitions/rule",
+              "description": "An EXPOSE with a port above 65535."
+            },
             "fenced-code-language": {
               "$ref": "#/definitions/rule",
               "description": "A fenced code block without an info string (markdownlint MD040); name the language, or `text`."
@@ -260,6 +312,18 @@
                 }
               ]
             },
+            "from-first": {
+              "$ref": "#/definitions/rule",
+              "description": "An instruction other than ARG before the first FROM."
+            },
+            "gem-pin-versions": {
+              "$ref": "#/definitions/rule",
+              "description": "A gem install gem without a version."
+            },
+            "go-pin-versions": {
+              "$ref": "#/definitions/rule",
+              "description": "A go install or get package without a version (or at latest)."
+            },
             "heading-increment": {
               "$ref": "#/definitions/rule",
               "description": "A heading is more than one level deeper than the heading before it (an `h4` right after an `h2`). Going back up by any number of levels is fine (markdownlint MD001)."
@@ -271,6 +335,10 @@
             "invalid-property-value": {
               "$ref": "#/definitions/rule",
               "description": "A known EditorConfig or .NET property has a value it does not accept (`indent_style = tabs`, `dotnet_diagnostic.CA1000.severity = high`). Values are case-insensitive, `unset` is always valid, and .NET code-style options may end in `:silent`, `:suggestion`, `:warning` or `:error`; formatting options do not (Roslyn parses them with `bool.TryParse`, EditorConfigValueSerializer.cs). A trailing `# comment` is ignored, as Roslyn does. Unknown properties are not checked."
+            },
+            "json-cmd-entrypoint": {
+              "$ref": "#/definitions/rule",
+              "description": "A CMD, ENTRYPOINT or HEALTHCHECK CMD in shell form, which runs under `sh -c` and does not get signals."
             },
             "key-name-casing": {
               "description": "A key does not follow one of the allowed naming conventions. The checks are those of eslint-plugin-jsonc: a key with punctuation or whitespace never matches, `camelCase` also rejects `_` and `-`, `snake_case` and `kebab-case` reject capitals. No fix: renaming a key changes the data.",
@@ -322,6 +390,10 @@
                   "type": "object"
                 }
               ]
+            },
+            "last-user-not-root": {
+              "$ref": "#/definitions/rule",
+              "description": "A stage whose last USER is root (`root`, `0`, `root:group`, `0:group`)."
             },
             "max-line-length": {
               "description": "A line is longer than the configured number of characters.",
@@ -415,6 +487,10 @@
               "$ref": "#/definitions/rule",
               "description": "An image with empty alternate text, `![](url)` (markdownlint MD045)."
             },
+            "no-apt": {
+              "$ref": "#/definitions/rule",
+              "description": "A RUN that calls apt."
+            },
             "no-bare-urls": {
               "$ref": "#/definitions/rule",
               "description": "A URL that is neither a link nor an autolink (markdownlint MD034), found when it follows a space or starts the paragraph. Reported on the paragraph."
@@ -422,6 +498,10 @@
             "no-comment-before-block": {
               "$ref": "#/definitions/rule",
               "description": "A comment between the head of an `if`, `else`, `while`, `do`, `for`, `foreach`, `lock`, `try`, `catch`, `finally`, `switch`, `checked` or `unchecked` and its `{`. Put it inside the block or above the statement."
+            },
+            "no-copy-whole-stage": {
+              "$ref": "#/definitions/rule",
+              "description": "A `COPY --from` with `/` as a source and as the target."
             },
             "no-default-summary": {
               "$ref": "#/definitions/rule",
@@ -633,13 +713,33 @@
                 }
               ]
             },
+            "no-from-platform": {
+              "$ref": "#/definitions/rule",
+              "description": "A FROM with a fixed `--platform`; a variable such as `$BUILDPLATFORM` is fine."
+            },
             "no-inline-html": {
               "$ref": "#/definitions/rule",
               "description": "Raw HTML in a document (markdownlint MD033). Comments are not reported. Reported once per HTML block, not per tag."
             },
+            "no-interactive-commands": {
+              "$ref": "#/definitions/rule",
+              "description": "A RUN that calls ssh, vim, shutdown, service, ps, free, top, kill or mount."
+            },
+            "no-latest-tag": {
+              "$ref": "#/definitions/rule",
+              "description": "A FROM image tagged `latest` (without a digest)."
+            },
+            "no-maintainer": {
+              "$ref": "#/definitions/rule",
+              "description": "A MAINTAINER instruction."
+            },
             "no-missing-space-atx": {
               "$ref": "#/definitions/rule",
               "description": "A paragraph that starts with one to six `#` and no space reads as a heading to people but is plain text to Markdown (markdownlint MD018)."
+            },
+            "no-nested-onbuild": {
+              "$ref": "#/definitions/rule",
+              "description": "An ONBUILD whose instruction is ONBUILD, FROM or MAINTAINER."
             },
             "no-octal-values": {
               "description": "A plain `0755` (octal to YAML 1.1 parsers, decimal 755 to YAML 1.2) or `0o755` (octal to YAML 1.2, a string to YAML 1.1). Quoted and tagged scalars are not checked. No fix: the intended value is not known.",
@@ -677,6 +777,10 @@
                 }
               ]
             },
+            "no-redundant-target-platform": {
+              "$ref": "#/definitions/rule",
+              "description": "A FROM with `--platform=$TARGETPLATFORM`, which is what it does without the option."
+            },
             "no-region-in-body": {
               "$ref": "#/definitions/rule",
               "description": "A `#region` inside a block (a method, accessor or lambda body, or any block in one); regions belong between members. No fix."
@@ -684,6 +788,10 @@
             "no-regions": {
               "$ref": "#/definitions/rule",
               "description": "`#region` hides code behind a label. Reported on every `#region` outside a block (a region inside a block is `no-region-in-body`'s), in disabled `#if` branches too; no fix, because removing a pair is a judgment call."
+            },
+            "no-reserved-stage-name": {
+              "$ref": "#/definitions/rule",
+              "description": "A stage named `scratch` or `context`."
             },
             "no-returns-on-void": {
               "$ref": "#/definitions/rule",
@@ -693,6 +801,14 @@
               "$ref": "#/definitions/rule",
               "description": "Link syntax written the wrong way round, `(text)[url]` (markdownlint MD011), at the start of a paragraph or after a blank. Reported on the paragraph; no fix, because `(text)[url]` may be meant literally."
             },
+            "no-secret-in-env": {
+              "$ref": "#/definitions/rule",
+              "description": "An ARG or ENV whose name contains `api_key`, `client_key`, `password`, `private`, `secret`, `token` or `username`, or is a well-known credential variable. Build secrets belong in `--mount=type=secret`."
+            },
+            "no-shell-symlink": {
+              "$ref": "#/definitions/rule",
+              "description": "A RUN that links /bin/sh."
+            },
             "no-space-in-code": {
               "$ref": "#/definitions/rule",
               "description": "A code span that starts or ends with a space (markdownlint MD038). A span with a space on both sides of a backtick-led or backtick-ended content is allowed."
@@ -700,6 +816,10 @@
             "no-space-in-links": {
               "$ref": "#/definitions/rule",
               "description": "Link text that starts or ends with a space (markdownlint MD039)."
+            },
+            "no-sudo": {
+              "$ref": "#/definitions/rule",
+              "description": "A RUN that calls sudo."
             },
             "no-trailing-punctuation": {
               "$ref": "#/definitions/rule",
@@ -717,9 +837,21 @@
               "$ref": "#/definitions/rule",
               "description": "An anchor that no alias refers to. The fix removes the anchor, which changes nothing about the data."
             },
+            "npm-pin-versions": {
+              "$ref": "#/definitions/rule",
+              "description": "An npm install package without a version."
+            },
             "nullable-shorthand": {
               "$ref": "#/definitions/rule",
               "description": "`int?` instead of `Nullable<int>` or `System.Nullable<int>`. Name-based: a type of your own called `Nullable` is reported too. Not reported in `using` aliases, `nameof`, `typeof(Nullable<>)` and before a member access (`Nullable<int>.Equals`)."
+            },
+            "numeric-user-id": {
+              "$ref": "#/definitions/rule",
+              "description": "A USER that is a name rather than a numeric id (a variable is accepted)."
+            },
+            "pip-pin-versions": {
+              "$ref": "#/definitions/rule",
+              "description": "A pip install package without a version."
             },
             "possible-null-dereference": {
               "$ref": "#/definitions/rule",
@@ -818,6 +950,10 @@
               "$ref": "#/definitions/rule",
               "description": "The `root` property stops the search for parent `.editorconfig` files, but only as a preamble pair (before the first `[section]`); inside a section editors ignore it. No fix: moving it into the preamble is the author's call."
             },
+            "rpm-pin-versions": {
+              "$ref": "#/definitions/rule",
+              "description": "A yum or dnf install package without a version."
+            },
             "separate-attributes": {
               "$ref": "#/definitions/rule",
               "description": "One attribute per attribute list: `[A, B]` becomes `[A]` and `[B]`. Lists on parameters and type parameters are left alone. The fix is not offered when the list has a comment in it."
@@ -829,6 +965,18 @@
             "single-class-per-file": {
               "$ref": "#/definitions/rule",
               "description": "A file holds one class or record: every later one is reported, more parts of the first class (when it is partial) excepted. Structs, interfaces, enums and delegates are not counted. No fix."
+            },
+            "single-cmd": {
+              "$ref": "#/definitions/rule",
+              "description": "A second CMD in one stage."
+            },
+            "single-entrypoint": {
+              "$ref": "#/definitions/rule",
+              "description": "A second ENTRYPOINT in one stage."
+            },
+            "single-healthcheck": {
+              "$ref": "#/definitions/rule",
+              "description": "A second HEALTHCHECK in one stage."
             },
             "single-namespace-per-file": {
               "$ref": "#/definitions/rule",
@@ -1071,6 +1219,10 @@
               "$ref": "#/definitions/rule",
               "description": "A number that a double-precision parser (JavaScript, most JSON libraries) cannot hold: an integer beyond 2^53 - 1, a value that overflows to infinity, underflows to zero or is subnormal."
             },
+            "untagged-base-image": {
+              "$ref": "#/definitions/rule",
+              "description": "A FROM image with neither a tag nor a digest, which builds on whatever `latest` is. `scratch`, a variable and an earlier stage's name are fine."
+            },
             "unused-assignment": {
               "$ref": "#/definitions/rule",
               "description": "A value is stored in a local variable and no path reads it before it is overwritten or the variable goes out of scope (a dead store). Variables that are captured or whose address is taken are not checked; a variable that is never read at all is reported by `unused-variable` instead. Overlaps the SDK analyzer IDE0059 (unnecessary assignment)."
@@ -1098,6 +1250,10 @@
             "use-tuple-syntax": {
               "$ref": "#/definitions/rule",
               "description": "`ValueTuple<int, int>` and `ValueTuple.Create(a, b)` where tuple syntax `(int, int)` and `(a, b)` is available (not inside an expression tree). The fix is offered for types and `ValueTuple.Create` calls."
+            },
+            "use-workdir-not-cd": {
+              "$ref": "#/definitions/rule",
+              "description": "A RUN that calls cd."
             },
             "using-order": {
               "description": "`using` directives of a file or namespace are out of order: System first (`system_first`), names in alphabetical order (`compare`), and with the options `static_position` and `alias_position` set to `after`, `using static` directives after the plain ones and aliases after those, each group sorted. `global using` and `using unsafe` stay where they are, and a list restarts at a directive that has a preprocessor directive in front of it (the fix leaves such lists alone). Comments on lines of their own stay where they are; a comment after a directive moves with it. Overlaps the SDK analyzers' `dotnet_sort_system_directives_first` .editorconfig key.",
@@ -1157,6 +1313,38 @@
                   "type": "object"
                 }
               ]
+            },
+            "wget-progress": {
+              "$ref": "#/definitions/rule",
+              "description": "A wget call with no progress, quiet or log-file flag."
+            },
+            "workdir-absolute": {
+              "$ref": "#/definitions/rule",
+              "description": "A WORKDIR whose path is not absolute (a leading `/`, a drive letter or a variable)."
+            },
+            "yum-clean": {
+              "$ref": "#/definitions/rule",
+              "description": "yum install with no yum clean all after it."
+            },
+            "yum-yes": {
+              "$ref": "#/definitions/rule",
+              "description": "yum install without -y."
+            },
+            "zypper-clean": {
+              "$ref": "#/definitions/rule",
+              "description": "zypper install with no zypper clean after it."
+            },
+            "zypper-no-dist-upgrade": {
+              "$ref": "#/definitions/rule",
+              "description": "A zypper dist-upgrade."
+            },
+            "zypper-pin-versions": {
+              "$ref": "#/definitions/rule",
+              "description": "A zypper install package without a version."
+            },
+            "zypper-yes": {
+              "$ref": "#/definitions/rule",
+              "description": "zypper install without -y."
             }
           },
           "type": "object"
@@ -1768,6 +1956,7 @@
           "preset:csharp/google",
           "preset:csharp/microsoft",
           "preset:csharp/stylecop",
+          "preset:dockerfile/hadolint",
           "preset:editorconfig/default",
           "preset:json/biome",
           "preset:json/default",

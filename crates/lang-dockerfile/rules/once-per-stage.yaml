@@ -1,0 +1,32 @@
+id: single-cmd
+language: dockerfile
+family: once-per-stage
+params: { instruction: 'CMD' }
+message: 'only the last CMD of a stage takes effect'
+description: >-
+  A second CMD in one stage.
+example: 'CMD a   CMD b'
+severity: warn
+category: suspicious
+---
+id: single-entrypoint
+language: dockerfile
+family: once-per-stage
+params: { instruction: 'ENTRYPOINT' }
+message: 'only the last ENTRYPOINT of a stage takes effect'
+description: >-
+  A second ENTRYPOINT in one stage.
+example: 'ENTRYPOINT a   ENTRYPOINT b'
+severity: error
+category: suspicious
+---
+id: single-healthcheck
+language: dockerfile
+family: once-per-stage
+params: { instruction: 'HEALTHCHECK' }
+message: 'only the last HEALTHCHECK of a stage takes effect'
+description: >-
+  A second HEALTHCHECK in one stage.
+example: 'HEALTHCHECK CMD a   HEALTHCHECK CMD b'
+severity: error
+category: suspicious

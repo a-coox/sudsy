@@ -1,0 +1,65 @@
+id: no-sudo
+language: dockerfile
+family: run-command
+params: { program: 'sudo' }
+message: 'do not use sudo; run as root during the build or use a tool like gosu'
+description: >-
+  A RUN that calls sudo.
+example: 'RUN sudo make install'
+severity: error
+category: correctness
+---
+id: use-workdir-not-cd
+language: dockerfile
+family: run-command
+params: { program: 'cd' }
+message: 'use WORKDIR to switch to a directory, not cd in RUN'
+description: >-
+  A RUN that calls cd.
+example: 'RUN cd /app && make'
+severity: warn
+category: style
+---
+id: no-interactive-commands
+language: dockerfile
+family: run-command
+params: { program: 'free|kill|mount|ps|service|shutdown|ssh|top|vim' }
+message: 'this command makes no sense in a build'
+description: >-
+  A RUN that calls ssh, vim, shutdown, service, ps, free, top, kill or mount.
+example: 'RUN service nginx start'
+severity: off
+category: suspicious
+---
+id: no-apt
+language: dockerfile
+family: run-command
+params: { program: 'apt' }
+message: 'apt is an end-user tool; use apt-get or apt-cache'
+description: >-
+  A RUN that calls apt.
+example: 'RUN apt install curl'
+severity: warn
+category: suspicious
+---
+id: no-shell-symlink
+language: dockerfile
+family: run-command
+params: { program: 'ln', args: '/bin/sh' }
+message: 'use SHELL to change the default shell, not a symlink to /bin/sh'
+description: >-
+  A RUN that links /bin/sh.
+example: 'RUN ln -sf /bin/bash /bin/sh'
+severity: warn
+category: suspicious
+---
+id: wget-progress
+language: dockerfile
+family: run-command
+params: { program: 'wget', needs: '--progress -q --quiet -o --output-file -a --append-output --no-verbose -nv' }
+message: 'wget without --progress (or -q, -nv, -o, -a) bloats the build log'
+description: >-
+  A wget call with no progress, quiet or log-file flag.
+example: 'RUN wget https://example.com/f'
+severity: off
+category: style

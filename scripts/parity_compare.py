@@ -117,6 +117,55 @@ def markdownlint(version, folder):
     return found
 
 
+def hadolint(sudsy, version, exe):
+    """Runs hadolint and `sudsy lint` on the rule fixtures of the Dockerfile rules
+    (tests/rules/dockerfile/<folder>/*.dockerfile, annotations removed) and compares `(rule, line)`
+    of the catalog's rules: the DL codes the catalog does not map (deferred ones) and the ShellCheck
+    codes are left out. `tests/parity/hadolint/expected-diff.txt` lists known differences as
+    `<folder>/<name> <hadolint|sudsy>:<rule> <line>: <reason>`; one that no longer differs fails."""
+    mapping = rule_map("hadolint")
+    folder = ROOT / "tests/parity/hadolint"
+    work = PARITY / f"hadolint-{version}" / "work"
+    shutil.rmtree(work, ignore_errors=True)
+    work.mkdir(parents=True)
+    shutil.copy(folder / "sudsy.yaml", work / "sudsy.yaml")
+    expected = {}
+    for line in (folder / "expected-diff.txt").read_text(encoding="utf-8").splitlines():
+        if line.strip() and not line.startswith("#"):
+            key, _, reason = line.partition(": ")
+            expected[key] = reason
+    used, mismatches, total = set(), 0, 0
+    for source in sorted((ROOT / "tests/rules/dockerfile").glob("*/*.dockerfile")):
+        text = "".join(
+            l for l in source.read_text(encoding="utf-8").splitlines(keepends=True) if not re.match(r"\s*#?\s*\^", l)
+        )
+        label = f"{source.parent.name}/{source.stem}"
+        fixture = work / f"{source.parent.name}-{source.stem}.dockerfile"
+        fixture.write_text(text, encoding="utf-8", newline="")
+        out = subprocess.run(
+            [exe, "--no-fail", "--no-color", "-f", "json", fixture.name], cwd=work, capture_output=True, text=True, check=False
+        ).stdout
+        upstream = {(mapping[d["code"]], d["line"], 0) for d in json.loads(out) if d["code"] in mapping}
+        ours = {(r, l, 0) for r, l, _ in sudsy_lint(sudsy, fixture, work, set(mapping.values()))}
+        total += len(upstream)
+        problems = []
+        for side, rows in (("hadolint", upstream - ours), ("sudsy", ours - upstream)):
+            for rule, line, _ in sorted(rows):
+                key = f"{label} {side}:{rule} {line}"
+                if key in expected:
+                    used.add(key)
+                else:
+                    problems.append(f"  only {side}: {rule} {line}")
+        print(f"{label}: {len(upstream)} hadolint, {len(ours)} sudsy: {'MISMATCH' if problems else 'ok'}")
+        print("\n".join(problems))
+        mismatches += len(problems)
+    for key in sorted(set(expected) - used):
+        print(f"  stale expected difference: {key}")
+        mismatches += 1
+    print(f"{total} hadolint findings, {mismatches} mismatch(es) (hadolint {version}, {len(used)} known)")
+    return 1 if mismatches else 0
+
+
 def sudsy_lint(sudsy, fixture, cwd, only=None):
     """`{(rule, line, column)}`; with `only`, the diagnostics of those rules."""
     out = subprocess.run(
@@ -206,6 +255,8 @@ def main():
     tool, version, sudsy = sys.argv[1:4]
     if tool == "stylecop":
         return stylecop(sudsy, version)
+    if tool == "hadolint":
+        return hadolint(sudsy, version, sys.argv[4])
     mapping = rule_map(tool)
     folder = ROOT / "tests/parity" / tool
     suffixes = {"eslint-jsonc": (".json",), "markdownlint": (".md",)}.get(tool, (".yaml", ".yml"))
