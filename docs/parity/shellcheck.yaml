@@ -2371,7 +2371,7 @@ entries:
     sudsy: "rule: quote-variable"
     coverage: "partial"
     notes: ""
-    gap: "Only the arguments of a command; not assignments, loop lists, redirect targets or `[[ ]]`, and it does not know which variables hold a number."
+    gap: "The arguments of a command and the words of `[ ]`; not the command name, assignments, loop lists, redirect targets, `[[ ]]` or the inside of `$(...)`, and it does not know which variables hold a number or a literal."
     priority: "p2"
     batch: "B17 shell-shellcheck"
     usage: "medium"

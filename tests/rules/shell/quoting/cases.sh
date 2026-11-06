@@ -19,7 +19,9 @@ cp "$@" dir "${arr[@]}" ${arr[@]}
 #                       ^^^^^^^^^ quote-at-expansion
 cp $* dir ${arr[*]}
 #  ^^ quote-star-expansion
+#  ^^ quote-variable
 #         ^^^^^^^^^ quote-star-expansion
+#         ^^^^^^^^^ quote-variable
 now=`date`
 ^^^^^^^^^^ no-backticks
 echo `date` "`date`" 'a`b`'
@@ -28,6 +30,10 @@ echo `date` "`date`" 'a`b`'
 #           ^^^^^^^^ no-backticks
 [ -n `foo` ]
 ^^^^^^^^^^^^ no-backticks
+^^^^^^^^^^^^ quote-command-substitution
+[ $x -eq 0 ]
+^^^^^^^^^^^^ quote-variable
+[[ $x = $y ]]
 export out=$(make)
 ^^^^^^^^^^^^^^^^^^ declare-and-assign-separately
 local out="$(make)" x=1

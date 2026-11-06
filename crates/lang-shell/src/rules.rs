@@ -18,14 +18,13 @@ fn is_errexit_flag(w: &str) -> bool {
 /// `set -e` / `set -o errexit` on any line, or `-e` on the shebang. shortcut: not scoped to the
 /// code after it, as shellcheck does not either.
 fn has_errexit(text: &str) -> bool {
-    text.lines().enumerate().any(|(i, l)| {
-        let mut w = l.split_whitespace();
-        match (i, w.next()) {
-            (0, Some(first)) if first.starts_with("#!") => w.any(is_errexit_flag),
-            (_, Some("set")) => w.any(|w| is_errexit_flag(w) || w == "errexit"),
-            _ => false,
-        }
-    })
+    let line_at = |i: usize| text[i..].lines().next().unwrap_or("").split_whitespace();
+    // A substring search for `set` finds the few candidate lines without splitting the whole file.
+    (text.starts_with("#!") && line_at(0).any(is_errexit_flag))
+        || text.match_indices("set").any(|(i, _)| {
+            let mut w = line_at(text[..i].rfind('\n').map_or(0, |n| n + 1));
+            w.next() == Some("set") && w.any(|w| is_errexit_flag(w) || w == "errexit")
+        })
 }
 
 /// The element before `node`, trivia skipped.
@@ -41,12 +40,12 @@ fn previous(node: &SyntaxNode) -> Option<SyntaxElement> {
 }
 
 /// Whether the exit status of `node` is already tested: the condition of `if`/`while`, a
-/// non-last element of `&&`/`||`, a pipeline element or a negated command.
+/// non-last element of `&&`/`||`. A pipeline, negation or redirection takes its parent's answer.
 fn checked(node: &SyntaxNode) -> bool {
     match node.parent().map(|p| p.kind()) {
         // The last element of a list is unchecked (`a && cd b`).
         Some(k::LIST) => node.next_sibling().is_some(),
-        Some(k::PIPELINE | k::NEGATED | k::REDIRECTED) => true,
+        Some(k::PIPELINE | k::NEGATED | k::REDIRECTED) => checked(&node.parent().unwrap()),
         Some(k::IF | k::ELIF | k::WHILE) => matches!(
             previous(node),
             Some(SyntaxElement::Token(t))

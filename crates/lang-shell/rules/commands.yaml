@@ -36,14 +36,14 @@ rule:
 id: printf-variable-format
 language: shell
 message: do not put variables in the printf format; use printf '%s' "$x"
-description: A `printf` whose format string contains an expansion.
+description: A `printf` whose format string contains an expansion and no `%`.
 example: 'printf "$fmt"'
 severity: off
 category: suspicious
 rule:
   pattern: 'printf $F $$$ARGS'
 constraints:
-  F: { regex: '^[^'']*[^\\]\$[A-Za-z_{(]|^\$[A-Za-z_{(]' }
+  F: { regex: '^[^'']*[^\\]\$[A-Za-z_{(]|^\$[A-Za-z_{(]', not-regex: '%' }
 ---
 id: trap-expands-now
 language: shell
@@ -88,7 +88,7 @@ severity: off
 category: style
 rule:
   kind: Pipeline
-  regex: '^grep\b[^|]*\|\s*wc\s+-l\b'
+  regex: '(^|\|)\s*grep\b[^|]*\|\s*wc\s+-l\b'
 ---
 id: no-egrep
 language: shell
@@ -148,13 +148,14 @@ rule:
 id: and-or-is-not-if-else
 language: shell
 message: A && B || C is not if-then-else; C also runs when B fails
-description: A list `a && b || c` of three commands.
-example: 'test -f x && echo yes || echo no'
+description: A list `a && b || c` of three commands, unless `c` is `echo`, `printf`, `true`, `:`, `return` or `exit`.
+example: 'test -f x && echo yes || cleanup'
 severity: off
 category: suspicious
 rule:
   kind: List
   regex: '^[^&|;]+&&[^&|;]+\|\|[^&|;]+$'
+  not: { regex: '&&\s*\(\(|\$\([^)]*&&|\[\[[^\]]*\|\||\|\|\s*(?:(?:echo|printf|true|return|exit)\b|:(?:\s|$))' }
 ---
 id: iterate-ls-output
 language: shell

@@ -100,7 +100,7 @@ Twenty-four rules read the `///` and `/** */` comment of a declaration (StyleCop
 | `zypper-no-dist-upgrade` | dockerfile | suspicious | warn | none | A zypper dist-upgrade. |
 | `zypper-pin-versions` | dockerfile | suspicious | warn | none | A zypper install package without a version. |
 | `zypper-yes` | dockerfile | correctness | warn | none | zypper install without -y. |
-| `and-or-is-not-if-else` | shell | suspicious | off | none | A list `a && b \|\| c` of three commands. |
+| `and-or-is-not-if-else` | shell | suspicious | off | none | A list `a && b \|\| c` of three commands, unless `c` is `echo`, `printf`, `true`, `:`, `return` or `exit`. |
 | `cd-without-exit` | shell | suspicious | warn | none | `cd`, `pushd` or `popd` whose failure is not handled (`cd dir \|\| exit`). Not reported with `set -e`, for `cd ..` or `cd /`, or for `popd -n`. |
 | `declare-and-assign-separately` | shell | suspicious | warn | none | `export`, `local`, `declare`, `readonly` or `typeset` with a command substitution as the value reports the status of the declaration, not of the command. |
 | `find-xargs-print0` | shell | suspicious | warn | none | A pipeline from `find` into `xargs` without `-print0`/`-0`. |
@@ -112,7 +112,7 @@ Twenty-four rules read the `///` and `/** */` comment of a declaration (StyleCop
 | `no-ls-grep` | shell | suspicious | warn | none | A pipeline from `ls` into `grep`. |
 | `no-ps-grep` | shell | style | off | none | A pipeline from `ps` into `grep`. |
 | `no-which` | shell | style | off | none | A call of `which`. |
-| `printf-variable-format` | shell | suspicious | off | none | A `printf` whose format string contains an expansion. |
+| `printf-variable-format` | shell | suspicious | off | none | A `printf` whose format string contains an expansion and no `%`. |
 | `quote-at-expansion` | shell | correctness | error | none | An unquoted `$@` or `${array[@]}` in a command's arguments. |
 | `quote-command-substitution` | shell | suspicious | warn | none | An unquoted `$(...)` or backtick substitution in a command's arguments is split into words and globbed. |
 | `quote-star-expansion` | shell | suspicious | warn | none | An unquoted `$*` or `${array[*]}` in a command's arguments. |

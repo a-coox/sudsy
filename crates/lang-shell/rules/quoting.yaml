@@ -8,7 +8,7 @@ example: 'rm $(cat list)'
 severity: warn
 category: suspicious
 family: word
-params: { regex: '^[^"''\\]*(\$\([^(]|`)' }
+params: { regex: '^(?:[^"''\\]|\\.|"(?:[^"\\$`]|\\.|\$[A-Za-z_0-9@*#?!$-])*"|''[^'']*'')*?(\$\([^(]|`)', tokens: 'Word Test', args: true, skip: '^\[\[', needs: '$`' }
 ---
 id: quote-variable
 language: shell
@@ -20,7 +20,7 @@ example: 'rm $file'
 severity: off
 category: suspicious
 family: word
-params: { regex: '^[^"''`\\(]*\$(?:[A-Za-z_0-9]|\{!?[A-Za-z_0-9]+(?:[^\[A-Za-z0-9_]|\[[^@*]))' }
+params: { regex: '^(?:[^"''`\\(]|\\.|"(?:[^"\\$`]|\\.|\$[A-Za-z_0-9@*#?!$-])*"|''[^'']*'')*?\$(?:[A-Za-z_0-9*]|\{!?[A-Za-z_0-9]+(?:[^\[+:A-Za-z0-9_]|:[^+]|\[[^@]))', tokens: 'Word Test', args: true, skip: '^\[\[', needs: '$' }
 ---
 id: quote-at-expansion
 language: shell
@@ -30,7 +30,7 @@ example: 'cp $@ dir'
 severity: error
 category: correctness
 family: word
-params: { regex: '^[^"''`\\(]*\$(@|\{@\}|\{[A-Za-z_][A-Za-z0-9_]*\[@\]\})' }
+params: { regex: '^[^"''`\\(]*\$(@|\{@\}|\{!?[A-Za-z_][A-Za-z0-9_]*\[@\]\})', in: 'Command For', needs: '$' }
 ---
 id: quote-star-expansion
 language: shell
@@ -40,7 +40,7 @@ example: 'cp $* dir'
 severity: warn
 category: suspicious
 family: word
-params: { regex: '^[^"''`\\(]*\$(\*|\{\*\}|\{[A-Za-z_][A-Za-z0-9_]*\[\*\]\})' }
+params: { regex: '^[^"''`\\(]*\$(\*|\{\*\}|\{[A-Za-z_][A-Za-z0-9_]*\[\*\]\})', in: 'Command For', needs: '$' }
 ---
 id: no-backticks
 language: shell
@@ -50,7 +50,7 @@ example: 'now=`date`'
 severity: off
 category: style
 family: word
-params: { regex: '^[^''\\]*`', tokens: 'Word Assign Test', in: 'Command For' }
+params: { regex: '^[^''\\]*`', tokens: 'Word Assign Test', in: 'Command For', needs: '`' }
 ---
 id: declare-and-assign-separately
 language: shell
@@ -63,4 +63,4 @@ severity: warn
 category: suspicious
 rule:
   kind: Command
-  regex: '^(export|local|declare|readonly|typeset)\s[^|;&]*=("?\$\(|"?`)'
+  regex: '^(export|local|declare|readonly|typeset)\s[^|;&]*=("?\$\([^(]|"?`)'

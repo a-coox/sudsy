@@ -19,7 +19,8 @@ read -p "x" -r line
 printf "$fmt"
 ^^^^^^^^^^^^^ printf-variable-format
 printf "%s $x\n" y
-^^^^^^^^^^^^^^^^^^ printf-variable-format
+printf "a$x" y
+^^^^^^^^^^^^^^ printf-variable-format
 printf '%s' "$x" "a $b"
 printf 'literal $x'
 trap "rm $tmp" EXIT
@@ -38,11 +39,13 @@ fgrep x f
 ^^^^^^^^^ no-egrep
 which git
 ^^^^^^^^^ no-which
-test -f x && echo yes || echo no
+test -f x && echo yes || cleanup
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ and-or-is-not-if-else
+test -f x && echo yes || echo no
 a && b
 a || b && c
 ls -l | grep txt | wc -l
+^^^^^^^^^^^^^^^^^^^^^^^^ grep-count
 ^^^^^^^^^^^^^^^^^^^^^^^^ no-ls-grep
 which git
 ^^^^^^^^^ no-which

@@ -28,8 +28,8 @@ if [ "$tool" = format ]; then
   exec "$py" scripts/parity_format.py "$tool" "$sudsy" "$tdir"
 fi
 case "$tool" in
-  yamllint|stylecop|eslint-jsonc|markdownlint|hadolint) ;;
-  *) echo "usage: scripts/parity.sh yamllint|stylecop|eslint-jsonc|markdownlint|hadolint | format <tool>" >&2; exit 2 ;;
+  yamllint|stylecop|eslint-jsonc|markdownlint|hadolint|shellcheck) ;;
+  *) echo "usage: scripts/parity.sh yamllint|stylecop|eslint-jsonc|markdownlint|hadolint|shellcheck | format <tool>" >&2; exit 2 ;;
 esac
 
 py=
@@ -83,6 +83,23 @@ if [ "$tool" = hadolint ]; then
   if [ ! -x "$dir/$exe" ]; then
     mkdir -p "$dir"
     curl -fsSL -o "$dir/$exe" "https://github.com/hadolint/hadolint/releases/download/v$version/$asset"
+    chmod +x "$dir/$exe"
+  fi
+  extra="$dir/$exe"
+fi
+if [ "$tool" = shellcheck ]; then
+  # The release archive at the catalog's version (zip on Windows, tar.xz elsewhere; needs network on first use).
+  case "$(uname -s)" in
+    MINGW*|MSYS*|CYGWIN*) asset=shellcheck-v$version.zip; exe=shellcheck.exe ;;
+    Darwin) asset=shellcheck-v$version.darwin.$(uname -m).tar.xz; exe=shellcheck ;;
+    *) asset=shellcheck-v$version.linux.$(uname -m).tar.xz; exe=shellcheck ;;
+  esac
+  dir="$tdir/parity/shellcheck-$version"
+  if [ ! -x "$dir/$exe" ]; then
+    mkdir -p "$dir/unpack"
+    curl -fsSL -o "$dir/$asset" "https://github.com/koalaman/shellcheck/releases/download/v$version/$asset"
+    "$py" -c 'import shutil,sys; shutil.unpack_archive(sys.argv[1], sys.argv[2])' "$dir/$asset" "$dir/unpack"
+    mv "$(find "$dir/unpack" -name "$exe" | head -n1)" "$dir/$exe"
     chmod +x "$dir/$exe"
   fi
   extra="$dir/$exe"

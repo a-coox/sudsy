@@ -69,7 +69,7 @@
             },
             "and-or-is-not-if-else": {
               "$ref": "#/definitions/rule",
-              "description": "A list `a && b || c` of three commands."
+              "description": "A list `a && b || c` of three commands, unless `c` is `echo`, `printf`, `true`, `:`, `return` or `exit`."
             },
             "apk-no-cache": {
               "$ref": "#/definitions/rule",
@@ -907,7 +907,7 @@
             },
             "printf-variable-format": {
               "$ref": "#/definitions/rule",
-              "description": "A `printf` whose format string contains an expansion."
+              "description": "A `printf` whose format string contains an expansion and no `%`."
             },
             "property-summary-matches-accessors": {
               "$ref": "#/definitions/rule",
