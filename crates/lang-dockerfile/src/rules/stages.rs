@@ -5,60 +5,81 @@ use core_rules::tree::significant_range;
 use core_rules::{Family, Params, Rule, RuleContext, RuleMeta, rule};
 use core_syntax::{SyntaxKind, SyntaxNode, TextRange};
 
-/// A top-level instruction: its upper-case name and its arguments as written (no comments or
-/// line continuations).
+/// A top-level instruction: its upper-case name; the arguments are read when a rule asks.
 struct Inst {
     name: String,
-    range: TextRange,
-    words: Vec<String>,
+    node: SyntaxNode,
 }
 
-fn instructions(doc: &SyntaxNode, ctx: &RuleContext<'_>) -> Vec<Inst> {
+fn is_blank(kind: SyntaxKind) -> bool {
+    matches!(
+        kind,
+        k::WHITESPACE | k::NEWLINE | k::COMMENT | k::LINE_CONTINUATION
+    )
+}
+
+fn instructions(doc: &SyntaxNode) -> Vec<Inst> {
     doc.children()
         .filter(|n| n.kind() == k::INSTRUCTION)
-        .map(|n| {
-            // Tokens with no blank between them are one word (`--platform=` and `$ARCH`).
-            let mut words: Vec<String> = Vec::new();
-            let mut end = None;
-            for t in n.children_with_tokens().filter_map(|e| e.into_token()) {
-                if matches!(
-                    t.kind(),
-                    k::WHITESPACE | k::NEWLINE | k::COMMENT | k::LINE_CONTINUATION
-                ) {
-                    end = None;
-                    continue;
-                }
-                match (end, words.last_mut()) {
-                    (Some(e), Some(w)) if e == t.text_range().start() => w.push_str(t.text()),
-                    _ => words.push(t.text().to_string()),
-                }
-                end = Some(t.text_range().end());
-            }
-            let mut words = words.into_iter();
-            let name = words.next().unwrap_or_default().to_ascii_uppercase();
-            Inst {
-                name,
-                range: significant_range(&n, ctx.file.grammar),
-                words: words.collect(),
-            }
+        .map(|node| {
+            let name = node
+                .children_with_tokens()
+                .filter_map(|e| e.into_token())
+                .find(|t| !is_blank(t.kind()))
+                .map_or(String::new(), |t| t.text().to_ascii_uppercase());
+            Inst { name, node }
         })
         .collect()
 }
 
 impl Inst {
+    fn range(&self, ctx: &RuleContext<'_>) -> TextRange {
+        significant_range(&self.node, ctx.file.grammar)
+    }
+
+    /// The arguments as written (no comments or line continuations); tokens with no blank between
+    /// them are one word (`--platform=` and `$ARCH`).
+    fn words(&self) -> Vec<String> {
+        let mut words: Vec<String> = Vec::new();
+        let mut end = None;
+        for t in self
+            .node
+            .children_with_tokens()
+            .filter_map(|e| e.into_token())
+        {
+            if is_blank(t.kind()) {
+                end = None;
+                continue;
+            }
+            match (end, words.last_mut()) {
+                (Some(e), Some(w)) if e == t.text_range().start() => w.push_str(t.text()),
+                _ => words.push(t.text().to_string()),
+            }
+            end = Some(t.text_range().end());
+        }
+        words.remove(0);
+        words
+    }
+
     /// `--name=value` of the instruction.
-    fn option(&self, name: &str) -> Option<&str> {
-        self.words
-            .iter()
-            .find_map(|w| w.strip_prefix("--")?.strip_prefix(name)?.strip_prefix('='))
+    fn option(&self, name: &str) -> Option<String> {
+        self.words().into_iter().find_map(|w| {
+            Some(
+                w.strip_prefix("--")?
+                    .strip_prefix(name)?
+                    .strip_prefix('=')?
+                    .to_string(),
+            )
+        })
     }
 
     /// The image and the stage name of a FROM.
-    fn from(&self) -> (&str, Option<&str>) {
-        let mut rest = self.words.iter().filter(|w| !w.starts_with("--"));
-        let image = rest.next().map_or("", String::as_str);
+    fn from(&self) -> (String, Option<String>) {
+        let words = self.words();
+        let mut rest = words.into_iter().filter(|w| !w.starts_with("--"));
+        let image = rest.next().unwrap_or_default();
         let alias = match (rest.next(), rest.next()) {
-            (Some(a), Some(n)) if a.eq_ignore_ascii_case("as") => Some(n.as_str()),
+            (Some(a), Some(n)) if a.eq_ignore_ascii_case("as") => Some(n),
             _ => None,
         };
         (image, alias)
@@ -78,13 +99,13 @@ rule! {
 
     fn check(&self, doc: &SyntaxNode, ctx: &mut RuleContext<'_>) {
         let mut stages: Vec<String> = Vec::new();
-        for i in instructions(doc, ctx).iter().filter(|i| i.name == "FROM") {
+        for i in instructions(doc).iter().filter(|i| i.name == "FROM") {
             let (image, alias) = i.from();
             let tagged = image.contains(':') || image.contains('@');
-            if !tagged && image != "scratch" && !image.starts_with('$') && !stages.iter().any(|s| s == image) {
-                ctx.report(i.range, format!("`{image}` has no tag"));
+            if !tagged && image != "scratch" && !image.starts_with('$') && !stages.contains(&image) {
+                ctx.report(i.range(ctx), format!("`{image}` has no tag"));
             }
-            stages.extend(alias.map(str::to_string));
+            stages.extend(alias);
         }
     }
 }
@@ -107,16 +128,17 @@ rule! {
             }
         };
         let mut seen_from = false;
-        for i in instructions(doc, ctx) {
+        for i in instructions(doc) {
             match i.name.as_str() {
                 "FROM" => {
                     flush(&mut root, ctx);
                     seen_from = true;
                 }
                 "USER" if seen_from => {
-                    let user = i.words.first().map_or("", String::as_str);
+                    let words = i.words();
+                    let user = words.first().map_or("", String::as_str);
                     let name = user.split(':').next().unwrap_or("");
-                    root = (name == "root" || name == "0").then_some(i.range);
+                    root = (name == "root" || name == "0").then_some(i.range(ctx));
                 }
                 _ => {}
             }
@@ -136,12 +158,12 @@ rule! {
     }
 
     fn check(&self, doc: &SyntaxNode, ctx: &mut RuleContext<'_>) {
-        let mut seen: Vec<&str> = Vec::new();
-        let insts = instructions(doc, ctx);
+        let mut seen: Vec<String> = Vec::new();
+        let insts = instructions(doc);
         for i in insts.iter().filter(|i| i.name == "FROM") {
             if let Some(name) = i.from().1 {
                 if seen.contains(&name) {
-                    ctx.report(i.range, format!("the stage name `{name}` is already used"));
+                    ctx.report(i.range(ctx), format!("the stage name `{name}` is already used"));
                 }
                 seen.push(name);
             }
@@ -163,17 +185,17 @@ rule! {
     fn check(&self, doc: &SyntaxNode, ctx: &mut RuleContext<'_>) {
         let mut names: Vec<String> = Vec::new();
         let mut count = 0usize;
-        for i in instructions(doc, ctx) {
+        for i in instructions(doc) {
             if i.name == "FROM" {
                 count += 1;
-                names.extend(i.from().1.map(str::to_string));
+                names.extend(i.from().1);
             } else if i.name == "COPY" {
                 let Some(from) = i.option("from") else { continue };
                 let known = from.contains(':')
-                    || names.iter().any(|n| n == from)
+                    || names.contains(&from)
                     || from.parse::<usize>().is_ok_and(|n| n < count);
                 if !known {
-                    ctx.report(i.range, format!("`--from={from}` is not an earlier stage"));
+                    ctx.report(i.range(ctx), format!("`--from={from}` is not an earlier stage"));
                 }
             }
         }
@@ -192,11 +214,11 @@ rule! {
 
     fn check(&self, doc: &SyntaxNode, ctx: &mut RuleContext<'_>) {
         let mut own: Option<String> = None;
-        for i in instructions(doc, ctx) {
+        for i in instructions(doc) {
             if i.name == "FROM" {
-                own = i.from().1.map(str::to_string);
-            } else if i.name == "COPY" && i.option("from").is_some_and(|f| Some(f) == own.as_deref()) {
-                ctx.report(i.range, "a stage cannot copy from itself");
+                own = i.from().1;
+            } else if i.name == "COPY" && i.option("from").is_some_and(|f| Some(&f) == own.as_ref()) {
+                ctx.report(i.range(ctx), "a stage cannot copy from itself");
             }
         }
     }
@@ -213,12 +235,12 @@ rule! {
     }
 
     fn check(&self, doc: &SyntaxNode, ctx: &mut RuleContext<'_>) {
-        for i in instructions(doc, ctx) {
+        for i in instructions(doc) {
             match i.name.as_str() {
                 "FROM" => return,
                 "ARG" => {}
                 _ => {
-                    ctx.report(i.range, "the file must begin with FROM or ARG");
+                    ctx.report(i.range(ctx), "the file must begin with FROM or ARG");
                 }
             }
         }
@@ -259,12 +281,12 @@ impl Rule for OncePerStage {
 
     fn check(&self, doc: &SyntaxNode, ctx: &mut RuleContext<'_>) {
         let mut seen = false;
-        for i in instructions(doc, ctx) {
+        for i in instructions(doc) {
             if i.name == "FROM" {
                 seen = false;
             } else if i.name == self.instruction {
                 if seen {
-                    ctx.report(i.range, self.message.clone());
+                    ctx.report(i.range(ctx), self.message.clone());
                 }
                 seen = true;
             }

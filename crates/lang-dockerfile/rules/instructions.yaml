@@ -8,8 +8,8 @@ severity: error
 category: correctness
 rule:
   kind: Instruction
-  regex: '(?is)^workdir\s+\S'
-  not: { regex: '(?is)^workdir\s+["'']?(?:[/$]|[A-Za-z]:)' }
+  regex: '(?is)^workdir[ \t\r\n]+[^ \t\r\n]'
+  not: { regex: '(?is)^workdir[ \t\r\n]+["'']?(?:[/$]|[A-Za-z]:)' }
 ---
 id: no-latest-tag
 language: dockerfile
@@ -21,7 +21,7 @@ severity: warn
 category: suspicious
 rule:
   kind: Instruction
-  regex: '(?is)^from\s+(?:--\S+\s+)*[^\s@]*:latest(?:\s|$)'
+  regex: '(?is)^from[ \t\r\n]+(?:--[^ \t\r\n]+[ \t\r\n]+)*[^ \t\r\n@]*:latest(?:[ \t\r\n]|$)'
 ---
 id: expose-port-range
 language: dockerfile
@@ -33,7 +33,7 @@ severity: error
 category: correctness
 rule:
   kind: Instruction
-  regex: '(?is)^expose\s(?:.*[\s-])?(?:6553[6-9]|655[4-9]\d|65[6-9]\d\d|6[6-9]\d{3}|[7-9]\d{4}|\d{6,})(?:\s|/|$)'
+  regex: '(?is)^expose[ \t\r\n](?:.*[[ \t\r\n]-])?(?:6553[6-9]|655[4-9][0-9]|65[6-9][0-9][0-9]|6[6-9][0-9]{3}|[7-9][0-9]{4}|[0-9]{6,})(?:[ \t\r\n]|/|$)'
 ---
 id: json-cmd-entrypoint
 language: dockerfile
@@ -45,8 +45,8 @@ severity: warn
 category: suspicious
 rule:
   kind: Instruction
-  regex: '(?is)^(?:cmd|entrypoint)\s+[^\[\s]'
-  not: { parent: { regex: '(?is)^onbuild\b' } }
+  regex: '(?is)^(?:cmd|entrypoint)[ \t\r\n]+[^\[[ \t\r\n]]'
+  not: { parent: { regex: '(?is)^onbuild(?-u:\b)' } }
 ---
 id: no-from-platform
 language: dockerfile
@@ -58,8 +58,8 @@ severity: warn
 category: suspicious
 rule:
   kind: Instruction
-  regex: '(?is)^from\s+--platform='
-  not: { regex: '(?is)^from\s+--platform=\S*(?:BUILDPLATFORM|TARGETPLATFORM)' }
+  regex: '(?is)^from[ \t\r\n]+--platform='
+  not: { regex: '(?is)^from[ \t\r\n]+--platform=[^ \t\r\n]*(?:BUILDPLATFORM|TARGETPLATFORM)' }
 ---
 id: no-redundant-target-platform
 language: dockerfile
@@ -71,7 +71,7 @@ severity: warn
 category: cleanup
 rule:
   kind: Instruction
-  regex: '(?is)^from\s+--platform=\$\{?TARGETPLATFORM\}?(?:\s|$)'
+  regex: '(?is)^from[ \t\r\n]+--platform=\$\{?TARGETPLATFORM\}?(?:[ \t\r\n]|$)'
 ---
 id: no-nested-onbuild
 language: dockerfile
@@ -83,8 +83,8 @@ severity: error
 category: correctness
 rule:
   kind: Instruction
-  regex: '(?is)^onbuild\b'
-  child: { kind: Instruction, regex: '(?is)^(?:onbuild|from|maintainer)\b' }
+  regex: '(?is)^onbuild(?-u:\b)'
+  child: { kind: Instruction, regex: '(?is)^(?:onbuild|from|maintainer)(?-u:\b)' }
 ---
 id: no-reserved-stage-name
 language: dockerfile
@@ -96,7 +96,7 @@ severity: warn
 category: suspicious
 rule:
   kind: Instruction
-  regex: '(?is)^from\s.*\sas\s+(?:scratch|context)\s*$'
+  regex: '(?is)^from[ \t\r\n].*[ \t\r\n]as[ \t\r\n]+(?:scratch|context)[ \t\r\n]*$'
 ---
 id: no-maintainer
 language: dockerfile
@@ -108,7 +108,7 @@ severity: error
 category: cleanup
 rule:
   kind: Instruction
-  regex: '(?is)^maintainer\b'
+  regex: '(?is)^maintainer(?-u:\b)'
 ---
 id: no-copy-whole-stage
 language: dockerfile
@@ -120,7 +120,7 @@ severity: warn
 category: suspicious
 rule:
   kind: Instruction
-  regex: '(?is)^copy\s.*--from=\S.*\s["'']?/["'']?(?:\s+\S+)*?\s+["'']?/["'']?\s*$'
+  regex: '(?is)^copy[ \t\r\n].*--from=[^ \t\r\n].*[ \t\r\n]["'']?/["'']?(?:[ \t\r\n]+[^ \t\r\n]+)*?[ \t\r\n]+["'']?/["'']?[ \t\r\n]*$'
 ---
 id: copy-instead-of-add
 language: dockerfile
@@ -133,9 +133,9 @@ severity: error
 category: suspicious
 rule:
   kind: Instruction
-  regex: '(?is)^add\s'
+  regex: '(?is)^add[ \t\r\n]'
   not:
-    regex: '(?i)(?:\bhttps?://|\.(?:tar|z|bz2|gz|lz|lzma|tz|tb2|tbz|tbz2|tgz|tlz|tpz|txz|xz)["'']?(?:\s|$))'
+    regex: '(?i)(?:(?-u:\b)https?://|\.(?:tar|z|bz2|gz|lz|lzma|tz|tb2|tbz|tbz2|tgz|tlz|tpz|txz|xz)["'']?(?:[ \t\r\n]|$))'
 ---
 id: copy-many-needs-directory
 language: dockerfile
@@ -148,7 +148,7 @@ category: correctness
 rule:
   kind: Instruction
   all:
-    - regex: '(?is)^copy\s+(?:--\S+\s+)*[^\s\[-]\S*\s+\S+\s+(?:\S+\s+)*\S*[^/\s]\s*$'
+    - regex: '(?is)^copy[ \t\r\n]+(?:--[^ \t\r\n]+[ \t\r\n]+)*[^ \t\r\n\[-][^ \t\r\n]*[ \t\r\n]+[^ \t\r\n]+[ \t\r\n]+(?:[^ \t\r\n]+[ \t\r\n]+)*[^ \t\r\n]*[^/ \t\r\n][ \t\r\n]*$'
     - not: { regex: '<<' }
 ---
 id: numeric-user-id
@@ -161,8 +161,8 @@ severity: off
 category: suspicious
 rule:
   kind: Instruction
-  regex: '(?is)^user\s+\S'
-  not: { regex: '(?is)^user\s+["'']?(?:\d+(?:[:"''\s]|$)|\$)' }
+  regex: '(?is)^user[ \t\r\n]+[^ \t\r\n]'
+  not: { regex: '(?is)^user[ \t\r\n]+["'']?(?:[0-9]+(?:[:"''[ \t\r\n]]|$)|\$)' }
 ---
 id: no-secret-in-env
 language: dockerfile
@@ -176,6 +176,6 @@ category: suspicious
 rule:
   kind: Instruction
   any:
-    - regex: '(?is)^arg\s+\w*(?:api_key|client_key|password|private|secret|token|username)\w*(?:[=\s]|$)'
-    - regex: '(?is)^env\s+(?:\w+=\S*\s+)*\w*(?:api_key|client_key|password|private|secret|token|username)\w*[=\s]'
-    - regex: '(?s)^(?i:arg|env)\s+(?:\w+=\S*\s+)*(?:APPLICATION_KEY|AWS_ACCESS_KEY_ID|CI_DEPLOY_USER|DOCKER_EMAIL|FACEBOOK_APP_ID|HEROKU_API_USER|OKTA_AUTHN_GROUPID|OKTA_CLIENT_ORGURL|OKTA_OAUTH2_CLIENTID|STRIPE_DEVICE_NAME|TRAVIS_OS_NAME|TRAVIS_SECURE_ENV_VARS|TRAVIS_SUDO)(?:[=\s]|$)'
+    - regex: '(?is)^arg[ \t\r\n]+[A-Za-z0-9_]*(?:api_key|client_key|password|private|secret|token|username)[A-Za-z0-9_]*(?:[= \t\r\n]|$)'
+    - regex: '(?is)^env[ \t\r\n]+(?:[A-Za-z0-9_]+=[^ \t\r\n]*[ \t\r\n]+)*[A-Za-z0-9_]*(?:api_key|client_key|password|private|secret|token|username)[A-Za-z0-9_]*[= \t\r\n]'
+    - regex: '(?s)^(?i:arg|env)[ \t\r\n]+(?:[A-Za-z0-9_]+=[^ \t\r\n]*[ \t\r\n]+)*(?:APPLICATION_KEY|AWS_ACCESS_KEY_ID|CI_DEPLOY_USER|DOCKER_EMAIL|FACEBOOK_APP_ID|HEROKU_API_USER|OKTA_AUTHN_GROUPID|OKTA_CLIENT_ORGURL|OKTA_OAUTH2_CLIENTID|STRIPE_DEVICE_NAME|TRAVIS_OS_NAME|TRAVIS_SECURE_ENV_VARS|TRAVIS_SUDO)(?:[= \t\r\n]|$)'
