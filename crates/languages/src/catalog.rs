@@ -20,13 +20,37 @@ pub struct Catalog {
     pub tool: String,
     pub languages: Vec<String>,
     pub entries: Vec<Entry>,
+    /// The compact form of deferred entries; [`parse`] turns them into entries.
+    #[serde(default)]
+    deferred: Vec<Deferred>,
+}
+
+#[derive(Deserialize)]
+struct Deferred {
+    gap: String,
+    ids: Vec<String>,
+}
+
+/// Reads a catalog file; each id under `deferred` becomes an entry with status and coverage
+/// `deferred` and the group's `gap`.
+pub fn parse(text: &str) -> Result<Catalog, String> {
+    let mut c: Catalog = serde_saphyr::from_str(text).map_err(|e| e.to_string())?;
+    for d in std::mem::take(&mut c.deferred) {
+        c.entries.extend(d.ids.into_iter().map(|id| Entry {
+            id,
+            sudsy: "deferred".into(),
+            coverage: "deferred".into(),
+            gap: d.gap.clone(),
+        }));
+    }
+    Ok(c)
 }
 
 macro_rules! catalogs {
     ($($name:literal),*) => {{
         static CELL: OnceLock<Vec<Catalog>> = OnceLock::new();
         CELL.get_or_init(|| {
-            vec![$(serde_saphyr::from_str::<Catalog>(include_str!(concat!(
+            vec![$(parse(include_str!(concat!(
                 "../../../docs/parity/", $name, ".yaml"
             )))
             .expect("parity catalog parses")),*]

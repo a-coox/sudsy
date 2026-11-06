@@ -130,6 +130,30 @@ struct OptionSpec {
     description: String,
 }
 
+/// `token:`: report each own token of the matched node that satisfies this, not the node.
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct TokenSpec {
+    kind: Vec<String>,
+    /// Characters: a node whose text has none of them is not read (a test cheaper than `regex`).
+    #[serde(default)]
+    needs: String,
+    regex: Option<String>,
+    #[serde(rename = "not-regex")]
+    not_regex: Option<String>,
+    /// The first own token of this kind is not read (a command's name).
+    #[serde(rename = "skip-first")]
+    skip_first: Option<String>,
+}
+
+struct TokenMatch {
+    kinds: Vec<SyntaxKind>,
+    needs: Vec<char>,
+    regex: Option<Re>,
+    not_regex: Option<Re>,
+    skip_first: Option<SyntaxKind>,
+}
+
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
 struct FileSpec {
@@ -141,6 +165,7 @@ struct FileSpec {
     description: Option<String>,
     example: Option<String>,
     rule: Option<Spec>,
+    token: Option<TokenSpec>,
     /// Built-in rules only: the Rust family that implements the rule, with its `params`, in
     /// place of `rule`.
     family: Option<String>,
@@ -318,6 +343,7 @@ struct Body {
     fix: Option<FixTemplate>,
     layout: Vec<LayoutEntry>,
     report_on: Option<ReportOn>,
+    token: Option<TokenMatch>,
 }
 
 /// A rule whose patterns are not compiled yet.
@@ -439,6 +465,21 @@ fn compile_body(
         }
     }
     let report_on = spec.report_on.as_deref().map(report_on).transpose()?;
+    let token = spec
+        .token
+        .as_ref()
+        .map(|t| compile_token(t, parser))
+        .transpose()?;
+    if token.is_some()
+        && (spec.message.is_none()
+            || spec.fix.is_some()
+            || report_on.is_some()
+            || !spec.layout.is_empty())
+    {
+        return Err(
+            "`token` needs a `message` and goes without `fix`, `report-on` and `layout`".into(),
+        );
+    }
     if report_on.is_some() && spec.message.is_none() {
         return Err("`report-on` needs a `message`".into());
     }
@@ -510,6 +551,30 @@ fn compile_body(
         fix,
         layout,
         report_on,
+        token,
+    })
+}
+
+fn compile_token(t: &TokenSpec, parser: &dyn SnippetParser) -> Result<TokenMatch, String> {
+    let re = |r: &Option<String>| {
+        r.as_deref()
+            .map(|r| Re::new(r).map_err(|e| format!("token regex `{r}`: {e}")))
+            .transpose()
+    };
+    let kind = |n: &String| {
+        parser
+            .grammar()
+            .kind_by_name(n)
+            .filter(|k| k.is_token())
+            .ok_or_else(|| format!("`{n}` is not a token kind of the language"))
+    };
+    let kinds = t.kind.iter().map(kind).collect::<Result<_, _>>()?;
+    Ok(TokenMatch {
+        kinds,
+        needs: t.needs.chars().collect(),
+        regex: re(&t.regex)?,
+        not_regex: re(&t.not_regex)?,
+        skip_first: t.skip_first.as_ref().map(kind).transpose()?,
     })
 }
 
@@ -577,6 +642,7 @@ fn read_specs(source: &str) -> Result<Vec<FileSpec>, PatternError> {
             || s.fix.is_some()
             || !s.layout.is_empty()
             || s.report_on.is_some()
+            || s.token.is_some()
             || !s.constraints.is_empty();
         let err = |m: &str| Err(PatternError(format!("rule `{}`: {m}", s.id)));
         match (&s.family, pattern_keys) {
@@ -861,6 +927,33 @@ impl Rule for PatternRule {
             return;
         };
         if !self.constraints_hold(&captures, file.text, ctx.options) {
+            return;
+        }
+        if let Some(t) = &body.token {
+            if ctx.laying_out() {
+                return;
+            }
+            let r = node.text_range();
+            let text = &file.text[usize::from(r.start())..usize::from(r.end())];
+            if !t.needs.is_empty() && !t.needs.iter().any(|&c| text.contains(c)) {
+                return;
+            }
+            let ascii = ranges.ascii(file.text);
+            let mut skip = t.skip_first;
+            for tok in node.children_with_tokens().filter_map(|e| e.into_token()) {
+                if skip == Some(tok.kind()) {
+                    skip = None;
+                    continue;
+                }
+                if !t.kinds.contains(&tok.kind()) {
+                    continue;
+                }
+                let hit = |r: &Option<Re>| r.as_ref().map(|r| r.is_match_in(tok.text(), ascii));
+                if hit(&t.regex).unwrap_or(true) && !hit(&t.not_regex).unwrap_or(false) {
+                    let message = self.message.as_deref().unwrap_or_default();
+                    ctx.report(tok.text_range(), substitute(message, &captures, file.text));
+                }
+            }
             return;
         }
         let range = ranges.significant_range(node, file.grammar);

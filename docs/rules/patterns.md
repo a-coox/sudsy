@@ -55,6 +55,19 @@ constraints:
   CALL: { in-option: banned }
 ```
 
+## Tokens
+`rule` matches nodes; `token:` makes a rule report tokens instead: each own token of the matched node (a direct child) that has one of the listed kinds and satisfies `regex` / `not-regex` (on the token's text) is a diagnostic at that token, with the rule's `message`. `needs: "chars"` skips a node whose text has none of the characters (cheaper than a `regex` on the node). `skip-first: <kind>` leaves out the first own token of that kind (a command's name). `token` needs a `message` and goes without `fix`, `report-on` and `layout`.
+
+```yaml
+id: no-backticks
+language: shell
+message: use $(...) instead of backticks
+rule:
+  any: [{ kind: Command }, { kind: For }]
+token: { kind: [Word, Assign, Test], needs: '`', regex: '^[^''\\]*`' }
+```
+Rules without `token` pay nothing for it.
+
 ## Layout
 `layout:` asks the formatter for a layout; each entry is `<directive> [argument] [on $NAME]`:
 

@@ -1,14 +1,10 @@
 //! The Rust rules of Shell; rules that fit a pattern are files in `rules/`.
 
 use crate::generated::kind as k;
-use core_rules::{Family, Rule, RuleContext, rule};
+use core_rules::{Rule, RuleContext, rule};
 use core_syntax::{SyntaxElement, SyntaxNode};
 
-mod word;
-
 pub static RULES: &[&dyn Rule] = &[&CdWithoutExit];
-
-pub static FAMILIES: &[Family] = &[word::FAMILY];
 
 /// A flag word that turns on `errexit`: `-e`, `-eu`, not `--` options.
 fn is_errexit_flag(w: &str) -> bool {

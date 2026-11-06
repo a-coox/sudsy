@@ -42,7 +42,7 @@ shfmt is the comparable tool; `scripts/parity.sh format shfmt` compares the outp
 ## Rules
 Shared: suppression comments (`# sudsy-disable-next-line <rule>`), `no-empty-comment`, `comment-space`, `max-line-length`. The grammar has no `#mapping` or `#sequence` nodes, so the key rules do not apply. The language rules are a shellcheck subset, listed in [../rules/builtin.md](../rules/builtin.md); the catalog maps each SC code to its rule or says why it is deferred.
 - Defaults follow shellcheck: its errors and warnings are on (`warn`/`error`), info and style are `off`.
-- Forms: pattern files in `crates/lang-shell/rules/` (`commands.yaml`, `quoting.yaml`); the `word` family (a regex on the word tokens of a command, which patterns cannot reach: `quote-*`, `no-backticks`; params in `src/rules/word.rs`); `cd-without-exit` in Rust (`src/rules.rs`).
+- Forms: pattern files in `crates/lang-shell/rules/` (`commands.yaml`, `quoting.yaml`); `quote-*` and `no-backticks` use `token:` (a regex on the word tokens of a command, [../rules/patterns.md](../rules/patterns.md#tokens)); `cd-without-exit` in Rust (`src/rules.rs`).
 - Syntax only: quoting is judged from the word's text, so `quote-variable` reads the arguments of a command and the words of `[ ]`, not the command's name, assignments, loop lists, `[[ ]]` or the inside of `$(...)`, and cannot know a variable holds a number or one word (shellcheck follows literal assignments, so it stays silent on `x=3; [ $x -lt 4 ]`). A string with a nested `$(`/`${` ends the scan of its word, so such a word is not judged. Data flow (`SC2034`, `SC2154`), the target dialect (`SC3xxx`) and knowledge of other commands' options are deferred.
 
 ## Parity

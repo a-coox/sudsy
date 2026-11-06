@@ -7,6 +7,16 @@ The differential runner [`scripts/parity.sh`](../development/parity.md) compares
 ## Entry fields
 `id`, `name`, `default` (upstream default), `kind` (`lint` or `format-option`), `sudsy` (status), `coverage`, `notes`, `gap` (what is missing), `priority` (`p1` on by default upstream, `p2` popular opt-in, `p3` rare; judgment, not measured), `usage` (judgment), `batch` (planning group, see below). Option-level entries have ids like `line-length.max`, so tools with many sub-options weigh more in the counts.
 
+### Compact deferred entries
+Entries that are only deferred (no notes) may instead be listed under a top-level `deferred:` of a catalog, grouped by their gap; each id becomes an entry with status and coverage `deferred` and that `gap` (no name, default, priority, usage or batch), counted like any other:
+
+```yaml
+deferred:
+  - gap: "Needs the configured label schema."
+    ids: [DL3049, DL3050]
+```
+The readers (`languages::catalog::parse`, used by the counts test, `init` and the rule tables) expand the list; scripts that read `entries` only need covered and partial ones. Move an id back to `entries` to give it notes or a status other than `deferred`.
+
 ## Status (`sudsy`)
 | Status | Meaning |
 |---|---|

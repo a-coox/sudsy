@@ -7,8 +7,8 @@ description: >-
 example: 'rm $(cat list)'
 severity: warn
 category: suspicious
-family: word
-params: { regex: '^(?:[^"''\\]|\\.|"(?:[^"\\$`]|\\.|\$[A-Za-z_0-9@*#?!$-])*"|''[^'']*'')*?(\$\([^(]|`)', tokens: 'Word Test', args: true, skip: '^\[\[', needs: '$`' }
+rule: { kind: Command }
+token: { needs: '$`', kind: [Word, Test], regex: '^(?:[^"''\\]|\\.|"(?:[^"\\$`]|\\.|\$[A-Za-z_0-9@*#?!$-])*"|''[^'']*'')*?(\$\([^(]|`)', not-regex: '^\[\[', skip-first: Word }
 ---
 id: quote-variable
 language: shell
@@ -19,8 +19,8 @@ description: >-
 example: 'rm $file'
 severity: off
 category: suspicious
-family: word
-params: { regex: '^(?:[^"''`\\(]|\\.|"(?:[^"\\$`]|\\.|\$[A-Za-z_0-9@*#?!$-])*"|''[^'']*'')*?\$(?:[A-Za-z_0-9*]|\{!?[A-Za-z_0-9]+(?:[^\[+:A-Za-z0-9_]|:[^+]|\[[^@]))', tokens: 'Word Test', args: true, skip: '^\[\[', needs: '$' }
+rule: { kind: Command }
+token: { needs: '$', kind: [Word, Test], regex: '^(?:[^"''`\\(]|\\.|"(?:[^"\\$`]|\\.|\$[A-Za-z_0-9@*#?!$-])*"|''[^'']*'')*?\$(?:[A-Za-z_0-9*]|\{!?[A-Za-z_0-9]+(?:[^\[+:A-Za-z0-9_]|:[^+]|\[[^@]))', not-regex: '^\[\[', skip-first: Word }
 ---
 id: quote-at-expansion
 language: shell
@@ -29,8 +29,8 @@ description: An unquoted `$@` or `${array[@]}` in a command's arguments.
 example: 'cp $@ dir'
 severity: error
 category: correctness
-family: word
-params: { regex: '^[^"''`\\(]*\$(@|\{@\}|\{!?[A-Za-z_][A-Za-z0-9_]*\[@\]\})', in: 'Command For', needs: '$' }
+rule: { any: [{ kind: Command }, { kind: For }] }
+token: { needs: '$', kind: [Word], regex: '^[^"''`\\(]*\$(@|\{@\}|\{!?[A-Za-z_][A-Za-z0-9_]*\[@\]\})' }
 ---
 id: quote-star-expansion
 language: shell
@@ -39,8 +39,8 @@ description: An unquoted `$*` or `${array[*]}` in a command's arguments.
 example: 'cp $* dir'
 severity: warn
 category: suspicious
-family: word
-params: { regex: '^[^"''`\\(]*\$(\*|\{\*\}|\{[A-Za-z_][A-Za-z0-9_]*\[\*\]\})', in: 'Command For', needs: '$' }
+rule: { any: [{ kind: Command }, { kind: For }] }
+token: { needs: '$', kind: [Word], regex: '^[^"''`\\(]*\$(\*|\{\*\}|\{[A-Za-z_][A-Za-z0-9_]*\[\*\]\})' }
 ---
 id: no-backticks
 language: shell
@@ -49,8 +49,8 @@ description: A command substitution written with backticks.
 example: 'now=`date`'
 severity: off
 category: style
-family: word
-params: { regex: '^[^''\\]*`', tokens: 'Word Assign Test', in: 'Command For', needs: '`' }
+rule: { any: [{ kind: Command }, { kind: For }] }
+token: { needs: '`', kind: [Word, Assign, Test], regex: '^[^''\\]*`' }
 ---
 id: declare-and-assign-separately
 language: shell

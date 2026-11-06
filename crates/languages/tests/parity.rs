@@ -2,23 +2,9 @@
 //! counts in `docs/parity/README.md` match the files.
 
 use core_rules::{Extensions, SYNTAX_ERROR};
-use serde::Deserialize;
+use languages::catalog::{self, Catalog, Entry};
 use std::collections::BTreeMap;
 use std::path::PathBuf;
-
-#[derive(Deserialize)]
-struct Catalog {
-    tool: String,
-    languages: Vec<String>,
-    entries: Vec<Entry>,
-}
-
-#[derive(Deserialize)]
-struct Entry {
-    id: String,
-    sudsy: String,
-    coverage: String,
-}
 
 const COVERAGE: [&str; 6] = [
     "covered", "partial", "missing", "sdk", "wontfix", "deferred",
@@ -34,9 +20,7 @@ fn catalogs() -> Vec<Catalog> {
         let path = file.unwrap().path();
         if path.extension().is_some_and(|e| e == "yaml") {
             let text = std::fs::read_to_string(&path).unwrap();
-            let catalog: Catalog =
-                serde_saphyr::from_str(&text).unwrap_or_else(|e| panic!("{}: {e}", path.display()));
-            out.push(catalog);
+            out.push(catalog::parse(&text).unwrap_or_else(|e| panic!("{}: {e}", path.display())));
         }
     }
     out.sort_by(|a, b| a.tool.cmp(&b.tool));
