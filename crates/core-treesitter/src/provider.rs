@@ -14,7 +14,8 @@ use std::sync::Arc;
 
 /// What makes a tree-sitter language a provider.
 pub struct Spec {
-    pub language: tree_sitter::Language,
+    /// Resolved on the first parse: a linked-in grammar, or the language's installed pack.
+    pub language: fn() -> tree_sitter::Language,
     pub grammar: LazyGrammar,
     pub mapping: &'static Mapping,
     /// File extensions without the dot.

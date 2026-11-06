@@ -270,6 +270,11 @@ impl Server {
                 let p: DidOpenTextDocumentParams = serde_json::from_value(note.params)?;
                 let doc = p.text_document;
                 if let Some(path) = path_of(&doc.uri) {
+                    if let Some((language, why)) = self.workspace.missing_language(&path)
+                        && !self.workspace.ignores_language(&language)
+                    {
+                        self.notifier.language_missing(&language, &why);
+                    }
                     self.workspace.open(path, doc.version, doc.text);
                 }
             }

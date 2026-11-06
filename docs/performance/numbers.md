@@ -84,6 +84,7 @@ C# cost structure: on CoreLib Roslyn parse ~0.94 s and the mapping walk ~0.83 s 
 | Empty-file plugin call | 7 us |
 | `sudsy lint .`, 20 small JSON files: none / pattern / Wasm warm | 38 / 37 / 62 ms |
 | Binary size with the Wasm host (Windows x64 release) | 28.3 MB (9.3 MB gz) vs 8.8 MB without; options tried: [Binary size](#binary-size) |
+| Language packs, TOML (`scripts/pack-bench.sh`; Windows x64 release, 12 threads; `lint --analysis fast` of a generated 4.5 MB TOML file, interleaved, 8 runs per round, 3 rounds) | static grammars vs pack: best 2778-2810 vs 2790-2869 ms, median 2884-2897 vs 2891-2990 ms: equal within noise (the pack is the same C code in a `cdylib`; the load is a 32 KB read, a SHA-256 and a `dlopen`, under a millisecond). `sudsy.exe` with all seven grammars linked in 46.6 MB, without (pack mode) 31.6 MB; the TOML pack is 32 KB |
 
 ## Binary size
 `sudsy.exe`, Windows x64, 12 threads, clean release build of `cli` + `perf-bench`; gz = `gzip -9`. Throughput: best of 5 `format --check` on the generated 11 MB JSON / 5 MB YAML and 100 small files, noise 10-15% (first runs of a new exe are slower from the virus scanner).

@@ -14,7 +14,7 @@ use core_treesitter::{Spec, TreeSitterProvider};
 pub fn provider() -> TreeSitterProvider {
     TreeSitterProvider::with_composite(
         Spec {
-            language: tree_sitter_md::LANGUAGE.into(),
+            language: || core_packs::language!("markdown", tree_sitter_md::LANGUAGE),
             grammar: grammars::MARKDOWN,
             mapping: &mapping::BLOCK,
             extensions: &["md", "markdown"],

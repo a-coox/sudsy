@@ -3,6 +3,7 @@
 
 pub mod catalog;
 mod extensions;
+pub mod installed;
 mod project;
 
 pub use extensions::load_extensions;

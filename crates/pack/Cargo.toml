@@ -1,0 +1,28 @@
+[package]
+name = "pack"
+description = "One language's tree-sitter grammar as a shared library: build with one feature (scripts/pack.sh)"
+edition.workspace = true
+license.workspace = true
+version.workspace = true
+publish.workspace = true
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+tree-sitter-toml-ng = { workspace = true, optional = true }
+tree-sitter-xml = { workspace = true, optional = true }
+tree-sitter-md = { workspace = true, optional = true }
+konomanoasa-tree-sitter-editorconfig = { workspace = true, optional = true }
+tree-sitter-containerfile = { workspace = true, optional = true }
+tree-sitter-bash = { workspace = true, optional = true }
+woodruffw-trough-tree-sitter-powershell = { workspace = true, optional = true }
+
+[features]
+toml = ["dep:tree-sitter-toml-ng"]
+xml = ["dep:tree-sitter-xml"]
+markdown = ["dep:tree-sitter-md"]
+editorconfig = ["dep:konomanoasa-tree-sitter-editorconfig"]
+dockerfile = ["dep:tree-sitter-containerfile"]
+shell = ["dep:tree-sitter-bash"]
+powershell = ["dep:woodruffw-trough-tree-sitter-powershell"]

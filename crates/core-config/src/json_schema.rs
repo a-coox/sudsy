@@ -237,6 +237,15 @@ pub fn json_schema(languages: &[(&str, &OptionSchema)], rules: &[RuleSchema]) ->
             "description": "Analysis depth for rules: fast (syntax only), standard (within each file), deep (adds project scope)."
         }),
     );
+    properties.insert(
+        "languages".into(),
+        json!({
+            "type": "object",
+            "propertyNames": { "enum": languages.iter().map(|(l, _)| *l).collect::<Vec<_>>() },
+            "additionalProperties": { "enum": ["required", "ignored"] },
+            "description": "Languages the project needs: `required` ones are installed by `sudsy languages sync`; files of an `ignored` language are skipped silently when it is not installed."
+        }),
+    );
     properties.insert("format".into(), options_object(shared_defs(languages)));
     properties.insert("lint".into(), lint_section());
     properties.insert(

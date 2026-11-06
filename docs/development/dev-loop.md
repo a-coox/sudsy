@@ -11,6 +11,7 @@
 | `dogfood.sh` | Build debug CLI + worker into `target/dogfood/` for the editor |
 | `bench.sh`, `bench-time.sh`, `bench-measure.sh`, `bench-setup-wsl.sh` | [performance/tooling.md](../performance/tooling.md) |
 | `parity.sh <tool>`, `parity.sh format <tool>` | Differential test against an upstream tool on `tests/parity/<tool>/` fixtures: [parity.md](parity.md) |
+| `pack.sh <out> [language...]`, `pack-bench.sh` | Build language packs and their manifest for this machine; static vs pack timing and sizes ([../architecture/language-packs.md](../architecture/language-packs.md)) |
 | `check-version.sh [vX.Y.Z]` | Cargo workspace, `editors/vscode/package.json` + lock, tag and `CHANGELOG.md` agree |
 | `package-cli.sh` | CLI archive: executable, `csharp-worker/`, LICENSE, CHANGELOG |
 
@@ -30,4 +31,4 @@ Each parallel agent works in its own git worktree and sets `CARGO_TARGET_DIR=C:/
 - Shell is Git Bash (`.vscode/settings.json` sets it); scripts are bash. Some tools mangle paths: use `cygpath` and `MSYS_NO_PATHCONV=1` when calling `wsl`.
 - Instruction-count benchmarks need valgrind, so they run in WSL (`BENCH_WSL_DISTRO`, default Ubuntu); `bench.sh` converts paths. A VS Code window locks `target/debug` outputs, hence `target/dogfood/`.
 - CSharpier comparisons copy the corpus outside the repo (`SUDSY_DIFF_DIR`) because CSharpier honors `.gitignore`.
-- Environment variables: `SUDSY_CSHARP_WORKER`, `SUDSY_CSHARP_WORKERS`, `SUDSY_WASM_CACHE`, `SUDSY_DIFF_DIR`, `SUDSY_DIFF_FILTER`, `SUDSY_CORPUS_FILTER`, `SUDSY_CORPUS_FAILURES`, `SUDSY_SPEED_DIR`.
+- Environment variables: `SUDSY_CACHE_DIR`, `SUDSY_PACK_MANIFEST` (build time), `SUDSY_CSHARP_WORKER`, `SUDSY_CSHARP_WORKERS`, `SUDSY_WASM_CACHE`, `SUDSY_DIFF_DIR`, `SUDSY_DIFF_FILTER`, `SUDSY_CORPUS_FILTER`, `SUDSY_CORPUS_FAILURES`, `SUDSY_SPEED_DIR`.

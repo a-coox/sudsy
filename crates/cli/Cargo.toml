@@ -27,6 +27,10 @@ core-syntax.workspace = true
 provider-api.workspace = true
 tempfile.workspace = true
 
+[features]
+default = ["static-grammars"]
+static-grammars = ["languages/static-grammars", "lsp/static-grammars"]
+
 [dev-dependencies]
 insta.workspace = true
 

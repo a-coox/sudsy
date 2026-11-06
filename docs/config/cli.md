@@ -10,9 +10,11 @@
 | `config print [file]` | Resolved config with the source of each value | 0 |
 | `init [--preset <name>] [--force]` | Write a starter `sudsy.yaml` | 0 |
 | `init --from <tool> [--force] [--write-editorconfig]` | Write the `sudsy.yaml` equivalent of another tool's config in the working directory ([below](#init---from)) | 0 |
+| `languages list` / `add <lang>... [--all] [--from <dir>]` / `remove <lang>...` / `sync` | The installed set ([../architecture/language-packs.md](../architecture/language-packs.md)): `list` shows installed or available and pack sizes; `add` downloads the packs of this version from the GitHub release (or takes them from `--from`) and checks their SHA-256; `sync` adds what `languages:` in sudsy.yaml marks `required` | 2 on an unknown language or a failed install |
 | `lsp` | Language server on stdio ([editor/lsp.md](../editor/lsp.md)) | |
 | `debug parse <file>` | Developer: parse a `.cs` file with the worker, check round trip, print the tree | |
 
+- Exit 3 from `format`, `lint`, `fix` and `check` when everything else succeeded but files of an installed-nowhere language were skipped (one stderr line per language with its install command); not for a language the config marks `ignored`.
 - Exit 2 on any command: a file could not be processed (syntax error, unreadable, bad option, worker unavailable) or the config is invalid. Failed files are left alone and the rest are processed. Results are reported in path order.
 - `lint`, `fix`, `check`: `--format human|json|sarif|github` and `--analysis fast|standard|deep`.
   - JSON: `{version, summary, diagnostics}` with byte offsets, line/column ranges and fix edits. SARIF 2.1.0: results and rule table, no `fixes`. GitHub: `::error|warning file=,line=,col=,endLine=,endColumn=,title=::message`.

@@ -14,7 +14,7 @@ use core_treesitter::{Spec, TreeSitterProvider};
 pub fn provider() -> TreeSitterProvider {
     TreeSitterProvider::with_composite(
         Spec {
-            language: tree_sitter_bash::LANGUAGE.into(),
+            language: || core_packs::language!("shell", tree_sitter_bash::LANGUAGE),
             grammar: grammars::SHELL,
             mapping: &mapping::MAPPING,
             extensions: &["sh", "bash"],

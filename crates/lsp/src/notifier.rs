@@ -87,6 +87,17 @@ impl Notifier {
         let _ = self.sender.send(request.into());
     }
 
+    /// The language of an opened file is not installed: once per language and session (an
+    /// editor extension can turn the message into an install prompt).
+    pub(crate) fn language_missing(&self, language: &str, why: &str) {
+        let message = format!(
+            "Sudsy: {language} is {why}; run `sudsy languages add {language}` to format and lint it"
+        );
+        if self.first_time(&message) {
+            self.show(MessageType::WARNING, message);
+        }
+    }
+
     /// The config could not be loaded. The message is the one every file's failure carries, so it
     /// counts as shown for them.
     pub(crate) fn config_failed(&self, error: String) {

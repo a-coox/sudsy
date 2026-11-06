@@ -8,11 +8,12 @@ build = "../../build/lang-crate.rs"
 
 [dependencies]
 core-config.workspace = true
+core-packs.workspace = true
 core-format.workspace = true
 core-rules.workspace = true
 core-syntax.workspace = true
 core-treesitter.workspace = true
-tree-sitter-containerfile.workspace = true
+tree-sitter-containerfile = { workspace = true, optional = true }
 provider-api.workspace = true
 
 [dev-dependencies]
@@ -20,6 +21,11 @@ insta.workspace = true
 
 [build-dependencies]
 core-syntax.workspace = true
+
+[features]
+# The grammar is linked in; without it the language loads from its language pack.
+default = ["static-grammars"]
+static-grammars = ["dep:tree-sitter-containerfile"]
 
 [lints]
 workspace = true

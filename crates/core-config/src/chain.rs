@@ -4,11 +4,11 @@ use crate::PRESET_PREFIX;
 use crate::error::ConfigError;
 use crate::glob::Matcher;
 use crate::load::{parse_str, read_source};
-use crate::model::{Config, Depth, Plugins};
+use crate::model::{Config, Depth, Need, Plugins};
 use crate::presets::language_of;
 use crate::resolve::Source;
 use crate::schema::OptionSchema;
-use std::collections::HashSet;
+use std::collections::{BTreeMap, HashSet};
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
@@ -272,6 +272,22 @@ impl ConfigChain {
             .unwrap_or_default()
     }
 
+    /// What the chain says about each language it names (`languages:`); a file closer to the
+    /// user wins.
+    pub fn needs(&self) -> BTreeMap<&str, Need> {
+        let mut out = BTreeMap::new();
+        for loaded in &self.files {
+            out.extend(
+                loaded
+                    .config
+                    .needs
+                    .iter()
+                    .map(|(k, v)| (k.as_str(), v.value)),
+            );
+        }
+        out
+    }
+
     /// The same chain with analysis depth `depth`: the command line overrides the config files.
     pub fn with_depth(mut self, depth: Depth) -> Self {
         match self.files.last_mut() {
@@ -490,6 +506,16 @@ fn check_loaded(loaded: &Loaded, schemas: &[(&str, &OptionSchema)]) -> Result<()
                 section.referenced.line(),
                 section.referenced.column(),
                 crate::error::unknown_name("language section", name, known),
+            )));
+        }
+    }
+    for (name, need) in &loaded.config.needs {
+        if !schemas.iter().any(|(l, _)| l == name) {
+            let known = schemas.iter().map(|(l, _)| *l);
+            return Err(check(ConfigError::at(
+                need.referenced.line(),
+                need.referenced.column(),
+                crate::error::unknown_name("language", name, known),
             )));
         }
     }

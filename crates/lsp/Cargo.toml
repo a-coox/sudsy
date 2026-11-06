@@ -28,5 +28,9 @@ lang-json.workspace = true
 lang-yaml.workspace = true
 tempfile.workspace = true
 
+[features]
+default = ["static-grammars"]
+static-grammars = ["languages/static-grammars"]
+
 [lints]
 workspace = true

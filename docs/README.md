@@ -8,6 +8,7 @@ Current state only; history is in git. Update the doc for the area you change in
 | [architecture/syntax-tree.md](architecture/syntax-tree.md) | Lossless tree, trivia rule, grammars and codegen, wire encoding |
 | [architecture/csharp-worker.md](architecture/csharp-worker.md) | .NET worker, protocol, workspace, lifecycle |
 | [architecture/adding-a-language.md](architecture/adding-a-language.md) | Adding a tree-sitter language: steps and per-language cost |
+| [architecture/language-packs.md](architecture/language-packs.md) | Languages as installable packs: format, manifest, cache, ABI check, missing language |
 | [architecture/incremental.md](architecture/incremental.md) | Salsa query graph, backdating, parallelism |
 | [formatting/engine.md](formatting/engine.md) | Layout doc, printer, shapes, directives, comments, safety check |
 | [formatting/csharp.md](formatting/csharp.md) | C# formatter and options |

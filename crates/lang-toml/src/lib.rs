@@ -18,7 +18,7 @@ use core_treesitter::{Spec, TreeSitterProvider};
 
 pub fn provider() -> TreeSitterProvider {
     TreeSitterProvider::new(Spec {
-        language: tree_sitter_toml_ng::LANGUAGE.into(),
+        language: || core_packs::language!("toml", tree_sitter_toml_ng::LANGUAGE),
         grammar: grammars::TOML,
         mapping: &mapping::MAPPING,
         extensions: &["toml"],

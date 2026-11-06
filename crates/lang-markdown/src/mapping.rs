@@ -93,12 +93,16 @@ pub static COMPOSITE: Composite = Composite {
     injected: &[
         Injected {
             host: "inline",
-            language: || tree_sitter_md::INLINE_LANGUAGE.into(),
+            language: || {
+                core_packs::language!("markdown", "_inline", tree_sitter_md::INLINE_LANGUAGE)
+            },
             mapping: &INLINE,
         },
         Injected {
             host: "pipe_table_cell",
-            language: || tree_sitter_md::INLINE_LANGUAGE.into(),
+            language: || {
+                core_packs::language!("markdown", "_inline", tree_sitter_md::INLINE_LANGUAGE)
+            },
             mapping: &INLINE,
         },
     ],

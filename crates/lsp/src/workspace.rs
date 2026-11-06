@@ -3,9 +3,9 @@
 //! tests use it directly.
 
 use crate::position::apply_change;
-use core_config::{ConfigError, EditorConfig};
-use core_incremental::{Database, File};
-use languages::Project;
+use core_config::{ConfigError, EditorConfig, Need};
+use core_incremental::{Database, Db, File};
+use languages::{Project, installed::Checker};
 use lsp_types::TextDocumentContentChangeEvent;
 use provider_api::LanguageProvider;
 use std::collections::HashMap;
@@ -93,9 +93,23 @@ impl Workspace {
             })
     }
 
-    /// Starts tracking a document; false when no provider handles the file.
+    /// `(language, why)` when `path` is a known language that is not installed.
+    pub fn missing_language(&self, path: &Path) -> Option<(String, String)> {
+        let (language, why) = Checker::new(self.db.providers()).missing(path)?;
+        Some((language.to_string(), why))
+    }
+
+    /// Whether the project's config says files of `language` are skipped without a word.
+    pub fn ignores_language(&self, language: &str) -> bool {
+        self.project
+            .as_ref()
+            .is_some_and(|p| p.chain.needs().get(language) == Some(&Need::Ignored))
+    }
+
+    /// Starts tracking a document; false when no provider handles the file or its language is
+    /// not installed.
     pub fn open(&mut self, path: PathBuf, version: i32, text: String) -> bool {
-        if !self.db.supports(&path) {
+        if !self.db.supports(&path) || self.missing_language(&path).is_some() {
             return false;
         }
         let label = path.to_string_lossy().into_owned();
@@ -169,8 +183,10 @@ impl Workspace {
             core_workspace::discover_files(std::slice::from_ref(&self.root), &project.filter())
                 .unwrap_or_default();
         let mut background = HashMap::new();
+        let mut checker = Checker::new(self.db.providers());
         for path in paths {
             if self.db.supports(&path)
+                && checker.missing(&path).is_none()
                 && !self.docs.contains_key(&path)
                 && let Some(file) = self.read(&path)
             {

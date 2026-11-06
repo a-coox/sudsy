@@ -14,6 +14,8 @@ A Rust core owns everything language-neutral; each language contributes a provid
 | `core-flow` | Flow graph, worklist solver, reachability, liveness, reaching defs, definite assignment |
 | `core-patterns` | Pattern matcher and YAML pattern rules |
 | `core-plugins` | wasmtime host for Wasm rule plugins |
+| `core-packs` | Language packs: embedded manifest, hash and ABI check, `dlopen`, installed set ([language-packs.md](language-packs.md)) |
+| `pack` | The cdylib of one tree-sitter grammar (one cargo feature per language), built by `scripts/pack.sh` |
 | `core-treesitter` | Adapter from a linked-in tree-sitter grammar to our lossless tree (mapping table, trivia from byte gaps, error regions) |
 | `core-config` | `sudsy.yaml` model, chain, resolution, presets, `.editorconfig`, JSON Schema |
 | `core-workspace` | File discovery (ignore files, hidden dirs, `.git` excluded) |

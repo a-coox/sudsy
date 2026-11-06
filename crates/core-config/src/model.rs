@@ -230,6 +230,16 @@ impl Depth {
     }
 }
 
+/// What the project says about a language that may not be installed.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum Need {
+    /// `sudsy languages sync` installs it; its files are skipped with a warning while missing.
+    Required,
+    /// Its files are skipped silently when it is missing.
+    Ignored,
+}
+
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Config {
     /// Presets (`preset:csharp/microsoft`) or config files (paths relative to this file).
@@ -244,6 +254,8 @@ pub struct Config {
     pub format: Options,
     pub lint: LintSection,
     pub plugins: Plugins,
+    /// The `languages:` key: language name -> need.
+    pub needs: BTreeMap<String, Spanned<Need>>,
     pub languages: LanguageSections,
     pub overrides: Vec<Override>,
 }
@@ -256,6 +268,7 @@ const CONFIG_KEYS: &[&str] = &[
     "format",
     "lint",
     "plugins",
+    "languages",
     "overrides",
 ];
 
@@ -278,6 +291,7 @@ impl<'de> Deserialize<'de> for Config {
                         "format" => c.format = map.next_value()?,
                         "lint" => c.lint = map.next_value()?,
                         "plugins" => c.plugins = map.next_value()?,
+                        "languages" => c.needs = map.next_value()?,
                         "overrides" => c.overrides = map.next_value()?,
                         _ => {
                             let section = language_section(&mut map, &key, CONFIG_KEYS)?;

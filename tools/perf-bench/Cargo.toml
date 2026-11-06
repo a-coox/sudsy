@@ -18,7 +18,7 @@ core-syntax.workspace = true
 lang-csharp.workspace = true
 lang-json.workspace = true
 lang-yaml.workspace = true
-languages.workspace = true
+languages = { workspace = true, features = ["static-grammars"] }
 provider-api.workspace = true
 anyhow.workspace = true
 # `lsp-latency`: the language server's responsiveness.

@@ -15,7 +15,12 @@ use core_treesitter::{Spec, TreeSitterProvider};
 pub fn provider() -> TreeSitterProvider {
     TreeSitterProvider::with_composite(
         Spec {
-            language: woodruffw_trough_tree_sitter_powershell::LANGUAGE.into(),
+            language: || {
+                core_packs::language!(
+                    "powershell",
+                    woodruffw_trough_tree_sitter_powershell::LANGUAGE
+                )
+            },
             grammar: grammars::POWERSHELL,
             mapping: &mapping::MAPPING,
             extensions: &["ps1", "psm1", "psd1"],

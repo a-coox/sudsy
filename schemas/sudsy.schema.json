@@ -2299,6 +2299,30 @@
       },
       "type": "object"
     },
+    "languages": {
+      "additionalProperties": {
+        "enum": [
+          "required",
+          "ignored"
+        ]
+      },
+      "description": "Languages the project needs: `required` ones are installed by `sudsy languages sync`; files of an `ignored` language are skipped silently when it is not installed.",
+      "propertyNames": {
+        "enum": [
+          "json",
+          "yaml",
+          "toml",
+          "xml",
+          "markdown",
+          "editorconfig",
+          "dockerfile",
+          "shell",
+          "powershell",
+          "csharp"
+        ]
+      },
+      "type": "object"
+    },
     "lint": {
       "$ref": "#/definitions/lint"
     },

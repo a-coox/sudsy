@@ -550,7 +550,8 @@ impl Scan {
 
 /// A parser pool plus the resolved mapping: one per language, shared by threads.
 pub struct Engine {
-    language: Language,
+    load: fn() -> Language,
+    language: OnceLock<Language>,
     grammar: LazyGrammar,
     mapping: &'static Mapping,
     composite: Option<Composite>,
@@ -559,18 +560,19 @@ pub struct Engine {
 }
 
 impl Engine {
-    pub fn new(language: Language, grammar: LazyGrammar, mapping: &'static Mapping) -> Self {
-        Self::with_composite(language, grammar, mapping, None)
+    pub fn new(load: fn() -> Language, grammar: LazyGrammar, mapping: &'static Mapping) -> Self {
+        Self::with_composite(load, grammar, mapping, None)
     }
 
     pub fn with_composite(
-        language: Language,
+        load: fn() -> Language,
         grammar: LazyGrammar,
         mapping: &'static Mapping,
         composite: Option<Composite>,
     ) -> Self {
         Engine {
-            language,
+            load,
+            language: OnceLock::new(),
             grammar,
             mapping,
             composite,
@@ -581,7 +583,7 @@ impl Engine {
 
     fn new_parser(&self) -> Parser {
         let mut p = Parser::new();
-        p.set_language(&self.language)
+        p.set_language(self.language.get_or_init(self.load))
             .expect("the grammar's ABI version matches the tree-sitter runtime");
         p
     }

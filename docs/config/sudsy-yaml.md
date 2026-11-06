@@ -9,6 +9,7 @@ exclude: ["**/Generated/**"] # in addition to ignore files
 analysis: standard           # fast | standard (default) | deep
 format: { line_width: 100 }  # shared: every language
 lint: { rules: { max-line-length: warn } }
+languages: { toml: required, markdown: ignored }  # see below
 plugins: { patterns: ["rules/*.yaml"], wasm: ["rules/team.wasm"] }
 csharp:                      # also json:, yaml:, toml:
   format: { line_width: 120, brace_newline: all, preprocessor_symbols: [DEBUG] }
@@ -29,6 +30,9 @@ overrides:
 
 ## Resolution (highest first)
 CLI flags (`--analysis`) -> matching `overrides` -> language section -> top-level shared settings -> `extends` chain -> `.editorconfig` -> provider defaults. Across tiers this order holds whichever file wrote the value; within a tier, chain files apply base first so the file closest to the user wins. Presets sit below all files. `sudsy config print [file]` shows the result and the source (file:line, `preset <name>`, `.editorconfig`, default) of every value. A comment-only edit re-resolves options (locations take part in equality).
+
+## `languages`
+Maps a language name (a provider's grammar name; others are errors with a suggestion) to `required` or `ignored`, for languages that may not be installed ([../architecture/language-packs.md](../architecture/language-packs.md)). `sudsy languages sync` installs the `required` ones. Files of a language that is not installed are skipped; unless it is `ignored`, a warning names the install command and the exit status is 3. The file closest to the user wins across `extends`.
 
 ## Presets and `extends`
 `preset:<language>/<name>` is unversioned; see [formatting/presets.md](../formatting/presets.md). Why unversioned: presets are plain config, so a user who needs frozen output copies the file.

@@ -409,6 +409,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "core-packs"
+version = "0.1.0"
+dependencies = [
+ "dirs",
+ "libloading",
+ "serde",
+ "serde_json",
+ "sha2",
+ "tempfile",
+ "thiserror 2.0.21",
+ "tree-sitter",
+ "tree-sitter-language",
+]
+
+[[package]]
 name = "core-patterns"
 version = "0.1.0"
 dependencies = [
@@ -766,13 +781,34 @@ dependencies = [
 ]
 
 [[package]]
+name = "dirs"
+version = "6.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c3e8aa94d75141228480295a7d0e7feb620b1a5ad9f12bc40be62411e38cce4e"
+dependencies = [
+ "dirs-sys",
+]
+
+[[package]]
+name = "dirs-sys"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e01a3366d27ee9890022452ee61b2b63a67e6f13f58900b651ff5665f0bb1fab"
+dependencies = [
+ "libc",
+ "option-ext",
+ "redox_users 0.5.3",
+ "windows-sys",
+]
+
+[[package]]
 name = "dirs-sys-next"
 version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4ebda144c4fe02d1f7ea1a7d9641b6fc6b580adcfa024ae48797ecdeb6825b4d"
 dependencies = [
  "libc",
- "redox_users",
+ "redox_users 0.4.6",
  "winapi",
 ]
 
@@ -1291,6 +1327,7 @@ version = "0.1.0"
 dependencies = [
  "core-config",
  "core-format",
+ "core-packs",
  "core-rules",
  "core-syntax",
  "core-treesitter",
@@ -1305,6 +1342,7 @@ version = "0.1.0"
 dependencies = [
  "core-config",
  "core-format",
+ "core-packs",
  "core-rules",
  "core-syntax",
  "core-treesitter",
@@ -1332,6 +1370,7 @@ version = "0.1.0"
 dependencies = [
  "core-config",
  "core-format",
+ "core-packs",
  "core-rules",
  "core-syntax",
  "core-treesitter",
@@ -1351,6 +1390,7 @@ version = "0.1.0"
 dependencies = [
  "core-config",
  "core-format",
+ "core-packs",
  "core-rules",
  "core-syntax",
  "core-treesitter",
@@ -1364,6 +1404,7 @@ version = "0.1.0"
 dependencies = [
  "core-config",
  "core-format",
+ "core-packs",
  "core-rules",
  "core-syntax",
  "core-treesitter",
@@ -1378,6 +1419,7 @@ version = "0.1.0"
 dependencies = [
  "core-config",
  "core-format",
+ "core-packs",
  "core-rules",
  "core-syntax",
  "core-treesitter",
@@ -1395,6 +1437,7 @@ version = "0.1.0"
 dependencies = [
  "core-config",
  "core-format",
+ "core-packs",
  "core-rules",
  "core-syntax",
  "core-treesitter",
@@ -1425,6 +1468,7 @@ name = "languages"
 version = "0.1.0"
 dependencies = [
  "core-config",
+ "core-packs",
  "core-patterns",
  "core-plugins",
  "core-rules",
@@ -1457,6 +1501,16 @@ name = "libc"
 version = "0.2.191"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "65cd87c9a6d60536580b316ad985726104730a5151c99845f2490428ef91240a"
+
+[[package]]
+name = "libloading"
+version = "0.8.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d7c4b02199fee7c5d21a5ae7d8cfa79a6ef5bb2fc834d6e9058e89c825efdc55"
+dependencies = [
+ "cfg-if",
+ "windows-link",
+]
 
 [[package]]
 name = "libm"
@@ -1665,6 +1719,25 @@ name = "once_cell_polyfill"
 version = "1.70.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "384b8ab6d37215f3c5301a95a4accb5d64aa607f1fcb26a11b5303878451b4fe"
+
+[[package]]
+name = "option-ext"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "04744f49eae99ab78e0d5c0b603ab218f515ea8cfe5a456d7629ad883a3b6e7d"
+
+[[package]]
+name = "pack"
+version = "0.1.0"
+dependencies = [
+ "konomanoasa-tree-sitter-editorconfig",
+ "tree-sitter-bash",
+ "tree-sitter-containerfile",
+ "tree-sitter-md",
+ "tree-sitter-toml-ng",
+ "tree-sitter-xml",
+ "woodruffw-trough-tree-sitter-powershell",
+]
 
 [[package]]
 name = "parking_lot"
@@ -1979,6 +2052,16 @@ dependencies = [
  "getrandom 0.2.17",
  "libredox",
  "thiserror 1.0.69",
+]
+
+[[package]]
+name = "redox_users"
+version = "0.5.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "60dc65c0ff1a7ae1294b0c67b9f14baf70b644404010370171787bfac1038fc0"
+dependencies = [
+ "libredox",
+ "thiserror 2.0.21",
 ]
 
 [[package]]

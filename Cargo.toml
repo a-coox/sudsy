@@ -56,17 +56,18 @@ core-workspace = { path = "crates/core-workspace" }
 lang-csharp = { path = "crates/lang-csharp" }
 lang-json = { path = "crates/lang-json" }
 lang-yaml = { path = "crates/lang-yaml" }
-lang-toml = { path = "crates/lang-toml" }
-lang-xml = { path = "crates/lang-xml" }
-lang-markdown = { path = "crates/lang-markdown" }
-lang-editorconfig = { path = "crates/lang-editorconfig" }
-lang-dockerfile = { path = "crates/lang-dockerfile" }
-lang-shell = { path = "crates/lang-shell" }
-lang-powershell = { path = "crates/lang-powershell" }
+lang-toml = { path = "crates/lang-toml", default-features = false }
+lang-xml = { path = "crates/lang-xml", default-features = false }
+lang-markdown = { path = "crates/lang-markdown", default-features = false }
+lang-editorconfig = { path = "crates/lang-editorconfig", default-features = false }
+lang-dockerfile = { path = "crates/lang-dockerfile", default-features = false }
+lang-shell = { path = "crates/lang-shell", default-features = false }
+lang-powershell = { path = "crates/lang-powershell", default-features = false }
+core-packs = { path = "crates/core-packs" }
 core-treesitter = { path = "crates/core-treesitter" }
 core-syntax = { path = "crates/core-syntax" }
-languages = { path = "crates/languages" }
-lsp = { path = "crates/lsp" }
+languages = { path = "crates/languages", default-features = false }
+lsp = { path = "crates/lsp", default-features = false }
 provider-api = { path = "crates/provider-api" }
 
 [workspace.lints.rust]
