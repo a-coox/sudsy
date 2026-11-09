@@ -6,6 +6,10 @@ use crate::generated::kind as k;
 use core_syntax::{Embedded, SyntaxNode, TextRange, TextSize};
 
 pub fn find(root: &SyntaxNode, text: &str) -> Vec<Embedded> {
+    // The tree walk below allocates a red node per node; a file with no fence marker skips it.
+    if !text.contains("```") && !text.contains("~~~") {
+        return Vec::new();
+    }
     let render = Render { src: text, tab: 2 };
     let at = |i: usize| TextSize::try_from(i).expect("a file is under 4 GiB");
     let mut out = Vec::new();
