@@ -1,0 +1,34 @@
+// INI-style files (.ini, .cfg, .gitconfig, .gitmodules), parsed by tree-sitter (tree-sitter-ini) and mapped by crates/lang-ini/src/mapping.rs.
+// Format: see crates/core-syntax/src/grammar/mod.rs.
+
+language ini 12 "INI"
+comments line "#"
+suppress disable-next-line "sudsy-disable-next-line"
+suppress disable-line "sudsy-disable-line"
+suppress disable "sudsy-disable"
+suppress enable "sudsy-enable"
+suppress disable-file "sudsy-disable-file"
+suppress ignore "sudsy-ignore"
+
+token Whitespace #trivia #whitespace
+token Newline #trivia #newline
+token Comment #trivia #comment
+
+token LBracket "[" #punctuation
+token RBracket "]" #punctuation
+token Equals "=" #punctuation
+
+// A section's title, as written (`remote "origin"` in a gitconfig), a key and a value.
+token Name
+token Key
+// The blanks around a value are part of its token: `#restyle`, IniFormatter::extra_check compares the trimmed text.
+token Value #literal #restyle
+
+token Eof
+token Unknown #error
+
+// The preamble is the settings before the first section.
+node Document #mapping = items:#item* Eof
+node Section #item #mapping = header:SectionHeader entries:Setting*
+node SectionHeader = LBracket Name? RBracket
+node Setting #item #key-value = key:Key Equals value:Value?

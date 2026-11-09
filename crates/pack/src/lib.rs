@@ -31,6 +31,7 @@ export!(
     sudsy_language,
     tree_sitter_containerfile::LANGUAGE
 );
+export!("ini", sudsy_language, tree_sitter_ini::LANGUAGE);
 export!("shell", sudsy_language, tree_sitter_bash::LANGUAGE);
 export!(
     "powershell",

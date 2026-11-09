@@ -14,6 +14,7 @@ tree-sitter-toml-ng = { workspace = true, optional = true }
 tree-sitter-xml = { workspace = true, optional = true }
 tree-sitter-md = { workspace = true, optional = true }
 konomanoasa-tree-sitter-editorconfig = { workspace = true, optional = true }
+tree-sitter-ini = { workspace = true, optional = true }
 tree-sitter-containerfile = { workspace = true, optional = true }
 tree-sitter-bash = { workspace = true, optional = true }
 woodruffw-trough-tree-sitter-powershell = { workspace = true, optional = true }
@@ -23,6 +24,7 @@ toml = ["dep:tree-sitter-toml-ng"]
 xml = ["dep:tree-sitter-xml"]
 markdown = ["dep:tree-sitter-md"]
 editorconfig = ["dep:konomanoasa-tree-sitter-editorconfig"]
+ini = ["dep:tree-sitter-ini"]
 dockerfile = ["dep:tree-sitter-containerfile"]
 shell = ["dep:tree-sitter-bash"]
 powershell = ["dep:woodruffw-trough-tree-sitter-powershell"]

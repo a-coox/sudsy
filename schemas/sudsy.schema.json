@@ -274,6 +274,10 @@
               "$ref": "#/definitions/rule",
               "description": "A `catch` clause whose block has no statement (a comment does not count)."
             },
+            "empty-section": {
+              "$ref": "#/definitions/rule",
+              "description": "A `[section]` header with nothing under it, usually left behind by a removed setting. Comments do not count as settings."
+            },
             "expose-port-range": {
               "$ref": "#/definitions/rule",
               "description": "An EXPOSE with a port above 65535."
@@ -2106,6 +2110,7 @@
           "preset:csharp/stylecop",
           "preset:dockerfile/hadolint",
           "preset:editorconfig/default",
+          "preset:ini/default",
           "preset:json/biome",
           "preset:json/default",
           "preset:json/prettier-compat",
@@ -2184,6 +2189,69 @@
         "type": "string"
       },
       "type": "array"
+    },
+    "ini": {
+      "additionalProperties": false,
+      "properties": {
+        "format": {
+          "additionalProperties": false,
+          "properties": {
+            "end_of_line": {
+              "default": "auto",
+              "description": "Line break style of the output: `lf`, `crlf`, or `auto` to keep the file's first              line break.",
+              "enum": [
+                "auto",
+                "lf",
+                "crlf"
+              ],
+              "type": "string"
+            },
+            "final_newline": {
+              "default": true,
+              "description": "End the file with a newline.",
+              "type": "boolean"
+            },
+            "max_blank_lines": {
+              "default": 1,
+              "description": "Largest number of blank lines kept between settings, sections and comments.",
+              "maximum": 10,
+              "minimum": 0,
+              "type": "integer"
+            },
+            "space_around_equals": {
+              "default": true,
+              "description": "Write `key = value` rather than `key=value`.",
+              "type": "boolean"
+            }
+          },
+          "type": "object"
+        },
+        "lint": {
+          "$ref": "#/definitions/lint"
+        },
+        "semantics": {
+          "additionalProperties": false,
+          "description": "Facts about methods that the flow analyses use.",
+          "properties": {
+            "does_not_return": {
+              "description": "Qualified method names without parameter lists; every overload is covered.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "pure": {
+              "description": "Qualified method names without parameter lists; every overload is covered.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          "type": "object"
+        }
+      },
+      "type": "object"
     },
     "json": {
       "additionalProperties": false,
@@ -2315,6 +2383,7 @@
           "xml",
           "markdown",
           "editorconfig",
+          "ini",
           "dockerfile",
           "shell",
           "powershell",
@@ -2999,6 +3068,69 @@
                 "maximum": 1000,
                 "minimum": 20,
                 "type": "integer"
+              }
+            },
+            "type": "object"
+          },
+          "ini": {
+            "additionalProperties": false,
+            "properties": {
+              "format": {
+                "additionalProperties": false,
+                "properties": {
+                  "end_of_line": {
+                    "default": "auto",
+                    "description": "Line break style of the output: `lf`, `crlf`, or `auto` to keep the file's first              line break.",
+                    "enum": [
+                      "auto",
+                      "lf",
+                      "crlf"
+                    ],
+                    "type": "string"
+                  },
+                  "final_newline": {
+                    "default": true,
+                    "description": "End the file with a newline.",
+                    "type": "boolean"
+                  },
+                  "max_blank_lines": {
+                    "default": 1,
+                    "description": "Largest number of blank lines kept between settings, sections and comments.",
+                    "maximum": 10,
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "space_around_equals": {
+                    "default": true,
+                    "description": "Write `key = value` rather than `key=value`.",
+                    "type": "boolean"
+                  }
+                },
+                "type": "object"
+              },
+              "lint": {
+                "$ref": "#/definitions/lint"
+              },
+              "semantics": {
+                "additionalProperties": false,
+                "description": "Facts about methods that the flow analyses use.",
+                "properties": {
+                  "does_not_return": {
+                    "description": "Qualified method names without parameter lists; every overload is covered.",
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "pure": {
+                    "description": "Qualified method names without parameter lists; every overload is covered.",
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  }
+                },
+                "type": "object"
               }
             },
             "type": "object"

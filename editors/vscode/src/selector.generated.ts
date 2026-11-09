@@ -7,6 +7,7 @@ export const documentSelector = [
   { scheme: "file", language: "xml" },
   { scheme: "file", language: "markdown" },
   { scheme: "file", language: "editorconfig" },
+  { scheme: "file", language: "ini" },
   { scheme: "file", language: "dockerfile" },
   { scheme: "file", language: "shell" },
   { scheme: "file", language: "powershell" },

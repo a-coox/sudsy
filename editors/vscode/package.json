@@ -21,6 +21,7 @@
     "onLanguage:xml",
     "onLanguage:markdown",
     "onLanguage:editorconfig",
+    "onLanguage:ini",
     "onLanguage:dockerfile",
     "onLanguage:shell",
     "onLanguage:powershell",

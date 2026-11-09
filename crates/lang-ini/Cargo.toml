@@ -1,0 +1,32 @@
+# Generated from lang.yaml by `cargo xtask codegen`.
+[package]
+name = "lang-ini"
+edition.workspace = true
+license.workspace = true
+version.workspace = true
+publish.workspace = true
+build = "../../build/lang-crate.rs"
+
+[dependencies]
+core-config.workspace = true
+core-format.workspace = true
+core-packs.workspace = true
+core-rules.workspace = true
+core-syntax.workspace = true
+core-treesitter.workspace = true
+provider-api.workspace = true
+tree-sitter-ini = { workspace = true, optional = true }
+
+[dev-dependencies]
+insta.workspace = true
+
+[build-dependencies]
+core-syntax.workspace = true
+
+[features]
+# The grammar is linked in; without it the language loads from its language pack.
+default = ["static-grammars"]
+static-grammars = ["dep:tree-sitter-ini"]
+
+[lints]
+workspace = true

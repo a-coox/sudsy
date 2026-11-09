@@ -1,6 +1,6 @@
 # Language packs
 
-Every language is installable and removable. JSON, YAML and the C# worker are in the release by default; each tree-sitter grammar (TOML, XML, Markdown, EditorConfig, Dockerfile, Shell, PowerShell) is a native shared library, a **pack**, that is installed per user and loaded on first use. A pack parses at the speed of a linked-in grammar (same C code, same optimization level); Wasm grammars were rejected as slower. The language's Rust code (formatter, rules, mapping) stays in the `sudsy` binary; a pack holds only `parser.c` and the scanner.
+Every language is installable and removable. JSON, YAML and the C# worker are in the release by default; each tree-sitter grammar (TOML, XML, Markdown, EditorConfig, INI, Dockerfile, Shell, PowerShell) is a native shared library, a **pack**, that is installed per user and loaded on first use. A pack parses at the speed of a linked-in grammar (same C code, same optimization level); Wasm grammars were rejected as slower. The language's Rust code (formatter, rules, mapping) stays in the `sudsy` binary; a pack holds only `parser.c` and the scanner.
 
 ## Two builds
 - **`static-grammars`** (cargo feature of `cli`, `lsp`, `languages` and the `lang-*` crates; on by default, so `cargo build`, tests, the dev loop and `cargo install` are unchanged): the grammars are linked in. Every language is installed unless removed.

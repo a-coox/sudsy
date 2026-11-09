@@ -1836,7 +1836,8 @@
       "fix": null,
       "id": "no-duplicate-sections",
       "languages": [
-        "editorconfig"
+        "editorconfig",
+        "ini"
       ],
       "options": [],
       "presets": [],
@@ -1918,6 +1919,37 @@
           "type": "bool"
         }
       ],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "warn",
+      "description": "A `[section]` header with nothing under it, usually left behind by a removed setting. Comments do not count as settings.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "[core]\nbare = false\n\n[empty]\n\n[comment-only]\n; nothing here\n\n[user]\nname = a\n",
+        "language": "ini",
+        "spans": [
+          {
+            "column": 1,
+            "length": 1,
+            "line": 4
+          },
+          {
+            "column": 1,
+            "length": 1,
+            "line": 6
+          }
+        ]
+      },
+      "fix": null,
+      "id": "empty-section",
+      "languages": [
+        "ini"
+      ],
+      "options": [],
       "presets": [],
       "upstream": []
     },
