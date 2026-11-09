@@ -1,12 +1,15 @@
 // Writes the data-driven pages (rules, upstream-id stubs, presets, format options) as Markdown into
 // src/content/docs/generated/ (git-ignored). Sources: docs/rules/rules.json, schemas/sudsy.schema.json,
 // crates/lang-*/presets/*.yaml and the notes column of docs/formatting/presets.md.
-import { mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync, existsSync } from 'node:fs';
+import { copyFileSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { base, site, rules } from '../config.mjs';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const out = fileURLToPath(new URL('../src/content/docs/generated/', import.meta.url));
+const pub = fileURLToPath(new URL('../public/', import.meta.url));
+mkdirSync(pub, { recursive: true });
+copyFileSync(root + 'assets/logo/soap_color.svg', pub + 'favicon.svg'); // git-ignored copy
 rmSync(out, { recursive: true, force: true });
 mkdirSync(out, { recursive: true });
 

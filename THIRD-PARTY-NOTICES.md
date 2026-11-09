@@ -1,7 +1,9 @@
 # Third-party notices
 
 Sudsy's own code is MIT ([LICENSE](LICENSE)). These files in the repository come from other
-projects. None of them is part of the released binaries; they are test and benchmark inputs.
+projects. Apart from the logo, none of them is part of the released binaries; they are test and benchmark inputs.
+
+* `assets/logo/`: the Soap emoji of [Fluent UI Emoji](https://github.com/microsoft/fluentui-emoji) (commit `1ffb34c`), Copyright (c) Microsoft Corporation, MIT ([assets/logo/LICENSE](assets/logo/LICENSE)). Used as the logo of the extension, site and README.
 
 ## MIT-licensed files
 

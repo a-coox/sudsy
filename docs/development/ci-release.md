@@ -26,6 +26,7 @@ Supply chain: third-party actions are pinned by commit SHA (version in a comment
 ## Identity and contributions
 - Marketplace publisher `Coox` (extension id `Coox.sudsy`); the repo stays under the owner's GitHub account.
 - MIT, copyright Maia Coox; the `.vsix` ships the root `LICENSE` (copied at build).
+- Logo: the Fluent UI Emoji "Soap" (MIT, Microsoft) in `assets/logo/` with its license; the `.vsix` icon (`icon.png`, copied at build), the site header logo and favicon, and the README use it. Attribution: `THIRD-PARTY-NOTICES.md`.
 - Contributions need a DCO sign-off (`git commit -s`, see `CONTRIBUTING.md`); the `dco` CI job runs `scripts/check-dco.sh` on pull requests. No CLA.
 
 ## Still open

@@ -12,6 +12,8 @@ export default defineConfig({
   integrations: [
     starlight({
       title: 'Sudsy',
+      logo: { src: '../assets/logo/soap_color.svg', alt: 'Sudsy' },
+      favicon: '/favicon.svg',
       customCss: ['./src/styles/site.css'],
       social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/a-coox/sudsy' }],
       sidebar: [

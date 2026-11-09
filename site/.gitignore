@@ -1,3 +1,4 @@
 dist/
 .astro/
 src/content/docs/generated/
+public/favicon.svg

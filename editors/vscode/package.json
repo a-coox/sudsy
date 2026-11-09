@@ -4,6 +4,7 @@
   "description": "Formatter and linter for source and data files.",
   "version": "0.1.0",
   "publisher": "Coox",
+  "icon": "icon.png",
   "license": "MIT",
   "private": true,
   "engines": {

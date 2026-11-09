@@ -1,3 +1,5 @@
+<p align="center"><img src="assets/logo/soap_3d.png" alt="Sudsy" width="96"></p>
+
 # Sudsy
 
 A formatter and linter for <!-- generated:languages -->C#, Dockerfile, EditorConfig, Gitignore, INI, JSON, Markdown, PowerShell, Shell, TOML, XML and YAML<!-- /generated --> (JSON includes JSONC; XML covers `.csproj`, `.props`, `.targets`, `.config`, ...), configured from one `sudsy.yaml`.

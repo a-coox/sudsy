@@ -120,4 +120,13 @@ test('the header search finds rules', async () => {
   await page.locator('dialog[open] a[href*="/rules/comment-space/"]').first().waitFor();
 });
 
+test('header logo and favicon load', async () => {
+  await page.goto(`${B}/getting-started/`);
+  const logo = page.locator('header img').first();
+  await logo.waitFor();
+  assert.ok(await logo.evaluate((i) => i.complete && i.naturalWidth > 0));
+  const href = await page.locator('link[rel~=icon]').first().getAttribute('href');
+  assert.ok((await fetch(new URL(href, page.url()))).ok);
+});
+
 test('no console or network errors', () => assert.deepEqual(problems, []));
