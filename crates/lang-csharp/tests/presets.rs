@@ -119,6 +119,7 @@ fn nested_hugged_lambdas_do_not_grow_exponentially() {
         input.push_str("});\n");
     }
     input.push_str("} }");
+    common::fmt("class C { }", &[]); // builds and starts the worker outside the timed section
     let started = std::time::Instant::now();
     let out = common::fmt(&input, &[]);
     assert!(out.contains("Run(() =>"));
