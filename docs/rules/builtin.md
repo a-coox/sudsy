@@ -125,14 +125,14 @@ Twenty-four rules read the `///` and `/** */` comment of a declaration (StyleCop
 | `useless-cat` | shell | style | off | none | A pipeline that starts with `cat file`. |
 | `useless-echo` | shell | style | off | none | An `echo` whose only argument is a command substitution. |
 | `approved-verbs` | powershell | style | warn | none | A function named `Verb-Noun` whose verb is not in the list `Get-Verb` returns. Names without a dash are not checked. |
-| `empty-catch-block` | powershell | suspicious | warn | none | A `catch` clause whose block has no statement. |
-| `no-automatic-variable-assignment` | powershell | correctness | warn | none | An assignment to a read-only or engine-owned automatic variable (`$true`, `$null`, `$args`, `$input`, `$PSItem`, `$_`, `$PWD`, `$Host`, ...). |
+| `empty-catch-block` | powershell | suspicious | warn | none | A `catch` clause whose block has no statement (a comment does not count). |
+| `no-automatic-variable-assignment` | powershell | correctness | warn | none | An assignment to, a parameter named like, or a `foreach` variable named like an automatic variable (`$Error`, `$Event`, `$input`, `$PSItem`, `$_`, `$PWD`, `$Host`, `$this`, `$true`, ...). `$null = ...` is fine. |
 | `no-cmdlet-aliases` | powershell | style | warn | none | A command written with one of the default aliases of Windows PowerShell and PowerShell 7 (`gci`, `ls`, `%`, `?`, `iex`, ...). The table is the one of a Windows host; PSScriptAnalyzer reads the aliases of the host it runs on. |
 | `no-default-true-switch` | powershell | suspicious | warn | none | A `[switch]` parameter with the default value `$true`. |
-| `no-global-vars` | powershell | suspicious | warn | none | A variable in the `global:` scope. |
+| `no-global-vars` | powershell | suspicious | warn | none | A variable in the `global:` scope, other than the special variables PSScriptAnalyzer exempts (`$global:LASTEXITCODE`, `$global:ErrorActionPreference`, `$global:PSDefaultParameterValues`, ...). |
 | `no-invoke-expression` | powershell | suspicious | warn | none | A call of `Invoke-Expression` or its alias `iex`. |
 | `no-misleading-backtick` | powershell | correctness | warn | none | A backtick that is followed by blanks before the end of the line, so it does not continue the line. |
-| `no-plain-text-password` | powershell | suspicious | warn | none | A `[string]` parameter whose name contains `password` or `passphrase`. |
+| `no-plain-text-password` | powershell | suspicious | warn | none | A `[string]` parameter whose name contains `password`, `passphrase` or `cred`. |
 | `no-plain-text-secure-string` | powershell | suspicious | error | none | A call of `ConvertTo-SecureString` with `-AsPlainText`. |
 | `no-wmi-cmdlets` | powershell | suspicious | warn | none | A call of `Get-WmiObject`, `Invoke-WmiMethod`, `Register-WmiEvent`, `Remove-WmiObject` or `Set-WmiInstance`. |
 | `no-write-host` | powershell | suspicious | warn | none | A call of `Write-Host`. |

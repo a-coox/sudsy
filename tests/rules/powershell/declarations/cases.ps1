@@ -14,6 +14,7 @@ function Fetch-Data {
     try { Get-Item x } catch { }
 #                      ^^^^^^^^^ empty-catch-block
     try { Get-Item x } catch {
+#                      ^ empty-catch-block
         # ignored
     }
     try { Get-Item x } catch { Write-Error $_ }
@@ -42,3 +43,10 @@ if ($a -ne $null -and $b -ceq $null) { }
 #   ^^^^^^^^^^^^ null-comparison-side
 #                     ^^^^^^^^^^^^^ null-comparison-side
 $x -eq $nullable
+$null = 1
+$global:LASTEXITCODE = 1
+foreach ($Event in 1) { }
+^^^^^^^^^^^^^^^^^^^^^^^^^ no-automatic-variable-assignment
+function Show-It($Error, [string]$Credential) { }
+#                ^^^^^^ no-automatic-variable-assignment
+#                        ^^^^^^^^^^^^^^^^^^^ no-plain-text-password

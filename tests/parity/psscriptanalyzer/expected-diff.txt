@@ -1,0 +1,26 @@
+# Known differences between Invoke-ScriptAnalyzer and sudsy lint: <file> <psscriptanalyzer|sudsy>:<rule> <line>: <reason>
+corpus/PSScriptAnalyzer/Tests/Engine/LibraryUsage.tests.ps1 sudsy:null-comparison-side 179: the left operand is a variable of a scalar type, which the module knows and Sudsy (no types) does not
+corpus/PSScriptAnalyzer/Tests/Engine/ModuleHelp.Tests.ps1 sudsy:null-comparison-side 230: the left operand is a variable of a scalar type, which the module knows and Sudsy (no types) does not
+corpus/Pester/src/functions/Context.ps1 sudsy:null-comparison-side 97: the left operand is a variable of a scalar type, which the module knows and Sudsy (no types) does not
+corpus/PowerShell/test/tools/Modules/HelpersDebugger/HelpersDebugger.psm1 sudsy:null-comparison-side 47: the left operand is a variable of a scalar type, which the module knows and Sudsy (no types) does not
+corpus/PowerShell/test/tools/Modules/HelpersRemoting/HelpersRemoting.psm1 sudsy:null-comparison-side 91: the left operand is a variable of a scalar type, which the module knows and Sudsy (no types) does not
+corpus/PowerShell/test/tools/Modules/PSSysLog/PSSysLog.psm1 sudsy:null-comparison-side 900: the left operand is a variable of a scalar type, which the module knows and Sudsy (no types) does not
+corpus/PowerShell/test/tools/NamedPipeConnection/test/CustomConnection.Tests.ps1 sudsy:null-comparison-side 10: the left operand is a variable of a scalar type, which the module knows and Sudsy (no types) does not
+corpus/Pester/src/functions/Context.ps1 psscriptanalyzer:no-automatic-variable-assignment 94: Sudsy reports a parameter at its first attribute line, the module at the variable
+corpus/Pester/src/functions/Describe.ps1 psscriptanalyzer:no-automatic-variable-assignment 102: Sudsy reports a parameter at its first attribute line, the module at the variable
+corpus/Pester/src/functions/It.ps1 psscriptanalyzer:no-automatic-variable-assignment 130: Sudsy reports a parameter at its first attribute line, the module at the variable
+corpus/Pester/src/functions/Context.ps1 sudsy:no-automatic-variable-assignment 93: Sudsy reports a parameter at its first attribute line, the module at the variable
+corpus/Pester/src/functions/Describe.ps1 sudsy:no-automatic-variable-assignment 101: Sudsy reports a parameter at its first attribute line, the module at the variable
+corpus/PSScriptAnalyzer/Tests/Engine/RuleSuppressionClass.ps1 sudsy:no-cmdlet-aliases 21: the module honors the SuppressMessageAttribute of the code, Sudsy does not
+corpus/PSScriptAnalyzer/Tests/Engine/RuleSuppressionClass.ps1 sudsy:no-invoke-expression 15: the module honors the SuppressMessageAttribute of the code, Sudsy does not
+corpus/PSScriptAnalyzer/Tests/Engine/RuleSuppressionClass.ps1 sudsy:no-plain-text-secure-string 8: the module honors the SuppressMessageAttribute of the code, Sudsy does not
+corpus/PSScriptAnalyzer/Tests/Engine/RuleSuppressionClass.ps1 sudsy:no-write-host 7: the module honors the SuppressMessageAttribute of the code, Sudsy does not
+corpus/PSScriptAnalyzer/Tests/Engine/RuleSuppressionClass.ps1 sudsy:no-write-host 14: the module honors the SuppressMessageAttribute of the code, Sudsy does not
+corpus/PowerShell/test/tools/Modules/HelpersCommon/HelpersCommon.psm1 sudsy:empty-catch-block 81: the module honors the SuppressMessageAttribute of the code, Sudsy does not
+corpus/PowerShell/test/tools/Modules/HelpersCommon/HelpersCommon.psm1 sudsy:no-write-host 237: the module honors the SuppressMessageAttribute of the code, Sudsy does not
+corpus/PowerShell/test/tools/Modules/WebListener/WebListener.psm1 sudsy:no-plain-text-password 28: the module honors the SuppressMessageAttribute of the code, Sudsy does not
+corpus/PowerShell/test/tools/Modules/WebListener/WebListener.psm1 sudsy:no-plain-text-password 61: the module honors the SuppressMessageAttribute of the code, Sudsy does not
+corpus/PowerShell/test/tools/Modules/WebListener/WebListener.psm1 sudsy:no-plain-text-secure-string 32: the module honors the SuppressMessageAttribute of the code, Sudsy does not
+corpus/PowerShell/test/tools/Modules/WebListener/WebListener.psm1 sudsy:no-plain-text-secure-string 65: the module honors the SuppressMessageAttribute of the code, Sudsy does not
+corpus/PowerShell/tools/WindowsCI.psm1 sudsy:no-plain-text-password 24: the module honors the SuppressMessageAttribute of the code, Sudsy does not
+corpus/PowerShell/tools/ci.psm1 sudsy:no-plain-text-secure-string 177: the module honors the SuppressMessageAttribute of the code, Sudsy does not

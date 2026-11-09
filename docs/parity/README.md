@@ -42,7 +42,7 @@ The readers (`languages::catalog::parse`, used by the counts test, `init` and th
 | hadolint | 71 | 38 | 10 | 0 | 0 | 1 | 22 | 0 |
 | markdownlint | 53 | 25 | 16 | 0 | 0 | 0 | 12 | 0 |
 | prettier | 29 | 16 | 4 | 1 | 0 | 8 | 0 | 1 |
-| psscriptanalyzer | 71 | 11 | 9 | 0 | 0 | 1 | 50 | 0 |
+| psscriptanalyzer | 75 | 12 | 8 | 0 | 0 | 1 | 54 | 0 |
 | roslynator | 67 | 23 | 7 | 16 | 18 | 1 | 2 | 16 |
 | shellcheck | 520 | 17 | 8 | 0 | 0 | 0 | 495 | 0 |
 | shfmt | 9 | 1 | 1 | 0 | 0 | 3 | 4 | 0 |

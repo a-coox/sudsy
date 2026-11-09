@@ -6,5 +6,5 @@ example: "Get-ChildItem `  \n  -Force"
 severity: warn
 category: correctness
 rule:
-  any: [{ kind: Program }, { kind: Command }, { kind: AssignStmt }, { kind: Binary }, { kind: Unary }, { kind: HashEntry }, { kind: ParamDecl }]
-token: { kind: [Word], regex: '^`$' }
+  any: [{ kind: Program }, { kind: Command }, { kind: AssignStmt }, { kind: Binary }, { kind: Unary }, { kind: HashEntry }, { kind: ParamDecl }, { kind: Block }, { kind: ScriptBlock }, { kind: Function }, { kind: CatchClause }, { kind: Foreach }]
+token: { kind: [Word], needs: '`', regex: '^`$' }

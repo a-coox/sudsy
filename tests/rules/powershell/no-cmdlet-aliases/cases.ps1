@@ -5,7 +5,8 @@ Get-ChildItem | ? Name -eq x
 #               ^ no-cmdlet-aliases
 ls
 ^^ no-cmdlet-aliases
-& ls
+1..3 | %{ $_ }
+#      ^ no-cmdlet-aliases
 Get-ChildItem | Where-Object { $_ } | foreach { $_ }
 #                                     ^^^^^^^ no-cmdlet-aliases
 $x = dir

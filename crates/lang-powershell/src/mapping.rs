@@ -30,6 +30,7 @@ pub const MAPPING: Mapping = Mapping {
         ("parameter", "ParamDecl"),
         ("assignment_statement", "AssignStmt"),
         ("catch_clause", "CatchClause"),
+        ("foreach_statement", "Foreach"),
         ("statement_block", "Block"),
         ("comment", "Comment"),
         // A backtick before a line break is whitespace; the formatter reads it from the gap.

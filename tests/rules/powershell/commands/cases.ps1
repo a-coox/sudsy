@@ -18,3 +18,5 @@ ConvertTo-SecureString `
 Get-WmiObject Win32_Process
 ^^^^^^^^^^^^^ no-wmi-cmdlets
 Get-CimInstance Win32_Process
+ConvertTo-SecureString -AsPlainText "x" -Force
+^^^^^^^^^^^^^^^^^^^^^^ no-plain-text-secure-string

@@ -4186,7 +4186,7 @@
       "example": {
         "config": null,
         "fixed": null,
-        "input": "function Fetch-Data {\n    param(\n        [string]$Password,\n        [Parameter(Mandatory)][string] $UserPassphrase = 'x',\n        [securestring]$Secret,\n        [string]$Name,\n        [switch]$Force = $true,\n        [switch]$Quiet\n    )\n    try { Get-Item x } catch { }\n    try { Get-Item x } catch {\n        # ignored\n    }\n    try { Get-Item x } catch { Write-Error $_ }\n    try { 1 } catch { try { 2 } catch { throw } }\n}\nfunction Get-Thing { }\nfunction Fetch { }\nfunction global:Make-Thing { }\n$global:count = 1\n$x = $global:count + 1\nSet-Item $env:Path -Value $Global:Foo\n$script:count = 1\n$input = 1\n$true = 0\n$count = 1\n$x -eq $null\n$null -eq $x\nif ($a -ne $null -and $b -ceq $null) { }\n$x -eq $nullable\n",
+        "input": "function Fetch-Data {\n    param(\n        [string]$Password,\n        [Parameter(Mandatory)][string] $UserPassphrase = 'x',\n        [securestring]$Secret,\n        [string]$Name,\n        [switch]$Force = $true,\n        [switch]$Quiet\n    )\n    try { Get-Item x } catch { }\n    try { Get-Item x } catch {\n        # ignored\n    }\n    try { Get-Item x } catch { Write-Error $_ }\n    try { 1 } catch { try { 2 } catch { throw } }\n}\nfunction Get-Thing { }\nfunction Fetch { }\nfunction global:Make-Thing { }\n$global:count = 1\n$x = $global:count + 1\nSet-Item $env:Path -Value $Global:Foo\n$script:count = 1\n$input = 1\n$true = 0\n$count = 1\n$x -eq $null\n$null -eq $x\nif ($a -ne $null -and $b -ceq $null) { }\n$x -eq $nullable\n$null = 1\n$global:LASTEXITCODE = 1\nforeach ($Event in 1) { }\nfunction Show-It($Error, [string]$Credential) { }\n",
         "language": "powershell",
         "spans": [
           {
@@ -4215,17 +4215,22 @@
     {
       "category": "suspicious",
       "default_level": "warn",
-      "description": "A `catch` clause whose block has no statement.",
+      "description": "A `catch` clause whose block has no statement (a comment does not count).",
       "example": {
         "config": null,
         "fixed": null,
-        "input": "function Fetch-Data {\n    param(\n        [string]$Password,\n        [Parameter(Mandatory)][string] $UserPassphrase = 'x',\n        [securestring]$Secret,\n        [string]$Name,\n        [switch]$Force = $true,\n        [switch]$Quiet\n    )\n    try { Get-Item x } catch { }\n    try { Get-Item x } catch {\n        # ignored\n    }\n    try { Get-Item x } catch { Write-Error $_ }\n    try { 1 } catch { try { 2 } catch { throw } }\n}\nfunction Get-Thing { }\nfunction Fetch { }\nfunction global:Make-Thing { }\n$global:count = 1\n$x = $global:count + 1\nSet-Item $env:Path -Value $Global:Foo\n$script:count = 1\n$input = 1\n$true = 0\n$count = 1\n$x -eq $null\n$null -eq $x\nif ($a -ne $null -and $b -ceq $null) { }\n$x -eq $nullable\n",
+        "input": "function Fetch-Data {\n    param(\n        [string]$Password,\n        [Parameter(Mandatory)][string] $UserPassphrase = 'x',\n        [securestring]$Secret,\n        [string]$Name,\n        [switch]$Force = $true,\n        [switch]$Quiet\n    )\n    try { Get-Item x } catch { }\n    try { Get-Item x } catch {\n        # ignored\n    }\n    try { Get-Item x } catch { Write-Error $_ }\n    try { 1 } catch { try { 2 } catch { throw } }\n}\nfunction Get-Thing { }\nfunction Fetch { }\nfunction global:Make-Thing { }\n$global:count = 1\n$x = $global:count + 1\nSet-Item $env:Path -Value $Global:Foo\n$script:count = 1\n$input = 1\n$true = 0\n$count = 1\n$x -eq $null\n$null -eq $x\nif ($a -ne $null -and $b -ceq $null) { }\n$x -eq $nullable\n$null = 1\n$global:LASTEXITCODE = 1\nforeach ($Event in 1) { }\nfunction Show-It($Error, [string]$Credential) { }\n",
         "language": "powershell",
         "spans": [
           {
             "column": 24,
             "length": 9,
             "line": 10
+          },
+          {
+            "column": 24,
+            "length": 1,
+            "line": 11
           }
         ]
       },
@@ -4243,11 +4248,11 @@
     {
       "category": "correctness",
       "default_level": "warn",
-      "description": "An assignment to a read-only or engine-owned automatic variable (`$true`, `$null`, `$args`, `$input`, `$PSItem`, `$_`, `$PWD`, `$Host`, ...).",
+      "description": "An assignment to, a parameter named like, or a `foreach` variable named like an automatic variable (`$Error`, `$Event`, `$input`, `$PSItem`, `$_`, `$PWD`, `$Host`, `$this`, `$true`, ...). `$null = ...` is fine.",
       "example": {
         "config": null,
         "fixed": null,
-        "input": "function Fetch-Data {\n    param(\n        [string]$Password,\n        [Parameter(Mandatory)][string] $UserPassphrase = 'x',\n        [securestring]$Secret,\n        [string]$Name,\n        [switch]$Force = $true,\n        [switch]$Quiet\n    )\n    try { Get-Item x } catch { }\n    try { Get-Item x } catch {\n        # ignored\n    }\n    try { Get-Item x } catch { Write-Error $_ }\n    try { 1 } catch { try { 2 } catch { throw } }\n}\nfunction Get-Thing { }\nfunction Fetch { }\nfunction global:Make-Thing { }\n$global:count = 1\n$x = $global:count + 1\nSet-Item $env:Path -Value $Global:Foo\n$script:count = 1\n$input = 1\n$true = 0\n$count = 1\n$x -eq $null\n$null -eq $x\nif ($a -ne $null -and $b -ceq $null) { }\n$x -eq $nullable\n",
+        "input": "function Fetch-Data {\n    param(\n        [string]$Password,\n        [Parameter(Mandatory)][string] $UserPassphrase = 'x',\n        [securestring]$Secret,\n        [string]$Name,\n        [switch]$Force = $true,\n        [switch]$Quiet\n    )\n    try { Get-Item x } catch { }\n    try { Get-Item x } catch {\n        # ignored\n    }\n    try { Get-Item x } catch { Write-Error $_ }\n    try { 1 } catch { try { 2 } catch { throw } }\n}\nfunction Get-Thing { }\nfunction Fetch { }\nfunction global:Make-Thing { }\n$global:count = 1\n$x = $global:count + 1\nSet-Item $env:Path -Value $Global:Foo\n$script:count = 1\n$input = 1\n$true = 0\n$count = 1\n$x -eq $null\n$null -eq $x\nif ($a -ne $null -and $b -ceq $null) { }\n$x -eq $nullable\n$null = 1\n$global:LASTEXITCODE = 1\nforeach ($Event in 1) { }\nfunction Show-It($Error, [string]$Credential) { }\n",
         "language": "powershell",
         "spans": [
           {
@@ -4259,6 +4264,16 @@
             "column": 1,
             "length": 9,
             "line": 25
+          },
+          {
+            "column": 1,
+            "length": 25,
+            "line": 33
+          },
+          {
+            "column": 18,
+            "length": 6,
+            "line": 34
           }
         ]
       },
@@ -4280,7 +4295,7 @@
       "example": {
         "config": null,
         "fixed": null,
-        "input": "gci -Recurse | % { $_ }\nGet-ChildItem | ? Name -eq x\nls\n& ls\nGet-ChildItem | Where-Object { $_ } | foreach { $_ }\n$x = dir\nWrite-Output ls\n",
+        "input": "gci -Recurse | % { $_ }\nGet-ChildItem | ? Name -eq x\nls\n1..3 | %{ $_ }\nGet-ChildItem | Where-Object { $_ } | foreach { $_ }\n$x = dir\nWrite-Output ls\n",
         "language": "powershell",
         "spans": [
           {
@@ -4302,6 +4317,11 @@
             "column": 1,
             "length": 2,
             "line": 3
+          },
+          {
+            "column": 8,
+            "length": 1,
+            "line": 4
           },
           {
             "column": 39,
@@ -4333,7 +4353,7 @@
       "example": {
         "config": null,
         "fixed": null,
-        "input": "function Fetch-Data {\n    param(\n        [string]$Password,\n        [Parameter(Mandatory)][string] $UserPassphrase = 'x',\n        [securestring]$Secret,\n        [string]$Name,\n        [switch]$Force = $true,\n        [switch]$Quiet\n    )\n    try { Get-Item x } catch { }\n    try { Get-Item x } catch {\n        # ignored\n    }\n    try { Get-Item x } catch { Write-Error $_ }\n    try { 1 } catch { try { 2 } catch { throw } }\n}\nfunction Get-Thing { }\nfunction Fetch { }\nfunction global:Make-Thing { }\n$global:count = 1\n$x = $global:count + 1\nSet-Item $env:Path -Value $Global:Foo\n$script:count = 1\n$input = 1\n$true = 0\n$count = 1\n$x -eq $null\n$null -eq $x\nif ($a -ne $null -and $b -ceq $null) { }\n$x -eq $nullable\n",
+        "input": "function Fetch-Data {\n    param(\n        [string]$Password,\n        [Parameter(Mandatory)][string] $UserPassphrase = 'x',\n        [securestring]$Secret,\n        [string]$Name,\n        [switch]$Force = $true,\n        [switch]$Quiet\n    )\n    try { Get-Item x } catch { }\n    try { Get-Item x } catch {\n        # ignored\n    }\n    try { Get-Item x } catch { Write-Error $_ }\n    try { 1 } catch { try { 2 } catch { throw } }\n}\nfunction Get-Thing { }\nfunction Fetch { }\nfunction global:Make-Thing { }\n$global:count = 1\n$x = $global:count + 1\nSet-Item $env:Path -Value $Global:Foo\n$script:count = 1\n$input = 1\n$true = 0\n$count = 1\n$x -eq $null\n$null -eq $x\nif ($a -ne $null -and $b -ceq $null) { }\n$x -eq $nullable\n$null = 1\n$global:LASTEXITCODE = 1\nforeach ($Event in 1) { }\nfunction Show-It($Error, [string]$Credential) { }\n",
         "language": "powershell",
         "spans": [
           {
@@ -4357,11 +4377,11 @@
     {
       "category": "suspicious",
       "default_level": "warn",
-      "description": "A variable in the `global:` scope.",
+      "description": "A variable in the `global:` scope, other than the special variables PSScriptAnalyzer exempts (`$global:LASTEXITCODE`, `$global:ErrorActionPreference`, `$global:PSDefaultParameterValues`, ...).",
       "example": {
         "config": null,
         "fixed": null,
-        "input": "function Fetch-Data {\n    param(\n        [string]$Password,\n        [Parameter(Mandatory)][string] $UserPassphrase = 'x',\n        [securestring]$Secret,\n        [string]$Name,\n        [switch]$Force = $true,\n        [switch]$Quiet\n    )\n    try { Get-Item x } catch { }\n    try { Get-Item x } catch {\n        # ignored\n    }\n    try { Get-Item x } catch { Write-Error $_ }\n    try { 1 } catch { try { 2 } catch { throw } }\n}\nfunction Get-Thing { }\nfunction Fetch { }\nfunction global:Make-Thing { }\n$global:count = 1\n$x = $global:count + 1\nSet-Item $env:Path -Value $Global:Foo\n$script:count = 1\n$input = 1\n$true = 0\n$count = 1\n$x -eq $null\n$null -eq $x\nif ($a -ne $null -and $b -ceq $null) { }\n$x -eq $nullable\n",
+        "input": "function Fetch-Data {\n    param(\n        [string]$Password,\n        [Parameter(Mandatory)][string] $UserPassphrase = 'x',\n        [securestring]$Secret,\n        [string]$Name,\n        [switch]$Force = $true,\n        [switch]$Quiet\n    )\n    try { Get-Item x } catch { }\n    try { Get-Item x } catch {\n        # ignored\n    }\n    try { Get-Item x } catch { Write-Error $_ }\n    try { 1 } catch { try { 2 } catch { throw } }\n}\nfunction Get-Thing { }\nfunction Fetch { }\nfunction global:Make-Thing { }\n$global:count = 1\n$x = $global:count + 1\nSet-Item $env:Path -Value $Global:Foo\n$script:count = 1\n$input = 1\n$true = 0\n$count = 1\n$x -eq $null\n$null -eq $x\nif ($a -ne $null -and $b -ceq $null) { }\n$x -eq $nullable\n$null = 1\n$global:LASTEXITCODE = 1\nforeach ($Event in 1) { }\nfunction Show-It($Error, [string]$Credential) { }\n",
         "language": "powershell",
         "spans": [
           {
@@ -4399,7 +4419,7 @@
       "example": {
         "config": null,
         "fixed": null,
-        "input": "Write-Host \"hi\"\nwrite-host\nWrite-Output \"ok\"\nGet-Help Write-Host\niex $script\nInvoke-Expression -Command $c\nConvertTo-SecureString $p -AsPlainText -Force\nConvertTo-SecureString $p\nConvertTo-SecureString `\n    $p -AsPlainText\nGet-WmiObject Win32_Process\nGet-CimInstance Win32_Process\n",
+        "input": "Write-Host \"hi\"\nwrite-host\nWrite-Output \"ok\"\nGet-Help Write-Host\niex $script\nInvoke-Expression -Command $c\nConvertTo-SecureString $p -AsPlainText -Force\nConvertTo-SecureString $p\nConvertTo-SecureString `\n    $p -AsPlainText\nGet-WmiObject Win32_Process\nGet-CimInstance Win32_Process\nConvertTo-SecureString -AsPlainText \"x\" -Force\n",
         "language": "powershell",
         "spans": [
           {
@@ -4459,11 +4479,11 @@
     {
       "category": "suspicious",
       "default_level": "warn",
-      "description": "A `[string]` parameter whose name contains `password` or `passphrase`.",
+      "description": "A `[string]` parameter whose name contains `password`, `passphrase` or `cred`.",
       "example": {
         "config": null,
         "fixed": null,
-        "input": "function Fetch-Data {\n    param(\n        [string]$Password,\n        [Parameter(Mandatory)][string] $UserPassphrase = 'x',\n        [securestring]$Secret,\n        [string]$Name,\n        [switch]$Force = $true,\n        [switch]$Quiet\n    )\n    try { Get-Item x } catch { }\n    try { Get-Item x } catch {\n        # ignored\n    }\n    try { Get-Item x } catch { Write-Error $_ }\n    try { 1 } catch { try { 2 } catch { throw } }\n}\nfunction Get-Thing { }\nfunction Fetch { }\nfunction global:Make-Thing { }\n$global:count = 1\n$x = $global:count + 1\nSet-Item $env:Path -Value $Global:Foo\n$script:count = 1\n$input = 1\n$true = 0\n$count = 1\n$x -eq $null\n$null -eq $x\nif ($a -ne $null -and $b -ceq $null) { }\n$x -eq $nullable\n",
+        "input": "function Fetch-Data {\n    param(\n        [string]$Password,\n        [Parameter(Mandatory)][string] $UserPassphrase = 'x',\n        [securestring]$Secret,\n        [string]$Name,\n        [switch]$Force = $true,\n        [switch]$Quiet\n    )\n    try { Get-Item x } catch { }\n    try { Get-Item x } catch {\n        # ignored\n    }\n    try { Get-Item x } catch { Write-Error $_ }\n    try { 1 } catch { try { 2 } catch { throw } }\n}\nfunction Get-Thing { }\nfunction Fetch { }\nfunction global:Make-Thing { }\n$global:count = 1\n$x = $global:count + 1\nSet-Item $env:Path -Value $Global:Foo\n$script:count = 1\n$input = 1\n$true = 0\n$count = 1\n$x -eq $null\n$null -eq $x\nif ($a -ne $null -and $b -ceq $null) { }\n$x -eq $nullable\n$null = 1\n$global:LASTEXITCODE = 1\nforeach ($Event in 1) { }\nfunction Show-It($Error, [string]$Credential) { }\n",
         "language": "powershell",
         "spans": [
           {
@@ -4475,6 +4495,11 @@
             "column": 9,
             "length": 52,
             "line": 4
+          },
+          {
+            "column": 26,
+            "length": 19,
+            "line": 34
           }
         ]
       },
@@ -4496,7 +4521,7 @@
       "example": {
         "config": null,
         "fixed": null,
-        "input": "Write-Host \"hi\"\nwrite-host\nWrite-Output \"ok\"\nGet-Help Write-Host\niex $script\nInvoke-Expression -Command $c\nConvertTo-SecureString $p -AsPlainText -Force\nConvertTo-SecureString $p\nConvertTo-SecureString `\n    $p -AsPlainText\nGet-WmiObject Win32_Process\nGet-CimInstance Win32_Process\n",
+        "input": "Write-Host \"hi\"\nwrite-host\nWrite-Output \"ok\"\nGet-Help Write-Host\niex $script\nInvoke-Expression -Command $c\nConvertTo-SecureString $p -AsPlainText -Force\nConvertTo-SecureString $p\nConvertTo-SecureString `\n    $p -AsPlainText\nGet-WmiObject Win32_Process\nGet-CimInstance Win32_Process\nConvertTo-SecureString -AsPlainText \"x\" -Force\n",
         "language": "powershell",
         "spans": [
           {
@@ -4508,6 +4533,11 @@
             "column": 1,
             "length": 22,
             "line": 9
+          },
+          {
+            "column": 1,
+            "length": 22,
+            "line": 13
           }
         ]
       },
@@ -4529,7 +4559,7 @@
       "example": {
         "config": null,
         "fixed": null,
-        "input": "Write-Host \"hi\"\nwrite-host\nWrite-Output \"ok\"\nGet-Help Write-Host\niex $script\nInvoke-Expression -Command $c\nConvertTo-SecureString $p -AsPlainText -Force\nConvertTo-SecureString $p\nConvertTo-SecureString `\n    $p -AsPlainText\nGet-WmiObject Win32_Process\nGet-CimInstance Win32_Process\n",
+        "input": "Write-Host \"hi\"\nwrite-host\nWrite-Output \"ok\"\nGet-Help Write-Host\niex $script\nInvoke-Expression -Command $c\nConvertTo-SecureString $p -AsPlainText -Force\nConvertTo-SecureString $p\nConvertTo-SecureString `\n    $p -AsPlainText\nGet-WmiObject Win32_Process\nGet-CimInstance Win32_Process\nConvertTo-SecureString -AsPlainText \"x\" -Force\n",
         "language": "powershell",
         "spans": [
           {
@@ -4557,7 +4587,7 @@
       "example": {
         "config": null,
         "fixed": null,
-        "input": "Write-Host \"hi\"\nwrite-host\nWrite-Output \"ok\"\nGet-Help Write-Host\niex $script\nInvoke-Expression -Command $c\nConvertTo-SecureString $p -AsPlainText -Force\nConvertTo-SecureString $p\nConvertTo-SecureString `\n    $p -AsPlainText\nGet-WmiObject Win32_Process\nGet-CimInstance Win32_Process\n",
+        "input": "Write-Host \"hi\"\nwrite-host\nWrite-Output \"ok\"\nGet-Help Write-Host\niex $script\nInvoke-Expression -Command $c\nConvertTo-SecureString $p -AsPlainText -Force\nConvertTo-SecureString $p\nConvertTo-SecureString `\n    $p -AsPlainText\nGet-WmiObject Win32_Process\nGet-CimInstance Win32_Process\nConvertTo-SecureString -AsPlainText \"x\" -Force\n",
         "language": "powershell",
         "spans": [
           {
@@ -4590,7 +4620,7 @@
       "example": {
         "config": null,
         "fixed": null,
-        "input": "function Fetch-Data {\n    param(\n        [string]$Password,\n        [Parameter(Mandatory)][string] $UserPassphrase = 'x',\n        [securestring]$Secret,\n        [string]$Name,\n        [switch]$Force = $true,\n        [switch]$Quiet\n    )\n    try { Get-Item x } catch { }\n    try { Get-Item x } catch {\n        # ignored\n    }\n    try { Get-Item x } catch { Write-Error $_ }\n    try { 1 } catch { try { 2 } catch { throw } }\n}\nfunction Get-Thing { }\nfunction Fetch { }\nfunction global:Make-Thing { }\n$global:count = 1\n$x = $global:count + 1\nSet-Item $env:Path -Value $Global:Foo\n$script:count = 1\n$input = 1\n$true = 0\n$count = 1\n$x -eq $null\n$null -eq $x\nif ($a -ne $null -and $b -ceq $null) { }\n$x -eq $nullable\n",
+        "input": "function Fetch-Data {\n    param(\n        [string]$Password,\n        [Parameter(Mandatory)][string] $UserPassphrase = 'x',\n        [securestring]$Secret,\n        [string]$Name,\n        [switch]$Force = $true,\n        [switch]$Quiet\n    )\n    try { Get-Item x } catch { }\n    try { Get-Item x } catch {\n        # ignored\n    }\n    try { Get-Item x } catch { Write-Error $_ }\n    try { 1 } catch { try { 2 } catch { throw } }\n}\nfunction Get-Thing { }\nfunction Fetch { }\nfunction global:Make-Thing { }\n$global:count = 1\n$x = $global:count + 1\nSet-Item $env:Path -Value $Global:Foo\n$script:count = 1\n$input = 1\n$true = 0\n$count = 1\n$x -eq $null\n$null -eq $x\nif ($a -ne $null -and $b -ceq $null) { }\n$x -eq $nullable\n$null = 1\n$global:LASTEXITCODE = 1\nforeach ($Event in 1) { }\nfunction Show-It($Error, [string]$Credential) { }\n",
         "language": "powershell",
         "spans": [
           {

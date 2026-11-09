@@ -66,5 +66,7 @@ node ParamDecl #el = parts:#el*
 node AssignStmt #el = parts:#el*
 // `catch [Type] { }`
 node CatchClause #el = parts:#el*
+// `foreach ($x in $xs) { }`
+node Foreach #el = parts:#el*
 // The `{ }` of a statement (`if`, `try`, `catch`, ...).
 node Block #el = parts:#el*

@@ -272,7 +272,7 @@
             },
             "empty-catch-block": {
               "$ref": "#/definitions/rule",
-              "description": "A `catch` clause whose block has no statement."
+              "description": "A `catch` clause whose block has no statement (a comment does not count)."
             },
             "expose-port-range": {
               "$ref": "#/definitions/rule",
@@ -529,7 +529,7 @@
             },
             "no-automatic-variable-assignment": {
               "$ref": "#/definitions/rule",
-              "description": "An assignment to a read-only or engine-owned automatic variable (`$true`, `$null`, `$args`, `$input`, `$PSItem`, `$_`, `$PWD`, `$Host`, ...)."
+              "description": "An assignment to, a parameter named like, or a `foreach` variable named like an automatic variable (`$Error`, `$Event`, `$input`, `$PSItem`, `$_`, `$PWD`, `$Host`, `$this`, `$true`, ...). `$null = ...` is fine."
             },
             "no-backticks": {
               "$ref": "#/definitions/rule",
@@ -775,7 +775,7 @@
             },
             "no-global-vars": {
               "$ref": "#/definitions/rule",
-              "description": "A variable in the `global:` scope."
+              "description": "A variable in the `global:` scope, other than the special variables PSScriptAnalyzer exempts (`$global:LASTEXITCODE`, `$global:ErrorActionPreference`, `$global:PSDefaultParameterValues`, ...)."
             },
             "no-inline-html": {
               "$ref": "#/definitions/rule",
@@ -851,7 +851,7 @@
             },
             "no-plain-text-password": {
               "$ref": "#/definitions/rule",
-              "description": "A `[string]` parameter whose name contains `password` or `passphrase`."
+              "description": "A `[string]` parameter whose name contains `password`, `passphrase` or `cred`."
             },
             "no-plain-text-secure-string": {
               "$ref": "#/definitions/rule",

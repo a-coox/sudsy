@@ -25,7 +25,7 @@ description: A call of `ConvertTo-SecureString` with `-AsPlainText`.
 example: 'ConvertTo-SecureString $p -AsPlainText -Force'
 severity: error
 category: suspicious
-rule: { kind: Command, regex: '(?is)^convertto-securestring\s.*\s-asplaintext\b' }
+rule: { kind: Command, regex: '(?is)^convertto-securestring\s(.*\s)?-asplaintext\b' }
 report-on: first-token
 ---
 id: no-wmi-cmdlets

@@ -170,6 +170,81 @@ def rule_fixtures(tool, sudsy, version, exe):
     return 1 if mismatches else 0
 
 
+def psscriptanalyzer(sudsy, version):
+    """Invoke-ScriptAnalyzer against `sudsy lint` (preset powershell/psscriptanalyzer) on the PowerShell rule
+    fixtures (tests/rules/powershell/*/*.ps1, annotations removed) and the PowerShell corpus, as
+    `(file, rule, line)` of the rules the catalog maps. Also checks that the catalog lists exactly the rules and
+    severities of the installed module. `tests/parity/psscriptanalyzer/expected-diff.txt` has the format of
+    hadolint's: `<file> <psscriptanalyzer|sudsy>:<rule> <line>: <reason>` (a fixture is `<folder>-<name>.ps1`,
+    a corpus file `corpus/<path>`); one that no longer differs fails."""
+    prefix = PARITY / f"psscriptanalyzer-{version}"
+    script = ROOT / "scripts/parity_psscriptanalyzer.ps1"
+    if not (prefix / "PSScriptAnalyzer").is_dir():
+        prefix.mkdir(parents=True, exist_ok=True)
+        subprocess.run(["pwsh", "-NoProfile", "-Command",
+                        f"Save-Module PSScriptAnalyzer -RequiredVersion {version} -Path '{prefix}'"], check=True)
+    pwsh = lambda *args: subprocess.run(["pwsh", "-NoProfile", "-File", str(script), str(prefix), *args],
+                                        capture_output=True, text=True, encoding="utf-8", check=True).stdout
+    # The catalog lists the module's rules, with its severities.
+    module = dict(l.split() for l in pwsh("rules").splitlines())
+    catalog = {e["id"]: e for e in catalog_entries("psscriptanalyzer")}
+    for e in yaml.safe_load((ROOT / "docs/parity/psscriptanalyzer.yaml").read_text(encoding="utf-8"))["deferred"]:
+        catalog.update({i: {"default": ""} for i in e["ids"]})
+    mismatches = 0
+    for rule in sorted(set(module) ^ set(catalog)):
+        print(f"  catalog and module differ: {rule} ({'catalog only' if rule in catalog else 'module only'})")
+        mismatches += 1
+    for rule, entry in catalog.items():
+        if rule in module and entry["default"] and entry["kind"] == "lint" and module[rule] not in entry["default"]:
+            print(f"  severity of {rule}: module {module[rule]}, catalog {entry['default']!r}")
+            mismatches += 1
+    preset = yaml.safe_load((ROOT / "crates/lang-powershell/presets/psscriptanalyzer.yaml").read_text(encoding="utf-8"))
+    mapping = {k: v for k, v in rule_map("psscriptanalyzer").items() if v in preset["powershell"]["lint"]["rules"]}
+    folder = ROOT / "tests/parity/psscriptanalyzer"
+    work = prefix / "work"
+    shutil.rmtree(work, ignore_errors=True)
+    work.mkdir(parents=True)
+    shutil.copy(folder / "sudsy.yaml", work / "sudsy.yaml")
+    corpus = ROOT / "tests/conformance/corpus/powershell"
+    if not corpus.is_dir():
+        subprocess.run(["bash", str(ROOT / "tests/conformance/fetch-powershell-corpus.sh")], check=True)
+    for source in sorted((ROOT / "tests/rules/powershell").glob("*/*.ps1")):
+        text = "".join(
+            l for l in source.read_text(encoding="utf-8").splitlines(keepends=True) if not re.match(r"\s*#?\s*\^", l)
+        )
+        (work / f"{source.parent.name}-{source.stem}.ps1").write_text(text, encoding="utf-8", newline="")
+    shutil.copytree(corpus, work / "corpus")
+    expected = {}
+    for line in (folder / "expected-diff.txt").read_text(encoding="utf-8").splitlines():
+        if line.strip() and not line.startswith("#"):
+            key, _, reason = line.partition(": ")
+            expected[key] = reason
+    key_of = lambda p: Path(p).resolve().relative_to(work.resolve()).as_posix()
+    upstream = {(key_of(d["file"]), mapping[d["rule"]], d["line"])
+                for d in json.loads(pwsh("run", ",".join(mapping), str(work)) or "[]") if d["rule"] in mapping}
+    out = subprocess.run([sudsy, "lint", "--format", "json", "."], cwd=work, capture_output=True, text=True,
+                         encoding="utf-8", check=False).stdout
+    ours = {(d["path"].replace("\\", "/"), d["rule"], d["range"]["start"]["line"])
+            for d in json.loads(out)["diagnostics"] if d["rule"] in set(mapping.values())}
+    for rule, count in sorted((r, sum(1 for u in upstream if u[1] == r)) for r in set(mapping.values())):
+        print(f"{rule}: {count} psscriptanalyzer, {sum(1 for o in ours if o[1] == rule)} sudsy")
+    used = set()
+    for side, rows in (("psscriptanalyzer", upstream - ours), ("sudsy", ours - upstream)):
+        for path, rule, line in sorted(rows):
+            key = f"{path} {side}:{rule} {line}"
+            if key in expected:
+                used.add(key)
+            else:
+                src = (work / path).read_text(encoding="utf-8-sig", errors="replace").splitlines()[line - 1].strip()[:90]
+                print(f"  only {side}: {key}  | {src}")
+                mismatches += 1
+    for key in sorted(set(expected) - used):
+        print(f"  stale expected difference: {key}")
+        mismatches += 1
+    print(f"{len(upstream)} psscriptanalyzer findings, {mismatches} mismatch(es) (psscriptanalyzer {version}, {len(used)} known)")
+    return 1 if mismatches else 0
+
+
 def sudsy_lint(sudsy, fixture, cwd, only=None):
     """`{(rule, line, column)}`; with `only`, the diagnostics of those rules."""
     out = subprocess.run(
@@ -259,6 +334,8 @@ def main():
     tool, version, sudsy = sys.argv[1:4]
     if tool == "stylecop":
         return stylecop(sudsy, version)
+    if tool == "psscriptanalyzer":
+        return psscriptanalyzer(sudsy, version)
     if tool in ("hadolint", "shellcheck"):
         return rule_fixtures(tool, sudsy, version, sys.argv[4])
     mapping = rule_map(tool)

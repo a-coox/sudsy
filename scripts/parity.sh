@@ -28,8 +28,8 @@ if [ "$tool" = format ]; then
   exec "$py" scripts/parity_format.py "$tool" "$sudsy" "$tdir"
 fi
 case "$tool" in
-  yamllint|stylecop|eslint-jsonc|markdownlint|hadolint|shellcheck) ;;
-  *) echo "usage: scripts/parity.sh yamllint|stylecop|eslint-jsonc|markdownlint|hadolint|shellcheck | format <tool>" >&2; exit 2 ;;
+  yamllint|stylecop|eslint-jsonc|markdownlint|hadolint|shellcheck|psscriptanalyzer) ;;
+  *) echo "usage: scripts/parity.sh yamllint|stylecop|eslint-jsonc|markdownlint|hadolint|shellcheck|psscriptanalyzer | format <tool>" >&2; exit 2 ;;
 esac
 
 py=
@@ -46,7 +46,7 @@ case "$tool" in
 esac
 venv="$tdir/parity/$tool-$version"
 # eslint-jsonc: the npm install lives in that folder; PyYAML for the comparison goes below it.
-[ "$tool" = eslint-jsonc ] || [ "$tool" = markdownlint ] && venv="$venv/venv"
+[ "$tool" = eslint-jsonc ] || [ "$tool" = markdownlint ] || [ "$tool" = psscriptanalyzer ] && venv="$venv/venv"
 if [ ! -d "$venv" ]; then
   "$py" -m venv "$venv"
   vpy="$venv/bin/python"; [ -x "$vpy" ] || vpy="$venv/Scripts/python.exe"
