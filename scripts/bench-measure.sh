@@ -18,11 +18,13 @@ done
 [ -f "$HOME/.cargo/env" ] && . "$HOME/.cargo/env"
 cd "$src"
 mkdir -p "$target"
+start=$SECONDS
 
 CARGO_TARGET_DIR=$target/plugin cargo build --release --target wasm32-wasip2 --quiet \
   --manifest-path tests/plugins/sample/Cargo.toml
 CARGO_TARGET_DIR=$target cargo build --release -p perf-bench --features count --quiet
 bin=$target/release/perf-bench; [ -f "$bin" ] || bin=$bin.exe
+built=$SECONDS
 export PERF_PLUGIN=$target/plugin/wasm32-wasip2/release/sample_plugin.wasm
 # A warm compile cache, so the plugin phase measures calls and not Cranelift.
 export SUDSY_WASM_CACHE=$target/wasm-cache
@@ -45,7 +47,7 @@ fi
 limited warm-up "$bin" fixed json plugins --inputs "$inputs" >/dev/null; sleep 1
 
 one() { # one LANG PHASE -> metric lines on stdout
-  local lang=$1 phase=$2 res
+  local lang=$1 phase=$2 res t0=$SECONDS
   if [ "$mode" = instr ]; then
     local log; log=$(mktemp)
     limited "$lang $phase" valgrind --tool=callgrind --smc-check=all-non-file --callgrind-out-file=/dev/null \
@@ -58,9 +60,10 @@ one() { # one LANG PHASE -> metric lines on stdout
     echo "$lang.$phase.allocs $(sed -n 's/.* allocs=//p' <<<"$res")"
   fi
   echo "$lang.$phase.work $(sed -n 's/.* work=\([0-9]*\).*/\1/p' <<<"$res")"
+  echo "$lang.$phase $((SECONDS - t0))" >>"$out.secs"
 }
 
-: >"$out"
+: >"$out"; : >"$out.secs"
 tmp=$(mktemp -d); n=0; jobs_max=$(( $(nproc 2>/dev/null || echo 4) / 2 )); [ "$jobs_max" -ge 1 ] || jobs_max=1
 while read -r lang kind phases; do
   [ "$kind" = worker ] && [ $worker = 0 ] && continue
@@ -74,3 +77,4 @@ for f in "$tmp"/*; do cat "$f"; done | sort >"$out"
 # A phase that failed leaves an empty value; refuse rather than compare nothing.
 if grep -qE ' $' "$out" || [ ! -s "$out" ]; then echo "measurement failed:" >&2; cat "$out" >&2; exit 1; fi
 rm -rf "$tmp"
+echo "   (build $((built - start))s, measure $((SECONDS - built))s; seconds per phase: $out.secs)"

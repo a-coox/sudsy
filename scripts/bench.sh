@@ -112,5 +112,5 @@ if [ $time = 1 ]; then
   scripts/bench-time.sh --base-src "$src_base" --rounds "$rounds" --head "$head" --base "$base" \
     --record "$record" || status=1
 fi
-[ $status = 0 ] && echo "BENCH OK" || echo "BENCH: regression" >&2
+[ $status = 0 ] && echo "BENCH OK (${SECONDS}s)" || echo "BENCH: regression (${SECONDS}s)" >&2
 exit $status
