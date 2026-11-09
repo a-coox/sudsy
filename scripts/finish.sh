@@ -2,10 +2,11 @@
 # The check of a finished change (CLAUDE.md): the full gate and bench at the same time on the
 # working tree, about as long as the slower of the two. A gate failure stops the bench at once,
 # since the change gets edited anyway. Ends in FINISH OK or FINISH FAILED: <gate|bench>; exit 0
-# only when both pass. Arguments go to bench.sh.
+# only when both pass. Arguments go to bench.sh. At most SUDSY_FINISH_SEATS (default 2) finish runs
+# build at once on the machine; the rest wait in line before any build starts.
 set -uo pipefail
 cd "$(dirname "$0")/.."
-. scripts/slot-run.sh; claim_slot
+. scripts/slot-run.sh; claim_slot; take_seat
 log=${CARGO_TARGET_DIR:-target}/bench/finish.log
 mkdir -p "$(dirname "$log")"
 scripts/bench.sh "$@" >"$log" 2>&1 &

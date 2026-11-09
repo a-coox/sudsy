@@ -22,6 +22,7 @@ Each parallel agent works in its own git worktree and sets `CARGO_TARGET_DIR=C:/
 - Iterate with `scripts/gate.sh -p <crate>`; run the full `scripts/gate.sh` once before pushing, and again only if the rebase brought conflicts.
 - Run `scripts/bench.sh` once at the end of a batch, not mid-work.
 - A slot serves one run at a time: `gate.sh` and `finish.sh` first stop what an earlier run left there, found by the `SUDSY_SLOT_RUN=<slot>` marker every process of a run inherits (`scripts/slot-run.sh`), because under Git Bash a cancelled background task leaves its shells, cargo and tests running and holding the slot's build lock. The first gate of a worktree prunes the slot alongside its steps.
+- `finish.sh` takes a seat first: at most `SUDSY_FINISH_SEATS` (default 2) finish runs build at once across all slots; the others print who is ahead and wait. Seats are files in `locks/` next to the slots, freed when the run ends or its process is gone. `scripts/seat-check.sh` is the self-check.
 - Build caches only grow: cargo never deletes incremental data, and every worktree path gets new file hashes, so each worktree that used a slot leaves a full set of test binaries and debug info behind (130 GB of 240 in one slot). `scripts/clean-slots.sh [--all] [slot dir...]` deletes the `incremental/` caches and all but the newest copy of each binary in `target/` and every slot (or the slots given), and the same in the slots' WSL bench caches (`--all`: whole `debug/` dirs); the gate warns when the build disk has under 30 GB free.
 
 ## Conventions

@@ -23,3 +23,26 @@ claim_slot() {
   fi
   export SUDSY_SLOT_RUN=$CARGO_TARGET_DIR
 }
+
+# Machine-wide queue for finish runs: at most SUDSY_FINISH_SEATS (default 2) build at once. One file
+# per run in <slot parent>/locks, named <start-ns>-<slot>, holding the run's pid; the first N live
+# files hold the seats, so there is no mutex to get stuck. Files of dead pids are reclaimed.
+# Call after claim_slot (which stopped what this slot's earlier run left).
+take_seat() {
+  [ -n "${CARGO_TARGET_DIR:-}" ] || return 0
+  local dir seats=${SUDSY_FINISH_SEATS:-2} f n said= ahead
+  dir=$(dirname "$CARGO_TARGET_DIR")/locks; mkdir -p "$dir"
+  SEAT=$dir/$(date +%s%N)-$(basename "$CARGO_TARGET_DIR"); echo $BASHPID >"$SEAT"
+  trap 'rm -f "$SEAT"' EXIT
+  while :; do
+    n=0; ahead=
+    for f in "$dir"/*; do
+      [ "$f" = "$SEAT" ] && break
+      [ -e "/proc/$(cat "$f" 2>/dev/null)" ] || { rm -f "$f"; continue; }
+      n=$((n + 1)); ahead="$ahead $(basename "$f" | cut -d- -f2-)"
+    done
+    [ $n -lt "$seats" ] && return 0
+    [ -n "$said" ] || echo "finish: waiting for a seat ($seats at once), ahead:$ahead"; said=1
+    sleep 3
+  done
+}
