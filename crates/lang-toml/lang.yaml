@@ -1,0 +1,7 @@
+grammar-crate: tree-sitter-toml-ng
+extensions: [toml]
+formatter: TomlFormatter
+hooks: hooks::TomlHooks
+validate: validate::validate
+deps: [rowan, tree-sitter, unicode-width]
+dev-deps: [insta]

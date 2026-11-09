@@ -1,0 +1,6 @@
+grammar-crate: tree-sitter-bash
+extensions: [sh, bash]
+file-names: [.bashrc, .bash_profile, .profile]
+formatter: ShellFormatter
+composite: mapping::COMPOSITE
+deps: [regex]

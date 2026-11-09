@@ -1,3 +1,4 @@
+# Generated from lang.yaml by `cargo xtask codegen`.
 [package]
 name = "lang-markdown"
 edition.workspace = true
@@ -8,15 +9,15 @@ build = "../../build/lang-crate.rs"
 
 [dependencies]
 core-config.workspace = true
-core-packs.workspace = true
 core-format.workspace = true
+core-packs.workspace = true
 core-rules.workspace = true
 core-syntax.workspace = true
 core-treesitter.workspace = true
 provider-api.workspace = true
 rowan.workspace = true
-tree-sitter.workspace = true
 tree-sitter-md = { workspace = true, optional = true }
+tree-sitter.workspace = true
 unicode-width.workspace = true
 
 [dev-dependencies]

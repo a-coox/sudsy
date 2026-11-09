@@ -3395,6 +3395,7 @@ dependencies = [
  "core-syntax",
  "languages",
  "provider-api",
+ "serde-saphyr",
  "serde_json",
 ]
 

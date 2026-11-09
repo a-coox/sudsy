@@ -1,3 +1,4 @@
+# Generated from lang.yaml by `cargo xtask codegen`.
 [package]
 name = "lang-shell"
 edition.workspace = true
@@ -8,14 +9,14 @@ build = "../../build/lang-crate.rs"
 
 [dependencies]
 core-config.workspace = true
-core-packs.workspace = true
 core-format.workspace = true
+core-packs.workspace = true
 core-rules.workspace = true
 core-syntax.workspace = true
 core-treesitter.workspace = true
+provider-api.workspace = true
 regex.workspace = true
 tree-sitter-bash = { workspace = true, optional = true }
-provider-api.workspace = true
 
 [build-dependencies]
 core-syntax.workspace = true

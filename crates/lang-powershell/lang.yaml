@@ -1,0 +1,4 @@
+grammar-crate: woodruffw-trough-tree-sitter-powershell
+extensions: [ps1, psm1, psd1]
+formatter: PowerShellFormatter
+composite: mapping::COMPOSITE

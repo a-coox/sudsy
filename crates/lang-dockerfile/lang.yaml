@@ -1,0 +1,6 @@
+grammar-crate: tree-sitter-containerfile
+extensions: [dockerfile]
+file-names: [Dockerfile, Containerfile, "Dockerfile.*", "Containerfile.*"]
+formatter: DockerfileFormatter
+families: rules::FAMILIES
+dev-deps: [insta]

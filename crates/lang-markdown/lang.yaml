@@ -1,0 +1,7 @@
+grammar-crate: tree-sitter-md
+extensions: [md, markdown]
+formatter: MarkdownFormatter
+mapping: mapping::BLOCK
+composite: mapping::COMPOSITE
+deps: [rowan, tree-sitter, unicode-width]
+dev-deps: [insta, pulldown-cmark, serde_json]

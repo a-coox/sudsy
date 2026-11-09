@@ -1,3 +1,4 @@
+# Generated from lang.yaml by `cargo xtask codegen`.
 [package]
 name = "lang-editorconfig"
 edition.workspace = true
@@ -8,8 +9,8 @@ build = "../../build/lang-crate.rs"
 
 [dependencies]
 core-config.workspace = true
-core-packs.workspace = true
 core-format.workspace = true
+core-packs.workspace = true
 core-rules.workspace = true
 core-syntax.workspace = true
 core-treesitter.workspace = true

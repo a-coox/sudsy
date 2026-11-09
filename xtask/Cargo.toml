@@ -12,6 +12,7 @@ core-rules.workspace = true
 core-syntax.workspace = true
 languages = { path = "../crates/languages" }
 provider-api.workspace = true
+serde-saphyr.workspace = true
 serde_json.workspace = true
 
 [lints]

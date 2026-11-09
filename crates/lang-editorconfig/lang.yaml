@@ -1,0 +1,5 @@
+grammar-crate: konomanoasa-tree-sitter-editorconfig
+file-names: [.editorconfig]
+formatter: EditorConfigFormatter
+hooks: hooks::EditorConfigHooks
+dev-deps: [insta]
