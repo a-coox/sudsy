@@ -12,6 +12,12 @@ Files: extension `.ini` only. The grammar has no continuation lines (`install_re
 
 ## Options
 <!-- generated:options -->
+| Option | Values | Default | Description |
+|---|---|---|---|
+| `final_newline` | bool | `true` | End the file with a newline. |
+| `end_of_line` | `auto`, `lf`, `crlf` | `auto` | Line break style of the output: `lf`, `crlf`, or `auto` to keep the file's first line break. |
+| `space_around_equals` | bool | `true` | Write `key = value` rather than `key=value`. |
+| `max_blank_lines` | int 0-10 | `1` | Largest number of blank lines kept between settings, sections and comments. |
 <!-- /generated -->
 
 ## Presets

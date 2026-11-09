@@ -48,7 +48,6 @@ export const documentSelector = [
   { scheme: "file", pattern: "**/*.md" },
   { scheme: "file", pattern: "**/*.markdown" },
   { scheme: "file", pattern: "**/*.ini" },
-  { scheme: "file", pattern: "**/*.cfg" },
   { scheme: "file", pattern: "**/*.dockerfile" },
   { scheme: "file", pattern: "**/*.sh" },
   { scheme: "file", pattern: "**/*.bash" },
