@@ -15,6 +15,9 @@ use std::sync::Arc;
 #[derive(Clone)]
 struct Doc {
     file: File,
+    /// Open in the editor but its language is not installed: kept (and kept in sync) so that
+    /// installing the language can start serving it, invisible to every handler until then.
+    skipped: bool,
 }
 
 /// `Clone` makes a snapshot for a job on the analysis thread: it shares the database's memos and
@@ -106,12 +109,30 @@ impl Workspace {
             .is_some_and(|p| p.chain.needs().get(language) == Some(&Need::Ignored))
     }
 
+    /// Serves the documents that were waiting for a language that is installed now.
+    pub fn activate_installed(&mut self) {
+        let waiting: Vec<PathBuf> = (self.docs.iter())
+            .filter(|(_, d)| d.skipped)
+            .map(|(p, _)| p.clone())
+            .collect();
+        let mut checker = Checker::new(self.db.providers());
+        let ready: Vec<PathBuf> = (waiting.into_iter())
+            .filter(|p| checker.missing(p).is_none())
+            .collect();
+        for path in ready {
+            if let Some(doc) = self.docs.get_mut(&path) {
+                doc.skipped = false;
+            }
+        }
+    }
+
     /// Starts tracking a document; false when no provider handles the file or its language is
-    /// not installed.
+    /// not installed (the document is then only kept for [`Workspace::activate_installed`]).
     pub fn open(&mut self, path: PathBuf, version: i32, text: String) -> bool {
-        if !self.db.supports(&path) || self.missing_language(&path).is_some() {
+        if !self.db.supports(&path) {
             return false;
         }
+        let skipped = self.missing_language(&path).is_some();
         let label = path.to_string_lossy().into_owned();
         let Ok(file) = File::from_bytes(&self.db, path.clone(), label, version as u64, text.into())
         else {
@@ -120,8 +141,8 @@ impl Workspace {
         if let Some(background) = &mut self.background {
             Arc::make_mut(background).remove(&path);
         }
-        self.docs.insert(path, Doc { file });
-        true
+        self.docs.insert(path, Doc { file, skipped });
+        !skipped
     }
 
     /// Applies the changes of one `didChange`, in order. `shared`: other threads hold handles of
@@ -141,7 +162,7 @@ impl Workspace {
         for change in changes {
             apply_change(&mut text, change.range, &change.text);
         }
-        let file = doc.file;
+        let (file, skipped) = (doc.file, doc.skipped);
         if shared {
             let new = File::new(
                 &self.db,
@@ -151,14 +172,15 @@ impl Workspace {
                 file.had_bom(&self.db),
                 file.editorconfig(&self.db).clone(),
             );
-            self.docs.insert(path.to_path_buf(), Doc { file: new });
+            self.docs
+                .insert(path.to_path_buf(), Doc { file: new, skipped });
         } else {
             self.db.set_file_text(file, version as u64, text);
         }
     }
 
     pub fn close(&mut self, path: &Path) {
-        if self.docs.remove(path).is_some()
+        if self.docs.remove(path).is_some_and(|d| !d.skipped)
             && let Some(file) = self.background.is_some().then(|| self.read(path)).flatten()
             && let Some(background) = &mut self.background
         {
@@ -212,6 +234,7 @@ impl Workspace {
     pub(crate) fn project_files(&self) -> Vec<File> {
         self.docs
             .values()
+            .filter(|d| !d.skipped)
             .map(|d| d.file)
             .chain(self.background.iter().flat_map(|b| b.values().copied()))
             .collect()
@@ -219,7 +242,7 @@ impl Workspace {
 
     /// The input of an open document.
     pub(crate) fn file(&self, path: &Path) -> Option<File> {
-        self.docs.get(path).map(|d| d.file)
+        self.docs.get(path).filter(|d| !d.skipped).map(|d| d.file)
     }
 
     pub fn text(&self, path: &Path) -> Option<String> {

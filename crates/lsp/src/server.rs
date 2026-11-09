@@ -4,7 +4,9 @@
 use crate::actions::{FIX_ALL_KIND, code_action};
 use crate::analysis::{Analysis, Cancel};
 use crate::diagnostics::diagnostic;
-use crate::notifier::{DOWNLOAD_ACTION, Notifier, RUNTIME_PROMPT_ID};
+use crate::notifier::{
+    DOWNLOAD_ACTION, INSTALL_ACTION, INSTALL_PROMPT_PREFIX, Notifier, RUNTIME_PROMPT_ID,
+};
 use crate::workspace::Workspace;
 use anyhow::{Result, anyhow};
 use lsp_server::{Connection, ErrorCode, Message, Notification, Request, RequestId, Response};
@@ -150,17 +152,24 @@ impl Server {
         Ok(())
     }
 
-    /// The only answer that matters is the one to the missing-runtime prompt.
+    /// The answers that matter are those to the missing-runtime and install-language prompts.
     fn response(&mut self, response: Response) -> Result<()> {
-        let chosen = response.id == RequestId::from(RUNTIME_PROMPT_ID.to_string())
-            && response
-                .response_result
-                .as_ref()
-                .ok()
-                .and_then(|r| r.get("title"))
-                .and_then(|t| t.as_str())
-                == Some(DOWNLOAD_ACTION);
-        if !chosen {
+        let title = response
+            .response_result
+            .as_ref()
+            .ok()
+            .and_then(|r| r.get("title"))
+            .and_then(|t| t.as_str());
+        let id = serde_json::to_value(&response.id)?;
+        let id = id.as_str().unwrap_or("");
+        if let Some(language) = id.strip_prefix(INSTALL_PROMPT_PREFIX) {
+            return if title == Some(INSTALL_ACTION) {
+                self.install(language)
+            } else {
+                Ok(())
+            };
+        }
+        if id != RUNTIME_PROMPT_ID || title != Some(DOWNLOAD_ACTION) {
             return Ok(());
         }
         self.call::<ShowDocument>(ShowDocumentParams {
@@ -169,6 +178,22 @@ impl Server {
             take_focus: None,
             selection: None,
         })
+    }
+
+    /// Same code as `sudsy languages add`, then the documents that waited start being served.
+    // shortcut: a download blocks the message loop for its duration, move it to a thread if
+    // packs grow beyond a few hundred KB.
+    fn install(&mut self, language: &str) -> Result<()> {
+        match languages::installed::add(language, None) {
+            Ok(()) => {
+                self.workspace.activate_installed();
+                if self.support.diagnostic_refresh {
+                    self.call::<WorkspaceDiagnosticRefresh>(())?;
+                }
+            }
+            Err(why) => self.notifier.install_failed(language, &why),
+        }
+        Ok(())
     }
 
     fn send(&self, message: impl Into<Message>) -> Result<()> {

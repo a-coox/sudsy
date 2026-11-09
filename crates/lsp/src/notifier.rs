@@ -19,6 +19,10 @@ use std::sync::{Arc, Mutex};
 pub(crate) const RUNTIME_PROMPT_ID: &str = "sudsy/runtime-missing";
 /// The prompt's action, which opens the download page.
 pub(crate) const DOWNLOAD_ACTION: &str = "Download .NET";
+/// The id of a "language not installed" prompt is this plus the language.
+pub(crate) const INSTALL_PROMPT_PREFIX: &str = "sudsy/install-language/";
+/// The action of that prompt, which installs the language.
+pub(crate) const INSTALL_ACTION: &str = "Install";
 
 #[derive(Clone)]
 pub(crate) struct Notifier {
@@ -27,6 +31,8 @@ pub(crate) struct Notifier {
     shown: Arc<Mutex<HashSet<String>>>,
     /// Has the missing runtime been put to the user? Once per session, also across config reloads.
     runtime_prompted: Arc<AtomicBool>,
+    /// Languages already offered for installation (once per session, also across config reloads).
+    install_prompted: Arc<Mutex<HashSet<String>>>,
 }
 
 impl Notifier {
@@ -35,6 +41,7 @@ impl Notifier {
             sender,
             shown: Default::default(),
             runtime_prompted: Default::default(),
+            install_prompted: Default::default(),
         }
     }
 
@@ -87,15 +94,33 @@ impl Notifier {
         let _ = self.sender.send(request.into());
     }
 
-    /// The language of an opened file is not installed: once per language and session (an
-    /// editor extension can turn the message into an install prompt).
+    /// A language the user needs is not installed: offers to install it, once per language and
+    /// session. Nothing is downloaded before the user chooses the action.
     pub(crate) fn language_missing(&self, language: &str, why: &str) {
-        let message = format!(
-            "Sudsy: {language} is {why}; run `sudsy languages add {language}` to format and lint it"
-        );
-        if self.first_time(&message) {
-            self.show(MessageType::WARNING, message);
+        let first = (self.install_prompted.lock())
+            .unwrap_or_else(|e| e.into_inner())
+            .insert(language.to_string());
+        if !first {
+            return;
         }
+        let params = ShowMessageRequestParams {
+            typ: MessageType::WARNING,
+            message: format!("Sudsy: {language} is {why}. Install it to format and lint it."),
+            actions: Some(vec![MessageActionItem {
+                title: INSTALL_ACTION.into(),
+                properties: Default::default(),
+            }]),
+        };
+        let id = RequestId::from(format!("{INSTALL_PROMPT_PREFIX}{language}"));
+        let request = Request::new(id, ShowMessageRequest::METHOD.to_string(), params);
+        let _ = self.sender.send(request.into());
+    }
+
+    pub(crate) fn install_failed(&self, language: &str, why: &str) {
+        self.show(
+            MessageType::ERROR,
+            format!("Sudsy: could not install {language}: {why}"),
+        );
     }
 
     /// The config could not be loaded. The message is the one every file's failure carries, so it
