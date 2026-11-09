@@ -6,8 +6,13 @@ description: >-
 example: 'rm $(cat list)'
 severity: warn
 category: suspicious
-rule: { kind: Command }
-token: { needs: '$`', kind: [Word, Test], regex: '^(?:[^"''\\]|\\.|"(?:[^"\\$`]|\\.|\$[A-Za-z_0-9@*#?!$-])*"|''[^'']*'')*?(\$\([^(]|`)', not-regex: '^\[\[', skip-first: Word }
+rule:
+  kind: Subst
+  parent:
+    any:
+      - { kind: Command }
+      - { kind: Test, not: { regex: '^\[\[' } }
+      - { kind: Concat, parent: { any: [{ kind: Command }, { kind: Test, not: { regex: '^\[\[' } }] } }
 ---
 id: quote-variable
 message: quote the expansion to prevent word splitting and globbing
@@ -17,8 +22,8 @@ description: >-
 example: 'rm $file'
 severity: off
 category: suspicious
-rule: { kind: Command }
-token: { needs: '$', kind: [Word, Test], regex: '^(?:[^"''`\\(]|\\.|"(?:[^"\\$`]|\\.|\$[A-Za-z_0-9@*#?!$-])*"|''[^'']*'')*?\$(?:[A-Za-z_0-9*]|\{!?[A-Za-z_0-9]+(?:[^\[+:A-Za-z0-9_]|:[^+]|\[[^@]))', not-regex: '^\[\[', skip-first: Word }
+rule: { any: [{ kind: Command }, { kind: Test, not: { regex: '^\[\[' } }] }
+token: { needs: '$', kind: [Word, Concat], regex: '^(?:[^"''`\\(]|\\.|"(?:[^"\\$`]|\\.|\$[A-Za-z_0-9@*#?!$-])*"|''[^'']*'')*?\$(?:[A-Za-z_0-9*]|\{!?[A-Za-z_0-9]+(?:[^\[+:A-Za-z0-9_]|:[^+]|\[[^@]))', skip-first: Word }
 ---
 id: quote-at-expansion
 message: quote `$@` and `${array[@]}` so the elements are not split again
@@ -27,7 +32,7 @@ example: 'cp $@ dir'
 severity: error
 category: correctness
 rule: { any: [{ kind: Command }, { kind: For }] }
-token: { needs: '$', kind: [Word], regex: '^[^"''`\\(]*\$(@|\{@\}|\{!?[A-Za-z_][A-Za-z0-9_]*\[@\]\})' }
+token: { needs: '$', kind: [Word, Concat], regex: '^[^"''`\\(]*\$(@|\{@\}|\{!?[A-Za-z_][A-Za-z0-9_]*\[@\]\})' }
 ---
 id: quote-star-expansion
 message: use "$@" (with quotes) to keep the arguments apart
@@ -36,7 +41,7 @@ example: 'cp $* dir'
 severity: warn
 category: suspicious
 rule: { any: [{ kind: Command }, { kind: For }] }
-token: { needs: '$', kind: [Word], regex: '^[^"''`\\(]*\$(\*|\{\*\}|\{[A-Za-z_][A-Za-z0-9_]*\[\*\]\})' }
+token: { needs: '$', kind: [Word, Concat], regex: '^[^"''`\\(]*\$(\*|\{\*\}|\{[A-Za-z_][A-Za-z0-9_]*\[\*\]\})' }
 ---
 id: no-backticks
 message: use $(...) instead of backticks
@@ -44,8 +49,7 @@ description: A command substitution written with backticks.
 example: 'now=`date`'
 severity: off
 category: style
-rule: { any: [{ kind: Command }, { kind: For }] }
-token: { needs: '`', kind: [Word, Assign, Test], regex: '^[^''\\]*`' }
+rule: { kind: Subst, regex: '^`' }
 ---
 id: declare-and-assign-separately
 message: declare and assign separately, or the exit status of the substitution is lost
@@ -57,4 +61,5 @@ severity: warn
 category: suspicious
 rule:
   kind: Command
-  regex: '^(export|local|declare|readonly|typeset)\s[^|;&]*=("?\$\([^(]|"?`)'
+  regex: '^(export|local|declare|readonly|typeset)\s'
+  child: { kind: Assign, has: { kind: Subst } }

@@ -1,8 +1,7 @@
 //! Shell formatting after shfmt's default layout: one statement per line, bodies indented one
 //! level, `then`/`do` on the line of their head, case patterns at the `case` column and their
 //! bodies indented. A compound command written on one line stays on one line. Words, strings,
-//! expansions and substitutions are kept as written (a token each); only the layout between
-//! them changes.
+//! expansions, substitutions and tests are kept as written; only the layout between them changes.
 
 use crate::generated::kind as k;
 use core_config::{OptionDef, OptionSchema, Preset, shared};
@@ -41,10 +40,10 @@ pub struct ShellFormatter;
 impl NodeFormatter for ShellFormatter {
     /// Redirect operators lose the blanks after them, nothing else changes.
     fn extra_check(&self, before: &SyntaxNode, after: &SyntaxNode) -> Result<(), String> {
-        if restyled(before, false) == restyled(after, true) {
+        if restyled(before) == restyled(after) {
             Ok(())
         } else {
-            Err("a redirection or assignment changed".into())
+            Err("a redirection or array changed".into())
         }
     }
 
@@ -79,22 +78,31 @@ impl NodeFormatter for ShellFormatter {
             k::CASE_ITEM => case_item(cx, node)?,
             k::FUNCTION => function(cx, node)?,
             k::HEREDOC_REDIRECT => heredoc(cx, node)?,
+            k::ASSIGN => assign(cx, node),
+            k::TEST | k::STRING | k::CONCAT | k::SUBST => cx.verbatim_node(node),
             _ => return Ok(None),
         }))
     }
 }
 
-/// The redirections without blanks and the assignments as the formatter writes them.
-fn restyled(tree: &SyntaxNode, after: bool) -> Vec<String> {
+/// The redirections without blanks and the arrays without padding, as the formatter writes them.
+fn restyled(tree: &SyntaxNode) -> Vec<String> {
     (tree.descendants_with_tokens())
         .filter_map(|e| e.into_token())
         .filter_map(|t| match t.kind() {
             k::REDIRECT => Some(t.text().split_whitespace().collect()),
-            k::ASSIGN if !after && !t.text().contains('\n') => Some(assign_text(t.text())),
-            k::ASSIGN => Some(t.text().to_string()),
+            k::ARRAY => Some(unpadded(t.text())),
             _ => None,
         })
         .collect()
+}
+
+/// `( b c )` is `(b c)`.
+fn unpadded(array: &str) -> String {
+    match array.strip_prefix('(').and_then(|a| a.strip_suffix(')')) {
+        Some(inner) => format!("({})", inner.trim_matches([' ', '\t'])),
+        None => array.to_string(),
+    }
 }
 
 /// A significant child; `cont` when a line continuation (`\` and a line break) precedes it.
@@ -142,17 +150,32 @@ impl E {
                 core_format::context::verbatim_text(&redirect_text(t.text())),
                 cx.trailing_comments_doc(t),
             ])),
-            SyntaxElement::Token(t) if t.kind() == k::ASSIGN && !t.text().contains('\n') => {
-                Ok(doc::concat(vec![
-                    cx.leading_comments_doc(t),
-                    doc::text(assign_text(t.text())),
-                    cx.trailing_comments_doc(t),
-                ]))
-            }
             SyntaxElement::Token(t) => Ok(cx.token(t)),
             SyntaxElement::Node(n) => cx.format(n),
         }
     }
+}
+
+/// An assignment as written, except that `a=( b )` is `a=(b)`.
+fn assign(cx: &FormatCtx<'_>, node: &SyntaxNode) -> Doc {
+    let (Some(first), Some(last)) = (cx.first_token(node), cx.last_token(node)) else {
+        return Doc::Nil;
+    };
+    // The node's trailing trivia are not part of the assignment.
+    let start = node.text_range().start();
+    let range = TextRange::new(
+        first.text_range().start() - start,
+        last.text_range().end() - start,
+    );
+    let text = node.text().slice(range).to_string();
+    if text.contains('\n') {
+        return cx.verbatim_node(node);
+    }
+    doc::concat(vec![
+        cx.leading_comments_doc(&first),
+        doc::text(assign_text(&text)),
+        cx.trailing_comments_doc(&last),
+    ])
 }
 
 /// `a=( b c )` is `a=(b c)`.
@@ -298,7 +321,16 @@ fn is_block(cx: &FormatCtx<'_>, node: &SyntaxNode) -> bool {
         ),
         _ => false,
     };
-    lines || n.descendants().any(|d| statements_in_body(cx, &d) > 1)
+    lines || multi_statement_body(cx, &n)
+}
+
+/// Does a compound command at or below `node` have a body of several statements? One inside a
+/// substitution does not count: its text is kept as written.
+fn multi_statement_body(cx: &FormatCtx<'_>, node: &SyntaxNode) -> bool {
+    statements_in_body(cx, node) > 1
+        || (node.children())
+            .filter(|c| c.kind() != k::SUBST)
+            .any(|c| multi_statement_body(cx, &c))
 }
 
 /// The statements in the body of a compound command or case item (0 for other nodes).

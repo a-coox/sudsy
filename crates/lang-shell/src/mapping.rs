@@ -1,6 +1,7 @@
-//! tree-sitter-bash node name -> `grammars/shell.grammar` kind. Words, expansions, strings and
-//! substitutions are tokens: their inner nodes stay inside. Anything left unmapped (`declare`, the
-//! inside of `(( ))`) is a `Word` through the composite text kind.
+//! tree-sitter-bash node name -> `grammars/shell.grammar` kind. Assignments, tests, strings,
+//! concatenations and command substitutions are nodes; words, expansions, arrays and the rest are
+//! tokens whose inner nodes stay inside. Anything left unmapped (`declare`, the text of a string,
+//! the inside of `(( ))`) is a `Word` through the composite text kind.
 
 use core_treesitter::{Composite, Mapping};
 
@@ -9,6 +10,13 @@ pub const COMPOSITE: Composite = Composite {
     injected: &[],
     refine: &[],
     continuation: true,
+    tolerant: &[
+        "variable_assignment",
+        "test_command",
+        "string",
+        "concatenation",
+        "command_substitution",
+    ],
 };
 
 pub const MAPPING: Mapping = Mapping {
@@ -16,8 +24,7 @@ pub const MAPPING: Mapping = Mapping {
     newline: "Newline",
     eof: "Eof",
     unknown: "Unknown",
-    // A bare assignment or test is a statement.
-    wrap: &[("Assign", "Command"), ("Test", "Command")],
+    wrap: &[],
     kinds: &[
         ("program", "Program"),
         ("command", "Command"),
@@ -43,6 +50,10 @@ pub const MAPPING: Mapping = Mapping {
         ("heredoc_redirect", "HeredocRedirect"),
         ("variable_assignment", "Assign"),
         ("test_command", "Test"),
+        ("string", "String"),
+        ("concatenation", "Concat"),
+        ("command_substitution", "Subst"),
+        ("array", "Array"),
         ("comment", "Comment"),
         (";", "Semi"),
         ("file_redirect", "Redirect"),
@@ -53,16 +64,13 @@ pub const MAPPING: Mapping = Mapping {
         ("heredoc_end", "HeredocEnd"),
         ("word", "Word"),
         ("number", "Word"),
-        ("string", "Word"),
         ("raw_string", "Word"),
         ("ansi_c_string", "Word"),
         ("translated_string", "Word"),
         ("expansion", "Word"),
         ("simple_expansion", "Word"),
-        ("command_substitution", "Word"),
         ("process_substitution", "Word"),
         ("arithmetic_expansion", "Word"),
-        ("concatenation", "Word"),
         ("brace_expression", "Word"),
         ("extglob_pattern", "Word"),
         ("regex", "Word"),
@@ -70,7 +78,6 @@ pub const MAPPING: Mapping = Mapping {
         ("variable_name", "Word"),
         ("file_descriptor", "Word"),
         ("test_operator", "Word"),
-        ("array", "Word"),
         ("heredoc_start", "Word"),
         ("subscript", "Word"),
         ("if", "Keyword"),

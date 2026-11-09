@@ -9,17 +9,6 @@ rule:
 constraints:
   F: { not-regex: '^-' }
 ---
-id: useless-echo
-message: run the command itself instead of echoing its output
-description: An `echo` whose only argument is a command substitution.
-example: 'echo $(date)'
-severity: off
-category: style
-rule:
-  pattern: 'echo $A'
-constraints:
-  A: { regex: '^"?(\$\([^()]*\)|`[^`]*`)"?$' }
----
 id: read-without-raw
 message: use `read -r`, or backslashes in the input are mangled
 description: A `read` without the `-r` flag.
@@ -109,7 +98,7 @@ example: 'if [ $? -eq 0 ]; then'
 severity: off
 category: style
 rule:
-  kind: Command
+  kind: Test
   regex: '^\[\[?\s+"?\$\?"?\s+(-eq|-ne|=|==|!=)\s'
 ---
 id: test-and-or
@@ -119,7 +108,7 @@ example: '[ -f a -o -f b ]'
 severity: warn
 category: suspicious
 rule:
-  kind: Command
+  kind: Test
   regex: '^\[\s+\S.*\s-[ao]\s'
 ---
 id: test-negated-empty
@@ -129,7 +118,7 @@ example: '[ ! -z "$x" ]'
 severity: off
 category: style
 rule:
-  kind: Command
+  kind: Test
   regex: '^\[\[?\s+!\s+-[zn]\s'
 ---
 id: and-or-is-not-if-else

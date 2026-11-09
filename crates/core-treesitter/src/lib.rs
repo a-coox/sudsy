@@ -79,6 +79,10 @@ pub struct Composite {
     pub refine: &'static [(&'static str, &'static str, &'static str)],
     /// A `\` that ends a line is whitespace trivia, not text (shell line continuations).
     pub continuation: bool,
+    /// Tree-sitter node names whose descendants' syntax errors are not reported: the text is
+    /// kept as the node's own children (a language whose tokens swallowed these subtrees before
+    /// they became nodes keeps accepting what the grammar mis-parses inside them).
+    pub tolerant: &'static [&'static str],
 }
 
 /// A grammar parsed inside the nodes named `host` of the host grammar. The host node's own named
@@ -103,6 +107,8 @@ struct Converter {
     names: Vec<String>,
     text: Option<SyntaxKind>,
     continuation: bool,
+    /// Node id -> errors below it are not reported ([`Composite::tolerant`]).
+    tolerant: Vec<bool>,
     /// `(node id, prefix, kind)` of [`Composite::refine`].
     refine: Vec<(usize, &'static str, SyntaxKind)>,
     /// Node id -> index into `injected`.
@@ -172,9 +178,15 @@ impl Converter {
         let id_of = |n: &str| names.iter().position(|x| x == n);
         let mut inject = vec![None; count];
         let (mut injected, mut refine, mut text) = (Vec::new(), Vec::new(), None);
+        let mut tolerant = vec![false; count];
         let continuation = comp.is_some_and(|c| c.continuation);
         if let Some(c) = comp {
             text = Some(kind(c.text));
+            for name in c.tolerant {
+                if let Some(id) = id_of(name) {
+                    tolerant[id] = true;
+                }
+            }
             for (token, prefix, to) in c.refine {
                 if let Some(id) = id_of(token) {
                     refine.push((id, *prefix, kind(to)));
@@ -198,6 +210,7 @@ impl Converter {
             names,
             text,
             continuation,
+            tolerant,
             refine,
             inject,
             injected,
@@ -257,24 +270,40 @@ impl Converter {
         }
     }
 
+    /// Is `n` below a node of [`Composite::tolerant`]?
+    fn tolerated(&self, n: Node) -> bool {
+        let mut up = n.parent();
+        while let Some(p) = up {
+            if self.tolerant.get(p.kind_id() as usize) == Some(&true) {
+                return true;
+            }
+            up = p.parent();
+        }
+        false
+    }
+
     /// Returns (a node was opened, descend into the children).
     fn enter(&self, src: &str, n: Node, s: &mut Scan) -> (bool, bool) {
         let (start, end) = (n.start_byte(), n.end_byte());
         let id = n.kind_id() as usize;
         let name = self.names.get(id).map_or("?", String::as_str);
-        if n.is_missing() {
+        let (error, missing) = (n.is_error(), n.is_missing());
+        if (error || missing) && self.tolerated(n) {
+            return (false, error);
+        }
+        if missing {
             s.error(start, 0, format!("missing {name}"));
             return (false, false);
         }
         // An unmapped leaf is text and joins the text before it.
         let text_leaf = self.text.is_some()
             && n.child_count() == 0
-            && !n.is_error()
+            && !error
             && matches!(self.table.get(id), Some(Entry::Transparent));
         if !text_leaf {
             self.fill(src, s, start);
         }
-        if n.is_error() {
+        if error {
             s.error(start, end - start, "syntax error".into());
             s.evs.push(Ev::Enter(SyntaxKind::ERROR));
             if n.child_count() == 0 {

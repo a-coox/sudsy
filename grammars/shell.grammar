@@ -20,11 +20,10 @@ token Keyword
 token Semi ";" #separator
 // `&`, `&&`, `||`, `|`, `|&` and the ends of a case arm (`;;`, `;&`, `;;&`).
 token Op
-// A word, however complex: quoting, expansions and substitutions stay inside as written. A lone `\` is a line continuation.
+// A word or a piece of one: quoting and expansions stay inside as written. A lone `\` is a line continuation.
 token Word #literal
-// `name=value`, `[[ ... ]]` and `[ ... ]` as written.
-token Assign #literal #restyle
-token Test #literal
+// `( b c )` of an array assignment; the formatter trims the padding.
+token Array #restyle
 // A redirection (`> file`, `2>&1`, `<<< word`); blanks after the operator may go.
 token Redirect #restyle
 // `<<` or `<<-`, the delimiter word follows.
@@ -59,3 +58,13 @@ node CaseItem #el = parts:#el*
 node Function #el = parts:#el*
 // `<<EOF`, and what stands on its line after it, then the body and the delimiter line.
 node HeredocRedirect #el = parts:#el*
+// `name=value` (also in a declaration): the value's words, strings and substitutions are children.
+node Assign #el = parts:#el*
+// `[ ... ]` and `[[ ... ]]`, printed as written.
+node Test #el = parts:#el*
+// A double-quoted string: text pieces and substitutions.
+node String #el = parts:#el*
+// Adjacent parts of one word (`a$(b)"c"`).
+node Concat #el = parts:#el*
+// `$( ... )` or backticks: the commands inside are nodes, printed as written.
+node Subst #el = parts:#el*

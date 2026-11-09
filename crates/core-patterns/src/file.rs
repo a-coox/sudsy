@@ -32,7 +32,7 @@ use core_rules::{
     Category, Check, Edit, Family, Fix, FixKind, Layer, LayoutRole, Opt, OptionDecl, Params, Re,
     Rule, RuleContext, RuleMeta, RuleOptions,
 };
-use core_syntax::{Grammar, SyntaxKind, SyntaxNode, TextRange};
+use core_syntax::{Grammar, SyntaxElement, SyntaxKind, SyntaxNode, TextRange};
 use serde::Deserialize;
 use std::cell::Cell;
 use std::collections::{BTreeMap, HashMap};
@@ -130,7 +130,7 @@ struct OptionSpec {
     description: String,
 }
 
-/// `token:`: report each own token of the matched node that satisfies this, not the node.
+/// `token:`: report each own child (token or node) of the matched node that satisfies this, not the node.
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
 struct TokenSpec {
@@ -567,8 +567,7 @@ fn compile_token(t: &TokenSpec, parser: &dyn SnippetParser) -> Result<TokenMatch
         parser
             .grammar()
             .kind_by_name(n)
-            .filter(|k| k.is_token())
-            .ok_or_else(|| format!("`{n}` is not a token kind of the language"))
+            .ok_or_else(|| format!("`{n}` is not a kind of the language"))
     };
     let kinds = t.kind.iter().map(kind).collect::<Result<_, _>>()?;
     Ok(TokenMatch {
@@ -952,18 +951,24 @@ impl Rule for PatternRule {
             }
             let ascii = ranges.ascii(file.text);
             let mut skip = t.skip_first;
-            for tok in node.children_with_tokens().filter_map(|e| e.into_token()) {
-                if skip == Some(tok.kind()) {
+            for child in node.children_with_tokens() {
+                let kind = child.kind();
+                if skip == Some(kind) {
                     skip = None;
                     continue;
                 }
-                if !t.kinds.contains(&tok.kind()) {
+                if !t.kinds.contains(&kind) {
                     continue;
                 }
-                let hit = |r: &Option<Re>| r.as_ref().map(|r| r.is_match_in(tok.text(), ascii));
+                let range = match &child {
+                    SyntaxElement::Node(n) => significant_range(n, file.grammar),
+                    SyntaxElement::Token(t) => t.text_range(),
+                };
+                let text = &file.text[usize::from(range.start())..usize::from(range.end())];
+                let hit = |r: &Option<Re>| r.as_ref().map(|r| r.is_match_in(text, ascii));
                 if hit(&t.regex).unwrap_or(true) && !hit(&t.not_regex).unwrap_or(false) {
                     let message = self.message.as_deref().unwrap_or_default();
-                    ctx.report(tok.text_range(), substitute(message, &captures, file.text));
+                    ctx.report(range, substitute(message, &captures, file.text));
                 }
             }
             return;

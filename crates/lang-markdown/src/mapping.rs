@@ -90,6 +90,7 @@ pub static INLINE: Mapping = mapping(
 pub static COMPOSITE: Composite = Composite {
     text: "Text",
     continuation: false,
+    tolerant: &[],
     injected: &[
         Injected {
             host: "inline",

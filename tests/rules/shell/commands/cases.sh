@@ -12,6 +12,7 @@ echo `date`
 ^^^^^^^^^^^ useless-echo
 #    ^^^^^^ quote-command-substitution
 echo "$(date) now" $x
+echo "$(date)s"
 read line
 ^^^^^^^^^ read-without-raw
 read -r line

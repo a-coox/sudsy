@@ -10,6 +10,7 @@ pub const COMPOSITE: Composite = Composite {
     injected: &[],
     refine: &[],
     continuation: false,
+    tolerant: &[],
 };
 
 pub const MAPPING: Mapping = Mapping {

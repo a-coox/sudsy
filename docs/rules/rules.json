@@ -2669,7 +2669,7 @@
       "example": {
         "config": null,
         "fixed": null,
-        "input": "FROM alpine:3\nRUN sudo make install\nRUN cd /app && make\nRUN service nginx start\nRUN apt update\nRUN wget https://example.com/f\nRUN wget -q https://example.com/f\nRUN ln -sf /bin/bash /bin/sh\nRUN echo sudo cd ps\nRUN make && \\\n    sudo make install\nONBUILD RUN sudo make\nRUN [\"sudo\", \"make\"]\n",
+        "input": "FROM alpine:3\nRUN sudo make install\nRUN cd /app && make\nRUN service nginx start\nRUN apt update\nRUN wget https://example.com/f\nRUN wget -q https://example.com/f\nRUN ln -sf /bin/bash /bin/sh\nRUN echo sudo cd ps\nRUN make && \\\n    sudo make install\nRUN v=$(sudo make) && echo \"$(wget https://example.com/f)\"\nONBUILD RUN sudo make\nRUN [\"sudo\", \"make\"]\n",
         "language": "dockerfile",
         "spans": [
           {
@@ -2753,7 +2753,7 @@
       "example": {
         "config": null,
         "fixed": null,
-        "input": "FROM alpine:3\nRUN sudo make install\nRUN cd /app && make\nRUN service nginx start\nRUN apt update\nRUN wget https://example.com/f\nRUN wget -q https://example.com/f\nRUN ln -sf /bin/bash /bin/sh\nRUN echo sudo cd ps\nRUN make && \\\n    sudo make install\nONBUILD RUN sudo make\nRUN [\"sudo\", \"make\"]\n",
+        "input": "FROM alpine:3\nRUN sudo make install\nRUN cd /app && make\nRUN service nginx start\nRUN apt update\nRUN wget https://example.com/f\nRUN wget -q https://example.com/f\nRUN ln -sf /bin/bash /bin/sh\nRUN echo sudo cd ps\nRUN make && \\\n    sudo make install\nRUN v=$(sudo make) && echo \"$(wget https://example.com/f)\"\nONBUILD RUN sudo make\nRUN [\"sudo\", \"make\"]\n",
         "language": "dockerfile",
         "spans": [
           {
@@ -2964,7 +2964,7 @@
       "example": {
         "config": null,
         "fixed": null,
-        "input": "FROM alpine:3\nRUN sudo make install\nRUN cd /app && make\nRUN service nginx start\nRUN apt update\nRUN wget https://example.com/f\nRUN wget -q https://example.com/f\nRUN ln -sf /bin/bash /bin/sh\nRUN echo sudo cd ps\nRUN make && \\\n    sudo make install\nONBUILD RUN sudo make\nRUN [\"sudo\", \"make\"]\n",
+        "input": "FROM alpine:3\nRUN sudo make install\nRUN cd /app && make\nRUN service nginx start\nRUN apt update\nRUN wget https://example.com/f\nRUN wget -q https://example.com/f\nRUN ln -sf /bin/bash /bin/sh\nRUN echo sudo cd ps\nRUN make && \\\n    sudo make install\nRUN v=$(sudo make) && echo \"$(wget https://example.com/f)\"\nONBUILD RUN sudo make\nRUN [\"sudo\", \"make\"]\n",
         "language": "dockerfile",
         "spans": [
           {
@@ -2992,7 +2992,7 @@
       "example": {
         "config": null,
         "fixed": null,
-        "input": "FROM alpine:3\nRUN sudo make install\nRUN cd /app && make\nRUN service nginx start\nRUN apt update\nRUN wget https://example.com/f\nRUN wget -q https://example.com/f\nRUN ln -sf /bin/bash /bin/sh\nRUN echo sudo cd ps\nRUN make && \\\n    sudo make install\nONBUILD RUN sudo make\nRUN [\"sudo\", \"make\"]\n",
+        "input": "FROM alpine:3\nRUN sudo make install\nRUN cd /app && make\nRUN service nginx start\nRUN apt update\nRUN wget https://example.com/f\nRUN wget -q https://example.com/f\nRUN ln -sf /bin/bash /bin/sh\nRUN echo sudo cd ps\nRUN make && \\\n    sudo make install\nRUN v=$(sudo make) && echo \"$(wget https://example.com/f)\"\nONBUILD RUN sudo make\nRUN [\"sudo\", \"make\"]\n",
         "language": "dockerfile",
         "spans": [
           {
@@ -3006,14 +3006,19 @@
             "line": 10
           },
           {
+            "column": 1,
+            "length": 58,
+            "line": 12
+          },
+          {
             "column": 9,
             "length": 13,
-            "line": 12
+            "line": 13
           },
           {
             "column": 1,
             "length": 20,
-            "line": 13
+            "line": 14
           }
         ]
       },
@@ -3274,7 +3279,7 @@
       "example": {
         "config": null,
         "fixed": null,
-        "input": "FROM alpine:3\nRUN sudo make install\nRUN cd /app && make\nRUN service nginx start\nRUN apt update\nRUN wget https://example.com/f\nRUN wget -q https://example.com/f\nRUN ln -sf /bin/bash /bin/sh\nRUN echo sudo cd ps\nRUN make && \\\n    sudo make install\nONBUILD RUN sudo make\nRUN [\"sudo\", \"make\"]\n",
+        "input": "FROM alpine:3\nRUN sudo make install\nRUN cd /app && make\nRUN service nginx start\nRUN apt update\nRUN wget https://example.com/f\nRUN wget -q https://example.com/f\nRUN ln -sf /bin/bash /bin/sh\nRUN echo sudo cd ps\nRUN make && \\\n    sudo make install\nRUN v=$(sudo make) && echo \"$(wget https://example.com/f)\"\nONBUILD RUN sudo make\nRUN [\"sudo\", \"make\"]\n",
         "language": "dockerfile",
         "spans": [
           {
@@ -3302,13 +3307,18 @@
       "example": {
         "config": null,
         "fixed": null,
-        "input": "FROM alpine:3\nRUN sudo make install\nRUN cd /app && make\nRUN service nginx start\nRUN apt update\nRUN wget https://example.com/f\nRUN wget -q https://example.com/f\nRUN ln -sf /bin/bash /bin/sh\nRUN echo sudo cd ps\nRUN make && \\\n    sudo make install\nONBUILD RUN sudo make\nRUN [\"sudo\", \"make\"]\n",
+        "input": "FROM alpine:3\nRUN sudo make install\nRUN cd /app && make\nRUN service nginx start\nRUN apt update\nRUN wget https://example.com/f\nRUN wget -q https://example.com/f\nRUN ln -sf /bin/bash /bin/sh\nRUN echo sudo cd ps\nRUN make && \\\n    sudo make install\nRUN v=$(sudo make) && echo \"$(wget https://example.com/f)\"\nONBUILD RUN sudo make\nRUN [\"sudo\", \"make\"]\n",
         "language": "dockerfile",
         "spans": [
           {
             "column": 1,
             "length": 30,
             "line": 6
+          },
+          {
+            "column": 1,
+            "length": 58,
+            "line": 12
           }
         ]
       },
@@ -3536,13 +3546,13 @@
       "example": {
         "config": null,
         "fixed": null,
-        "input": "cat in.txt | grep x\ncat -n in.txt | grep x\ncat a b | grep x\ngrep x in.txt\necho $(date)\necho \"$(date)\"\necho `date`\necho \"$(date) now\" $x\nread line\nread -r line\nread -p \"x\" -r line\nprintf \"$fmt\"\nprintf \"%s $x\\n\" y\nprintf \"a$x\" y\nprintf '%s' \"$x\" \"a $b\"\nprintf 'literal $x'\ntrap \"rm $tmp\" EXIT\ntrap 'rm $tmp' EXIT\ntrap \"echo bye\" EXIT\nls | grep txt\nps aux | grep nginx\ngrep x f | wc -l\negrep x f\nfgrep x f\nwhich git\ntest -f x && echo yes || cleanup\ntest -f x && echo yes || echo no\na && b\na || b && c\nls -l | grep txt | wc -l\nwhich git\n",
+        "input": "cat in.txt | grep x\ncat -n in.txt | grep x\ncat a b | grep x\ngrep x in.txt\necho $(date)\necho \"$(date)\"\necho `date`\necho \"$(date) now\" $x\necho \"$(date)s\"\nread line\nread -r line\nread -p \"x\" -r line\nprintf \"$fmt\"\nprintf \"%s $x\\n\" y\nprintf \"a$x\" y\nprintf '%s' \"$x\" \"a $b\"\nprintf 'literal $x'\ntrap \"rm $tmp\" EXIT\ntrap 'rm $tmp' EXIT\ntrap \"echo bye\" EXIT\nls | grep txt\nps aux | grep nginx\ngrep x f | wc -l\negrep x f\nfgrep x f\nwhich git\ntest -f x && echo yes || cleanup\ntest -f x && echo yes || echo no\na && b\na || b && c\nls -l | grep txt | wc -l\nwhich git\n",
         "language": "shell",
         "spans": [
           {
             "column": 1,
             "length": 32,
-            "line": 26
+            "line": 27
           }
         ]
       },
@@ -3622,7 +3632,7 @@
       "example": {
         "config": null,
         "fixed": null,
-        "input": "rm $(cat list)\nrm \"$(cat list)\"\nrm a$(b) `c`\nrm '$(literal)' \"$(ok)\"\necho $((1 + 2))\nrm $file ${dir}/x \"$file\" '$file' $1 $?\nrm --opt=$value \"x $y\"\ncp $@ dir\ncp \"$@\" dir \"${arr[@]}\" ${arr[@]}\ncp $* dir ${arr[*]}\nnow=`date`\necho `date` \"`date`\" 'a`b`'\n[ -n `foo` ]\n[ $x -eq 0 ]\n[[ $x = $y ]]\nexport out=$(make)\nlocal out=\"$(make)\" x=1\ndeclare plain=1\nfor f in $files; do :; done\n",
+        "input": "rm $(cat list)\nrm \"$(cat list)\"\nrm a$(b) `c`\nrm '$(literal)' \"$(ok)\"\necho $((1 + 2))\nrm $file ${dir}/x \"$file\" '$file' $1 $?\nrm --opt=$value \"x $y\"\ncp $@ dir\ncp \"$@\" dir \"${arr[@]}\" ${arr[@]}\ncp $* dir ${arr[*]}\nnow=`date`\necho `date` \"`date`\" 'a`b`'\n[ -n `foo` ]\n[ $x -eq 0 ]\n[[ $x = $y ]] && [[ -n $(foo) ]]\nexport out=$(make)\nlocal out=\"$(make)\" x=1\ndeclare plain=1\nfor f in $files; do :; done\n",
         "language": "shell",
         "spans": [
           {
@@ -3683,18 +3693,18 @@
       "example": {
         "config": null,
         "fixed": null,
-        "input": "cat in.txt | grep x\ncat -n in.txt | grep x\ncat a b | grep x\ngrep x in.txt\necho $(date)\necho \"$(date)\"\necho `date`\necho \"$(date) now\" $x\nread line\nread -r line\nread -p \"x\" -r line\nprintf \"$fmt\"\nprintf \"%s $x\\n\" y\nprintf \"a$x\" y\nprintf '%s' \"$x\" \"a $b\"\nprintf 'literal $x'\ntrap \"rm $tmp\" EXIT\ntrap 'rm $tmp' EXIT\ntrap \"echo bye\" EXIT\nls | grep txt\nps aux | grep nginx\ngrep x f | wc -l\negrep x f\nfgrep x f\nwhich git\ntest -f x && echo yes || cleanup\ntest -f x && echo yes || echo no\na && b\na || b && c\nls -l | grep txt | wc -l\nwhich git\n",
+        "input": "cat in.txt | grep x\ncat -n in.txt | grep x\ncat a b | grep x\ngrep x in.txt\necho $(date)\necho \"$(date)\"\necho `date`\necho \"$(date) now\" $x\necho \"$(date)s\"\nread line\nread -r line\nread -p \"x\" -r line\nprintf \"$fmt\"\nprintf \"%s $x\\n\" y\nprintf \"a$x\" y\nprintf '%s' \"$x\" \"a $b\"\nprintf 'literal $x'\ntrap \"rm $tmp\" EXIT\ntrap 'rm $tmp' EXIT\ntrap \"echo bye\" EXIT\nls | grep txt\nps aux | grep nginx\ngrep x f | wc -l\negrep x f\nfgrep x f\nwhich git\ntest -f x && echo yes || cleanup\ntest -f x && echo yes || echo no\na && b\na || b && c\nls -l | grep txt | wc -l\nwhich git\n",
         "language": "shell",
         "spans": [
           {
             "column": 1,
             "length": 16,
-            "line": 22
+            "line": 23
           },
           {
             "column": 1,
             "length": 24,
-            "line": 30
+            "line": 31
           }
         ]
       },
@@ -3777,7 +3787,7 @@
       "example": {
         "config": null,
         "fixed": null,
-        "input": "rm $(cat list)\nrm \"$(cat list)\"\nrm a$(b) `c`\nrm '$(literal)' \"$(ok)\"\necho $((1 + 2))\nrm $file ${dir}/x \"$file\" '$file' $1 $?\nrm --opt=$value \"x $y\"\ncp $@ dir\ncp \"$@\" dir \"${arr[@]}\" ${arr[@]}\ncp $* dir ${arr[*]}\nnow=`date`\necho `date` \"`date`\" 'a`b`'\n[ -n `foo` ]\n[ $x -eq 0 ]\n[[ $x = $y ]]\nexport out=$(make)\nlocal out=\"$(make)\" x=1\ndeclare plain=1\nfor f in $files; do :; done\n",
+        "input": "rm $(cat list)\nrm \"$(cat list)\"\nrm a$(b) `c`\nrm '$(literal)' \"$(ok)\"\necho $((1 + 2))\nrm $file ${dir}/x \"$file\" '$file' $1 $?\nrm --opt=$value \"x $y\"\ncp $@ dir\ncp \"$@\" dir \"${arr[@]}\" ${arr[@]}\ncp $* dir ${arr[*]}\nnow=`date`\necho `date` \"`date`\" 'a`b`'\n[ -n `foo` ]\n[ $x -eq 0 ]\n[[ $x = $y ]] && [[ -n $(foo) ]]\nexport out=$(make)\nlocal out=\"$(make)\" x=1\ndeclare plain=1\nfor f in $files; do :; done\n",
         "language": "shell",
         "spans": [
           {
@@ -3786,8 +3796,8 @@
             "line": 3
           },
           {
-            "column": 1,
-            "length": 10,
+            "column": 5,
+            "length": 6,
             "line": 11
           },
           {
@@ -3796,13 +3806,13 @@
             "line": 12
           },
           {
-            "column": 13,
-            "length": 8,
+            "column": 14,
+            "length": 6,
             "line": 12
           },
           {
-            "column": 1,
-            "length": 12,
+            "column": 6,
+            "length": 5,
             "line": 13
           }
         ]
@@ -3825,18 +3835,18 @@
       "example": {
         "config": null,
         "fixed": null,
-        "input": "cat in.txt | grep x\ncat -n in.txt | grep x\ncat a b | grep x\ngrep x in.txt\necho $(date)\necho \"$(date)\"\necho `date`\necho \"$(date) now\" $x\nread line\nread -r line\nread -p \"x\" -r line\nprintf \"$fmt\"\nprintf \"%s $x\\n\" y\nprintf \"a$x\" y\nprintf '%s' \"$x\" \"a $b\"\nprintf 'literal $x'\ntrap \"rm $tmp\" EXIT\ntrap 'rm $tmp' EXIT\ntrap \"echo bye\" EXIT\nls | grep txt\nps aux | grep nginx\ngrep x f | wc -l\negrep x f\nfgrep x f\nwhich git\ntest -f x && echo yes || cleanup\ntest -f x && echo yes || echo no\na && b\na || b && c\nls -l | grep txt | wc -l\nwhich git\n",
+        "input": "cat in.txt | grep x\ncat -n in.txt | grep x\ncat a b | grep x\ngrep x in.txt\necho $(date)\necho \"$(date)\"\necho `date`\necho \"$(date) now\" $x\necho \"$(date)s\"\nread line\nread -r line\nread -p \"x\" -r line\nprintf \"$fmt\"\nprintf \"%s $x\\n\" y\nprintf \"a$x\" y\nprintf '%s' \"$x\" \"a $b\"\nprintf 'literal $x'\ntrap \"rm $tmp\" EXIT\ntrap 'rm $tmp' EXIT\ntrap \"echo bye\" EXIT\nls | grep txt\nps aux | grep nginx\ngrep x f | wc -l\negrep x f\nfgrep x f\nwhich git\ntest -f x && echo yes || cleanup\ntest -f x && echo yes || echo no\na && b\na || b && c\nls -l | grep txt | wc -l\nwhich git\n",
         "language": "shell",
         "spans": [
           {
             "column": 1,
             "length": 9,
-            "line": 23
+            "line": 24
           },
           {
             "column": 1,
             "length": 9,
-            "line": 24
+            "line": 25
           }
         ]
       },
@@ -3858,18 +3868,18 @@
       "example": {
         "config": null,
         "fixed": null,
-        "input": "cat in.txt | grep x\ncat -n in.txt | grep x\ncat a b | grep x\ngrep x in.txt\necho $(date)\necho \"$(date)\"\necho `date`\necho \"$(date) now\" $x\nread line\nread -r line\nread -p \"x\" -r line\nprintf \"$fmt\"\nprintf \"%s $x\\n\" y\nprintf \"a$x\" y\nprintf '%s' \"$x\" \"a $b\"\nprintf 'literal $x'\ntrap \"rm $tmp\" EXIT\ntrap 'rm $tmp' EXIT\ntrap \"echo bye\" EXIT\nls | grep txt\nps aux | grep nginx\ngrep x f | wc -l\negrep x f\nfgrep x f\nwhich git\ntest -f x && echo yes || cleanup\ntest -f x && echo yes || echo no\na && b\na || b && c\nls -l | grep txt | wc -l\nwhich git\n",
+        "input": "cat in.txt | grep x\ncat -n in.txt | grep x\ncat a b | grep x\ngrep x in.txt\necho $(date)\necho \"$(date)\"\necho `date`\necho \"$(date) now\" $x\necho \"$(date)s\"\nread line\nread -r line\nread -p \"x\" -r line\nprintf \"$fmt\"\nprintf \"%s $x\\n\" y\nprintf \"a$x\" y\nprintf '%s' \"$x\" \"a $b\"\nprintf 'literal $x'\ntrap \"rm $tmp\" EXIT\ntrap 'rm $tmp' EXIT\ntrap \"echo bye\" EXIT\nls | grep txt\nps aux | grep nginx\ngrep x f | wc -l\negrep x f\nfgrep x f\nwhich git\ntest -f x && echo yes || cleanup\ntest -f x && echo yes || echo no\na && b\na || b && c\nls -l | grep txt | wc -l\nwhich git\n",
         "language": "shell",
         "spans": [
           {
             "column": 1,
             "length": 13,
-            "line": 20
+            "line": 21
           },
           {
             "column": 1,
             "length": 24,
-            "line": 30
+            "line": 31
           }
         ]
       },
@@ -3891,13 +3901,13 @@
       "example": {
         "config": null,
         "fixed": null,
-        "input": "cat in.txt | grep x\ncat -n in.txt | grep x\ncat a b | grep x\ngrep x in.txt\necho $(date)\necho \"$(date)\"\necho `date`\necho \"$(date) now\" $x\nread line\nread -r line\nread -p \"x\" -r line\nprintf \"$fmt\"\nprintf \"%s $x\\n\" y\nprintf \"a$x\" y\nprintf '%s' \"$x\" \"a $b\"\nprintf 'literal $x'\ntrap \"rm $tmp\" EXIT\ntrap 'rm $tmp' EXIT\ntrap \"echo bye\" EXIT\nls | grep txt\nps aux | grep nginx\ngrep x f | wc -l\negrep x f\nfgrep x f\nwhich git\ntest -f x && echo yes || cleanup\ntest -f x && echo yes || echo no\na && b\na || b && c\nls -l | grep txt | wc -l\nwhich git\n",
+        "input": "cat in.txt | grep x\ncat -n in.txt | grep x\ncat a b | grep x\ngrep x in.txt\necho $(date)\necho \"$(date)\"\necho `date`\necho \"$(date) now\" $x\necho \"$(date)s\"\nread line\nread -r line\nread -p \"x\" -r line\nprintf \"$fmt\"\nprintf \"%s $x\\n\" y\nprintf \"a$x\" y\nprintf '%s' \"$x\" \"a $b\"\nprintf 'literal $x'\ntrap \"rm $tmp\" EXIT\ntrap 'rm $tmp' EXIT\ntrap \"echo bye\" EXIT\nls | grep txt\nps aux | grep nginx\ngrep x f | wc -l\negrep x f\nfgrep x f\nwhich git\ntest -f x && echo yes || cleanup\ntest -f x && echo yes || echo no\na && b\na || b && c\nls -l | grep txt | wc -l\nwhich git\n",
         "language": "shell",
         "spans": [
           {
             "column": 1,
             "length": 19,
-            "line": 21
+            "line": 22
           }
         ]
       },
@@ -3919,18 +3929,18 @@
       "example": {
         "config": null,
         "fixed": null,
-        "input": "cat in.txt | grep x\ncat -n in.txt | grep x\ncat a b | grep x\ngrep x in.txt\necho $(date)\necho \"$(date)\"\necho `date`\necho \"$(date) now\" $x\nread line\nread -r line\nread -p \"x\" -r line\nprintf \"$fmt\"\nprintf \"%s $x\\n\" y\nprintf \"a$x\" y\nprintf '%s' \"$x\" \"a $b\"\nprintf 'literal $x'\ntrap \"rm $tmp\" EXIT\ntrap 'rm $tmp' EXIT\ntrap \"echo bye\" EXIT\nls | grep txt\nps aux | grep nginx\ngrep x f | wc -l\negrep x f\nfgrep x f\nwhich git\ntest -f x && echo yes || cleanup\ntest -f x && echo yes || echo no\na && b\na || b && c\nls -l | grep txt | wc -l\nwhich git\n",
+        "input": "cat in.txt | grep x\ncat -n in.txt | grep x\ncat a b | grep x\ngrep x in.txt\necho $(date)\necho \"$(date)\"\necho `date`\necho \"$(date) now\" $x\necho \"$(date)s\"\nread line\nread -r line\nread -p \"x\" -r line\nprintf \"$fmt\"\nprintf \"%s $x\\n\" y\nprintf \"a$x\" y\nprintf '%s' \"$x\" \"a $b\"\nprintf 'literal $x'\ntrap \"rm $tmp\" EXIT\ntrap 'rm $tmp' EXIT\ntrap \"echo bye\" EXIT\nls | grep txt\nps aux | grep nginx\ngrep x f | wc -l\negrep x f\nfgrep x f\nwhich git\ntest -f x && echo yes || cleanup\ntest -f x && echo yes || echo no\na && b\na || b && c\nls -l | grep txt | wc -l\nwhich git\n",
         "language": "shell",
         "spans": [
           {
             "column": 1,
             "length": 9,
-            "line": 25
+            "line": 26
           },
           {
             "column": 1,
             "length": 9,
-            "line": 31
+            "line": 32
           }
         ]
       },
@@ -3952,18 +3962,18 @@
       "example": {
         "config": null,
         "fixed": null,
-        "input": "cat in.txt | grep x\ncat -n in.txt | grep x\ncat a b | grep x\ngrep x in.txt\necho $(date)\necho \"$(date)\"\necho `date`\necho \"$(date) now\" $x\nread line\nread -r line\nread -p \"x\" -r line\nprintf \"$fmt\"\nprintf \"%s $x\\n\" y\nprintf \"a$x\" y\nprintf '%s' \"$x\" \"a $b\"\nprintf 'literal $x'\ntrap \"rm $tmp\" EXIT\ntrap 'rm $tmp' EXIT\ntrap \"echo bye\" EXIT\nls | grep txt\nps aux | grep nginx\ngrep x f | wc -l\negrep x f\nfgrep x f\nwhich git\ntest -f x && echo yes || cleanup\ntest -f x && echo yes || echo no\na && b\na || b && c\nls -l | grep txt | wc -l\nwhich git\n",
+        "input": "cat in.txt | grep x\ncat -n in.txt | grep x\ncat a b | grep x\ngrep x in.txt\necho $(date)\necho \"$(date)\"\necho `date`\necho \"$(date) now\" $x\necho \"$(date)s\"\nread line\nread -r line\nread -p \"x\" -r line\nprintf \"$fmt\"\nprintf \"%s $x\\n\" y\nprintf \"a$x\" y\nprintf '%s' \"$x\" \"a $b\"\nprintf 'literal $x'\ntrap \"rm $tmp\" EXIT\ntrap 'rm $tmp' EXIT\ntrap \"echo bye\" EXIT\nls | grep txt\nps aux | grep nginx\ngrep x f | wc -l\negrep x f\nfgrep x f\nwhich git\ntest -f x && echo yes || cleanup\ntest -f x && echo yes || echo no\na && b\na || b && c\nls -l | grep txt | wc -l\nwhich git\n",
         "language": "shell",
         "spans": [
           {
             "column": 1,
             "length": 13,
-            "line": 12
+            "line": 13
           },
           {
             "column": 1,
             "length": 14,
-            "line": 14
+            "line": 15
           }
         ]
       },
@@ -3985,7 +3995,7 @@
       "example": {
         "config": null,
         "fixed": null,
-        "input": "rm $(cat list)\nrm \"$(cat list)\"\nrm a$(b) `c`\nrm '$(literal)' \"$(ok)\"\necho $((1 + 2))\nrm $file ${dir}/x \"$file\" '$file' $1 $?\nrm --opt=$value \"x $y\"\ncp $@ dir\ncp \"$@\" dir \"${arr[@]}\" ${arr[@]}\ncp $* dir ${arr[*]}\nnow=`date`\necho `date` \"`date`\" 'a`b`'\n[ -n `foo` ]\n[ $x -eq 0 ]\n[[ $x = $y ]]\nexport out=$(make)\nlocal out=\"$(make)\" x=1\ndeclare plain=1\nfor f in $files; do :; done\n",
+        "input": "rm $(cat list)\nrm \"$(cat list)\"\nrm a$(b) `c`\nrm '$(literal)' \"$(ok)\"\necho $((1 + 2))\nrm $file ${dir}/x \"$file\" '$file' $1 $?\nrm --opt=$value \"x $y\"\ncp $@ dir\ncp \"$@\" dir \"${arr[@]}\" ${arr[@]}\ncp $* dir ${arr[*]}\nnow=`date`\necho `date` \"`date`\" 'a`b`'\n[ -n `foo` ]\n[ $x -eq 0 ]\n[[ $x = $y ]] && [[ -n $(foo) ]]\nexport out=$(make)\nlocal out=\"$(make)\" x=1\ndeclare plain=1\nfor f in $files; do :; done\n",
         "language": "shell",
         "spans": [
           {
@@ -4018,7 +4028,7 @@
       "example": {
         "config": null,
         "fixed": null,
-        "input": "cat in.txt | grep x\ncat -n in.txt | grep x\ncat a b | grep x\ngrep x in.txt\necho $(date)\necho \"$(date)\"\necho `date`\necho \"$(date) now\" $x\nread line\nread -r line\nread -p \"x\" -r line\nprintf \"$fmt\"\nprintf \"%s $x\\n\" y\nprintf \"a$x\" y\nprintf '%s' \"$x\" \"a $b\"\nprintf 'literal $x'\ntrap \"rm $tmp\" EXIT\ntrap 'rm $tmp' EXIT\ntrap \"echo bye\" EXIT\nls | grep txt\nps aux | grep nginx\ngrep x f | wc -l\negrep x f\nfgrep x f\nwhich git\ntest -f x && echo yes || cleanup\ntest -f x && echo yes || echo no\na && b\na || b && c\nls -l | grep txt | wc -l\nwhich git\n",
+        "input": "cat in.txt | grep x\ncat -n in.txt | grep x\ncat a b | grep x\ngrep x in.txt\necho $(date)\necho \"$(date)\"\necho `date`\necho \"$(date) now\" $x\necho \"$(date)s\"\nread line\nread -r line\nread -p \"x\" -r line\nprintf \"$fmt\"\nprintf \"%s $x\\n\" y\nprintf \"a$x\" y\nprintf '%s' \"$x\" \"a $b\"\nprintf 'literal $x'\ntrap \"rm $tmp\" EXIT\ntrap 'rm $tmp' EXIT\ntrap \"echo bye\" EXIT\nls | grep txt\nps aux | grep nginx\ngrep x f | wc -l\negrep x f\nfgrep x f\nwhich git\ntest -f x && echo yes || cleanup\ntest -f x && echo yes || echo no\na && b\na || b && c\nls -l | grep txt | wc -l\nwhich git\n",
         "language": "shell",
         "spans": [
           {
@@ -4051,7 +4061,7 @@
       "example": {
         "config": null,
         "fixed": null,
-        "input": "rm $(cat list)\nrm \"$(cat list)\"\nrm a$(b) `c`\nrm '$(literal)' \"$(ok)\"\necho $((1 + 2))\nrm $file ${dir}/x \"$file\" '$file' $1 $?\nrm --opt=$value \"x $y\"\ncp $@ dir\ncp \"$@\" dir \"${arr[@]}\" ${arr[@]}\ncp $* dir ${arr[*]}\nnow=`date`\necho `date` \"`date`\" 'a`b`'\n[ -n `foo` ]\n[ $x -eq 0 ]\n[[ $x = $y ]]\nexport out=$(make)\nlocal out=\"$(make)\" x=1\ndeclare plain=1\nfor f in $files; do :; done\n",
+        "input": "rm $(cat list)\nrm \"$(cat list)\"\nrm a$(b) `c`\nrm '$(literal)' \"$(ok)\"\necho $((1 + 2))\nrm $file ${dir}/x \"$file\" '$file' $1 $?\nrm --opt=$value \"x $y\"\ncp $@ dir\ncp \"$@\" dir \"${arr[@]}\" ${arr[@]}\ncp $* dir ${arr[*]}\nnow=`date`\necho `date` \"`date`\" 'a`b`'\n[ -n `foo` ]\n[ $x -eq 0 ]\n[[ $x = $y ]] && [[ -n $(foo) ]]\nexport out=$(make)\nlocal out=\"$(make)\" x=1\ndeclare plain=1\nfor f in $files; do :; done\n",
         "language": "shell",
         "spans": [
           {
@@ -4084,7 +4094,7 @@
       "example": {
         "config": null,
         "fixed": null,
-        "input": "rm $(cat list)\nrm \"$(cat list)\"\nrm a$(b) `c`\nrm '$(literal)' \"$(ok)\"\necho $((1 + 2))\nrm $file ${dir}/x \"$file\" '$file' $1 $?\nrm --opt=$value \"x $y\"\ncp $@ dir\ncp \"$@\" dir \"${arr[@]}\" ${arr[@]}\ncp $* dir ${arr[*]}\nnow=`date`\necho `date` \"`date`\" 'a`b`'\n[ -n `foo` ]\n[ $x -eq 0 ]\n[[ $x = $y ]]\nexport out=$(make)\nlocal out=\"$(make)\" x=1\ndeclare plain=1\nfor f in $files; do :; done\n",
+        "input": "rm $(cat list)\nrm \"$(cat list)\"\nrm a$(b) `c`\nrm '$(literal)' \"$(ok)\"\necho $((1 + 2))\nrm $file ${dir}/x \"$file\" '$file' $1 $?\nrm --opt=$value \"x $y\"\ncp $@ dir\ncp \"$@\" dir \"${arr[@]}\" ${arr[@]}\ncp $* dir ${arr[*]}\nnow=`date`\necho `date` \"`date`\" 'a`b`'\n[ -n `foo` ]\n[ $x -eq 0 ]\n[[ $x = $y ]] && [[ -n $(foo) ]]\nexport out=$(make)\nlocal out=\"$(make)\" x=1\ndeclare plain=1\nfor f in $files; do :; done\n",
         "language": "shell",
         "spans": [
           {
@@ -4118,8 +4128,8 @@
             "line": 10
           },
           {
-            "column": 1,
-            "length": 12,
+            "column": 3,
+            "length": 2,
             "line": 14
           }
         ]
@@ -4142,13 +4152,13 @@
       "example": {
         "config": null,
         "fixed": null,
-        "input": "cat in.txt | grep x\ncat -n in.txt | grep x\ncat a b | grep x\ngrep x in.txt\necho $(date)\necho \"$(date)\"\necho `date`\necho \"$(date) now\" $x\nread line\nread -r line\nread -p \"x\" -r line\nprintf \"$fmt\"\nprintf \"%s $x\\n\" y\nprintf \"a$x\" y\nprintf '%s' \"$x\" \"a $b\"\nprintf 'literal $x'\ntrap \"rm $tmp\" EXIT\ntrap 'rm $tmp' EXIT\ntrap \"echo bye\" EXIT\nls | grep txt\nps aux | grep nginx\ngrep x f | wc -l\negrep x f\nfgrep x f\nwhich git\ntest -f x && echo yes || cleanup\ntest -f x && echo yes || echo no\na && b\na || b && c\nls -l | grep txt | wc -l\nwhich git\n",
+        "input": "cat in.txt | grep x\ncat -n in.txt | grep x\ncat a b | grep x\ngrep x in.txt\necho $(date)\necho \"$(date)\"\necho `date`\necho \"$(date) now\" $x\necho \"$(date)s\"\nread line\nread -r line\nread -p \"x\" -r line\nprintf \"$fmt\"\nprintf \"%s $x\\n\" y\nprintf \"a$x\" y\nprintf '%s' \"$x\" \"a $b\"\nprintf 'literal $x'\ntrap \"rm $tmp\" EXIT\ntrap 'rm $tmp' EXIT\ntrap \"echo bye\" EXIT\nls | grep txt\nps aux | grep nginx\ngrep x f | wc -l\negrep x f\nfgrep x f\nwhich git\ntest -f x && echo yes || cleanup\ntest -f x && echo yes || echo no\na && b\na || b && c\nls -l | grep txt | wc -l\nwhich git\n",
         "language": "shell",
         "spans": [
           {
             "column": 1,
             "length": 9,
-            "line": 9
+            "line": 10
           }
         ]
       },
@@ -4264,13 +4274,13 @@
       "example": {
         "config": null,
         "fixed": null,
-        "input": "cat in.txt | grep x\ncat -n in.txt | grep x\ncat a b | grep x\ngrep x in.txt\necho $(date)\necho \"$(date)\"\necho `date`\necho \"$(date) now\" $x\nread line\nread -r line\nread -p \"x\" -r line\nprintf \"$fmt\"\nprintf \"%s $x\\n\" y\nprintf \"a$x\" y\nprintf '%s' \"$x\" \"a $b\"\nprintf 'literal $x'\ntrap \"rm $tmp\" EXIT\ntrap 'rm $tmp' EXIT\ntrap \"echo bye\" EXIT\nls | grep txt\nps aux | grep nginx\ngrep x f | wc -l\negrep x f\nfgrep x f\nwhich git\ntest -f x && echo yes || cleanup\ntest -f x && echo yes || echo no\na && b\na || b && c\nls -l | grep txt | wc -l\nwhich git\n",
+        "input": "cat in.txt | grep x\ncat -n in.txt | grep x\ncat a b | grep x\ngrep x in.txt\necho $(date)\necho \"$(date)\"\necho `date`\necho \"$(date) now\" $x\necho \"$(date)s\"\nread line\nread -r line\nread -p \"x\" -r line\nprintf \"$fmt\"\nprintf \"%s $x\\n\" y\nprintf \"a$x\" y\nprintf '%s' \"$x\" \"a $b\"\nprintf 'literal $x'\ntrap \"rm $tmp\" EXIT\ntrap 'rm $tmp' EXIT\ntrap \"echo bye\" EXIT\nls | grep txt\nps aux | grep nginx\ngrep x f | wc -l\negrep x f\nfgrep x f\nwhich git\ntest -f x && echo yes || cleanup\ntest -f x && echo yes || echo no\na && b\na || b && c\nls -l | grep txt | wc -l\nwhich git\n",
         "language": "shell",
         "spans": [
           {
             "column": 1,
             "length": 19,
-            "line": 17
+            "line": 18
           }
         ]
       },
@@ -4292,7 +4302,7 @@
       "example": {
         "config": null,
         "fixed": null,
-        "input": "cat in.txt | grep x\ncat -n in.txt | grep x\ncat a b | grep x\ngrep x in.txt\necho $(date)\necho \"$(date)\"\necho `date`\necho \"$(date) now\" $x\nread line\nread -r line\nread -p \"x\" -r line\nprintf \"$fmt\"\nprintf \"%s $x\\n\" y\nprintf \"a$x\" y\nprintf '%s' \"$x\" \"a $b\"\nprintf 'literal $x'\ntrap \"rm $tmp\" EXIT\ntrap 'rm $tmp' EXIT\ntrap \"echo bye\" EXIT\nls | grep txt\nps aux | grep nginx\ngrep x f | wc -l\negrep x f\nfgrep x f\nwhich git\ntest -f x && echo yes || cleanup\ntest -f x && echo yes || echo no\na && b\na || b && c\nls -l | grep txt | wc -l\nwhich git\n",
+        "input": "cat in.txt | grep x\ncat -n in.txt | grep x\ncat a b | grep x\ngrep x in.txt\necho $(date)\necho \"$(date)\"\necho `date`\necho \"$(date) now\" $x\necho \"$(date)s\"\nread line\nread -r line\nread -p \"x\" -r line\nprintf \"$fmt\"\nprintf \"%s $x\\n\" y\nprintf \"a$x\" y\nprintf '%s' \"$x\" \"a $b\"\nprintf 'literal $x'\ntrap \"rm $tmp\" EXIT\ntrap 'rm $tmp' EXIT\ntrap \"echo bye\" EXIT\nls | grep txt\nps aux | grep nginx\ngrep x f | wc -l\negrep x f\nfgrep x f\nwhich git\ntest -f x && echo yes || cleanup\ntest -f x && echo yes || echo no\na && b\na || b && c\nls -l | grep txt | wc -l\nwhich git\n",
         "language": "shell",
         "spans": [
           {
@@ -4320,7 +4330,7 @@
       "example": {
         "config": null,
         "fixed": null,
-        "input": "cat in.txt | grep x\ncat -n in.txt | grep x\ncat a b | grep x\ngrep x in.txt\necho $(date)\necho \"$(date)\"\necho `date`\necho \"$(date) now\" $x\nread line\nread -r line\nread -p \"x\" -r line\nprintf \"$fmt\"\nprintf \"%s $x\\n\" y\nprintf \"a$x\" y\nprintf '%s' \"$x\" \"a $b\"\nprintf 'literal $x'\ntrap \"rm $tmp\" EXIT\ntrap 'rm $tmp' EXIT\ntrap \"echo bye\" EXIT\nls | grep txt\nps aux | grep nginx\ngrep x f | wc -l\negrep x f\nfgrep x f\nwhich git\ntest -f x && echo yes || cleanup\ntest -f x && echo yes || echo no\na && b\na || b && c\nls -l | grep txt | wc -l\nwhich git\n",
+        "input": "cat in.txt | grep x\ncat -n in.txt | grep x\ncat a b | grep x\ngrep x in.txt\necho $(date)\necho \"$(date)\"\necho `date`\necho \"$(date) now\" $x\necho \"$(date)s\"\nread line\nread -r line\nread -p \"x\" -r line\nprintf \"$fmt\"\nprintf \"%s $x\\n\" y\nprintf \"a$x\" y\nprintf '%s' \"$x\" \"a $b\"\nprintf 'literal $x'\ntrap \"rm $tmp\" EXIT\ntrap 'rm $tmp' EXIT\ntrap \"echo bye\" EXIT\nls | grep txt\nps aux | grep nginx\ngrep x f | wc -l\negrep x f\nfgrep x f\nwhich git\ntest -f x && echo yes || cleanup\ntest -f x && echo yes || echo no\na && b\na || b && c\nls -l | grep txt | wc -l\nwhich git\n",
         "language": "shell",
         "spans": [
           {

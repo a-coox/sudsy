@@ -88,17 +88,19 @@ fn unquote(word: &str) -> String {
     out
 }
 
-/// The commands of a shell tree, in order: the words of each `Command` node (assignments and
-/// redirections are tokens of their own). shortcut: a command inside `$(...)` is part of a word
-/// and not found.
+/// The commands of a shell tree, in order: the words of each `Command` node (a word is a token,
+/// a string, a concatenation or a substitution; assignments and redirections are not words). A
+/// command inside `$(...)` is a `Command` node of its own, found like the others.
 fn shell_commands(root: &SyntaxNode) -> Vec<Cmd> {
     let shell = SHELL.get();
-    let (command, word) = (shell.kind_by_name("Command"), shell.kind_by_name("Word"));
+    let kind = |n| shell.kind_by_name(n);
+    let command = kind("Command");
+    let words = ["Word", "String", "Concat", "Subst"].map(kind);
     let mut out = Vec::new();
     for node in root.descendants().filter(|n| Some(n.kind()) == command) {
-        let mut words = (node.children_with_tokens().filter_map(|e| e.into_token()))
-            .filter(|t| Some(t.kind()) == word)
-            .map(|t| unquote(t.text()));
+        let mut words = (node.children_with_tokens())
+            .filter(|e| words.contains(&Some(e.kind())))
+            .map(|e| unquote(&e.to_string()));
         if let Some(name) = words.next() {
             out.push(Cmd {
                 name,

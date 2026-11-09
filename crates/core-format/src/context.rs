@@ -335,13 +335,18 @@ impl<'a> FormatCtx<'a> {
     /// Source text from the start of `first` to the end of `last`, exactly as written (including
     /// the comments between them), with `first`'s leading and `last`'s trailing comments around it.
     pub fn verbatim_range(&self, first: &SyntaxToken, last: &SyntaxToken) -> Doc {
-        let root = first.parent().map(|p| p.ancestors().last().unwrap_or(p));
-        let raw = root
-            .map(|r| {
-                let start = first.text_range().start() - r.text_range().start();
-                let end = last.text_range().end() - r.text_range().start();
-                r.text()
-                    .slice(core_syntax::TextRange::new(start, end))
+        // Sliced from the nearest node that holds both tokens: slicing the root walks the file.
+        let span = core_syntax::TextRange::new(first.text_range().start(), last.text_range().end());
+        let raw = first
+            .parent_ancestors()
+            .find(|a| a.text_range().contains_range(span))
+            .map(|n| {
+                let at = n.text_range().start();
+                n.text()
+                    .slice(core_syntax::TextRange::new(
+                        span.start() - at,
+                        span.end() - at,
+                    ))
                     .to_string()
             })
             .unwrap_or_default();

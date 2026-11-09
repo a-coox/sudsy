@@ -4,7 +4,7 @@ use crate::generated::kind as k;
 use core_rules::{Rule, RuleContext, rule};
 use core_syntax::{SyntaxElement, SyntaxNode};
 
-pub static RULES: &[&dyn Rule] = &[&CdWithoutExit];
+pub static RULES: &[&dyn Rule] = &[&CdWithoutExit, &UselessEcho];
 
 /// A flag word that turns on `errexit`: `-e`, `-eu`, not `--` options.
 fn is_errexit_flag(w: &str) -> bool {
@@ -23,11 +23,15 @@ fn has_errexit(text: &str) -> bool {
         })
 }
 
+fn is_trivia(kind: core_syntax::SyntaxKind) -> bool {
+    matches!(kind, k::WHITESPACE | k::NEWLINE | k::COMMENT)
+}
+
 /// The element before `node`, trivia skipped.
 fn previous(node: &SyntaxNode) -> Option<SyntaxElement> {
     let mut e = node.prev_sibling_or_token();
     while let Some(x) = e {
-        if !matches!(x.kind(), k::WHITESPACE | k::NEWLINE | k::COMMENT) {
+        if !is_trivia(x.kind()) {
             return Some(x);
         }
         e = x.prev_sibling_or_token();
@@ -78,5 +82,44 @@ rule! {
             return;
         }
         ctx.report(name.text_range(), "use `cd ... || exit` in case `cd` fails");
+    }
+}
+
+/// Is `arg` a substitution, or a string that holds nothing else?
+fn only_substitution(arg: &SyntaxElement) -> bool {
+    match arg {
+        SyntaxElement::Node(n) if n.kind() == k::SUBST => true,
+        SyntaxElement::Node(n) if n.kind() == k::STRING => {
+            n.children().count() == 1
+                && (n.children_with_tokens())
+                    .filter_map(|e| e.into_token())
+                    .all(|t| is_trivia(t.kind()) || t.text() == "\"")
+                && n.first_child().is_some_and(|c| c.kind() == k::SUBST)
+        }
+        _ => false,
+    }
+}
+
+rule! {
+    pub UselessEcho {
+        id: "useless-echo",
+        category: Style,
+        default: Off,
+        description: "An `echo` whose only argument is a command substitution.",
+        example: "echo $(date)",
+        kinds: &[k::COMMAND],
+    }
+
+    fn check(&self, node: &SyntaxNode, ctx: &mut RuleContext<'_>) {
+        let mut parts = node
+            .children_with_tokens()
+            .filter(|e| !is_trivia(e.kind()));
+        if let (Some(SyntaxElement::Token(name)), Some(arg), None) =
+            (parts.next(), parts.next(), parts.next())
+            && name.text() == "echo"
+            && only_substitution(&arg)
+        {
+            ctx.report(node.text_range(), "run the command itself instead of echoing its output");
+        }
     }
 }

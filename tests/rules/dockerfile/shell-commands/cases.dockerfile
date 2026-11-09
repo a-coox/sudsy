@@ -16,6 +16,9 @@ RUN echo sudo cd ps
 RUN make && \
 ^ no-sudo
     sudo make install
+RUN v=$(sudo make) && echo "$(wget https://example.com/f)"
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ no-sudo
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ wget-progress
 ONBUILD RUN sudo make
 #       ^^^^^^^^^^^^^ no-sudo
 RUN ["sudo", "make"]
