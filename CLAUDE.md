@@ -8,7 +8,7 @@ Formatter + linter for C#, JSON and YAML. `docs/` describes how everything works
 
 ## Conventions
 - Code is cost. Every line, test fixture and doc line costs agent tokens to write, to read on every later task, and to update on every change. Before adding, look for what to reuse or generalize: a shared rule over grammar tags, a pattern rule (YAML) or a data row of a rule family before a Rust rule, an existing helper before a new one. Fixtures are small and focused on the rule's own cases; never copy a shared input into many folders. When a second or third copy of something appears, generalize it instead.
-- Small focused modules; extract helpers instead of growing entrypoints. No duplicated logic across crates: shared behavior lives in a core crate.
+- Small focused modules; extract helpers instead of growing entrypoints. No duplicated logic across crates: shared behavior lives in a core crate. Code of one language embedded in another (shell in a Dockerfile `RUN`, code in a Markdown fence) is parsed with that language's own grammar and checked by its own rules, never re-read by hand in the host language.
 - Errors: `thiserror` in libraries, `anyhow` only in binaries (`cli`, `lsp`).
 - Snapshot tests use `insta`; fixtures live under `tests/fixtures/<lang>/` or the crate's `tests/`.
 - Every formatter test checks lossless round-trip, idempotency and meaning preservation.
