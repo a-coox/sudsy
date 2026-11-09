@@ -254,6 +254,16 @@ snap!(
     [("document_end", s("never"))]
 );
 snap!(
+    document_end_never_keeps_what_a_bare_or_empty_document_needs,
+    "a: 1\n...\nb: 2\n...\n# only a comment\n...\n",
+    [("document_end", s("never"))]
+);
+snap!(
+    document_end_always_keeps_the_blank_lines_of_a_keep_scalar,
+    "a: |+\n  x\n\n\n",
+    [("document_end", s("always"))]
+);
+snap!(
     empty_and_comment_only_documents,
     "---\n# only a comment\n---\n---\nx\n"
 );

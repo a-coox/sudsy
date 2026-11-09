@@ -63,8 +63,9 @@ pub fn option_schema() -> OptionSchema {
             DOCUMENT_END,
             &["preserve", "always", "never"],
             "preserve",
-            "The `...` marker: `always` ends every document with it, `never` leaves it out when \
-             the next document has no directive, `preserve` keeps what is written.",
+            "The `...` marker: `always` ends every document with it, `never` leaves it out \
+             unless the next document has a directive or no `---`, or the document is empty, \
+             `preserve` keeps what is written.",
         ),
         OptionDef::int(
             MAX_BLANK_LINES,

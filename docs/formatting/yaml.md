@@ -23,7 +23,7 @@ Loaded from our tree. Core schema (`yes`, `on`, `0b1`, `1_000` are strings), tag
 | `sequence_indent` | `preserve`, `indented`, `flush` | `preserve` | A block sequence that is the value of a mapping key: `indented` puts the dashes one level in, `flush` at the key's column, `preserve` keeps each sequence as written. |
 | `quote_style` | `preserve`, `single`, `double`, `prefer_double` | `preserve` | Quote style of quoted scalars. With `single` and `double` a scalar keeps its quotes when the other style would change its value or need more escapes; `prefer_double` uses double quotes, except single quotes for text that contains a `"` (unless it has other escapes, which keep it as written). |
 | `document_start` | `preserve`, `always`, `never` | `preserve` | The `---` marker: `always` starts every document with it, `never` leaves it out of the first document when that is possible, `preserve` keeps what is written. |
-| `document_end` | `preserve`, `always`, `never` | `preserve` | The `...` marker: `always` ends every document with it, `never` leaves it out when the next document has no directive, `preserve` keeps what is written. |
+| `document_end` | `preserve`, `always`, `never` | `preserve` | The `...` marker: `always` ends every document with it, `never` leaves it out unless the next document has a directive or no `---`, or the document is empty, `preserve` keeps what is written. |
 | `max_blank_lines` | int 0-10 | `1` | Largest number of blank lines kept between entries, comments and documents. |
 | `blank_lines_after_key` | `preserve`, `remove` | `preserve` | Blank lines between a key and its block value on the next line: `preserve` keeps them (up to `max_blank_lines`); `remove` drops them. |
 | `comment_spacing` | int 1-10 | `1` | Spaces between a value and a comment after it on the same line. |
@@ -34,7 +34,7 @@ Loaded from our tree. Core schema (`yes`, `on`, `0b1`, `1_000` are strings), tag
 ## Formatter behaviour
 - Kept: quotes, key order, flow vs block, comments, blank lines (max one). Normalized: spacing and indentation (`key: value`, `{ a: 1 }`, `[1, 2]`).
 - `quote_style` changes a scalar only if the other style needs no more escapes than the source has; never with control characters or across lines; plain scalars are never quoted.
-- `document_end`: `always` ends every document that has content with `...` (below its trailing comments); `never` drops the marker unless the next document starts with a directive; comments on a removed marker stay below the document. The lint rule `document-end` (`present: true|false`) reports the same difference.
+- `document_end`: `always` ends every document that has content with `...` (below its trailing comments); `never` drops the marker unless the next document starts with a directive or has no `---`, or the document is empty; comments on a removed marker stay below the document. The lint rule `document-end` (`present: true|false`) reports the same difference.
 - `document_start`: `always` adds `---` to documents with content; `never` omits it from the first document unless it has directives or no content; comments on a removed marker stay.
 - Comments: `comment_spacing` spaces separate a comment from the code before it. Comment text is never rewritten; the space after `#` is the `comment-space` lint rule (safe fix).
 - Block scalars: re-indented, never re-wrapped; trailing blanks kept; indentation indicator rewritten; blank lines after `keep` are exact.

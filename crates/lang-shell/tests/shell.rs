@@ -78,6 +78,16 @@ fn heredocs_and_multiline_words_are_kept() {
     );
 }
 
+/// A trailing comment before a comment line inside an `if` condition keeps its own spacing: the
+/// `;` that joins the two commands used to add a blank before it on every pass.
+#[test]
+fn a_trailing_comment_in_a_condition_is_stable() {
+    assert_eq!(
+        fmt("if a  # c1\n  # c2\n  b; then\n\tx\nfi\n"),
+        "if a;  # c1\n# c2\nb; then\n\tx\nfi\n"
+    );
+}
+
 /// tree-sitter-bash takes a line with two assignments and the next line for one command; the
 /// layout then stays as written.
 #[test]

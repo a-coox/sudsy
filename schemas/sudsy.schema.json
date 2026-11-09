@@ -3556,7 +3556,7 @@
                   },
                   "document_end": {
                     "default": "preserve",
-                    "description": "The `...` marker: `always` ends every document with it, `never` leaves it out when the next document has no directive, `preserve` keeps what is written.",
+                    "description": "The `...` marker: `always` ends every document with it, `never` leaves it out unless the next document has a directive or no `---`, or the document is empty, `preserve` keeps what is written.",
                     "enum": [
                       "preserve",
                       "always",
@@ -4065,7 +4065,7 @@
             },
             "document_end": {
               "default": "preserve",
-              "description": "The `...` marker: `always` ends every document with it, `never` leaves it out when the next document has no directive, `preserve` keeps what is written.",
+              "description": "The `...` marker: `always` ends every document with it, `never` leaves it out unless the next document has a directive or no `---`, or the document is empty, `preserve` keeps what is written.",
               "enum": [
                 "preserve",
                 "always",

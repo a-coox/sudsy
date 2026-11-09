@@ -5,7 +5,7 @@ tree-sitter-containerfile 0.9 (MIT, WharfLab's maintained fork of tree-sitter-do
 
 Files: `Dockerfile`, `Containerfile`, `Dockerfile.*`, `Containerfile.*` (`Dockerfile.dev`) and `*.dockerfile`. A `file_names` entry ending in `*` matches by prefix.
 
-Known gap: the grammar fails on a shell line that starts with `[` right after another continued line that starts with `[` (`[ -s a ]; \` then `[ -e b ]; \`: its external scanner takes the first one for an invalid JSON array and ends the command at the `\`). The file then has a syntax error and is not formatted. In the pinned corpus this hits docker-library/python (36 files) and the Windows images of golang (4); the fix belongs in the grammar's scanner.
+Known gap: the grammar fails on a shell line that starts with `[` right after another continued line that starts with `[` (`[ -s a ]; \` then `[ -e b ]; \`: its external scanner takes the first one for an invalid JSON array and ends the command at the `\`). The file then has a syntax error and is not formatted. In the pinned corpus this hits 20 of the 40 files of docker-library/python and the Windows images of golang (4); the fix belongs in the grammar's scanner.
 
 ## Formatting
 - The instruction name and `AS` are upper case (`from x as y` is `FROM x AS y`).
@@ -40,4 +40,4 @@ Shared: suppression comments (`# sudsy-disable-next-line <rule>`), `no-empty-com
 - Known gap: a `#` inside an `ADD` source (`ADD ${REPO}#${REF} /`) makes the parser take the following lines into the instruction.
 
 ## Conformance
-`tests/conformance/fetch-dockerfile-corpus.sh` fetches the Dockerfiles of dotnet/dotnet-docker (samples and the 10.0 runtime, aspnet and sdk images), docker-library (golang, python, nginx, postgres), moby and buildx at pinned commits (211 files); `cargo test --profile corpus -p lang-dockerfile --test dockerfile -- --ignored --nocapture conformance` checks that each file parses (but for the gap above), round-trips, keeps its instructions and arguments (the safety check, with comments compared as well) and formats idempotently.
+`tests/conformance/fetch-dockerfile-corpus.sh` fetches the Dockerfiles of dotnet/dotnet-docker (samples and the 10.0 runtime, aspnet and sdk images), docker-library (golang, python, nginx, postgres), moby and buildx at pinned commits; `cargo test --profile corpus -p lang-dockerfile --test dockerfile -- --ignored --nocapture conformance` checks that each file parses (but for the gap above), round-trips, keeps its instructions and arguments (the safety check, with comments compared as well) and formats idempotently.

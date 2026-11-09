@@ -384,7 +384,16 @@ fn inline_list(cx: &FormatCtx<'_>, es: &[E], terminate: bool) -> Result<Doc, For
             }
             _ => {
                 if any {
-                    parts.push(doc::lit(if amp { " " } else { "; " }));
+                    // No blank before leading comments: their line break would put it ahead of
+                    // the previous statement's trailing comment, one more blank per pass.
+                    let comments_follow = e
+                        .first(cx)
+                        .is_some_and(|t| !comments::leading_comments(cx.grammar, &t).is_empty());
+                    parts.push(doc::lit(match (amp, comments_follow) {
+                        (true, _) => " ",
+                        (false, true) => ";",
+                        (false, false) => "; ",
+                    }));
                 }
                 parts.push(e.doc(cx)?);
                 any = true;
