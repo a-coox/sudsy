@@ -40,6 +40,7 @@ One line each; none is committed.
 ## Tooling and editor
 - Pull-diagnostic result ids; editor watching of closed files for deep diagnostics; pre-starting the second worker so formatting during the first build is instant.
 - SARIF `fixes`; an output-file option.
+- A result cache across CLI runs (as `ruff`, `eslint --cache`): per file, keyed by its bytes, the Sudsy version, its resolved config, plugin and pattern file hashes and pack versions; semantic results are additionally keyed by a hash of every file of that language in the project, so a change that touches no file of the language (a docs-only or YAML-only commit in a mixed repository) keeps them. Per-result file dependencies (re-checking only the files that use what changed) are the finer step, the same fix the LSP's stale cross-file diagnostics need. Built when a measured CLI run on a large repository (pre-commit, CI) is too slow.
 - Editor extensions other than VS Code (other editors use `sudsy lsp`).
 - Self-contained C# worker for machines without .NET.
 - Repeatable benchmarks for the paths listed in [performance/numbers.md](performance/numbers.md).
