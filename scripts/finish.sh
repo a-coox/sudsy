@@ -5,6 +5,7 @@
 # only when both pass. Arguments go to bench.sh.
 set -uo pipefail
 cd "$(dirname "$0")/.."
+. scripts/slot-run.sh; claim_slot
 log=${CARGO_TARGET_DIR:-target}/bench/finish.log
 mkdir -p "$(dirname "$log")"
 scripts/bench.sh "$@" >"$log" 2>&1 &
