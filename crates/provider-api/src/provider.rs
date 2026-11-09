@@ -13,6 +13,12 @@ pub trait LanguageProvider: Send + Sync {
     /// The language's name (`csharp`), known without loading the grammar.
     fn language(&self) -> &str;
 
+    /// The crate that implements the language (`env!("CARGO_PKG_NAME")` there): `cargo xtask
+    /// affected` maps a changed crate to the languages it benchmarks. Empty: unknown, always benched.
+    fn crate_name(&self) -> &'static str {
+        ""
+    }
+
     /// Kinds, fields and category tags; parsed on the first call, so ask only when needed.
     fn grammar(&self) -> &Grammar;
 

@@ -1,20 +1,21 @@
 #!/usr/bin/env bash
 # Builds one checkout and measures it; called by scripts/bench.sh (natively and inside WSL).
-#   bench-measure.sh --src DIR --target DIR --inputs DIR --out FILE --mode allocs|instr
+#   bench-measure.sh --src DIR --target DIR --inputs DIR --out FILE --mode allocs|instr --langs L1,L2
 # Writes "<lang>.<phase>.<allocs|instr|work> <number>" lines. Both modes use the same release
 # perf-bench build (--features count); `instr` runs each phase under callgrind and reads the
 # instructions executed between entry and exit of fixed::measured (the phase, not the set-up).
-# The languages and their phases are what `perf-bench list` reports for the folders of --inputs.
+# The languages and their phases are the rows of `perf-bench list` for the folders of --inputs
+# that --langs names (`startup` included).
 # Each measured run is killed after BENCH_TIMEOUT seconds (default 900), and the script fails.
 set -euo pipefail
-src= target= inputs= out= mode=
+src= target= inputs= out= mode= langs=
 while [ $# -gt 0 ]; do
   case "$1" in
     --src) src=$2 ;; --target) target=$2 ;; --inputs) inputs=$2 ;; --out) out=$2 ;;
-    --mode) mode=$2 ;; *) echo "bad arg $1" >&2; exit 2 ;;
+    --mode) mode=$2 ;; --langs) langs=$2 ;; *) echo "bad arg $1" >&2; exit 2 ;;
   esac; shift 2
 done
-[ -n "$src" ] && [ -n "$target" ] && [ -n "$inputs" ] && [ -n "$out" ] || { echo "missing args" >&2; exit 2; }
+[ -n "$src" ] && [ -n "$target" ] && [ -n "$inputs" ] && [ -n "$out" ] && [ -n "$langs" ] || { echo "missing args" >&2; exit 2; }
 [ -f "$HOME/.cargo/env" ] && . "$HOME/.cargo/env"
 cd "$src"
 mkdir -p "$target"
@@ -34,7 +35,7 @@ limited() { # limited WHAT CMD...
   local what=$1 rc=0; shift
   timeout -k 10 "$limit" "$@" || { rc=$?; [ $rc = 124 ] && echo "TIMEOUT after ${limit}s (BENCH_TIMEOUT): $what" >&2; return $rc; }
 }
-rows=$("$bin" list --inputs "$inputs")
+rows=$("$bin" list --inputs "$inputs" | awk -v L=",$langs," 'index(L, "," $1 ",")')
 # Worker languages (C#) need dotnet, and callgrind does not trace the worker.
 worker=0
 if [ "$mode" != instr ] && grep -q ' worker ' <<<"$rows"; then

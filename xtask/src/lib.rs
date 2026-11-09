@@ -3,6 +3,7 @@
 //! of the docs; `cargo xtask codegen --check` (and the `codegen_is_fresh` test)
 //! fails when they are stale.
 
+pub mod affected;
 mod docs;
 mod lang_crate;
 mod new_rule;

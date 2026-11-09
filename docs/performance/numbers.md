@@ -121,14 +121,13 @@ Markdown (tree-sitter-md block and inline grammars through `core-treesitter` as 
 | Typing: pulls that did the full work | 1-2 of 40 |
 
 ## Dev loop / tooling (persistent `CARGO_TARGET_DIR` slot, `docs/development/dev-loop.md`)
-Method: `scripts/devloop-times.sh` in slot2 (warm slot, each command after touching `crates/core-syntax/src/lib.rs`), Git Bash, wall seconds, no other agent running. Before this setup (full debug info, `cargo test`, callgrind in batches of 6, no baseline cache, gate then bench in a row): gate 361 s + bench 429 s = 790 s.
+Method: `scripts/devloop-times.sh` in slot3 (warm slot; a comment appended to `crates/lang-toml/src/lib.rs`, selection against HEAD), and the `finish.sh` runs of the commit that added the selection for "everything" (a change to the gate and bench scripts), Git Bash, wall seconds, no other agent running; 13 bench languages, 714 tests. Before this setup (full debug info, `cargo test`, callgrind in batches of 6, no baseline cache, gate then bench in a row): gate 361 s + bench 429 s = 790 s.
 
-| Command | Seconds |
-|---|---|
-| `scripts/finish.sh`, baseline not cached (the first check of a change) | 388 (gate and bench compete for the CPU: nextest on all cores, 12 callgrind jobs) |
-| `scripts/finish.sh`, baseline cached (every rerun) | 316 (gate 217, bench 311) |
-| `scripts/gate.sh` | 150 |
-| `scripts/bench.sh`, baseline not cached | 302 |
+| Command | One language (`lang-toml`: 6 crates, 129 tests, bench `toml` + `startup`) | Everything |
+|---|---|---|
+| `scripts/gate.sh --affected` | 115 (fmt 3, clippy 14, worker build 6, nextest 48, doctests 2, codegen 2; the rest is `cargo xtask affected` building after the edit); 327 for the first gate after a commit that rebuilds the slot | 147-158; 513 cold (`npm ci` 68, nextest 240) |
+| `scripts/finish.sh`, baselines not cached | 215 | gate 513 + bench 1431 (both sides of 13 languages built and measured, running alongside the gate) |
+| `scripts/finish.sh`, baselines cached | 95 (bench 83) | gate 158, bench 259 (candidate only) |
 | Test binaries rebuilt (`cargo test --workspace --no-run`) | 23-24 with `rust-lld`, `opt-level = 1` and line tables; 28-31 with link.exe; 43-44 at `opt-level = 0`; 92 with full debug info |
 | Test run | `cargo nextest run` 84 + doctests 5-9, `cargo test` 117 (one binary after another). The tests are CPU-bound (886 CPU-seconds on 12 threads); `opt-level = 1` does not shorten them (the slow ones start the CLI, the C# worker or the sample wasm plugin) |
 | Callgrind, one side | 50-52 for 40 phases (`lint-all` counted in allocations only); with it, 50 phases: 62-65 as a pool of 12 jobs longest first, 124 with 6 jobs, 148-155 in batches of 6; one run peaks near 120 MB |

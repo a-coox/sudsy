@@ -105,6 +105,10 @@ impl LanguageProvider for JsonProvider {
         grammars::JSON.language
     }
 
+    fn crate_name(&self) -> &'static str {
+        env!("CARGO_PKG_NAME")
+    }
+
     fn grammar(&self) -> &Grammar {
         grammars::JSON.get()
     }

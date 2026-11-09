@@ -16,9 +16,12 @@ fn main() -> Result<()> {
             }
             bail!("stale generated files (run `cargo xtask codegen`): {stale:?}");
         }
+        ["affected", rest @ ..] => affected(rest),
         ["new-rule", language, id] => print_new_rule(language, id, false),
         ["new-rule", language, id, "--rust"] => print_new_rule(language, id, true),
-        _ => bail!("usage: cargo xtask codegen [--check] | new-rule <language> <id> [--rust]"),
+        _ => bail!(
+            "usage: cargo xtask codegen [--check] | affected [--base REV] [--all] | new-rule <language> <id> [--rust]"
+        ),
     }
 }
 
@@ -50,5 +53,16 @@ fn codegen() -> Result<()> {
             .status()?;
         anyhow::ensure!(status.success(), "second codegen pass failed");
     }
+    Ok(())
+}
+
+fn affected(args: &[&str]) -> Result<()> {
+    let (base, all) = match args {
+        [] => (None, false),
+        ["--all"] => (None, true),
+        ["--base", rev] => (Some(*rev), false),
+        _ => bail!("usage: cargo xtask affected [--base REV] [--all]"),
+    };
+    print!("{}", xtask::affected::run(&xtask::repo_root(), base, all)?);
     Ok(())
 }

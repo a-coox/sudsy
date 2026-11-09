@@ -79,6 +79,10 @@ impl LanguageProvider for YamlProvider {
         grammars::YAML.language
     }
 
+    fn crate_name(&self) -> &'static str {
+        env!("CARGO_PKG_NAME")
+    }
+
     fn grammar(&self) -> &Grammar {
         grammars::YAML.get()
     }

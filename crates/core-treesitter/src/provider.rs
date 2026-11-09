@@ -14,6 +14,8 @@ use std::sync::Arc;
 
 /// What makes a tree-sitter language a provider.
 pub struct Spec {
+    /// `env!("CARGO_PKG_NAME")` of the language's crate.
+    pub crate_name: &'static str,
     /// Resolved on the first parse: a linked-in grammar, or the language's installed pack.
     pub language: fn() -> tree_sitter::Language,
     pub grammar: LazyGrammar,
@@ -37,6 +39,7 @@ pub struct Spec {
 }
 
 pub struct TreeSitterProvider {
+    crate_name: &'static str,
     grammar: LazyGrammar,
     matchers: Vec<FileMatcher>,
     schema: OptionSchema,
@@ -69,6 +72,7 @@ impl TreeSitterProvider {
         ));
         let parser = engine.clone();
         TreeSitterProvider {
+            crate_name: spec.crate_name,
             grammar: spec.grammar,
             matchers: spec
                 .extensions
@@ -108,6 +112,10 @@ impl LanguageProvider for TreeSitterProvider {
 
     fn language(&self) -> &str {
         self.grammar.language
+    }
+
+    fn crate_name(&self) -> &'static str {
+        self.crate_name
     }
 
     fn grammar(&self) -> &Grammar {

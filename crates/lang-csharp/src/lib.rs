@@ -114,6 +114,7 @@ pub fn provider_with_command(command: Vec<OsString>) -> OutOfProcessProvider {
         vec![FileMatcher::extension("cs"), FileMatcher::extension("csx")],
         config,
     )
+    .with_crate_name(env!("CARGO_PKG_NAME"))
     .with_format(Box::new(CSharpFormatter), option_schema())
     .with_rules(rules::RULES, rules::BODY_KINDS)
     .with_families(rules::FAMILIES)

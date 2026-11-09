@@ -13,6 +13,7 @@ use core_syntax::{Grammar, LanguageId, SyntaxKind, SyntaxNode};
 
 /// A provider whose parser runs in a worker process.
 pub struct OutOfProcessProvider {
+    crate_name: &'static str,
     grammar: LazyGrammar,
     matchers: Vec<FileMatcher>,
     proxy: std::sync::Arc<WorkerProxy>,
@@ -28,6 +29,7 @@ impl OutOfProcessProvider {
     /// The worker is started lazily, on the first call that needs it.
     pub fn new(grammar: LazyGrammar, matchers: Vec<FileMatcher>, worker: WorkerConfig) -> Self {
         OutOfProcessProvider {
+            crate_name: "",
             grammar,
             matchers,
             proxy: std::sync::Arc::new(WorkerProxy::new(worker)),
@@ -38,6 +40,12 @@ impl OutOfProcessProvider {
             families: &[],
             summaries: BehaviorSummaries::default(),
         }
+    }
+
+    /// The crate that implements the language (see [`LanguageProvider::crate_name`]).
+    pub fn with_crate_name(mut self, crate_name: &'static str) -> Self {
+        self.crate_name = crate_name;
+        self
     }
 
     /// The provider's formatting code and its format options; without them every node uses the
@@ -113,6 +121,10 @@ impl LanguageProvider for OutOfProcessProvider {
 
     fn language(&self) -> &str {
         self.grammar.language
+    }
+
+    fn crate_name(&self) -> &'static str {
+        self.crate_name
     }
 
     fn grammar(&self) -> &Grammar {

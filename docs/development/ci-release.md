@@ -6,7 +6,7 @@ Runs only on demand (`gh workflow run ci.yml`) and from the release workflow whi
 |---|---|
 | `dco` | pull requests only: every commit signed off by its author (`scripts/check-dco.sh`) |
 | `rust` | fmt check, clippy `-D warnings`, `cargo test --workspace`, sample plugin fmt + tests (installs `wasm32-wasip2`) |
-| `bench` | `scripts/bench.sh` tier 1 on ubuntu-latest against the PR base (installs valgrind) |
+| `bench` | `scripts/bench.sh --all` tier 1 on ubuntu-latest against the PR base (installs valgrind) |
 | `dotnet` | `dotnet build` / `dotnet test workers/csharp` |
 | `vscode` | `npm ci`, typecheck, lint, test, build (Linux) |
 | `package` | release `sudsy`, published worker, staged server, `.vsix` artifact for `linux-x64` and `win32-x64`, after a smoke test that the staged binary formats C# without `SUDSY_CSHARP_WORKER` |
