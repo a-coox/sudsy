@@ -1,0 +1,22 @@
+---
+source: crates/lang-csharp/tests/presets.rs
+expression: "format! (\"{input}\\n-----\\n{out}\")"
+---
+class C { void M() {
+ var parameterTypeName = (a, b) switch {
+ (true, true) => Extensions.ComplexArrayReceiverTypeName, // c
+ (false, false) => parameterTypeInfo.Name // simple non-array type, e.g. "int"
+ };
+ } }
+-----
+class C
+{
+    void M()
+    {
+        var parameterTypeName = (a, b) switch
+        {
+            (true, true) => Extensions.ComplexArrayReceiverTypeName, // c
+            (false, false) => parameterTypeInfo.Name, // simple non-array type, e.g. "int"
+        };
+    }
+}

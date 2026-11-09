@@ -138,19 +138,24 @@ pub fn arrow_clause(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {
 }
 
 /// A lambda with an expression body for `assignment_layout: fluid`: the body moves to its own
-/// line when the lambda does not fit. `None` for a block body or a comment after `=>`.
+/// line when the lambda does not fit (always after a comment after `=>`). `None` for a block body.
 pub fn lambda(cx: &FormatCtx<'_>, node: &SyntaxNode) -> Result<Option<Doc>, FormatError> {
     let els = sig(cx, node);
     let Some((SyntaxElement::Node(body), head)) = els.split_last() else {
         return Ok(None);
     };
     let arrow = head.last().and_then(|e| e.as_token());
-    if body.kind() == k::BLOCK || arrow.is_none_or(|op| ends_in_line_comment(cx, op)) {
+    let Some(arrow) = arrow.filter(|_| body.kind() != k::BLOCK) else {
         return Ok(None);
-    }
+    };
+    let sep = if ends_in_line_comment(cx, arrow) {
+        doc::hardline()
+    } else {
+        doc::line()
+    };
     Ok(Some(doc::group(doc::concat(vec![
         seq_of(cx, node, head)?,
-        doc::indent(doc::concat(vec![doc::line(), cx.format(body)?])),
+        doc::indent(doc::concat(vec![sep, cx.format(body)?])),
     ]))))
 }
 
@@ -422,21 +427,28 @@ fn link_doc(cx: &FormatCtx<'_>, link: &Link) -> R {
 }
 
 /// Does a line comment sit between the parts of the chain? Then every call goes on its own
-/// line, or two comments would end up on one line.
+/// line, or two comments would end up on one line. One that ends the chain does not count: the
+/// caller prints it after what follows the chain (a list separator).
 fn has_line_comment(cx: &FormatCtx<'_>, links: &[Link]) -> bool {
     let g = cx.grammar;
-    let line = |t: &SyntaxToken| {
-        core_format::comments::trailing_comments(g, t)
-            .iter()
-            .chain(core_format::comments::leading_comments(g, t).iter())
-            .any(|c| c.kind != core_format::comments::CommentKind::Block)
+    let is_line =
+        |c: &core_format::comments::Comment| c.kind != core_format::comments::CommentKind::Block;
+    let line = |t: &SyntaxToken, end: bool| {
+        let trailing = core_format::comments::trailing_comments(g, t);
+        (!end && trailing.iter().any(is_line))
+            || core_format::comments::leading_comments(g, t)
+                .iter()
+                .any(is_line)
     };
-    links.iter().any(|l| match l {
-        Link::Dot(op, name) => line(op) || cx.last_token(name).is_some_and(|t| line(&t)),
-        Link::Call(a) | Link::Index(a) | Link::Tail(a) => {
-            cx.last_token(a).is_some_and(|t| line(&t))
+    let last = links.len().saturating_sub(1);
+    links.iter().enumerate().any(|(i, l)| match l {
+        Link::Dot(op, name) => {
+            line(op, false) || cx.last_token(name).is_some_and(|t| line(&t, i == last))
         }
-        Link::Bang(t) | Link::Question(t) => line(t),
+        Link::Call(a) | Link::Index(a) | Link::Tail(a) => {
+            cx.last_token(a).is_some_and(|t| line(&t, i == last))
+        }
+        Link::Bang(t) | Link::Question(t) => line(t, i == last),
     })
 }
 

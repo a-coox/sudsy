@@ -87,6 +87,25 @@ compat!(
     "class C { void M() {\n switch (x) { case 1: { Foo(); break; } default: break; }\n var d = new Dictionary<string, int> { [\"a\"] = 1 };\n var e = new Foo {\n A = 1,\n B = 2 };\n Assert.Throws<ArgumentNullException>(() => RequestDelegateFactory.Create(handler: null!, options: someVeryLongOptionsValue));\n do { x++; } while (x < 3);\n var s = \"a very long string literal that does not fit on the line with the declaration of the variable\";\n } }"
 );
 
+compat!(
+    compat_trailing_comment_after_lambda_parameters,
+    "class C { string M() {
+ return string.Create(
+ 12, (IntPtr)pKey, (span, key) => // 12 == 8 + 1 (for period) + 3
+ Populate83FileNameFromRandomBytes((byte*)key, KeyLength, span));
+ } }"
+);
+
+compat!(
+    compat_trailing_comment_after_last_switch_arm,
+    "class C { void M() {
+ var parameterTypeName = (a, b) switch {
+ (true, true) => Extensions.ComplexArrayReceiverTypeName, // c
+ (false, false) => parameterTypeInfo.Name // simple non-array type, e.g. \"int\"
+ };
+ } }"
+);
+
 #[test]
 fn nested_hugged_lambdas_do_not_grow_exponentially() {
     // Every level of a `conditional_group` used to copy its candidates, doubling the document
