@@ -1,6 +1,6 @@
 //! The lossless tree: `rowan` green/red trees keyed by our [`SyntaxKind`].
 
-use crate::kind::{LanguageId, SyntaxKind};
+use crate::kind::SyntaxKind;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum SudsyLang {}
@@ -24,18 +24,6 @@ pub type SyntaxElement = rowan::SyntaxElement<SudsyLang>;
 /// Prints the tree. The lossless invariant is `print(&tree) == source`.
 pub fn print(node: &SyntaxNode) -> String {
     node.text().to_string()
-}
-
-/// For an [`SyntaxKind::EMBEDDED`] node, the language of the nested tree.
-///
-/// The nested tree is just the node's children: kinds are namespaced per
-/// language, so a tree can mix languages without any extra bookkeeping, and
-/// the wire encoding carries embedded trees with no special case.
-pub fn embedded_language(node: &SyntaxNode) -> Option<LanguageId> {
-    if node.kind() != SyntaxKind::EMBEDDED {
-        return None;
-    }
-    node.children_with_tokens().next().map(|c| c.kind().lang())
 }
 
 /// Thin wrapper over `rowan::GreenNodeBuilder` that speaks our kinds.

@@ -5,7 +5,7 @@
 - Lossless: printing the tree reproduces the source byte for byte; every conformance test checks it.
 - Trivia (whitespace, newlines, comments) are tokens. C# doc comments and directives are structured trivia nodes (tag `#trivia`); disabled `#if` text is one verbatim token.
 - `ERROR` nodes hold what could not be parsed; every token stays in the tree. Formatter and rules skip subtrees with errors; files with syntax errors are not formatted.
-- `EMBEDDED` (core namespace) holds a nested language's root; supported by tree and wire, no provider emits it. Code of another language is parsed beside the host's tree instead ([adding-a-language.md](adding-a-language.md#embedded-languages)).
+- Code of another language is parsed beside the host's tree, not inside it ([adding-a-language.md](adding-a-language.md#embedded-languages)).
 - A zero-width EOF token takes the leading trivia of the file's tail.
 
 ## Trivia attachment (every language)

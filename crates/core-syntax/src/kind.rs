@@ -10,7 +10,7 @@
 //! ```
 //!
 //! * `lang`: [`LanguageId`]. `0` is the core namespace shared by all languages
-//!   ([`SyntaxKind::ERROR`], [`SyntaxKind::EMBEDDED`]); `1` JSON, `2` C#, `3` YAML.
+//!   ([`SyntaxKind::ERROR`]); `1` JSON, `2` C#, `3` YAML.
 //! * `tok`: set for tokens (including trivia tokens), clear for nodes. Because
 //!   it is part of the kind, the wire encoding needs no extra per-element flag.
 //! * `index`: position among the language's nodes or tokens, in grammar
@@ -52,8 +52,6 @@ impl SyntaxKind {
 
     /// A subtree the parser could not make sense of. Every token stays in the tree.
     pub const ERROR: SyntaxKind = SyntaxKind::new(LanguageId::CORE, false, 0);
-    /// A node whose children are the root of a tree in another language.
-    pub const EMBEDDED: SyntaxKind = SyntaxKind::new(LanguageId::CORE, false, 1);
 
     pub const fn new(lang: LanguageId, token: bool, index: u16) -> Self {
         assert!(index < Self::MAX_INDEX);
@@ -101,10 +99,7 @@ mod tests {
 
     #[test]
     fn core_kinds_are_nodes_in_the_core_namespace() {
-        for k in [SyntaxKind::ERROR, SyntaxKind::EMBEDDED] {
-            assert_eq!(k.lang(), LanguageId::CORE);
-            assert!(!k.is_token());
-        }
-        assert_ne!(SyntaxKind::ERROR, SyntaxKind::EMBEDDED);
+        assert_eq!(SyntaxKind::ERROR.lang(), LanguageId::CORE);
+        assert!(!SyntaxKind::ERROR.is_token());
     }
 }

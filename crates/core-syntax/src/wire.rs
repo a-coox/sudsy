@@ -294,32 +294,4 @@ mod tests {
         wire.version = 99;
         assert_eq!(wire.unpack().unwrap_err(), WireError::Version(99));
     }
-
-    #[test]
-    fn embedded_trees_round_trip() {
-        let json_obj = SyntaxKind::new(LanguageId::JSON, false, 3);
-        let json_tok = SyntaxKind::new(LanguageId::JSON, true, 3);
-        let cs_root = SyntaxKind::new(LanguageId::CSHARP, false, 0);
-        let cs_tok = SyntaxKind::new(LanguageId::CSHARP, true, 0);
-        let mut b = TreeBuilder::new();
-        b.start_node(cs_root);
-        b.token(cs_tok, "x = \"\"\"");
-        b.start_node(SyntaxKind::EMBEDDED);
-        b.start_node(json_obj);
-        b.token(json_tok, "{}");
-        b.finish_node();
-        b.finish_node();
-        b.token(cs_tok, "\"\"\";");
-        b.finish_node();
-        let root = SyntaxNode::new_root(b.finish());
-        let text = crate::print(&root);
-        let back =
-            SyntaxNode::new_root(FlatTree::from_tree(&root).to_wire().decode(&text).unwrap());
-        assert_eq!(crate::print(&back), "x = \"\"\"{}\"\"\";");
-        let emb = back
-            .descendants()
-            .find(|n| n.kind() == SyntaxKind::EMBEDDED)
-            .unwrap();
-        assert_eq!(crate::embedded_language(&emb), Some(LanguageId::JSON));
-    }
 }

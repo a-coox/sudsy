@@ -304,9 +304,6 @@ impl Grammar {
         if kind == SyntaxKind::ERROR {
             return "ERROR";
         }
-        if kind == SyntaxKind::EMBEDDED {
-            return "EMBEDDED";
-        }
         self.def(kind).map_or("?", |d| d.name.as_str())
     }
 }
