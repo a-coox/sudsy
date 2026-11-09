@@ -66,10 +66,17 @@ jobs:
           cache: npm
           cache-dependency-path: editors/vscode/package-lock.json
       - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2
-      - run: cargo build --release --locked -p cli
+      # Packs first: the CLI embeds their hashes (pack mode: no grammars linked in).
+      - run: scripts/pack.sh "$RUNNER_TEMP/packs"
+      - run: cargo build --release --locked -p cli --no-default-features
+        env:
+          SUDSY_PACK_MANIFEST: ${{ runner.temp }}/packs/manifest.txt
       - run: dotnet publish workers/csharp/Sudsy.Worker -c Release -o "$RUNNER_TEMP/worker"
       - name: The CLI archive
-        run: scripts/package-cli.sh ${{ matrix.target }} target/release/${{ matrix.exe }} "$RUNNER_TEMP/worker" dist
+        run: |
+          scripts/package-cli.sh ${{ matrix.target }} target/release/${{ matrix.exe }} "$RUNNER_TEMP/worker" dist
+          scripts/package-cli.sh ${{ matrix.target }} target/release/${{ matrix.exe }} "$RUNNER_TEMP/worker" dist "$RUNNER_TEMP/packs"
+          cp "$RUNNER_TEMP"/packs/sudsy-* dist/
       - run: npm ci
         working-directory: editors/vscode
       - run: npm run stage-server -- ../../target/release/${{ matrix.exe }} "$RUNNER_TEMP/worker"

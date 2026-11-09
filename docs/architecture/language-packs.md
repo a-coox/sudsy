@@ -12,6 +12,7 @@ Every language is installable and removable. JSON, YAML and the C# worker are in
 - `crates/pack` is a `cdylib` with one cargo feature per language (the grammar crate behind it) exporting `sudsy_language` (Markdown also `sudsy_language_inline` for its inline grammar). The grammar crate's own `tree_sitter_<lang>` symbol is not exported: a Rust cdylib would define it twice.
 - File name: `sudsy-<version>-<language>-<target triple>.<dll|so|dylib>`. Packs are locked to the Sudsy version by the name; a different version looks for a different file.
 - `scripts/pack.sh <out> [language...]` builds them for this machine and writes `<out>/manifest.txt`.
+- Release: each platform's build job runs `pack.sh`, builds the CLI with `--no-default-features` and `SUDSY_PACK_MANIFEST` pointing at that manifest (so the hashes in the binary are those of the packs uploaded next to it), and publishes the pack files as release assets (their names carry the target triple, so platforms do not collide). Archives: `sudsy-<version>-<platform>` (no packs; `languages add` downloads them) and `sudsy-full-<version>-<platform>` (same binary plus `packs/`, for offline use: `sudsy languages add --all --from packs`). The VS Code `.vsix` carries the pack-mode binary.
 
 ## Manifest and checks (`core-packs`)
 - The binary embeds `manifest.txt` (`language file sha256 size` per line; `$SUDSY_PACK_MANIFEST` at build time, empty otherwise, so a build without one lists no pack).
