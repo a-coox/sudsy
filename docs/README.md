@@ -42,3 +42,4 @@ Current state only; history is in git. Update the doc for the area you change in
 | [development/site.md](development/site.md) | The public rule documentation site: build, data sources, deploy switch |
 | [development/ci-release.md](development/ci-release.md) | CI jobs, release process, placeholders |
 | [roadmap.md](roadmap.md) | Deliberately not built or deferred |
+| [bugs.md](bugs.md) | Known open bugs: symptom, cause, suggested fix |
