@@ -27,6 +27,11 @@ export!(
     konomanoasa_tree_sitter_editorconfig::LANGUAGE
 );
 export!(
+    "gitignore",
+    sudsy_language,
+    konomanoasa_tree_sitter_gitignore::LANGUAGE
+);
+export!(
     "dockerfile",
     sudsy_language,
     tree_sitter_containerfile::LANGUAGE

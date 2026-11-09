@@ -29,6 +29,7 @@ pub fn providers() -> Vec<Box<dyn LanguageProvider>> {
         Box::new(lang_markdown::provider()),
         Box::new(lang_editorconfig::provider()),
         Box::new(lang_ini::provider()),
+        Box::new(lang_gitignore::provider()),
         Box::new(lang_dockerfile::provider()),
         Box::new(lang_shell::provider()),
         Box::new(lang_powershell::provider()),

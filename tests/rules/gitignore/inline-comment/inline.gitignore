@@ -1,0 +1,5 @@
+*.log # logs
+^^^^^^^^^^^^ inline-comment
+# a # b
+name#x
+dist/

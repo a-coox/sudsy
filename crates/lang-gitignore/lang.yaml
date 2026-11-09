@@ -1,0 +1,5 @@
+grammar-crate: konomanoasa-tree-sitter-gitignore
+extensions: [gitignore, dockerignore]
+file-names: [.gitignore, .dockerignore, .npmignore, .prettierignore, .eslintignore, .sudsyignore]
+formatter: GitignoreFormatter
+dev-deps: [insta]

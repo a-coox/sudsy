@@ -40,6 +40,7 @@ pulldown-cmark = { version = "0.13", default-features = false, features = ["html
 tree-sitter-xml = "0.7"
 konomanoasa-tree-sitter-editorconfig = "0.9"
 tree-sitter-ini = "1.4"
+konomanoasa-tree-sitter-gitignore = "0.7"
 tree-sitter-containerfile = "0.9"
 tree-sitter-bash = "0.25"
 woodruffw-trough-tree-sitter-powershell = "0.1"
@@ -62,6 +63,7 @@ lang-xml = { path = "crates/lang-xml", default-features = false }
 lang-markdown = { path = "crates/lang-markdown", default-features = false }
 lang-editorconfig = { path = "crates/lang-editorconfig", default-features = false }
 lang-ini = { path = "crates/lang-ini", default-features = false }
+lang-gitignore = { path = "crates/lang-gitignore", default-features = false }
 lang-dockerfile = { path = "crates/lang-dockerfile", default-features = false }
 lang-shell = { path = "crates/lang-shell", default-features = false }
 lang-powershell = { path = "crates/lang-powershell", default-features = false }

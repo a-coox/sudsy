@@ -19,6 +19,7 @@ lang-xml.workspace = true
 lang-markdown.workspace = true
 lang-editorconfig.workspace = true
 lang-ini.workspace = true
+lang-gitignore.workspace = true
 lang-dockerfile.workspace = true
 lang-powershell.workspace = true
 lang-shell.workspace = true
@@ -32,7 +33,7 @@ thiserror.workspace = true
 [features]
 # Grammars linked in (dev, tests, `cargo install`); without it the tree-sitter languages load from packs.
 default = ["static-grammars"]
-static-grammars = ["lang-toml/static-grammars", "lang-xml/static-grammars", "lang-markdown/static-grammars", "lang-editorconfig/static-grammars", "lang-ini/static-grammars", "lang-dockerfile/static-grammars", "lang-powershell/static-grammars", "lang-shell/static-grammars"]
+static-grammars = ["lang-toml/static-grammars", "lang-xml/static-grammars", "lang-markdown/static-grammars", "lang-editorconfig/static-grammars", "lang-ini/static-grammars", "lang-gitignore/static-grammars", "lang-dockerfile/static-grammars", "lang-powershell/static-grammars", "lang-shell/static-grammars"]
 
 [lints]
 workspace = true

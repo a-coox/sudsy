@@ -1,0 +1,11 @@
+id: backslash-separator
+message: "`\\` escapes the next character, it is not a path separator; use `/`"
+description: >-
+  `build\out` is the pattern `buildout`: the backslash escapes `o`. Windows-style separators
+  never match what was meant. Reported for a backslash before a letter, digit, `_` or `-`
+  (`\.` and `\#` are ordinary escapes). No fix.
+example: "build\\out   # reported: write build/out"
+severity: warn
+category: correctness
+rule: { kind: Entry }
+token: { kind: [Pattern], needs: '\', regex: '^\\[A-Za-z0-9_-]' }

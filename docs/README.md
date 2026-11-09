@@ -18,6 +18,7 @@ Current state only; history is in git. Update the doc for the area you change in
 | [formatting/xml.md](formatting/xml.md) | XML parser (tree-sitter), well-formedness checks, formatter, options, conformance |
 | [formatting/editorconfig.md](formatting/editorconfig.md) | `.editorconfig` parser (tree-sitter), formatter, options, conformance |
 | [formatting/ini.md](formatting/ini.md) | `.ini` parser (tree-sitter), formatter, options, rules, conformance |
+| [formatting/gitignore.md](formatting/gitignore.md) | `.gitignore`-syntax files parser (tree-sitter), formatter, rules, conformance |
 | [formatting/dockerfile.md](formatting/dockerfile.md) | Dockerfile parser (tree-sitter), formatter, options, grammar gap, conformance |
 | [formatting/shell.md](formatting/shell.md) | Shell (sh and Bash) parser (tree-sitter), formatter after shfmt, parser limits, conformance |
 | [formatting/powershell.md](formatting/powershell.md) | PowerShell parser (tree-sitter), formatter after PSScriptAnalyzer's Invoke-Formatter, parity, conformance |

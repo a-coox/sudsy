@@ -1,0 +1,9 @@
+build
+/build/
+^^^^^^^ redundant-pattern
+out/
+bin
+!bin
+bin/
+dist/dir
+/dist/dir/

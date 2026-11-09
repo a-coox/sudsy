@@ -22,6 +22,7 @@
     "onLanguage:markdown",
     "onLanguage:editorconfig",
     "onLanguage:ini",
+    "onLanguage:gitignore",
     "onLanguage:dockerfile",
     "onLanguage:shell",
     "onLanguage:powershell",

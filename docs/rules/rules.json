@@ -1954,6 +1954,146 @@
       "upstream": []
     },
     {
+      "category": "correctness",
+      "default_level": "warn",
+      "description": "`build\\out` is the pattern `buildout`: the backslash escapes `o`. Windows-style separators never match what was meant. Reported for a backslash before a letter, digit, `_` or `-` (`\\.` and `\\#` are ordinary escapes). No fix.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "build\\out\n\\#file\nfoo\\.bar\n",
+        "language": "gitignore",
+        "spans": [
+          {
+            "column": 6,
+            "length": 2,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "backslash-separator",
+      "languages": [
+        "gitignore"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "correctness",
+      "default_level": "warn",
+      "description": "Gitignore-syntax files have no end-of-line comments: `*.log # logs` is the pattern `*.log # logs`, a file name with spaces and a `#`. No fix: put the comment on its own line.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "*.log # logs\n# a # b\nname#x\ndist/\n",
+        "language": "gitignore",
+        "spans": [
+          {
+            "column": 1,
+            "length": 12,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "inline-comment",
+      "languages": [
+        "gitignore"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "correctness",
+      "default_level": "warn",
+      "description": "Git cannot re-include a file when a parent directory is excluded: `!a/b` after `a/` has no effect. Exclude the contents (`a/*`) instead. Not reported in `.dockerignore`, where the later pattern wins. Only literal paths are checked.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "node_modules/\n!node_modules/keep.js\n/a/b\n!/a/b/c\n*.o\n!/lib/a.o\nvendor/\n!vendor/\n!vendor/x\nsrc/gen\n!other/src/gen/x\n",
+        "language": "gitignore",
+        "spans": [
+          {
+            "column": 1,
+            "length": 21,
+            "line": 2
+          },
+          {
+            "column": 1,
+            "length": 7,
+            "line": 4
+          }
+        ]
+      },
+      "fix": null,
+      "id": "negation-of-excluded-parent",
+      "languages": [
+        "gitignore"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "warn",
+      "description": "The same pattern appears twice with no opposite pattern (`!x` for `x`) in between, so the second one changes nothing.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "*.log\nbuild/\n*.log\n!keep.log\n!keep.log\n*.tmp\n!*.tmp\n*.tmp\n",
+        "language": "gitignore",
+        "spans": [
+          {
+            "column": 1,
+            "length": 5,
+            "line": 3
+          },
+          {
+            "column": 1,
+            "length": 9,
+            "line": 5
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-duplicate-pattern",
+      "languages": [
+        "gitignore"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "warn",
+      "description": "A name pattern such as `foo` already matches files and directories called `foo` at every level, so a later `foo/` or `/foo` adds nothing (no `!` pattern in between).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "build\n/build/\nout/\nbin\n!bin\nbin/\ndist/dir\n/dist/dir/\n",
+        "language": "gitignore",
+        "spans": [
+          {
+            "column": 1,
+            "length": 7,
+            "line": 2
+          }
+        ]
+      },
+      "fix": null,
+      "id": "redundant-pattern",
+      "languages": [
+        "gitignore"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
       "category": "performance",
       "default_level": "off",
       "description": "apk add without --no-cache.",

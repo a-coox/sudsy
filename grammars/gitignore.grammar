@@ -1,0 +1,24 @@
+// Gitignore-syntax files (.gitignore, .dockerignore, ...), parsed by tree-sitter (konomanoasa-tree-sitter-gitignore) and mapped by crates/lang-gitignore/src/mapping.rs.
+// Format: see crates/core-syntax/src/grammar/mod.rs.
+
+language gitignore 11 "Gitignore"
+comments line "#"
+suppress disable-next-line "sudsy-disable-next-line"
+suppress disable-line "sudsy-disable-line"
+suppress disable "sudsy-disable"
+suppress enable "sudsy-enable"
+suppress disable-file "sudsy-disable-file"
+suppress ignore "sudsy-ignore"
+
+token Whitespace #trivia #whitespace
+token Newline #trivia #newline
+token Comment #trivia #comment
+
+// One part of a pattern line (`!`, a name, `*`, `/`, an escape, a bracket-expression part); the parts of a line are adjacent. A trailing space is trivia, an escaped one (`\ `) is a part.
+token Pattern #literal
+
+token Eof
+token Unknown #error
+
+node Document = items:#item* Eof
+node Entry #item = parts:Pattern*

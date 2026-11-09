@@ -1310,6 +1310,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "konomanoasa-tree-sitter-gitignore"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b3ff2d9ace7e233dcd49150f257faaa80e43815556ce639cc69596f8cc2b4220"
+dependencies = [
+ "cc",
+ "tree-sitter-language",
+]
+
+[[package]]
 name = "lang-csharp"
 version = "0.1.0"
 dependencies = [
@@ -1352,6 +1362,21 @@ dependencies = [
  "core-treesitter",
  "insta",
  "konomanoasa-tree-sitter-editorconfig",
+ "provider-api",
+]
+
+[[package]]
+name = "lang-gitignore"
+version = "0.1.0"
+dependencies = [
+ "core-config",
+ "core-format",
+ "core-packs",
+ "core-rules",
+ "core-syntax",
+ "core-treesitter",
+ "insta",
+ "konomanoasa-tree-sitter-gitignore",
  "provider-api",
 ]
 
@@ -1495,6 +1520,7 @@ dependencies = [
  "lang-csharp",
  "lang-dockerfile",
  "lang-editorconfig",
+ "lang-gitignore",
  "lang-ini",
  "lang-json",
  "lang-markdown",
@@ -1751,6 +1777,7 @@ name = "pack"
 version = "0.1.0"
 dependencies = [
  "konomanoasa-tree-sitter-editorconfig",
+ "konomanoasa-tree-sitter-gitignore",
  "tree-sitter-bash",
  "tree-sitter-containerfile",
  "tree-sitter-ini",

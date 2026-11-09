@@ -1,0 +1,13 @@
+node_modules/
+!node_modules/keep.js
+^^^^^^^^^^^^^^^^^^^^^ negation-of-excluded-parent
+/a/b
+!/a/b/c
+^^^^^^^ negation-of-excluded-parent
+*.o
+!/lib/a.o
+vendor/
+!vendor/
+!vendor/x
+src/gen
+!other/src/gen/x

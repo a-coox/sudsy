@@ -10,7 +10,7 @@ cd "$(dirname "$0")/.."
 out=${1:?usage: pack.sh <out dir> [language...]}
 shift
 languages=("$@")
-[ ${#languages[@]} -gt 0 ] || languages=(toml xml markdown editorconfig ini dockerfile shell powershell)
+[ ${#languages[@]} -gt 0 ] || languages=(toml xml markdown editorconfig ini dockerfile shell powershell gitignore)
 version=$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -1)
 triple=$(rustc -vV | sed -n 's/^host: //p')
 case "$(uname -s)" in

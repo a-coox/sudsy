@@ -1,0 +1,10 @@
+*.log
+build/
+*.log
+^^^^^ no-duplicate-pattern
+!keep.log
+!keep.log
+^^^^^^^^^ no-duplicate-pattern
+*.tmp
+!*.tmp
+*.tmp
