@@ -119,9 +119,15 @@ if [ -n "${BENCH_CACHE:-}" ]; then cache=$BENCH_CACHE
 elif [ -n "${CARGO_TARGET_DIR:-}" ]; then cache=$(dirname "$CARGO_TARGET_DIR")/bench-cache; else cache=$work/base-cache; fi
 mkdir -p "$cache"
 modes=allocs; [ $instr = 0 ] || modes="allocs instr"
-langs= missing= keys=
+langs= missing= keys= fresh=
 while read -r folder crate; do
   k=$(row_key "$folder" "$crate"); keys="$keys $folder=$k"; langs="$langs,$folder"
+  # A language whose crate is absent at the baseline is measured on the candidate only ("new").
+  if [ "$crate" != '*' ]; then
+    for c in ${crate//,/ }; do
+      git cat-file -e "$base:crates/$c" 2>/dev/null || { fresh="$fresh,$folder"; continue 2; }
+    done
+  fi
   # Allocations are never empty; instructions are for a worker language (callgrind does not trace it).
   { [ -s "$cache/$k.allocs" ] && { [ $instr = 0 ] || [ -f "$cache/$k.instr" ]; }; } || missing="$missing,$folder"
 done <<<"$rows"
@@ -156,7 +162,10 @@ for side in cand base; do
   fi
 done
 for m in $modes; do
-  for folder in $(tr ',' ' ' <<<"$langs"); do cat "$cache/$(key_of "$folder").$m"; done >"$out/base.$m"
+  for folder in $(tr ',' ' ' <<<"$langs"); do
+    case ",$fresh," in *",$folder,"*) continue ;; esac
+    cat "$cache/$(key_of "$folder").$m"
+  done >"$out/base.$m"
 done
 for side in cand base; do cat "$out"/$side.allocs "$out"/$side.instr 2>/dev/null | sort >"$out/$side.all" || true; done
 
