@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Standard benchmark: run after every feature change.
 #   scripts/bench.sh [--base REV] [--time] [--rounds N] [--no-instr] [--no-record]
+#   scripts/bench.sh --stop: end this slot's running bench, its WSL processes included
 # Tier 1 (default, deterministic): per language and phase (parse, format, format-query, lint, patterns, plugins) on
 #   fixed inputs (bench/inputs + generated), the candidate (working tree) against the baseline
 #   (--base, default the merge-base with origin/main; HEAD or HEAD^ when that is HEAD), built in a
@@ -18,11 +19,11 @@ cd "$(dirname "$0")/.."
 root=$PWD
 # WSL cache key: the slot (CARGO_TARGET_DIR name) when set, else the checkout name.
 slot=$(basename "${CARGO_TARGET_DIR:-$root}")
-base_rev= time=0 rounds=11 instr=1 record=1
+base_rev= time=0 rounds=11 instr=1 record=1 stop=0
 while [ $# -gt 0 ]; do
   case "$1" in
     --base) base_rev=$2; shift ;; --time) time=1 ;; --rounds) rounds=$2; shift ;;
-    --no-instr) instr=0 ;; --no-record) record=0 ;;
+    --no-instr) instr=0 ;; --no-record) record=0 ;; --stop) stop=1 ;;
     *) sed -n '2,12p' "$0" >&2; exit 2 ;;
   esac; shift
 done
@@ -31,6 +32,26 @@ windows=0; case "$(uname -s)" in MINGW*|MSYS*|CYGWIN*) windows=1 ;; esac
 distro=${BENCH_WSL_DISTRO:-Ubuntu}
 wsl_path() { local p; p=$(cygpath -m "$1"); echo "/mnt/$(echo "${p:0:1}" | tr A-Z a-z)${p:2}"; }
 wslrun() { MSYS_NO_PATHCONV=1 wsl -d "$distro" -e bash -c "export PATH=\$HOME/.local/bin:\$HOME/.cargo/bin:\$PATH; $1"; }
+
+# --- --stop: killing bench's shell leaves its builds and measurements running (under Git Bash the
+# Windows process tree does not follow the shells, and no Windows signal reaches WSL). So: bench
+# itself by its pid file (it starts nothing more), every bench-measure of this slot with its
+# children (they name `--target $work/...`), and the slot's WSL process groups.
+work=${CARGO_TARGET_DIR:-$root/target}/bench; mkdir -p "$work"
+if [ $stop = 1 ]; then
+  p=$(cat "$work/pid" 2>/dev/null || true)
+  # Only a bench.sh: a stale file can name a pid given to something else since.
+  [ -n "$p" ] && grep -q bench.sh "/proc/$p/cmdline" 2>/dev/null && kill -9 "$p" 2>/dev/null
+  if [ $windows = 1 ]; then
+    powershell -NoProfile -Command "Get-CimInstance Win32_Process | Where-Object { \$_.CommandLine -like '*--target $work/*' } | ForEach-Object { taskkill /F /T /PID \$_.ProcessId }" >/dev/null 2>&1 || true
+    wslrun "for p in \$(pgrep -f '[s]udsy-bench/$slot/'); do kill -- -\$(ps -o pgid= -p \$p 2>/dev/null | tr -d ' ') 2>/dev/null; done; true"
+  else
+    pkill -f -- "--target $work/" || true
+  fi
+  rm -f "$work/pid"; echo "bench stopped"; exit 0
+fi
+echo $$ >"$work/pid"
+trap 'rm -f "$work/pid"' EXIT
 
 # --- revisions --------------------------------------------------------------------------------
 head=$(git rev-parse HEAD)
@@ -44,7 +65,7 @@ echo "candidate: ${head:0:9}$([ $dirty = 1 ] && echo '+working tree')   baseline
 [ "$base" = "$head" ] && [ $dirty = 0 ] && { echo "nothing to compare" >&2; exit 2; }
 
 # --- baseline worktree, with the candidate's harness so both sides run the same workload -----------
-work=${CARGO_TARGET_DIR:-$root/target}/bench; src_base=$work/base-src; out=$work/out
+src_base=$work/base-src; out=$work/out
 mkdir -p "$out"
 # A restored build cache can hold the directory without the worktree registration: start over then.
 [ -e "$src_base/.git" ] && git -C "$src_base" checkout -q -f --detach "$base" 2>/dev/null   || { rm -rf "$src_base"; git worktree prune; git worktree add -q --detach "$src_base" "$base"; }
@@ -64,8 +85,18 @@ if [ $instr = 1 ]; then
     command -v valgrind >/dev/null || { echo "valgrind missing: run scripts/bench-setup-wsl.sh, or use --no-instr" >&2; exit 2; }
   fi
 fi
+# The baseline's counts depend only on its commit, the workload (candidate harness, inputs, measure
+# script) and the toolchains, so a rerun against the same baseline reuses them.
+key=$({ echo "$base $instr"; rustc -V; dotnet --version 2>/dev/null || true
+  [ $instr = 1 ] && [ $windows = 1 ] && wslrun 'rustc -V; valgrind --version'
+  find tools/perf-bench bench/inputs scripts/bench-measure.sh -type f | sort | xargs sha1sum; } | sha1sum | cut -c1-16)
+cache=$work/base-cache/$key
 for side in cand base; do
   if [ $side = cand ]; then s=$root; else s=$src_base; fi
+  if [ $side = base ] && [ -f "$cache.allocs" ]; then
+    echo "== base: cached ($cache)"; cp "$cache.allocs" "$out/base.allocs"; [ $instr = 0 ] || cp "$cache.instr" "$out/base.instr"
+    continue
+  fi
   echo "== $side: allocations (native)"; measure $side "$s" allocs
   if [ $instr = 1 ]; then
     echo "== $side: instructions"
@@ -77,6 +108,7 @@ for side in cand base; do
         --out "$out/$side.instr"
     fi
   fi
+  if [ $side = base ]; then mkdir -p "$work/base-cache"; cp "$out/base.allocs" "$cache.allocs"; [ $instr = 0 ] || cp "$out/base.instr" "$cache.instr"; fi
 done
 for side in cand base; do cat "$out"/$side.allocs "$out"/$side.instr 2>/dev/null | sort >"$out/$side.all" || true; done
 

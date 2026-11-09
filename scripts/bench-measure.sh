@@ -63,15 +63,18 @@ one() { # one LANG PHASE -> metric lines on stdout
   echo "$lang.$phase $((SECONDS - t0))" >>"$out.secs"
 }
 
+# A job pool, longest phase (by the last run's seconds) first, so no slot idles behind a slow phase.
+prev=$(cat "$out.secs" 2>/dev/null || true)
 : >"$out"; : >"$out.secs"
-tmp=$(mktemp -d); n=0; jobs_max=$(( $(nproc 2>/dev/null || echo 4) / 2 )); [ "$jobs_max" -ge 1 ] || jobs_max=1
-while read -r lang kind phases; do
+queue=$(while read -r lang kind phases; do
   [ "$kind" = worker ] && [ $worker = 0 ] && continue
-  for phase in $phases; do
-    one "$lang" "$phase" >"$tmp/$lang.$phase" &
-    n=$((n+1)); [ $((n % jobs_max)) -eq 0 ] && wait
-  done
-done <<<"$rows"
+  for phase in $phases; do echo "$(awk -v k="$lang.$phase" '$1 == k { print $2 }' <<<"$prev" | tail -1) $lang $phase"; done
+done <<<"$rows" | awk '{ if (NF == 2) $0 = "0 " $0; print }' | sort -s -rn -k1,1)
+tmp=$(mktemp -d); running=0; jobs_max=$(( $(nproc 2>/dev/null || echo 4) / 2 )); [ "$jobs_max" -ge 1 ] || jobs_max=1
+while read -r _ lang phase; do
+  one "$lang" "$phase" >"$tmp/$lang.$phase" &
+  running=$((running + 1)); if [ $running -ge $jobs_max ]; then wait -n || true; running=$((running - 1)); fi
+done <<<"$queue"
 wait
 for f in "$tmp"/*; do cat "$f"; done | sort >"$out"
 # A phase that failed leaves an empty value; refuse rather than compare nothing.

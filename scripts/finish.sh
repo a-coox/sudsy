@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# The check of a finished change (CLAUDE.md): the full gate and bench at the same time on the
+# working tree, about as long as the slower of the two. A gate failure stops the bench at once,
+# since the change gets edited anyway. Ends in FINISH OK or FINISH FAILED: <gate|bench>; exit 0
+# only when both pass. Arguments go to bench.sh.
+set -uo pipefail
+cd "$(dirname "$0")/.."
+log=${CARGO_TARGET_DIR:-target}/bench/finish.log
+mkdir -p "$(dirname "$log")"
+scripts/bench.sh "$@" >"$log" 2>&1 &
+bench=$!
+scripts/gate.sh
+if [ $? != 0 ]; then
+  scripts/bench.sh --stop
+  wait $bench 2>/dev/null
+  echo "FINISH FAILED: gate (bench stopped)"
+  exit 1
+fi
+wait $bench
+status=$?
+echo "== bench"
+cat "$log"
+[ $status = 0 ] && echo "FINISH OK" || echo "FINISH FAILED: bench"
+exit $status
