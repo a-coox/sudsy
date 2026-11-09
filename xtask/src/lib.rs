@@ -80,13 +80,19 @@ pub fn stale_files() -> Result<Vec<PathBuf>> {
         .collect())
 }
 
-pub fn write_generated() -> Result<()> {
+/// Writes every generated file; returns those that changed on disk.
+pub fn write_generated() -> Result<Vec<PathBuf>> {
     let root = repo_root();
+    let mut changed = Vec::new();
     for (rel, content) in generate()? {
         let path = root.join(&rel);
+        if std::fs::read_to_string(&path).ok().as_deref() == Some(&content) {
+            continue;
+        }
         std::fs::create_dir_all(path.parent().expect("file has a parent"))?;
         std::fs::write(&path, content)?;
         println!("wrote {}", rel.display());
+        changed.push(rel);
     }
-    Ok(())
+    Ok(changed)
 }
