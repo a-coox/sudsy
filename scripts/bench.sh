@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Standard benchmark: run after every feature change.
-#   scripts/bench.sh [--base REV] [--time] [--rounds N] [--no-instr] [--record|--no-record]
+#   scripts/bench.sh [--base REV] [--time] [--rounds N] [--no-instr] [--no-record]
 # Tier 1 (default, deterministic): per language and phase (parse, format, format-query, lint, patterns, plugins) on
 #   fixed inputs (bench/inputs + generated), the candidate (working tree) against the baseline
 #   (--base, default the merge-base with origin/main; HEAD or HEAD^ when that is HEAD), built in a
@@ -18,11 +18,11 @@ cd "$(dirname "$0")/.."
 root=$PWD
 # WSL cache key: the slot (CARGO_TARGET_DIR name) when set, else the checkout name.
 slot=$(basename "${CARGO_TARGET_DIR:-$root}")
-base_rev= time=0 rounds=11 instr=1 record=auto
+base_rev= time=0 rounds=11 instr=1 record=1
 while [ $# -gt 0 ]; do
   case "$1" in
     --base) base_rev=$2; shift ;; --time) time=1 ;; --rounds) rounds=$2; shift ;;
-    --no-instr) instr=0 ;; --record) record=1 ;; --no-record) record=0 ;;
+    --no-instr) instr=0 ;; --no-record) record=0 ;;
     *) sed -n '2,12p' "$0" >&2; exit 2 ;;
   esac; shift
 done
@@ -97,7 +97,6 @@ awk -v B="$out/base.all" -v C="$out/cand.all" 'BEGIN {
 }' || status=1
 
 # --- history ----------------------------------------------------------------------------------------
-if [ "$record" = auto ]; then record=$((1 - dirty)); fi
 if [ "$record" = 1 ]; then
   host=$(hostname)-$(uname -s | cut -c1-5)
   counts=$(awk '{ printf "%s\"%s\":%s", (NR>1?",":""), $1, $2 }' "$out/cand.all")
