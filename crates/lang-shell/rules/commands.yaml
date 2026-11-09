@@ -1,5 +1,4 @@
 id: useless-cat
-language: shell
 message: pass the file to the command or redirect it (`cmd < $F`) instead of cat
 description: A pipeline that starts with `cat file`.
 example: 'cat in.txt | grep x'
@@ -11,7 +10,6 @@ constraints:
   F: { not-regex: '^-' }
 ---
 id: useless-echo
-language: shell
 message: run the command itself instead of echoing its output
 description: An `echo` whose only argument is a command substitution.
 example: 'echo $(date)'
@@ -23,7 +21,6 @@ constraints:
   A: { regex: '^"?(\$\([^()]*\)|`[^`]*`)"?$' }
 ---
 id: read-without-raw
-language: shell
 message: use `read -r`, or backslashes in the input are mangled
 description: A `read` without the `-r` flag.
 example: 'read line'
@@ -34,7 +31,6 @@ rule:
   not: { regex: '^read(\s.*)?\s-[A-Za-z]*r' }
 ---
 id: printf-variable-format
-language: shell
 message: do not put variables in the printf format; use printf '%s' "$x"
 description: A `printf` whose format string contains an expansion and no `%`.
 example: 'printf "$fmt"'
@@ -46,7 +42,6 @@ constraints:
   F: { regex: '^[^'']*[^\\]\$[A-Za-z_{(]|^\$[A-Za-z_{(]', not-regex: '%' }
 ---
 id: trap-expands-now
-language: shell
 message: use single quotes, or the command expands now instead of when the trap fires
 description: A `trap` whose double-quoted command contains an expansion.
 example: 'trap "rm $tmp" EXIT'
@@ -58,7 +53,6 @@ constraints:
   CMD: { regex: '^"([^"$\\]|\\.)*\$[A-Za-z_{(]' }
 ---
 id: no-ls-grep
-language: shell
 message: do not filter ls with grep; use a glob or find
 description: A pipeline from `ls` into `grep`.
 example: 'ls | grep txt'
@@ -69,7 +63,6 @@ rule:
   regex: '^ls\b[^|]*\|\s*grep\b'
 ---
 id: no-ps-grep
-language: shell
 message: use pgrep instead of grepping ps output
 description: A pipeline from `ps` into `grep`.
 example: 'ps aux | grep nginx'
@@ -80,7 +73,6 @@ rule:
   regex: '^ps\b[^|]*\|\s*grep\b'
 ---
 id: grep-count
-language: shell
 message: use grep -c instead of piping to wc -l
 description: A pipeline from `grep` into `wc -l`.
 example: 'grep x f | wc -l'
@@ -91,7 +83,6 @@ rule:
   regex: '(^|\|)\s*grep\b[^|]*\|\s*wc\s+-l\b'
 ---
 id: no-egrep
-language: shell
 message: egrep and fgrep are deprecated; use grep -E and grep -F
 description: A call of `egrep` or `fgrep`.
 example: 'egrep x f'
@@ -103,7 +94,6 @@ rule:
     - { pattern: 'fgrep $$$ARGS' }
 ---
 id: no-which
-language: shell
 message: which is non-standard; use `command -v`
 description: A call of `which`.
 example: 'which git'
@@ -113,7 +103,6 @@ rule:
   pattern: 'which $$$ARGS'
 ---
 id: test-exit-status
-language: shell
 message: check the exit status directly (`if cmd; then`), not through $?
 description: A test that compares `$?` with a number.
 example: 'if [ $? -eq 0 ]; then'
@@ -124,7 +113,6 @@ rule:
   regex: '^\[\[?\s+"?\$\?"?\s+(-eq|-ne|=|==|!=)\s'
 ---
 id: test-and-or
-language: shell
 message: use [ a ] && [ b ] instead of -a and -o inside one test
 description: A `[ ]` test that joins conditions with `-a` or `-o`.
 example: '[ -f a -o -f b ]'
@@ -135,7 +123,6 @@ rule:
   regex: '^\[\s+\S.*\s-[ao]\s'
 ---
 id: test-negated-empty
-language: shell
 message: use -n instead of ! -z, and -z instead of ! -n
 description: A test that negates `-z` or `-n`.
 example: '[ ! -z "$x" ]'
@@ -146,7 +133,6 @@ rule:
   regex: '^\[\[?\s+!\s+-[zn]\s'
 ---
 id: and-or-is-not-if-else
-language: shell
 message: A && B || C is not if-then-else; C also runs when B fails
 description: A list `a && b || c` of three commands, unless `c` is `echo`, `printf`, `true`, `:`, `return` or `exit`.
 example: 'test -f x && echo yes || cleanup'
@@ -158,7 +144,6 @@ rule:
   not: { regex: '&&\s*\(\(|\$\([^)]*&&|\[\[[^\]]*\|\||\|\|\s*(?:(?:echo|printf|true|return|exit)\b|:(?:\s|$))' }
 ---
 id: iterate-ls-output
-language: shell
 message: do not loop over ls output; use a glob
 description: A `for` loop over the output of `ls`.
 example: 'for f in $(ls); do'
@@ -169,7 +154,6 @@ rule:
   regex: '^for\s+\S+\s+in\s+("?\$\(|"?`)\s*ls\b'
 ---
 id: iterate-find-output
-language: shell
 message: do not loop over find output; use find -exec or a while read loop
 description: A `for` loop over the output of `find`.
 example: 'for f in $(find .); do'
@@ -180,7 +164,6 @@ rule:
   regex: '^for\s+\S+\s+in\s+("?\$\(|"?`)\s*find\b'
 ---
 id: find-xargs-print0
-language: shell
 message: use find -print0 with xargs -0, or find -exec, for names with blanks
 description: A pipeline from `find` into `xargs` without `-print0`/`-0`.
 example: 'find . | xargs rm'

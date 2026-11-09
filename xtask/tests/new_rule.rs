@@ -36,7 +36,7 @@ fn scaffolds_a_pattern_rule_and_a_registered_rust_rule() {
     let said = xtask::new_rule(&root, "csharp", "no-foo", false).unwrap();
     assert!(said.contains("rule: no-foo"));
     let yaml = fs::read_to_string(root.join("crates/lang-csharp/rules/no-foo.yaml")).unwrap();
-    assert!(yaml.starts_with("id: no-foo\nlanguage: csharp\n"));
+    assert!(yaml.starts_with("id: no-foo\nmessage:"));
     let case = fs::read_to_string(root.join("tests/rules/csharp/no-foo/starter.cs")).unwrap();
     assert!(case.contains("//      ^ no-foo"), "{case}");
     assert!(yaml.contains("  regex: '^;$'\n"), "{yaml}");

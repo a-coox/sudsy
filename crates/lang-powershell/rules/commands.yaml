@@ -1,5 +1,4 @@
 id: no-write-host
-language: powershell
 message: Write-Host cannot be redirected or captured; use Write-Output, Write-Verbose or Write-Information
 description: A call of `Write-Host`.
 example: 'Write-Host "done"'
@@ -9,7 +8,6 @@ rule: { kind: Command, regex: '(?i)^write-host(\s|$)' }
 report-on: first-token
 ---
 id: no-invoke-expression
-language: powershell
 message: Invoke-Expression runs a string as code; call the command directly or use `&`
 description: A call of `Invoke-Expression` or its alias `iex`.
 example: 'iex $script'
@@ -19,7 +17,6 @@ rule: { kind: Command, regex: '(?i)^(invoke-expression|iex)(\s|$)' }
 report-on: first-token
 ---
 id: no-plain-text-secure-string
-language: powershell
 message: do not convert a plain text string with ConvertTo-SecureString -AsPlainText; read the secret as a SecureString
 description: A call of `ConvertTo-SecureString` with `-AsPlainText`.
 example: 'ConvertTo-SecureString $p -AsPlainText -Force'
@@ -29,7 +26,6 @@ rule: { kind: Command, regex: '(?is)^convertto-securestring\s(.*\s)?-asplaintext
 report-on: first-token
 ---
 id: no-wmi-cmdlets
-language: powershell
 message: the WMI cmdlets are removed from PowerShell 7; use the CIM cmdlets (Get-CimInstance, Invoke-CimMethod, ...)
 description: A call of `Get-WmiObject`, `Invoke-WmiMethod`, `Register-WmiEvent`, `Remove-WmiObject` or `Set-WmiInstance`.
 example: 'Get-WmiObject Win32_Process'

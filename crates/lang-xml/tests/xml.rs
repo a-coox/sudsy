@@ -1,44 +1,12 @@
-use core_format::DirectiveTable;
-use core_format::testing::{Subject, assert_formats};
-use core_syntax::{Grammar, SyntaxNode, print, trivia};
-use core_treesitter::TreeSitterProvider;
-use lang_xml::option_schema;
-use provider_api::{LanguageProvider, SourceFile, format_file};
+use core_syntax::{print, trivia};
+use provider_api::format_testing::{Formatting, assert_formats};
+use provider_api::{LanguageProvider, SourceFile};
 use std::path::{Path, PathBuf};
-
-struct S(TreeSitterProvider);
-
-impl Subject for S {
-    fn grammar(&self) -> &Grammar {
-        self.0.grammar()
-    }
-
-    fn parse(&self, text: &str) -> Result<SyntaxNode, String> {
-        let r = self
-            .0
-            .parse(&SourceFile::new("a.xml", 1, text))
-            .map_err(|e| e.to_string())?;
-        match r.errors.first() {
-            Some(e) => Err(format!("{} (byte {})", e.message, e.start)),
-            None => Ok(r.tree),
-        }
-    }
-
-    fn format(&self, text: &str) -> Result<String, String> {
-        format_file(
-            &self.0,
-            &SourceFile::new("a.xml", 1, text),
-            &option_schema().defaults(),
-            &DirectiveTable::default(),
-        )
-        .map_err(|e| e.to_string())
-    }
-}
 
 /// Formats with every check of the shared helper (round trip, meaning, idempotency, comments).
 #[track_caller]
 fn fmt(input: &str) -> String {
-    assert_formats(&S(lang_xml::provider()), input)
+    assert_formats(lang_xml::provider(), "a.xml", input)
 }
 
 #[test]
@@ -112,7 +80,7 @@ fn conformance() {
     collect(&root, &mut lists);
     let tag = regex::Regex::new(r"(?s)<TESTCASES\s([^>]*)>|</TESTCASES>|<TEST\s([^>]*)>").unwrap();
     let attr = regex::Regex::new(r#"([\w:]+)="([^"]*)""#).unwrap();
-    let s = S(lang_xml::provider());
+    let s = Formatting::new(lang_xml::provider(), "a.xml");
     let (mut valid, mut valid_ok, mut bad, mut bad_rejected) = (0, 0, 0, 0);
     for list in lists
         .iter()
@@ -149,7 +117,10 @@ fn conformance() {
                 let Ok(doc) = std::fs::read_to_string(&path) else {
                     continue;
                 };
-                let r = s.0.parse(&SourceFile::new("a.xml", 1, &doc)).unwrap();
+                let r = s
+                    .provider
+                    .parse(&SourceFile::new("a.xml", 1, &doc))
+                    .unwrap();
                 assert_eq!(print(&r.tree), doc, "not lossless: {}", path.display());
                 if get("TYPE") == Some("not-wf") {
                     bad += 1;

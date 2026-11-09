@@ -1,5 +1,4 @@
 id: quote-command-substitution
-language: shell
 message: quote the command substitution to prevent word splitting
 description: >-
   An unquoted `$(...)` or backtick substitution in a command's arguments is split into words
@@ -11,7 +10,6 @@ rule: { kind: Command }
 token: { needs: '$`', kind: [Word, Test], regex: '^(?:[^"''\\]|\\.|"(?:[^"\\$`]|\\.|\$[A-Za-z_0-9@*#?!$-])*"|''[^'']*'')*?(\$\([^(]|`)', not-regex: '^\[\[', skip-first: Word }
 ---
 id: quote-variable
-language: shell
 message: quote the expansion to prevent word splitting and globbing
 description: >-
   An unquoted `$var` or `${var}` in a command's arguments is split into words and globbed.
@@ -23,7 +21,6 @@ rule: { kind: Command }
 token: { needs: '$', kind: [Word, Test], regex: '^(?:[^"''`\\(]|\\.|"(?:[^"\\$`]|\\.|\$[A-Za-z_0-9@*#?!$-])*"|''[^'']*'')*?\$(?:[A-Za-z_0-9*]|\{!?[A-Za-z_0-9]+(?:[^\[+:A-Za-z0-9_]|:[^+]|\[[^@]))', not-regex: '^\[\[', skip-first: Word }
 ---
 id: quote-at-expansion
-language: shell
 message: quote `$@` and `${array[@]}` so the elements are not split again
 description: An unquoted `$@` or `${array[@]}` in a command's arguments.
 example: 'cp $@ dir'
@@ -33,7 +30,6 @@ rule: { any: [{ kind: Command }, { kind: For }] }
 token: { needs: '$', kind: [Word], regex: '^[^"''`\\(]*\$(@|\{@\}|\{!?[A-Za-z_][A-Za-z0-9_]*\[@\]\})' }
 ---
 id: quote-star-expansion
-language: shell
 message: use "$@" (with quotes) to keep the arguments apart
 description: An unquoted `$*` or `${array[*]}` in a command's arguments.
 example: 'cp $* dir'
@@ -43,7 +39,6 @@ rule: { any: [{ kind: Command }, { kind: For }] }
 token: { needs: '$', kind: [Word], regex: '^[^"''`\\(]*\$(\*|\{\*\}|\{[A-Za-z_][A-Za-z0-9_]*\[\*\]\})' }
 ---
 id: no-backticks
-language: shell
 message: use $(...) instead of backticks
 description: A command substitution written with backticks.
 example: 'now=`date`'
@@ -53,7 +48,6 @@ rule: { any: [{ kind: Command }, { kind: For }] }
 token: { needs: '`', kind: [Word, Assign, Test], regex: '^[^''\\]*`' }
 ---
 id: declare-and-assign-separately
-language: shell
 message: declare and assign separately, or the exit status of the substitution is lost
 description: >-
   `export`, `local`, `declare`, `readonly` or `typeset` with a command substitution as the

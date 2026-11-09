@@ -1,5 +1,4 @@
 id: no-empty-links
-language: markdown
 message: the link has no destination
 description: >-
   A link whose destination is empty or only `#` (markdownlint MD042).

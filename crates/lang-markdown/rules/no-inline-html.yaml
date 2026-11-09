@@ -1,5 +1,4 @@
 id: no-inline-html
-language: markdown
 message: inline HTML is not Markdown
 description: >-
   Raw HTML in a document (markdownlint MD033). Comments are not reported. Reported once per HTML

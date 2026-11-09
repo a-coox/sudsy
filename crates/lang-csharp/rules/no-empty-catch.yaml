@@ -1,5 +1,4 @@
 id: no-empty-catch
-language: csharp
 message: empty catch block swallows the exception
 description: A catch block with no statements and no comment swallows the exception silently.
 example: "try { Run(); } catch (Exception) { }   // add handling, or a comment saying why not"

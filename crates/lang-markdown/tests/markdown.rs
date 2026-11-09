@@ -1,51 +1,15 @@
-use core_format::DirectiveTable;
-use core_format::testing::{Subject, assert_formats};
-use core_syntax::{Grammar, SyntaxNode};
-use core_treesitter::TreeSitterProvider;
-use lang_markdown::option_schema;
-use provider_api::{LanguageProvider, SourceFile, format_file};
+use core_format::testing::Subject;
+use provider_api::format_testing::Formatting;
 
-pub struct S {
-    provider: TreeSitterProvider,
-}
+type S = Formatting;
 
-pub fn subject() -> S {
-    S {
-        provider: lang_markdown::provider(),
-    }
-}
-
-impl Subject for S {
-    fn grammar(&self) -> &Grammar {
-        self.provider.grammar()
-    }
-
-    fn parse(&self, text: &str) -> Result<SyntaxNode, String> {
-        let r = self
-            .provider
-            .parse(&SourceFile::new("a.md", 1, text))
-            .map_err(|e| e.to_string())?;
-        match r.errors.first() {
-            Some(e) => Err(format!("{} (byte {})", e.message, e.start)),
-            None => Ok(r.tree),
-        }
-    }
-
-    fn format(&self, text: &str) -> Result<String, String> {
-        let options = option_schema().defaults();
-        format_file(
-            &self.provider,
-            &SourceFile::new("a.md", 1, text),
-            &options,
-            &DirectiveTable::default(),
-        )
-        .map_err(|e| e.to_string())
-    }
+fn subject() -> S {
+    Formatting::new(lang_markdown::provider(), "a.md")
 }
 
 #[track_caller]
 fn fmt(input: &str) -> String {
-    assert_formats(&subject(), input)
+    core_format::testing::assert_formats(&subject(), input)
 }
 
 #[test]

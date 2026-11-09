@@ -3,6 +3,7 @@
 
 pub mod fixtures;
 pub mod format;
+pub mod format_testing;
 pub mod out_of_process;
 pub mod protocol;
 pub mod provider;

@@ -1,5 +1,4 @@
 id: no-trailing-punctuation
-language: markdown
 message: the heading ends with punctuation
 description: >-
   A heading that ends with `.`, `,`, `;`, `:` or `!` (or the full-width forms) reads as a

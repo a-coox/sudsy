@@ -1,5 +1,4 @@
 id: no-flow-sequences
-language: yaml
 message: flow sequences are not allowed
 description: "A flow sequence (`[a, b]`); write a block sequence instead."
 example: "list: [1, 2]   # reported; write one `- item` per line"

@@ -1,5 +1,4 @@
 id: no-floating-package-version
-language: xml
 message: the package version floats; pin it so builds are reproducible
 description: >-
   A `PackageReference` (or `PackageVersion`) whose `Version` contains `*` restores a different

@@ -1,5 +1,4 @@
 id: no-octal-values
-language: yaml
 message: forbidden octal value
 description: >-
   A plain `0755` (octal to YAML 1.1 parsers, decimal 755 to YAML 1.2) or `0o755` (octal to YAML 1.2,

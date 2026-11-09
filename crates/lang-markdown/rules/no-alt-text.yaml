@@ -1,5 +1,4 @@
 id: no-alt-text
-language: markdown
 message: the image has no alternate text
 description: >-
   An image with empty alternate text, `![](url)` (markdownlint MD045).

@@ -1,5 +1,4 @@
 id: single-cmd
-language: dockerfile
 family: once-per-stage
 params: { instruction: 'CMD' }
 message: 'only the last CMD of a stage takes effect'
@@ -10,7 +9,6 @@ severity: warn
 category: suspicious
 ---
 id: single-entrypoint
-language: dockerfile
 family: once-per-stage
 params: { instruction: 'ENTRYPOINT' }
 message: 'only the last ENTRYPOINT of a stage takes effect'
@@ -21,7 +19,6 @@ severity: error
 category: suspicious
 ---
 id: single-healthcheck
-language: dockerfile
 family: once-per-stage
 params: { instruction: 'HEALTHCHECK' }
 message: 'only the last HEALTHCHECK of a stage takes effect'

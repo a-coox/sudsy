@@ -1,5 +1,4 @@
 id: doc-typeparam-has-name
-language: csharp
 family: doc-element
 params: { check: name, element: typeparam, scope: generic, skip-inheritdoc: true, report: identifier }
 message: "the <typeparam> should declare the type parameter name"

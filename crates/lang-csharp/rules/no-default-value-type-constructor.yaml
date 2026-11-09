@@ -1,5 +1,4 @@
 id: no-default-value-type-constructor
-language: csharp
 family: finding
 params: { check: default_value_constructor, empty: default, fix-title: "Replace the constructor call" }
 message: "do not use the default constructor of a value type: use `{text}`"

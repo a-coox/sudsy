@@ -1,5 +1,4 @@
 id: doc-param-has-name
-language: csharp
 family: doc-element
 params: { check: name, element: param, scope: element, report: attribute }
 message: "the <param> should declare the parameter name"

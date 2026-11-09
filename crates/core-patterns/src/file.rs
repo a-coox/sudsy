@@ -158,6 +158,8 @@ struct TokenMatch {
 #[serde(deny_unknown_fields)]
 struct FileSpec {
     id: String,
+    /// Required in a user's file; a built-in file may leave it out (its crate's language).
+    #[serde(default)]
     language: String,
     message: Option<String>,
     severity: Option<Level>,
@@ -671,6 +673,11 @@ pub fn load<'p>(
         .into_iter()
         .map(|spec| {
             let (id, language) = (spec.id.clone(), spec.language.clone());
+            if language.is_empty() {
+                return Err(PatternError(format!(
+                    "rule `{id}`: give the rule a `language:`"
+                )));
+            }
             if spec.family.is_some() {
                 return Err(PatternError(format!(
                     "rule `{id}`: `family` is for built-in rules"
@@ -712,9 +719,12 @@ pub fn load_lazy(
 ) -> Result<Vec<Box<dyn Rule>>, PatternError> {
     read_specs(source)?
         .into_iter()
-        .map(|spec| {
+        .map(|mut spec| {
             let id = spec.id.clone();
             let err = |e: String| PatternError(format!("rule `{id}`: {e}"));
+            if spec.language.is_empty() {
+                spec.language = language.to_string();
+            }
             if spec.language != language {
                 return Err(err(format!("language must be `{language}`")));
             }

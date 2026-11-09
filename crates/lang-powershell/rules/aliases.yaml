@@ -1,5 +1,4 @@
 id: no-cmdlet-aliases
-language: powershell
 message: use the full cmdlet name instead of the alias
 description: >-
   A command written with one of the default aliases of Windows PowerShell and PowerShell 7

@@ -1,5 +1,4 @@
 id: commands-show-output
-language: markdown
 message: the code block has $ prompts and no output; drop the $ or show the output
 description: >-
   A fenced code block in which every line starts with `$ ` shows commands without their output,

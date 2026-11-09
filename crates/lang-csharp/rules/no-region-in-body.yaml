@@ -1,5 +1,4 @@
 id: no-region-in-body
-language: csharp
 message: do not place regions within elements
 description: >-
   A `#region` inside a block (a method, accessor or lambda body, or any block in one); regions

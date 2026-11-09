@@ -1,5 +1,4 @@
 id: root-in-section
-language: editorconfig
 message: "`root` only counts before the first section; here it is ignored"
 description: >-
   The `root` property stops the search for parent `.editorconfig` files, but only as a preamble

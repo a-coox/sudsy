@@ -1,5 +1,4 @@
 id: doc-partial-summary-required
-language: csharp
 family: doc-element
 params: { check: required, element: summary, scope: summary, partial: only, skip-inheritdoc: true, fallback: content, report: names }
 message: "the documentation of a partial element should have a <summary>"

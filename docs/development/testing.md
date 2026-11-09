@@ -20,6 +20,8 @@ Every formatter test checks lossless round trip, idempotency, unchanged meaning 
 | `init --from` | each tool fixture under `tests/fixtures/init/` migrates to a config that loads (snapshots), mappings agree with the catalog | `cli/tests/init.rs` |
 | Codegen | Generated files and doc tables are fresh | `xtask/tests/codegen_is_fresh.rs` |
 
+Tree-sitter languages share `provider_api::format_testing` (see [adding-a-language.md](../architecture/adding-a-language.md)): their formatter and corpus tests are a few lines each.
+
 ## Rule fixtures
 Adding a rule needs no Rust test: add `tests/rules/<language>/<folder>/<name>.<ext>` files (C# fixtures run through the worker). A folder is named for a rule (`no-empty-catch`) or for a family of rules that share inputs (`doc-tags`, `type-layer`); inputs are small and cover the rules' own cases, and a shared input is never copied into several folders.
 - `<name>.<ext>` is the input. Expected diagnostics are written under the line they point at, `// ^^^ rule-id` (`#` in YAML; carets give the span length, the marker may be left out when the span starts in the first columns). No annotation means no diagnostic. The id is checked, so a fixture also shows other rules that fire by default.
@@ -40,6 +42,7 @@ Adding a rule needs no Rust test: add `tests/rules/<language>/<folder>/<name>.<e
 ## Corpora (not fetched in CI)
 - C#: `tests/conformance/fetch-corpus.sh` → pinned shallow sparse checkouts: dotnet/runtime v10.0.0 `System.Private.CoreLib/src` (1679 files), dotnet/roslyn tag Visual-Studio-2026-Version-18.7 (Compilers CSharp/Core Portable, Workspaces Core Portable; 2858), dotnet/aspnetcore v10.0.0 (Http, Mvc.Core, Middleware, Kestrel Core, Components, SignalR common; 3122). Every file parses with `TARGET_WINDOWS`, `TARGET_AMD64`, `TARGET_64BIT` (files named `*.Browser.*` with `TARGET_BROWSER`, `TARGET_WASM`, `TARGET_32BIT`) so `#else #error` branches do not fail.
 - Markdown: `fetch-markdown-corpus.sh` (CommonMark 0.31.2 `spec.json` by hash; the dotnet/runtime `docs/coding-guidelines` files at the pinned tag). `cargo test -p lang-markdown --test commonmark -- --ignored --nocapture` counts the examples whose tree prints back and has the structure of pulldown-cmark; `cargo test --profile corpus -p lang-markdown --test markdown -- --ignored` requires every example to render to the same HTML (pulldown-cmark) after formatting and to be unchanged by a second run.
+- Corpora fetched as GitHub tarballs (shell, PowerShell, Dockerfile) share `tarball-corpus.sh`.
 - Shell: `fetch-shell-corpus.sh` (82 scripts at pinned commits: dotnet, nvm, rustup, docker and Homebrew installers, postgres and mysql entrypoints, pyenv, bats-core, asdf). `cargo test --profile corpus -p lang-shell --test shell -- --ignored --nocapture conformance`; format parity with shfmt: `scripts/parity.sh format shfmt`.
 - PowerShell: `fetch-powershell-corpus.sh` (210 scripts at pinned commits: dotnet-install.ps1, the modules and tools of PowerShell, the engine and tests of PSScriptAnalyzer, the sources of Pester). `cargo test --profile corpus -p lang-powershell -- --ignored --nocapture conformance`; format parity with Invoke-Formatter: `scripts/parity.sh format invoke-formatter`.
 - JSON: `fetch-json-corpus.sh` (JSONTestSuite `1ef36fa`). YAML: `fetch-yaml-corpus.sh` (yaml-test-suite `6ad3d2c`).

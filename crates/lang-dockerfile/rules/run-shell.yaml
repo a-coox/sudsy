@@ -1,5 +1,4 @@
 id: no-sudo
-language: dockerfile
 family: run-command
 params: { program: 'sudo' }
 message: 'do not use sudo; run as root during the build or use a tool like gosu'
@@ -10,7 +9,6 @@ severity: error
 category: correctness
 ---
 id: use-workdir-not-cd
-language: dockerfile
 family: run-command
 params: { program: 'cd' }
 message: 'use WORKDIR to switch to a directory, not cd in RUN'
@@ -21,7 +19,6 @@ severity: warn
 category: style
 ---
 id: no-interactive-commands
-language: dockerfile
 family: run-command
 params: { program: 'free|kill|mount|ps|service|shutdown|ssh|top|vim' }
 message: 'this command makes no sense in a build'
@@ -32,7 +29,6 @@ severity: off
 category: suspicious
 ---
 id: no-apt
-language: dockerfile
 family: run-command
 params: { program: 'apt' }
 message: 'apt is an end-user tool; use apt-get or apt-cache'
@@ -43,7 +39,6 @@ severity: warn
 category: suspicious
 ---
 id: no-shell-symlink
-language: dockerfile
 family: run-command
 params: { program: 'ln', args: '/bin/sh' }
 message: 'use SHELL to change the default shell, not a symlink to /bin/sh'
@@ -54,7 +49,6 @@ severity: warn
 category: suspicious
 ---
 id: wget-progress
-language: dockerfile
 family: run-command
 params: { program: 'wget', needs: '--progress -q --quiet -o --output-file -a --append-output --no-verbose -nv' }
 message: 'wget without --progress (or -q, -nv, -o, -a) bloats the build log'

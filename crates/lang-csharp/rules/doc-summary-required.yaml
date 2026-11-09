@@ -1,5 +1,4 @@
 id: doc-summary-required
-language: csharp
 family: doc-element
 params: { check: required, element: summary, scope: summary, partial: no, skip-inheritdoc: true, report: names }
 message: "the documentation should have a <summary>"

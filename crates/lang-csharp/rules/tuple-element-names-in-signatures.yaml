@@ -1,5 +1,4 @@
 id: tuple-element-names-in-signatures
-language: csharp
 family: finding
 params: { check: unnamed_tuple_element }
 message: "tuple elements in a signature should have names"

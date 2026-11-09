@@ -1,121 +1,37 @@
-use core_format::DirectiveTable;
-use core_format::testing::{Subject, assert_formats};
-use core_syntax::{Grammar, SyntaxNode};
-use core_treesitter::TreeSitterProvider;
-use lang_dockerfile::option_schema;
-use provider_api::{LanguageProvider, SourceFile, format_file};
-use std::path::PathBuf;
-
-struct S(TreeSitterProvider);
-
-impl Subject for S {
-    fn grammar(&self) -> &Grammar {
-        self.0.grammar()
-    }
-
-    fn parse(&self, text: &str) -> Result<SyntaxNode, String> {
-        let r = self
-            .0
-            .parse(&SourceFile::new("Dockerfile", 1, text))
-            .map_err(|e| e.to_string())?;
-        match r.errors.first() {
-            Some(e) => Err(format!("{} (byte {})", e.message, e.start)),
-            None => Ok(r.tree),
-        }
-    }
-
-    fn format(&self, text: &str) -> Result<String, String> {
-        format_file(
-            &self.0,
-            &SourceFile::new("Dockerfile", 1, text),
-            &option_schema().defaults(),
-            &DirectiveTable::default(),
-        )
-        .map_err(|e| e.to_string())
-    }
-}
+use provider_api::format_testing::{assert_file_names, assert_formats, check_corpus};
 
 /// Formats with every check of the shared helper (round trip, meaning, idempotency, comments).
 #[track_caller]
 fn fmt(input: &str) -> String {
-    assert_formats(&S(lang_dockerfile::provider()), input)
+    assert_formats(lang_dockerfile::provider(), "Dockerfile", input)
 }
 
 /// Every file of the pinned corpus (.NET samples and images, official images, moby, buildx)
-/// parses (but for the grammar gap below), formats with the same instructions and arguments (case and blanks aside: the safety
-/// check) and formats idempotently.
+/// parses (but for the grammar gap below), formats with the same instructions and arguments (case
+/// and blanks aside: the safety check) and formats idempotently.
 ///
 /// `cargo test --profile corpus -p lang-dockerfile --test dockerfile -- --ignored --nocapture conformance`
 #[test]
 #[ignore]
 fn conformance() {
-    let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../../tests/conformance/corpus/dockerfile");
-    let s = S(lang_dockerfile::provider());
-    let mut dirs = vec![dir];
-    let (mut count, mut failures, mut unparsed) = (0, Vec::new(), Vec::new());
-    while let Some(d) = dirs.pop() {
-        for entry in
-            std::fs::read_dir(&d).expect("run tests/conformance/fetch-dockerfile-corpus.sh")
-        {
-            let path = entry.unwrap().path();
-            if path.is_dir() {
-                dirs.push(path);
-                continue;
-            }
-            let text = std::fs::read_to_string(&path).unwrap();
-            count += 1;
-            if let Err(e) = core_format::testing::check(&s, &text) {
-                let e = e.lines().next().unwrap_or("");
-                let list = if e.starts_with("input: syntax error") {
-                    &mut unparsed
-                } else {
-                    &mut failures
-                };
-                list.push(format!("{}: {e}", path.display()));
-            }
-        }
-    }
-    println!(
-        "{count} files, {} not parsed, {} failures",
-        unparsed.len(),
-        failures.len()
-    );
-    assert!(
-        failures.is_empty(),
-        "{}",
-        failures.join(
-            "
-"
-        )
-    );
+    let (_, unparsed) = check_corpus(lang_dockerfile::provider(), "Dockerfile", "dockerfile", &[]);
     // The grammar fails on a continuation line that starts with `[` after another one
     // (docker-library/python, the Windows images of golang): see docs/formatting/dockerfile.md.
-    assert!(
-        unparsed.len() <= 40,
-        "{}",
-        unparsed.join(
-            "
-"
-        )
-    );
+    assert!(unparsed.len() <= 40, "{}", unparsed.join("\n"));
 }
 
 #[test]
 fn matches_the_file_name() {
-    let p = lang_dockerfile::provider();
-    let m = p.file_matchers();
-    for yes in [
-        "a/Dockerfile",
-        "Containerfile",
-        "Dockerfile.dev",
-        "x.dockerfile",
-    ] {
-        assert!(m.iter().any(|m| m.matches(&PathBuf::from(yes))), "{yes}");
-    }
-    for no in ["a/Dockerfiles", "docker.json", "my-Dockerfile"] {
-        assert!(!m.iter().any(|m| m.matches(&PathBuf::from(no))), "{no}");
-    }
+    assert_file_names(
+        &lang_dockerfile::provider(),
+        &[
+            "a/Dockerfile",
+            "Containerfile",
+            "Dockerfile.dev",
+            "x.dockerfile",
+        ],
+        &["a/Dockerfiles", "docker.json", "my-Dockerfile"],
+    );
 }
 
 #[test]

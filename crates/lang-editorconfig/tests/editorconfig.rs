@@ -1,44 +1,9 @@
-use core_format::DirectiveTable;
-use core_format::testing::{Subject, assert_formats};
-use core_syntax::{Grammar, SyntaxNode};
-use core_treesitter::TreeSitterProvider;
-use lang_editorconfig::option_schema;
-use provider_api::{LanguageProvider, SourceFile, format_file};
-use std::path::PathBuf;
-
-struct S(TreeSitterProvider);
-
-impl Subject for S {
-    fn grammar(&self) -> &Grammar {
-        self.0.grammar()
-    }
-
-    fn parse(&self, text: &str) -> Result<SyntaxNode, String> {
-        let r = self
-            .0
-            .parse(&SourceFile::new(".editorconfig", 1, text))
-            .map_err(|e| e.to_string())?;
-        match r.errors.first() {
-            Some(e) => Err(format!("{} (byte {})", e.message, e.start)),
-            None => Ok(r.tree),
-        }
-    }
-
-    fn format(&self, text: &str) -> Result<String, String> {
-        format_file(
-            &self.0,
-            &SourceFile::new(".editorconfig", 1, text),
-            &option_schema().defaults(),
-            &DirectiveTable::default(),
-        )
-        .map_err(|e| e.to_string())
-    }
-}
+use provider_api::format_testing::{Formatting, assert_file_names, assert_formats};
 
 /// Formats with every check of the shared helper (round trip, meaning, idempotency, comments).
 #[track_caller]
 fn fmt(input: &str) -> String {
-    assert_formats(&S(lang_editorconfig::provider()), input)
+    assert_formats(lang_editorconfig::provider(), ".editorconfig", input)
 }
 
 /// The `.editorconfig` files of dotnet/runtime, roslyn and aspnetcore parse without errors, keep
@@ -50,7 +15,7 @@ fn fmt(input: &str) -> String {
 fn conformance() {
     let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("../../tests/conformance/corpus/editorconfig");
-    let s = S(lang_editorconfig::provider());
+    let s = Formatting::new(lang_editorconfig::provider(), ".editorconfig");
     for entry in std::fs::read_dir(dir).expect("run tests/conformance/fetch-editorconfig-corpus.sh")
     {
         let path = entry.unwrap().path();
@@ -69,15 +34,10 @@ fn conformance() {
 
 #[test]
 fn matches_the_file_name() {
-    let p = lang_editorconfig::provider();
-    let m = p.file_matchers();
-    assert!(
-        m.iter()
-            .any(|m| m.matches(&PathBuf::from("a/b/.editorconfig")))
-    );
-    assert!(
-        !m.iter()
-            .any(|m| m.matches(&PathBuf::from("a/b/x.editorconfig")))
+    assert_file_names(
+        &lang_editorconfig::provider(),
+        &["a/b/.editorconfig"],
+        &["a/b/x.editorconfig"],
     );
 }
 

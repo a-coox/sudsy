@@ -1,5 +1,4 @@
 id: doc-param-has-text
-language: csharp
 family: doc-element
 params: { check: text, element: param, scope: element, skip-inheritdoc: true, report: element }
 message: "the <param> should have text"

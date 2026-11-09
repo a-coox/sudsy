@@ -1,5 +1,4 @@
 id: no-plain-text-password
-language: powershell
 message: a password parameter should be a SecureString or a PSCredential, not a string
 description: A `[string]` parameter whose name contains `password`, `passphrase` or `cred`.
 example: 'param([string]$Password)'
@@ -8,7 +7,6 @@ category: suspicious
 rule: { kind: ParamDecl, regex: '(?is)\[string\]\s*\$\w*(password|passphrase|cred)\w*(\s|=|,|$)' }
 ---
 id: no-default-true-switch
-language: powershell
 message: a switch parameter should not default to $true; the caller cannot turn it off
 description: A `[switch]` parameter with the default value `$true`.
 example: 'param([switch]$Force = $true)'
@@ -17,7 +15,6 @@ category: suspicious
 rule: { kind: ParamDecl, regex: '(?is)\[switch\]\s*\$\w+\s*=\s*\$true\b' }
 ---
 id: empty-catch-block
-language: powershell
 message: the catch block is empty; handle the error or write why it is ignored
 description: A `catch` clause whose block has no statement (a comment does not count).
 example: 'try { f } catch { }'
@@ -28,7 +25,6 @@ rule:
   child: { kind: Block, regex: '(?s)^\{(\s|#[^\n]*|<#.*?#>)*\}$' }
 ---
 id: approved-verbs
-language: powershell
 message: the verb of the function name is not an approved PowerShell verb (see Get-Verb)
 description: A function named `Verb-Noun` whose verb is not in the list `Get-Verb` returns. Names without a dash are not checked.
 example: 'function Fetch-Data { }'
@@ -41,7 +37,6 @@ token:
   not-regex: '(?i)^([A-Za-z]+:)?(Add|Approve|Assert|Backup|Block|Build|Checkpoint|Clear|Close|Compare|Complete|Compress|Confirm|Connect|Convert|ConvertFrom|ConvertTo|Copy|Debug|Deny|Deploy|Disable|Disconnect|Dismount|Edit|Enable|Enter|Exit|Expand|Export|Find|Format|Get|Grant|Group|Hide|Import|Initialize|Install|Invoke|Join|Limit|Lock|Measure|Merge|Mount|Move|New|Open|Optimize|Out|Ping|Pop|Protect|Publish|Push|Read|Receive|Redo|Register|Remove|Rename|Repair|Request|Reset|Resize|Resolve|Restart|Restore|Resume|Revoke|Save|Search|Select|Send|Set|Show|Skip|Split|Start|Step|Stop|Submit|Suspend|Switch|Sync|Test|Trace|Unblock|Undo|Uninstall|Unlock|Unprotect|Unpublish|Unregister|Update|Use|Wait|Watch|Write)-'
 ---
 id: no-global-vars
-language: powershell
 message: avoid the global scope; pass the value as a parameter or use the script or module scope
 description: A variable in the `global:` scope, other than the special variables PSScriptAnalyzer exempts (`$global:LASTEXITCODE`, `$global:ErrorActionPreference`, `$global:PSDefaultParameterValues`, ...).
 example: '$global:count = 1'
@@ -52,7 +47,6 @@ rule:
 token: { kind: [Word], needs: ':', regex: '(?i)^[$@](\{)?global:', not-regex: '(?i)^[$@]\{?global:(\w+Preference|PSDefaultParameterValues|LASTEXITCODE|Error|Host|HOME|PWD|PSHOME|PSVersionTable|ShellId|ExecutionContext|OFS|OutputEncoding|MaximumHistoryCount|StackTrace|Matches|input|true|false|null)\b' }
 ---
 id: no-automatic-variable-assignment
-language: powershell
 message: do not use the name of an automatic variable for a variable or parameter
 description: An assignment to, a parameter named like, or a `foreach` variable named like an automatic variable (`$Error`, `$Event`, `$input`, `$PSItem`, `$_`, `$PWD`, `$Host`, `$this`, `$true`, ...). `$null = ...` is fine.
 example: '$input = 1'
@@ -63,7 +57,6 @@ rule:
   regex: '(?is)^(foreach\s*\(\s*|(\[[^\]]*\]\s*)*)\$(args|ConsoleFileName|Error|Event|EventArgs|EventSubscriber|ExecutionContext|false|foreach|HOME|Host|input|IsCoreCLR|IsLinux|IsMacOS|IsWindows|Matches|MyInvocation|NestedPromptLevel|PID|PROFILE|PSBoundParameters|PSCmdlet|PSCommandPath|PSCulture|PSDebugContext|PSEdition|PSHOME|PSItem|PSScriptRoot|PSSenderInfo|PSUICulture|PSVersionTable|PWD|Sender|ShellId|StackTrace|this|true|_)\b(\s*[-+*/%?]*=([^=]|$)|\s+in\b|\s*$)'
 ---
 id: null-comparison-side
-language: powershell
 message: put $null on the left of the comparison; with an array on the left `$x -eq $null` filters instead of testing
 description: A `-eq`, `-ne` (or case variant) comparison with `$null` on the right.
 example: 'if ($x -eq $null) { }'

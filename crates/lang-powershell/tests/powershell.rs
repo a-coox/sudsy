@@ -1,106 +1,33 @@
-use core_format::DirectiveTable;
-use core_format::testing::{Subject, assert_formats};
-use core_syntax::{Grammar, SyntaxNode};
-use core_treesitter::TreeSitterProvider;
-use lang_powershell::option_schema;
-use provider_api::{LanguageProvider, SourceFile, format_file};
-use std::path::PathBuf;
-
-struct S(TreeSitterProvider);
-
-impl Subject for S {
-    fn grammar(&self) -> &Grammar {
-        self.0.grammar()
-    }
-
-    fn parse(&self, text: &str) -> Result<SyntaxNode, String> {
-        let r = self
-            .0
-            .parse(&SourceFile::new("a.ps1", 1, text))
-            .map_err(|e| e.to_string())?;
-        match r.errors.first() {
-            Some(e) => Err(format!("{} (byte {})", e.message, e.start)),
-            None => Ok(r.tree),
-        }
-    }
-
-    fn format(&self, text: &str) -> Result<String, String> {
-        format_file(
-            &self.0,
-            &SourceFile::new("a.ps1", 1, text),
-            &option_schema().defaults(),
-            &DirectiveTable::default(),
-        )
-        .map_err(|e| e.to_string())
-    }
-}
+use provider_api::format_testing::{assert_file_names, assert_formats, check_corpus};
 
 /// Formats with every check of the shared helper (round trip, meaning, idempotency, comments).
 #[track_caller]
 fn fmt(input: &str) -> String {
-    assert_formats(&S(lang_powershell::provider()), input)
+    assert_formats(lang_powershell::provider(), "a.ps1", input)
 }
 
 /// Every `.ps1` and `.psm1` file of the pinned corpus (`tests/conformance/fetch-powershell-corpus.sh`)
 /// that tree-sitter parses formats with the same tokens (the safety check) and idempotently.
-/// With `SUDSY_PS_OUT=<dir>` the outputs are written there, named like the corpus path.
 ///
 /// `cargo test --profile corpus -p lang-powershell --test powershell -- --ignored --nocapture conformance`
 #[test]
 #[ignore]
 fn conformance() {
-    let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../../tests/conformance/corpus/powershell");
-    let s = S(lang_powershell::provider());
-    let mut dirs = vec![dir];
-    let (mut count, mut failures, mut unparsed) = (0, Vec::new(), Vec::new());
-    while let Some(d) = dirs.pop() {
-        for entry in
-            std::fs::read_dir(&d).expect("run tests/conformance/fetch-powershell-corpus.sh")
-        {
-            let path = entry.unwrap().path();
-            if path.is_dir() {
-                dirs.push(path);
-                continue;
-            }
-            let Ok(text) = std::fs::read_to_string(&path) else {
-                continue;
-            };
-            if !path.extension().is_some_and(|e| e == "ps1" || e == "psm1") {
-                continue;
-            }
-            let text = text.trim_start_matches('\u{feff}');
-            count += 1;
-            if let Err(e) = core_format::testing::check(&s, text) {
-                let e = e.lines().next().unwrap_or("");
-                let list = if e.starts_with("input: ") {
-                    &mut unparsed
-                } else {
-                    &mut failures
-                };
-                list.push(format!("{}: {e}", path.display()));
-            }
-        }
-    }
-    println!(
-        "{count} files, {} not parsed, {} failures",
-        unparsed.len(),
-        failures.len()
+    check_corpus(
+        lang_powershell::provider(),
+        "a.ps1",
+        "powershell",
+        &["ps1", "psm1"],
     );
-    println!("{}", unparsed.join("\n"));
-    assert!(failures.is_empty(), "{}", failures.join("\n"));
 }
 
 #[test]
 fn matches_the_file_name() {
-    let p = lang_powershell::provider();
-    let m = p.file_matchers();
-    for yes in ["a/build.ps1", "x.psm1", "mod.psd1"] {
-        assert!(m.iter().any(|m| m.matches(&PathBuf::from(yes))), "{yes}");
-    }
-    for no in ["ps1", "a.ps1x", "a.sh"] {
-        assert!(!m.iter().any(|m| m.matches(&PathBuf::from(no))), "{no}");
-    }
+    assert_file_names(
+        &lang_powershell::provider(),
+        &["a/build.ps1", "x.psm1", "mod.psd1"],
+        &["ps1", "a.ps1x", "a.sh"],
+    );
 }
 
 #[test]

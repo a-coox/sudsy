@@ -1,5 +1,4 @@
 id: use-tuple-syntax
-language: csharp
 family: finding
 params: { check: value_tuple, fix-title: "Use tuple syntax" }
 message: "use tuple syntax instead of `ValueTuple`"

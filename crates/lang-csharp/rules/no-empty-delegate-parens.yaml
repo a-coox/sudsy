@@ -1,5 +1,4 @@
 id: no-empty-delegate-parens
-language: csharp
 message: the anonymous method has an empty parameter list
 description: >-
   An anonymous method with an empty parameter list: `delegate() { }` is `delegate { }`. Parentheses

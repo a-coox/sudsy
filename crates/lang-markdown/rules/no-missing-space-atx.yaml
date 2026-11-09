@@ -1,5 +1,4 @@
 id: no-missing-space-atx
-language: markdown
 message: there is no space after the # of the heading
 description: >-
   A paragraph that starts with one to six `#` and no space reads as a heading to people but is

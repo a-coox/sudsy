@@ -1,5 +1,4 @@
 id: doc-summary-text
-language: csharp
 family: doc-element
 params: { check: text, element: summary, scope: summary, partial: no, report: names }
 message: "the <summary> should have text"

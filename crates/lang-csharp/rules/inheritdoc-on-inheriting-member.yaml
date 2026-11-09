@@ -1,5 +1,4 @@
 id: inheritdoc-on-inheriting-member
-language: csharp
 family: finding
 params: { check: inheritdoc }
 message: "`inheritdoc` is only for members that override or implement something"

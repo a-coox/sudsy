@@ -1,5 +1,4 @@
 id: no-unneeded-base-prefix
-language: csharp
 family: finding
 params: { check: base_call, fix-title: "Use `this`" }
 message: "do not prefix the call with `base`: this type does not override the member"

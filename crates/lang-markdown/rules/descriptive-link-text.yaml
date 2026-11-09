@@ -1,5 +1,4 @@
 id: descriptive-link-text
-language: markdown
 message: the link text does not describe the destination
 description: >-
   Link text that is `click here`, `here`, `link` or `more` (markdownlint MD059).

@@ -69,11 +69,11 @@ fn regex(text: &str) -> String {
     format!("^{escaped}$")
 }
 
-fn yaml_rule(language: &str, id: &str, starter: &Starter) -> String {
+fn yaml_rule(id: &str, starter: &Starter) -> String {
     let kind = &starter.kind;
     let regex = regex(&starter.reported).replace('\'', "''");
     format!(
-        "id: {id}\nlanguage: {language}\nmessage: TODO what the diagnostic says\n\
+        "id: {id}\nmessage: TODO what the diagnostic says\n\
          description: TODO what the rule reports, and what it leaves alone.\n\
          example: 'TODO code that triggers the rule   // write: what it should be'\n\
          severity: off\ncategory: style\nrule:\n  kind: {kind}\n  regex: '{regex}'\n"
@@ -196,7 +196,7 @@ pub fn new_rule(root: &Path, language: &str, id: &str, rust: bool) -> Result<Str
         file
     } else {
         let file = krate.join("rules").join(format!("{id}.yaml"));
-        write_new(&file, &yaml_rule(language, id, &starter))?;
+        write_new(&file, &yaml_rule(id, &starter))?;
         file
     };
     let case = root

@@ -1,65 +1,25 @@
 use core_config::OptionValue;
-use core_format::DirectiveTable;
-use core_format::testing::{Subject, assert_formats};
-use core_syntax::{Grammar, SyntaxNode, print, trivia};
-use core_treesitter::TreeSitterProvider;
-use lang_toml::option_schema;
-use provider_api::{LanguageProvider, SourceFile, format_file};
+use core_syntax::{print, trivia};
+use provider_api::format_testing::Formatting;
+use provider_api::{LanguageProvider, SourceFile};
 use std::path::{Path, PathBuf};
-
-struct S {
-    provider: TreeSitterProvider,
-    options: Vec<(&'static str, OptionValue)>,
-}
-
-fn subject(options: &[(&'static str, OptionValue)]) -> S {
-    S {
-        provider: lang_toml::provider(),
-        options: options.to_vec(),
-    }
-}
-
-impl Subject for S {
-    fn grammar(&self) -> &Grammar {
-        self.provider.grammar()
-    }
-
-    fn parse(&self, text: &str) -> Result<SyntaxNode, String> {
-        let r = self
-            .provider
-            .parse(&SourceFile::new("a.toml", 1, text))
-            .map_err(|e| e.to_string())?;
-        match r.errors.first() {
-            Some(e) => Err(format!("{} (byte {})", e.message, e.start)),
-            None => Ok(r.tree),
-        }
-    }
-
-    fn format(&self, text: &str) -> Result<String, String> {
-        let schema = option_schema();
-        let mut options = schema.defaults();
-        for (k, v) in &self.options {
-            schema.apply(&mut options, k, v).unwrap();
-        }
-        format_file(
-            &self.provider,
-            &SourceFile::new("a.toml", 1, text),
-            &options,
-            &DirectiveTable::default(),
-        )
-        .map_err(|e| e.to_string())
-    }
-}
 
 /// Formats with every check of the shared helper (round trip, meaning, idempotency, comments).
 #[track_caller]
 fn fmt(input: &str) -> String {
-    assert_formats(&subject(&[]), input)
+    fmt_with(input, &[])
 }
 
 #[track_caller]
 fn fmt_with(input: &str, options: &[(&'static str, OptionValue)]) -> String {
-    assert_formats(&subject(options), input)
+    core_format::testing::assert_formats(&subject(options), input)
+}
+
+fn subject(options: &[(&'static str, OptionValue)]) -> Formatting {
+    Formatting {
+        options: options.to_vec(),
+        ..Formatting::new(lang_toml::provider(), "a.toml")
+    }
 }
 
 fn s(v: &str) -> OptionValue {

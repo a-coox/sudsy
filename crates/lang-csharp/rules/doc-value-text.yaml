@@ -1,5 +1,4 @@
 id: doc-value-text
-language: csharp
 family: doc-element
 params: { check: text, element: value, scope: property, skip-inheritdoc: true, report: names }
 message: "the <value> should have text"

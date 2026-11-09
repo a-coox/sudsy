@@ -1,5 +1,4 @@
 id: doc-typeparam-has-text
-language: csharp
 family: doc-element
 params: { check: text, element: typeparam, scope: generic, skip-inheritdoc: true, report: element }
 message: "the <typeparam> should have text"

@@ -1,5 +1,4 @@
 id: no-space-in-code
-language: markdown
 message: the code span has spaces inside its backticks
 description: >-
   A code span that starts or ends with a space (markdownlint MD038). A span with a space on both

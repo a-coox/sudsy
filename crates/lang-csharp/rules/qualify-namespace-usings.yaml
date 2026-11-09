@@ -1,5 +1,4 @@
 id: qualify-namespace-usings
-language: csharp
 family: finding
 params: { check: unqualified_using, fix-title: "Qualify the using" }
 message: "the using is not fully qualified (`{text}`)"

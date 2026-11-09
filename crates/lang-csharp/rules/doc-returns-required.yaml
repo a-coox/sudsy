@@ -1,5 +1,4 @@
 id: doc-returns-required
-language: csharp
 family: doc-element
 params: { check: required, element: returns, scope: returning, skip-inheritdoc: true, report: return-type }
 message: "the return value should be documented with <returns>"

@@ -1,5 +1,4 @@
 id: no-regions
-language: csharp
 message: do not use regions
 description: >-
   `#region` hides code behind a label. Reported on every `#region` outside a block (a region

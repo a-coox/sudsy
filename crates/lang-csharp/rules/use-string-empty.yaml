@@ -1,5 +1,4 @@
 id: use-string-empty
-language: csharp
 message: use string.Empty for an empty string
 description: >-
   `string.Empty` instead of `""` (or `@""`). Not reported where a constant is required:

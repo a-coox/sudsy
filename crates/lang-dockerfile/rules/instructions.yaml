@@ -1,5 +1,4 @@
 id: workdir-absolute
-language: dockerfile
 message: 'WORKDIR should be an absolute path'
 description: >-
   A WORKDIR whose path is not absolute (a leading `/`, a drive letter or a variable).
@@ -12,7 +11,6 @@ rule:
   not: { regex: '(?is)^workdir[ \t\r\n]+["'']?(?:[/$]|[A-Za-z]:)' }
 ---
 id: no-latest-tag
-language: dockerfile
 message: 'pin the base image to a release tag, not latest'
 description: >-
   A FROM image tagged `latest` (without a digest).
@@ -24,7 +22,6 @@ rule:
   regex: '(?is)^from[ \t\r\n]+(?:--[^ \t\r\n]+[ \t\r\n]+)*[^ \t\r\n@]*:latest(?:[ \t\r\n]|$)'
 ---
 id: expose-port-range
-language: dockerfile
 message: 'valid ports range from 0 to 65535'
 description: >-
   An EXPOSE with a port above 65535.
@@ -36,7 +33,6 @@ rule:
   regex: '(?is)^expose[ \t\r\n](?:.*[[ \t\r\n]-])?(?:6553[6-9]|655[4-9][0-9]|65[6-9][0-9][0-9]|6[6-9][0-9]{3}|[7-9][0-9]{4}|[0-9]{6,})(?:[ \t\r\n]|/|$)'
 ---
 id: json-cmd-entrypoint
-language: dockerfile
 message: 'use the JSON form for CMD and ENTRYPOINT'
 description: >-
   A CMD, ENTRYPOINT or HEALTHCHECK CMD in shell form, which runs under `sh -c` and does not get signals.
@@ -49,7 +45,6 @@ rule:
   not: { parent: { regex: '(?is)^onbuild(?-u:\b)' } }
 ---
 id: no-from-platform
-language: dockerfile
 message: 'do not set --platform on FROM'
 description: >-
   A FROM with a fixed `--platform`; a variable such as `$BUILDPLATFORM` is fine.
@@ -62,7 +57,6 @@ rule:
   not: { regex: '(?is)^from[ \t\r\n]+--platform=[^ \t\r\n]*(?:BUILDPLATFORM|TARGETPLATFORM)' }
 ---
 id: no-redundant-target-platform
-language: dockerfile
 message: 'the target platform is the default platform of FROM; drop the option'
 description: >-
   A FROM with `--platform=$TARGETPLATFORM`, which is what it does without the option.
@@ -74,7 +68,6 @@ rule:
   regex: '(?is)^from[ \t\r\n]+--platform=\$\{?TARGETPLATFORM\}?(?:[ \t\r\n]|$)'
 ---
 id: no-nested-onbuild
-language: dockerfile
 message: 'ONBUILD cannot trigger ONBUILD, FROM or MAINTAINER'
 description: >-
   An ONBUILD whose instruction is ONBUILD, FROM or MAINTAINER.
@@ -87,7 +80,6 @@ rule:
   child: { kind: Instruction, regex: '(?is)^(?:onbuild|from|maintainer)(?-u:\b)' }
 ---
 id: no-reserved-stage-name
-language: dockerfile
 message: 'the stage name is a reserved word'
 description: >-
   A stage named `scratch` or `context`.
@@ -99,7 +91,6 @@ rule:
   regex: '(?is)^from[ \t\r\n].*[ \t\r\n]as[ \t\r\n]+(?:scratch|context)[ \t\r\n]*$'
 ---
 id: no-maintainer
-language: dockerfile
 message: 'MAINTAINER is deprecated; use LABEL maintainer=...'
 description: >-
   A MAINTAINER instruction.
@@ -111,7 +102,6 @@ rule:
   regex: '(?is)^maintainer(?-u:\b)'
 ---
 id: no-copy-whole-stage
-language: dockerfile
 message: 'do not copy an entire filesystem from another stage'
 description: >-
   A `COPY --from` with `/` as a source and as the target.
@@ -123,7 +113,6 @@ rule:
   regex: '(?is)^copy[ \t\r\n].*--from=[^ \t\r\n].*[ \t\r\n]["'']?/["'']?(?:[ \t\r\n]+[^ \t\r\n]+)*?[ \t\r\n]+["'']?/["'']?[ \t\r\n]*$'
 ---
 id: copy-instead-of-add
-language: dockerfile
 message: 'use COPY instead of ADD for files and folders'
 description: >-
   An ADD with no URL and no archive (`.tar`, `.gz`, `.tgz`, `.xz` and the like) among its arguments,
@@ -138,7 +127,6 @@ rule:
     regex: '(?i)(?:(?-u:\b)https?://|\.(?:tar|z|bz2|gz|lz|lzma|tz|tb2|tbz|tbz2|tgz|tlz|tpz|txz|xz)["'']?(?:[ \t\r\n]|$))'
 ---
 id: copy-many-needs-directory
-language: dockerfile
 message: 'COPY with several sources needs a target ending in /'
 description: >-
   A COPY with more than one source whose last argument does not end with `/`.
@@ -152,7 +140,6 @@ rule:
     - not: { regex: '<<' }
 ---
 id: numeric-user-id
-language: dockerfile
 message: 'a non-numeric user may not be resolvable by the host; use a numeric id'
 description: >-
   A USER that is a name rather than a numeric id (a variable is accepted).
@@ -165,7 +152,6 @@ rule:
   not: { regex: '(?is)^user[ \t\r\n]+["'']?(?:[0-9]+(?:[:"''[ \t\r\n]]|$)|\$)' }
 ---
 id: no-secret-in-env
-language: dockerfile
 message: 'potentially sensitive data should not be set with ARG or ENV'
 description: >-
   An ARG or ENV whose name contains `api_key`, `client_key`, `password`, `private`, `secret`, `token`

@@ -1,5 +1,4 @@
 id: no-emphasis-as-heading
-language: markdown
 message: emphasis is used instead of a heading
 description: >-
   A one-line paragraph that is only emphasized text without closing punctuation (markdownlint

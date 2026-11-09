@@ -1,5 +1,4 @@
 id: doc-returns-has-text
-language: csharp
 family: doc-element
 params: { check: text, element: returns, scope: element, skip-inheritdoc: true, report: element }
 message: "the <returns> should have text"

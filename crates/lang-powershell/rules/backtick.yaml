@@ -1,5 +1,4 @@
 id: no-misleading-backtick
-language: powershell
 message: a backtick followed by blanks escapes the blank, not the line break; remove the blanks after it
 description: A backtick that is followed by blanks before the end of the line, so it does not continue the line.
 example: "Get-ChildItem `  \n  -Force"

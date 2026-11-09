@@ -1,5 +1,4 @@
 id: no-flow-mappings
-language: yaml
 message: flow mappings are not allowed
 description: "A flow mapping (`{a: 1}`); write a block mapping instead."
 example: "point: {x: 1}   # reported; write the entries on their own lines"
