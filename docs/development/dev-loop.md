@@ -12,6 +12,7 @@
 | `bench.sh`, `bench-time.sh`, `bench-measure.sh`, `bench-setup-wsl.sh` | [performance/tooling.md](../performance/tooling.md) |
 | `parity.sh <tool>`, `parity.sh format <tool>` | Differential test against an upstream tool on `tests/parity/<tool>/` fixtures: [parity.md](parity.md) |
 | `pack.sh <out> [language...]`, `pack-bench.sh` | Build language packs and their manifest for this machine; static vs pack timing and sizes ([../architecture/language-packs.md](../architecture/language-packs.md)) |
+| `agent-stats.py [<subagents dir>] [N]` | Summary of the newest N (10) Claude Code subagent transcripts: model vs tool minutes, gate/bench launches, watchers, errors by kind, the commit whose CLAUDE.md each agent was given |
 | `check-version.sh [vX.Y.Z]` | Cargo workspace, `editors/vscode/package.json` + lock, tag and `CHANGELOG.md` agree |
 | `package-cli.sh` | CLI archive: executable, `csharp-worker/`, LICENSE, CHANGELOG |
 
