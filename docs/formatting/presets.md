@@ -18,6 +18,7 @@ Why plain config and unversioned: no hidden values or code paths per tool, and a
 | `toml/default` | The defaults. |
 | `toml/taplo-compat` | taplo 0.10 defaults: width 80, two spaces, LF, `collapse: always` (an array that fits goes on one line), up to two blank lines (`max_blank_lines: 2`) and `align_comments: true`. Checked against taplo by `scripts/parity.sh format taplo`. |
 | `markdown/prettier-compat` | Prettier 3.9 with `proseWrap: preserve`: two-column list alignment, LF. Checked against Prettier by `scripts/parity.sh format prettier`. |
+| `protobuf/buf-standard` | buf's STANDARD lint category: the rules Sudsy has at `warn` (the formatter has no style options). Checked against buf by `scripts/parity.sh buf`. |
 | `xml/default` | The defaults. |
 | `xml/csharpier-compat` | CSharpier 1.x XML defaults: width 100, two spaces, line endings kept. |
 | `yaml/yamllint` | yamllint's default config: lint levels (line length 80 at error, `no-undefined-alias` at error, `ambiguous-booleans`, `document-start` and `comment-space` at warn; yamllint's other rules are off by default and so stay off) and output that satisfies it: `comment_spacing: 2`, `max_blank_lines: 2`, `sequence_indent: indented`, width 80. `bracket_spacing: false` (`{a: 1}`) and `end_of_line: lf`. |

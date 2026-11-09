@@ -1,0 +1,7 @@
+message-pascal-case: warn
+enum-pascal-case: warn
+service-pascal-case: warn
+rpc-pascal-case: warn
+field-lower-snake-case: warn
+oneof-lower-snake-case: warn
+enum-value-upper-snake-case: warn

@@ -12,6 +12,8 @@ from pathlib import Path
 
 import yaml
 
+import parity_format
+
 ROOT = Path(__file__).resolve().parent.parent
 PARITY = ROOT / os.environ.get("CARGO_TARGET_DIR", "target") / "parity"
 CATALOGS = {"eslint-jsonc": "eslint-plugin-jsonc"}  # tool name -> catalog file, where they differ
@@ -123,34 +125,41 @@ def rule_fixtures(tool, sudsy, version, exe):
     catalog's rules: upstream codes the catalog does not map are left out.
     `tests/parity/<tool>/expected-diff.txt` lists known differences as
     `<folder>/<name> <tool|sudsy>:<rule> <line>: <reason>`; one that no longer differs fails."""
-    lang, suffix, command, parse = {
+    lang, suffix, command, parse, load = {
         "hadolint": ("dockerfile", ".dockerfile", [exe, "--no-fail", "--no-color", "-f", "json"],
-                     lambda d: (d["code"], d["line"])),
+                     lambda d: (d["code"], d["line"]), json.loads),
         "shellcheck": ("shell", ".sh", [exe, "-s", "bash", "-o", "all", "-f", "json"],
-                       lambda d: (f"SC{d['code']}", d["line"])),
+                       lambda d: (f"SC{d['code']}", d["line"]), json.loads),
+        # one JSON object per line; --path limits the findings to the fixture, the rest of the module is its imports
+        "buf": ("protobuf", ".proto", [exe, "lint", "--error-format=json", "--path"],
+                lambda d: (d["type"], d["start_line"]), lambda out: [json.loads(l) for l in out.splitlines()]),
     }[tool]
     mapping = rule_map(tool)
     folder = ROOT / "tests/parity" / tool
     work = PARITY / f"{tool}-{version}" / "work"
     shutil.rmtree(work, ignore_errors=True)
     work.mkdir(parents=True)
-    shutil.copy(folder / "sudsy.yaml", work / "sudsy.yaml")
+    for config in ("sudsy.yaml", "buf.yaml"):
+        if (folder / config).exists():
+            shutil.copy(folder / config, work / config)
     expected = {}
     for line in (folder / "expected-diff.txt").read_text(encoding="utf-8").splitlines():
         if line.strip() and not line.startswith("#"):
             key, _, reason = line.partition(": ")
-            expected[key] = reason
+            if " " in key:  # a format-mode entry (buf shares the file) has no space
+                expected[key] = reason
     used, mismatches, total = set(), 0, 0
     for source in sorted((ROOT / "tests/rules" / lang).glob(f"*/*{suffix}")):
         text = "".join(
-            l for l in source.read_text(encoding="utf-8").splitlines(keepends=True) if not re.match(r"\s*#?\s*\^", l)
+            l for l in source.read_text(encoding="utf-8").splitlines(keepends=True) if not re.match(r"\s*(?:#|//)?\s*\^", l)
         )
         label = f"{source.parent.name}/{source.stem}"
         fixture = work / f"{source.parent.name}-{source.stem}{suffix}"
         fixture.write_text(text, encoding="utf-8", newline="")
         out = subprocess.run(command + [fixture.name], cwd=work, capture_output=True, text=True, check=False).stdout
-        upstream = {(mapping[c], l, 0) for c, l in map(parse, json.loads(out)) if c in mapping}
+        upstream = {(mapping[c], l, 0) for c, l in map(parse, load(out)) if c in mapping}
         ours = {(r, l, 0) for r, l, _ in sudsy_lint(sudsy, fixture, work, set(mapping.values()))}
+        fixture.unlink()  # buf compiles the whole folder: fixtures that share a package must not meet
         total += len(upstream)
         problems = []
         for side, rows in ((tool, upstream - ours), ("sudsy", ours - upstream)):
@@ -338,6 +347,11 @@ def main():
         return psscriptanalyzer(sudsy, version)
     if tool in ("hadolint", "shellcheck"):
         return rule_fixtures(tool, sudsy, version, sys.argv[4])
+    if tool == "buf":  # installed like the format mode's, by its entry in parity_format.json
+        config = json.loads((ROOT / "scripts/parity_format.json").read_text())["buf"]
+        prefix = PARITY / f"buf-{version}"
+        parity_format.install(config["install"], "buf", version, prefix)
+        return rule_fixtures(tool, sudsy, version, str(parity_format.executable(prefix, "buf")))
     mapping = rule_map(tool)
     folder = ROOT / "tests/parity" / tool
     suffixes = {"eslint-jsonc": (".json",), "markdownlint": (".md",)}.get(tool, (".yaml", ".yml"))

@@ -28,8 +28,8 @@ if [ "$tool" = format ]; then
   exec "$py" scripts/parity_format.py "$tool" "$sudsy" "$tdir"
 fi
 case "$tool" in
-  yamllint|stylecop|eslint-jsonc|markdownlint|hadolint|shellcheck|psscriptanalyzer) ;;
-  *) echo "usage: scripts/parity.sh yamllint|stylecop|eslint-jsonc|markdownlint|hadolint|shellcheck|psscriptanalyzer | format <tool>" >&2; exit 2 ;;
+  yamllint|stylecop|eslint-jsonc|markdownlint|hadolint|shellcheck|psscriptanalyzer|buf) ;;
+  *) echo "usage: scripts/parity.sh yamllint|stylecop|eslint-jsonc|markdownlint|hadolint|shellcheck|psscriptanalyzer|buf | format <tool>" >&2; exit 2 ;;
 esac
 
 py=

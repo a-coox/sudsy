@@ -1,0 +1,4 @@
+enum-first-value-zero: warn
+enum-value-prefix: warn
+enum-zero-value-suffix: warn
+enum-no-allow-alias: warn

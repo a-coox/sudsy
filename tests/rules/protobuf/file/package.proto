@@ -1,0 +1,8 @@
+syntax = "proto3";
+
+package Acme.core;
+//      ^^^^^^^^^ package-lower-snake-case
+//      ^^^^^^^^^ package-version-suffix
+
+service Thing {}
+//      ^^^^^ service-suffix

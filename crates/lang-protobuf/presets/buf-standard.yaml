@@ -1,0 +1,25 @@
+# buf's STANDARD lint category: the rules Sudsy has, at warn (the rest are in docs/parity/buf.yaml).
+protobuf:
+  lint:
+    rules:
+      message-pascal-case: warn
+      enum-pascal-case: warn
+      service-pascal-case: warn
+      rpc-pascal-case: warn
+      field-lower-snake-case: warn
+      oneof-lower-snake-case: warn
+      enum-value-upper-snake-case: warn
+      enum-zero-value-suffix: warn
+      enum-no-allow-alias: warn
+      enum-first-value-zero: warn
+      enum-value-prefix: warn
+      package-defined: warn
+      syntax-specified: warn
+      package-lower-snake-case: warn
+      package-version-suffix: warn
+      import-no-public: warn
+      field-not-required: warn
+      service-suffix: warn
+      rpc-request-standard-name: warn
+      rpc-response-standard-name: warn
+      file-lower-snake-case: warn

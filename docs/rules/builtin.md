@@ -130,6 +130,27 @@ Twenty-four rules read the `///` and `/** */` comment of a declaration (StyleCop
 | `trap-expands-now` | shell | suspicious | warn | none | A `trap` whose double-quoted command contains an expansion. |
 | `useless-cat` | shell | style | off | none | A pipeline that starts with `cat file`. |
 | `useless-echo` | shell | style | off | none | An `echo` whose only argument is a command substitution. |
+| `enum-first-value-zero` | protobuf | correctness | off | none | The first value of an enum is not 0 (buf lint ENUM_FIRST_VALUE_ZERO). |
+| `enum-no-allow-alias` | protobuf | suspicious | off | none | `option allow_alias = true;` in an enum (buf lint ENUM_NO_ALLOW_ALIAS). |
+| `enum-pascal-case` | protobuf | style | off | none | An enum name that is not PascalCase (buf lint ENUM_PASCAL_CASE). |
+| `enum-value-prefix` | protobuf | style | off | none | An enum value does not start with the enum's name in UPPER_SNAKE_CASE and an underscore (buf lint ENUM_VALUE_PREFIX). |
+| `enum-value-upper-snake-case` | protobuf | style | off | none | An enum value name that is not UPPER_SNAKE_CASE (buf lint ENUM_VALUE_UPPER_SNAKE_CASE). |
+| `enum-zero-value-suffix` | protobuf | style | off | none | An enum value numbered 0 whose name does not end in `_UNSPECIFIED` (buf lint ENUM_ZERO_VALUE_SUFFIX with its default suffix). |
+| `field-lower-snake-case` | protobuf | style | off | none | A field name that is not lower_snake_case (buf lint FIELD_LOWER_SNAKE_CASE). |
+| `field-not-required` | protobuf | suspicious | off | none | A proto2 `required` field (buf lint FIELD_NOT_REQUIRED). |
+| `file-lower-snake-case` | protobuf | style | off | none | The file name (without `.proto`) is not lower_snake_case (buf lint FILE_LOWER_SNAKE_CASE). |
+| `import-no-public` | protobuf | suspicious | off | none | `import public` (buf lint IMPORT_NO_PUBLIC). |
+| `message-pascal-case` | protobuf | style | off | none | A message name that is not PascalCase (buf lint MESSAGE_PASCAL_CASE). |
+| `oneof-lower-snake-case` | protobuf | style | off | none | A oneof name that is not lower_snake_case (buf lint ONEOF_LOWER_SNAKE_CASE). |
+| `package-defined` | protobuf | style | off | none | A file without a `package` statement (buf lint PACKAGE_DEFINED). |
+| `package-lower-snake-case` | protobuf | style | off | none | A package whose components are not lower_snake_case (buf lint PACKAGE_LOWER_SNAKE_CASE). |
+| `package-version-suffix` | protobuf | style | off | none | A package whose last component is not `v1`, `v1test...`, `v1alpha1`, `v1beta1` or `v1p1alpha1` (`v1beta` too; buf lint PACKAGE_VERSION_SUFFIX). |
+| `rpc-pascal-case` | protobuf | style | off | none | An rpc name that is not PascalCase (buf lint RPC_PASCAL_CASE). |
+| `rpc-request-standard-name` | protobuf | style | off | none | The request type of an rpc is not named `<Rpc>Request` or `<Service><Rpc>Request` (buf lint RPC_REQUEST_STANDARD_NAME). |
+| `rpc-response-standard-name` | protobuf | style | off | none | The response type of an rpc is not named `<Rpc>Response` or `<Service><Rpc>Response` (buf lint RPC_RESPONSE_STANDARD_NAME). |
+| `service-pascal-case` | protobuf | style | off | none | A service name that is not PascalCase (buf lint SERVICE_PASCAL_CASE). |
+| `service-suffix` | protobuf | style | off | none | A service whose name does not end in `Service` (buf lint SERVICE_SUFFIX with its default suffix). |
+| `syntax-specified` | protobuf | style | off | none | A file without `syntax = ...;` or `edition = ...;`, which makes it proto2 (buf lint SYNTAX_SPECIFIED). |
 | `approved-verbs` | powershell | style | warn | none | A function named `Verb-Noun` whose verb is not in the list `Get-Verb` returns. Names without a dash are not checked. |
 | `empty-catch-block` | powershell | suspicious | warn | none | A `catch` clause whose block has no statement (a comment does not count). |
 | `no-automatic-variable-assignment` | powershell | correctness | warn | none | An assignment to, a parameter named like, or a `foreach` variable named like an automatic variable (`$Error`, `$Event`, `$input`, `$PSItem`, `$_`, `$PWD`, `$Host`, `$this`, `$true`, ...). `$null = ...` is fine. |

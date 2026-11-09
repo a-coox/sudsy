@@ -1,0 +1,28 @@
+id: field-lower-snake-case
+message: 'field names are lower_snake_case'
+description: >-
+  A field name that is not lower_snake_case (buf lint FIELD_LOWER_SNAKE_CASE).
+example: 'string FooBar = 1;'
+severity: off
+category: style
+rule: { any: [{ kind: Field }, { kind: OneofField }, { kind: MapField }] }
+token: { kind: [Ident], not-regex: '^[a-z][a-z0-9]*(_[a-z0-9]+)*$' }
+---
+id: oneof-lower-snake-case
+message: 'oneof names are lower_snake_case'
+description: >-
+  A oneof name that is not lower_snake_case (buf lint ONEOF_LOWER_SNAKE_CASE).
+example: 'oneof FooBar { int32 a = 1; }'
+severity: off
+category: style
+rule: { kind: Oneof }
+token: { kind: [Ident], not-regex: '^[a-z][a-z0-9]*(_[a-z0-9]+)*$' }
+---
+id: package-lower-snake-case
+message: 'package names are lower_snake.case'
+description: >-
+  A package whose components are not lower_snake_case (buf lint PACKAGE_LOWER_SNAKE_CASE).
+example: 'package Foo.Bar;'
+severity: off
+category: style
+rule: { kind: FullIdent, parent: { kind: Package }, not: { regex: '^[a-z][a-z0-9]*(_[a-z0-9]+)*(\.[a-z][a-z0-9]*(_[a-z0-9]+)*)*$' } }

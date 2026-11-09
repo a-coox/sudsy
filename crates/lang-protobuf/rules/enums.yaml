@@ -1,0 +1,29 @@
+id: enum-value-upper-snake-case
+message: 'enum value names are UPPER_SNAKE_CASE'
+description: >-
+  An enum value name that is not UPPER_SNAKE_CASE (buf lint ENUM_VALUE_UPPER_SNAKE_CASE).
+example: 'enum E { Foo = 0; }'
+severity: off
+category: style
+rule: { kind: EnumField }
+token: { kind: [Ident], not-regex: '^[A-Z][A-Z0-9]*(_[A-Z0-9]+)*$' }
+---
+id: enum-zero-value-suffix
+message: 'the zero value of an enum ends in _UNSPECIFIED'
+description: >-
+  An enum value numbered 0 whose name does not end in `_UNSPECIFIED` (buf lint
+  ENUM_ZERO_VALUE_SUFFIX with its default suffix).
+example: 'enum E { E_NONE = 0; }'
+severity: off
+category: style
+rule: { kind: EnumField, regex: '=\s*-?\s*0\s*(?:\[|;)' }
+token: { kind: [Ident], not-regex: '_UNSPECIFIED$' }
+---
+id: enum-no-allow-alias
+message: 'the enum allows aliases'
+description: >-
+  `option allow_alias = true;` in an enum (buf lint ENUM_NO_ALLOW_ALIAS).
+example: 'enum E { option allow_alias = true; A = 0; B = 0; }'
+severity: off
+category: suspicious
+rule: { kind: OptionDecl, parent: { kind: EnumBody }, regex: '^option\s+allow_alias\s*=\s*true\b' }

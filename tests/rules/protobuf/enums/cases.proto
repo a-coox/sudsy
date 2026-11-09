@@ -1,0 +1,34 @@
+syntax = "proto2";
+
+package acme.v1;
+
+enum Good {
+  GOOD_UNSPECIFIED = 0;
+  GOOD_ONE = 1;
+}
+
+enum FirstNotZero {
+  FIRST_NOT_ZERO_ONE = 1;
+//                     ^ enum-first-value-zero
+  FIRST_NOT_ZERO_UNSPECIFIED = 0;
+}
+
+enum NoSuffix {
+  NO_SUFFIX_NONE = 0;
+//^^^^^^^^^^^^^^ enum-zero-value-suffix
+  NO_SUFFIX_ONE = 1;
+}
+
+enum HTTPCode {
+  HTTP_CODE_UNSPECIFIED = 0;
+  OTHER_PREFIX = 1;
+//^^^^^^^^^^^^ enum-value-prefix
+}
+
+enum Aliased {
+  option allow_alias = true;
+//^^^^^^^^^^^^^^^^^^^^^^^^^^ enum-no-allow-alias
+  ALIASED_UNSPECIFIED = 0;
+  ALIASED_NONE = 0;
+//^^^^^^^^^^^^ enum-zero-value-suffix
+}

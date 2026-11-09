@@ -1,0 +1,10 @@
+import public "google/protobuf/empty.proto";
+^ file-lower-snake-case
+^^^^^^ package-defined
+^^^^^^ syntax-specified
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ import-no-public
+
+message Old {
+  required string name = 1;
+//^^^^^^^^^^^^^^^^^^^^^^^^^ field-not-required
+}

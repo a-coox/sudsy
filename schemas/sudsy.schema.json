@@ -282,6 +282,30 @@
               "$ref": "#/definitions/rule",
               "description": "A `[section]` header with nothing under it, usually left behind by a removed setting. Comments do not count as settings."
             },
+            "enum-first-value-zero": {
+              "$ref": "#/definitions/rule",
+              "description": "The first value of an enum is not 0 (buf lint ENUM_FIRST_VALUE_ZERO)."
+            },
+            "enum-no-allow-alias": {
+              "$ref": "#/definitions/rule",
+              "description": "`option allow_alias = true;` in an enum (buf lint ENUM_NO_ALLOW_ALIAS)."
+            },
+            "enum-pascal-case": {
+              "$ref": "#/definitions/rule",
+              "description": "An enum name that is not PascalCase (buf lint ENUM_PASCAL_CASE)."
+            },
+            "enum-value-prefix": {
+              "$ref": "#/definitions/rule",
+              "description": "An enum value does not start with the enum's name in UPPER_SNAKE_CASE and an underscore (buf lint ENUM_VALUE_PREFIX)."
+            },
+            "enum-value-upper-snake-case": {
+              "$ref": "#/definitions/rule",
+              "description": "An enum value name that is not UPPER_SNAKE_CASE (buf lint ENUM_VALUE_UPPER_SNAKE_CASE)."
+            },
+            "enum-zero-value-suffix": {
+              "$ref": "#/definitions/rule",
+              "description": "An enum value numbered 0 whose name does not end in `_UNSPECIFIED` (buf lint ENUM_ZERO_VALUE_SUFFIX with its default suffix)."
+            },
             "expose-port-range": {
               "$ref": "#/definitions/rule",
               "description": "An EXPOSE with a port above 65535."
@@ -289,6 +313,18 @@
             "fenced-code-language": {
               "$ref": "#/definitions/rule",
               "description": "A fenced code block without an info string (markdownlint MD040); name the language, or `text`."
+            },
+            "field-lower-snake-case": {
+              "$ref": "#/definitions/rule",
+              "description": "A field name that is not lower_snake_case (buf lint FIELD_LOWER_SNAKE_CASE)."
+            },
+            "field-not-required": {
+              "$ref": "#/definitions/rule",
+              "description": "A proto2 `required` field (buf lint FIELD_NOT_REQUIRED)."
+            },
+            "file-lower-snake-case": {
+              "$ref": "#/definitions/rule",
+              "description": "The file name (without `.proto`) is not lower_snake_case (buf lint FILE_LOWER_SNAKE_CASE)."
             },
             "file-name-matches-type": {
               "$ref": "#/definitions/rule",
@@ -363,6 +399,10 @@
             "heading-increment": {
               "$ref": "#/definitions/rule",
               "description": "A heading is more than one level deeper than the heading before it (an `h4` right after an `h2`). Going back up by any number of levels is fine (markdownlint MD001)."
+            },
+            "import-no-public": {
+              "$ref": "#/definitions/rule",
+              "description": "`import public` (buf lint IMPORT_NO_PUBLIC)."
             },
             "inheritdoc-on-inheriting-member": {
               "$ref": "#/definitions/rule",
@@ -530,6 +570,10 @@
                   "type": "object"
                 }
               ]
+            },
+            "message-pascal-case": {
+              "$ref": "#/definitions/rule",
+              "description": "A message name that is not PascalCase (buf lint MESSAGE_PASCAL_CASE)."
             },
             "negation-of-excluded-parent": {
               "$ref": "#/definitions/rule",
@@ -969,6 +1013,22 @@
               "$ref": "#/definitions/rule",
               "description": "A USER that is a name rather than a numeric id (a variable is accepted)."
             },
+            "oneof-lower-snake-case": {
+              "$ref": "#/definitions/rule",
+              "description": "A oneof name that is not lower_snake_case (buf lint ONEOF_LOWER_SNAKE_CASE)."
+            },
+            "package-defined": {
+              "$ref": "#/definitions/rule",
+              "description": "A file without a `package` statement (buf lint PACKAGE_DEFINED)."
+            },
+            "package-lower-snake-case": {
+              "$ref": "#/definitions/rule",
+              "description": "A package whose components are not lower_snake_case (buf lint PACKAGE_LOWER_SNAKE_CASE)."
+            },
+            "package-version-suffix": {
+              "$ref": "#/definitions/rule",
+              "description": "A package whose last component is not `v1`, `v1test...`, `v1alpha1`, `v1beta1` or `v1p1alpha1` (`v1beta` too; buf lint PACKAGE_VERSION_SUFFIX)."
+            },
             "pip-pin-versions": {
               "$ref": "#/definitions/rule",
               "description": "A pip install package without a version."
@@ -1098,6 +1158,18 @@
               "$ref": "#/definitions/rule",
               "description": "The `root` property stops the search for parent `.editorconfig` files, but only as a preamble pair (before the first `[section]`); inside a section editors ignore it. No fix: moving it into the preamble is the author's call."
             },
+            "rpc-pascal-case": {
+              "$ref": "#/definitions/rule",
+              "description": "An rpc name that is not PascalCase (buf lint RPC_PASCAL_CASE)."
+            },
+            "rpc-request-standard-name": {
+              "$ref": "#/definitions/rule",
+              "description": "The request type of an rpc is not named `<Rpc>Request` or `<Service><Rpc>Request` (buf lint RPC_REQUEST_STANDARD_NAME)."
+            },
+            "rpc-response-standard-name": {
+              "$ref": "#/definitions/rule",
+              "description": "The response type of an rpc is not named `<Rpc>Response` or `<Service><Rpc>Response` (buf lint RPC_RESPONSE_STANDARD_NAME)."
+            },
             "rpm-pin-versions": {
               "$ref": "#/definitions/rule",
               "description": "A yum or dnf install package without a version."
@@ -1109,6 +1181,14 @@
             "separate-field-declarations": {
               "$ref": "#/definitions/rule",
               "description": "One field or event per declaration: `int a, b;` becomes `int a;` and `int b;`, each with the attributes, modifiers and type of the original. The fix is not offered when the declaration has a comment in it."
+            },
+            "service-pascal-case": {
+              "$ref": "#/definitions/rule",
+              "description": "A service name that is not PascalCase (buf lint SERVICE_PASCAL_CASE)."
+            },
+            "service-suffix": {
+              "$ref": "#/definitions/rule",
+              "description": "A service whose name does not end in `Service` (buf lint SERVICE_SUFFIX with its default suffix)."
             },
             "single-class-per-file": {
               "$ref": "#/definitions/rule",
@@ -1296,6 +1376,10 @@
             "suppression-justification": {
               "$ref": "#/definitions/rule",
               "description": "`SuppressMessage` needs a `Justification` that says something: not missing, `null`, empty, blank or `\"<Pending>\"`. Matches the attribute by name. No fix."
+            },
+            "syntax-specified": {
+              "$ref": "#/definitions/rule",
+              "description": "A file without `syntax = ...;` or `edition = ...;`, which makes it proto2 (buf lint SYNTAX_SPECIFIED)."
             },
             "test-and-or": {
               "$ref": "#/definitions/rule",
@@ -2137,6 +2221,7 @@
           "preset:json/prettier-compat",
           "preset:markdown/prettier-compat",
           "preset:powershell/psscriptanalyzer",
+          "preset:protobuf/buf-standard",
           "preset:shell/shellcheck",
           "preset:toml/default",
           "preset:toml/taplo-compat",

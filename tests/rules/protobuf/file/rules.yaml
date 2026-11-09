@@ -1,0 +1,8 @@
+package-defined: warn
+syntax-specified: warn
+package-lower-snake-case: warn
+package-version-suffix: warn
+import-no-public: warn
+field-not-required: warn
+service-suffix: warn
+file-lower-snake-case: warn

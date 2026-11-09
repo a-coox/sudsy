@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package acme.v1;
+
+message GetRequest {}
+message GetResponse {}
+message Other {}
+message FooServiceListRequest {}
+message FooServiceListResponse {}
+
+service FooService {
+  rpc Get(GetRequest) returns (GetResponse);
+  rpc List(FooServiceListRequest) returns (FooServiceListResponse);
+  rpc Put(Other) returns (Other);
+//        ^^^^^ rpc-request-standard-name
+//                        ^^^^^ rpc-response-standard-name
+}

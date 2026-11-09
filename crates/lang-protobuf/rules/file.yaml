@@ -1,0 +1,57 @@
+id: package-defined
+message: 'the file has no package'
+description: >-
+  A file without a `package` statement (buf lint PACKAGE_DEFINED).
+example: 'syntax = "proto3";'
+severity: off
+category: style
+rule: { kind: Document, not-has: { kind: Package } }
+report-on: first-token
+---
+id: syntax-specified
+message: 'the file has no syntax or edition statement'
+description: >-
+  A file without `syntax = ...;` or `edition = ...;`, which makes it proto2 (buf lint
+  SYNTAX_SPECIFIED).
+example: 'package a;'
+severity: off
+category: style
+rule: { kind: Document, not-has: { any: [{ kind: Syntax }, { kind: Edition }] } }
+report-on: first-token
+---
+id: package-version-suffix
+message: 'the last component of the package is a version such as v1'
+description: >-
+  A package whose last component is not `v1`, `v1test...`, `v1alpha1`, `v1beta1` or `v1p1alpha1`
+  (`v1beta` too; buf lint PACKAGE_VERSION_SUFFIX).
+example: 'package a.b;'
+severity: off
+category: style
+rule: { kind: FullIdent, parent: { kind: Package }, not: { regex: '(?:^|\.)v[1-9][0-9]*(?:test.*|(?:alpha|beta)[0-9]*|p[1-9][0-9]*(?:alpha|beta)[1-9][0-9]*)?$' } }
+---
+id: import-no-public
+message: 'public imports are discouraged'
+description: >-
+  `import public` (buf lint IMPORT_NO_PUBLIC).
+example: 'import public "a.proto";'
+severity: off
+category: suspicious
+rule: { kind: Import, regex: '^import\s+public\b' }
+---
+id: field-not-required
+message: 'the field is required'
+description: >-
+  A proto2 `required` field (buf lint FIELD_NOT_REQUIRED).
+example: 'required string a = 1;'
+severity: off
+category: suspicious
+rule: { kind: Field, regex: '^required\b' }
+---
+id: service-suffix
+message: 'service names end in Service'
+description: >-
+  A service whose name does not end in `Service` (buf lint SERVICE_SUFFIX with its default suffix).
+example: 'service Foo {}'
+severity: off
+category: style
+rule: { kind: ServiceName, not: { regex: 'Service$' } }

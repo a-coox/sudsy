@@ -4,7 +4,7 @@
 
 use crate::generated::kind as k;
 use crate::sort;
-use core_config::{OptionSchema, shared};
+use core_config::{OptionSchema, Preset, shared};
 use core_format::shapes::{BlockStyle, block_between, dangling_comments, statement_sequence_with};
 use core_format::{Doc, FormatCtx, FormatError, NodeFormatter, comments, doc};
 use core_syntax::{SyntaxElement, SyntaxNode, SyntaxToken};
@@ -16,6 +16,10 @@ pub fn option_schema() -> OptionSchema {
         shared::final_newline(true),
         shared::end_of_line(),
     ])
+    .with_presets(vec![Preset::new(
+        "protobuf/buf-standard",
+        include_str!("../presets/buf-standard.yaml"),
+    )])
 }
 
 pub struct ProtoFormatter;

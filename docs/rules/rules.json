@@ -4352,6 +4352,609 @@
       "upstream": []
     },
     {
+      "category": "correctness",
+      "default_level": "off",
+      "description": "The first value of an enum is not 0 (buf lint ENUM_FIRST_VALUE_ZERO).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "syntax = \"proto2\";\n\npackage acme.v1;\n\nenum Good {\n  GOOD_UNSPECIFIED = 0;\n  GOOD_ONE = 1;\n}\n\nenum FirstNotZero {\n  FIRST_NOT_ZERO_ONE = 1;\n  FIRST_NOT_ZERO_UNSPECIFIED = 0;\n}\n\nenum NoSuffix {\n  NO_SUFFIX_NONE = 0;\n  NO_SUFFIX_ONE = 1;\n}\n\nenum HTTPCode {\n  HTTP_CODE_UNSPECIFIED = 0;\n  OTHER_PREFIX = 1;\n}\n\nenum Aliased {\n  option allow_alias = true;\n  ALIASED_UNSPECIFIED = 0;\n  ALIASED_NONE = 0;\n}\n",
+        "language": "protobuf",
+        "spans": [
+          {
+            "column": 24,
+            "length": 1,
+            "line": 11
+          }
+        ]
+      },
+      "fix": null,
+      "id": "enum-first-value-zero",
+      "languages": [
+        "protobuf"
+      ],
+      "options": [],
+      "presets": [
+        "protobuf/buf-standard"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "`option allow_alias = true;` in an enum (buf lint ENUM_NO_ALLOW_ALIAS).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "syntax = \"proto2\";\n\npackage acme.v1;\n\nenum Good {\n  GOOD_UNSPECIFIED = 0;\n  GOOD_ONE = 1;\n}\n\nenum FirstNotZero {\n  FIRST_NOT_ZERO_ONE = 1;\n  FIRST_NOT_ZERO_UNSPECIFIED = 0;\n}\n\nenum NoSuffix {\n  NO_SUFFIX_NONE = 0;\n  NO_SUFFIX_ONE = 1;\n}\n\nenum HTTPCode {\n  HTTP_CODE_UNSPECIFIED = 0;\n  OTHER_PREFIX = 1;\n}\n\nenum Aliased {\n  option allow_alias = true;\n  ALIASED_UNSPECIFIED = 0;\n  ALIASED_NONE = 0;\n}\n",
+        "language": "protobuf",
+        "spans": [
+          {
+            "column": 3,
+            "length": 26,
+            "line": 26
+          }
+        ]
+      },
+      "fix": null,
+      "id": "enum-no-allow-alias",
+      "languages": [
+        "protobuf"
+      ],
+      "options": [],
+      "presets": [
+        "protobuf/buf-standard"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "An enum name that is not PascalCase (buf lint ENUM_PASCAL_CASE).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "syntax = \"proto3\";\n\npackage acme.v1;\n\nmessage Good {\n  string good_name = 1;\n  int32 field_2 = 2;\n  map<string, string> good_map = 3;\n  oneof good_choice {\n    string a = 4;\n  }\n}\n\nmessage bad_message {\n  string BadName = 1;\n  map<string, string> BadMap = 2;\n  oneof BadChoice {\n    string b = 3;\n    string C = 4;\n  }\n}\n\nenum bad_enum {\n  BAD_ENUM_UNSPECIFIED = 0;\n  Bad_Value = 1;\n}\n\nservice bad_service {\n  rpc bad_call(Good) returns (Good);\n}\n",
+        "language": "protobuf",
+        "spans": [
+          {
+            "column": 6,
+            "length": 8,
+            "line": 23
+          }
+        ]
+      },
+      "fix": null,
+      "id": "enum-pascal-case",
+      "languages": [
+        "protobuf"
+      ],
+      "options": [],
+      "presets": [
+        "protobuf/buf-standard"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "An enum value does not start with the enum's name in UPPER_SNAKE_CASE and an underscore (buf lint ENUM_VALUE_PREFIX).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "syntax = \"proto2\";\n\npackage acme.v1;\n\nenum Good {\n  GOOD_UNSPECIFIED = 0;\n  GOOD_ONE = 1;\n}\n\nenum FirstNotZero {\n  FIRST_NOT_ZERO_ONE = 1;\n  FIRST_NOT_ZERO_UNSPECIFIED = 0;\n}\n\nenum NoSuffix {\n  NO_SUFFIX_NONE = 0;\n  NO_SUFFIX_ONE = 1;\n}\n\nenum HTTPCode {\n  HTTP_CODE_UNSPECIFIED = 0;\n  OTHER_PREFIX = 1;\n}\n\nenum Aliased {\n  option allow_alias = true;\n  ALIASED_UNSPECIFIED = 0;\n  ALIASED_NONE = 0;\n}\n",
+        "language": "protobuf",
+        "spans": [
+          {
+            "column": 3,
+            "length": 12,
+            "line": 22
+          }
+        ]
+      },
+      "fix": null,
+      "id": "enum-value-prefix",
+      "languages": [
+        "protobuf"
+      ],
+      "options": [],
+      "presets": [
+        "protobuf/buf-standard"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "An enum value name that is not UPPER_SNAKE_CASE (buf lint ENUM_VALUE_UPPER_SNAKE_CASE).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "syntax = \"proto3\";\n\npackage acme.v1;\n\nmessage Good {\n  string good_name = 1;\n  int32 field_2 = 2;\n  map<string, string> good_map = 3;\n  oneof good_choice {\n    string a = 4;\n  }\n}\n\nmessage bad_message {\n  string BadName = 1;\n  map<string, string> BadMap = 2;\n  oneof BadChoice {\n    string b = 3;\n    string C = 4;\n  }\n}\n\nenum bad_enum {\n  BAD_ENUM_UNSPECIFIED = 0;\n  Bad_Value = 1;\n}\n\nservice bad_service {\n  rpc bad_call(Good) returns (Good);\n}\n",
+        "language": "protobuf",
+        "spans": [
+          {
+            "column": 3,
+            "length": 9,
+            "line": 25
+          }
+        ]
+      },
+      "fix": null,
+      "id": "enum-value-upper-snake-case",
+      "languages": [
+        "protobuf"
+      ],
+      "options": [],
+      "presets": [
+        "protobuf/buf-standard"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "An enum value numbered 0 whose name does not end in `_UNSPECIFIED` (buf lint ENUM_ZERO_VALUE_SUFFIX with its default suffix).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "syntax = \"proto2\";\n\npackage acme.v1;\n\nenum Good {\n  GOOD_UNSPECIFIED = 0;\n  GOOD_ONE = 1;\n}\n\nenum FirstNotZero {\n  FIRST_NOT_ZERO_ONE = 1;\n  FIRST_NOT_ZERO_UNSPECIFIED = 0;\n}\n\nenum NoSuffix {\n  NO_SUFFIX_NONE = 0;\n  NO_SUFFIX_ONE = 1;\n}\n\nenum HTTPCode {\n  HTTP_CODE_UNSPECIFIED = 0;\n  OTHER_PREFIX = 1;\n}\n\nenum Aliased {\n  option allow_alias = true;\n  ALIASED_UNSPECIFIED = 0;\n  ALIASED_NONE = 0;\n}\n",
+        "language": "protobuf",
+        "spans": [
+          {
+            "column": 3,
+            "length": 14,
+            "line": 16
+          },
+          {
+            "column": 3,
+            "length": 12,
+            "line": 28
+          }
+        ]
+      },
+      "fix": null,
+      "id": "enum-zero-value-suffix",
+      "languages": [
+        "protobuf"
+      ],
+      "options": [],
+      "presets": [
+        "protobuf/buf-standard"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A field name that is not lower_snake_case (buf lint FIELD_LOWER_SNAKE_CASE).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "syntax = \"proto3\";\n\npackage acme.v1;\n\nmessage Good {\n  string good_name = 1;\n  int32 field_2 = 2;\n  map<string, string> good_map = 3;\n  oneof good_choice {\n    string a = 4;\n  }\n}\n\nmessage bad_message {\n  string BadName = 1;\n  map<string, string> BadMap = 2;\n  oneof BadChoice {\n    string b = 3;\n    string C = 4;\n  }\n}\n\nenum bad_enum {\n  BAD_ENUM_UNSPECIFIED = 0;\n  Bad_Value = 1;\n}\n\nservice bad_service {\n  rpc bad_call(Good) returns (Good);\n}\n",
+        "language": "protobuf",
+        "spans": [
+          {
+            "column": 10,
+            "length": 7,
+            "line": 15
+          },
+          {
+            "column": 23,
+            "length": 6,
+            "line": 16
+          },
+          {
+            "column": 12,
+            "length": 1,
+            "line": 19
+          }
+        ]
+      },
+      "fix": null,
+      "id": "field-lower-snake-case",
+      "languages": [
+        "protobuf"
+      ],
+      "options": [],
+      "presets": [
+        "protobuf/buf-standard"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "A proto2 `required` field (buf lint FIELD_NOT_REQUIRED).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "import public \"google/protobuf/empty.proto\";\n\nmessage Old {\n  required string name = 1;\n}\n",
+        "language": "protobuf",
+        "spans": [
+          {
+            "column": 3,
+            "length": 25,
+            "line": 4
+          }
+        ]
+      },
+      "fix": null,
+      "id": "field-not-required",
+      "languages": [
+        "protobuf"
+      ],
+      "options": [],
+      "presets": [
+        "protobuf/buf-standard"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "The file name (without `.proto`) is not lower_snake_case (buf lint FILE_LOWER_SNAKE_CASE).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "import public \"google/protobuf/empty.proto\";\n\nmessage Old {\n  required string name = 1;\n}\n",
+        "language": "protobuf",
+        "spans": [
+          {
+            "column": 1,
+            "length": 1,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "file-lower-snake-case",
+      "languages": [
+        "protobuf"
+      ],
+      "options": [],
+      "presets": [
+        "protobuf/buf-standard"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "`import public` (buf lint IMPORT_NO_PUBLIC).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "import public \"google/protobuf/empty.proto\";\n\nmessage Old {\n  required string name = 1;\n}\n",
+        "language": "protobuf",
+        "spans": [
+          {
+            "column": 1,
+            "length": 44,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "import-no-public",
+      "languages": [
+        "protobuf"
+      ],
+      "options": [],
+      "presets": [
+        "protobuf/buf-standard"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A message name that is not PascalCase (buf lint MESSAGE_PASCAL_CASE).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "syntax = \"proto3\";\n\npackage acme.v1;\n\nmessage Good {\n  string good_name = 1;\n  int32 field_2 = 2;\n  map<string, string> good_map = 3;\n  oneof good_choice {\n    string a = 4;\n  }\n}\n\nmessage bad_message {\n  string BadName = 1;\n  map<string, string> BadMap = 2;\n  oneof BadChoice {\n    string b = 3;\n    string C = 4;\n  }\n}\n\nenum bad_enum {\n  BAD_ENUM_UNSPECIFIED = 0;\n  Bad_Value = 1;\n}\n\nservice bad_service {\n  rpc bad_call(Good) returns (Good);\n}\n",
+        "language": "protobuf",
+        "spans": [
+          {
+            "column": 9,
+            "length": 11,
+            "line": 14
+          }
+        ]
+      },
+      "fix": null,
+      "id": "message-pascal-case",
+      "languages": [
+        "protobuf"
+      ],
+      "options": [],
+      "presets": [
+        "protobuf/buf-standard"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A oneof name that is not lower_snake_case (buf lint ONEOF_LOWER_SNAKE_CASE).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "syntax = \"proto3\";\n\npackage acme.v1;\n\nmessage Good {\n  string good_name = 1;\n  int32 field_2 = 2;\n  map<string, string> good_map = 3;\n  oneof good_choice {\n    string a = 4;\n  }\n}\n\nmessage bad_message {\n  string BadName = 1;\n  map<string, string> BadMap = 2;\n  oneof BadChoice {\n    string b = 3;\n    string C = 4;\n  }\n}\n\nenum bad_enum {\n  BAD_ENUM_UNSPECIFIED = 0;\n  Bad_Value = 1;\n}\n\nservice bad_service {\n  rpc bad_call(Good) returns (Good);\n}\n",
+        "language": "protobuf",
+        "spans": [
+          {
+            "column": 9,
+            "length": 9,
+            "line": 17
+          }
+        ]
+      },
+      "fix": null,
+      "id": "oneof-lower-snake-case",
+      "languages": [
+        "protobuf"
+      ],
+      "options": [],
+      "presets": [
+        "protobuf/buf-standard"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A file without a `package` statement (buf lint PACKAGE_DEFINED).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "import public \"google/protobuf/empty.proto\";\n\nmessage Old {\n  required string name = 1;\n}\n",
+        "language": "protobuf",
+        "spans": [
+          {
+            "column": 1,
+            "length": 6,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "package-defined",
+      "languages": [
+        "protobuf"
+      ],
+      "options": [],
+      "presets": [
+        "protobuf/buf-standard"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A package whose components are not lower_snake_case (buf lint PACKAGE_LOWER_SNAKE_CASE).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "syntax = \"proto3\";\n\npackage Acme.core;\n\nservice Thing {}\n",
+        "language": "protobuf",
+        "spans": [
+          {
+            "column": 9,
+            "length": 9,
+            "line": 3
+          }
+        ]
+      },
+      "fix": null,
+      "id": "package-lower-snake-case",
+      "languages": [
+        "protobuf"
+      ],
+      "options": [],
+      "presets": [
+        "protobuf/buf-standard"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A package whose last component is not `v1`, `v1test...`, `v1alpha1`, `v1beta1` or `v1p1alpha1` (`v1beta` too; buf lint PACKAGE_VERSION_SUFFIX).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "syntax = \"proto3\";\n\npackage Acme.core;\n\nservice Thing {}\n",
+        "language": "protobuf",
+        "spans": [
+          {
+            "column": 9,
+            "length": 9,
+            "line": 3
+          }
+        ]
+      },
+      "fix": null,
+      "id": "package-version-suffix",
+      "languages": [
+        "protobuf"
+      ],
+      "options": [],
+      "presets": [
+        "protobuf/buf-standard"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "An rpc name that is not PascalCase (buf lint RPC_PASCAL_CASE).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "syntax = \"proto3\";\n\npackage acme.v1;\n\nmessage Good {\n  string good_name = 1;\n  int32 field_2 = 2;\n  map<string, string> good_map = 3;\n  oneof good_choice {\n    string a = 4;\n  }\n}\n\nmessage bad_message {\n  string BadName = 1;\n  map<string, string> BadMap = 2;\n  oneof BadChoice {\n    string b = 3;\n    string C = 4;\n  }\n}\n\nenum bad_enum {\n  BAD_ENUM_UNSPECIFIED = 0;\n  Bad_Value = 1;\n}\n\nservice bad_service {\n  rpc bad_call(Good) returns (Good);\n}\n",
+        "language": "protobuf",
+        "spans": [
+          {
+            "column": 7,
+            "length": 8,
+            "line": 29
+          }
+        ]
+      },
+      "fix": null,
+      "id": "rpc-pascal-case",
+      "languages": [
+        "protobuf"
+      ],
+      "options": [],
+      "presets": [
+        "protobuf/buf-standard"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "The request type of an rpc is not named `<Rpc>Request` or `<Service><Rpc>Request` (buf lint RPC_REQUEST_STANDARD_NAME).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "syntax = \"proto3\";\n\npackage acme.v1;\n\nmessage GetRequest {}\nmessage GetResponse {}\nmessage Other {}\nmessage FooServiceListRequest {}\nmessage FooServiceListResponse {}\n\nservice FooService {\n  rpc Get(GetRequest) returns (GetResponse);\n  rpc List(FooServiceListRequest) returns (FooServiceListResponse);\n  rpc Put(Other) returns (Other);\n}\n",
+        "language": "protobuf",
+        "spans": [
+          {
+            "column": 11,
+            "length": 5,
+            "line": 14
+          }
+        ]
+      },
+      "fix": null,
+      "id": "rpc-request-standard-name",
+      "languages": [
+        "protobuf"
+      ],
+      "options": [],
+      "presets": [
+        "protobuf/buf-standard"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "The response type of an rpc is not named `<Rpc>Response` or `<Service><Rpc>Response` (buf lint RPC_RESPONSE_STANDARD_NAME).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "syntax = \"proto3\";\n\npackage acme.v1;\n\nmessage GetRequest {}\nmessage GetResponse {}\nmessage Other {}\nmessage FooServiceListRequest {}\nmessage FooServiceListResponse {}\n\nservice FooService {\n  rpc Get(GetRequest) returns (GetResponse);\n  rpc List(FooServiceListRequest) returns (FooServiceListResponse);\n  rpc Put(Other) returns (Other);\n}\n",
+        "language": "protobuf",
+        "spans": [
+          {
+            "column": 27,
+            "length": 5,
+            "line": 14
+          }
+        ]
+      },
+      "fix": null,
+      "id": "rpc-response-standard-name",
+      "languages": [
+        "protobuf"
+      ],
+      "options": [],
+      "presets": [
+        "protobuf/buf-standard"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A service name that is not PascalCase (buf lint SERVICE_PASCAL_CASE).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "syntax = \"proto3\";\n\npackage acme.v1;\n\nmessage Good {\n  string good_name = 1;\n  int32 field_2 = 2;\n  map<string, string> good_map = 3;\n  oneof good_choice {\n    string a = 4;\n  }\n}\n\nmessage bad_message {\n  string BadName = 1;\n  map<string, string> BadMap = 2;\n  oneof BadChoice {\n    string b = 3;\n    string C = 4;\n  }\n}\n\nenum bad_enum {\n  BAD_ENUM_UNSPECIFIED = 0;\n  Bad_Value = 1;\n}\n\nservice bad_service {\n  rpc bad_call(Good) returns (Good);\n}\n",
+        "language": "protobuf",
+        "spans": [
+          {
+            "column": 9,
+            "length": 11,
+            "line": 28
+          }
+        ]
+      },
+      "fix": null,
+      "id": "service-pascal-case",
+      "languages": [
+        "protobuf"
+      ],
+      "options": [],
+      "presets": [
+        "protobuf/buf-standard"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A service whose name does not end in `Service` (buf lint SERVICE_SUFFIX with its default suffix).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "syntax = \"proto3\";\n\npackage Acme.core;\n\nservice Thing {}\n",
+        "language": "protobuf",
+        "spans": [
+          {
+            "column": 9,
+            "length": 5,
+            "line": 5
+          }
+        ]
+      },
+      "fix": null,
+      "id": "service-suffix",
+      "languages": [
+        "protobuf"
+      ],
+      "options": [],
+      "presets": [
+        "protobuf/buf-standard"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A file without `syntax = ...;` or `edition = ...;`, which makes it proto2 (buf lint SYNTAX_SPECIFIED).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "import public \"google/protobuf/empty.proto\";\n\nmessage Old {\n  required string name = 1;\n}\n",
+        "language": "protobuf",
+        "spans": [
+          {
+            "column": 1,
+            "length": 6,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "syntax-specified",
+      "languages": [
+        "protobuf"
+      ],
+      "options": [],
+      "presets": [
+        "protobuf/buf-standard"
+      ],
+      "upstream": []
+    },
+    {
       "category": "style",
       "default_level": "warn",
       "description": "A function named `Verb-Noun` whose verb is not in the list `Get-Verb` returns. Names without a dash are not checked.",

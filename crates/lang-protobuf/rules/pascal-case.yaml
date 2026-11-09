@@ -1,0 +1,35 @@
+id: message-pascal-case
+message: 'message names are PascalCase'
+description: >-
+  A message name that is not PascalCase (buf lint MESSAGE_PASCAL_CASE).
+example: 'message foo_bar {}'
+severity: off
+category: style
+rule: { kind: MessageName, not: { regex: '^[A-Z][A-Za-z0-9]*$' } }
+---
+id: enum-pascal-case
+message: 'enum names are PascalCase'
+description: >-
+  An enum name that is not PascalCase (buf lint ENUM_PASCAL_CASE).
+example: 'enum foo_bar {}'
+severity: off
+category: style
+rule: { kind: EnumName, not: { regex: '^[A-Z][A-Za-z0-9]*$' } }
+---
+id: service-pascal-case
+message: 'service names are PascalCase'
+description: >-
+  A service name that is not PascalCase (buf lint SERVICE_PASCAL_CASE).
+example: 'service foo_bar {}'
+severity: off
+category: style
+rule: { kind: ServiceName, not: { regex: '^[A-Z][A-Za-z0-9]*$' } }
+---
+id: rpc-pascal-case
+message: 'rpc names are PascalCase'
+description: >-
+  An rpc name that is not PascalCase (buf lint RPC_PASCAL_CASE).
+example: 'rpc get_foo(A) returns (B);'
+severity: off
+category: style
+rule: { kind: RpcName, not: { regex: '^[A-Z][A-Za-z0-9]*$' } }
