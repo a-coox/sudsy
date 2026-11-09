@@ -3,4 +3,5 @@ extensions: [dockerfile]
 file-names: [Dockerfile, Containerfile, "Dockerfile.*", "Containerfile.*"]
 formatter: DockerfileFormatter
 families: rules::FAMILIES
-dev-deps: [insta]
+embedded: embedded::find
+dev-deps: [insta, lang-shell]

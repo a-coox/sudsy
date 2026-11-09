@@ -11,6 +11,7 @@
 //! options compare their contents, and failures compare their messages.
 
 mod db;
+mod embedded;
 mod failure;
 mod fixing;
 mod inputs;

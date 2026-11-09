@@ -93,6 +93,10 @@ pub fn list(dir: &Path) -> Result<()> {
             continue;
         };
         let mut phases = vec!["parse", "format", "format-query", "lint", "lint-all"];
+        // The languages that embed others: the engine's lint is where their cost is.
+        if matches!(lang.as_str(), "dockerfile" | "md") {
+            phases.push("lint-query");
+        }
         let documented = |r: &&dyn core_rules::Rule| DOCUMENTATION_RULES.contains(&r.meta().id);
         if provider.rules().iter().any(documented) {
             phases.push("lint-docs");
@@ -211,10 +215,11 @@ pub fn run(lang: &str, phase: &str, dir: &Path) -> Result<()> {
             });
             (texts.len(), w, a)
         }
-        "format-query" => {
-            // The production path: the `format` query of the incremental engine (parse, options,
-            // the layout rules' directives, format), one file after the other.
-            let db = core_incremental::Database::new(vec![make_provider(lang)?]);
+        "format-query" | "lint-query" => {
+            // The production path, with every provider so that embedded code is read: the
+            // `format` query of the incremental engine (parse, options, the layout rules'
+            // directives, format) or its `lint` query (default rules), one file after the other.
+            let db = core_incremental::Database::new(languages::providers());
             let files: Vec<_> = texts
                 .iter()
                 .map(|(n, t)| {
@@ -231,8 +236,13 @@ pub fn run(lang: &str, phase: &str, dir: &Path) -> Result<()> {
             let (w, a) = measured(&mut || {
                 files
                     .iter()
-                    .filter(|f| core_incremental::format(&db, **f).is_ok())
-                    .count()
+                    .map(|f| match phase {
+                        "format-query" => usize::from(core_incremental::format(&db, *f).is_ok()),
+                        _ => core_incremental::lint(&db, *f)
+                            .as_ref()
+                            .map_or(0, |l| l.diagnostics.len() + 1),
+                    })
+                    .sum()
             });
             (files.len(), w, a)
         }
@@ -294,7 +304,7 @@ pub fn run(lang: &str, phase: &str, dir: &Path) -> Result<()> {
             (files.len(), w, a)
         }
         _ => bail!(
-            "PHASE is parse, format, format-query, lint, lint-all, lint-docs, patterns or plugins"
+            "PHASE is parse, format, format-query, lint, lint-query, lint-all, lint-docs, patterns or plugins"
         ),
     };
     let allocs = if cfg!(feature = "count") {

@@ -16,8 +16,8 @@
 //!   tokens, while shapes such as lists and key-values want nodes).
 //!
 //! A [`Composite`] adds what a language made of several tree-sitter grammars needs: a host node
-//! whose text a second grammar parses (Markdown's `inline` blocks; later code blocks, or C# in
-//! Razor) becomes a node whose children are the injected tree's, text no mapped node covers
+//! whose text a second grammar parses (Markdown's `inline` blocks) becomes a node whose children
+//! are the injected tree's, text no mapped node covers
 //! becomes tokens of one text kind, and a token whose text starts a given way gets another kind
 //! (an HTML comment).
 //!

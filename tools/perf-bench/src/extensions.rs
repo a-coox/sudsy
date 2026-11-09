@@ -62,19 +62,29 @@ pub(crate) struct Parsed {
     pub(crate) text: String,
     pub(crate) tree: core_syntax::SyntaxNode,
     pub(crate) lines: LineIndex,
+    /// The code of other languages in the file, parsed as the engine does.
+    pub(crate) embedded: Vec<core_rules::EmbeddedTree>,
 }
 
 pub(crate) fn parse_all(provider: &dyn LanguageProvider, texts: Vec<String>) -> Vec<Parsed> {
+    let others = languages::providers();
     texts
         .into_iter()
         .filter_map(|text| {
             let parsed = provider
                 .parse(&SourceFile::new("bench", 1, text.clone()))
                 .ok()?;
-            parsed.errors.is_empty().then(|| Parsed {
-                lines: LineIndex::new(&text),
-                tree: parsed.tree,
-                text,
+            parsed.errors.is_empty().then(|| {
+                let found =
+                    provider_api::embedded::parse_regions(provider, &parsed.tree, &text, &|n| {
+                        provider_api::embedded::resolve(others.iter().map(|p| p.as_ref()), n)
+                    });
+                Parsed {
+                    lines: LineIndex::new(&text),
+                    embedded: provider_api::embedded::trees(&found),
+                    tree: parsed.tree,
+                    text,
+                }
             })
         })
         .collect()
@@ -89,7 +99,7 @@ pub(crate) fn context<'a>(provider: &'a dyn LanguageProvider, p: &'a Parsed) -> 
         lines: &p.lines,
         body_kinds: provider.body_kinds(),
         hooks: provider.rule_hooks(),
-        embedded: &[],
+        embedded: &p.embedded,
         semantics: None,
     }
 }
@@ -279,6 +289,7 @@ fn clone(p: &Parsed) -> Parsed {
         text: p.text.clone(),
         tree: p.tree.clone(),
         lines: LineIndex::new(&p.text),
+        embedded: Vec::new(),
     }
 }
 

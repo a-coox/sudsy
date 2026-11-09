@@ -19,6 +19,7 @@ tree-sitter-containerfile = { workspace = true, optional = true }
 
 [dev-dependencies]
 insta.workspace = true
+lang-shell = { workspace = true, features = ["static-grammars"] }
 
 [build-dependencies]
 core-syntax.workspace = true

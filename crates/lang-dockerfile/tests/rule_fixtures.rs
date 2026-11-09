@@ -2,5 +2,6 @@
 
 #[test]
 fn rule_fixtures() {
-    provider_api::fixtures::rule_fixtures(&lang_dockerfile::provider());
+    let shell: &'static _ = Box::leak(Box::new(lang_shell::provider()));
+    provider_api::fixtures::rule_fixtures_with(&lang_dockerfile::provider(), &[shell]);
 }

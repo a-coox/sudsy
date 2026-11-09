@@ -2,6 +2,7 @@
 //! resolved rule configuration, so an edit of a file or of the config re-runs only what depends on it.
 
 use crate::db::Db;
+use crate::embedded::{lint_embedded, parse_embedded};
 use crate::failure::{Failure, Stage};
 use crate::inputs::{ExtensionSet, File};
 use crate::queries::{config, parse, parse_settings, provider_of, selection, source_file};
@@ -10,7 +11,7 @@ use core_format::DirectiveTable;
 use core_rules::engine::{ActiveRule, FileReport};
 use core_rules::{
     Category, Diagnostic, FileContext, Layer, LineIndex, ProjectFacts, SYNTAX_ERROR, Severity,
-    activate, layers_needed, run_file, run_layout, run_project,
+    activate, layers_needed, run_layout, run_project, run_rules, silence,
 };
 use core_semantics::{BehaviorSummaries, FileSemantics, Layers, SemanticView};
 use core_syntax::{TextRange, TextSize};
@@ -200,6 +201,8 @@ pub fn lint(db: &dyn Db, file: File) -> Result<Linted, Failure> {
     let text = file.text(db);
     let root = parsed.root();
     let lines = LineIndex::new(text);
+    let embedded = parse_embedded(db, provider, &root, text);
+    let trees = provider_api::embedded::trees(&embedded);
     let context = FileContext {
         path: file.path(db),
         text,
@@ -208,13 +211,21 @@ pub fn lint(db: &dyn Db, file: File) -> Result<Linted, Failure> {
         lines: &lines,
         body_kinds: provider.body_kinds(),
         hooks: provider.rule_hooks(),
-        embedded: &[],
+        embedded: &trees,
         semantics: data.map(|data| SemanticView {
             data,
             summaries: &summaries,
         }),
     };
-    let FileReport { diagnostics, facts } = run_file(&context, &active, depth == Depth::Deep);
+    let FileReport {
+        mut diagnostics,
+        facts,
+    } = run_rules(&context, &active, depth == Depth::Deep);
+    diagnostics.extend(lint_embedded(db, file, &embedded)?);
+    diagnostics.sort_by(|a, b| {
+        (a.range.start(), a.range.end(), &a.rule).cmp(&(b.range.start(), b.range.end(), &b.rule))
+    });
+    silence(&context, &mut diagnostics);
     let skipped = active.iter().find_map(|a| a.rule.unavailable());
     Ok(Linted {
         diagnostics,

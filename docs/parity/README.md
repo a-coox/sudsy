@@ -41,7 +41,7 @@ The readers (`languages::catalog::parse`, used by the counts test, `init` and th
 | eslint-plugin-jsonc | 44 | 36 | 6 | 0 | 0 | 2 | 0 | 0 |
 | hadolint | 71 | 38 | 10 | 0 | 0 | 1 | 22 | 0 |
 | markdownlint | 53 | 25 | 16 | 0 | 0 | 0 | 12 | 0 |
-| prettier | 29 | 16 | 4 | 1 | 0 | 8 | 0 | 1 |
+| prettier | 29 | 17 | 4 | 1 | 0 | 7 | 0 | 1 |
 | psscriptanalyzer | 75 | 12 | 8 | 0 | 0 | 1 | 54 | 0 |
 | roslynator | 67 | 23 | 7 | 16 | 18 | 1 | 2 | 16 |
 | shellcheck | 520 | 17 | 8 | 0 | 0 | 0 | 495 | 0 |

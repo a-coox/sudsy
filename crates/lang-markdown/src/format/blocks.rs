@@ -267,21 +267,18 @@ impl Render<'_> {
         out
     }
 
-    pub(super) fn fenced(&self, n: &SyntaxNode) -> Vec<String> {
+    /// The content lines of a fenced block as `(start, prefix, end)`: where each stands in the
+    /// source (without its line break) and how much of its start belongs to the containers and
+    /// the fence's indentation; and whether the closing fence was found. The content is read from
+    /// the source, line by line up to the closing fence: blank content has no token, and the
+    /// closing fence may stand outside the node.
+    pub(crate) fn fence_lines(&self, n: &SyntaxNode) -> (Vec<(usize, usize, usize)>, bool) {
         let chain = self.chain(n);
-        let info = n
-            .children_with_tokens()
-            .filter_map(|e| e.into_token())
-            .find(|t| t.kind() == k::INFO)
-            .map(|t| t.text().trim().to_string())
-            .unwrap_or_default();
-        // The content is read from the source, line by line up to the closing fence: blank
-        // content has no token, and the closing fence may stand outside the node.
         let open = n
             .children_with_tokens()
             .filter_map(|e| e.into_token())
             .find(|t| t.kind() == k::FENCE);
-        let mut lines: Vec<String> = Vec::new();
+        let (mut lines, mut closed) = (Vec::new(), false);
         if let Some(open) = open {
             let fence = open.text().trim();
             let (fch, flen) = (fence.chars().next().unwrap_or('`'), fence.len());
@@ -301,8 +298,11 @@ impl Render<'_> {
                 .find('\n')
                 .map_or(self.src.len(), |i| end(&open) + i + 1);
             let mut pieces = self.src[from..].split('\n').peekable();
-            while let Some(raw) = pieces.next() {
-                let raw = raw.strip_suffix('\r').unwrap_or(raw);
+            let mut at = from;
+            while let Some(piece) = pieces.next() {
+                let raw = piece.strip_suffix('\r').unwrap_or(piece);
+                let line_start = at;
+                at += piece.len() + 1;
                 // The empty piece after the file's last line break is not a line.
                 if raw.is_empty() && pieces.peek().is_none() && self.src.ends_with('\n') {
                     break;
@@ -317,6 +317,7 @@ impl Render<'_> {
                     && t.chars().take_while(|c| *c == fch).count() >= flen
                     && t.trim_end_matches(fch).trim().is_empty()
                 {
+                    closed = true;
                     break;
                 }
                 let cut = l
@@ -324,9 +325,26 @@ impl Render<'_> {
                     .take(fence_indent)
                     .take_while(|b| *b == b' ')
                     .count();
-                lines.push(l[cut..].to_string());
+                lines.push((
+                    line_start,
+                    raw.len() - l.len() + cut,
+                    line_start + raw.len(),
+                ));
             }
         }
+        (lines, closed)
+    }
+
+    pub(super) fn fenced(&self, n: &SyntaxNode) -> Vec<String> {
+        let info = n
+            .children_with_tokens()
+            .filter_map(|e| e.into_token())
+            .find(|t| t.kind() == k::INFO)
+            .map(|t| t.text().trim().to_string())
+            .unwrap_or_default();
+        let lines: Vec<String> = (self.fence_lines(n).0.into_iter())
+            .map(|(start, prefix, end)| self.src[start + prefix..end].to_string())
+            .collect();
         let tilde = info.contains('`');
         let ch = if tilde { '~' } else { '`' };
         let longest = lines

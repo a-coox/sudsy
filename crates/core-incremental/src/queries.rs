@@ -14,6 +14,7 @@
 //! `fast`, so syntax-only runs never touch the semantic model).
 
 use crate::db::Db;
+use crate::embedded::format_embedded;
 use crate::failure::{Failure, Stage};
 use crate::inputs::{ConfigFile, File};
 use core_config::{ConfigChain, FileInput, ResolvedOptions};
@@ -187,6 +188,14 @@ pub fn format(db: &dyn Db, file: File) -> Result<String, Failure> {
         tree: parsed.root(),
         errors: parsed.errors.clone(),
     };
-    format_parsed(provider, &source, &result, &options.resolved, directives)
-        .map_err(|e| Failure::new(Stage::Format, &e))
+    let text = format_parsed(provider, &source, &result, &options.resolved, directives)
+        .map_err(|e| Failure::new(Stage::Format, &e))?;
+    Ok(format_embedded(
+        db,
+        file,
+        provider,
+        &options.resolved,
+        &result.tree,
+        text,
+    ))
 }

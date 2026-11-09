@@ -402,7 +402,10 @@ dependencies = [
  "core-rules",
  "core-semantics",
  "core-syntax",
+ "lang-dockerfile",
  "lang-json",
+ "lang-markdown",
+ "lang-shell",
  "lang-yaml",
  "provider-api",
  "salsa",
@@ -1332,6 +1335,7 @@ dependencies = [
  "core-syntax",
  "core-treesitter",
  "insta",
+ "lang-shell",
  "provider-api",
  "tree-sitter-containerfile",
 ]

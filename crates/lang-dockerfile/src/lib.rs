@@ -2,10 +2,10 @@
 //! `mapping.rs`), the formatter in `format.rs` re-lays each instruction on its source tokens.
 
 core_syntax::include_generated!();
+mod embedded;
 mod format;
 mod mapping;
 mod rules;
-mod shell;
 
 pub use format::{DockerfileFormatter, option_schema};
 

@@ -5,7 +5,7 @@ use core_config::OptionSchema;
 use core_format::NodeFormatter;
 use core_rules::{Family, Rule, RuleHooks};
 use core_syntax::grammars::LazyGrammar;
-use core_syntax::{Grammar, LanguageId, SyntaxNode};
+use core_syntax::{Embedded, Grammar, LanguageId, SyntaxNode};
 use provider_api::{
     Capabilities, FileMatcher, FilePattern, FnSnippets, LanguageProvider, LazyRules, ParseError,
     ParseResult, ProviderError, SourceFile,
@@ -45,9 +45,16 @@ pub struct TreeSitterProvider {
     hooks: &'static dyn RuleHooks,
     rules: LazyRules,
     validate: Option<fn(&SyntaxNode, &str) -> Vec<ParseError>>,
+    embedded: Option<fn(&SyntaxNode, &str) -> Vec<Embedded>>,
 }
 
 impl TreeSitterProvider {
+    /// Finds the code of other languages in a tree (a function of the language crate).
+    pub fn with_embedded(mut self, find: fn(&SyntaxNode, &str) -> Vec<Embedded>) -> Self {
+        self.embedded = Some(find);
+        self
+    }
+
     pub fn new(spec: Spec) -> Self {
         Self::with_composite(spec, None)
     }
@@ -84,6 +91,7 @@ impl TreeSitterProvider {
             formatter: spec.formatter,
             hooks: spec.hooks,
             validate: spec.validate,
+            embedded: None,
         }
     }
 
@@ -120,6 +128,10 @@ impl LanguageProvider for TreeSitterProvider {
             parsed.errors = validate(&parsed.tree, &file.text);
         }
         Ok(parsed)
+    }
+
+    fn embedded(&self, root: &SyntaxNode, text: &str) -> Vec<Embedded> {
+        self.embedded.map_or_else(Vec::new, |find| find(root, text))
     }
 
     fn formatter(&self) -> &dyn NodeFormatter {

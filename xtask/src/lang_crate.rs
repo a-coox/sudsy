@@ -20,7 +20,11 @@ fn text<'a>(v: &'a Value, key: &str, default: &'a str) -> &'a str {
 fn workspace_deps(names: &[String]) -> Vec<String> {
     names
         .iter()
-        .map(|d| format!("{d}.workspace = true"))
+        .map(|d| match d.starts_with("lang-") {
+            // A language crate used by another (a test's companion) links its grammar.
+            true => format!("{d} = {{ workspace = true, features = [\"static-grammars\"] }}"),
+            false => format!("{d}.workspace = true"),
+        })
         .collect()
 }
 
@@ -104,6 +108,10 @@ fn provider(name: &str, v: &Value) -> String {
     let body = match v.get("composite").and_then(Value::as_str) {
         Some(c) => format!("TreeSitterProvider::with_composite({spec}, Some({c}))"),
         None => format!("TreeSitterProvider::new({spec})"),
+    };
+    let body = match v.get("embedded").and_then(Value::as_str) {
+        Some(f) => format!("{body}.with_embedded({f})"),
+        None => body,
     };
     format!(
         "// Generated from lang.yaml by `cargo xtask codegen`.\nuse core_syntax::grammars;\nuse core_treesitter::{{Spec, TreeSitterProvider}};\n\n#[rustfmt::skip]\npub fn provider() -> TreeSitterProvider {{\n    {body}\n}}\n"

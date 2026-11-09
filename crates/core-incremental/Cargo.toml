@@ -15,7 +15,10 @@ provider-api.workspace = true
 salsa.workspace = true
 
 [dev-dependencies]
+lang-dockerfile = { workspace = true, features = ["static-grammars"] }
 lang-json.workspace = true
+lang-markdown = { workspace = true, features = ["static-grammars"] }
+lang-shell = { workspace = true, features = ["static-grammars"] }
 lang-yaml.workspace = true
 
 [lints]
