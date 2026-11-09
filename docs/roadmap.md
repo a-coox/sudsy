@@ -3,6 +3,7 @@
 One line each; none is committed.
 
 ## Languages and analysis
+- INI: `.cfg`, `.gitconfig`, `.gitmodules`, `.properties` (tox.ini and setup.cfg continuation lines, gitconfig keys without `=` and repeated multi-value keys, Java properties syntax); tree-sitter-ini has no continuation lines or bare keys, so they would be refused or get syntax errors. Needs a grammar fork (generated parser vendored) or a hand-written parser, and a dialect per family.
 - TOML: TOML 1.1 syntax (the tree-sitter grammar targets 1.0; needs an upstream fix or a fork), format `Cargo.lock` (cargo writes arrays indented by one space, so formatting it with the defaults rewrites the whole file; it needs a file-name matcher plus a preset).
 - XML: the inside of a DOCTYPE (the grammar cannot parse every DTD declaration) and DTD-dependent well-formedness (entities, attribute defaults); reflowing text (the formatter keeps mixed content as written); a `xmlWhitespaceSensitivity: ignore` mode; sorting `PackageReference` items.
 - Dockerfile: rules (hadolint parity); shell code inside `RUN` as a Shell language injected through the composite adapter (the formatter keeps it as written); (low priority) vendor tree-sitter-containerfile's `scanner.c` with a fix for consecutive `[`-led continuation lines, which make 24 corpus files unparseable ([formatting/dockerfile.md](formatting/dockerfile.md)).

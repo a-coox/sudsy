@@ -1,4 +1,4 @@
-// INI-style files (.ini, .cfg, .gitconfig, .gitmodules), parsed by tree-sitter (tree-sitter-ini) and mapped by crates/lang-ini/src/mapping.rs.
+// INI-style files (.ini), parsed by tree-sitter (tree-sitter-ini) and mapped by crates/lang-ini/src/mapping.rs.
 // Format: see crates/core-syntax/src/grammar/mod.rs.
 
 language ini 12 "INI"
@@ -18,7 +18,7 @@ token LBracket "[" #punctuation
 token RBracket "]" #punctuation
 token Equals "=" #punctuation
 
-// A section's title, as written (`remote "origin"` in a gitconfig), a key and a value.
+// A section's title, as written, a key and a value.
 token Name
 token Key
 // The blanks around a value are part of its token: `#restyle`, IniFormatter::extra_check compares the trimmed text.

@@ -9,15 +9,15 @@ fn fmt(input: &str) -> String {
 #[test]
 #[ignore]
 fn conformance() {
-    check_corpus(lang_ini::provider(), "a.ini", "ini", &["ini", "cfg"]);
+    check_corpus(lang_ini::provider(), "a.ini", "ini", &["ini"]);
 }
 
 #[test]
 fn matches_the_file_name() {
     assert_file_names(
         &lang_ini::provider(),
-        &["a/setup.cfg", "x.ini", "a/.gitconfig", ".gitmodules"],
-        &["a/x.properties", "a/config"],
+        &["a/b.ini", "x.ini"],
+        &["a/setup.cfg", "a/.gitconfig", "a/x.properties"],
     );
 }
 
