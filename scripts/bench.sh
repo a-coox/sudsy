@@ -8,7 +8,8 @@
 #   git worktree: instructions (callgrind, in WSL on Windows) and allocations. Exit 1 on a
 #   regression: instructions +1%, allocations +1% (and 10 or more); the lint-all and lint-docs metrics (every
 #   rule on, resp. the C# documentation rules, so they grow with each new rule) are printed but never flagged,
-#   and lint-all is counted in allocations only.
+#   and lint-all is counted in allocations only. The startup metrics build every provider, so the baseline
+#   is scaled to the candidate's provider count (startup.providers.work): a new language at the usual cost is no regression.
 # Tier 2 (--time): interleaved A/B wall time of the CLI, with the C# worker; exit 1 only when the
 #   95% confidence interval of the candidate/baseline ratio lies above 1.03.
 # Languages: the folders of bench/inputs that a provider claims (`perf-bench list`).
@@ -121,6 +122,8 @@ awk -v B="$out/base.all" -v C="$out/cand.all" 'BEGIN {
   printf "%-26s %14s %14s %8s\n", "metric", "baseline", "candidate", "change"
   for (i = 1; i <= n; i++) {
     m = k[i]; if (!(m in b)) { printf "%-26s %14s %14d  (new)\n", m, "-", c[m]; continue }
+    # startup scales with the number of providers: compare against the baseline scaled to the candidate count
+    if (m ~ /^startup\.(providers|format|lint)\.(instr|allocs)$/ && b["startup.providers.work"] > 0) b[m] = b[m] * c["startup.providers.work"] / b["startup.providers.work"]
     d = (b[m] == 0) ? 0 : 100 * (c[m] - b[m]) / b[m]
     if (m ~ /\.work$/) { if (c[m] != b[m]) printf "%-26s %14d %14d  output size changed\n", m, b[m], c[m]; continue }
     flag = ""; if (m ~ /lint-(all|docs)/) flag = "  (informational)"; else if (d >= 1 && (m ~ /\.instr$/ || c[m] - b[m] >= 10)) { flag = "  REGRESSION"; bad++ } else if (d <= -1) flag = "  improved"
