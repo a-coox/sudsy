@@ -1,0 +1,4 @@
+grammar-crate: tree-sitter-proto
+extensions: [proto]
+formatter: ProtoFormatter
+dev-deps: [insta]

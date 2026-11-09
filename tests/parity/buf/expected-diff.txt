@@ -1,0 +1,4 @@
+# Fixtures where Sudsy and buf format legitimately differ: "<fixture>: <reason>" per line.
+corpus/protobuf/src/google/protobuf/edition_unittest.proto: empty statements (`;`) are kept (buf drops them); comments inside a statement before its `;` stay as line comments on their own lines (buf joins them into block comments on the statement's line)
+corpus/protobuf/src/google/protobuf/unittest.proto: a run of comments inside a statement before its `;` stays as line comments on their own lines (buf joins them into block comments on the statement's line)
+corpus/protobuf/src/google/protobuf/unittest_custom_options.proto: comments separated by blank lines between the file options travel with the next statement (buf keeps them where they stand); a blank line before a comment between the fields of a message literal is dropped (buf keeps it)

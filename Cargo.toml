@@ -43,6 +43,7 @@ tree-sitter-ini = "1.4"
 konomanoasa-tree-sitter-gitignore = "0.7"
 tree-sitter-containerfile = "0.9"
 tree-sitter-bash = "0.25"
+tree-sitter-proto = "0.6"
 woodruffw-trough-tree-sitter-powershell = "0.1"
 
 core-config = { path = "crates/core-config" }
@@ -67,6 +68,7 @@ lang-gitignore = { path = "crates/lang-gitignore", default-features = false }
 lang-dockerfile = { path = "crates/lang-dockerfile", default-features = false }
 lang-shell = { path = "crates/lang-shell", default-features = false }
 lang-powershell = { path = "crates/lang-powershell", default-features = false }
+lang-protobuf = { path = "crates/lang-protobuf", default-features = false }
 core-packs = { path = "crates/core-packs" }
 core-treesitter = { path = "crates/core-treesitter" }
 core-syntax = { path = "crates/core-syntax" }

@@ -18,6 +18,7 @@ tree-sitter-ini = { workspace = true, optional = true }
 konomanoasa-tree-sitter-gitignore = { workspace = true, optional = true }
 tree-sitter-containerfile = { workspace = true, optional = true }
 tree-sitter-bash = { workspace = true, optional = true }
+tree-sitter-proto = { workspace = true, optional = true }
 woodruffw-trough-tree-sitter-powershell = { workspace = true, optional = true }
 
 [features]
@@ -29,4 +30,5 @@ ini = ["dep:tree-sitter-ini"]
 gitignore = ["dep:konomanoasa-tree-sitter-gitignore"]
 dockerfile = ["dep:tree-sitter-containerfile"]
 shell = ["dep:tree-sitter-bash"]
+protobuf = ["dep:tree-sitter-proto"]
 powershell = ["dep:woodruffw-trough-tree-sitter-powershell"]

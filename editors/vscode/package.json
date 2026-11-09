@@ -26,6 +26,7 @@
     "onLanguage:gitignore",
     "onLanguage:dockerfile",
     "onLanguage:shell",
+    "onLanguage:protobuf",
     "onLanguage:powershell",
     "onLanguage:csharp",
     "workspaceContains:**/sudsy.{yaml,yml}"

@@ -74,6 +74,27 @@
       {"dir": "tests/conformance/corpus/powershell", "suffixes": [".ps1", ".psm1"], "prefix": "corpus/", "recursive": true}
     ]
   },
+  "buf": {
+    "catalog": "buf",
+    "install": {
+      "release": "https://github.com/bufbuild/buf/releases/download/v{version}/{asset}",
+      "assets": {
+        "windows": "buf-Windows-x86_64.exe",
+        "linux-x86_64": "buf-Linux-x86_64",
+        "darwin-arm64": "buf-Darwin-arm64",
+        "darwin-x86_64": "buf-Darwin-x86_64"
+      },
+      "exe": "buf"
+    },
+    "fetch": ["tests/conformance/fetch-proto-corpus.sh"],
+    "command": ["{exe}", "format", "{file}"],
+    "input": "arg",
+    "tool_may_reject": true,
+    "fixtures": [
+      {"suffixes": [".proto"]},
+      {"dir": "tests/conformance/corpus/proto", "suffixes": [".proto"], "prefix": "corpus/", "recursive": true}
+    ]
+  },
   "csharpier": {
     "catalog": "csharpier",
     "install": {"dotnet-tool": "csharpier", "exe": "csharpier"},

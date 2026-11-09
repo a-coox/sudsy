@@ -1,0 +1,82 @@
+// Protocol Buffers (proto2, proto3 and editions), parsed by tree-sitter (tree-sitter-proto) and mapped by crates/lang-protobuf/src/mapping.rs.
+// Format: see crates/core-syntax/src/grammar/mod.rs.
+
+language protobuf 13 "Protobuf"
+comments line "//" block "/*" "*/"
+suppress disable-next-line "sudsy-disable-next-line"
+suppress disable-line "sudsy-disable-line"
+suppress disable "sudsy-disable"
+suppress enable "sudsy-enable"
+suppress disable-file "sudsy-disable-file"
+suppress ignore "sudsy-ignore"
+
+token Whitespace #trivia #whitespace
+token Newline #trivia #newline
+token Comment #trivia #comment
+
+// Reserved words (`message`, `to`, `stream`, ...).
+token Keyword
+// `=`, `.`, `-`, `+`, `/`, `(`, `)`, `[`, `]`, `<` and `>`.
+token Punct #punctuation
+token LBrace "{" #punctuation
+token RBrace "}" #punctuation
+token Semi ";" #punctuation
+token Colon ":" #punctuation #separator
+token Comma "," #punctuation #separator
+
+// A name; a quoted name in `reserved "a", "b"` too.
+token Ident
+// A scalar type or a (dotted) type name: `int32`, `.google.protobuf.Any`.
+token Type
+// The key type of a `map<K, V>`.
+token KeyType
+// Adjacent literals (`"a" "b"`) may change the blanks between them: ProtoFormatter::extra_check compares the literals.
+token String #literal #string #restyle
+token Int #literal
+token Float #literal
+token Bool #literal
+
+token Eof
+token Unknown #error
+
+node Document = items:#item* Eof
+node EmptyStatement #item = Semi
+node Syntax #item = Keyword Punct version:String Semi
+node Edition #item = Keyword Punct year:String Semi
+node Import #item = Keyword Keyword? path:String Semi
+node Package #item = Keyword FullIdent Semi
+// `option <name> = <constant>;`; the name tokens (`(a.b).c`) are children.
+node OptionDecl #item = Keyword Punct* Ident* FullIdent* Constant Semi
+// `message`, `enum` and `service` may have a visibility keyword (editions 2024).
+node Message #item = Keyword* name:MessageName body:MessageBody
+node MessageName = Ident
+node MessageBody = LBrace items:#item* RBrace
+node Enum #item = Keyword* name:EnumName body:EnumBody
+node EnumName = Ident
+node EnumBody = LBrace items:#item* RBrace
+node EnumField #item = name:Ident Punct Punct? Int Punct? EnumValueOption* Comma* Punct? Semi
+node EnumValueOption = Punct* Ident* FullIdent* Constant
+node Extend #item = Keyword Punct? FullIdent body:MessageBody
+node Group #item = Keyword* name:MessageName Punct Int Punct? FieldOptions? Punct? body:MessageBody
+node Field #item = Keyword* Type name:Ident Punct number:Int Punct? FieldOptions? Punct? Semi
+node FieldOptions = FieldOption* Comma*
+node FieldOption = Punct* Ident* FullIdent* Constant
+node Oneof #item = Keyword name:Ident LBrace items:#item* RBrace
+node OneofField #item = Type name:Ident Punct number:Int Punct? FieldOptions? Punct? Semi
+node MapField #item = Keyword Punct KeyType Comma Type Punct name:Ident Punct number:Int Punct? FieldOptions? Punct? Semi
+node Reserved #item = Keyword Ranges? ReservedNames? Semi
+node Extensions #item = Keyword Ranges Punct? FieldOptions? Punct? Semi
+node Ranges = Range* Comma*
+node Range = Int Keyword? Int?
+node ReservedNames = Ident* Comma*
+node Service #item = Keyword name:ServiceName LBrace items:#item* RBrace
+node ServiceName = Ident
+node Rpc #item = Keyword name:RpcName Punct Keyword? MessageType Punct Keyword Punct Keyword? MessageType Punct LBrace? items:#item* RBrace? Semi?
+node RpcName = Ident
+node MessageType = Punct? Ident*
+node FullIdent = Ident*
+// A value: a name, a number with its sign, a string, `true`/`false` or a message literal.
+node Constant = FullIdent? Punct? Int? Float? String? Bool? BlockLit?
+node BlockLit = LBrace? Punct* Ident* ExtensionName* Constant* Comma* Semi* RBrace?
+// The name of a field of a message literal, `[ext.name]` or `[type.googleapis.com/a.B]`.
+node ExtensionName = Punct FullIdent Punct? FullIdent? Punct

@@ -1,0 +1,26 @@
+// header
+syntax = 'proto3';
+package   foo.bar;
+import "z.proto";
+import public "a.proto";
+import "b.proto";
+import "a.proto";
+option java_package="x";
+option (foo.bar) = { a: 1 b: [1,2] c { d: "x" } };
+/* block */
+message Foo {
+  option deprecated=true;
+  string name=1 [deprecated=true, json_name="x"];
+  string  n2 = 2[(a).b = 1];
+  repeated   int32 xs=3;
+  map<string,   Bar> m=4;
+  oneof o { int32 a=5; string b=6; }
+  reserved 1,2 to 4, 9 to max;
+  reserved "a","b";
+  enum E { A=0; B =1 [deprecated=true]; }
+  message Inner {}
+  extensions 100 to 199; // trailing
+}
+
+
+service S { rpc M(stream A) returns (B) {option deprecated=true;} rpc N(A) returns (stream B); }
