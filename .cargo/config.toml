@@ -1,6 +1,11 @@
 [alias]
 xtask = "run --quiet --package xtask --"
 
+# rust-lld (shipped with every toolchain) links the ~100 test binaries faster than MSVC link.exe
+# (docs/performance/numbers.md).
+[target.x86_64-pc-windows-msvc]
+linker = "rust-lld.exe"
+
 # Tests create their temp dirs here, so a stray sudsy.yaml in the system temp dir is not their parent config.
 [env]
 TEMP = { value = ".cargo/tmp", relative = true, force = true }

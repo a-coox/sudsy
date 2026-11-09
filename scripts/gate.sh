@@ -35,7 +35,11 @@ fi
 
 gate "cargo fmt" cargo fmt --all -- --check
 gate "cargo clippy" cargo clippy "${ws[@]}" --all-targets -- -D warnings
-gate "cargo test" cargo test "${ws[@]}"
+# nextest runs the tests of all binaries in parallel (cargo test runs one binary after another);
+# it skips doctests, which cargo test --doc runs.
+command -v cargo-nextest >/dev/null || { echo "GATE FAILED: cargo-nextest missing (cargo install cargo-nextest --locked)" >&2; exit 1; }
+gate "cargo nextest" cargo nextest run "${ws[@]}" --no-fail-fast
+gate "cargo test --doc" cargo test "${ws[@]}" --doc
 if [ ${#pkg[@]} -eq 0 ]; then
   gate "cargo xtask codegen --check" cargo xtask codegen --check
   # The sample plugin is a workspace of its own: format check and its native rule tests. With a

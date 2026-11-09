@@ -182,11 +182,10 @@ fn the_project_phase_runs_in_the_plugin() {
     let _ = RuleOptions::default();
 }
 
-fn disabled_by(mode: &str, expected: &str) {
-    let ext = extensions();
+fn disabled_by(ext: &Extensions, mode: &str, expected: &str) {
     let p = JsonProvider::new();
     let rules = format!("sample/misbehave:\n  level: warn\n  options: {{ mode: {mode} }}");
-    let first = lint_with(&p, &ext, "a.json", "{}", &rules);
+    let first = lint_with(&p, ext, "a.json", "{}", &rules);
     assert_eq!(first.len(), 1, "{first:?}");
     assert!(
         first[0].message.contains("is disabled for this run"),
@@ -195,13 +194,13 @@ fn disabled_by(mode: &str, expected: &str) {
     );
     assert!(first[0].message.contains(expected), "{}", first[0].message);
     // Disabled for the rest of the run: the next file is silent, and so are the plugin's other rules.
-    assert!(lint_with(&p, &ext, "b.json", "{}", &rules).is_empty());
-    assert!(lint_with(&p, &ext, "c.json", "{\"debug\": true}", "").is_empty());
+    assert!(lint_with(&p, ext, "b.json", "{}", &rules).is_empty());
+    assert!(lint_with(&p, ext, "c.json", "{\"debug\": true}", "").is_empty());
 }
 
 #[test]
 fn a_trapping_plugin_is_disabled_and_reported() {
-    disabled_by("trap", "trapped");
+    disabled_by(&extensions(), "trap", "trapped");
 }
 
 #[test]
@@ -221,14 +220,16 @@ fn a_spinning_plugin_runs_out_of_fuel_or_time() {
 
 #[test]
 fn a_sleeping_plugin_is_stopped_not_waited_for() {
+    // Timed: the lints, not building and compiling the plugin.
+    let ext = extensions();
     let start = std::time::Instant::now();
-    disabled_by("sleep", "blocking");
+    disabled_by(&ext, "sleep", "blocking");
     assert!(start.elapsed().as_secs() < 30, "{:?}", start.elapsed());
 }
 
 #[test]
 fn a_span_outside_the_file_disables_the_plugin() {
-    disabled_by("span", "not inside the file");
+    disabled_by(&extensions(), "span", "not inside the file");
 }
 
 #[test]

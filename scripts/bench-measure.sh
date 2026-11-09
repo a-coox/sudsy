@@ -68,9 +68,15 @@ prev=$(cat "$out.secs" 2>/dev/null || true)
 : >"$out"; : >"$out.secs"
 queue=$(while read -r lang kind phases; do
   [ "$kind" = worker ] && [ $worker = 0 ] && continue
-  for phase in $phases; do echo "$(awk -v k="$lang.$phase" '$1 == k { print $2 }' <<<"$prev" | tail -1) $lang $phase"; done
+  for phase in $phases; do
+    # lint-all grows with every rule and is never flagged: allocations only, no callgrind run.
+    [ "$mode" = instr ] && [ "$phase" = lint-all ] && continue
+    echo "$(awk -v k="$lang.$phase" '$1 == k { print $2 }' <<<"$prev" | tail -1) $lang $phase"
+  done
 done <<<"$rows" | awk '{ if (NF == 2) $0 = "0 " $0; print }' | sort -s -rn -k1,1)
-tmp=$(mktemp -d); running=0; jobs_max=$(( $(nproc 2>/dev/null || echo 4) / 2 )); [ "$jobs_max" -ge 1 ] || jobs_max=1
+# All logical CPUs: a callgrind run is single-threaded and peaks near 120 MB, and 12 jobs took 65 s
+# where 6 took 124 s (hyperthreads included).
+tmp=$(mktemp -d); running=0; jobs_max=$(nproc 2>/dev/null || echo 4)
 while read -r _ lang phase; do
   one "$lang" "$phase" >"$tmp/$lang.$phase" &
   running=$((running + 1)); if [ $running -ge $jobs_max ]; then wait -n || true; running=$((running - 1)); fi

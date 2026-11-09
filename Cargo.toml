@@ -73,10 +73,12 @@ provider-api = { path = "crates/provider-api" }
 [workspace.lints.rust]
 unsafe_code = "forbid"
 
-# Line tables only: backtraces keep file:line, and rebuilding the ~100 test binaries after an edit
-# takes about half as long (docs/performance/numbers.md); a debugger shows no variable values.
+# Line tables only and opt-level 1: backtraces keep file:line, debug assertions and overflow checks
+# stay on, and the ~100 test binaries rebuild after an edit in a third of the time (smaller
+# binaries to link; docs/performance/numbers.md). A debugger shows no variable values.
 [profile.dev]
 debug = "line-tables-only"
+opt-level = 1
 
 # Release speed with debug assertions: the corpus and conformance runs keep the formatter safety check.
 [profile.corpus]

@@ -7,7 +7,8 @@
 #   (--base, default the merge-base with origin/main; HEAD or HEAD^ when that is HEAD), built in a
 #   git worktree: instructions (callgrind, in WSL on Windows) and allocations. Exit 1 on a
 #   regression: instructions +1%, allocations +1% (and 10 or more); the lint-all and lint-docs metrics (every
-#   rule on, resp. the C# documentation rules, so they grow with each new rule) are printed but never flagged.
+#   rule on, resp. the C# documentation rules, so they grow with each new rule) are printed but never flagged,
+#   and lint-all is counted in allocations only.
 # Tier 2 (--time): interleaved A/B wall time of the CLI, with the C# worker; exit 1 only when the
 #   95% confidence interval of the candidate/baseline ratio lies above 1.03.
 # Languages: the folders of bench/inputs that a provider claims (`perf-bench list`).
