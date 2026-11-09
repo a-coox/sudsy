@@ -1,6 +1,7 @@
 //! The language provider interface and the out-of-process proxy that implements it for languages
 //! parsed by a worker process (C#).
 
+pub mod embedded;
 pub mod fixtures;
 pub mod format;
 pub mod format_testing;

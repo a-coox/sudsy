@@ -31,6 +31,15 @@ const CONFIG: &str = "rules.yaml";
 /// Longest fixture input, annotations left out.
 const MAX_LINES: usize = 60;
 
+/// [`rule_fixtures`] for a language that embeds others: `companions` parse the embedded code.
+pub fn rule_fixtures_with(
+    provider: &dyn LanguageProvider,
+    companions: &[&'static dyn LanguageProvider],
+) {
+    testing::COMPANIONS.set(companions.to_vec());
+    rule_fixtures(provider);
+}
+
 /// Runs every fixture of the provider's language and panics with the failures, each named by its
 /// file.
 pub fn rule_fixtures(provider: &dyn LanguageProvider) {

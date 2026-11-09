@@ -74,6 +74,18 @@ pub struct FileContext<'a> {
     pub semantics: Option<SemanticView<'a>>,
     /// The language's answers to the shared rules' questions about keys and scalars.
     pub hooks: &'a dyn RuleHooks,
+    /// The parsed code of other languages in the file, for rules that read it (a Dockerfile's
+    /// `RUN` as shell).
+    pub embedded: &'a [EmbeddedTree],
+}
+
+/// The parse of a region of the file written in another language: its offsets count from the
+/// start of `range`.
+pub struct EmbeddedTree {
+    pub range: TextRange,
+    /// The language's name (`shell`).
+    pub language: String,
+    pub root: SyntaxNode,
 }
 
 /// A method, lambda or local function, with its flow graph when the flow layer is available.

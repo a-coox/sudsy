@@ -9,7 +9,13 @@ use core_rules::{
     layers_needed, run_file,
 };
 use core_semantics::SemanticView;
+use std::cell::RefCell;
 use std::path::Path;
+
+thread_local! {
+    /// The providers whose code the tested language embeds (see [`crate::fixtures::rule_fixtures_with`]).
+    pub(crate) static COMPANIONS: RefCell<Vec<&'static dyn LanguageProvider>> = const { RefCell::new(Vec::new()) };
+}
 
 /// Why a pattern rule file is refused, if it is.
 pub fn pattern_error(provider: &dyn LanguageProvider, source: &str) -> Option<String> {
@@ -123,6 +129,12 @@ fn analyze(
             .expect("the provider answers semantic queries")
     };
     let summaries = provider.summaries();
+    let embedded = COMPANIONS.with_borrow(|others| {
+        let found = crate::embedded::parse_regions(provider, &parsed.tree, text, &|name| {
+            crate::embedded::resolve(others.iter().copied(), name)
+        });
+        crate::embedded::trees(&found)
+    });
     let context = FileContext {
         path: Path::new(path),
         text,
@@ -131,6 +143,7 @@ fn analyze(
         lines: &lines,
         body_kinds: provider.body_kinds(),
         hooks: provider.rule_hooks(),
+        embedded: &embedded,
         semantics: data.as_ref().map(|data| SemanticView {
             data,
             summaries: &summaries,

@@ -166,6 +166,7 @@ fn with_file<T>(
         lines: &decoded.lines,
         body_kinds: &decoded.body_kinds,
         hooks: &core_rules::DEFAULT_HOOKS,
+        embedded: &[],
         semantics: decoded
             .semantics
             .as_ref()

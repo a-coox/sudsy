@@ -89,6 +89,7 @@ pub(crate) fn context<'a>(provider: &'a dyn LanguageProvider, p: &'a Parsed) -> 
         lines: &p.lines,
         body_kinds: provider.body_kinds(),
         hooks: provider.rule_hooks(),
+        embedded: &[],
         semantics: None,
     }
 }

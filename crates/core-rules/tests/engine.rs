@@ -92,6 +92,7 @@ fn run(text: &str, rule: &Probe, collect: bool, bodies: &[SyntaxKind]) -> FileRe
         lines: &lines,
         body_kinds: bodies,
         hooks: provider.rule_hooks(),
+        embedded: &[],
         semantics: None,
     };
     let active = [ActiveRule {

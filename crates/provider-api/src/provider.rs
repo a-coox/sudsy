@@ -2,7 +2,7 @@ use core_config::OptionSchema;
 use core_format::NodeFormatter;
 use core_rules::{DEFAULT_HOOKS, Rule, RuleHooks};
 use core_semantics::{BehaviorSummaries, CompilerDiagnostic, FileSemantics, Layers};
-use core_syntax::{Grammar, LanguageId, SyntaxKind, SyntaxNode};
+use core_syntax::{Embedded, Grammar, LanguageId, SyntaxKind, SyntaxNode};
 use std::path::{Path, PathBuf};
 
 /// What a language provider can do. So far: parsing, formatting, format options and rules. Later
@@ -49,6 +49,17 @@ pub trait LanguageProvider: Send + Sync {
     /// [`core_rules::RuleHooks`]); the defaults suit a language with nothing special.
     fn rule_hooks(&self) -> &dyn RuleHooks {
         &DEFAULT_HOOKS
+    }
+
+    /// The code of other languages in the file (a Dockerfile's `RUN`, a Markdown fence).
+    fn embedded(&self, _root: &SyntaxNode, _text: &str) -> Vec<Embedded> {
+        Vec::new()
+    }
+
+    /// Whether another language's file may embed this one: not a language with a worker process,
+    /// which would start for a snippet.
+    fn embeddable(&self) -> bool {
+        true
     }
 
     /// The node kinds that are bodies (methods, lambdas, local functions): body-scope rules are

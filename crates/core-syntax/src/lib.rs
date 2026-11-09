@@ -11,6 +11,7 @@
 
 pub mod ast;
 pub mod codegen;
+pub mod embedded;
 pub mod grammar;
 pub mod grammars;
 pub mod kind;
@@ -19,6 +20,7 @@ pub mod tree;
 pub mod trivia;
 pub mod wire;
 
+pub use embedded::Embedded;
 pub use grammar::Grammar;
 pub use kind::{LanguageId, SyntaxKind};
 pub use rowan::{GreenNode, TextRange, TextSize};

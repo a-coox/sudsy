@@ -42,11 +42,14 @@ pub fn layers_needed(active: &[ActiveRule<'_>]) -> Layers {
 /// whether project facts are wanted (analysis depth `deep`).
 pub fn run_file(file: &FileContext<'_>, active: &[ActiveRule<'_>], collect: bool) -> FileReport {
     let mut report = run_rules(file, active, collect);
+    silence(file, &mut report.diagnostics);
+    report
+}
+
+/// Drops what a suppression comment of the file silences.
+pub fn silence(file: &FileContext<'_>, diagnostics: &mut Vec<Diagnostic>) {
     let suppressions = Suppressions::scan(file);
-    report
-        .diagnostics
-        .retain(|d| !suppressions.suppresses(file, d));
-    report
+    diagnostics.retain(|d| !suppressions.suppresses(file, d));
 }
 
 /// [`run_file`] without the suppressions: for a caller whose own caller applies them to the

@@ -127,6 +127,10 @@ impl LanguageProvider for OutOfProcessProvider {
         self.proxy.capabilities().unwrap_or(Capabilities::NONE)
     }
 
+    fn embeddable(&self) -> bool {
+        false
+    }
+
     fn formatter(&self) -> &dyn NodeFormatter {
         self.formatter.as_ref()
     }
