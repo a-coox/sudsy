@@ -43,18 +43,34 @@ impl Subject for Formatting {
     }
 
     fn format(&self, text: &str) -> Result<String, String> {
+        format_file(
+            &*self.provider,
+            &SourceFile::new(self.file, 1, text),
+            &self.resolved(),
+            &DirectiveTable::default(),
+        )
+        .map_err(|e| e.to_string())
+    }
+
+    fn rewritten(&self, input: &str) -> String {
+        let Ok(tree) = self.parse(input) else {
+            return input.to_string();
+        };
+        let formatter = self.provider.formatter();
+        formatter
+            .rewrite_source(&tree, input, self.grammar(), &self.resolved())
+            .unwrap_or_else(|| input.to_string())
+    }
+}
+
+impl Formatting {
+    fn resolved(&self) -> core_config::ResolvedOptions {
         let schema = self.provider.option_schema();
         let mut options = schema.defaults();
         for (k, v) in &self.options {
             schema.apply(&mut options, k, v).unwrap();
         }
-        format_file(
-            &*self.provider,
-            &SourceFile::new(self.file, 1, text),
-            &options,
-            &DirectiveTable::default(),
-        )
-        .map_err(|e| e.to_string())
+        options
     }
 }
 

@@ -46,6 +46,26 @@ pub struct Mapping {
     pub wrap: &'static [(&'static str, &'static str)],
 }
 
+/// The `kinds` entry for a tree-sitter node. A `from` written `"name"` (quoted, as in tree-sitter
+/// queries) matches only the anonymous node of that text and `name` only the named one; with no
+/// quoted entry, `name` matches both. A grammar needs the quotes when a named rule and a keyword
+/// share a name (`message`).
+fn lookup(m: &Mapping, name: &str, named: bool) -> Option<&'static (&'static str, &'static str)> {
+    let find = |q: bool| {
+        m.kinds
+            .iter()
+            .find(|(from, _)| match from.strip_prefix('"') {
+                Some(inner) => q && inner.strip_suffix('"') == Some(name),
+                None => !q && *from == name,
+            })
+    };
+    if named {
+        find(false)
+    } else {
+        find(true).or_else(|| find(false))
+    }
+}
+
 /// How a language made of several tree-sitter grammars is assembled (see the module docs).
 #[derive(Clone, Copy)]
 pub struct Composite {
@@ -132,7 +152,7 @@ impl Converter {
         let mut names = vec![String::new(); count];
         for (id, slot) in table.iter_mut().enumerate() {
             let name = language.node_kind_for_id(id as u16).unwrap_or("");
-            if let Some((_, target)) = m.kinds.iter().find(|(from, _)| *from == name) {
+            if let Some((_, target)) = lookup(m, name, language.node_kind_is_named(id as u16)) {
                 let k = kind(target);
                 *slot = match (k.is_token(), grammar.is_trivia(k)) {
                     (false, _) => Entry::Node(k),
@@ -618,5 +638,34 @@ impl Engine {
 
     pub fn parse(&self, text: &str) -> ParseResult {
         self.convert(text, &self.parse_raw(text))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn mapping(kinds: &'static [(&'static str, &'static str)]) -> Mapping {
+        Mapping {
+            whitespace: "",
+            newline: "",
+            eof: "",
+            unknown: "",
+            kinds,
+            wrap: &[],
+        }
+    }
+
+    #[test]
+    fn quoted_entries_match_only_the_anonymous_node() {
+        let both = mapping(&[("message", "Message"), ("\"message\"", "Keyword")]);
+        assert_eq!(lookup(&both, "message", true).unwrap().1, "Message");
+        assert_eq!(lookup(&both, "message", false).unwrap().1, "Keyword");
+        // Without a quoted entry the name matches both; a quoted entry alone matches no named node.
+        let plain = mapping(&[("{", "Brace")]);
+        assert_eq!(lookup(&plain, "{", true).unwrap().1, "Brace");
+        assert_eq!(lookup(&plain, "{", false).unwrap().1, "Brace");
+        let quoted = mapping(&[("\"if\"", "Keyword")]);
+        assert!(lookup(&quoted, "if", true).is_none());
     }
 }
