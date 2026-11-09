@@ -12,6 +12,7 @@
 | `bench.sh`, `bench-time.sh`, `bench-measure.sh`, `bench-setup-wsl.sh` | [performance/tooling.md](../performance/tooling.md) |
 | `parity.sh <tool>`, `parity.sh format <tool>` | Differential test against an upstream tool on `tests/parity/<tool>/` fixtures: [parity.md](parity.md) |
 | `pack.sh <out> [language...]`, `pack-bench.sh` | Build language packs and their manifest for this machine; static vs pack timing and sizes ([../architecture/language-packs.md](../architecture/language-packs.md)) |
+| `finish.sh [bench args]` | The check of a finished change: the full gate and `bench.sh` at the same time (about as long as the slower one); a gate failure stops the bench; ends in `FINISH OK` or `FINISH FAILED: <gate\|bench>` |
 | `agent-stats.py [<subagents dir>] [N]` | Summary of the newest N (10) Claude Code subagent transcripts: model vs tool minutes, gate/bench launches, watchers, errors by kind, the commit whose CLAUDE.md each agent was given |
 | `check-version.sh [vX.Y.Z]` | Cargo workspace, `editors/vscode/package.json` + lock, tag and `CHANGELOG.md` agree |
 | `package-cli.sh` | CLI archive: executable, `csharp-worker/`, LICENSE, CHANGELOG |
@@ -20,7 +21,7 @@
 Each parallel agent works in its own git worktree and sets `CARGO_TARGET_DIR=C:/Coding/.sudsy-targets/slot<N>` (outside the repo; N = 1 or 2, at most two agents at once). A slot outlives worktrees, so a new worktree in a slot starts warm (wasmtime and cranelift are not rebuilt). Every script honors `CARGO_TARGET_DIR`: the gate's cargo steps, `parity.sh` (binary and tool installs under `<slot>/parity/`), `bench.sh` (native work dir and base worktree under `<slot>/bench/`; the WSL callgrind cache `~/.cache/sudsy-bench/<slot name>` is keyed by the slot), `dogfood.sh`. The gate builds the sample plugin's own workspace in `<slot>/sample-host/` (two workspaces in one deps directory confuse rustc). Unset, everything uses `target/`.
 - Iterate with `scripts/gate.sh -p <crate>`; run the full `scripts/gate.sh` once before pushing, and again only if the rebase brought conflicts.
 - Run `scripts/bench.sh` once at the end of a batch, not mid-work.
-- Build caches only grow (cargo never deletes incremental data). `scripts/clean-slots.sh` deletes the `incremental/` caches of `target/` and every slot (`--all`: whole `debug/` dirs); the gate warns when the build disk has under 30 GB free.
+- Build caches only grow: cargo never deletes incremental data, and every worktree path gets new file hashes, so each worktree that used a slot leaves a full set of test binaries and debug info behind (130 GB of 240 in one slot). `scripts/clean-slots.sh [--all] [slot dir...]` deletes the `incremental/` caches and all but the newest copy of each binary in `target/` and every slot (or the slots given), and the same in the slots' WSL bench caches (`--all`: whole `debug/` dirs); the gate warns when the build disk has under 30 GB free.
 
 ## Conventions
 - Errors: `thiserror` in libraries, `anyhow` only in binaries (`cli`, `lsp`). `unsafe_code = "forbid"`.

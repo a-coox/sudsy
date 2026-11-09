@@ -20,6 +20,13 @@ gate() {
   echo "   ($name: $((SECONDS - t))s)"
 }
 
+# The first gate of a worktree in a slot deletes the earlier worktrees' outputs there, which are
+# never used again (clean-slots.sh --stale); the slot remembers which worktree it last pruned for.
+if [ -n "${CARGO_TARGET_DIR:-}" ] && [ "$(cat "$CARGO_TARGET_DIR/.pruned-for" 2>/dev/null)" != "$PWD" ]; then
+  t=$SECONDS; scripts/clean-slots.sh --stale "$CARGO_TARGET_DIR" && echo "$PWD" >"$CARGO_TARGET_DIR/.pruned-for"
+  echo "   (slot cleanup: $((SECONDS - t))s)"
+fi
+
 gate "cargo fmt" cargo fmt --all -- --check
 gate "cargo clippy" cargo clippy "${ws[@]}" --all-targets -- -D warnings
 gate "cargo test" cargo test "${ws[@]}"

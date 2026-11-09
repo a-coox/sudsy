@@ -116,14 +116,20 @@ Markdown (tree-sitter-md block and inline grammars through `core-treesitter` as 
 | Typing: pulls that did the full work | 1-2 of 40 |
 
 ## Dev loop / tooling (persistent `CARGO_TARGET_DIR` slot, `docs/development/dev-loop.md`)
-Method: `CARGO_TARGET_DIR=C:/Coding/.sudsy-targets/slot1`, Git Bash, wall seconds, a fresh slot (cold) then the same command again (warm); Windows 11 desktop shared with two other agents building at the same time, so times are noisy. The warm test time is test execution, not compilation.
+Method: `scripts/devloop-times.sh` in slot2 (warm slot, each command after touching `crates/core-syntax/src/lib.rs`), Git Bash, wall seconds, no other agent running. Before this setup (full debug info, callgrind in batches, no baseline cache, gate then bench in a row): gate 361 s + bench 429 s = 790 s.
 
-| Command | Cold | Warm |
-|---|---|---|
-| `scripts/gate.sh --rust-only` | 827 s (fmt 1, clippy 90, test 565, codegen 14+, sample plugin 40) | 171 s (clippy 1, test 159) |
-| `scripts/bench.sh --no-record` (incl. WSL callgrind cache `~/.cache/sudsy-bench/slot1`) | 1363 s | 91 s |
-| `scripts/parity.sh yamllint` (venv install + CLI build reused) | 86 s | |
-| `scripts/gate.sh -p lang-json` from another checkout path with the warm slot | | 38 s (only workspace crates and a few small dependencies recompile; wasmtime and cranelift are reused) |
+| Command | Seconds |
+|---|---|
+| `scripts/finish.sh`, baseline not cached (the first check of a change) | 477 (gate 329 and bench 476 at the same time) |
+| `scripts/finish.sh`, baseline cached (every rerun) | 285 (gate 284, bench 277) |
+| `scripts/gate.sh` | 292 (clippy 24, test 223 = compile 59 + 79 test binaries run one after another ~150, codegen 14, sample plugin 15) |
+| `scripts/bench.sh`, baseline not cached | 437 (builds 180, allocations 77, callgrind 82 + 91) |
+| Test binaries rebuilt (`cargo test --workspace --no-run`) | 51 with `debug = "line-tables-only"`, 92 with full debug info; `rust-lld` 97 and dependencies at `opt-level = 1` (test run 146 vs 137) gave nothing |
+| Callgrind, one side, 50 phases | 82-102 as a pool of 6 jobs longest first, 148-155 in batches of 6 (simulated from the phase seconds: 91 vs 155) |
+| Bench noise, same code on both sides | no metric moved 1%; run to run at most 0.05% |
+| `scripts/parity.sh yamllint` (venv install + CLI build reused) | 86 |
+
+Slot size: 240-266 GB before pruning the outputs of earlier worktrees, 56-70 GB after; the WSL bench cache 33 GB, 16 GB without its dead directories.
 
 ## Documentation site (`scripts/site.sh scale-test`, [development/site.md](../development/site.md))
 Astro 7.4.7 + Starlight 0.42.9, same machine, Node 24, one run, 10 000 synthetic rules (copies of the 101 real ones with unique ids): 21 986 pages (rules, upstream-id stubs, fixed pages), full build 165 s, output 690 MB (about 31 KB per page; GitHub Pages allows 1 GB), Pagefind index 50 MB. The real 101 rules: 225 pages, 8 s with `npm ci` cached.
