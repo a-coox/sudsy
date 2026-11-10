@@ -11,4 +11,3 @@ corpus/Pester/src/functions/Describe.ps1 psscriptanalyzer:no-automatic-variable-
 corpus/Pester/src/functions/It.ps1 psscriptanalyzer:no-automatic-variable-assignment 130: Sudsy reports a parameter at its first attribute line, the module at the variable
 corpus/Pester/src/functions/Context.ps1 sudsy:no-automatic-variable-assignment 93: Sudsy reports a parameter at its first attribute line, the module at the variable
 corpus/Pester/src/functions/Describe.ps1 sudsy:no-automatic-variable-assignment 101: Sudsy reports a parameter at its first attribute line, the module at the variable
-corpus/PSScriptAnalyzer/Tests/Engine/RuleSuppressionClass.ps1 sudsy:no-invoke-expression 15: the module honors the [SuppressMessageAttribute] on the class, Sudsy does not

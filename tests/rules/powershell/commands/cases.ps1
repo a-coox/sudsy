@@ -27,3 +27,13 @@ function Get-It {
   param()
   Write-Host "x"
 }
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingWriteHost", "")]
+class Quiet
+{
+    [void] Say() { Write-Host "x" }
+}
+class Mixed {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingWriteHost", "")]
+    [void] Say() { Write-Host "x" }
+    [void] Also() { Write-Host "y" }
+}

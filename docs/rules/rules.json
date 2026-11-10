@@ -4942,7 +4942,7 @@
       "example": {
         "config": null,
         "fixed": null,
-        "input": "Write-Host \"hi\"\nwrite-host\nWrite-Output \"ok\"\nGet-Help Write-Host\niex $script\nInvoke-Expression -Command $c\nConvertTo-SecureString $p -AsPlainText -Force\nConvertTo-SecureString $p\nConvertTo-SecureString `\n    $p -AsPlainText\nGet-WmiObject Win32_Process\nGet-CimInstance Win32_Process\nConvertTo-SecureString -AsPlainText \"x\" -Force\nfunction Get-Other { Write-Host \"y\" }\nfunction Get-It {\n  [Diagnostics.CodeAnalysis.SuppressMessageAttribute(\"PSAvoidUsingWriteHost\", \"\")]\n  param()\n  Write-Host \"x\"\n}\n",
+        "input": "Write-Host \"hi\"\nwrite-host\nWrite-Output \"ok\"\nGet-Help Write-Host\niex $script\nInvoke-Expression -Command $c\nConvertTo-SecureString $p -AsPlainText -Force\nConvertTo-SecureString $p\nConvertTo-SecureString `\n    $p -AsPlainText\nGet-WmiObject Win32_Process\nGet-CimInstance Win32_Process\nConvertTo-SecureString -AsPlainText \"x\" -Force\nfunction Get-Other { Write-Host \"y\" }\nfunction Get-It {\n  [Diagnostics.CodeAnalysis.SuppressMessageAttribute(\"PSAvoidUsingWriteHost\", \"\")]\n  param()\n  Write-Host \"x\"\n}\n[Diagnostics.CodeAnalysis.SuppressMessageAttribute(\"PSAvoidUsingWriteHost\", \"\")]\nclass Quiet\n{\n    [void] Say() { Write-Host \"x\" }\n}\nclass Mixed {\n    [Diagnostics.CodeAnalysis.SuppressMessageAttribute(\"PSAvoidUsingWriteHost\", \"\")]\n    [void] Say() { Write-Host \"x\" }\n    [void] Also() { Write-Host \"y\" }\n}\n",
         "language": "powershell",
         "spans": [
           {
@@ -5044,7 +5044,7 @@
       "example": {
         "config": null,
         "fixed": null,
-        "input": "Write-Host \"hi\"\nwrite-host\nWrite-Output \"ok\"\nGet-Help Write-Host\niex $script\nInvoke-Expression -Command $c\nConvertTo-SecureString $p -AsPlainText -Force\nConvertTo-SecureString $p\nConvertTo-SecureString `\n    $p -AsPlainText\nGet-WmiObject Win32_Process\nGet-CimInstance Win32_Process\nConvertTo-SecureString -AsPlainText \"x\" -Force\nfunction Get-Other { Write-Host \"y\" }\nfunction Get-It {\n  [Diagnostics.CodeAnalysis.SuppressMessageAttribute(\"PSAvoidUsingWriteHost\", \"\")]\n  param()\n  Write-Host \"x\"\n}\n",
+        "input": "Write-Host \"hi\"\nwrite-host\nWrite-Output \"ok\"\nGet-Help Write-Host\niex $script\nInvoke-Expression -Command $c\nConvertTo-SecureString $p -AsPlainText -Force\nConvertTo-SecureString $p\nConvertTo-SecureString `\n    $p -AsPlainText\nGet-WmiObject Win32_Process\nGet-CimInstance Win32_Process\nConvertTo-SecureString -AsPlainText \"x\" -Force\nfunction Get-Other { Write-Host \"y\" }\nfunction Get-It {\n  [Diagnostics.CodeAnalysis.SuppressMessageAttribute(\"PSAvoidUsingWriteHost\", \"\")]\n  param()\n  Write-Host \"x\"\n}\n[Diagnostics.CodeAnalysis.SuppressMessageAttribute(\"PSAvoidUsingWriteHost\", \"\")]\nclass Quiet\n{\n    [void] Say() { Write-Host \"x\" }\n}\nclass Mixed {\n    [Diagnostics.CodeAnalysis.SuppressMessageAttribute(\"PSAvoidUsingWriteHost\", \"\")]\n    [void] Say() { Write-Host \"x\" }\n    [void] Also() { Write-Host \"y\" }\n}\n",
         "language": "powershell",
         "spans": [
           {
@@ -5082,7 +5082,7 @@
       "example": {
         "config": null,
         "fixed": null,
-        "input": "Write-Host \"hi\"\nwrite-host\nWrite-Output \"ok\"\nGet-Help Write-Host\niex $script\nInvoke-Expression -Command $c\nConvertTo-SecureString $p -AsPlainText -Force\nConvertTo-SecureString $p\nConvertTo-SecureString `\n    $p -AsPlainText\nGet-WmiObject Win32_Process\nGet-CimInstance Win32_Process\nConvertTo-SecureString -AsPlainText \"x\" -Force\nfunction Get-Other { Write-Host \"y\" }\nfunction Get-It {\n  [Diagnostics.CodeAnalysis.SuppressMessageAttribute(\"PSAvoidUsingWriteHost\", \"\")]\n  param()\n  Write-Host \"x\"\n}\n",
+        "input": "Write-Host \"hi\"\nwrite-host\nWrite-Output \"ok\"\nGet-Help Write-Host\niex $script\nInvoke-Expression -Command $c\nConvertTo-SecureString $p -AsPlainText -Force\nConvertTo-SecureString $p\nConvertTo-SecureString `\n    $p -AsPlainText\nGet-WmiObject Win32_Process\nGet-CimInstance Win32_Process\nConvertTo-SecureString -AsPlainText \"x\" -Force\nfunction Get-Other { Write-Host \"y\" }\nfunction Get-It {\n  [Diagnostics.CodeAnalysis.SuppressMessageAttribute(\"PSAvoidUsingWriteHost\", \"\")]\n  param()\n  Write-Host \"x\"\n}\n[Diagnostics.CodeAnalysis.SuppressMessageAttribute(\"PSAvoidUsingWriteHost\", \"\")]\nclass Quiet\n{\n    [void] Say() { Write-Host \"x\" }\n}\nclass Mixed {\n    [Diagnostics.CodeAnalysis.SuppressMessageAttribute(\"PSAvoidUsingWriteHost\", \"\")]\n    [void] Say() { Write-Host \"x\" }\n    [void] Also() { Write-Host \"y\" }\n}\n",
         "language": "powershell",
         "spans": [
           {
@@ -5110,7 +5110,7 @@
       "example": {
         "config": null,
         "fixed": null,
-        "input": "Write-Host \"hi\"\nwrite-host\nWrite-Output \"ok\"\nGet-Help Write-Host\niex $script\nInvoke-Expression -Command $c\nConvertTo-SecureString $p -AsPlainText -Force\nConvertTo-SecureString $p\nConvertTo-SecureString `\n    $p -AsPlainText\nGet-WmiObject Win32_Process\nGet-CimInstance Win32_Process\nConvertTo-SecureString -AsPlainText \"x\" -Force\nfunction Get-Other { Write-Host \"y\" }\nfunction Get-It {\n  [Diagnostics.CodeAnalysis.SuppressMessageAttribute(\"PSAvoidUsingWriteHost\", \"\")]\n  param()\n  Write-Host \"x\"\n}\n",
+        "input": "Write-Host \"hi\"\nwrite-host\nWrite-Output \"ok\"\nGet-Help Write-Host\niex $script\nInvoke-Expression -Command $c\nConvertTo-SecureString $p -AsPlainText -Force\nConvertTo-SecureString $p\nConvertTo-SecureString `\n    $p -AsPlainText\nGet-WmiObject Win32_Process\nGet-CimInstance Win32_Process\nConvertTo-SecureString -AsPlainText \"x\" -Force\nfunction Get-Other { Write-Host \"y\" }\nfunction Get-It {\n  [Diagnostics.CodeAnalysis.SuppressMessageAttribute(\"PSAvoidUsingWriteHost\", \"\")]\n  param()\n  Write-Host \"x\"\n}\n[Diagnostics.CodeAnalysis.SuppressMessageAttribute(\"PSAvoidUsingWriteHost\", \"\")]\nclass Quiet\n{\n    [void] Say() { Write-Host \"x\" }\n}\nclass Mixed {\n    [Diagnostics.CodeAnalysis.SuppressMessageAttribute(\"PSAvoidUsingWriteHost\", \"\")]\n    [void] Say() { Write-Host \"x\" }\n    [void] Also() { Write-Host \"y\" }\n}\n",
         "language": "powershell",
         "spans": [
           {
