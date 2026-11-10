@@ -43,6 +43,47 @@ impl SyntaxNodeExt for SyntaxNode {
     }
 }
 
+/// The span from the first to the last token of `node` that is neither trivia nor empty, `None`
+/// without one. Walks the green tree, so no red element is allocated.
+pub fn code_span(node: &SyntaxNode, grammar: &crate::Grammar) -> Option<rowan::TextRange> {
+    use rowan::{GreenNodeData, NodeOrToken};
+    fn edge(
+        n: &GreenNodeData,
+        grammar: &crate::Grammar,
+        back: bool,
+        at: &mut u32,
+    ) -> Option<(u32, u32)> {
+        let mut visit = |c: NodeOrToken<&GreenNodeData, &rowan::GreenTokenData>| match c {
+            NodeOrToken::Node(n) => edge(n, grammar, back, at),
+            NodeOrToken::Token(t) => {
+                let len = u32::from(t.text_len());
+                if back {
+                    *at -= len;
+                }
+                let start = *at;
+                if !back {
+                    *at += len;
+                }
+                (len != 0 && !grammar.is_trivia(SyntaxKind(t.kind().0))).then_some((start, len))
+            }
+        };
+        if back {
+            n.children().rev().find_map(&mut visit)
+        } else {
+            n.children().find_map(&mut visit)
+        }
+    }
+    let green = node.green();
+    let whole = node.text_range();
+    let (first, _) = edge(&green, grammar, false, &mut 0)?;
+    let (last, len) = edge(&green, grammar, true, &mut u32::from(green.text_len()))?;
+    let base = whole.start();
+    Some(rowan::TextRange::new(
+        base + rowan::TextSize::from(first),
+        base + rowan::TextSize::from(last + len),
+    ))
+}
+
 /// Prints the tree. The lossless invariant is `print(&tree) == source`.
 pub fn print(node: &SyntaxNode) -> String {
     node.text().to_string()

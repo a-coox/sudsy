@@ -195,13 +195,14 @@ unsafe fn free(mut data: ptr::NonNull<NodeData>) {
     loop {
         debug_assert_eq!(data.as_ref().rc.get(), 0);
         debug_assert!(data.as_ref().first.get().is_null());
-        let node = Box::from_raw(data.as_ptr());
+        let node = data.as_ref();
         match node.parent.take() {
             Some(parent) => {
                 debug_assert!(parent.as_ref().rc.get() > 0);
                 if node.mutable {
-                    sll::unlink(&parent.as_ref().first, &*node)
+                    sll::unlink(&parent.as_ref().first, node)
                 }
+                release(data);
                 if parent.as_ref().dec_rc() {
                     data = parent;
                 } else {
@@ -217,10 +218,49 @@ unsafe fn free(mut data: ptr::NonNull<NodeData>) {
                         let _ = GreenToken::from_raw(*ptr);
                     }
                 }
+                release(data);
                 break;
             }
         }
     }
+}
+
+/// Freed `NodeData` slots, a list through their first word and its length. A walk over a tree
+/// allocates and frees one element per node it visits, which a list on the thread costs far less
+/// than the global allocator (a node is not `Send`, so slots stay on the thread that uses them).
+const POOL_MAX: usize = 4096;
+thread_local! {
+    static POOL: Cell<(*mut u8, usize)> = const { Cell::new((ptr::null_mut(), 0)) };
+}
+
+fn alloc(data: NodeData) -> *mut NodeData {
+    POOL.with(|pool| {
+        let (head, len) = pool.get();
+        if head.is_null() {
+            return Box::into_raw(Box::new(data));
+        }
+        unsafe {
+            pool.set((*(head as *mut *mut u8), len - 1));
+            let slot = head as *mut NodeData;
+            slot.write(data);
+            slot
+        }
+    })
+}
+
+/// Drops the contents of the slot and keeps its memory for [`alloc`].
+unsafe fn release(data: ptr::NonNull<NodeData>) {
+    ptr::drop_in_place(data.as_ptr());
+    let slot = data.as_ptr() as *mut u8;
+    POOL.with(|pool| {
+        let (head, len) = pool.get();
+        if len >= POOL_MAX {
+            std::alloc::dealloc(slot, std::alloc::Layout::new::<NodeData>());
+        } else {
+            *(slot as *mut *mut u8) = head;
+            pool.set((slot, len + 1));
+        }
+    })
 }
 
 impl NodeData {
@@ -275,13 +315,13 @@ impl NodeData {
                         return ptr::NonNull::new_unchecked(res);
                     }
                     it => {
-                        let res = Box::into_raw(Box::new(res));
+                        let res = alloc(res);
                         it.add_to_sll(res);
                         return ptr::NonNull::new_unchecked(res);
                     }
                 }
             }
-            ptr::NonNull::new_unchecked(Box::into_raw(Box::new(res)))
+            ptr::NonNull::new_unchecked(alloc(res))
         }
     }
 

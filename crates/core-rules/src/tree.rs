@@ -7,33 +7,7 @@ use std::cell::Cell;
 /// comments and blank space around the node are not part of it. Found from the two ends, so it
 /// costs the trivia at the edges rather than the size of the node.
 pub fn significant_range(node: &SyntaxNode, grammar: &Grammar) -> TextRange {
-    let whole = node.text_range();
-    let keep = |t: &SyntaxToken| {
-        whole.contains_range(t.text_range())
-            && !grammar.is_trivia(t.kind())
-            && !t.text_range().is_empty()
-    };
-    let inside = |t: &SyntaxToken| whole.contains_range(t.text_range());
-    let mut first = node.first_token();
-    while let Some(t) = &first {
-        if keep(t) || !inside(t) {
-            break;
-        }
-        first = t.next_token();
-    }
-    let mut last = node.last_token();
-    while let Some(t) = &last {
-        if keep(t) || !inside(t) {
-            break;
-        }
-        last = t.prev_token();
-    }
-    match (first, last) {
-        (Some(first), Some(last)) if keep(&first) && keep(&last) => {
-            TextRange::new(first.text_range().start(), last.text_range().end())
-        }
-        _ => whole,
-    }
+    core_syntax::code_span(node, grammar).unwrap_or_else(|| node.text_range())
 }
 
 /// What the rules run on one file share: the last [`significant_range`] computed (the rules a
