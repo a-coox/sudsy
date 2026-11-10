@@ -3,8 +3,8 @@
 
 use crate::rule;
 use crate::rule::RuleContext;
-use core_syntax::{SyntaxNode, TextRange};
-use std::collections::HashMap;
+use crate::unique::Repeats;
+use core_syntax::SyntaxNode;
 
 rule! {
     pub NoDuplicateSections {
@@ -19,7 +19,7 @@ rule! {
 
     fn check(&self, node: &SyntaxNode, ctx: &mut RuleContext<'_>) {
         let grammar = ctx.file.grammar;
-        let mut seen: HashMap<String, TextRange> = HashMap::new();
+        let mut seen = Repeats::default();
         let headers = node
             .children()
             .filter_map(|section| section.children().next())
@@ -28,13 +28,9 @@ rule! {
             let Some(name) = grammar.slot(&header, "name").and_then(|n| n.into_token()) else {
                 continue;
             };
-            let (text, range) = (name.text().to_string(), name.text_range());
-            if let Some(first) = seen.get(&text) {
-                ctx.report(range, format!("section `[{text}]` is already defined"))
-                    .related(*first, "first defined here");
-            } else {
-                seen.insert(text, range);
-            }
+            let text = name.text();
+            let message = || format!("section `[{text}]` is already defined");
+            seen.check(ctx, text.to_string(), name.text_range(), message, "first defined here");
         }
     }
 }

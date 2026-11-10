@@ -5,7 +5,6 @@ use core_rules::{Rule, RuleContext, rule};
 use core_syntax::SyntaxNode;
 use core_syntax::SyntaxNodeExt;
 use core_syntax::ast::AstNode;
-use std::collections::HashMap;
 
 pub static RULES: &[&dyn Rule] = &[&NoDuplicateInclude];
 
@@ -41,17 +40,13 @@ rule! {
     }
 
     fn check(&self, node: &SyntaxNode, ctx: &mut RuleContext<'_>) {
-        let mut seen: HashMap<(String, String), core_syntax::TextRange> = HashMap::new();
+        let mut seen = core_rules::unique::Repeats::default();
         for child in node.children().filter(|c| c.kind() == kind::ELEMENT) {
             let Some((name, value, range)) = include(&child) else {
                 continue;
             };
-            if let Some(first) = seen.get(&(name.clone(), value.clone())) {
-                ctx.report(range, format!("`{name}` `{value}` is already included"))
-                    .related(*first, "first included here");
-            } else {
-                seen.insert((name, value), range);
-            }
+            let message = || format!("`{name}` `{value}` is already included");
+            seen.check(ctx, (name.clone(), value.clone()), range, message, "first included here");
         }
     }
 }

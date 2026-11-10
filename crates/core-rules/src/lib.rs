@@ -32,6 +32,7 @@ pub mod sorted;
 pub mod sorting;
 pub mod suppress;
 pub mod tree;
+pub mod unique;
 
 pub use configure::activate;
 pub use diagnostic::{

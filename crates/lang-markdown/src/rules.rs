@@ -66,14 +66,10 @@ rule! {
     }
 
     fn check_file(&self, file: &FileContext<'_>, ctx: &mut RuleContext<'_>) {
-        let mut seen = std::collections::HashMap::new();
+        let mut seen = core_rules::unique::Repeats::default();
         for (_, text, range) in headings(file) {
-            if let Some(first) = seen.get(&text) {
-                ctx.report(range, format!("the heading `{text}` is repeated"))
-                    .related(*first, "first heading with this text");
-            } else {
-                seen.insert(text, range);
-            }
+            let message = || format!("the heading `{text}` is repeated");
+            seen.check(ctx, text.clone(), range, message, "first heading with this text");
         }
     }
 }

@@ -3,6 +3,7 @@
 
 use crate::generated::kind;
 use core_rules::rule;
+use core_rules::unique::Repeats;
 use core_rules::{Edit, FileContext, RuleContext};
 use core_syntax::{TextRange, TextSize};
 use std::collections::{HashMap, HashSet};
@@ -82,22 +83,15 @@ rule! {
     }
 
     fn check_file(&self, file: &FileContext<'_>, ctx: &mut RuleContext<'_>) {
-        let mut first: HashMap<&str, TextRange> = HashMap::new();
+        let mut first = Repeats::default();
         let mut document = None;
         for e in events(file).into_iter().filter(|e| e.anchor) {
             if e.document != document {
                 document = e.document;
-                first.clear();
+                first = Repeats::default();
             }
-            match first.get(e.name) {
-                Some(&at) => {
-                    ctx.report(e.range, format!("duplicate anchor `{}`", e.name))
-                        .related(at, "first defined here");
-                }
-                None => {
-                    first.insert(e.name, e.range);
-                }
-            }
+            let message = || format!("duplicate anchor `{}`", e.name);
+            first.check(ctx, e.name, e.range, message, "first defined here");
         }
     }
 }

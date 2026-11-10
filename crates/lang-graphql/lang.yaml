@@ -4,3 +4,4 @@ extensions: [graphql, gql]
 formatter: GraphqlFormatter
 hooks: hooks::GraphqlHooks
 dev-deps: [insta]
+families: "&[core_rules::unique::FAMILY]"

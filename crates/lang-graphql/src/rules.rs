@@ -3,7 +3,6 @@
 mod naming_convention;
 mod no_typename_prefix;
 mod selection_set_depth;
-mod unique_names;
 
 use crate::generated::kind;
 use core_rules::Rule;
@@ -24,6 +23,4 @@ pub static RULES: &[&dyn Rule] = &[
     &naming_convention::NamingConvention,
     &no_typename_prefix::NoTypenamePrefix,
     &selection_set_depth::SelectionSetDepth,
-    &unique_names::UniqueOperationName,
-    &unique_names::UniqueFragmentName,
 ];
