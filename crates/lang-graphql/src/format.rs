@@ -159,7 +159,7 @@ fn token_doc(cx: &FormatCtx<'_>, t: &SyntaxToken) -> Doc {
     }
     let lines: Vec<String> = block_lines(t.text())
         .iter()
-        .map(|l| l.replace("\"\"\"", "\\\"\"\""))
+        .map(|l| l.to_string())
         .collect();
     // Prettier: a one-line value is trimmed, a value of blank lines is empty.
     let lines = match lines.as_slice() {
@@ -236,6 +236,12 @@ fn directives(cx: &FormatCtx<'_>, node: &SyntaxNode, own_line: bool) -> Result<D
 
 fn description(cx: &FormatCtx<'_>, node: &SyntaxNode) -> Result<Doc, FormatError> {
     Ok(match nodes_of(node, k::DESCRIPTION).first() {
+        // Prettier: after a one-line description of an argument a `line` (flat when the list fits).
+        Some(d)
+            if node.kind() == k::INPUT_VALUE_DEF && !d.text().to_string().starts_with("\"\"\"") =>
+        {
+            doc::concat(vec![cx.format(d)?, doc::line()])
+        }
         Some(d) => doc::concat(vec![cx.format(d)?, doc::hardline()]),
         None => doc::nil(),
     })
@@ -330,7 +336,7 @@ fn operation(cx: &FormatCtx<'_>, node: &SyntaxNode) -> Result<Doc, FormatError> 
     let kw = tokens_of(node, k::KEYWORD).into_iter().next();
     let name = tokens_of(node, k::NAME).into_iter().next();
     let vars = nodes_of(node, k::VAR_DEFS);
-    let mut parts = Vec::new();
+    let mut parts = vec![description(cx, node)?];
     if let Some(kw) = &kw {
         parts.push(cx.token(kw));
     }
@@ -352,13 +358,15 @@ fn operation(cx: &FormatCtx<'_>, node: &SyntaxNode) -> Result<Doc, FormatError> 
 }
 
 fn fragment(cx: &FormatCtx<'_>, node: &SyntaxNode) -> Result<Doc, FormatError> {
-    let mut parts = Vec::new();
+    let mut parts = vec![description(cx, node)?];
     for t in tokens_of(node, k::KEYWORD) {
         parts.push(cx.token(&t));
     }
-    for kind in [k::FRAGMENT_NAME, k::TYPE_CONDITION] {
+    for kind in [k::FRAGMENT_NAME, k::VAR_DEFS, k::TYPE_CONDITION] {
         for n in nodes_of(node, kind) {
-            parts.push(doc::lit(" "));
+            if kind != k::VAR_DEFS {
+                parts.push(doc::lit(" "));
+            }
             parts.push(cx.format(&n)?);
         }
     }
@@ -536,6 +544,11 @@ fn directive_def(cx: &FormatCtx<'_>, node: &SyntaxNode) -> Result<Doc, FormatErr
     for e in elements(cx, node) {
         match &e {
             SyntaxElement::Node(n) if n.kind() == k::ARGS_DEF => parts.push(cx.format(n)?),
+            SyntaxElement::Node(n)
+                if n.kind() == k::DIRECTIVE && nodes_of(node, k::DIRECTIVE).first() == Some(n) =>
+            {
+                parts.push(directives(cx, node, false)?);
+            }
             SyntaxElement::Node(_) => {}
             SyntaxElement::Token(t) if t.kind() == k::PIPE => seps.push(dropped(cx, t)),
             SyntaxElement::Token(t) if t.kind() == k::LOCATION => locations.push(cx.token(t)),

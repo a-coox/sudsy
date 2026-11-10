@@ -90,6 +90,16 @@ fn block_strings_are_reindented() {
 }
 
 #[test]
+fn forked_grammar_syntax() {
+    assert_eq!(
+        fmt(
+            "\"d\" fragment F($a: Int) on T { f @a @b(x: \"q\\\"\") ...G(v: $a) }\nextend schema @a\nextend schema { query: Q mutation: M }\ndirective @d @e on FIELD\n\"d\" query { a(b: \"\"\"x \\\"\"\" y\"\"\") }\n"
+        ),
+        "\"d\"\nfragment F($a: Int) on T {\n  f @a @b(x: \"q\\\"\")\n  ...G(v: $a)\n}\nextend schema @a\nextend schema {\n  query: Q\n  mutation: M\n}\ndirective @d @e on FIELD\n\"d\"\nquery {\n  a(\n    b: \"\"\"\n    x \\\"\"\" y\n    \"\"\"\n  )\n}\n"
+    );
+}
+
+#[test]
 fn matches_the_file_name() {
     assert_file_names(
         &lang_graphql::provider(),

@@ -39,8 +39,11 @@ fn name(l: &Lang) -> &str {
     l.krate.trim_start_matches("lang-")
 }
 
-/// The grammar crate's workspace dependency value.
+/// The grammar crate's workspace dependency value (`grammar-path`: a fork in the repository).
 fn version(l: &Lang) -> String {
+    if let Some(path) = l.yaml.get("grammar-path").and_then(|v| v.as_str()) {
+        return format!("{{ path = {path:?} }}");
+    }
     let v = text(&l.yaml, "grammar-version", "");
     match l.yaml.get("grammar-default-features").is_some() {
         true => format!("{{ version = {v:?}, default-features = false }}"),

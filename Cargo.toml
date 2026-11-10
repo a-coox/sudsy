@@ -39,7 +39,7 @@ pulldown-cmark = { version = "0.13", default-features = false, features = ["html
 tree-sitter-containerfile = "0.9"
 konomanoasa-tree-sitter-editorconfig = "0.9"
 konomanoasa-tree-sitter-gitignore = "0.7"
-tree-sitter-graphql = "0.3"
+tree-sitter-graphql = { path = "grammars/tree-sitter-graphql" }
 tree-sitter-hcl = "1.1"
 tree-sitter-ini = "1.4"
 tree-sitter-make = "1.1"

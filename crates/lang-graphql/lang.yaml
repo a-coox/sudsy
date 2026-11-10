@@ -1,5 +1,5 @@
 grammar-crate: tree-sitter-graphql
-grammar-version: "0.3"
+grammar-path: grammars/tree-sitter-graphql
 extensions: [graphql, gql]
 formatter: GraphqlFormatter
 hooks: hooks::GraphqlHooks

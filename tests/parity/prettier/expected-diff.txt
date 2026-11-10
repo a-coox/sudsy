@@ -8,31 +8,16 @@ runtime-docs/coding-guidelines/EventLogging.md: a block with a tab is kept as wr
 runtime-docs/coding-guidelines/mono-code-guide.md: a code span over two lines in a list item: Prettier removes the indentation of the second line from the span, Sudsy keeps the text of the span
 runtime-docs/coding-guidelines/vectorization-guidelines.md: trailing blanks inside a code block are code; Prettier removes them
 docs/formatting/csharp.md: an HTML block right after a table gets a blank line in front (Prettier keeps it on the next line; both parse it as HTML)
-# GraphQL fixtures (corpus/<repo>/<path> under graphql/): the grammar gaps are listed in docs/formatting/graphql.md
+# GraphQL fixtures (corpus/<repo>/<path> under graphql/)
 graphql/graphiql/packages/vscode-graphql-syntax/tests/__fixtures__/consecutive-descriptions.graphql: `# prettier-ignore` is not read (`sudsy-ignore` is)
-graphql/graphiql/packages/vscode-graphql-syntax/tests/__fixtures__/descriptions-and-values.graphql: grammar gap: a description on an operation
-graphql/graphql-js/benchmark/kitchen-sink.graphql: grammar gap: `\"""` inside a block string
-graphql/prettier/tests/format/graphql/descriptions/fragment-with-variable-description(legacy).graphql: grammar gap: a description on an operation, fragment or variable definition
-graphql/prettier/tests/format/graphql/descriptions/fragment.graphql: grammar gap: a description on an operation, fragment or variable definition
-graphql/prettier/tests/format/graphql/descriptions/nameless-query-with-description.graphql: grammar gap: a description on an operation, fragment or variable definition
-graphql/prettier/tests/format/graphql/descriptions/operation-and-variable-definition-descriptions.graphql: grammar gap: a description on an operation, fragment or variable definition
-graphql/prettier/tests/format/graphql/descriptions/variable-definition-with-description-default value-and-directives.graphql: grammar gap: a description on an operation, fragment or variable definition
-graphql/prettier/tests/format/graphql/directive-decl/directives-on-directive-definitions.graphql: grammar gap: directives on a directive definition
-graphql/prettier/tests/format/graphql/directives/directives.graphql: grammar gap: more than one directive on a field
-graphql/prettier/tests/format/graphql/fragment-arguments/fragment-arguemnts.graphql: grammar gap: fragment variables
-graphql/prettier/tests/format/graphql/fragment-variables/fragment_variables.graphql: grammar gap: fragment variables
 graphql/prettier/tests/format/graphql/interface/separator-detection.graphql: comments between the interfaces and the `{` stay in front of the `{` where Prettier moves them into the body (and one in front of `&` after the list)
-graphql/prettier/tests/format/graphql/kitchen-sink/kitchen-sink-2.graphql: grammar gap: a description on an operation
-graphql/prettier/tests/format/graphql/kitchen-sink/kitchen-sink.graphql: grammar gap: `\"""` inside a block string
-graphql/prettier/tests/format/graphql/newline/directives.graphql: grammar gap: more than one directive on a field
 graphql/prettier/tests/format/graphql/prettier-ignore/prettier-ignore-comment.graphql: `# prettier-ignore` is not read (`sudsy-ignore` is)
 graphql/prettier/tests/format/graphql/range/issue2296.graphql: the file holds Prettier's range markers: not GraphQL
-graphql/prettier/tests/format/graphql/schema/schema.graphql: grammar gap: `extend schema @directive` without braces
-graphql/prettier/tests/format/graphql/selection-set/empty-1.graphql: an empty selection set is invalid GraphQL: Prettier prints it, Sudsy's grammar rejects it
-graphql/prettier/tests/format/graphql/selection-set/empty-2.graphql: an empty selection set is invalid GraphQL: Prettier prints it, Sudsy's grammar rejects it
-graphql/prettier/tests/format/graphql/selection-set/empty-3.graphql: an empty selection set is invalid GraphQL: Prettier prints it, Sudsy's grammar rejects it
-graphql/prettier/tests/format/graphql/selection-set/empty-4.graphql: an empty selection set is invalid GraphQL: Prettier prints it, Sudsy's grammar rejects it
-graphql/prettier/tests/format/graphql/selection-set/empty-5.graphql: an empty selection set is invalid GraphQL: Prettier prints it, Sudsy's grammar rejects it
-graphql/prettier/tests/format/graphql/selection-set/empty-6.graphql: an empty selection set is invalid GraphQL: Prettier prints it, Sudsy's grammar rejects it
-graphql/prettier/tests/format/graphql/selection-set/empty-7.graphql: an empty selection set is invalid GraphQL: Prettier prints it, Sudsy's grammar rejects it
-graphql/prettier/tests/format/graphql/string/string.graphql: grammar gap: a backslash in a one-line string
+graphql/prettier/tests/format/graphql/directive-decl/directives-on-directive-definitions.graphql: `extend directive` is not in the GraphQL spec: the grammar rejects it
+graphql/prettier/tests/format/graphql/selection-set/empty-1.graphql: an empty selection set is invalid GraphQL: Prettier rejects it too
+graphql/prettier/tests/format/graphql/selection-set/empty-2.graphql: an empty selection set is invalid GraphQL: Prettier rejects it too
+graphql/prettier/tests/format/graphql/selection-set/empty-3.graphql: an empty selection set is invalid GraphQL: Prettier rejects it too
+graphql/prettier/tests/format/graphql/selection-set/empty-4.graphql: an empty selection set is invalid GraphQL: Prettier rejects it too
+graphql/prettier/tests/format/graphql/selection-set/empty-5.graphql: an empty selection set is invalid GraphQL: Prettier rejects it too
+graphql/prettier/tests/format/graphql/selection-set/empty-6.graphql: an empty selection set is invalid GraphQL: Prettier rejects it too
+graphql/prettier/tests/format/graphql/selection-set/empty-7.graphql: an empty selection set is invalid GraphQL: Prettier rejects it too
