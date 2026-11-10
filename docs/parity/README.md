@@ -26,11 +26,12 @@ One line per upstream rule or option under `entries:`, `<id>: <status>` or `<id>
 | checkmake | 5 | 4 | 1 | 0 | 0 | 0 | 0 | 0 |
 | csharpier | 16 | 11 | 5 | 0 | 0 | 0 | 0 | 0 |
 | dotnet-format-editorconfig | 56 | 50 | 3 | 0 | 1 | 2 | 0 | 0 |
+| eslint | 292 | 61 | 0 | 168 | 0 | 32 | 31 | 168 |
 | eslint-plugin-jsonc | 44 | 36 | 6 | 0 | 0 | 2 | 0 | 0 |
 | graphql-eslint | 35 | 4 | 6 | 0 | 0 | 0 | 25 | 0 |
 | hadolint | 71 | 38 | 10 | 0 | 0 | 1 | 22 | 0 |
 | markdownlint | 53 | 25 | 16 | 0 | 0 | 0 | 12 | 0 |
-| prettier | 30 | 17 | 5 | 1 | 0 | 7 | 0 | 1 |
+| prettier | 49 | 17 | 5 | 17 | 0 | 9 | 1 | 17 |
 | psscriptanalyzer | 75 | 12 | 8 | 0 | 0 | 1 | 54 | 0 |
 | roslynator | 67 | 23 | 7 | 16 | 18 | 1 | 2 | 16 |
 | shellcheck | 520 | 17 | 8 | 0 | 0 | 0 | 495 | 0 |

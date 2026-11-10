@@ -143,6 +143,9 @@ def rule_fixtures(tool, sudsy, version, prefix, exe):
         # shellcheck and pyflakes are the shell and python checks of the scripts, which Sudsy's Shell language does
         "actionlint": ("github-actions", ".yml", [exe, "-no-color", "-format", "{{json .}}", "-shellcheck=", "-pyflakes="],
                        lambda d: (actionlint_check(d), d["line"]), lambda out: json.loads(out) or []),
+        # flat config of the catalog's rules (written below); espree parses .js, the TypeScript syntax is typescript-eslint's later
+        "eslint": ("js", ".js", ["node", f"{prefix}/node_modules/eslint/bin/eslint.js", "-c", "eslint.config.mjs", "-f", "json"],
+                   lambda d: (d["ruleId"], d["line"]), lambda out: [m for r in json.loads(out) for m in r["messages"] if m["ruleId"]]),
         "checkmake": ("makefile", ".mk", [exe, "--format", '{"rule":"{{.Rule}}","line":{{.LineNumber}}}'],
                       lambda d: (d["rule"], d["line"]),
                       lambda out: [json.loads(l) for l in out.splitlines() if l.startswith("{")]),
@@ -152,6 +155,8 @@ def rule_fixtures(tool, sudsy, version, prefix, exe):
     work = prefix / "work"
     shutil.rmtree(work, ignore_errors=True)
     work.mkdir(parents=True)
+    if tool == "eslint":
+        (work / "eslint.config.mjs").write_text(f"export default [{{ rules: {json.dumps({r: 'error' for r in mapping})} }}];\n", encoding="utf-8")
     for config in ("sudsy.yaml", "buf.yaml"):
         if (folder / config).exists():
             shutil.copy(folder / config, work / config)
@@ -167,6 +172,12 @@ def rule_fixtures(tool, sudsy, version, prefix, exe):
     if tool == "actionlint":  # the corpus too (tests/conformance/fetch-github-actions-corpus.sh), a file per name
         corpus = ROOT / "tests/conformance/corpus/github-actions"
         sources += [(f"corpus/{p.relative_to(corpus).as_posix()}", "-".join(p.relative_to(corpus).parts), p) for p in sorted(corpus.rglob("*.y*ml")) if p.is_file()]
+    if tool == "eslint":  # the real-world corpus (tests/conformance/fetch-js-corpus.sh); Prettier's own tests include proposal syntax espree rejects
+        corpus = ROOT / "tests/conformance/corpus/js"
+        sources += [(f"corpus/{p.relative_to(corpus).as_posix()}", "-".join(p.relative_to(corpus).parts), p) for p in sorted(corpus.rglob("*.js")) if p.is_file() and p.relative_to(corpus).parts[0] != "prettier"]
+    if not mapping:  # nothing to compare yet
+        print(f"{len(sources)} {tool} fixtures, no catalog rule is mapped to a Sudsy rule yet ({tool} {version})")
+        return 0
     # A workflow is claimed by its folder.
     where = work / ".github" / "workflows" if tool == "actionlint" else work
     where.mkdir(parents=True, exist_ok=True)
@@ -380,9 +391,9 @@ def main():
         return stylecop(sudsy, version)
     if tool == "psscriptanalyzer":
         return psscriptanalyzer(sudsy, version, prefix)
-    if tool in ("hadolint", "shellcheck", "checkmake", "actionlint", "buf"):
+    if tool in ("hadolint", "shellcheck", "checkmake", "actionlint", "buf", "eslint"):
         exe = parity_format.tools()["format"][config["install"]] if isinstance(config["install"], str) else config
-        return rule_fixtures(tool, sudsy, version, prefix, str(parity_format.executable(prefix, exe["install"]["exe"])))
+        return rule_fixtures(tool, sudsy, version, prefix, str(parity_format.executable(prefix, exe["install"].get("exe", ""))))
     mapping = rule_map(tool)
     folder = ROOT / "tests/parity" / tool
     suffixes = {"eslint-jsonc": (".json",), "markdownlint": (".md",)}.get(tool, (".yaml", ".yml"))

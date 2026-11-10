@@ -7,7 +7,9 @@ The tools are the entries of parity_format.json (documented in docs/development/
 files are the fixtures. Every fixture is formatted by the tool and by Sudsy (with the fixture
 folder's sudsy.yaml, which extends the matching preset); the outputs must be equal. A fixture listed
 in the folder's `expected-diff.txt` (`<fixture>: <reason>` per line) may differ; it is reported as
-known, and as stale when the outputs are in fact equal.
+known, and as stale when the outputs are in fact equal. The fixtures of a `ratchet` group (a corpus too
+large for reasons per file) are only counted: the run fails when the identical files fall below the
+group's line in `min-identical.txt` (`<group> <count>`), which is raised as the formatter improves.
 """
 import difflib
 import json
@@ -17,6 +19,7 @@ import re
 import shutil
 import subprocess
 import sys
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -87,7 +90,7 @@ def install(spec, catalog, version, prefix):
 
 
 def fixtures(config, folder):
-    """The fixtures as (name, path); names are the keys of expected-diff.txt."""
+    """The fixtures as (name, path, ratchet group or None); names are the keys of expected-diff.txt."""
     out = []
     for source in config["fixtures"]:
         base = ROOT / source["dir"] if "dir" in source else folder
@@ -102,13 +105,13 @@ def fixtures(config, folder):
             walk = base.rglob("*") if source.get("recursive") else base.iterdir()
             paths = [(p.relative_to(base).as_posix(), p) for p in sorted(walk) if p.is_file() and ".git" not in p.parts]
         for rel, path in paths:
-            if not rel.endswith(suffixes) or path.name == "sudsy.yaml":
+            if not rel.endswith(suffixes) or path.name == "sudsy.yaml" or rel.startswith(source.get("skip", "\0")) or not rel.startswith(source.get("only", "")):
                 continue
             try:
                 path.read_bytes().decode("utf-8")
             except UnicodeDecodeError:
                 continue
-            out.append((source.get("prefix", "") + rel, path))
+            out.append((source.get("prefix", "") + rel, path, source.get("ratchet")))
     return out
 
 
@@ -146,8 +149,8 @@ def expected_diffs(folder):
     return out
 
 
-def verdict(name, theirs, ours, known, label):
-    """Prints the result of one fixture; returns 1 for a mismatch."""
+def verdict(name, theirs, ours, known, label, quiet=False):
+    """Prints the result of one fixture; returns 1 for a mismatch. `quiet`: no line for an equal pair, no diff."""
     same = theirs == ours
     if theirs is None:
         print(f"{name}: known difference ({known[name]})" if name in known else f"{name}: DIFFERENT (the tool rejects the file)")
@@ -156,13 +159,15 @@ def verdict(name, theirs, ours, known, label):
         print(f"{name}: STALE expected-diff entry (outputs are equal)")
         return 1
     if same:
-        print(f"{name}: ok")
+        if not quiet:
+            print(f"{name}: ok")
         return 0
     if name in known:
         print(f"{name}: known difference ({known[name]})")
         return 0
     print(f"{name}: DIFFERENT")
-    sys.stdout.writelines(difflib.unified_diff((theirs or "").splitlines(True), (ours or "").splitlines(True), label, "sudsy"))
+    if not quiet:
+        sys.stdout.writelines(difflib.unified_diff((theirs or "").splitlines(True), (ours or "").splitlines(True), label, "sudsy"))
     return 1
 
 
@@ -225,15 +230,36 @@ def main():
     work.mkdir(parents=True)
     shutil.copy(folder / "sudsy.yaml", work / "sudsy.yaml")
     known = expected_diffs(folder)
-    found = fixtures(config, folder)
-    bad = 0
-    for name, fixture in found:
+    only = os.environ.get("PARITY_FILTER")  # a name substring: those fixtures only, with their diffs, no ratchet
+    found = [f for f in fixtures(config, folder) if only is None or only in f[0]]
+    quiet = bool(config.get("quiet")) and only is None
+
+    def compare(item):
+        name, fixture, _ = item
         copy = work / name.replace("/", "__")
         shutil.copy(fixture, copy)
         theirs, ours = upstream(config, prefix, version, copy, work), sudsy_format(sudsy, copy, work, config.get("sudsy_command", "format"))
         if config.get("ignore_trailing_blanks"):  # the tool keeps the trailing blanks of a line, Sudsy never does
             theirs, ours = (re.sub(r"[ 	]+$", "", t, flags=re.M) if t is not None else None for t in (theirs, ours))
-        bad += verdict(name, theirs, ours, known, tool)
+        return theirs, ours
+
+    with ThreadPoolExecutor(os.cpu_count() if config.get("parallel") else 1) as pool:
+        results = list(pool.map(compare, found))
+    bad, groups = 0, {}  # a ratchet group is counted: [identical, different, rejected by the tool]
+    for (name, _, group), (theirs, ours) in zip(found, results):
+        if group and only is None:
+            tally = groups.setdefault(group, [0, 0, 0])
+            tally[2 if theirs is None else 0 if theirs == ours else 1] += 1
+        else:
+            bad += verdict(name, theirs, ours, known, tool, quiet)
+    minimums = {}
+    if (folder / "min-identical.txt").exists():
+        minimums = {g: int(n) for g, n in (l.split() for l in (folder / "min-identical.txt").read_text().splitlines() if l.strip() and not l.startswith("#"))}
+    for group, (same, different, rejected) in sorted(groups.items()):
+        floor = minimums.get(group, 0)
+        note = "BELOW the minimum" if same < floor else "raise the minimum in min-identical.txt" if same > floor else "at the minimum"
+        print(f"{group}: {same} identical, {different} different, {rejected} rejected by {tool} ({note}: {floor})")
+        bad += same < floor
     print(f"{len(found)} fixtures, {bad} mismatch(es) ({tool} {version})")
     return 1 if bad else 0
 

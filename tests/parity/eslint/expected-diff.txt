@@ -1,0 +1,1 @@
+# Known differences as "<folder>/<name> <eslint|sudsy>:<rule> <line>: <reason>" (corpus files: "corpus/<path> ...").

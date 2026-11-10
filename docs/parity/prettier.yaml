@@ -1,13 +1,13 @@
 tool: "prettier"
 version: "3.9.10 (npm latest; the options page does not print the version)"
-languages: ["yaml", "json", "markdown", "graphql"]
+languages: ["yaml", "json", "markdown", "graphql", "js"]
 sources:
   - "https://registry.npmjs.org/prettier/latest"
   - "https://prettier.io/docs/options"
   - "https://prettier.io/docs/rationale"
   - "https://raw.githubusercontent.com/prettier/prettier/main/src/language-yaml/options.js (YAML-specific options: bracketSpacing, singleQuote, proseWrap)"
   - "https://prettier.io/blog/2024/01/12/3.2.0"
-scope: "YAML, JSON/JSONC, Markdown and GraphQL only; formatter has no lint rules"
+scope: "YAML, JSON/JSONC, Markdown, GraphQL and JavaScript/TypeScript (js); formatter has no lint rules"
 entries:
   printWidth: option json.format.line_width
   tabWidth: option json.format.indent_size
@@ -16,14 +16,14 @@ entries:
   bracketSpacing: option json.format.bracket_spacing
   singleQuote (yaml): option yaml.format.quote_style
   singleQuote (json): wontfix no json5 dialect
-  quoteProps: wontfix no json5 dialect
+  quoteProps (json): wontfix no json5 dialect
   trailingComma: option json.format.trailing_commas | Prettier's `json` parser never adds commas; whether the `jsonc` parser adds them under `all` is unverified (issue 15553 and Zed docs suggest the .jsonc extension can add trailing commas)
   objectWrap: option json.format.collapse
   proseWrap: wontfix deferred, docs/roadmap.md (YAML re-wrapping)
   embeddedLanguageFormatting: formatter
   insertPragma / requirePragma / checkIgnorePragma: wontfix no pragma mode
   rangeStart / rangeEnd: wontfix deferred, docs/roadmap.md (range formatting)
-  semi, jsxSingleQuote, arrowParens, bracketSameLine, singleAttributePerLine, htmlWhitespaceSensitivity, vueIndentScriptAndStyle, experimentalTernaries, experimentalOperatorPosition: wontfix not applicable to JSON/YAML
+  htmlWhitespaceSensitivity, vueIndentScriptAndStyle: wontfix not applicable to the supported languages
   overrides / .prettierignore / .editorconfig: config overrides, exclude, ignore files, .editorconfig
   "json: package.json / package-lock.json / composer.json": "option json.format.collapse"
   "json: number arrays are filled": "planned | docs/formatting/presets.md: 'Number arrays not filled, numbers not normalized'"
@@ -39,3 +39,22 @@ entries:
   "yaml: # prettier-ignore": "formatter"
   "markdown: formatting at proseWrap=preserve": "formatter"
   "graphql: formatting": "formatter | A file the tree-sitter grammar cannot parse is not formatted (`extend directive`); Unicode escapes in strings are kept, Prettier decodes them."
+  printWidth (js): "planned | js.format.line_width"
+  tabWidth (js): "planned | js.format.indent_size"
+  useTabs (js): "planned | js.format.indent_style"
+  endOfLine (js): "planned | js.format.end_of_line"
+  bracketSpacing (js): "planned | js.format.bracket_spacing"
+  objectWrap (js): "planned | js.format.collapse (the first-line break of an object is kept)"
+  semi: "planned | js.format.semi"
+  singleQuote (js): "planned | js.format.quote_style"
+  jsxSingleQuote: "planned | js.format.jsx_quote_style"
+  quoteProps (js): "planned | js.format.quote_props"
+  trailingComma (js): "planned | js.format.trailing_commas"
+  arrowParens: "planned | js.format.arrow_parens"
+  bracketSameLine: "planned | js.format.bracket_same_line"
+  singleAttributePerLine: "planned | js.format.single_attribute_per_line"
+  experimentalTernaries, experimentalOperatorPosition: "wontfix not planned; Prettier marks them experimental"
+  "js: formatting": "planned | docs/design/wave-3b-js.md steps 4-10; the parser and a verbatim formatter come first"
+  "js: // prettier-ignore": "planned | docs/design/wave-3b-js.md step 9"
+  "js: embedded CSS/GraphQL/HTML/Markdown in templates": "deferred | formatted by those languages' own formatters later"
+  "js: Flow syntax": "wontfix not supported by the parser; reported as a syntax error"

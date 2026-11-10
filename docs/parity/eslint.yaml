@@ -1,0 +1,272 @@
+tool: "eslint"
+version: "9.39.5"
+languages: ["js"]
+sources:
+  - "https://github.com/eslint/eslint/tree/v9.39.5/lib/rules"
+  - "https://eslint.org/docs/latest/rules/"
+scope: "ESLint core rules (type-aware and plugin rules are typescript-eslint.yaml and later catalogs); the deprecated formatting rules are formatter or wontfix, the status formatter naming the target of the planned js formatter"
+entries:
+  accessor-pairs: planned
+  array-bracket-newline: formatter
+  array-bracket-spacing: formatter
+  array-element-newline: formatter
+  arrow-body-style: planned
+  arrow-parens: formatter
+  arrow-spacing: formatter
+  block-spacing: formatter
+  brace-style: formatter
+  callback-return: wontfix deprecated upstream
+  camelcase: planned
+  capitalized-comments: planned
+  class-methods-use-this: planned
+  comma-dangle: formatter
+  comma-spacing: formatter
+  comma-style: formatter
+  complexity: planned
+  computed-property-spacing: formatter
+  consistent-this: planned
+  curly: planned
+  default-case: planned
+  default-case-last: planned
+  default-param-last: planned
+  dot-location: formatter
+  dot-notation: planned
+  eol-last: formatter
+  eqeqeq: planned
+  for-direction: planned
+  func-call-spacing: formatter
+  func-name-matching: planned
+  func-names: planned
+  func-style: planned
+  function-call-argument-newline: formatter
+  function-paren-newline: formatter
+  generator-star-spacing: formatter
+  global-require: wontfix deprecated upstream
+  grouped-accessor-pairs: planned
+  guard-for-in: planned
+  handle-callback-err: wontfix deprecated upstream
+  id-blacklist: wontfix deprecated upstream
+  id-denylist: planned
+  id-length: planned
+  id-match: planned
+  implicit-arrow-linebreak: formatter
+  indent: formatter
+  indent-legacy: wontfix deprecated formatting rule with no formatter equivalent
+  init-declarations: planned
+  jsx-quotes: formatter
+  key-spacing: formatter
+  keyword-spacing: formatter
+  line-comment-position: wontfix deprecated formatting rule with no formatter equivalent
+  linebreak-style: formatter
+  lines-around-comment: wontfix deprecated formatting rule with no formatter equivalent
+  lines-around-directive: wontfix deprecated formatting rule with no formatter equivalent
+  lines-between-class-members: formatter
+  logical-assignment-operators: planned
+  max-classes-per-file: planned
+  max-depth: planned
+  max-len: wontfix deprecated formatting rule with no formatter equivalent
+  max-lines: planned
+  max-lines-per-function: planned
+  max-nested-callbacks: planned
+  max-params: planned
+  max-statements: planned
+  max-statements-per-line: formatter
+  multiline-comment-style: wontfix deprecated formatting rule with no formatter equivalent
+  multiline-ternary: formatter
+  new-cap: planned
+  new-parens: formatter
+  newline-after-var: wontfix deprecated formatting rule with no formatter equivalent
+  newline-before-return: wontfix deprecated formatting rule with no formatter equivalent
+  newline-per-chained-call: formatter
+  no-alert: planned
+  no-array-constructor: planned
+  no-async-promise-executor: planned
+  no-await-in-loop: planned
+  no-bitwise: planned
+  no-buffer-constructor: wontfix deprecated upstream
+  no-caller: planned
+  no-case-declarations: planned
+  no-catch-shadow: wontfix deprecated upstream
+  no-compare-neg-zero: planned
+  no-cond-assign: planned
+  no-confusing-arrow: wontfix deprecated formatting rule with no formatter equivalent
+  no-console: planned
+  no-constant-binary-expression: planned
+  no-constant-condition: planned
+  no-constructor-return: planned
+  no-continue: planned
+  no-control-regex: planned
+  no-debugger: planned
+  no-delete-var: planned
+  no-div-regex: planned
+  no-dupe-args: planned
+  no-dupe-class-members: planned
+  no-dupe-else-if: planned
+  no-dupe-keys: planned
+  no-duplicate-case: planned
+  no-duplicate-imports: planned
+  no-else-return: planned
+  no-empty: planned
+  no-empty-character-class: planned
+  no-empty-function: planned
+  no-empty-pattern: planned
+  no-empty-static-block: planned
+  no-eq-null: planned
+  no-ex-assign: planned
+  no-extra-boolean-cast: planned
+  no-extra-label: planned
+  no-extra-parens: formatter
+  no-extra-semi: formatter
+  no-floating-decimal: formatter
+  no-implicit-coercion: planned
+  no-inline-comments: planned
+  no-inner-declarations: planned
+  no-invalid-regexp: planned
+  no-irregular-whitespace: planned
+  no-iterator: planned
+  no-label-var: planned
+  no-lonely-if: planned
+  no-loss-of-precision: planned
+  no-magic-numbers: planned
+  no-misleading-character-class: planned
+  no-mixed-operators: wontfix deprecated formatting rule with no formatter equivalent
+  no-mixed-requires: wontfix deprecated upstream
+  no-mixed-spaces-and-tabs: formatter
+  no-multi-assign: planned
+  no-multi-spaces: formatter
+  no-multi-str: planned
+  no-multiple-empty-lines: formatter
+  no-native-reassign: wontfix deprecated upstream
+  no-negated-condition: planned
+  no-negated-in-lhs: wontfix deprecated upstream
+  no-nested-ternary: planned
+  no-new: planned
+  no-new-func: planned
+  no-new-object: wontfix deprecated upstream
+  no-new-require: wontfix deprecated upstream
+  no-new-symbol: wontfix deprecated upstream
+  no-nonoctal-decimal-escape: planned
+  no-object-constructor: planned
+  no-octal: planned
+  no-octal-escape: planned
+  no-param-reassign: planned
+  no-path-concat: wontfix deprecated upstream
+  no-plusplus: planned
+  no-process-env: wontfix deprecated upstream
+  no-process-exit: wontfix deprecated upstream
+  no-promise-executor-return: planned
+  no-proto: planned
+  no-prototype-builtins: planned
+  no-regex-spaces: planned
+  no-restricted-exports: planned
+  no-restricted-imports: planned
+  no-restricted-modules: wontfix deprecated upstream
+  no-restricted-properties: planned
+  no-restricted-syntax: planned
+  no-return-assign: planned
+  no-return-await: wontfix deprecated upstream
+  no-script-url: planned
+  no-self-assign: planned
+  no-self-compare: planned
+  no-sequences: planned
+  no-setter-return: planned
+  no-shadow-restricted-names: planned
+  no-spaced-func: formatter
+  no-sparse-arrays: planned
+  no-sync: wontfix deprecated upstream
+  no-tabs: formatter
+  no-template-curly-in-string: planned
+  no-ternary: planned
+  no-throw-literal: planned
+  no-trailing-spaces: formatter
+  no-unassigned-vars: planned
+  no-undefined: planned
+  no-underscore-dangle: planned
+  no-unexpected-multiline: planned
+  no-unneeded-ternary: planned
+  no-unsafe-finally: planned
+  no-unsafe-negation: planned
+  no-unsafe-optional-chaining: planned
+  no-unused-expressions: planned
+  no-useless-backreference: planned
+  no-useless-call: planned
+  no-useless-catch: planned
+  no-useless-computed-key: planned
+  no-useless-concat: planned
+  no-useless-constructor: planned
+  no-useless-escape: planned
+  no-useless-rename: planned
+  no-var: planned
+  no-void: planned
+  no-warning-comments: planned
+  no-whitespace-before-property: formatter
+  no-with: planned
+  nonblock-statement-body-position: formatter
+  object-curly-newline: formatter
+  object-curly-spacing: formatter
+  object-property-newline: formatter
+  object-shorthand: planned
+  one-var: planned
+  one-var-declaration-per-line: wontfix deprecated formatting rule with no formatter equivalent
+  operator-assignment: planned
+  operator-linebreak: formatter
+  padded-blocks: formatter
+  padding-line-between-statements: wontfix deprecated formatting rule with no formatter equivalent
+  prefer-arrow-callback: planned
+  prefer-destructuring: planned
+  prefer-exponentiation-operator: planned
+  prefer-named-capture-group: planned
+  prefer-numeric-literals: planned
+  prefer-object-has-own: planned
+  prefer-object-spread: planned
+  prefer-promise-reject-errors: planned
+  prefer-reflect: wontfix deprecated upstream
+  prefer-regex-literals: planned
+  prefer-rest-params: planned
+  prefer-spread: planned
+  prefer-template: planned
+  preserve-caught-error: planned
+  quote-props: formatter
+  quotes: formatter
+  radix: planned
+  require-await: planned
+  require-unicode-regexp: planned
+  require-yield: planned
+  rest-spread-spacing: formatter
+  semi: formatter
+  semi-spacing: formatter
+  semi-style: formatter
+  sort-imports: planned
+  sort-keys: planned
+  sort-vars: planned
+  space-before-blocks: formatter
+  space-before-function-paren: formatter
+  space-in-parens: formatter
+  space-infix-ops: formatter
+  space-unary-ops: formatter
+  spaced-comment: wontfix deprecated formatting rule with no formatter equivalent
+  strict: planned
+  switch-colon-spacing: formatter
+  symbol-description: planned
+  template-curly-spacing: formatter
+  template-tag-spacing: formatter
+  unicode-bom: planned
+  use-isnan: planned
+  valid-typeof: planned
+  vars-on-top: planned
+  wrap-iife: formatter
+  wrap-regex: formatter
+  yield-star-spacing: formatter
+  yoda: planned
+  array-callback-return: planned
+  consistent-return: planned
+  constructor-super: planned
+  getter-return: planned
+  no-fallthrough: planned
+  no-this-before-super: planned
+  no-unreachable: planned
+  no-unreachable-loop: planned
+  no-useless-return: planned
+deferred:
+  - gap: "needs scope analysis (oxc_semantic), docs/design/wave-3b-js.md step 14"
+    ids: [block-scoped-var, no-class-assign, no-const-assign, no-eval, no-extend-native, no-extra-bind, no-func-assign, no-global-assign, no-implicit-globals, no-implied-eval, no-import-assign, no-invalid-this, no-labels, no-lone-blocks, no-loop-func, no-new-native-nonconstructor, no-new-wrappers, no-obj-calls, no-redeclare, no-restricted-globals, no-shadow, no-undef, no-undef-init, no-unmodified-loop-condition, no-unused-labels, no-unused-private-class-members, no-unused-vars, no-use-before-define, no-useless-assignment, prefer-const, require-atomic-updates]

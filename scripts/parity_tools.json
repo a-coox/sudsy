@@ -14,6 +14,20 @@
         {"dir": "tests/conformance/corpus/graphql", "suffixes": [".graphql", ".gql"], "prefix": "graphql/", "recursive": true}
       ]
     },
+    "prettier-js": {
+      "catalog": "prettier",
+      "install": {"npm": "prettier"},
+      "fetch": ["tests/conformance/fetch-js-corpus.sh"],
+      "command": ["node", "{prefix}/node_modules/prettier/bin/prettier.cjs", "--no-config", "--no-editorconfig", "--embedded-language-formatting=off", "{file}"],
+      "input": "arg",
+      "tool_may_reject": true,
+      "parallel": true,
+      "quiet": true,
+      "fixtures": [
+        {"dir": "tests/conformance/corpus/js", "suffixes": [".js", ".jsx", ".mjs", ".cjs", ".ts", ".tsx", ".mts", ".cts"], "only": "prettier/", "ratchet": "prettier-tests", "recursive": true},
+        {"dir": "tests/conformance/corpus/js", "suffixes": [".js", ".jsx", ".mjs", ".cjs", ".ts", ".tsx", ".mts", ".cts"], "skip": "prettier/", "prefix": "corpus/", "ratchet": "real-world", "recursive": true}
+      ]
+    },
     "biome": {
       "catalog": "biome",
       "install": {"npm": "@biomejs/biome"},
@@ -150,6 +164,7 @@
   },
   "lint": {
     "yamllint": {"catalog": "yamllint", "install": {"pip": "yamllint"}},
+    "eslint": {"catalog": "eslint", "install": {"npm": "eslint"}, "fetch": ["tests/conformance/fetch-js-corpus.sh"]},
     "eslint-jsonc": {"catalog": "eslint-plugin-jsonc", "install": {"npm": "eslint-plugin-jsonc", "with": ["eslint@9"]}},
     "markdownlint": {"catalog": "markdownlint", "install": {"npm": "markdownlint-cli2"}},
     "hadolint": {

@@ -1,0 +1,2 @@
+# Real-world corpus files (`corpus/<project>/<path>`) that stay different once the ratchet is near the end: "<fixture>: <reason>" per line.
+# Until then both corpora are counted (min-identical.txt), not listed; a file in a ratchet group is not checked against this list.
