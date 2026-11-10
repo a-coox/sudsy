@@ -119,12 +119,26 @@ impl<B: Body> Body for &B {
 /// later slot takes a child; any other slot is current only up to its match. A child no later slot
 /// accepts (a separator, or something the grammar does not describe) gets no slot and does not
 /// move the current one.
-pub fn assign<'a, B: Body + 'a>(
+pub fn assign<'a, B: Body + Copy + 'a>(
     parent: &SyntaxNode,
     body: B,
 ) -> impl Iterator<Item = (usize, SyntaxElement)> + 'a {
     let mut current = 0;
-    parent.children_with_tokens().filter_map(move |child| {
+    // A leading trivia child is passed over by kind, without materializing it; the rest is a
+    // plain walk (a by-kind walk costs more allocations when nothing is skipped).
+    let mut next = parent.first_child_or_token_by_kind(&|k| !body.skips(k));
+    let mut started = false;
+    let children = std::iter::from_fn(move || {
+        let element = if started {
+            next.take()?.to_next_sibling_or_token()
+        } else {
+            started = true;
+            next.take()
+        };
+        next = element.clone();
+        element
+    });
+    children.filter_map(move |child| {
         let kind = child.kind();
         if body.skips(kind) {
             return None;

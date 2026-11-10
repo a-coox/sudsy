@@ -134,6 +134,7 @@ fn hot_flags(defs: &[KindDef]) -> Vec<u8> {
 }
 
 /// One node kind's body as [`crate::ast::assign`] sees it.
+#[derive(Clone, Copy)]
 struct GrammarBody<'g> {
     grammar: &'g Grammar,
     kinds: &'g [Vec<SyntaxKind>],
@@ -151,7 +152,7 @@ impl crate::ast::Body for GrammarBody<'_> {
         self.body[slot].cardinality == Cardinality::Many
     }
     fn skips(&self, kind: SyntaxKind) -> bool {
-        self.grammar.skip.binary_search(&kind).is_ok()
+        kind == SyntaxKind::ERROR || self.grammar.is_trivia(kind)
     }
 }
 
@@ -206,15 +207,14 @@ impl Grammar {
     /// The child of `node` in the body item labelled `label` (the first, for a repeated item).
     /// Found with the routine the generated accessors use, so it agrees with them.
     pub fn slot(&self, node: &SyntaxNode, label: &str) -> Option<SyntaxElement> {
-        let kind = node.kind();
-        let def = self.def(kind)?;
+        let def = self.def(node.kind())?;
         let index = def
             .body
             .iter()
             .position(|i| i.label.as_deref() == Some(label))?;
         let body = GrammarBody {
             grammar: self,
-            kinds: self.body_kinds(kind)?,
+            kinds: self.bodies.get(node.kind().index() as usize)?,
             body: &def.body,
         };
         crate::ast::assign(node, body)

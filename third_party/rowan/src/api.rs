@@ -435,6 +435,14 @@ impl<L: Language> SyntaxElement<L> {
             NodeOrToken::Token(it) => it.next_sibling_or_token(),
         }
     }
+
+    /// The next sibling, reusing this element's allocation when nothing else holds it.
+    pub fn to_next_sibling_or_token(self) -> Option<SyntaxElement<L>> {
+        cursor::SyntaxElement::from(self)
+            .to_next_sibling_or_token()
+            .map(NodeOrToken::from)
+    }
+
     pub fn prev_sibling_or_token(&self) -> Option<SyntaxElement<L>> {
         match self {
             NodeOrToken::Node(it) => it.prev_sibling_or_token(),
