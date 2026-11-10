@@ -32,8 +32,14 @@ pub(crate) fn texts(lang: &str, dir: &Path) -> Result<Vec<(String, String)>> {
     names.sort();
     for p in names {
         let t = String::from_utf8(std::fs::read(&p)?)?;
+        let name = p.file_name().unwrap().to_string_lossy();
         out.push((
-            p.file_name().unwrap().to_string_lossy().into(),
+            // The provider claims only the file name `.editorconfig`: one folder per input.
+            if lang == "editorconfig" {
+                format!("{}/.editorconfig", p.file_stem().unwrap().to_string_lossy())
+            } else {
+                name.into()
+            },
             t.trim_start_matches('\u{feff}').into(),
         ));
     }
