@@ -4,7 +4,7 @@
 use super::kind;
 use core_rules::rule;
 use core_rules::{Edit, RuleContext};
-use core_syntax::{SyntaxKind, SyntaxNode};
+use core_syntax::{SyntaxKind, SyntaxNode, SyntaxNodeExt};
 
 /// Every directive node kind.
 static DIRECTIVES: &[SyntaxKind] = &[
@@ -29,9 +29,7 @@ static DIRECTIVES: &[SyntaxKind] = &[
 ];
 
 fn hash_of(node: &SyntaxNode) -> Option<core_syntax::SyntaxToken> {
-    node.children_with_tokens()
-        .filter_map(|e| e.into_token())
-        .find(|t| t.kind() == kind::HASH_TOKEN)
+    node.token(kind::HASH_TOKEN)
 }
 
 rule! {

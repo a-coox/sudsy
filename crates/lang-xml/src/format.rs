@@ -4,12 +4,10 @@
 //! child element on its own line, indented. A tag that does not fit breaks its attributes.
 
 use crate::generated::kind as k;
-use core_config::{OptionDef, OptionSchema, Preset, shared};
+use core_config::{OptionSchema, Preset, shared};
 use core_format::shapes::{dangling_comments, statement_sequence};
 use core_format::{Doc, FormatCtx, FormatError, NodeFormatter, comments, context, doc};
-use core_syntax::{SyntaxElement, SyntaxNode, SyntaxToken};
-
-pub const MAX_BLANK_LINES: &str = "max_blank_lines";
+use core_syntax::{SyntaxElement, SyntaxNode, SyntaxNodeExt, SyntaxToken};
 
 pub fn option_schema() -> OptionSchema {
     OptionSchema::new(vec![
@@ -18,10 +16,8 @@ pub fn option_schema() -> OptionSchema {
         shared::indent_style(),
         shared::final_newline(true),
         shared::end_of_line(),
-        OptionDef::int(
-            MAX_BLANK_LINES,
+        shared::max_blank_lines(
             1,
-            (0, 10),
             "Largest number of blank lines kept between elements, comments and declarations.",
         ),
     ])
@@ -67,12 +63,11 @@ impl NodeFormatter for XmlFormatter {
 }
 
 fn blank_lines(cx: &FormatCtx<'_>) -> usize {
-    cx.options.int(MAX_BLANK_LINES) as usize
+    cx.options.max_blank_lines()
 }
 
 fn tokens(node: &SyntaxNode, cx: &FormatCtx<'_>) -> Vec<SyntaxToken> {
-    node.children_with_tokens()
-        .filter_map(|e| e.into_token())
+    node.tokens()
         .filter(|t| !cx.grammar.is_trivia(t.kind()))
         .collect()
 }

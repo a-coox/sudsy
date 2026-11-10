@@ -9,8 +9,6 @@ use core_format::shapes::dangling_comments;
 use core_format::{Doc, FormatCtx, FormatError, NodeFormatter, comments, doc};
 use core_syntax::{SyntaxElement, SyntaxNode, SyntaxToken, TextRange};
 
-pub const MAX_BLANK_LINES: &str = "max_blank_lines";
-
 pub fn option_schema() -> OptionSchema {
     OptionSchema::new(vec![
         shared::indent_size(4),
@@ -22,10 +20,8 @@ pub fn option_schema() -> OptionSchema {
         ),
         shared::final_newline(true),
         shared::end_of_line(),
-        OptionDef::int(
-            MAX_BLANK_LINES,
+        shared::max_blank_lines(
             1,
-            (0, 10),
             "Largest number of blank lines kept between statements and comments.",
         ),
     ])
@@ -291,7 +287,7 @@ fn kw(cx: &FormatCtx<'_>, t: &SyntaxToken) -> Doc {
 }
 
 fn max_blank(cx: &FormatCtx<'_>) -> usize {
-    cx.options.int(MAX_BLANK_LINES) as usize
+    cx.options.max_blank_lines()
 }
 
 fn next_significant(cx: &FormatCtx<'_>, t: &SyntaxToken) -> Option<SyntaxToken> {

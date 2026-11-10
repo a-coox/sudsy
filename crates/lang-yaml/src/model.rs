@@ -4,8 +4,8 @@
 
 use crate::generated::kind as k;
 use crate::scalar::{self, block_header, block_value};
-use crate::tree::{blank_lines_after, block_parent_indent, is_trivia, token_of};
-use core_syntax::{SyntaxElement, SyntaxNode};
+use crate::tree::{blank_lines_after, block_parent_indent, is_trivia};
+use core_syntax::{SyntaxElement, SyntaxNode, SyntaxNodeExt};
 use std::collections::HashMap;
 
 #[derive(Clone, Debug)]
@@ -82,7 +82,7 @@ impl Loader {
     }
 
     fn document(&mut self, doc: &SyntaxNode) -> Result<Node, String> {
-        for t in doc.children_with_tokens().filter_map(|e| e.into_token()) {
+        for t in doc.tokens() {
             if t.kind() == k::DIRECTIVE {
                 let words: Vec<&str> = t.text().split_whitespace().collect();
                 if words[0] == "%TAG" {
@@ -123,7 +123,7 @@ impl Loader {
         match n.kind() {
             k::PROPERTY_NODE => self.property_node(n),
             k::ALIAS_NODE => {
-                let t = token_of(n, k::ALIAS).ok_or("alias without a name")?;
+                let t = n.token(k::ALIAS).ok_or("alias without a name")?;
                 let name = &t.text()[1..];
                 // An undefined alias is a lint error; the model keeps it as an opaque tagged node.
                 Ok(self.anchors.get(name).cloned().unwrap_or_else(|| Node {
@@ -199,7 +199,7 @@ impl Loader {
     fn property_node(&mut self, n: &SyntaxNode) -> Result<Node, String> {
         let mut tag = None;
         let mut anchor = None;
-        for t in n.children_with_tokens().filter_map(|e| e.into_token()) {
+        for t in n.tokens() {
             match t.kind() {
                 k::TAG => tag = Some(self.resolve_tag(t.text())),
                 k::ANCHOR => anchor = Some(t.text()[1..].to_string()),
@@ -257,9 +257,11 @@ impl Loader {
     }
 
     fn block_scalar(&mut self, n: &SyntaxNode, tag: Option<String>) -> Result<Node, String> {
-        let header = token_of(n, k::BLOCK_HEADER).ok_or("block scalar without a header")?;
+        let header = n
+            .token(k::BLOCK_HEADER)
+            .ok_or("block scalar without a header")?;
         let header_info = block_header(header.text());
-        let content_token = token_of(n, k::BLOCK_CONTENT);
+        let content_token = n.token(k::BLOCK_CONTENT);
         let content = content_token
             .as_ref()
             .map_or_else(String::new, |c| c.text().to_string());

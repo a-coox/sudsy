@@ -3,6 +3,7 @@
 use crate::generated::{Attribute, kind};
 use core_rules::{Rule, RuleContext, rule};
 use core_syntax::SyntaxNode;
+use core_syntax::SyntaxNodeExt;
 use core_syntax::ast::AstNode;
 use std::collections::HashMap;
 
@@ -12,10 +13,7 @@ pub static RULES: &[&dyn Rule] = &[&NoDuplicateInclude];
 /// `Include` attribute.
 fn include(child: &SyntaxNode) -> Option<(String, String, core_syntax::TextRange)> {
     let tag = child.children().next()?;
-    let name = tag
-        .children_with_tokens()
-        .filter_map(|e| e.into_token())
-        .find(|t| t.kind() == kind::NAME)?;
+    let name = tag.token(kind::NAME)?;
     tag.children().find_map(|a| {
         let a = Attribute::cast(a)?;
         let (key, value) = (a.key()?, a.value()?);

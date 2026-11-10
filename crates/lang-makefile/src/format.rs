@@ -7,9 +7,8 @@ use crate::generated::kind as k;
 use core_config::{OptionDef, OptionSchema, Preset, shared};
 use core_format::shapes::statement_sequence;
 use core_format::{Doc, FormatCtx, FormatError, NodeFormatter, comments, doc};
-use core_syntax::{SyntaxElement, SyntaxKind, SyntaxNode, SyntaxToken, TextRange};
+use core_syntax::{SyntaxElement, SyntaxKind, SyntaxNode, SyntaxNodeExt, SyntaxToken, TextRange};
 
-pub const MAX_BLANK_LINES: &str = "max_blank_lines";
 pub const SPACE_AROUND_ASSIGNMENT: &str = "space_around_assignment";
 pub const SPACE_BEFORE_COLON: &str = "space_before_colon";
 
@@ -29,10 +28,8 @@ pub fn option_schema() -> OptionSchema {
             false,
             "Write `target : prerequisite` rather than `target: prerequisite`.",
         ),
-        OptionDef::int(
-            MAX_BLANK_LINES,
+        shared::max_blank_lines(
             2,
-            (0, 10),
             "Largest number of blank lines kept between statements and comments.",
         ),
     ])
@@ -84,13 +81,13 @@ impl NodeFormatter for MakefileFormatter {
     }
 }
 
-fn max_blank_lines(cx: &FormatCtx<'_>) -> usize {
-    cx.options.int(MAX_BLANK_LINES) as usize
-}
-
 fn document(cx: &FormatCtx<'_>, node: &SyntaxNode) -> Result<Doc, FormatError> {
     let items: Vec<SyntaxNode> = node.children().collect();
-    let mut parts = vec![statement_sequence(cx, &items, max_blank_lines(cx))?];
+    let mut parts = vec![statement_sequence(
+        cx,
+        &items,
+        cx.options.max_blank_lines(),
+    )?];
     // The comments at the end of the file belong to the end-of-file token.
     let eof = node
         .last_token()
@@ -256,7 +253,7 @@ fn rule(cx: &FormatCtx<'_>, node: &SyntaxNode) -> Result<Doc, FormatError> {
     let mut head = Line::default();
     relay(cx, node.children_with_tokens(), &mut head);
     let mut parts = vec![head.finish()];
-    if let Some(recipe) = node.children().find(|n| n.kind() == k::RECIPE) {
+    if let Some(recipe) = node.child(k::RECIPE) {
         let mut items: Vec<SyntaxNode> = recipe.children().collect();
         // After `;` comes the command of the rule line, if the line goes on.
         let mut after_semi = recipe
@@ -272,7 +269,11 @@ fn rule(cx: &FormatCtx<'_>, node: &SyntaxNode) -> Result<Doc, FormatError> {
         }
         if !items.is_empty() {
             parts.push(doc::hardline());
-            parts.push(statement_sequence(cx, &items, max_blank_lines(cx))?);
+            parts.push(statement_sequence(
+                cx,
+                &items,
+                cx.options.max_blank_lines(),
+            )?);
         }
     }
     Ok(doc::concat(parts))
@@ -314,7 +315,7 @@ fn conditional(cx: &FormatCtx<'_>, node: &SyntaxNode) -> Result<Doc, FormatError
         }
         let seq = doc::concat(vec![
             doc::hardline(),
-            statement_sequence(cx, items, max_blank_lines(cx))?,
+            statement_sequence(cx, items, cx.options.max_blank_lines())?,
         ]);
         Ok(if in_recipe { seq } else { doc::indent(seq) })
     };

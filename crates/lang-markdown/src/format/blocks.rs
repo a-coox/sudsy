@@ -1,6 +1,7 @@
 //! Block rendering: the blocks of a container, lists, fences.
 
 use super::*;
+use core_syntax::SyntaxNodeExt;
 
 impl Render<'_> {
     pub(super) fn blocks(&self, parent: &SyntaxNode, tight: bool) -> Vec<String> {
@@ -121,8 +122,7 @@ impl Render<'_> {
         } else if kind == k::HEADING {
             let level = heading_level(self.src, n);
             let text = n
-                .children()
-                .find(|c| c.kind() == k::INLINE)
+                .child(k::INLINE)
                 .map(|i| self.inline_lines(&i).join(" "))
                 .unwrap_or_default();
             let text = without_closing(&text).to_string();
@@ -274,10 +274,7 @@ impl Render<'_> {
     /// closing fence may stand outside the node.
     pub(crate) fn fence_lines(&self, n: &SyntaxNode) -> (Vec<(usize, usize, usize)>, bool) {
         let chain = self.chain(n);
-        let open = n
-            .children_with_tokens()
-            .filter_map(|e| e.into_token())
-            .find(|t| t.kind() == k::FENCE);
+        let open = n.token(k::FENCE);
         let (mut lines, mut closed) = (Vec::new(), false);
         if let Some(open) = open {
             let fence = open.text().trim();
@@ -337,9 +334,7 @@ impl Render<'_> {
 
     pub(super) fn fenced(&self, n: &SyntaxNode) -> Vec<String> {
         let info = n
-            .children_with_tokens()
-            .filter_map(|e| e.into_token())
-            .find(|t| t.kind() == k::INFO)
+            .token(k::INFO)
             .map(|t| t.text().trim().to_string())
             .unwrap_or_default();
         let lines: Vec<String> = (self.fence_lines(n).0.into_iter())

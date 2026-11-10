@@ -5,7 +5,7 @@ use crate::rules::has_tag;
 use core_rules::rule;
 use core_rules::{Check, Edit, Opt, OptionDecl, RuleContext};
 use core_syntax::ast::AstNode;
-use core_syntax::{SyntaxNode, SyntaxToken, TextSize};
+use core_syntax::{SyntaxNode, SyntaxNodeExt, SyntaxToken, TextSize};
 use regex::Regex;
 use std::sync::LazyLock;
 
@@ -63,9 +63,7 @@ rule! {
             return;
         }
         if let Some(token) = node
-            .children_with_tokens()
-            .filter_map(|c| c.into_token())
-            .find(|t| t.kind() == marker)
+            .token(marker)
         {
             ctx.report(token.text_range(), format!("empty value in {what}"));
         }

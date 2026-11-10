@@ -7,6 +7,7 @@ use super::{kind, text_of};
 use core_rules::rule;
 use core_rules::{FileContext, RuleContext};
 use core_syntax::SyntaxNode;
+use core_syntax::SyntaxNodeExt;
 
 /// `Debug.<method>(...)` written as such: the argument list's children, or `None`.
 fn debug_call(node: &SyntaxNode, name: &str, ctx: &RuleContext<'_>) -> Option<Vec<SyntaxNode>> {
@@ -21,8 +22,7 @@ fn debug_call(node: &SyntaxNode, name: &str, ctx: &RuleContext<'_>) -> Option<Ve
     let target = format!("Debug.{name}");
     (text == target || (text.ends_with(&format!(".{target}")) && text.starts_with("System."))).then(
         || {
-            node.children()
-                .find(|c| c.kind() == kind::ARGUMENT_LIST)
+            node.child(kind::ARGUMENT_LIST)
                 .map(|list| {
                     list.children()
                         .filter(|c| c.kind() == kind::ARGUMENT)
@@ -36,8 +36,7 @@ fn debug_call(node: &SyntaxNode, name: &str, ctx: &RuleContext<'_>) -> Option<Ve
 /// Is the argument a string literal that is blank?
 fn blank_literal(argument: &SyntaxNode, ctx: &RuleContext<'_>) -> bool {
     argument
-        .children()
-        .find(|c| c.kind() == kind::STRING_LITERAL_EXPRESSION)
+        .child(kind::STRING_LITERAL_EXPRESSION)
         .is_some_and(|literal| {
             let text = text_of(&literal, ctx);
             let inner = text.trim_start_matches('@').trim_matches('"');

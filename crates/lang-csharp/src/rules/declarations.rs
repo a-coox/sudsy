@@ -4,7 +4,7 @@ use super::{has_comment_in, kind, line_separator, text_of};
 use core_rules::rule;
 use core_rules::tree::{code_start, significant_range};
 use core_rules::{Edit, RuleContext};
-use core_syntax::{SyntaxNode, TextRange};
+use core_syntax::{SyntaxNode, SyntaxNodeExt, TextRange};
 
 rule! {
     pub SeparateFieldDeclarations {
@@ -21,8 +21,7 @@ rule! {
 
     fn check(&self, node: &SyntaxNode, ctx: &mut RuleContext<'_>) {
         let Some(declaration) = node
-            .children()
-            .find(|c| c.kind() == kind::VARIABLE_DECLARATION)
+            .child(kind::VARIABLE_DECLARATION)
         else {
             return;
         };
@@ -92,8 +91,7 @@ rule! {
             return;
         }
         let justification = node
-            .children()
-            .find(|c| c.kind() == kind::ATTRIBUTE_ARGUMENT_LIST)
+            .child(kind::ATTRIBUTE_ARGUMENT_LIST)
             .into_iter()
             .flat_map(|list| list.children().collect::<Vec<_>>())
             .find(|argument| {

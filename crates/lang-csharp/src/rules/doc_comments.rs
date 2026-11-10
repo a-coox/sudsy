@@ -5,7 +5,7 @@
 
 use super::kind;
 use core_rules::RuleContext;
-use core_syntax::{Grammar, SyntaxKind, SyntaxNode, SyntaxToken, TextRange};
+use core_syntax::{Grammar, SyntaxKind, SyntaxNode, SyntaxNodeExt, SyntaxToken, TextRange};
 
 /// The kinds a rule that reads documentation comments subscribes to.
 pub const DOC_KINDS: &[SyntaxKind] = &[
@@ -127,7 +127,7 @@ pub enum Access {
 
 pub fn modifier_access(node: &SyntaxNode) -> Option<Access> {
     let (mut private, mut protected, mut internal) = (false, false, false);
-    for token in node.children_with_tokens().filter_map(|e| e.into_token()) {
+    for token in node.tokens() {
         match token.kind() {
             kind::PUBLIC_KEYWORD => return Some(Access::Public),
             kind::PRIVATE_KEYWORD if protected => return Some(Access::PrivateProtected),
@@ -152,9 +152,7 @@ pub fn modifier_access(node: &SyntaxNode) -> Option<Access> {
 }
 
 pub fn has_modifier(node: &SyntaxNode, modifier: SyntaxKind) -> bool {
-    node.children_with_tokens()
-        .filter_map(|e| e.into_token())
-        .any(|t| t.kind() == modifier)
+    node.tokens().any(|t| t.kind() == modifier)
 }
 
 fn has_child(node: &SyntaxNode, child: SyntaxKind) -> bool {
@@ -363,8 +361,7 @@ impl Doc {
 
 fn name_of(xml_name: &SyntaxNode) -> String {
     xml_name
-        .children_with_tokens()
-        .filter_map(|e| e.into_token())
+        .tokens()
         .filter(|t| t.kind() == kind::IDENTIFIER_TOKEN)
         .last()
         .map(|t| t.text().to_string())
@@ -373,13 +370,12 @@ fn name_of(xml_name: &SyntaxNode) -> String {
 
 pub fn element_name(node: &SyntaxNode) -> String {
     let holder = if node.kind() == kind::XML_ELEMENT {
-        node.children()
-            .find(|c| c.kind() == kind::XML_ELEMENT_START_TAG)
+        node.child(kind::XML_ELEMENT_START_TAG)
     } else {
         Some(node.clone())
     };
     holder
-        .and_then(|h| h.children().find(|c| c.kind() == kind::XML_NAME))
+        .and_then(|h| h.child(kind::XML_NAME))
         .map(|n| name_of(&n))
         .unwrap_or_default()
 }
@@ -395,10 +391,7 @@ fn is_text_token(kind: SyntaxKind) -> bool {
 
 /// The text tokens of an `XmlText` (or CDATA) node.
 pub fn text_tokens(node: &SyntaxNode) -> Vec<SyntaxToken> {
-    node.children_with_tokens()
-        .filter_map(|e| e.into_token())
-        .filter(|t| is_text_token(t.kind()))
-        .collect()
+    node.tokens().filter(|t| is_text_token(t.kind())).collect()
 }
 
 /// StyleCop's `IsConsideredEmpty`: text is blank, an element is blank when its content is, an
@@ -482,8 +475,7 @@ pub fn first_text(node: &SyntaxNode) -> Option<SyntaxNode> {
 }
 
 fn attr_name(attr: &SyntaxNode) -> String {
-    attr.children()
-        .find(|c| c.kind() == kind::XML_NAME)
+    attr.child(kind::XML_NAME)
         .map(|n| name_of(&n))
         .unwrap_or_default()
 }
@@ -517,9 +509,7 @@ impl Element {
 
     fn attrs(&self) -> Vec<SyntaxNode> {
         let holder = if self.node.kind() == kind::XML_ELEMENT {
-            self.node
-                .children()
-                .find(|c| c.kind() == kind::XML_ELEMENT_START_TAG)
+            self.node.child(kind::XML_ELEMENT_START_TAG)
         } else {
             Some(self.node.clone())
         };
@@ -599,30 +589,18 @@ impl Declaration {
     /// The identifier tokens a diagnostic about the declaration points at: the name, `this` of
     /// an indexer, each variable of a field.
     pub fn names(&self) -> Vec<TextRange> {
-        let direct = |k: SyntaxKind| {
-            self.node
-                .children_with_tokens()
-                .filter_map(|e| e.into_token())
-                .find(|t| t.kind() == k)
-                .map(|t| vec![t.text_range()])
-        };
+        let direct = |k: SyntaxKind| self.node.token(k).map(|t| vec![t.text_range()]);
         match self.kind {
             Decl::Indexer => direct(kind::THIS_KEYWORD),
-            Decl::Field | Decl::EventField => self
-                .node
-                .children()
-                .find(|c| c.kind() == kind::VARIABLE_DECLARATION)
-                .map(|d| {
+            Decl::Field | Decl::EventField => {
+                self.node.child(kind::VARIABLE_DECLARATION).map(|d| {
                     d.children()
                         .filter(|c| c.kind() == kind::VARIABLE_DECLARATOR)
-                        .filter_map(|v| {
-                            v.children_with_tokens()
-                                .filter_map(|e| e.into_token())
-                                .find(|t| t.kind() == kind::IDENTIFIER_TOKEN)
-                        })
+                        .filter_map(|v| v.token(kind::IDENTIFIER_TOKEN))
                         .map(|t| t.text_range())
                         .collect()
-                }),
+                })
+            }
             _ => direct(kind::IDENTIFIER_TOKEN),
         }
         .unwrap_or_default()
@@ -638,16 +616,11 @@ impl Declaration {
     /// The type parameters of a type, method or delegate: identifier tokens.
     pub fn type_parameters(&self) -> Vec<SyntaxToken> {
         self.node
-            .children()
-            .find(|c| c.kind() == kind::TYPE_PARAMETER_LIST)
+            .child(kind::TYPE_PARAMETER_LIST)
             .map(|list| {
                 list.children()
                     .filter(|c| c.kind() == kind::TYPE_PARAMETER)
-                    .filter_map(|p| {
-                        p.children_with_tokens()
-                            .filter_map(|e| e.into_token())
-                            .find(|t| t.kind() == kind::IDENTIFIER_TOKEN)
-                    })
+                    .filter_map(|p| p.token(kind::IDENTIFIER_TOKEN))
                     .collect()
             })
             .unwrap_or_default()
@@ -656,23 +629,14 @@ impl Declaration {
     /// Is the return type `void`?
     pub fn returns_void(&self, grammar: &Grammar) -> bool {
         self.return_type(grammar).is_some_and(|t| {
-            t.kind() == kind::PREDEFINED_TYPE
-                && t.children_with_tokens()
-                    .filter_map(|e| e.into_token())
-                    .any(|k| k.kind() == kind::VOID_KEYWORD)
+            t.kind() == kind::PREDEFINED_TYPE && t.tokens().any(|k| k.kind() == kind::VOID_KEYWORD)
         })
     }
 
     /// The accessors of a property: `(getter, setter)` with their accessibility modifiers.
     pub fn accessors(&self) -> (Option<SyntaxNode>, Option<SyntaxNode>) {
-        let list = self
-            .node
-            .children()
-            .find(|c| c.kind() == kind::ACCESSOR_LIST);
-        let find = |k: SyntaxKind| {
-            list.as_ref()
-                .and_then(|l| l.children().find(|c| c.kind() == k))
-        };
+        let list = self.node.child(kind::ACCESSOR_LIST);
+        let find = |k: SyntaxKind| list.as_ref().and_then(|l| l.child(k));
         (
             find(kind::GET_ACCESSOR_DECLARATION),
             find(kind::SET_ACCESSOR_DECLARATION),

@@ -9,8 +9,6 @@ mod mapping;
 mod rules;
 mod validate;
 
-pub use format::{
-    ALIGN_COMMENTS, COLLAPSE, MAX_BLANK_LINES, TRAILING_COMMAS, TomlFormatter, option_schema,
-};
+pub use format::{ALIGN_COMMENTS, COLLAPSE, TRAILING_COMMAS, TomlFormatter, option_schema};
 
 include!("provider.generated.rs");

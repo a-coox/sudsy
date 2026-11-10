@@ -10,7 +10,7 @@ use super::kind;
 use core_rules::rule;
 use core_rules::tree::significant_range;
 use core_rules::{Edit, RuleContext};
-use core_syntax::{SyntaxNode, TextRange};
+use core_syntax::{SyntaxNode, SyntaxNodeExt, TextRange};
 
 /// What is wrong with a property summary.
 struct Mismatch {
@@ -292,26 +292,14 @@ enum Found {
 
 fn type_of(d: &Documented) -> Option<(SyntaxNode, String, Option<String>)> {
     let parent = d.node.parent()?;
-    let name = parent
-        .children_with_tokens()
-        .filter_map(|e| e.into_token())
-        .find(|t| t.kind() == kind::IDENTIFIER_TOKEN)?
-        .text()
-        .to_string();
-    let generics = parent
-        .children()
-        .find(|c| c.kind() == kind::TYPE_PARAMETER_LIST)
-        .map(|l| {
-            l.children()
-                .filter_map(|p| {
-                    p.children_with_tokens()
-                        .filter_map(|e| e.into_token())
-                        .find(|t| t.kind() == kind::IDENTIFIER_TOKEN)
-                })
-                .map(|t| t.text().to_string())
-                .collect::<Vec<_>>()
-                .join(",")
-        });
+    let name = parent.token(kind::IDENTIFIER_TOKEN)?.text().to_string();
+    let generics = parent.child(kind::TYPE_PARAMETER_LIST).map(|l| {
+        l.children()
+            .filter_map(|p| p.token(kind::IDENTIFIER_TOKEN))
+            .map(|t| t.text().to_string())
+            .collect::<Vec<_>>()
+            .join(",")
+    });
     Some((parent, name, generics))
 }
 
@@ -403,10 +391,7 @@ fn standard_text_fix(
             if let Some(edit) = malformed_sentence(summary, &see, first, second) {
                 return Some(("Use the standard summary text", vec![edit]));
             }
-            let tag = summary
-                .node
-                .children()
-                .find(|c| c.kind() == kind::XML_ELEMENT_START_TAG)?;
+            let tag = summary.node.child(kind::XML_ELEMENT_START_TAG)?;
             let at = tag.text_range().end();
             let second = second.trim_end();
             let sentence = format!(

@@ -7,18 +7,16 @@ mod unique_names;
 
 use crate::generated::kind;
 use core_rules::Rule;
-use core_syntax::{SyntaxNode, SyntaxToken};
+use core_syntax::{SyntaxNode, SyntaxNodeExt, SyntaxToken};
 
 /// The name token of a definition (a variable's is its `$name`): a token of the node itself, or
 /// of its `FragmentName`.
 fn name_of(def: &SyntaxNode) -> Option<SyntaxToken> {
     let holder = def
-        .children()
-        .find(|n| n.kind() == kind::FRAGMENT_NAME)
+        .child(kind::FRAGMENT_NAME)
         .unwrap_or_else(|| def.clone());
     holder
-        .children_with_tokens()
-        .filter_map(|e| e.into_token())
+        .tokens()
         .find(|t| matches!(t.kind(), kind::NAME | kind::VARIABLE))
 }
 

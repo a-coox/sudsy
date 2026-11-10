@@ -2,7 +2,7 @@
 
 use crate::generated::kind as k;
 use core_rules::{Rule, RuleContext, rule};
-use core_syntax::{SyntaxElement, SyntaxNode};
+use core_syntax::{SyntaxElement, SyntaxNode, SyntaxNodeExt};
 
 pub static RULES: &[&dyn Rule] = &[&CdWithoutExit, &UselessEcho];
 
@@ -67,8 +67,7 @@ rule! {
 
     fn check(&self, node: &SyntaxNode, ctx: &mut RuleContext<'_>) {
         let mut words = node
-            .children_with_tokens()
-            .filter_map(|e| e.into_token())
+            .tokens()
             .filter(|t| t.kind() == k::WORD);
         let Some(name) = words.next().filter(|t| matches!(t.text(), "cd" | "pushd" | "popd")) else {
             return;

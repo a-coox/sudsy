@@ -3,7 +3,7 @@
 
 use crate::generated::kind;
 use core_rules::{Rule, RuleContext, rule};
-use core_syntax::{SyntaxNode, TextRange};
+use core_syntax::{SyntaxNode, SyntaxNodeExt, TextRange};
 
 pub static RULES: &[&dyn Rule] = &[
     &NoDuplicatePattern,
@@ -34,11 +34,7 @@ fn patterns(doc: &SyntaxNode) -> Vec<Pat> {
     doc.children()
         .filter(|e| e.kind() == kind::ENTRY)
         .filter_map(|e| {
-            let toks: Vec<_> = e
-                .children_with_tokens()
-                .filter_map(|t| t.into_token())
-                .filter(|t| t.kind() == kind::PATTERN)
-                .collect();
+            let toks: Vec<_> = e.tokens().filter(|t| t.kind() == kind::PATTERN).collect();
             let range = TextRange::new(
                 toks.first()?.text_range().start(),
                 toks.last()?.text_range().end(),

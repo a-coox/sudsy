@@ -124,10 +124,3 @@ pub fn blank_lines_after(tok: &SyntaxToken) -> usize {
     }
     count
 }
-
-/// The first token of `kind` among `node`'s direct children.
-pub fn token_of(node: &SyntaxNode, kind: SyntaxKind) -> Option<SyntaxToken> {
-    node.children_with_tokens()
-        .filter_map(|e| e.into_token())
-        .find(|t| t.kind() == kind)
-}

@@ -11,7 +11,7 @@ use core_format::comments;
 use core_format::ignore::{self, IgnoreMark};
 use core_format::shapes::{ListLayout, ListStyle, TrailingComma, delimited_list};
 use core_format::{Doc, FormatCtx, FormatError, doc};
-use core_syntax::{SyntaxElement, SyntaxNode, SyntaxToken};
+use core_syntax::{SyntaxElement, SyntaxNode, SyntaxNodeExt, SyntaxToken};
 
 type R = Result<Doc, FormatError>;
 
@@ -278,10 +278,7 @@ pub(crate) fn node_after(
 // ---- node properties -------------------------------------------------------------------------
 
 fn properties(node: &SyntaxNode) -> Vec<SyntaxToken> {
-    node.children_with_tokens()
-        .filter_map(|e| e.into_token())
-        .filter(|t| !is_trivia(t.kind()))
-        .collect()
+    node.tokens().filter(|t| !is_trivia(t.kind())).collect()
 }
 
 fn property_head(cx: &FormatCtx<'_>, props: &[SyntaxToken]) -> Doc {

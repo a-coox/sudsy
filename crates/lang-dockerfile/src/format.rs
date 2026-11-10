@@ -4,11 +4,9 @@
 //! multi-line text are re-indented (never inside a quote, where the blanks are content).
 
 use crate::generated::kind as k;
-use core_config::{OptionDef, OptionSchema, Preset, shared};
+use core_config::{OptionSchema, Preset, shared};
 use core_format::{Doc, FormatCtx, FormatError, NodeFormatter, comments, doc};
 use core_syntax::{SyntaxKind, SyntaxNode};
-
-pub const MAX_BLANK_LINES: &str = "max_blank_lines";
 
 pub fn option_schema() -> OptionSchema {
     OptionSchema::new(vec![
@@ -16,10 +14,8 @@ pub fn option_schema() -> OptionSchema {
         shared::indent_style(),
         shared::final_newline(true),
         shared::end_of_line(),
-        OptionDef::int(
-            MAX_BLANK_LINES,
+        shared::max_blank_lines(
             1,
-            (0, 10),
             "Largest number of blank lines kept between instructions and comments.",
         ),
     ])
@@ -79,7 +75,7 @@ impl NodeFormatter for DockerfileFormatter {
 
 /// The instructions, then the comments after them (owned by the end-of-file token).
 fn document(cx: &FormatCtx<'_>, node: &SyntaxNode) -> Result<Doc, FormatError> {
-    core_format::shapes::document(cx, node, cx.options.int(MAX_BLANK_LINES) as usize, None)
+    core_format::shapes::document(cx, node, cx.options.max_blank_lines(), None)
 }
 
 /// Lines of an instruction: the part before the first line break, the indented rest, and the

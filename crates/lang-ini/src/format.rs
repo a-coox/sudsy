@@ -6,8 +6,8 @@ use core_config::{OptionDef, OptionSchema, Preset, shared};
 use core_format::shapes::statement_sequence_with;
 use core_format::{Doc, FormatCtx, FormatError, NodeFormatter, doc};
 use core_syntax::SyntaxNode;
+use core_syntax::SyntaxNodeExt;
 
-pub const MAX_BLANK_LINES: &str = "max_blank_lines";
 pub const SPACE_AROUND_EQUALS: &str = "space_around_equals";
 
 pub fn option_schema() -> OptionSchema {
@@ -19,10 +19,8 @@ pub fn option_schema() -> OptionSchema {
             true,
             "Write `key = value` rather than `key=value`.",
         ),
-        OptionDef::int(
-            MAX_BLANK_LINES,
+        shared::max_blank_lines(
             1,
-            (0, 10),
             "Largest number of blank lines kept between settings, sections and comments.",
         ),
     ])
@@ -72,12 +70,13 @@ fn blank_before_section(_: &FormatCtx<'_>, _: &SyntaxNode, next: &SyntaxNode) ->
     next.kind() == k::SECTION
 }
 
-fn max_blank_lines(cx: &FormatCtx<'_>) -> usize {
-    cx.options.int(MAX_BLANK_LINES) as usize
-}
-
 fn document(cx: &FormatCtx<'_>, node: &SyntaxNode) -> Result<Doc, FormatError> {
-    core_format::shapes::document(cx, node, max_blank_lines(cx), Some(blank_before_section))
+    core_format::shapes::document(
+        cx,
+        node,
+        cx.options.max_blank_lines(),
+        Some(blank_before_section),
+    )
 }
 
 /// `[name]` then its settings, one per line.
@@ -92,7 +91,7 @@ fn section(cx: &FormatCtx<'_>, node: &SyntaxNode) -> Result<Doc, FormatError> {
         parts.push(statement_sequence_with(
             cx,
             &settings,
-            max_blank_lines(cx),
+            cx.options.max_blank_lines(),
             None,
             false,
         )?);
@@ -104,11 +103,7 @@ fn section(cx: &FormatCtx<'_>, node: &SyntaxNode) -> Result<Doc, FormatError> {
 fn setting(cx: &FormatCtx<'_>, node: &SyntaxNode) -> Doc {
     let space = cx.options.bool(SPACE_AROUND_EQUALS);
     let mut parts = Vec::new();
-    for t in node
-        .children_with_tokens()
-        .filter_map(|e| e.into_token())
-        .filter(|t| !cx.grammar.is_trivia(t.kind()))
-    {
+    for t in node.tokens().filter(|t| !cx.grammar.is_trivia(t.kind())) {
         if space && t.kind() != k::KEY {
             parts.push(doc::lit(" "));
         }

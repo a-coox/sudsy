@@ -4,10 +4,10 @@ use super::block::{Ctx, node_after, property_root};
 use super::comments::{gap, has_remaining_comments, leading, tok};
 use super::{DocumentEnd, DocumentStart, Style, scalars};
 use crate::generated::kind as k;
-use crate::tree::{blank_lines_after, first_token, is_trivia, prev_significant, token_of};
+use crate::tree::{blank_lines_after, first_token, is_trivia, prev_significant};
 use core_format::comments;
 use core_format::{Doc, FormatCtx, FormatError, doc};
-use core_syntax::{SyntaxElement, SyntaxNode, SyntaxToken};
+use core_syntax::{SyntaxElement, SyntaxNode, SyntaxNodeExt, SyntaxToken};
 
 type R = Result<Doc, FormatError>;
 
@@ -26,14 +26,14 @@ pub(crate) fn stream(cx: &FormatCtx<'_>, st: &Style, node: &SyntaxNode) -> R {
             out.push(gap(cx, st, &first));
         }
         // A directive, or a document without its own `---`, can only follow a `...`.
-        let end_needed = documents.get(i + 1).is_some_and(|n| {
-            token_of(n, k::DIRECTIVE).is_some() || !has_start_marker(st, n, i + 1)
-        });
+        let end_needed = documents
+            .get(i + 1)
+            .is_some_and(|n| n.token(k::DIRECTIVE).is_some() || !has_start_marker(st, n, i + 1));
         let (doc, ended) = document(cx, st, d, i, end_needed)?;
         last_ended = ended;
         out.push(doc);
     }
-    if let Some(eof) = token_of(node, k::EOF) {
+    if let Some(eof) = node.token(k::EOF) {
         if has_remaining_comments(cx, &eof) {
             if !out.is_empty() {
                 out.push(gap(cx, st, &eof));
@@ -53,9 +53,9 @@ pub(crate) fn stream(cx: &FormatCtx<'_>, st: &Style, node: &SyntaxNode) -> R {
 
 /// Whether the formatted document starts with `---`.
 fn has_start_marker(st: &Style, node: &SyntaxNode, index: usize) -> bool {
-    let start = token_of(node, k::DOC_START).is_some();
+    let start = node.token(k::DOC_START).is_some();
     let body = node.children().next().is_some();
-    let directives = token_of(node, k::DIRECTIVE).is_some();
+    let directives = node.token(k::DIRECTIVE).is_some();
     match st.document_start {
         DocumentStart::Preserve => start,
         DocumentStart::Always => start || body || directives,
@@ -77,8 +77,8 @@ fn document(
         .filter_map(SyntaxElement::into_token)
         .filter(|t| t.kind() == k::DIRECTIVE)
         .collect();
-    let start = token_of(node, k::DOC_START);
-    let end = token_of(node, k::DOC_END);
+    let start = node.token(k::DOC_START);
+    let end = node.token(k::DOC_END);
     let body = node.children().next();
     let marker = has_start_marker(st, node, index);
     let mut out = Vec::new();

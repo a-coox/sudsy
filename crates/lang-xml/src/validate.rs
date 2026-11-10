@@ -2,7 +2,7 @@
 //! attribute, `--` inside a comment, `]]>` in character data. Reported as parse errors.
 
 use crate::generated::kind as k;
-use core_syntax::{SyntaxNode, SyntaxToken};
+use core_syntax::{SyntaxNode, SyntaxNodeExt, SyntaxToken};
 use provider_api::ParseError;
 
 fn err(range: core_syntax::TextRange, code: &str, message: String) -> ParseError {
@@ -92,13 +92,7 @@ pub fn validate(root: &SyntaxNode, text: &str) -> Vec<ParseError> {
                 references(&t, declared, &mut out);
             }
             rowan::NodeOrToken::Node(n) if n.kind() == k::ELEMENT => {
-                let name_of = |kind| {
-                    n.children().find(|c| c.kind() == kind).and_then(|c| {
-                        c.children_with_tokens()
-                            .filter_map(|e| e.into_token())
-                            .find(|t| t.kind() == k::NAME)
-                    })
-                };
+                let name_of = |kind| n.child(kind).and_then(|c| c.token(k::NAME));
                 if let (Some(s), Some(e)) = (name_of(k::S_TAG), name_of(k::E_TAG))
                     && s.text() != e.text()
                 {
@@ -112,11 +106,7 @@ pub fn validate(root: &SyntaxNode, text: &str) -> Vec<ParseError> {
             rowan::NodeOrToken::Node(n) if n.kind() == k::S_TAG || n.kind() == k::EMPTY_TAG => {
                 let mut seen = std::collections::HashSet::new();
                 for a in n.children() {
-                    let Some(name) = a
-                        .children_with_tokens()
-                        .filter_map(|e| e.into_token())
-                        .find(|t| t.kind() == k::NAME)
-                    else {
+                    let Some(name) = a.token(k::NAME) else {
                         continue;
                     };
                     if !seen.insert(name.text().to_string()) {

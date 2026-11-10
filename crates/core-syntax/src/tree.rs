@@ -21,6 +21,28 @@ pub type SyntaxNode = rowan::SyntaxNode<SudsyLang>;
 pub type SyntaxToken = rowan::SyntaxToken<SudsyLang>;
 pub type SyntaxElement = rowan::SyntaxElement<SudsyLang>;
 
+/// Lookups on a node's direct children.
+pub trait SyntaxNodeExt {
+    /// The first child node of `kind`.
+    fn child(&self, kind: SyntaxKind) -> Option<SyntaxNode>;
+    /// The own tokens (not those of child nodes).
+    fn tokens(&self) -> impl Iterator<Item = SyntaxToken>;
+    /// The first own token of `kind`.
+    fn token(&self, kind: SyntaxKind) -> Option<SyntaxToken> {
+        self.tokens().find(|t| t.kind() == kind)
+    }
+}
+
+impl SyntaxNodeExt for SyntaxNode {
+    fn child(&self, kind: SyntaxKind) -> Option<SyntaxNode> {
+        self.children().find(|c| c.kind() == kind)
+    }
+
+    fn tokens(&self) -> impl Iterator<Item = SyntaxToken> {
+        self.children_with_tokens().filter_map(|e| e.into_token())
+    }
+}
+
 /// Prints the tree. The lossless invariant is `print(&tree) == source`.
 pub fn print(node: &SyntaxNode) -> String {
     node.text().to_string()

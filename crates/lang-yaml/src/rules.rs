@@ -7,7 +7,7 @@ use core_rules::rule;
 use core_rules::tree::significant_range;
 use core_rules::{Check, Edit, Opt, OptionDecl, Rule, RuleContext};
 use core_syntax::ast::AstNode;
-use core_syntax::{SyntaxKind, SyntaxNode, TextSize};
+use core_syntax::{SyntaxKind, SyntaxNode, SyntaxNodeExt, TextSize};
 
 pub static RULES: &[&dyn Rule] = &[
     &anchor_rules::NoUndefinedAlias,
@@ -125,7 +125,7 @@ rule! {
     }
 
     fn check(&self, node: &SyntaxNode, ctx: &mut RuleContext<'_>) {
-        let Some(document) = node.children().find(|c| c.kind() == kind::DOCUMENT) else {
+        let Some(document) = node.child(kind::DOCUMENT) else {
             return;
         };
         let has = |k: SyntaxKind| document.children_with_tokens().any(|c| c.kind() == k);
@@ -165,9 +165,7 @@ rule! {
 
     fn check(&self, node: &SyntaxNode, ctx: &mut RuleContext<'_>) {
         let end = node
-            .children_with_tokens()
-            .filter_map(|c| c.into_token())
-            .find(|t| t.kind() == kind::DOC_END);
+            .token(kind::DOC_END);
         if !ctx.options.bool("present") {
             if let Some(e) = end {
                 ctx.report(e.text_range(), "the document ends with `...`");

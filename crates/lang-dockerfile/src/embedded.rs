@@ -2,15 +2,14 @@
 //! `HEALTHCHECK`): the command and the body of the heredoc are Shell code.
 
 use crate::generated::kind as k;
-use core_syntax::{Embedded, SyntaxNode, TextRange, TextSize};
+use core_syntax::embedded::size;
+use core_syntax::{Embedded, SyntaxNode, SyntaxNodeExt, TextRange};
 
 pub fn find(root: &SyntaxNode, text: &str) -> Vec<Embedded> {
     let mut out = Vec::new();
     let backtick = escape_is_backtick(text);
     for instruction in root.descendants().filter(|n| n.kind() == k::INSTRUCTION) {
-        let mut tokens = instruction
-            .children_with_tokens()
-            .filter_map(|e| e.into_token());
+        let mut tokens = instruction.tokens();
         let Some(keyword) = tokens.next().filter(|t| t.kind() == k::KEYWORD) else {
             continue;
         };
@@ -24,8 +23,7 @@ pub fn find(root: &SyntaxNode, text: &str) -> Vec<Embedded> {
         }
         for t in tokens {
             let range = t.text_range();
-            let at =
-                |i: usize| range.start() + TextSize::try_from(i).expect("a file is under 4 GiB");
+            let at = |i: usize| range.start() + size(i);
             let body = match t.kind() {
                 // The first line of the heredoc holds what follows `<<EOT`, the last its delimiter.
                 k::HEREDOC => match (t.text().find('\n'), t.text().rfind('\n')) {
@@ -47,27 +45,18 @@ pub fn find(root: &SyntaxNode, text: &str) -> Vec<Embedded> {
                 // A backtick continuation is not shell: blank it with its line break.
                 let code = line.trim_end();
                 if backtick && t.kind() == k::SHELL_COMMAND && code.ends_with('`') {
-                    let at =
-                        |i: usize| TextSize::try_from(from + i).expect("a file is under 4 GiB");
+                    let at = |i: usize| size(from + i);
                     carved.push(TextRange::new(at(code.len() - 1), at(line.len())));
                 }
                 if t.kind() == k::SHELL_COMMAND
                     && from > usize::from(body.start())
                     && line.trim_start().starts_with('#')
                 {
-                    carved.push(TextRange::new(
-                        TextSize::try_from(from).expect("a file is under 4 GiB"),
-                        TextSize::try_from(from + line.len()).expect("a file is under 4 GiB"),
-                    ));
+                    carved.push(TextRange::new(size(from), size(from + line.len())));
                 }
                 from += line.len();
             }
-            out.push(Embedded {
-                language: "shell".into(),
-                range: body,
-                carved,
-                format: false,
-            });
+            out.push(Embedded::new("shell", body, carved));
         }
     }
     out

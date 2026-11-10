@@ -4,6 +4,7 @@
 use crate::generated::kind;
 use core_rules::RuleHooks;
 use core_syntax::SyntaxElement;
+use core_syntax::SyntaxNodeExt;
 use std::borrow::Cow;
 
 pub struct GraphqlHooks;
@@ -14,7 +15,7 @@ impl RuleHooks for GraphqlHooks {
             .as_token()
             .and_then(|t| t.parent())
             .filter(|p| p.kind() == kind::FIELD)
-            .and_then(|field| field.children().find(|n| n.kind() == kind::ALIAS))
+            .and_then(|field| field.child(kind::ALIAS))
             .and_then(|alias| alias.first_token());
         let range = alias.map_or_else(|| key.text_range(), |t| t.text_range());
         let name = text[range].trim();

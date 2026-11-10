@@ -9,7 +9,7 @@ use core_rules::rule;
 use core_rules::sorting::cached_regex;
 use core_rules::{Check, Edit, FileContext, Fix, FixKind, Opt, OptionDecl, RuleContext};
 use core_syntax::ast::AstNode;
-use core_syntax::{SyntaxKind, SyntaxNode, SyntaxToken};
+use core_syntax::{SyntaxKind, SyntaxNode, SyntaxNodeExt, SyntaxToken};
 use regex::Regex;
 
 /// What is wrong with a scalar.
@@ -268,8 +268,7 @@ rule! {
 fn has_double_bang_tag(node: &SyntaxNode) -> bool {
     node.parent().is_some_and(|p| {
         p.kind() == kind::PROPERTY_NODE
-            && p.children_with_tokens()
-                .filter_map(|c| c.into_token())
+            && p.tokens()
                 .any(|t| t.kind() == kind::TAG && t.text().starts_with("!!"))
     })
 }

@@ -3,7 +3,7 @@
 
 use crate::generated::kind as k;
 use core_rules::{Check, Opt, OptionDecl, Rule, RuleContext, rule};
-use core_syntax::{SyntaxNode, SyntaxToken, TextRange};
+use core_syntax::{SyntaxNode, SyntaxNodeExt, SyntaxToken, TextRange};
 
 pub static RULES: &[&dyn Rule] = &[
     &MinPhony,
@@ -23,8 +23,7 @@ fn words(node: &SyntaxNode) -> Vec<SyntaxToken> {
 
 /// The target names of a rule with the range of each.
 fn targets(rule: &SyntaxNode) -> Vec<SyntaxToken> {
-    rule.children()
-        .find(|n| n.kind() == k::TARGETS)
+    rule.child(k::TARGETS)
         .map(|n| words(&n))
         .unwrap_or_default()
 }
@@ -46,8 +45,7 @@ fn phony(doc: &SyntaxNode) -> Vec<String> {
 
 /// The commands of a rule: its recipe lines, those of the same recipe's conditionals included.
 fn body(rule: &SyntaxNode) -> impl Iterator<Item = SyntaxNode> {
-    rule.children()
-        .find(|n| n.kind() == k::RECIPE)
+    rule.child(k::RECIPE)
         .into_iter()
         .flat_map(|r| r.descendants().filter(|n| n.kind() == k::RECIPE_LINE))
 }
@@ -133,7 +131,7 @@ rule! {
     }
 
     fn check(&self, node: &SyntaxNode, ctx: &mut RuleContext<'_>) {
-        let mut tokens = node.children_with_tokens().filter_map(|e| e.into_token());
+        let mut tokens = node.tokens();
         let (Some(name), Some(op), Some(value)) = (
             tokens.find(|t| t.kind() == k::WORD),
             tokens.find(|t| t.kind() == k::OP),

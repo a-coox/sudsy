@@ -6,7 +6,7 @@ use super::kind;
 use core_rules::rule;
 use core_rules::tree::{code_start, entry_range, reorder_edits, significant_range};
 use core_rules::{Check, Opt, OptionDecl, RuleContext};
-use core_syntax::{Grammar, SyntaxKind, SyntaxNode, TextRange};
+use core_syntax::{Grammar, SyntaxKind, SyntaxNode, SyntaxNodeExt, TextRange};
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 enum Access {
@@ -70,8 +70,7 @@ struct Member {
 impl Member {
     fn new(node: SyntaxNode, container: SyntaxKind, g: &Grammar) -> Member {
         let modifiers: Vec<SyntaxKind> = node
-            .children_with_tokens()
-            .filter_map(|e| e.into_token())
+            .tokens()
             .map(|t| t.kind())
             .filter(|&k| g.has_tag(k, "modifier"))
             .collect();
@@ -128,12 +127,7 @@ impl Member {
 
 /// Where StyleCop reports a member: its name, or its start for members without one.
 fn name_range(node: &SyntaxNode, g: &Grammar) -> TextRange {
-    let token = |of: &SyntaxNode, k: SyntaxKind| {
-        of.children_with_tokens()
-            .filter_map(|e| e.into_token())
-            .find(|t| t.kind() == k)
-            .map(|t| t.text_range())
-    };
+    let token = |of: &SyntaxNode, k: SyntaxKind| of.token(k).map(|t| t.text_range());
     let found = match node.kind() {
         kind::PROPERTY_DECLARATION
         | kind::METHOD_DECLARATION
@@ -148,9 +142,8 @@ fn name_range(node: &SyntaxNode, g: &Grammar) -> TextRange {
         | kind::DELEGATE_DECLARATION
         | kind::EVENT_DECLARATION => token(node, kind::IDENTIFIER_TOKEN),
         kind::FIELD_DECLARATION => node
-            .children()
-            .find(|c| c.kind() == kind::VARIABLE_DECLARATION)
-            .and_then(|d| d.children().find(|c| c.kind() == kind::VARIABLE_DECLARATOR))
+            .child(kind::VARIABLE_DECLARATION)
+            .and_then(|d| d.child(kind::VARIABLE_DECLARATOR))
             .and_then(|d| token(&d, kind::IDENTIFIER_TOKEN)),
         kind::INDEXER_DECLARATION => token(node, kind::THIS_KEYWORD),
         kind::NAMESPACE_DECLARATION => node
@@ -494,7 +487,7 @@ rule! {
 
     fn check(&self, node: &SyntaxNode, ctx: &mut RuleContext<'_>) {
         let g = ctx.file.grammar;
-        let Some(list) = node.children().find(|c| c.kind() == kind::ACCESSOR_LIST) else {
+        let Some(list) = node.child(kind::ACCESSOR_LIST) else {
             return;
         };
         let accessors: Vec<SyntaxNode> = list
@@ -514,8 +507,7 @@ rule! {
             ),
             (kind::REMOVE_ACCESSOR_DECLARATION, kind::ADD_ACCESSOR_DECLARATION) => (
                 first
-                    .children_with_tokens()
-                    .filter_map(|e| e.into_token())
+                    .tokens()
                     .find(|t| {
                         !g.is_trivia(t.kind())
                             && g.has_tag(t.kind(), "accessor-declaration-keyword")

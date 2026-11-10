@@ -14,7 +14,6 @@ use core_syntax::{SyntaxElement, SyntaxNode};
 
 pub const COLLAPSE: &str = "collapse";
 pub const TRAILING_COMMAS: &str = "trailing_commas";
-pub const MAX_BLANK_LINES: &str = "max_blank_lines";
 pub const ALIGN_COMMENTS: &str = "align_comments";
 
 pub fn option_schema() -> OptionSchema {
@@ -40,12 +39,7 @@ pub fn option_schema() -> OptionSchema {
             "multiline",
             "Trailing comma after the last item of a multi-line array.",
         ),
-        OptionDef::int(
-            MAX_BLANK_LINES,
-            1,
-            (0, 10),
-            "Largest number of blank lines kept between entries, tables and comments.",
-        ),
+        shared::max_blank_lines(1, "Largest number of blank lines kept between entries, tables and comments."),
         OptionDef::boolean(
             ALIGN_COMMENTS,
             false,
@@ -137,10 +131,6 @@ fn pair(cx: &FormatCtx<'_>, node: &SyntaxNode) -> Result<Doc, FormatError> {
     Ok(d)
 }
 
-fn max_blank_lines(cx: &FormatCtx<'_>) -> usize {
-    cx.options.int(MAX_BLANK_LINES) as usize
-}
-
 /// `[header]` then its pairs, one per line.
 fn table(cx: &FormatCtx<'_>, node: &SyntaxNode) -> Result<Doc, FormatError> {
     let mut parts = Vec::new();
@@ -154,7 +144,11 @@ fn table(cx: &FormatCtx<'_>, node: &SyntaxNode) -> Result<Doc, FormatError> {
     let pairs: Vec<SyntaxNode> = node.children().filter(|n| n.kind() == k::PAIR).collect();
     if !pairs.is_empty() {
         parts.push(doc::hardline());
-        parts.push(statement_sequence(cx, &pairs, max_blank_lines(cx))?);
+        parts.push(statement_sequence(
+            cx,
+            &pairs,
+            cx.options.max_blank_lines(),
+        )?);
     }
     Ok(doc::concat(parts))
 }
@@ -164,7 +158,7 @@ fn document(cx: &FormatCtx<'_>, node: &SyntaxNode) -> Result<Doc, FormatError> {
     if cx.options.bool(ALIGN_COMMENTS) {
         cx.cached(|| AlignTable::build(cx, node));
     }
-    core_format::shapes::document(cx, node, max_blank_lines(cx), None)
+    core_format::shapes::document(cx, node, cx.options.max_blank_lines(), None)
 }
 
 /// The presets are plain config files in `presets/` next to the crate's manifest.

@@ -4,7 +4,7 @@
 use crate::generated::kind as k;
 use core_rules::rule::FileContext;
 use core_rules::{Rule, RuleContext, rule};
-use core_syntax::{SyntaxKind, SyntaxNode, SyntaxToken, TextRange, TextSize};
+use core_syntax::{SyntaxKind, SyntaxNode, SyntaxNodeExt, TextRange, TextSize};
 
 pub static RULES: &[&dyn Rule] = &[
     &EnumFirstValueZero,
@@ -14,19 +14,9 @@ pub static RULES: &[&dyn Rule] = &[
     &FileLowerSnakeCase,
 ];
 
-fn child(node: &SyntaxNode, kind: SyntaxKind) -> Option<SyntaxNode> {
-    node.children().find(|c| c.kind() == kind)
-}
-
-/// The own token of a node with this kind.
-fn token(node: &SyntaxNode, kind: SyntaxKind) -> Option<SyntaxToken> {
-    node.children_with_tokens()
-        .filter_map(|e| e.into_token())
-        .find(|t| t.kind() == kind)
-}
-
 fn name_of(node: &SyntaxNode, name_kind: SyntaxKind) -> Option<String> {
-    child(node, name_kind).map(|n| n.text().to_string().trim().to_string())
+    node.child(name_kind)
+        .map(|n| n.text().to_string().trim().to_string())
 }
 
 /// buf's `ToUpperSnakeCase`: a word starts at a capital after a lower case letter or digit, and at
@@ -61,8 +51,8 @@ rule! {
     }
 
     fn check(&self, node: &SyntaxNode, ctx: &mut RuleContext<'_>) {
-        let Some(first) = child(node, k::ENUM_FIELD) else { return };
-        let Some(number) = token(&first, k::INT) else { return };
+        let Some(first) = node.child(k::ENUM_FIELD) else { return };
+        let Some(number) = first.token(k::INT) else { return };
         let text = number.text();
         let zero = text.trim_start_matches("0x").trim_start_matches("0X").trim_start_matches('0').is_empty();
         if !zero {
@@ -83,12 +73,12 @@ rule! {
     }
 
     fn check(&self, node: &SyntaxNode, ctx: &mut RuleContext<'_>) {
-        let (Some(name), Some(body)) = (name_of(node, k::ENUM_NAME), child(node, k::ENUM_BODY)) else {
+        let (Some(name), Some(body)) = (name_of(node, k::ENUM_NAME), node.child(k::ENUM_BODY)) else {
             return;
         };
         let prefix = format!("{}_", upper_snake(&name));
         for field in body.children().filter(|c| c.kind() == k::ENUM_FIELD) {
-            if let Some(ident) = token(&field, k::IDENT).filter(|t| !t.text().starts_with(&prefix)) {
+            if let Some(ident) = field.token(k::IDENT).filter(|t| !t.text().starts_with(&prefix)) {
                 ctx.report(
                     ident.text_range(),
                     format!("the value `{}` should start with `{prefix}`", ident.text()),

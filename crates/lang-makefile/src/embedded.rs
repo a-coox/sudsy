@@ -3,11 +3,8 @@
 //! never sees it.
 
 use crate::generated::kind as k;
-use core_syntax::{Embedded, SyntaxNode, TextRange, TextSize};
-
-fn size(n: usize) -> TextSize {
-    TextSize::try_from(n).expect("a file is under 4 GiB")
-}
+use core_syntax::embedded::size;
+use core_syntax::{Embedded, SyntaxNode, TextRange};
 
 pub fn find(root: &SyntaxNode, text: &str) -> Vec<Embedded> {
     let mut out = Vec::new();
@@ -37,15 +34,7 @@ pub fn find(root: &SyntaxNode, text: &str) -> Vec<Embedded> {
                 _ => {}
             }
         }
-        carved.retain(|r| range.contains_range(*r));
-        carved.sort_by_key(|r| r.start());
-        carved.dedup_by(|b, a| b.start() < a.end());
-        out.push(Embedded {
-            language: "shell".into(),
-            range,
-            carved,
-            format: false,
-        });
+        out.push(Embedded::new("shell", range, carved));
     }
     out
 }

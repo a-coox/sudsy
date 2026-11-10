@@ -5,7 +5,7 @@ use super::{kind, text_of};
 use core_rules::RuleContext;
 use core_rules::rule;
 use core_rules::tree::significant_range;
-use core_syntax::{SyntaxKind, SyntaxNode, SyntaxToken};
+use core_syntax::{SyntaxKind, SyntaxNode, SyntaxNodeExt, SyntaxToken};
 
 const CLASSES: &[SyntaxKind] = &[kind::CLASS_DECLARATION, kind::RECORD_DECLARATION];
 
@@ -43,10 +43,7 @@ fn top_level(root: &SyntaxNode) -> (Vec<SyntaxNode>, Vec<SyntaxNode>) {
 }
 
 fn name_token(declaration: &SyntaxNode) -> Option<SyntaxToken> {
-    declaration
-        .children_with_tokens()
-        .filter_map(|e| e.into_token())
-        .find(|t| t.kind() == kind::IDENTIFIER_TOKEN)
+    declaration.token(kind::IDENTIFIER_TOKEN)
 }
 
 fn is_partial(declaration: &SyntaxNode) -> bool {
@@ -135,8 +132,7 @@ rule! {
         };
         let stem = file.split('.').next().unwrap_or(file);
         let generic = first
-            .children()
-            .find(|c| c.kind() == kind::TYPE_PARAMETER_LIST)
+            .child(kind::TYPE_PARAMETER_LIST)
             .map(|list| {
                 let names: Vec<&str> = list.children().map(|p| text_of(&p, ctx)).collect();
                 format!("{}{{{}}}", name.text(), names.join(","))

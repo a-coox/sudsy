@@ -3,7 +3,8 @@
 
 use super::Render;
 use crate::generated::kind as k;
-use core_syntax::{Embedded, SyntaxNode, TextRange, TextSize};
+use core_syntax::embedded::size;
+use core_syntax::{Embedded, SyntaxNode, SyntaxNodeExt, TextRange};
 
 pub fn find(root: &SyntaxNode, text: &str) -> Vec<Embedded> {
     // The tree walk below allocates a red node per node; a file with no fence marker skips it.
@@ -11,13 +12,10 @@ pub fn find(root: &SyntaxNode, text: &str) -> Vec<Embedded> {
         return Vec::new();
     }
     let render = Render { src: text, tab: 2 };
-    let at = |i: usize| TextSize::try_from(i).expect("a file is under 4 GiB");
+    let at = size;
     let mut out = Vec::new();
     for n in root.descendants().filter(|n| n.kind() == k::FENCED_CODE) {
-        let info = n
-            .children_with_tokens()
-            .filter_map(|e| e.into_token())
-            .find(|t| t.kind() == k::INFO);
+        let info = n.token(k::INFO);
         let language = info
             .as_ref()
             .and_then(|t| t.text().split_whitespace().next())

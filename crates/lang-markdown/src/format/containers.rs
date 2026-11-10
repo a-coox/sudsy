@@ -1,6 +1,7 @@
 //! Containers (quotes, list items) and the source lines of blocks.
 
 use super::*;
+use core_syntax::SyntaxNodeExt;
 
 impl Render<'_> {
     pub(super) fn line_start(&self, off: usize) -> usize {
@@ -10,8 +11,7 @@ impl Render<'_> {
     /// Absolute column where the content of a quote or list item starts.
     pub(super) fn content_col(&self, n: &SyntaxNode) -> usize {
         let marker = n
-            .children_with_tokens()
-            .filter_map(|e| e.into_token())
+            .tokens()
             .find(|t| t.kind() == k::QUOTE_MARKER || t.kind() == k::LIST_MARKER);
         marker.map_or(0, |t| end(&t) - self.line_start(start(&t)))
     }

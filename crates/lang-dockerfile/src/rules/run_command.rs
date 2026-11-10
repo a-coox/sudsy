@@ -17,6 +17,7 @@ use crate::generated::kind as k;
 use core_rules::tree::significant_range;
 use core_rules::{EmbeddedTree, Family, Params, Re, Rule, RuleContext, RuleMeta};
 use core_syntax::SyntaxNode;
+use core_syntax::SyntaxNodeExt;
 use core_syntax::grammars::SHELL;
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -228,7 +229,7 @@ thread_local! {
 
 /// The commands of the instruction's own `RUN` (not a nested `ONBUILD`'s).
 fn run_commands(node: &SyntaxNode, embedded: &[EmbeddedTree]) -> Option<Rc<Vec<Cmd>>> {
-    let mut tokens = node.children_with_tokens().filter_map(|e| e.into_token());
+    let mut tokens = node.tokens();
     let keyword = tokens.find(|t| t.kind() == k::KEYWORD)?;
     if !keyword.text().eq_ignore_ascii_case("run") {
         return None;
@@ -248,7 +249,7 @@ fn run_commands(node: &SyntaxNode, embedded: &[EmbeddedTree]) -> Option<Rc<Vec<C
 fn read_commands(node: &SyntaxNode, embedded: &[EmbeddedTree]) -> Vec<Cmd> {
     let mut cmds = Vec::new();
     let mut json = Vec::new();
-    for t in node.children_with_tokens().filter_map(|e| e.into_token()) {
+    for t in node.tokens() {
         match t.kind() {
             // The script of `RUN cmd` or `RUN <<EOT`, parsed as shell.
             k::SHELL_COMMAND | k::HEREDOC => {
@@ -274,15 +275,10 @@ fn read_commands(node: &SyntaxNode, embedded: &[EmbeddedTree]) -> Vec<Cmd> {
 
 /// Whether a `--mount` of type cache or tmpfs targets `dir`.
 fn mounted(node: &SyntaxNode, dir: &str) -> bool {
-    node.children_with_tokens()
-        .filter_map(|e| e.into_token())
-        .filter(|t| t.kind() == k::WORD)
-        .any(|t| {
-            let w = t.text();
-            w.starts_with("--mount=")
-                && (w.contains("cache") || w.contains("tmpfs"))
-                && w.contains(dir)
-        })
+    node.tokens().filter(|t| t.kind() == k::WORD).any(|t| {
+        let w = t.text();
+        w.starts_with("--mount=") && (w.contains("cache") || w.contains("tmpfs")) && w.contains(dir)
+    })
 }
 
 impl Rule for RunCommand {

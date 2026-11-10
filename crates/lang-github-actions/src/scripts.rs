@@ -4,7 +4,8 @@
 use crate::view::{entries, get, items, root_mapping, scalar};
 use core_rules::rule;
 use core_rules::{FileContext, RuleContext};
-use core_syntax::{Embedded, SyntaxNode, TextRange, TextSize};
+use core_syntax::embedded::size;
+use core_syntax::{Embedded, SyntaxNode, SyntaxNodeExt, TextRange};
 use lang_yaml::generated::kind;
 use regex::Regex;
 use std::sync::LazyLock;
@@ -101,11 +102,7 @@ fn script(value: &SyntaxNode, text: &str, language: Option<&'static str>) -> Opt
             })
         }
         kind::BLOCK_SCALAR => {
-            let token = |k| {
-                node.children_with_tokens()
-                    .filter_map(|c| c.into_token())
-                    .find(|t| t.kind() == k)
-            };
+            let token = |k| node.token(k);
             let (header, content) = (token(kind::BLOCK_HEADER)?, token(kind::BLOCK_CONTENT)?);
             Some(Script {
                 range: content.text_range(),
@@ -127,8 +124,8 @@ pub fn embedded(root: &SyntaxNode, text: &str) -> Vec<Embedded> {
         };
         let body = &text[script.range];
         let start = usize::from(script.range.start());
-        let at = |i: usize| TextSize::try_from(start + i).expect("a file is under 4 GiB");
-        let mut carved: Vec<(usize, usize)> = Vec::new();
+        let at = |i: usize| size(start + i);
+        let mut carved = Vec::new();
         // A block scalar's lines start with the indentation of its first line.
         let indent = body
             .lines()
@@ -139,29 +136,17 @@ pub fn embedded(root: &SyntaxNode, text: &str) -> Vec<Embedded> {
             for line in body.split_inclusive('\n') {
                 let spaces = (line.len() - line.trim_start_matches(' ').len()).min(indent);
                 if spaces > 0 {
-                    carved.push((from, from + spaces));
+                    carved.push(TextRange::new(at(from), at(from + spaces)));
                 }
                 from += line.len();
             }
         }
-        carved.extend(EXPRESSION.find_iter(body).map(|m| (m.start(), m.end())));
-        carved.sort_unstable();
-        let mut merged: Vec<(usize, usize)> = Vec::new();
-        for (a, b) in carved {
-            match merged.last_mut() {
-                Some(last) if a <= last.1 => last.1 = last.1.max(b),
-                _ => merged.push((a, b)),
-            }
-        }
-        out.push(Embedded {
-            language: language.into(),
-            range: script.range,
-            carved: merged
-                .into_iter()
-                .map(|(a, b)| TextRange::new(at(a), at(b)))
-                .collect(),
-            format: false,
-        });
+        carved.extend(
+            EXPRESSION
+                .find_iter(body)
+                .map(|m| TextRange::new(at(m.start()), at(m.end()))),
+        );
+        out.push(Embedded::new(language, script.range, carved));
     }
     out
 }
@@ -175,8 +160,7 @@ fn script_texts<'a>(file: &FileContext<'a>) -> impl Iterator<Item = (usize, &'a 
 }
 
 fn span(start: usize, len: usize) -> TextRange {
-    let at = |i: usize| TextSize::try_from(i).expect("a file is under 4 GiB");
-    TextRange::new(at(start), at(start + len))
+    TextRange::new(size(start), size(start + len))
 }
 
 static DEPRECATED: LazyLock<Regex> = LazyLock::new(|| {

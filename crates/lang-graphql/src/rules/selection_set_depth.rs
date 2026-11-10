@@ -1,16 +1,13 @@
 use crate::generated::kind;
 use core_rules::{Check, Opt, OptionDecl, RuleContext, rule};
 use core_syntax::SyntaxNode;
+use core_syntax::SyntaxNodeExt;
 
 /// Levels of selection sets from `set` down: a set, and the sets of its fields and inline fragments.
 fn depth(set: &SyntaxNode) -> i64 {
     1 + set
         .children()
-        .filter_map(|selection| {
-            selection
-                .children()
-                .find(|n| n.kind() == kind::SELECTION_SET)
-        })
+        .filter_map(|selection| selection.child(kind::SELECTION_SET))
         .map(|inner| depth(&inner))
         .max()
         .unwrap_or(0)
@@ -34,7 +31,7 @@ rule! {
     }
 
     fn check(&self, node: &SyntaxNode, ctx: &mut RuleContext<'_>) {
-        let Some(top) = node.children().find(|n| n.kind() == kind::SELECTION_SET) else {
+        let Some(top) = node.child(kind::SELECTION_SET) else {
             return;
         };
         let max = ctx.options.int("max_depth");

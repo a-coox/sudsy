@@ -24,7 +24,9 @@ pub use embedded::Embedded;
 pub use grammar::Grammar;
 pub use kind::{LanguageId, SyntaxKind};
 pub use rowan::{GreenNode, TextRange, TextSize};
-pub use tree::{SudsyLang, SyntaxElement, SyntaxNode, SyntaxToken, TreeBuilder, dump_tree, print};
+pub use tree::{
+    SudsyLang, SyntaxElement, SyntaxNode, SyntaxNodeExt, SyntaxToken, TreeBuilder, dump_tree, print,
+};
 
 /// The typed wrappers the crate's build script generates from its grammar (`build/lang-crate.rs`).
 #[macro_export]

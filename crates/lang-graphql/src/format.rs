@@ -6,7 +6,7 @@ use crate::generated::kind as k;
 use core_config::{OptionSchema, shared};
 use core_format::shapes::{BlockStyle, block, block_between, dangling_comments, document};
 use core_format::{Doc, FormatCtx, FormatError, NodeFormatter, comments, doc};
-use core_syntax::{SyntaxElement, SyntaxKind, SyntaxNode, SyntaxToken};
+use core_syntax::{SyntaxElement, SyntaxKind, SyntaxNode, SyntaxNodeExt, SyntaxToken};
 
 pub fn option_schema() -> OptionSchema {
     OptionSchema::new(vec![
@@ -137,10 +137,7 @@ fn elements(cx: &FormatCtx<'_>, node: &SyntaxNode) -> Vec<SyntaxElement> {
 }
 
 fn tokens_of(node: &SyntaxNode, kind: SyntaxKind) -> Vec<SyntaxToken> {
-    node.children_with_tokens()
-        .filter_map(|e| e.into_token())
-        .filter(|t| t.kind() == kind)
-        .collect()
+    node.tokens().filter(|t| t.kind() == kind).collect()
 }
 
 fn nodes_of(node: &SyntaxNode, kind: SyntaxKind) -> Vec<SyntaxNode> {

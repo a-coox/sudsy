@@ -3,7 +3,8 @@
 
 use core_rules::rule;
 use core_rules::{FileContext, RuleContext};
-use core_syntax::{TextRange, TextSize};
+use core_syntax::TextRange;
+use core_syntax::embedded::size;
 use lang_yaml::generated::kind;
 
 const CONTEXTS: &[&str] = &[
@@ -152,7 +153,7 @@ rule! {
             }
             let (start, body) = (usize::from(token.text_range().start()), &file.text[token.text_range()]);
             let span = |at: usize, len: usize| {
-                let pos = |i: usize| TextSize::try_from(start + i).expect("a file is under 4 GiB");
+                let pos = |i: usize| size(start + i);
                 TextRange::new(pos(at), pos(at + len))
             };
             let mut from = 0;

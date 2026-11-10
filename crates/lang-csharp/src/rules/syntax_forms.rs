@@ -5,6 +5,7 @@ use core_rules::rule;
 use core_rules::tree::significant_range;
 use core_rules::{Edit, RuleContext};
 use core_syntax::SyntaxNode;
+use core_syntax::SyntaxNodeExt;
 
 rule! {
     pub SeparateAttributes {
@@ -40,8 +41,7 @@ rule! {
         let mut fix = None;
         if !has_comment {
             let target = node
-                .children()
-                .find(|c| c.kind() == kind::ATTRIBUTE_TARGET_SPECIFIER)
+                .child(kind::ATTRIBUTE_TARGET_SPECIFIER)
                 .map_or(String::new(), |t| format!("{} ", text_of(&t, ctx)));
             let range = significant_range(node, grammar);
             let separator = line_separator(range, ctx);

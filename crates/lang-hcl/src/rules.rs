@@ -6,7 +6,7 @@ use core_rules::diagnostic::Edit;
 use core_rules::options::{Check, Opt, OptionDecl};
 use core_rules::rule::FileContext;
 use core_rules::{Rule, RuleContext, rule};
-use core_syntax::{SyntaxKind, SyntaxNode, SyntaxToken, TextRange};
+use core_syntax::{SyntaxNode, SyntaxNodeExt, SyntaxToken, TextRange};
 use std::collections::HashSet;
 
 pub static RULES: &[&dyn Rule] = &[
@@ -17,18 +17,11 @@ pub static RULES: &[&dyn Rule] = &[
     &UnusedDeclarations,
 ];
 
-fn tokens(node: &SyntaxNode) -> impl Iterator<Item = SyntaxToken> {
-    node.children_with_tokens().filter_map(|e| e.into_token())
-}
-
-fn child(node: &SyntaxNode, kind: SyntaxKind) -> Option<SyntaxNode> {
-    node.children().find(|c| c.kind() == kind)
-}
-
 /// The labels of a block (`resource "a" "b"`: `a`, `b`) as written between the quotes, and the
 /// token of each.
 fn labels(block: &SyntaxNode) -> Vec<(String, SyntaxToken)> {
-    tokens(block)
+    block
+        .tokens()
         .skip(1)
         .take_while(|t| t.kind() != k::PUNCT)
         .filter(|t| matches!(t.kind(), k::STRING | k::IDENT))
@@ -44,7 +37,8 @@ fn is_nomad(path: &std::path::Path) -> bool {
 }
 
 fn block_type(block: &SyntaxNode) -> Option<String> {
-    tokens(block)
+    block
+        .tokens()
         .find(|t| t.kind() == k::IDENT)
         .map(|t| t.text().to_string())
 }
@@ -66,15 +60,15 @@ rule! {
         if is_nomad(ctx.file.path) {
             return;
         }
-        let only = tokens(node).all(|t| t.kind() != k::TEMPLATE_TEXT);
+        let only = node.tokens().all(|t| t.kind() != k::TEMPLATE_TEXT);
         let mut parts = node.children();
         let (Some(interp), None) = (parts.next(), parts.next()) else { return };
-        if !only || interp.kind() != k::INTERPOLATION || tokens(&interp).any(|t| t.kind() == k::STRIP) {
+        if !only || interp.kind() != k::INTERPOLATION || interp.tokens().any(|t| t.kind() == k::STRIP) {
             return;
         }
-        let Some(expr) = child(&interp, k::EXPR) else { return };
+        let Some(expr) = interp.child(k::EXPR) else { return };
         // The node's range includes the trivia after the closing quote.
-        let quotes: Vec<_> = tokens(node).filter(|t| t.kind() == k::PUNCT).collect();
+        let quotes: Vec<_> = node.tokens().filter(|t| t.kind() == k::PUNCT).collect();
         let (Some(open), Some(close)) = (quotes.first(), quotes.last()) else { return };
         let range = TextRange::new(open.text_range().start(), close.text_range().end());
         let message = "interpolation-only expressions are deprecated";
@@ -185,11 +179,11 @@ rule! {
         let names: Vec<(String, TextRange)> = match kind.as_str() {
             "variable" | "output" | "module" => labels(node).into_iter().take(1).map(|(n, t)| (n, t.text_range())).collect(),
             "resource" | "data" => labels(node).into_iter().skip(1).take(1).map(|(n, t)| (n, t.text_range())).collect(),
-            "locals" => child(node, k::BODY)
+            "locals" => node.child(k::BODY)
                 .into_iter()
                 .flat_map(|b| b.children().collect::<Vec<_>>())
                 .filter(|a| a.kind() == k::ATTRIBUTE)
-                .filter_map(|a| tokens(&a).find(|t| t.kind() == k::IDENT))
+                .filter_map(|a| a.tokens().find(|t| t.kind() == k::IDENT))
                 .map(|t| (t.text().to_string(), t.text_range()))
                 .collect(),
             _ => return,
@@ -210,7 +204,7 @@ fn references(root: &SyntaxNode) -> HashSet<String> {
         let mut attrs = std::iter::successors(var.next_sibling(), |n| n.next_sibling())
             .take_while(|n| n.kind() == k::GET_ATTR)
             .map(|n| {
-                tokens(&n)
+                n.tokens()
                     .find(|t| t.kind() == k::IDENT)
                     .map(|t| t.text().to_string())
                     .unwrap_or_default()
@@ -249,11 +243,11 @@ rule! {
                     [(t, _), (n, tok)] => vec![(format!("data.{t}.{n}"), tok.text_range())],
                     _ => vec![],
                 },
-                "locals" => child(&block, k::BODY)
+                "locals" => block.child(k::BODY)
                     .into_iter()
                     .flat_map(|b| b.children().collect::<Vec<_>>())
                     .filter(|a| a.kind() == k::ATTRIBUTE)
-                    .filter_map(|a| tokens(&a).find(|t| t.kind() == k::IDENT))
+                    .filter_map(|a| a.tokens().find(|t| t.kind() == k::IDENT))
                     .map(|t| (format!("local.{}", t.text()), t.text_range()))
                     .collect(),
                 _ => continue,

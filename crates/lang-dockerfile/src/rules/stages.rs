@@ -3,7 +3,7 @@
 use crate::generated::kind as k;
 use core_rules::tree::significant_range;
 use core_rules::{Family, Params, Rule, RuleContext, RuleMeta, rule};
-use core_syntax::{SyntaxKind, SyntaxNode, TextRange};
+use core_syntax::{SyntaxKind, SyntaxNode, SyntaxNodeExt, TextRange};
 
 /// A top-level instruction: its upper-case name; the arguments are read when a rule asks.
 struct Inst {
@@ -23,8 +23,7 @@ fn instructions(doc: &SyntaxNode) -> Vec<Inst> {
         .filter(|n| n.kind() == k::INSTRUCTION)
         .map(|node| {
             let name = node
-                .children_with_tokens()
-                .filter_map(|e| e.into_token())
+                .tokens()
                 .find(|t| !is_blank(t.kind()))
                 .map_or(String::new(), |t| t.text().to_ascii_uppercase());
             Inst { name, node }
@@ -42,11 +41,7 @@ impl Inst {
     fn words(&self) -> Vec<String> {
         let mut words: Vec<String> = Vec::new();
         let mut end = None;
-        for t in self
-            .node
-            .children_with_tokens()
-            .filter_map(|e| e.into_token())
-        {
+        for t in self.node.tokens() {
             if is_blank(t.kind()) {
                 end = None;
                 continue;

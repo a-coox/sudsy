@@ -255,6 +255,11 @@ impl ResolvedOptions {
         }
     }
 
+    /// The value of `shared::max_blank_lines`.
+    pub fn max_blank_lines(&self) -> usize {
+        self.int(shared::MAX_BLANK_LINES) as usize
+    }
+
     /// The strings of a list option; empty when the option is absent.
     pub fn strings(&self, name: &str) -> Vec<String> {
         match self.0.get(name) {
@@ -313,6 +318,8 @@ pub mod shared {
     pub const END_OF_LINE: &str = "end_of_line";
     pub const BRACKET_SPACING: &str = "bracket_spacing";
     pub const ARRAY_BRACKET_SPACING: &str = "array_bracket_spacing";
+    /// Not a top-level `format:` option: only providers that list it have it.
+    pub const MAX_BLANK_LINES: &str = "max_blank_lines";
     pub const NAMES: [&str; 7] = [
         LINE_WIDTH,
         INDENT_SIZE,
@@ -352,6 +359,10 @@ pub mod shared {
 
     pub fn final_newline(default: bool) -> OptionDef {
         OptionDef::boolean(FINAL_NEWLINE, default, "End the file with a newline.")
+    }
+
+    pub fn max_blank_lines(default: i64, description: &'static str) -> OptionDef {
+        OptionDef::int(MAX_BLANK_LINES, default, (0, 10), description)
     }
 
     pub fn end_of_line() -> OptionDef {

@@ -4,7 +4,7 @@ use super::kind;
 use core_rules::rule;
 use core_rules::tree::{is_code, significant_range};
 use core_rules::{Edit, RuleContext};
-use core_syntax::{SyntaxNode, TextRange};
+use core_syntax::{SyntaxNode, SyntaxNodeExt, TextRange};
 
 rule! {
     pub NoEmptyStatement {
@@ -87,16 +87,11 @@ rule! {
     fn check(&self, node: &SyntaxNode, ctx: &mut RuleContext<'_>) {
         // The `{` of the statement's own block: a direct child, or the block's first token.
         let open = if node.kind() == kind::SWITCH_STATEMENT {
-            node.children_with_tokens()
-                .filter_map(|e| e.into_token())
-                .find(|t| t.kind() == kind::OPEN_BRACE_TOKEN)
+            node.token(kind::OPEN_BRACE_TOKEN)
         } else {
-            node.children()
-                .find(|c| c.kind() == kind::BLOCK)
+            node.child(kind::BLOCK)
                 .and_then(|b| {
-                    b.children_with_tokens()
-                        .filter_map(|e| e.into_token())
-                        .find(|t| t.kind() == kind::OPEN_BRACE_TOKEN)
+                    b.token(kind::OPEN_BRACE_TOKEN)
                 })
         };
         let grammar = ctx.file.grammar;

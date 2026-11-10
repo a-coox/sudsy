@@ -5,7 +5,7 @@ use super::{has_comment_in, kind, text_of};
 use core_rules::rule;
 use core_rules::tree::significant_range;
 use core_rules::{Edit, RuleContext};
-use core_syntax::{SyntaxNode, TextRange};
+use core_syntax::{SyntaxNode, SyntaxNodeExt, TextRange};
 
 /// Is `left` `System` or `global::System`?
 fn is_system(left: &SyntaxNode, ctx: &RuleContext<'_>) -> bool {
@@ -28,12 +28,10 @@ rule! {
 
     fn check(&self, node: &SyntaxNode, ctx: &mut RuleContext<'_>) {
         let is_nullable = node
-            .children_with_tokens()
-            .filter_map(|e| e.into_token())
+            .tokens()
             .any(|t| t.kind() == kind::IDENTIFIER_TOKEN && t.text() == "Nullable");
         let Some(arguments) = node
-            .children()
-            .find(|c| c.kind() == kind::TYPE_ARGUMENT_LIST)
+            .child(kind::TYPE_ARGUMENT_LIST)
         else {
             return;
         };
@@ -106,13 +104,11 @@ rule! {
 
     fn check(&self, node: &SyntaxNode, ctx: &mut RuleContext<'_>) {
         let Some(keyword) = node
-            .children_with_tokens()
-            .filter_map(|e| e.into_token())
-            .find(|t| t.kind() == kind::DELEGATE_KEYWORD)
+            .token(kind::DELEGATE_KEYWORD)
         else {
             return;
         };
-        let parameters = node.children().find(|c| c.kind() == kind::PARAMETER_LIST);
+        let parameters = node.child(kind::PARAMETER_LIST);
         let fix = parameters.and_then(|p| {
             let end = significant_range(&p, ctx.file.grammar).end();
             let range = TextRange::new(keyword.text_range().start(), end);
@@ -218,8 +214,7 @@ rule! {
         let grammar = ctx.file.grammar;
         let whole = significant_range(node, grammar);
         let flip = node
-            .children_with_tokens()
-            .filter_map(|e| e.into_token())
+            .tokens()
             .find(|t| !grammar.is_trivia(t.kind()))
             .and_then(|t| flipped(t.text()));
         let fix = flip

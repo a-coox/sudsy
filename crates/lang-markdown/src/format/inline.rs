@@ -1,6 +1,7 @@
 //! Inline content: paragraphs, emphasis, escapes.
 
 use super::*;
+use core_syntax::SyntaxNodeExt;
 
 impl Render<'_> {
     /// Prose lines: blanks collapsed, indentation dropped, a hard break (two trailing blanks) kept.
@@ -80,8 +81,7 @@ impl Render<'_> {
     pub(super) fn emphasis(&self, n: &SyntaxNode, in_emph: bool, out: &mut String) {
         let strong = n.kind() == k::STRONG;
         let delims: Vec<SyntaxToken> = n
-            .children_with_tokens()
-            .filter_map(|e| e.into_token())
+            .tokens()
             .filter(|t| t.kind() == k::EMPHASIS_DELIM)
             .collect();
         let w = if strong { 2 } else { 1 };
