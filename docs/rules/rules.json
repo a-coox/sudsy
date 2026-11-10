@@ -4813,7 +4813,7 @@
       "example": {
         "config": null,
         "fixed": null,
-        "input": "gci -Recurse | % { $_ }\nGet-ChildItem | ? Name -eq x\nls\n1..3 | %{ $_ }\nGet-ChildItem | Where-Object { $_ } | foreach { $_ }\n$x = dir\nWrite-Output ls\n",
+        "input": "gci -Recurse | % { $_ }\nGet-ChildItem | ? Name -eq x\nls\n1..3 | %{ $_ }\nGet-ChildItem | Where-Object { $_ } | foreach { $_ }\n$x = dir\nWrite-Output ls\n& ls -la\n& Get-ChildItem\n",
         "language": "powershell",
         "spans": [
           {
@@ -4850,6 +4850,11 @@
             "column": 6,
             "length": 3,
             "line": 6
+          },
+          {
+            "column": 1,
+            "length": 1,
+            "line": 8
           }
         ]
       },
@@ -4937,7 +4942,7 @@
       "example": {
         "config": null,
         "fixed": null,
-        "input": "Write-Host \"hi\"\nwrite-host\nWrite-Output \"ok\"\nGet-Help Write-Host\niex $script\nInvoke-Expression -Command $c\nConvertTo-SecureString $p -AsPlainText -Force\nConvertTo-SecureString $p\nConvertTo-SecureString `\n    $p -AsPlainText\nGet-WmiObject Win32_Process\nGet-CimInstance Win32_Process\nConvertTo-SecureString -AsPlainText \"x\" -Force\n",
+        "input": "Write-Host \"hi\"\nwrite-host\nWrite-Output \"ok\"\nGet-Help Write-Host\niex $script\nInvoke-Expression -Command $c\nConvertTo-SecureString $p -AsPlainText -Force\nConvertTo-SecureString $p\nConvertTo-SecureString `\n    $p -AsPlainText\nGet-WmiObject Win32_Process\nGet-CimInstance Win32_Process\nConvertTo-SecureString -AsPlainText \"x\" -Force\nfunction Get-Other { Write-Host \"y\" }\nfunction Get-It {\n  [Diagnostics.CodeAnalysis.SuppressMessageAttribute(\"PSAvoidUsingWriteHost\", \"\")]\n  param()\n  Write-Host \"x\"\n}\n",
         "language": "powershell",
         "spans": [
           {
@@ -5039,7 +5044,7 @@
       "example": {
         "config": null,
         "fixed": null,
-        "input": "Write-Host \"hi\"\nwrite-host\nWrite-Output \"ok\"\nGet-Help Write-Host\niex $script\nInvoke-Expression -Command $c\nConvertTo-SecureString $p -AsPlainText -Force\nConvertTo-SecureString $p\nConvertTo-SecureString `\n    $p -AsPlainText\nGet-WmiObject Win32_Process\nGet-CimInstance Win32_Process\nConvertTo-SecureString -AsPlainText \"x\" -Force\n",
+        "input": "Write-Host \"hi\"\nwrite-host\nWrite-Output \"ok\"\nGet-Help Write-Host\niex $script\nInvoke-Expression -Command $c\nConvertTo-SecureString $p -AsPlainText -Force\nConvertTo-SecureString $p\nConvertTo-SecureString `\n    $p -AsPlainText\nGet-WmiObject Win32_Process\nGet-CimInstance Win32_Process\nConvertTo-SecureString -AsPlainText \"x\" -Force\nfunction Get-Other { Write-Host \"y\" }\nfunction Get-It {\n  [Diagnostics.CodeAnalysis.SuppressMessageAttribute(\"PSAvoidUsingWriteHost\", \"\")]\n  param()\n  Write-Host \"x\"\n}\n",
         "language": "powershell",
         "spans": [
           {
@@ -5077,7 +5082,7 @@
       "example": {
         "config": null,
         "fixed": null,
-        "input": "Write-Host \"hi\"\nwrite-host\nWrite-Output \"ok\"\nGet-Help Write-Host\niex $script\nInvoke-Expression -Command $c\nConvertTo-SecureString $p -AsPlainText -Force\nConvertTo-SecureString $p\nConvertTo-SecureString `\n    $p -AsPlainText\nGet-WmiObject Win32_Process\nGet-CimInstance Win32_Process\nConvertTo-SecureString -AsPlainText \"x\" -Force\n",
+        "input": "Write-Host \"hi\"\nwrite-host\nWrite-Output \"ok\"\nGet-Help Write-Host\niex $script\nInvoke-Expression -Command $c\nConvertTo-SecureString $p -AsPlainText -Force\nConvertTo-SecureString $p\nConvertTo-SecureString `\n    $p -AsPlainText\nGet-WmiObject Win32_Process\nGet-CimInstance Win32_Process\nConvertTo-SecureString -AsPlainText \"x\" -Force\nfunction Get-Other { Write-Host \"y\" }\nfunction Get-It {\n  [Diagnostics.CodeAnalysis.SuppressMessageAttribute(\"PSAvoidUsingWriteHost\", \"\")]\n  param()\n  Write-Host \"x\"\n}\n",
         "language": "powershell",
         "spans": [
           {
@@ -5105,7 +5110,7 @@
       "example": {
         "config": null,
         "fixed": null,
-        "input": "Write-Host \"hi\"\nwrite-host\nWrite-Output \"ok\"\nGet-Help Write-Host\niex $script\nInvoke-Expression -Command $c\nConvertTo-SecureString $p -AsPlainText -Force\nConvertTo-SecureString $p\nConvertTo-SecureString `\n    $p -AsPlainText\nGet-WmiObject Win32_Process\nGet-CimInstance Win32_Process\nConvertTo-SecureString -AsPlainText \"x\" -Force\n",
+        "input": "Write-Host \"hi\"\nwrite-host\nWrite-Output \"ok\"\nGet-Help Write-Host\niex $script\nInvoke-Expression -Command $c\nConvertTo-SecureString $p -AsPlainText -Force\nConvertTo-SecureString $p\nConvertTo-SecureString `\n    $p -AsPlainText\nGet-WmiObject Win32_Process\nGet-CimInstance Win32_Process\nConvertTo-SecureString -AsPlainText \"x\" -Force\nfunction Get-Other { Write-Host \"y\" }\nfunction Get-It {\n  [Diagnostics.CodeAnalysis.SuppressMessageAttribute(\"PSAvoidUsingWriteHost\", \"\")]\n  param()\n  Write-Host \"x\"\n}\n",
         "language": "powershell",
         "spans": [
           {
@@ -5117,6 +5122,11 @@
             "column": 1,
             "length": 10,
             "line": 2
+          },
+          {
+            "column": 22,
+            "length": 10,
+            "line": 14
           }
         ]
       },

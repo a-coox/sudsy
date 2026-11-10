@@ -2,7 +2,8 @@
 //! (`#mapping`, `#sequence`) gets the shared key and sequence rules with no code of its own; a
 //! language whose keys or scalars need decoding implements the hooks it needs.
 
-use core_syntax::{SyntaxElement, SyntaxNode};
+use crate::rule::FileContext;
+use core_syntax::{SyntaxElement, SyntaxNode, TextRange};
 use std::borrow::Cow;
 
 /// A scalar the sorting of sequence items understands.
@@ -47,6 +48,12 @@ pub trait RuleHooks: Send + Sync {
     /// such lines.
     fn inline_mapping_line(&self, _line: &str) -> bool {
         false
+    }
+
+    /// Rules the code silences for a range by its own syntax (PowerShell's
+    /// `SuppressMessageAttribute`), as `(rule id, range)`. The default has none.
+    fn suppressed_ranges(&self, _file: &FileContext<'_>) -> Vec<(String, TextRange)> {
+        Vec::new()
     }
 }
 

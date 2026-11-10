@@ -12,3 +12,6 @@ Get-ChildItem | Where-Object { $_ } | foreach { $_ }
 $x = dir
 #    ^^^ no-cmdlet-aliases
 Write-Output ls
+& ls -la
+^ no-cmdlet-aliases
+& Get-ChildItem

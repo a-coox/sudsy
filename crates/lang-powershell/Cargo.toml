@@ -14,6 +14,7 @@ core-packs.workspace = true
 core-rules.workspace = true
 core-syntax.workspace = true
 core-treesitter.workspace = true
+memchr.workspace = true
 provider-api.workspace = true
 woodruffw-trough-tree-sitter-powershell = { workspace = true, optional = true }
 

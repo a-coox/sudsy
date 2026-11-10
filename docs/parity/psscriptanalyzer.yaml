@@ -5,7 +5,7 @@ sources:
   - "https://learn.microsoft.com/powershell/utility-modules/psscriptanalyzer/rules/readme"
   - "https://github.com/PowerShell/PSScriptAnalyzer/blob/main/Engine/Settings/CodeFormatting.psd1"
   - "tests/parity/invoke-formatter and tests/parity/psscriptanalyzer (differential numbers, docs/development/parity.md); the rule list and severities are those of `Get-ScriptAnalyzerRule`, which `scripts/parity.sh psscriptanalyzer` checks"
-scope: "Every built-in rule: the formatting rules of `Invoke-Formatter` with its default settings (the CodeFormatting preset, run without PSUseCorrectCasing) and the lint rules (preset `powershell/psscriptanalyzer` turns on those that exist, at upstream severities: Error is error, Warning is warn). Differences in layout are measured by `scripts/parity.sh format invoke-formatter` on the fixtures and the PowerShell corpus (`tests/conformance/fetch-powershell-corpus.sh`); the list of known differences is `tests/parity/invoke-formatter/expected-diff.txt`. Lint differences are measured by `scripts/parity.sh psscriptanalyzer` (rule fixtures and the corpus; known differences in `tests/parity/psscriptanalyzer/expected-diff.txt`). Sudsy does not honor `[SuppressMessageAttribute(...)]`, which the module does, so code that carries one differs (listed). Needs PowerShell 7 (`pwsh`) and network."
+scope: "Every built-in rule: the formatting rules of `Invoke-Formatter` with its default settings (the CodeFormatting preset, run without PSUseCorrectCasing) and the lint rules (preset `powershell/psscriptanalyzer` turns on those that exist, at upstream severities: Error is error, Warning is warn). Differences in layout are measured by `scripts/parity.sh format invoke-formatter` on the fixtures and the PowerShell corpus (`tests/conformance/fetch-powershell-corpus.sh`); the list of known differences is `tests/parity/invoke-formatter/expected-diff.txt`. Lint differences are measured by `scripts/parity.sh psscriptanalyzer` (rule fixtures and the corpus; known differences in `tests/parity/psscriptanalyzer/expected-diff.txt`). `[SuppressMessageAttribute(...)]` is honored by function or file scope (target and scope arguments are not read). Needs PowerShell 7 (`pwsh`) and network."
 legend:
   sudsy: "rule: <id> | option: <language>.format.<name> | formatter | sdk: <id> | config: <text> | planned | deferred | wontfix: <reason>"
   coverage: "covered | partial | missing | sdk | wontfix | deferred (planned counts as missing; partial keeps its primary mapping and states the gap)"
@@ -78,7 +78,7 @@ entries:
     sudsy: "rule: no-cmdlet-aliases"
     coverage: "partial"
     notes: "A command whose name is one of the default aliases of Windows PowerShell and PowerShell 7 (`gci`, `ls`, `%`, `?`, `iex`, ...) is reported at the name."
-    gap: "The table is fixed (a Windows host's); PSScriptAnalyzer reads the aliases of the host it runs on, so on Linux `ls` and `cat` are not aliases there, and user-defined aliases are not known. No fix that expands the alias. `& ls` is not checked (the module reports it)."
+    gap: "The table is fixed (a Windows host's); PSScriptAnalyzer reads the aliases of the host it runs on, so on Linux `ls` and `cat` are not aliases there, and user-defined aliases are not known. No fix that expands the alias. `& ls` is reported at the `&`."
     priority: "p1"
     usage: "high"
   - id: "PSAvoidUsingWriteHost"

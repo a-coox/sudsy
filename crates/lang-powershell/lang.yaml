@@ -3,3 +3,5 @@ grammar-version: "0.1"
 extensions: [ps1, psm1, psd1]
 formatter: PowerShellFormatter
 composite: mapping::COMPOSITE
+hooks: hooks::PowerShellHooks
+deps: [memchr]

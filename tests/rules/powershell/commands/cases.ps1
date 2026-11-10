@@ -20,3 +20,10 @@ Get-WmiObject Win32_Process
 Get-CimInstance Win32_Process
 ConvertTo-SecureString -AsPlainText "x" -Force
 ^^^^^^^^^^^^^^^^^^^^^^ no-plain-text-secure-string
+function Get-Other { Write-Host "y" }
+#                    ^^^^^^^^^^ no-write-host
+function Get-It {
+  [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingWriteHost", "")]
+  param()
+  Write-Host "x"
+}

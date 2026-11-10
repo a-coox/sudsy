@@ -1501,6 +1501,7 @@ dependencies = [
  "core-rules",
  "core-syntax",
  "core-treesitter",
+ "memchr",
  "provider-api",
  "woodruffw-trough-tree-sitter-powershell",
 ]

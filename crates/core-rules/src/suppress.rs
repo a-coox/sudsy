@@ -5,7 +5,7 @@
 
 use crate::diagnostic::Diagnostic;
 use crate::rule::FileContext;
-use core_syntax::{Grammar, TextSize};
+use core_syntax::{Grammar, TextRange, TextSize};
 
 /// The role name in `suppress disable-next-line "..."`.
 const ROLE: &str = "disable-next-line";
@@ -21,6 +21,8 @@ enum Kind {
     Enable,
     /// `disable-file`: the whole file.
     File,
+    /// The language's own syntax silences the rule inside the range.
+    Span(TextRange),
 }
 
 /// Directive roles and what each does.
@@ -50,6 +52,21 @@ pub struct Suppressions(Vec<Directive>);
 
 impl Suppressions {
     pub fn scan(file: &FileContext<'_>) -> Suppressions {
+        let mut out = Self::comments(file);
+        out.extend(
+            file.hooks
+                .suppressed_ranges(file)
+                .into_iter()
+                .map(|(rule, range)| Directive {
+                    kind: Kind::Span(range),
+                    line: 0,
+                    rules: vec![rule],
+                }),
+        );
+        Suppressions(out)
+    }
+
+    fn comments(file: &FileContext<'_>) -> Vec<Directive> {
         // Most files have no directive: one search for the prefix every marker shares is much
         // cheaper than walking every token for comments.
         let mut shared: Option<&str> = None;
@@ -63,7 +80,7 @@ impl Suppressions {
             }
         }
         if shared.is_none_or(|p| !file.text.contains(p)) {
-            return Suppressions(Vec::new());
+            return Vec::new();
         }
         let markers: Vec<(&str, Kind)> = ROLES
             .iter()
@@ -98,7 +115,7 @@ impl Suppressions {
             let line = file.lines.line(end) - usize::from(ends_line);
             out.push(Directive { kind, line, rules });
         }
-        Suppressions(out)
+        out
     }
 
     pub fn suppresses(&self, file: &FileContext<'_>, d: &Diagnostic) -> bool {
@@ -114,6 +131,7 @@ impl Suppressions {
                 Kind::NextLine if s.line + 1 == line => return true,
                 Kind::Line if s.line == line => return true,
                 Kind::File => return true,
+                Kind::Span(r) if r.contains(at) => return true,
                 // Directives are in document order: the last one at or above the line wins.
                 Kind::Disable if s.line <= line => blocked = true,
                 Kind::Enable if s.line <= line => blocked = false,

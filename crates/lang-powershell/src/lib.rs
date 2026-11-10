@@ -3,6 +3,7 @@
 //! PSScriptAnalyzer's `Invoke-Formatter` adds.
 
 mod format;
+mod hooks;
 mod mapping;
 mod rules;
 
