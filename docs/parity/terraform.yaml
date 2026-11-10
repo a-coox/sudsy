@@ -4,7 +4,7 @@ languages: ["hcl"]
 sources:
   - "https://developer.hashicorp.com/terraform/cli/commands/fmt"
   - "tests/parity/terraform (differential numbers, docs/development/parity.md)"
-scope: "`terraform fmt`, the de-facto HCL formatter (hclwrite's layout, which `tofu fmt`, `packer fmt` and `nomad fmt` share). It has no style options; Sudsy's defaults reproduce its layout. Differences are measured by `scripts/parity.sh format terraform` on the folder's fixtures and the HCL corpus (`tests/conformance/fetch-hcl-corpus.sh`); the known ones are listed in `tests/parity/terraform/expected-diff.txt`."
+scope: "`terraform fmt`, the de-facto HCL formatter (hclwrite's layout, which `tofu fmt`, `packer fmt` and `nomad fmt` share). It has no style options; Sudsy's defaults reproduce its layout. Differences are measured by `scripts/parity.sh format terraform` on the folder's fixtures and the HCL corpus (`tests/conformance/fetch-hcl-corpus.sh`); the known ones are listed in `tests/parity/terraform/differences.yaml`."
 entries:
-  "format": "formatter | Files with a rewrite of `\"${x}\"` to `x` or of a quoted `variable` type are listed with their reasons in tests/parity/terraform/expected-diff.txt: the formatter never changes tokens; the rule `deprecated-interpolation` does it as a fix."
+  "format": "formatter | Files with a rewrite of `\"${x}\"` to `x` or of a quoted `variable` type are listed with their reasons in tests/parity/terraform/differences.yaml: the formatter never changes tokens; the rule `deprecated-interpolation` does it as a fix."
   check: config `sudsy format --check`

@@ -1,0 +1,37 @@
+differences:
+  subst-indent: choice  the lines of a multi-line `$(...)` or `<(...)` keep the source indentation; shfmt re-indents them
+  array-indent: choice  array elements on several lines keep the source indentation; shfmt re-indents them
+  array-pipeline: gap  an array whose elements are a backslash-continued pipeline is kept as written
+  blanks-inside: choice  the blanks inside `(( ))`, `$(( ))`, `$( cmd )`, `<( cmd )`, `$(< f)` and `[[ ]]` are kept; shfmt removes or sets them
+  expr-kept: choice  an expression written on one line is kept as written (`$(a ; b)`, `$((N+1))`, `${v//x/}`, `||:`); shfmt re-lays and respaces it
+  backticks: choice  backticks are kept (the formatter never changes tokens; the rule `no-backticks` fixes them); shfmt rewrites them to `$(...)`
+  heredoc-tabs: choice  the tabs of a `<<-` heredoc body are kept; shfmt re-indents them
+  comment-column: choice  a trailing comment keeps the blanks of the source before it; shfmt keeps its column
+  continued-conditions: gap  an `if`/`elif` condition, a `case` arm or a case pattern continued with `\` or over several lines with comments is kept as written
+  case-last-arm: choice  a last `case` arm without `;;` is kept (the formatter never adds tokens); shfmt adds it
+  case-in-if-indent: gap  the arms of a `case` used as an `if` condition are not indented a level further
+  empty-file: choice  a file of one empty line becomes an empty file; shfmt keeps the line
+files:
+  corpus/asdf/test/utils.bash: subst-indent
+  corpus/bats-core/contrib/release.sh: subst-indent, array-indent
+  corpus/bats-core/lib/bats-core/common.bash: blanks-inside, comment-column
+  corpus/bats-core/lib/bats-core/formatter.bash: blanks-inside
+  corpus/bats-core/lib/bats-core/test_functions.bash: subst-indent, blanks-inside
+  corpus/bats-core/lib/bats-core/tracing.bash: subst-indent, blanks-inside, continued-conditions
+  corpus/bats-core/lib/bats-core/warnings.bash: array-indent
+  corpus/bats-core/shellcheck.sh: subst-indent
+  corpus/bats-core/test/fixtures/suite_setup_teardown/call_load/test_helper.bash: empty-file
+  corpus/docker-install/install.sh: blanks-inside, heredoc-tabs
+  corpus/install/install.sh: subst-indent, array-indent, continued-conditions
+  corpus/install/uninstall.sh: subst-indent, array-indent
+  corpus/install-scripts/src/dotnet-install.sh: expr-kept
+  corpus/mysql/8.4/docker-entrypoint.sh: blanks-inside
+  corpus/nvm/install.sh: subst-indent, expr-kept
+  corpus/nvm/nvm.sh: subst-indent, expr-kept, comment-column, continued-conditions, case-last-arm
+  corpus/postgres/18/trixie/docker-entrypoint.sh: blanks-inside
+  corpus/pyenv/plugins/pyenv-binary/test/test_helper.bash: backticks, case-in-if-indent
+  corpus/pyenv/plugins/pyenv-link/test/test_helper.bash: backticks, case-in-if-indent
+  corpus/pyenv/plugins/python-build/scripts/backport.sh: expr-kept
+  corpus/pyenv/pyenv.d/install/latest.bash: array-pipeline
+  corpus/pyenv/test/test_helper.bash: backticks, case-in-if-indent
+  corpus/rustup/rustup-init.sh: comment-column, case-last-arm

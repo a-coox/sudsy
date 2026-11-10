@@ -25,6 +25,15 @@ The `run:` of every step of a workflow's jobs and of a composite action is code 
 
 Checked against actionlint by `scripts/parity.sh actionlint` ([../development/parity.md](../development/parity.md#actionlint)); the catalog [../parity/actionlint.yaml](../parity/actionlint.yaml) lists what is not done. Not done, offline: expression types and the contexts allowed per key, `if:` conditions that are always true, event and activity names and their filters, globs, matrix keys, permission scopes, runner label conflicts, the structure of the file (required keys, empty sections). Not done, needing the network or other files: the inputs and outputs of the actions a step uses, outdated runners of an action, local actions and reusable workflows.
 
+Where Sudsy differs from actionlint by design:
+
+<!-- generated:differences:actionlint -->
+
+- `needs-location`: an unknown `needs` entry is reported at the entry; actionlint reports it at the job
+- `script-line`: a script rule is reported at the line of the text of a block scalar; actionlint reports it at the line of the `|`
+- `self-hosted-labels`: a job with `self-hosted` is not checked for custom runner labels; actionlint wants them in its config
+<!-- /generated -->
+
 ## Options
 <!-- generated:options -->
 | Option | Values | Default | Description |

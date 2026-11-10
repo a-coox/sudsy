@@ -3638,6 +3638,8 @@ dependencies = [
  "core-rules",
  "languages",
  "provider-api",
+ "serde",
+ "serde-saphyr",
  "serde_json",
  "xtask",
 ]

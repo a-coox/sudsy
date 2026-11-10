@@ -14,7 +14,7 @@ entries:
   array_auto_collapse: option toml.format.collapse
   compact_arrays: option toml.format.array_bracket_spacing
   compact_inline_tables: option toml.format.bracket_spacing
-  inline_table_expand: formatter | Taplo also expands an array inside an inline table that would fit after a line break elsewhere in the table (see tests/parity/taplo/expected-diff.txt).
+  inline_table_expand: formatter | Taplo also expands an array inside an inline table that would fit after a line break elsewhere in the table (see tests/parity/taplo/differences.yaml).
   compact_entries: deferred | No option for `key=value`.
   column_width: option toml.format.line_width
   indent_tables: deferred | No option to indent sub-tables.

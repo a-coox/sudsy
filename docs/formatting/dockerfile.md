@@ -32,6 +32,13 @@ dockerfmt (reteps/dockerfmt) is the comparable tool; it rewrites shell code with
 ## Presets
 `dockerfile/hadolint`: turns on the rules that have a hadolint equivalent ([../parity/hadolint.yaml](../parity/hadolint.yaml)) at hadolint's severities (error stays error; warning, info and style become `warn`).
 
+Checked against hadolint by `scripts/parity.sh hadolint` ([../development/parity.md](../development/parity.md#hadolint)); where Sudsy differs by design:
+
+<!-- generated:differences:hadolint -->
+
+- `user-variable`: a variable as the user is accepted whether or not an ARG defines it (hadolint reports it)
+<!-- /generated -->
+
 ## Rules
 Shared: suppression comments (`# sudsy-disable-next-line <rule>`), `no-empty-comment`, `comment-space`, `max-line-length`. The grammar has no `#mapping` or `#sequence` nodes, so the key rules do not apply. The language rules are listed in [../rules/builtin.md](../rules/builtin.md); the equivalents of hadolint's DL rules are in the catalog.
 - Instruction shape (`rules/instructions.yaml`): pattern rules with a regex over the instruction text (WORKDIR, FROM, EXPOSE, CMD, COPY, ADD, USER, ENV).

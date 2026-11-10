@@ -45,4 +45,19 @@ Shared: suppression comments (`# sudsy-disable-next-line <rule>`), `no-empty-com
 `scripts/parity.sh shellcheck` compares the rules with shellcheck 0.11.0 (`-o all`, so the optional checks count) on the rule fixtures; see [../development/parity.md](../development/parity.md). Over the corpus below the rules agree with shellcheck on all 116 findings of covered codes; of the 125 Sudsy-only ones, 116 are `quote-variable` (95 in nvm.sh) on variables shellcheck knows hold a literal or a number and 9 are in places shellcheck does not report (`useless-echo` of a multi-line substitution, `no-which` and `quote-command-substitution` inside `[ ]`, `echo` and `$(...)` in a string, `cd-without-exit` in `$(cd d; pwd)`, `and-or-is-not-if-else` on `a && (b || c)`).
 
 ## Conformance
-`tests/conformance/fetch-shell-corpus.sh` fetches shell scripts at pinned commits: the install scripts of dotnet, nvm, rustup, docker and Homebrew, the docker-library entrypoints of postgres and mysql, and the Bash sources of pyenv, bats-core and asdf. `cargo test --profile corpus -p lang-shell --test shell -- --ignored --nocapture conformance` checks that each file that tree-sitter parses (all 81) round-trips, formats with the same tokens (the safety check, comments compared as well) and formats idempotently. `tests/parity/shfmt/` compares with shfmt on the same files: 59 of 82 (the 81 corpus files and the `layout.sh` fixture) are identical, the 23 others are listed with their reasons in `expected-diff.txt`. A file with a syntax error runs no rule.
+`tests/conformance/fetch-shell-corpus.sh` fetches shell scripts at pinned commits: the install scripts of dotnet, nvm, rustup, docker and Homebrew, the docker-library entrypoints of postgres and mysql, and the Bash sources of pyenv, bats-core and asdf. `cargo test --profile corpus -p lang-shell --test shell -- --ignored --nocapture conformance` checks that each file that tree-sitter parses (all 81) round-trips, formats with the same tokens (the safety check, comments compared as well) and formats idempotently. `tests/parity/shfmt/` compares with shfmt on the same files: 59 of 82 (the 81 corpus files and the `layout.sh` fixture) are identical, the 23 others are named in `tests/parity/shfmt/differences.yaml`. A file with a syntax error runs no rule.
+
+Where Sudsy differs from shfmt by design:
+
+<!-- generated:differences:shfmt -->
+
+- `array-indent`: array elements on several lines keep the source indentation; shfmt re-indents them
+- `backticks`: backticks are kept (the formatter never changes tokens; the rule `no-backticks` fixes them); shfmt rewrites them to `$(...)`
+- `blanks-inside`: the blanks inside `(( ))`, `$(( ))`, `$( cmd )`, `<( cmd )`, `$(< f)` and `[[ ]]` are kept; shfmt removes or sets them
+- `case-last-arm`: a last `case` arm without `;;` is kept (the formatter never adds tokens); shfmt adds it
+- `comment-column`: a trailing comment keeps the blanks of the source before it; shfmt keeps its column
+- `empty-file`: a file of one empty line becomes an empty file; shfmt keeps the line
+- `expr-kept`: an expression written on one line is kept as written (`$(a ; b)`, `$((N+1))`, `${v//x/}`, `||:`); shfmt re-lays and respaces it
+- `heredoc-tabs`: the tabs of a `<<-` heredoc body are kept; shfmt re-indents them
+- `subst-indent`: the lines of a multi-line `$(...)` or `<(...)` keep the source indentation; shfmt re-indents them
+<!-- /generated -->

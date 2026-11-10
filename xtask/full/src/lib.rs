@@ -4,6 +4,7 @@
 //! Built after `xtask` has written the glue those languages are compiled from.
 
 pub mod affected;
+mod differences;
 mod docs;
 pub mod manifests;
 mod rules;

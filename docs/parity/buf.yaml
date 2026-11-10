@@ -4,9 +4,9 @@ languages: ["protobuf"]
 sources:
   - "https://buf.build/docs/reference/cli/buf/format/"
   - "tests/parity/buf (differential numbers, docs/development/parity.md)"
-scope: "`buf format`, the de-facto Protobuf formatter, and `buf lint`. It has no style options; Sudsy's defaults reproduce its layout. Differences are measured by `scripts/parity.sh format buf` on the folder's fixtures and the Protobuf corpus (`tests/conformance/fetch-proto-corpus.sh`); the known ones are listed in `tests/parity/buf/expected-diff.txt`. `scripts/parity.sh buf` compares `buf lint` with Sudsy's rules on the rule fixtures; the lint entries are the rules of `buf config ls-lint-rules`."
+scope: "`buf format`, the de-facto Protobuf formatter, and `buf lint`. It has no style options; Sudsy's defaults reproduce its layout. Differences are measured by `scripts/parity.sh format buf` on the folder's fixtures and the Protobuf corpus (`tests/conformance/fetch-proto-corpus.sh`); the known ones are listed in `tests/parity/buf/differences.yaml`. `scripts/parity.sh buf` compares `buf lint` with Sudsy's rules on the rule fixtures; the lint entries are the rules of `buf config ls-lint-rules`."
 entries:
-  format: formatter | 320 of 323 corpus files are identical; the other 3 are listed with their reasons in tests/parity/buf/expected-diff.txt.
+  format: formatter | 320 of 323 corpus files are identical; the other 3 are listed with their reasons in tests/parity/buf/differences.yaml.
   diff: config `sudsy format --check`
   ENUM_FIRST_VALUE_ZERO: rule enum-first-value-zero
   ENUM_NO_ALLOW_ALIAS: rule enum-no-allow-alias

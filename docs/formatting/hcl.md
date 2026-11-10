@@ -15,7 +15,16 @@ The layout is `terraform fmt`'s (hashicorp/hcl `hclwrite.Format`, which `tofu fm
 - Not done, because the formatter never changes a token: `terraform fmt` also rewrites `"${x}"` to `x` and quotes block labels written as bare names; the first is the rule `deprecated-interpolation` and its fix.
 
 ## Parity
-`scripts/parity.sh format terraform` compares with `terraform fmt` 1.17.1 (downloaded on first use, `docs/parity/terraform.yaml`) on `tests/parity/terraform/` and a corpus of real files (`tests/conformance/fetch-hcl-corpus.sh`: the Terraform modules terraform-aws-vpc and terraform-aws-eks, Terraform's own fmt and config test data, Packer's examples and test templates; Nomad job files are in the corpus too and checked below). Sudsy runs `fix` there (with `tests/parity/terraform/sudsy.yaml`, which turns off the other rules), because `terraform fmt` unwraps `"${x}"` itself. Result (terraform 1.17.1): 312 of 318 files are identical; the other 6 are listed with their reasons in `tests/parity/terraform/expected-diff.txt` (`"${x}"` inside a list, which only the rule fixes; quoted block labels and legacy quoted `variable` types, which terraform rewrites; a file terraform rejects for a repeated plugin name). The 243 Nomad job files of the corpus (HCL2 ones; the older HCL1 files do not parse in either tool) are not in the script, since terraform unwraps the `"${attr.kernel.name}"` Nomad fills in at run time; with the rule's fix on (the files renamed `.tf` in an ad hoc run) 225 are identical, and the other 18 differ in the cases above and in a space after a heredoc's closing marker, which terraform keeps and Sudsy removes.
+`scripts/parity.sh format terraform` compares with `terraform fmt` 1.17.1 (downloaded on first use, `docs/parity/terraform.yaml`) on `tests/parity/terraform/` and a corpus of real files (`tests/conformance/fetch-hcl-corpus.sh`: the Terraform modules terraform-aws-vpc and terraform-aws-eks, Terraform's own fmt and config test data, Packer's examples and test templates; Nomad job files are in the corpus too and checked below). Sudsy runs `fix` there (with `tests/parity/terraform/sudsy.yaml`, which turns off the other rules), because `terraform fmt` unwraps `"${x}"` itself. Result (terraform 1.17.1): 312 of 318 files are identical; the other 6 are named in `tests/parity/terraform/differences.yaml`. The 243 Nomad job files of the corpus (HCL2 ones; the older HCL1 files do not parse in either tool) are not in the script, since terraform unwraps the `"${attr.kernel.name}"` Nomad fills in at run time; with the rule's fix on (the files renamed `.tf` in an ad hoc run) 225 are identical, and the other 18 differ in the cases above and in a space after a heredoc's closing marker, which terraform keeps and Sudsy removes.
+
+Where Sudsy differs from terraform by design:
+
+<!-- generated:differences:terraform -->
+
+- `interpolation-in-list`: terraform fmt unwraps `"${x}"` only as a whole argument; the rule `deprecated-interpolation` also fixes it inside a list
+- `semantic-error`: terraform rejects a file for a semantic error (a repeated plugin name); Sudsy formats it
+- `token-rewrite`: terraform fmt rewrites tokens (it quotes a bare block label, `list` becomes `list(any)`); Sudsy keeps the tokens
+<!-- /generated -->
 `cargo test --profile corpus -p lang-hcl --test hcl -- --ignored --nocapture conformance` checks every corpus file: parses without errors, round-trips, formats with the same tokens and idempotently.
 
 ## Lint

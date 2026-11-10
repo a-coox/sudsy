@@ -30,6 +30,15 @@ Whitespace in text is content, so the formatter lays out structure only.
 ## Presets
 `xml/default` sets nothing. `xml/csharpier-compat` is CSharpier 1.x's XML defaults (100 columns, two spaces, line endings kept); `scripts/parity.sh format csharpier-xml` compares the two on `tests/fixtures/xml` and 372 project files of dotnet/aspnetcore v10.0.0 (`tests/conformance/fetch-xml-projects.sh`).
 
+The differences are named in `tests/parity/csharpier-xml/differences.yaml`; where Sudsy differs from CSharpier by design:
+
+<!-- generated:differences:csharpier-xml -->
+
+- `not-xml`: a file that is not XML is passed through by CSharpier; Sudsy reports a syntax error
+- `text-as-written`: text content and attribute values stay as written; CSharpier writes a double quote in a value as `&quot;`, puts CDATA and `xml:space="preserve"` content on lines of their own and trims its whitespace
+- `width-accounting`: CSharpier's width accounting keeps a tag on one line after a long multi-line header comment (.resx) or below a tag far longer than the width; Sudsy breaks the attributes
+<!-- /generated -->
+
 ## Rules
 The shared `no-empty-comment` and `max-line-length` work through the grammar's comment tags; `comment-space` does not apply (XML has no line comments). The attribute rules of the `#mapping` tag apply to attributes (`sorted-keys`, `key-name-casing`, `no-empty-keys`; a repeated attribute is a parse error, so `no-duplicate-keys` never fires). XML-specific: `no-duplicate-include` (a project item with the same name and `Include` as an earlier sibling) and `no-floating-package-version` (`PackageReference`/`PackageVersion` with `*` in `Version`, a pattern rule). Suppression comments are `<!-- sudsy-disable-next-line <rule> -->`.
 

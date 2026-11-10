@@ -1,2 +1,0 @@
-# Cases where Sudsy and `dotnet format whitespace` legitimately differ: "<case>: <reason>" per line.
-inits: dotnet format leaves the brace of an initializer where the source has it (and `new C {` + `}` of an empty one); Sudsy lays out a wrapped initializer by object_collection_array_initializers / anonymous_types

@@ -19,14 +19,12 @@ done
   { echo "usage: scripts/parity.sh [format] <$("$py" -c 'import json,sys; print("|".join(json.load(open("scripts/parity_tools.json"))[sys.argv[1]]))' "$mode")>" >&2; exit 2; }
 cargo build --quiet -p cli
 sudsy=$tdir/debug/sudsy; [ -x "$sudsy" ] || sudsy=$sudsy.exe
-if [ "$mode" = lint ]; then
-  # The comparison needs PyYAML.
-  venv="$tdir/parity/venv"
-  if [ ! -d "$venv" ]; then
-    "$py" -m venv "$venv"
-    vpy="$venv/bin/python"; [ -x "$vpy" ] || vpy="$venv/Scripts/python.exe"
-    "$vpy" -m pip install --quiet pyyaml
-  fi
-  py="$venv/bin/python"; [ -x "$py" ] || py="$venv/Scripts/python.exe"
+# The comparison needs PyYAML (the lint catalogs, the differences.yaml of both modes).
+venv="$tdir/parity/venv"
+if [ ! -d "$venv" ]; then
+  "$py" -m venv "$venv"
+  vpy="$venv/bin/python"; [ -x "$vpy" ] || vpy="$venv/Scripts/python.exe"
+  "$vpy" -m pip install --quiet pyyaml
 fi
+py="$venv/bin/python"; [ -x "$py" ] || py="$venv/Scripts/python.exe"
 exec "$py" "scripts/parity_$mode.py" "$tool" "$sudsy" "$tdir"

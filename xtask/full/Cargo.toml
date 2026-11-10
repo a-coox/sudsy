@@ -11,6 +11,8 @@ core-config.workspace = true
 core-rules.workspace = true
 languages = { path = "../../crates/languages" }
 provider-api.workspace = true
+serde.workspace = true
+serde-saphyr.workspace = true
 serde_json.workspace = true
 xtask = { path = ".." }
 

@@ -41,7 +41,17 @@ Each command of a recipe is one shell invocation in make and one Shell parse her
 Shared: suppression comments (`# sudsy-disable-next-line <rule>`), `no-empty-comment`, `comment-space`, `max-line-length`. The grammar has no `#mapping` or `#sequence` nodes, so the key rules do not apply. The language rules are listed in [../rules/builtin.md](../rules/builtin.md) and are checkmake's: `phony-declared`, `timestamp-expanded` and `unique-targets` are on by default, `min-phony` (options `required`) and `max-body-length` (`max`) off; the preset turns all five on. checkmake reads a rule with several targets (`a b:`) as one target named `a b`; Sudsy checks each name. A recipe ends where make's does (blank lines and comments inside it belong to it), so `max-body-length` counts more lines than checkmake in a recipe with a blank line or a column-0 comment.
 
 ## Parity
-`scripts/parity.sh checkmake` ([../development/parity.md](../development/parity.md#checkmake)) runs checkmake 0.3.2 and `sudsy lint` on the rule fixtures (`tests/rules/makefile/*/*.mk`): 10 findings, none differs but the 4 listed with their reasons in `tests/parity/checkmake/expected-diff.txt`.
+`scripts/parity.sh checkmake` ([../development/parity.md](../development/parity.md#checkmake)) runs checkmake 0.3.2 and `sudsy lint` on the rule fixtures (`tests/rules/makefile/*/*.mk`): 10 findings, none differs but the 4 named in `tests/parity/checkmake/differences.yaml`.
+
+Where Sudsy differs from checkmake by design:
+
+<!-- generated:differences:checkmake -->
+
+- `double-colon-rule`: a repeated `::` rule is allowed, as make does; checkmake reports it
+- `empty-recipe`: a rule with an explicit empty recipe (`$(OBJS): ;`) has a body; checkmake reads it as none
+- `multi-target-rule`: each target of a rule like `c d:` is checked on its own; checkmake reads one target named `c d`
+- `target-specific-variable`: a target-specific variable assignment is a variable; checkmake does not read it as one
+<!-- /generated -->
 
 ## Conformance
 `tests/conformance/fetch-makefile-corpus.sh` fetches the Makefiles of redis, git, lua, prometheus, kubernetes (`build/root`) and docker/cli at pinned commits; `cargo test --profile corpus -p lang-makefile --test makefile -- --ignored --nocapture conformance` checks that each file parses (59 files), round-trips, formats with the same tokens (the safety check) and idempotently.

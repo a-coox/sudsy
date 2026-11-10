@@ -130,8 +130,8 @@ def rule_fixtures(tool, sudsy, version, prefix, exe):
     """Runs the tool (hadolint, shellcheck, checkmake) and `sudsy lint` on the rule fixtures of its language
     (tests/rules/<lang>/<folder>/*<suffix>, annotations removed) and compares `(rule, line)` of the
     catalog's rules: upstream codes the catalog does not map are left out.
-    `tests/parity/<tool>/expected-diff.txt` lists known differences as
-    `<folder>/<name> <tool|sudsy>:<rule> <line>: <reason>`; one that no longer differs fails."""
+    `tests/parity/<tool>/differences.yaml` lists known differences under the key
+    `<folder>/<name> <tool|sudsy>:<rule> <line>`; one that no longer differs fails."""
     lang, suffix, command, parse, load = {
         "hadolint": ("dockerfile", ".dockerfile", [exe, "--no-fail", "--no-color", "-f", "json"],
                      lambda d: (d["code"], d["line"]), json.loads),
@@ -160,13 +160,8 @@ def rule_fixtures(tool, sudsy, version, prefix, exe):
     for config in ("sudsy.yaml", "buf.yaml"):
         if (folder / config).exists():
             shutil.copy(folder / config, work / config)
-    expected = {}
-    for line in (folder / "expected-diff.txt").read_text(encoding="utf-8").splitlines():
-        if line.strip() and not line.startswith("#"):
-            key, _, reason = line.partition(": ")
-            if " " in key:  # a format-mode entry (buf shares the file) has no space
-                expected[key] = reason
-    used, mismatches, total = set(), 0, 0
+    diffs = parity_format.Differences(folder, lint=True)
+    mismatches, total = 0, 0
     sources = [(f"{s.parent.name}/{s.stem}", f"{s.parent.name}-{s.stem}{suffix}", s) for s in sorted((ROOT / "tests/rules" / lang).glob(f"*/*{suffix}"))
                if not s.with_suffix(".rules.yaml").exists()]  # a case that sets rule options: both tools run with their defaults here
     if tool == "actionlint":  # the corpus too (tests/conformance/fetch-github-actions-corpus.sh), a file per name
@@ -202,17 +197,13 @@ def rule_fixtures(tool, sudsy, version, prefix, exe):
         for side, rows in ((tool, upstream - ours), ("sudsy", ours - upstream)):
             for rule, line, _ in sorted(rows):
                 key = f"{label} {side}:{rule} {line}"
-                if key in expected:
-                    used.add(key)
-                else:
+                if not diffs.known(key):
                     problems.append(f"  only {side}: {rule} {line}")
         print(f"{label}: {len(upstream)} {tool}, {len(ours)} sudsy: {'MISMATCH' if problems else 'ok'}")
         print("\n".join(problems))
         mismatches += len(problems)
-    for key in sorted(set(expected) - used):
-        print(f"  stale expected difference: {key}")
-        mismatches += 1
-    print(f"{total} {tool} findings, {mismatches} mismatch(es) ({tool} {version}, {len(used)} known)")
+    mismatches += diffs.finish()
+    print(f"{total} {tool} findings, {mismatches} mismatch(es) ({tool} {version}, {sum(k in diffs.files for k in diffs.differing)} known)")
     return 1 if mismatches else 0
 
 
@@ -240,9 +231,9 @@ def psscriptanalyzer(sudsy, version, prefix):
     """Invoke-ScriptAnalyzer against `sudsy lint` (preset powershell/psscriptanalyzer) on the PowerShell rule
     fixtures (tests/rules/powershell/*/*.ps1, annotations removed) and the PowerShell corpus, as
     `(file, rule, line)` of the rules the catalog maps. Also checks that the catalog lists exactly the rules
-    of the installed module. `tests/parity/psscriptanalyzer/expected-diff.txt` has the format of
-    hadolint's: `<file> <psscriptanalyzer|sudsy>:<rule> <line>: <reason>` (a fixture is `<folder>-<name>.ps1`,
-    a corpus file `corpus/<path>`); one that no longer differs fails."""
+    of the installed module. `tests/parity/psscriptanalyzer/differences.yaml` keys:
+    `<file> <psscriptanalyzer|sudsy>:<rule> <line>` (a fixture is `<folder>-<name>.ps1`, a corpus file
+    `corpus/<path>`); one that no longer differs fails."""
     script = ROOT / "scripts/parity_psscriptanalyzer.ps1"
     pwsh = lambda *args: subprocess.run(["pwsh", "-NoProfile", "-File", str(script), str(prefix), *args],
                                         capture_output=True, text=True, encoding="utf-8", check=True).stdout
@@ -267,11 +258,7 @@ def psscriptanalyzer(sudsy, version, prefix):
         )
         (work / f"{source.parent.name}-{source.stem}.ps1").write_text(text, encoding="utf-8", newline="")
     shutil.copytree(corpus, work / "corpus")
-    expected = {}
-    for line in (folder / "expected-diff.txt").read_text(encoding="utf-8").splitlines():
-        if line.strip() and not line.startswith("#"):
-            key, _, reason = line.partition(": ")
-            expected[key] = reason
+    diffs = parity_format.Differences(folder, lint=True)
     key_of = lambda p: Path(p).resolve().relative_to(work.resolve()).as_posix()
     upstream = {(key_of(d["file"]), mapping[d["rule"]], d["line"])
                 for d in json.loads(pwsh("run", ",".join(mapping), str(work)) or "[]") if d["rule"] in mapping}
@@ -281,20 +268,15 @@ def psscriptanalyzer(sudsy, version, prefix):
             for d in json.loads(out)["diagnostics"] if d["rule"] in set(mapping.values())}
     for rule, count in sorted((r, sum(1 for u in upstream if u[1] == r)) for r in set(mapping.values())):
         print(f"{rule}: {count} psscriptanalyzer, {sum(1 for o in ours if o[1] == rule)} sudsy")
-    used = set()
     for side, rows in (("psscriptanalyzer", upstream - ours), ("sudsy", ours - upstream)):
         for path, rule, line in sorted(rows):
             key = f"{path} {side}:{rule} {line}"
-            if key in expected:
-                used.add(key)
-            else:
+            if not diffs.known(key):
                 src = (work / path).read_text(encoding="utf-8-sig", errors="replace").splitlines()[line - 1].strip()[:90]
                 print(f"  only {side}: {key}  | {src}")
                 mismatches += 1
-    for key in sorted(set(expected) - used):
-        print(f"  stale expected difference: {key}")
-        mismatches += 1
-    print(f"{len(upstream)} psscriptanalyzer findings, {mismatches} mismatch(es) (psscriptanalyzer {version}, {len(used)} known)")
+    mismatches += diffs.finish()
+    print(f"{len(upstream)} psscriptanalyzer findings, {mismatches} mismatch(es) (psscriptanalyzer {version}, {sum(k in diffs.files for k in diffs.differing)} known)")
     return 1 if mismatches else 0
 
 

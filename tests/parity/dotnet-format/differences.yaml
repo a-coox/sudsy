@@ -1,0 +1,4 @@
+differences:
+  initializer-layout: choice  a wrapped initializer is laid out by `object_collection_array_initializers` and `anonymous_types`; dotnet format leaves the brace where the source has it
+files:
+  inits: initializer-layout

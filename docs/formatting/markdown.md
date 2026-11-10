@@ -23,7 +23,16 @@ Line oriented, prose kept as written (Prettier's `proseWrap: preserve`, checked 
 - Embedded code: the first word of a fence's info string names a language (its name or a file extension: `json`, `jsonc`, `yml`, `sh`, `bash`, `ps1`, `toml`, `xml`, `dockerfile`, `editorconfig`; `cs` is not formatted, the C# worker would start for a snippet). With `embedded_language_formatting: auto` the code is formatted with that language's formatter and its options (the `json:`, `yaml:` ... sections of the config, not the Markdown file's `.editorconfig`), indented as the fence is (lists, quotes). Code that does not parse, of a language that is not installed, or of a fence without a closing fence is kept as written, without an error. The formatting is a step after the Markdown render (`core-incremental`): the output is read again, so the fences it finds are the ones it formats, and it is left as rendered if they changed.
 - Kept as written: a block containing a tab (its width depends on the column), a fence without a closing fence, a block quote or list containing indented code, a block whose indentation the renderer would change although it carries meaning (an indented paragraph line, a lazy `===` line in a quote, an indented opening fence, a list marker indented past its containers, wide marker spacing that keeps an indented block after the list out of it), front matter (not formatted as YAML), and the next block after `<!-- sudsy-ignore -->`.
 - Safety: debug builds and the `corpus` profile run the generic check with `MarkdownFormatter::extra_check` (block and inline structure, heading levels, list kinds, prose with blanks collapsed, raw text without container prefixes); release builds skip it, like every language. The check reads the same parser, so for the cases where tree-sitter-md and the CommonMark algorithm differ the guard is a test: `cargo test --profile corpus -p lang-markdown --test markdown -- --ignored` (after the fetch script) requires every CommonMark example and the repo's docs to render to the same HTML with pulldown-cmark before and after formatting, and to be unchanged by a second run.
-- Known differences from Prettier ([../../tests/parity/prettier/expected-diff.txt](../../tests/parity/prettier/expected-diff.txt)): code spans with three backticks, blocks with tabs, lists the restyle would parse differently, trailing blanks in code, wide characters in table cells (Prettier counts some differently), front matter.
+- Where Sudsy differs from Prettier by design (named in `tests/parity/prettier/differences.yaml`, with the GraphQL ones):
+
+<!-- generated:differences:prettier -->
+
+- `code-trailing-blanks`: trailing blanks inside a code block are code and stay; Prettier removes them
+- `extend-directive`: `extend directive` is not in the GraphQL spec: the grammar rejects it
+- `invalid-graphql`: the file is not valid GraphQL (Prettier's range markers, an empty selection set): Sudsy rejects it
+- `tab-blocks`: a block with a tab is kept as written (the width of a tab depends on its column); Prettier re-indents the nested list
+- `toc-indent`: a table of contents with nested lists indented by three columns is kept as written because the output would not parse to the same lists
+<!-- /generated -->
 
 ## Options
 <!-- generated:options -->

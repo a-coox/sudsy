@@ -13,7 +13,14 @@ Layout follows `buf format` (no style options of its own): two-space indentation
 - Adjacent string literals (`"a" "b"`) go one per line, indented one level, after `=`.
 
 ## Parity
-`scripts/parity.sh format buf` compares with `buf format` 1.75.0 (downloaded on first use, `docs/parity/buf.yaml`) on `tests/parity/buf/` and a corpus of real files (`tests/conformance/fetch-proto-corpus.sh`: googleapis common and service protos, protobuf's own protos including proto2, proto3 and editions test files, grpc's): 320 of 323 files are identical. The other 3 are listed with their reasons in `tests/parity/buf/expected-diff.txt`: empty statements (`;`) are kept where buf drops them; comments before the `;` of a statement stay line comments on their own lines where buf joins them into block comments; comments separated by blank lines between the file options travel with the next statement where buf keeps them in place; a blank line before a comment between literal fields is dropped.
+`scripts/parity.sh format buf` compares with `buf format` 1.75.0 (downloaded on first use, `docs/parity/buf.yaml`) on `tests/parity/buf/` and a corpus of real files (`tests/conformance/fetch-proto-corpus.sh`: googleapis common and service protos, protobuf's own protos including proto2, proto3 and editions test files, grpc's): 320 of 323 files are identical. The other 3 are named in `tests/parity/buf/differences.yaml`.
+
+Where Sudsy differs from buf by design:
+
+<!-- generated:differences:buf -->
+
+- `empty-statements`: empty statements (`;`) are kept; buf drops them
+<!-- /generated -->
 `cargo test --profile corpus -p lang-protobuf --test protobuf -- --ignored --nocapture conformance` checks every corpus file: parses without errors (322 of 322), round-trips, formats with the same tokens and idempotently.
 
 ## Lint

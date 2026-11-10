@@ -1,0 +1,17 @@
+differences:
+  script-line: choice  a script rule is reported at the line of the text of a block scalar; actionlint reports it at the line of the `|`
+  needs-location: choice  an unknown `needs` entry is reported at the entry; actionlint reports it at the job
+  self-hosted-labels: choice  a job with `self-hosted` is not checked for custom runner labels; actionlint wants them in its config
+files:
+  deprecated-commands/cases actionlint:deprecated-commands 5: script-line
+  deprecated-commands/cases sudsy:deprecated-commands 6: script-line
+  script-injection/cases actionlint:script-injection 5: script-line
+  script-injection/cases sudsy:script-injection 6: script-line
+  script-injection/cases sudsy:script-injection 7: script-line
+  corpus/actionlint/testdata/err/github_script_untrusted_input.yaml actionlint:script-injection 11: script-line
+  corpus/actionlint/testdata/err/github_script_untrusted_input.yaml sudsy:script-injection 16: script-line
+  unknown-needs/cases actionlint:unknown-needs 7: needs-location
+  unknown-needs/cases sudsy:unknown-needs 8: needs-location
+  corpus/actionlint/testdata/examples/invalid_ids_in_needs.yaml actionlint:unknown-needs 8: needs-location
+  corpus/actionlint/testdata/examples/invalid_ids_in_needs.yaml sudsy:unknown-needs 9: needs-location
+  invalid-runs-on/cases actionlint:invalid-runs-on 7: self-hosted-labels

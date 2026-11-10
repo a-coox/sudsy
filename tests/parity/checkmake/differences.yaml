@@ -1,0 +1,10 @@
+differences:
+  empty-recipe: "choice  a rule with an explicit empty recipe (`$(OBJS): ;`) has a body; checkmake reads it as none"
+  target-specific-variable: choice  a target-specific variable assignment is a variable; checkmake does not read it as one
+  double-colon-rule: choice  a repeated `::` rule is allowed, as make does; checkmake reports it
+  multi-target-rule: choice  each target of a rule like `c d:` is checked on its own; checkmake reads one target named `c d`
+files:
+  phony-declared/cases checkmake:phony-declared 9: empty-recipe
+  timestamp-expanded/cases sudsy:timestamp-expanded 8: target-specific-variable
+  unique-targets/cases checkmake:unique-targets 6: double-colon-rule
+  unique-targets/cases sudsy:unique-targets 10: multi-target-rule

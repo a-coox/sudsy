@@ -1,0 +1,24 @@
+differences:
+  pipeline-indent: gap  the lines after a multi-line pipeline or call are indented as the source has them; Invoke-Formatter derives the indentation from the syntax tree
+  backtick-scriptblock: choice  Invoke-Formatter outdents the script block that follows a backtick continuation; Sudsy keeps its indentation
+  hashtable-first-entry: gap  a hashtable whose first entry is on the `@{` line is aligned to the column of that entry; Invoke-Formatter lays it out differently
+  switch-brace: gap  a `{` on its own line after a switch clause that is a string, or after a comment, is joined by Invoke-Formatter and not by Sudsy
+  enum-alignment: gap  Invoke-Formatter aligns the `=` of enum members; Sudsy aligns hashtables only
+  operator-chain-comments: gap  Invoke-Formatter aligns the comments of an operator chain
+  not-powershell: "choice  the file is C# source: Sudsy rejects it"
+files:
+  corpus/install-scripts/src/dotnet-install.ps1: pipeline-indent
+  corpus/Pester/src/functions/Pester.SessionState.Mock.ps1: pipeline-indent
+  corpus/Pester/src/Pester.RSpec.ps1: backtick-scriptblock
+  corpus/Pester/src/Pester.Runtime.ps1: pipeline-indent
+  corpus/PowerShell/build.psm1: pipeline-indent
+  corpus/PowerShell/test/tools/CodeCoverageAutomation/Start-CodeCoverageRun.ps1: hashtable-first-entry, switch-brace
+  corpus/PowerShell/test/tools/Modules/HttpListener/HttpListener.psm1: switch-brace
+  corpus/PowerShell/test/tools/Modules/PSSysLog/PSSysLog.psm1: enum-alignment
+  corpus/PowerShell/tools/clearlyDefined/src/ClearlyDefined/ClearlyDefined.psm1: pipeline-indent
+  corpus/PowerShell/tools/packaging/packaging.psm1: pipeline-indent, operator-chain-comments
+  corpus/PowerShell/tools/releaseTools.psm1: pipeline-indent
+  corpus/PowerShell/tools/ResxGen/ResxGen.psm1: enum-alignment
+  corpus/PSScriptAnalyzer/build.psm1: pipeline-indent
+  corpus/PSScriptAnalyzer/Tests/Engine/CSharp.ps1: not-powershell
+  corpus/PSScriptAnalyzer/Tests/Engine/CustomRuleNREAssets/MyCustom.psm1: hashtable-first-entry

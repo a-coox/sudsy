@@ -1,0 +1,31 @@
+differences:
+  code-span-backticks: gap  a code span with three backticks (tree-sitter-md does not read it as code) is kept; Prettier writes one backtick
+  list-looseness: gap  a list item holding a paragraph, a nested list and an indented continuation keeps the blank lines of the source; Prettier's looseness differs
+  toc-indent: choice  a table of contents with nested lists indented by three columns is kept as written because the output would not parse to the same lists
+  tab-blocks: choice  a block with a tab is kept as written (the width of a tab depends on its column); Prettier re-indents the nested list
+  code-span-lines: gap  a code span over two lines in a list item keeps the text of the span; Prettier removes the indentation of the second line
+  code-trailing-blanks: choice  trailing blanks inside a code block are code and stay; Prettier removes them
+  html-after-table: gap  an HTML block right after a table gets a blank line in front; Prettier keeps it on the next line (both parse it as HTML)
+  graphql-comment-position: gap  comments between the interfaces and the `{` stay in front of the `{` where Prettier moves them into the body
+  invalid-graphql: "choice  the file is not valid GraphQL (Prettier's range markers, an empty selection set): Sudsy rejects it"
+  extend-directive: "choice  `extend directive` is not in the GraphQL spec: the grammar rejects it"
+files:
+  runtime-docs/coding-guidelines/adding-api-guidelines.md: code-span-backticks
+  runtime-docs/coding-guidelines/coding-style.md: code-span-backticks
+  runtime-docs/coding-guidelines/breaking-change-rules.md: list-looseness
+  runtime-docs/coding-guidelines/clr-code-guide.md: toc-indent
+  runtime-docs/coding-guidelines/cross-platform-performance-and-eventing.md: tab-blocks
+  runtime-docs/coding-guidelines/EventLogging.md: tab-blocks
+  runtime-docs/coding-guidelines/mono-code-guide.md: code-span-lines
+  runtime-docs/coding-guidelines/vectorization-guidelines.md: code-trailing-blanks
+  docs/formatting/csharp.md: html-after-table
+  graphql/prettier/tests/format/graphql/interface/separator-detection.graphql: graphql-comment-position
+  graphql/prettier/tests/format/graphql/range/issue2296.graphql: invalid-graphql
+  graphql/prettier/tests/format/graphql/directive-decl/directives-on-directive-definitions.graphql: extend-directive
+  graphql/prettier/tests/format/graphql/selection-set/empty-1.graphql: invalid-graphql
+  graphql/prettier/tests/format/graphql/selection-set/empty-2.graphql: invalid-graphql
+  graphql/prettier/tests/format/graphql/selection-set/empty-3.graphql: invalid-graphql
+  graphql/prettier/tests/format/graphql/selection-set/empty-4.graphql: invalid-graphql
+  graphql/prettier/tests/format/graphql/selection-set/empty-5.graphql: invalid-graphql
+  graphql/prettier/tests/format/graphql/selection-set/empty-6.graphql: invalid-graphql
+  graphql/prettier/tests/format/graphql/selection-set/empty-7.graphql: invalid-graphql

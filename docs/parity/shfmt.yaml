@@ -4,7 +4,7 @@ languages: ["shell"]
 sources:
   - "https://github.com/mvdan/sh/blob/master/cmd/shfmt/shfmt.1.scd"
   - "tests/parity/shfmt (differential numbers, docs/development/parity.md)"
-scope: "shfmt's formatting flags. Differences in layout are measured by `scripts/parity.sh format shfmt` on the folder's fixtures and the shell corpus (`tests/conformance/fetch-shell-corpus.sh`) with shfmt's defaults (tabs, no flags); the list of known differences is `tests/parity/shfmt/expected-diff.txt`."
+scope: "shfmt's formatting flags. Differences in layout are measured by `scripts/parity.sh format shfmt` on the folder's fixtures and the shell corpus (`tests/conformance/fetch-shell-corpus.sh`) with shfmt's defaults (tabs, no flags); the list of known differences is `tests/parity/shfmt/differences.yaml`."
 entries:
   indent: option shell.format.indent_style
   binary-next-line: deferred | No option that moves binary operators to the next line.

@@ -1,0 +1,16 @@
+differences:
+  scalar-variable-type: choice  the left operand of a null comparison is a variable of a scalar type, which the module knows and Sudsy (no types) does not
+  parameter-report-line: choice  a parameter is reported at its first attribute line; the module reports it at the variable
+files:
+  corpus/PSScriptAnalyzer/Tests/Engine/LibraryUsage.tests.ps1 sudsy:null-comparison-side 179: scalar-variable-type
+  corpus/PSScriptAnalyzer/Tests/Engine/ModuleHelp.Tests.ps1 sudsy:null-comparison-side 230: scalar-variable-type
+  corpus/Pester/src/functions/Context.ps1 sudsy:null-comparison-side 97: scalar-variable-type
+  corpus/PowerShell/test/tools/Modules/HelpersDebugger/HelpersDebugger.psm1 sudsy:null-comparison-side 47: scalar-variable-type
+  corpus/PowerShell/test/tools/Modules/HelpersRemoting/HelpersRemoting.psm1 sudsy:null-comparison-side 91: scalar-variable-type
+  corpus/PowerShell/test/tools/Modules/PSSysLog/PSSysLog.psm1 sudsy:null-comparison-side 900: scalar-variable-type
+  corpus/PowerShell/test/tools/NamedPipeConnection/test/CustomConnection.Tests.ps1 sudsy:null-comparison-side 10: scalar-variable-type
+  corpus/Pester/src/functions/Context.ps1 psscriptanalyzer:no-automatic-variable-assignment 94: parameter-report-line
+  corpus/Pester/src/functions/Describe.ps1 psscriptanalyzer:no-automatic-variable-assignment 102: parameter-report-line
+  corpus/Pester/src/functions/It.ps1 psscriptanalyzer:no-automatic-variable-assignment 130: parameter-report-line
+  corpus/Pester/src/functions/Context.ps1 sudsy:no-automatic-variable-assignment 93: parameter-report-line
+  corpus/Pester/src/functions/Describe.ps1 sudsy:no-automatic-variable-assignment 101: parameter-report-line

@@ -30,7 +30,19 @@ Files: `*.toml`. `Cargo.lock` (generated, cargo's own layout) is not claimed, so
 <!-- /generated -->
 
 ## Presets
-`toml/default` sets nothing. `toml/taplo-compat` reproduces taplo 0.10's defaults (`collapse: always`, `max_blank_lines: 2`, `align_comments: true`, LF); `scripts/parity.sh format taplo` compares the two on `tests/fixtures/toml` and the toml-test valid files (203 of 213 identical, the other 10 listed with their reasons in `tests/parity/taplo/expected-diff.txt`).
+`toml/default` sets nothing. `toml/taplo-compat` reproduces taplo 0.10's defaults (`collapse: always`, `max_blank_lines: 2`, `align_comments: true`, LF); `scripts/parity.sh format taplo` compares the two on `tests/fixtures/toml` and the toml-test valid files (203 of 213 identical, the other 10 named in `tests/parity/taplo/differences.yaml`).
+
+Where Sudsy differs from taplo by design:
+
+<!-- generated:differences:taplo -->
+
+- `comment-dropped`: taplo drops the comment after an array item that is followed by a comma on the next line; Sudsy keeps it
+- `crlf-in-string`: taplo keeps CRLF inside a multi-line string and converts the rest; Sudsy writes LF everywhere
+- `empty-file`: taplo writes a newline for an empty file; Sudsy keeps it empty
+- `inline-table-array`: taplo expands an array inside a long inline table even when it fits after the break; Sudsy breaks only what does not fit
+- `multiline-string-array`: taplo keeps an array with a multi-line string on one line; Sudsy expands it
+- `taplo-rejects`: taplo rejects a valid file (`[[ products ]]` with blanks inside the brackets, some Unicode keys, strings, comments and datetimes); Sudsy formats it
+<!-- /generated -->
 
 ## Rules
 Only the shared ones (`comment-space`, `no-empty-comment`, `max-line-length`, and the key and sequence rules `no-duplicate-keys` (it never fires: a duplicate key is a parse error), `no-empty-keys`, `key-name-casing`, `sorted-keys`, `sorted-array-values`), which work through the grammar's tags: `Table`, `ArrayTable`, `InlineTable` and `Document` (its top-level pairs) are `#mapping`, `Array` is `#sequence`. The hooks decode quoted keys and join dotted parts with `.` (`a.b` and `"a"."b"` are one key; `key-name-casing` checks each part of a dotted key and reports the key); sorting reorders pairs only, never tables, and arrays of basic and literal strings, integers and floats are sorted (multi-line strings, booleans and dates are left alone). Suppression comments are `# sudsy-disable-next-line <rule>`.

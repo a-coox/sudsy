@@ -1,3 +1,0 @@
-# "<group> <identical files>": the run fails when fewer files than this are byte-identical; raise it when the formatter improves.
-prettier-tests 302
-real-world 323

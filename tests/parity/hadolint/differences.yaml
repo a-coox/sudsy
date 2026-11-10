@@ -1,0 +1,4 @@
+differences:
+  user-variable: choice  a variable as the user is accepted whether or not an ARG defines it (hadolint reports it)
+files:
+  instructions/cases hadolint:numeric-user-id 26: user-variable

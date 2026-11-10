@@ -1,1 +1,0 @@
-instructions/cases hadolint:numeric-user-id 26: a variable is accepted whether or not an ARG defines it

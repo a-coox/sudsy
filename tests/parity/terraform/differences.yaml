@@ -1,0 +1,11 @@
+differences:
+  interpolation-in-list: choice  terraform fmt unwraps `"${x}"` only as a whole argument; the rule `deprecated-interpolation` also fixes it inside a list
+  semantic-error: choice  terraform rejects a file for a semantic error (a repeated plugin name); Sudsy formats it
+  token-rewrite: choice  terraform fmt rewrites tokens (it quotes a bare block label, `list` becomes `list(any)`); Sudsy keeps the tokens
+files:
+  corpus/packer/hcl2template/testdata/build/post-processor_build_name_interpolation.pkr.hcl: interpolation-in-list
+  corpus/packer/hcl2template/testdata/build/provisioner_build_name_interpolation.pkr.hcl: interpolation-in-list
+  corpus/packer/hcl2template/testdata/init/duplicate_required_plugins/packer.pkr.hcl: semantic-error
+  corpus/terraform/internal/command/testdata/fmt/general_in.tf: token-rewrite
+  corpus/terraform/internal/command/testdata/fmt/variable_type_in.tf: token-rewrite
+  corpus/terraform/internal/configs/testdata/valid-files/variables.tf: token-rewrite

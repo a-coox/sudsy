@@ -6,10 +6,9 @@ The tools are the entries of parity_format.json (documented in docs/development/
 (from docs/parity/<catalog>.yaml), how to install it, its command, how it takes its input and which
 files are the fixtures. Every fixture is formatted by the tool and by Sudsy (with the fixture
 folder's sudsy.yaml, which extends the matching preset); the outputs must be equal. A fixture listed
-in the folder's `expected-diff.txt` (`<fixture>: <reason>` per line) may differ; it is reported as
-known, and as stale when the outputs are in fact equal. The fixtures of a `ratchet` group (a corpus too
-large for reasons per file) are only counted: the run fails when the identical files fall below the
-group's line in `min-identical.txt` (`<group> <count>`), which is raised as the formatter improves.
+in the folder's `differences.yaml` may differ; it is reported as
+known; the file is `differences.yaml` (docs/development/parity.md): named differences, the fixtures that
+differ, and the `ratchet` minimums of the groups (a corpus too large for entries per file) that are only counted.
 """
 import difflib
 import json
@@ -19,8 +18,11 @@ import re
 import shutil
 import subprocess
 import sys
+from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
+
+import yaml
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -90,7 +92,7 @@ def install(spec, catalog, version, prefix):
 
 
 def fixtures(config, folder):
-    """The fixtures as (name, path, ratchet group or None); names are the keys of expected-diff.txt."""
+    """The fixtures as (name, path, ratchet group or None); names are the keys of differences.yaml."""
     out = []
     for source in config["fixtures"]:
         base = ROOT / source["dir"] if "dir" in source else folder
@@ -138,36 +140,66 @@ def sudsy_format(sudsy, fixture, work, command="format"):
     return fixture.read_bytes().decode("utf-8") if r.returncode == 0 else None  # None: Sudsy rejects the file
 
 
-def expected_diffs(folder):
-    path = folder / "expected-diff.txt"
-    out = {}
-    if path.exists():
-        for line in path.read_text(encoding="utf-8").splitlines():
-            if line.strip() and not line.startswith("#"):
-                name, _, reason = line.partition(":")
-                out[name.strip()] = reason.strip()
-    return out
+class Differences:
+    """`tests/parity/<tool>/differences.yaml` (docs/development/parity.md): `differences` (name -> `<choice|gap>  <text>`),
+    `files` (fixture key -> names; a ratchet group's name stands for all its files) and `ratchet` (group -> least identical files).
+    `lint`: the keys with a space are the lint mode's (a tool's two modes share the file)."""
+
+    def __init__(self, folder, lint=False):
+        path = folder / "differences.yaml"
+        data = (yaml.safe_load(path.read_text(encoding="utf-8")) if path.exists() else None) or {}
+        self.defs = {n: v.split(None, 1) for n, v in (data.get("differences") or {}).items()}
+        self.files = {k: [n.strip() for n in v.split(",")] for k, v in (data.get("files") or {}).items()}
+        self.ratchet = data.get("ratchet") or {}
+        self.lint = lint
+        self.differing = {}  # key -> files that differ, listed or not
+
+    def known(self, key, count=1):
+        """Records that `key` differs; True when it is listed."""
+        self.differing[key] = count
+        return key in self.files
+
+    def finish(self, filtered=False):
+        """Prints the problems of the lists and the report; returns the number of problems."""
+        bad = 0
+        used = {n for names in self.files.values() for n in names}
+        for n in sorted(used - set(self.defs)):
+            print(f"UNDEFINED difference name: {n}")
+            bad += 1
+        for n in sorted(set(self.defs) - used):
+            print(f"UNUSED difference name: {n}")
+            bad += 1
+        for n, (kind, _) in self.defs.items():
+            if kind not in ("choice", "gap"):
+                print(f"difference {n}: the kind is `choice` or `gap`, not `{kind}`")
+                bad += 1
+        if not filtered:
+            for key in self.files:
+                if (" " in key) == self.lint and key not in self.differing:
+                    print(f"STALE: {key} is listed but no longer differs")
+                    bad += 1
+        counts = Counter()
+        for key, count in self.differing.items():
+            for n in self.files.get(key, []):
+                counts[n] += count
+        for kind in ("choice", "gap"):
+            row = ", ".join(f"{n} {counts[n]}" for n, (k, _) in self.defs.items() if k == kind and counts[n])
+            print(f"{kind}: {row or 'none'}")
+        return bad
 
 
-def verdict(name, theirs, ours, known, label, quiet=False):
+def verdict(name, theirs, ours, diffs, label, quiet=False):
     """Prints the result of one fixture; returns 1 for a mismatch. `quiet`: no line for an equal pair, no diff."""
-    same = theirs == ours
-    if theirs is None:
-        print(f"{name}: known difference ({known[name]})" if name in known else f"{name}: DIFFERENT (the tool rejects the file)")
-        return name not in known
-    if same and name in known:
-        print(f"{name}: STALE expected-diff entry (outputs are equal)")
-        return 1
-    if same:
+    if theirs is not None and theirs == ours:
         if not quiet:
             print(f"{name}: ok")
         return 0
-    if name in known:
-        print(f"{name}: known difference ({known[name]})")
+    if diffs.known(name):
+        print(f"{name}: known difference ({', '.join(diffs.files[name])})")
         return 0
-    print(f"{name}: DIFFERENT")
-    if not quiet:
-        sys.stdout.writelines(difflib.unified_diff((theirs or "").splitlines(True), (ours or "").splitlines(True), label, "sudsy"))
+    print(f"{name}: DIFFERENT (the tool rejects the file)" if theirs is None else f"{name}: DIFFERENT")
+    if theirs is not None and not quiet:
+        sys.stdout.writelines(difflib.unified_diff(theirs.splitlines(True), (ours or "").splitlines(True), label, "sudsy"))
     return 1
 
 
@@ -176,7 +208,7 @@ def editorconfig_cases(version, sudsy, parity):
     shared `input.cs`, formatted by `dotnet format whitespace` and by Sudsy in a folder that holds the
     `.editorconfig` and the folder's sudsy.yaml."""
     folder = ROOT / "tests/parity/dotnet-format"
-    known = expected_diffs(folder)
+    known = Differences(folder)
     cases = sorted(p.stem for p in folder.glob("*.editorconfig"))
     bad = 0
     for name in cases:
@@ -195,6 +227,7 @@ def editorconfig_cases(version, sudsy, parity):
                 run(["dotnet", "format", "whitespace", case, "--folder"], case)
                 outputs.append((case / "input.cs").read_bytes().decode("utf-8"))
         bad += verdict(name, *outputs, known, "dotnet-format")
+    bad += known.finish()
     print(f"{len(cases)} cases, {bad} mismatch(es) (dotnet format {version})")
     return bad
 
@@ -229,7 +262,7 @@ def main():
     shutil.rmtree(work, ignore_errors=True)
     work.mkdir(parents=True)
     shutil.copy(folder / "sudsy.yaml", work / "sudsy.yaml")
-    known = expected_diffs(folder)
+    known = Differences(folder)
     only = os.environ.get("PARITY_FILTER")  # a name substring: those fixtures only, with their diffs, no ratchet
     found = [f for f in fixtures(config, folder) if only is None or only in f[0]]
     quiet = bool(config.get("quiet")) and only is None
@@ -252,14 +285,14 @@ def main():
             tally[2 if theirs is None else 0 if theirs == ours else 1] += 1
         else:
             bad += verdict(name, theirs, ours, known, tool, quiet)
-    minimums = {}
-    if (folder / "min-identical.txt").exists():
-        minimums = {g: int(n) for g, n in (l.split() for l in (folder / "min-identical.txt").read_text().splitlines() if l.strip() and not l.startswith("#"))}
     for group, (same, different, rejected) in sorted(groups.items()):
-        floor = minimums.get(group, 0)
-        note = "BELOW the minimum" if same < floor else "raise the minimum in min-identical.txt" if same > floor else "at the minimum"
-        print(f"{group}: {same} identical, {different} different, {rejected} rejected by {tool} ({note}: {floor})")
+        floor = known.ratchet.get(group, 0)
+        if different:
+            known.known(group, different)
+        note = "BELOW the minimum" if same < floor else f"raise the minimum in differences.yaml to {same}" if same > floor else "at the minimum"
+        print(f"ratchet {group}: {same} identical, {different} different, {rejected} rejected by {tool} ({note}: {floor})")
         bad += same < floor
+    bad += known.finish(only is not None)
     print(f"{len(found)} fixtures, {bad} mismatch(es) ({tool} {version})")
     return 1 if bad else 0
 

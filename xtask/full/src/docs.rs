@@ -68,6 +68,7 @@ pub fn generate(providers: &[Box<dyn LanguageProvider>]) -> Result<Vec<(PathBuf,
         "docs/development/parity.md",
         &[("parity-tools", parity_tools()?)],
     )?);
+    out.extend(crate::differences::generate()?);
     Ok(out)
 }
 
@@ -128,7 +129,7 @@ fn parity_tools() -> Result<String> {
 }
 
 /// The file with the body of each named block replaced.
-fn splice(rel: &str, blocks: &[(&str, String)]) -> Result<(PathBuf, String)> {
+pub(crate) fn splice(rel: &str, blocks: &[(&str, String)]) -> Result<(PathBuf, String)> {
     let path = xtask::repo_root().join(rel);
     let mut text = std::fs::read_to_string(&path).with_context(|| format!("reading {rel}"))?;
     for (name, body) in blocks {
