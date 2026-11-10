@@ -130,7 +130,7 @@ category: suspicious
 rule:
   kind: List
   regex: '^[^&|;]+&&[^&|;]+\|\|[^&|;]+$'
-  not: { regex: '&&\s*\(\(|\$\([^)]*&&|\[\[[^\]]*\|\||\|\|\s*(?:(?:echo|printf|true|return|exit)\b|:(?:\s|$))' }
+  not: { regex: '&&\s*[({]|\$\([^)]*&&|\[\[[^\]]*\|\||\|\|\s*(?:(?:echo|printf|true|return|exit)\b|:(?:\s|$))' }
 ---
 id: iterate-ls-output
 message: do not loop over ls output; use a glob

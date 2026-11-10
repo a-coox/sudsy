@@ -43,6 +43,7 @@ which git
 test -f x && echo yes || cleanup
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ and-or-is-not-if-else
 test -f x && echo yes || echo no
+[ -n x ] && (a || b)
 a && b
 a || b && c
 ls -l | grep txt | wc -l
