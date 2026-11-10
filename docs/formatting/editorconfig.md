@@ -1,7 +1,7 @@
 # EditorConfig (`lang-editorconfig`)
 
 ## Parser
-konomanoasa-tree-sitter-editorconfig 0.9 (MIT, EditorConfig specification 0.17.2) linked in natively and converted by `core-treesitter` ([../architecture/adding-a-language.md](../architecture/adding-a-language.md)); the node mapping is `crates/lang-editorconfig/src/mapping.rs`, the tree shape `grammars/editorconfig.grammar`. A `Document` holds the preamble pairs and the `Section`s; a `Section` is a `SectionHeader` (`[glob]`) and its `Pair`s; the glob, the key and the value are one token each. Tree-sitter's issue nodes (missing `]`, missing `=`) are unmapped, so a malformed line is a parse error and the file is refused. Chosen over a hand-written parser because the grammar follows the specification and the adapter, formatter shape and comment handling come with it (mapping 30 lines, no parser).
+konomanoasa-tree-sitter-editorconfig 0.9 (MIT, EditorConfig specification 0.17.2) linked in natively and converted by `core-treesitter` ([../architecture/adding-a-language.md](../architecture/adding-a-language.md)); the node mapping is the `mapping` of `crates/lang-editorconfig/lang.yaml`, the tree shape `grammars/editorconfig.grammar`. A `Document` holds the preamble pairs and the `Section`s; a `Section` is a `SectionHeader` (`[glob]`) and its `Pair`s; the glob, the key and the value are one token each. Tree-sitter's issue nodes (missing `]`, missing `=`) are unmapped, so a malformed line is a parse error and the file is refused. Chosen over a hand-written parser because the grammar follows the specification and the adapter, formatter shape and comment handling come with it (no parser).
 
 Files: the file name `.editorconfig` (`Spec::file_names`).
 

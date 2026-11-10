@@ -1,4 +1,4 @@
-// Gitignore-syntax files (.gitignore, .dockerignore, ...), parsed by tree-sitter (konomanoasa-tree-sitter-gitignore) and mapped by crates/lang-gitignore/src/mapping.rs.
+// Gitignore-syntax files (.gitignore, .dockerignore, ...), parsed by tree-sitter (konomanoasa-tree-sitter-gitignore) and mapped by the mapping of crates/lang-gitignore/lang.yaml.
 // Format: see crates/core-syntax/src/grammar/mod.rs.
 
 language gitignore 11 "Gitignore"

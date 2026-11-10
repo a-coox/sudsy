@@ -1,10 +1,83 @@
 // Generated from lang.yaml by `cargo xtask codegen`.
 use core_syntax::grammars;
-use core_treesitter::{Spec, TreeSitterProvider};
+use core_treesitter::{Mapping, Spec, TreeSitterProvider};
 
 core_syntax::include_generated!();
 
 #[rustfmt::skip]
 pub fn provider() -> TreeSitterProvider {
-    TreeSitterProvider::new(Spec { crate_name: env!("CARGO_PKG_NAME"), language: || core_packs::language!("dockerfile", tree_sitter_containerfile::LANGUAGE), grammar: grammars::DOCKERFILE, mapping: &mapping::MAPPING, extensions: &["dockerfile"], file_names: &["Dockerfile", "Containerfile", "Dockerfile.*", "Containerfile.*"], schema: option_schema(), formatter: &DockerfileFormatter, hooks: &core_rules::DEFAULT_HOOKS, rules: rules::RULES, pattern_files: provider_api::pattern_files!(), families: rules::FAMILIES, validate: None }).with_embedded(embedded::find)
+    TreeSitterProvider::new(Spec { crate_name: env!("CARGO_PKG_NAME"), language: || core_packs::language!("dockerfile", tree_sitter_containerfile::LANGUAGE), grammar: grammars::DOCKERFILE, mapping: &MAPPING, extensions: &["dockerfile"], file_names: &["Dockerfile", "Containerfile", "Dockerfile.*", "Containerfile.*"], schema: option_schema(), formatter: &DockerfileFormatter, hooks: &core_rules::DEFAULT_HOOKS, rules: rules::RULES, pattern_files: provider_api::pattern_files!(), families: rules::FAMILIES, validate: None }).with_embedded(embedded::find)
 }
+
+pub const MAPPING: Mapping = Mapping {
+    whitespace: "Whitespace",
+    newline: "Newline",
+    eof: "Eof",
+    unknown: "Unknown",
+    wrap: &[
+        ("Raw", "Instruction"),
+    ],
+    kinds: &[
+        ("source_file", "Document"),
+        ("heredoc_block", "Heredoc"),
+        ("from_instruction", "Instruction"),
+        ("run_instruction", "Instruction"),
+        ("cmd_instruction", "Instruction"),
+        ("label_instruction", "Instruction"),
+        ("expose_instruction", "Instruction"),
+        ("env_instruction", "Instruction"),
+        ("add_instruction", "Instruction"),
+        ("copy_instruction", "Instruction"),
+        ("entrypoint_instruction", "Instruction"),
+        ("volume_instruction", "Instruction"),
+        ("user_instruction", "Instruction"),
+        ("workdir_instruction", "Instruction"),
+        ("arg_instruction", "Instruction"),
+        ("onbuild_instruction", "Instruction"),
+        ("healthcheck_instruction", "Instruction"),
+        ("shell_instruction", "Instruction"),
+        ("FROM", "Keyword"),
+        ("AS", "Keyword"),
+        ("RUN", "Keyword"),
+        ("CMD", "Keyword"),
+        ("LABEL", "Keyword"),
+        ("EXPOSE", "Keyword"),
+        ("ENV", "Keyword"),
+        ("ADD", "Keyword"),
+        ("COPY", "Keyword"),
+        ("ENTRYPOINT", "Keyword"),
+        ("VOLUME", "Keyword"),
+        ("USER", "Keyword"),
+        ("WORKDIR", "Keyword"),
+        ("ARG", "Keyword"),
+        ("ONBUILD", "Keyword"),
+        ("HEALTHCHECK", "Keyword"),
+        ("SHELL", "Keyword"),
+        ("stopsignal_instruction", "Raw"),
+        ("maintainer_instruction", "Raw"),
+        ("cross_build_instruction", "Raw"),
+        ("param", "Word"),
+        ("mount_param", "Word"),
+        ("end_of_options", "Word"),
+        ("env_pair", "Word"),
+        ("label_pair", "Word"),
+        ("arg_pair", "Word"),
+        ("expose_port", "Word"),
+        ("image_spec", "Word"),
+        ("image_alias", "Word"),
+        ("path", "Word"),
+        ("expansion", "Word"),
+        ("unquoted_string", "Word"),
+        ("double_quoted_string", "Word"),
+        ("single_quoted_string", "Word"),
+        ("NONE", "Word"),
+        ("comment", "Comment"),
+        ("line_continuation", "LineContinuation"),
+        ("shell_command", "ShellCommand"),
+        ("json_string", "JsonString"),
+        (":", "Colon"),
+        ("[", "LBracket"),
+        ("]", "RBracket"),
+        (",", "Comma"),
+    ],
+};

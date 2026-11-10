@@ -9,3 +9,10 @@ options:
   - end_of_line
   - max_blank_lines: [1, "Largest number of blank lines kept between entries, sections and comments."]
 presets: [default]
+mapping:
+  same: 'document section section_header pair comment key value'
+  Newline: line_ending
+  LBracket: section_open
+  RBracket: section_close
+  Equals: assignment_operator
+  Glob: pattern

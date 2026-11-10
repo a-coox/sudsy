@@ -1,4 +1,4 @@
-// PowerShell, parsed by tree-sitter (woodruffw-trough-tree-sitter-powershell) and mapped by crates/lang-powershell/src/mapping.rs.
+// PowerShell, parsed by tree-sitter (woodruffw-trough-tree-sitter-powershell) and mapped by the mapping of crates/lang-powershell/lang.yaml.
 // The tree is flat: only the shapes the formatter and the rules read are nodes.
 // Format: see crates/core-syntax/src/grammar/mod.rs.
 

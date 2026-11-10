@@ -9,3 +9,14 @@ options:
   - final_newline: true
   - end_of_line
 presets: [buf-standard]
+mapping:
+  same: 'empty_statement syntax edition import package message message_name message_body enum enum_name enum_body enum_field enum_value_option extend group field field_options field_option oneof oneof_field map_field reserved extensions ranges range service service_name rpc rpc_name full_ident constant block_lit extension_name comment type key_type string bool'
+  Document: source_file
+  OptionDecl: option
+  ReservedNames: reserved_field_names
+  MessageType: message_or_enum_type
+  Ident: identifier reserved_identifier
+  Int: field_number int_lit
+  Float: float_lit
+  Punct: '= . - + / ( ) [ ] < >'
+  Keyword: '"syntax" "edition" "import" "package" "option" "enum" "message" "extend" "service" "rpc" "oneof" "reserved" "extensions" "group" weak public export local stream returns map to max optional required repeated'

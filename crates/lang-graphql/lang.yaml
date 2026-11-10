@@ -12,3 +12,36 @@ options:
   - bracket_spacing: true
   - final_newline: true
   - end_of_line
+mapping:
+  same: 'comment description fragment_name type_condition default_value selection_set field alias inline_fragment fragment_spread arguments argument list_value object_value object_field directive name variable'
+  Document: source_file
+  Whitespace: comma
+  Operation: operation_definition
+  Keyword: 'operation_type "fragment" "on" "extend" "schema" "scalar" "type" "interface" "union" "enum" "input" "directive" "implements" "repeatable"'
+  Fragment: fragment_definition
+  VarDefs: variable_definitions
+  VarDef: variable_definition
+  TypeRef: type
+  Schema: schema_definition schema_extension
+  RootOp: root_operation_type_definition
+  ScalarType: scalar_type_definition scalar_type_extension
+  ObjectType: object_type_definition object_type_extension
+  InterfaceType: interface_type_definition interface_type_extension
+  UnionType: union_type_definition union_type_extension
+  EnumType: enum_type_definition enum_type_extension
+  InputType: input_object_type_definition input_object_type_extension
+  DirectiveDef: directive_definition
+  FieldsDef: fields_definition
+  FieldDef: field_definition
+  ArgsDef: arguments_definition
+  InputValueDef: input_value_definition
+  InputFields: input_fields_definition
+  EnumValues: enum_values_definition
+  EnumValueDef: enum_value_definition
+  String: string_value
+  Int: int_value
+  Float: float_value
+  Bool: boolean_value
+  "Null": null_value
+  Location: executable_directive_location type_system_directive_location
+  Punct: '( ) [ ] : = ! @ ...'

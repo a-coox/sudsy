@@ -1,4 +1,4 @@
-// EditorConfig 0.17, parsed by tree-sitter (konomanoasa-tree-sitter-editorconfig) and mapped by crates/lang-editorconfig/src/mapping.rs.
+// EditorConfig 0.17, parsed by tree-sitter (konomanoasa-tree-sitter-editorconfig) and mapped by the mapping of crates/lang-editorconfig/lang.yaml.
 // Format: see crates/core-syntax/src/grammar/mod.rs.
 
 language editorconfig 7 "EditorConfig"

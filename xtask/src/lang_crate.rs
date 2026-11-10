@@ -87,7 +87,11 @@ pub fn generate(langs: &[Lang]) -> Result<Vec<(PathBuf, String)>> {
         let name = krate.trim_start_matches("lang-");
         if yaml.get("grammar-crate").is_some() {
             files.push((rel.join("Cargo.toml"), cargo_toml(krate, yaml)));
-            files.push((rel.join("src/provider.generated.rs"), provider(name, yaml)));
+            let consts = crate::mapping::consts(name, l)?;
+            files.push((
+                rel.join("src/provider.generated.rs"),
+                provider(name, yaml) + &consts,
+            ));
         }
         if let Some(schema) = crate::options::generate(name, l)? {
             files.push((rel.join("src/schema.generated.rs"), schema));
@@ -135,7 +139,21 @@ fn provider(name: &str, v: &Value) -> String {
     let grammar = text(v, "grammar-crate", "").replace('-', "_");
     let language = text(v, "language-const", "LANGUAGE");
     let upper = name.to_uppercase();
-    let mapping = text(v, "mapping", "mapping::MAPPING");
+    // A `mapping` map is generated (`mapping.rs`); a string names a hand-written `Mapping`.
+    let data = v.get("mapping").is_some_and(Value::is_object);
+    let mapping = match data {
+        true => "MAPPING",
+        false => text(v, "mapping", "mapping::MAPPING"),
+    };
+    let composite = match v.get("composite") {
+        Some(Value::Object(_)) => Some("COMPOSITE"),
+        c => c.and_then(Value::as_str),
+    };
+    let imports = match v.get("composite").is_some_and(Value::is_object) {
+        true => "Composite, Mapping, Spec, TreeSitterProvider",
+        false if data => "Mapping, Spec, TreeSitterProvider",
+        false => "Spec, TreeSitterProvider",
+    };
     let hooks = text(v, "hooks", "core_rules::DEFAULT_HOOKS");
     let validate = v
         .get("validate")
@@ -153,7 +171,7 @@ fn provider(name: &str, v: &Value) -> String {
         text(v, "formatter", ""),
         text(v, "families", "&[]"),
     );
-    let body = match v.get("composite").and_then(Value::as_str) {
+    let body = match composite {
         Some(c) => format!("TreeSitterProvider::with_composite({spec}, Some({c}))"),
         None => format!("TreeSitterProvider::new({spec})"),
     };
@@ -162,7 +180,7 @@ fn provider(name: &str, v: &Value) -> String {
         None => body,
     };
     format!(
-        "// Generated from lang.yaml by `cargo xtask codegen`.\nuse core_syntax::grammars;\nuse core_treesitter::{{Spec, TreeSitterProvider}};\n\ncore_syntax::include_generated!();\n\n#[rustfmt::skip]\npub fn provider() -> TreeSitterProvider {{\n    {body}\n}}\n"
+        "// Generated from lang.yaml by `cargo xtask codegen`.\nuse core_syntax::grammars;\nuse core_treesitter::{{{imports}}};\n\ncore_syntax::include_generated!();\n\n#[rustfmt::skip]\npub fn provider() -> TreeSitterProvider {{\n    {body}\n}}\n"
     )
 }
 

@@ -13,3 +13,12 @@ options:
   - end_of_line
   - max_blank_lines: [1, "Largest number of blank lines kept between instructions and comments."]
 presets: [hadolint]
+mapping:
+  wrap: {Raw: Instruction}
+  same: 'comment line_continuation shell_command json_string'
+  Document: source_file
+  Instruction: from_instruction run_instruction cmd_instruction label_instruction expose_instruction env_instruction add_instruction copy_instruction entrypoint_instruction volume_instruction user_instruction workdir_instruction arg_instruction onbuild_instruction healthcheck_instruction shell_instruction
+  Keyword: FROM AS RUN CMD LABEL EXPOSE ENV ADD COPY ENTRYPOINT VOLUME USER WORKDIR ARG ONBUILD HEALTHCHECK SHELL
+  Heredoc: heredoc_block
+  Raw: stopsignal_instruction maintainer_instruction cross_build_instruction
+  Word: param mount_param end_of_options env_pair label_pair arg_pair expose_port image_spec image_alias path expansion unquoted_string double_quoted_string single_quoted_string NONE

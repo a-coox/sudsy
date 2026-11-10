@@ -3,7 +3,9 @@ grammar-path: grammars/tree-sitter-make
 extensions: [mk, mak]
 file-names: [Makefile, GNUmakefile, makefile]
 formatter: MakefileFormatter
-composite: mapping::COMPOSITE
+composite:
+  text: Word
+  continuation: true
 embedded: embedded::find
 dev-deps: [core-config, core-incremental, lang-shell]
 options:
@@ -19,3 +21,22 @@ options:
       doc: "Write `target : prerequisite` rather than `target: prerequisite`."
   - max_blank_lines: [2, "Largest number of blank lines kept between statements and comments."]
 presets: [checkmake]
+mapping:
+  same: 'comment rule targets recipe recipe_line shell_text conditional word'
+  Document: makefile
+  Prereqs: prerequisites pattern_list
+  Assign: variable_assignment shell_assignment RECIPEPREFIX_assignment VPATH_assignment
+  Define: define_directive
+  Call: function_call shell_function
+  Directive: include_directive export_directive unexport_directive override_directive private_directive undefine_directive vpath_directive ifdef_directive ifndef_directive ifeq_directive ifneq_directive
+  Else: else_directive elsif_directive
+  Word: 'string concatenation archive .RECIPEPREFIX VPATH'
+  MakeRef: variable_reference automatic_variable substitution_reference
+  MakeEscape: escape
+  Value: text shell_command
+  Raw: raw_text
+  Tab: ["\t"]
+  Colon: ': :: &:'
+  Prefix: '@ - +'
+  Op: '= := ::= ?= += !='
+  Keyword: 'include -include sinclude export unexport override private define endef undefine vpath ifdef ifndef ifeq ifneq else endif'

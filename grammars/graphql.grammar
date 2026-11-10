@@ -1,4 +1,4 @@
-// GraphQL (executable documents and schema definition language), parsed by tree-sitter (tree-sitter-graphql) and mapped by crates/lang-graphql/src/mapping.rs.
+// GraphQL (executable documents and schema definition language), parsed by tree-sitter (tree-sitter-graphql) and mapped by the mapping of crates/lang-graphql/lang.yaml.
 // Format: see crates/core-syntax/src/grammar/mod.rs.
 
 language graphql 14 "GraphQL"

@@ -1,10 +1,104 @@
 // Generated from lang.yaml by `cargo xtask codegen`.
 use core_syntax::grammars;
-use core_treesitter::{Spec, TreeSitterProvider};
+use core_treesitter::{Composite, Mapping, Spec, TreeSitterProvider};
 
 core_syntax::include_generated!();
 
 #[rustfmt::skip]
 pub fn provider() -> TreeSitterProvider {
-    TreeSitterProvider::with_composite(Spec { crate_name: env!("CARGO_PKG_NAME"), language: || core_packs::language!("makefile", tree_sitter_make::LANGUAGE), grammar: grammars::MAKEFILE, mapping: &mapping::MAPPING, extensions: &["mk", "mak"], file_names: &["Makefile", "GNUmakefile", "makefile"], schema: option_schema(), formatter: &MakefileFormatter, hooks: &core_rules::DEFAULT_HOOKS, rules: rules::RULES, pattern_files: provider_api::pattern_files!(), families: &[], validate: None }, Some(mapping::COMPOSITE)).with_embedded(embedded::find)
+    TreeSitterProvider::with_composite(Spec { crate_name: env!("CARGO_PKG_NAME"), language: || core_packs::language!("makefile", tree_sitter_make::LANGUAGE), grammar: grammars::MAKEFILE, mapping: &MAPPING, extensions: &["mk", "mak"], file_names: &["Makefile", "GNUmakefile", "makefile"], schema: option_schema(), formatter: &MakefileFormatter, hooks: &core_rules::DEFAULT_HOOKS, rules: rules::RULES, pattern_files: provider_api::pattern_files!(), families: &[], validate: None }, Some(COMPOSITE)).with_embedded(embedded::find)
 }
+
+pub const MAPPING: Mapping = Mapping {
+    whitespace: "Whitespace",
+    newline: "Newline",
+    eof: "Eof",
+    unknown: "Unknown",
+    wrap: &[
+    ],
+    kinds: &[
+        ("variable_assignment", "Assign"),
+        ("shell_assignment", "Assign"),
+        ("RECIPEPREFIX_assignment", "Assign"),
+        ("VPATH_assignment", "Assign"),
+        ("function_call", "Call"),
+        ("shell_function", "Call"),
+        (":", "Colon"),
+        ("::", "Colon"),
+        ("&:", "Colon"),
+        ("define_directive", "Define"),
+        ("include_directive", "Directive"),
+        ("export_directive", "Directive"),
+        ("unexport_directive", "Directive"),
+        ("override_directive", "Directive"),
+        ("private_directive", "Directive"),
+        ("undefine_directive", "Directive"),
+        ("vpath_directive", "Directive"),
+        ("ifdef_directive", "Directive"),
+        ("ifndef_directive", "Directive"),
+        ("ifeq_directive", "Directive"),
+        ("ifneq_directive", "Directive"),
+        ("makefile", "Document"),
+        ("else_directive", "Else"),
+        ("elsif_directive", "Else"),
+        ("include", "Keyword"),
+        ("-include", "Keyword"),
+        ("sinclude", "Keyword"),
+        ("export", "Keyword"),
+        ("unexport", "Keyword"),
+        ("override", "Keyword"),
+        ("private", "Keyword"),
+        ("define", "Keyword"),
+        ("endef", "Keyword"),
+        ("undefine", "Keyword"),
+        ("vpath", "Keyword"),
+        ("ifdef", "Keyword"),
+        ("ifndef", "Keyword"),
+        ("ifeq", "Keyword"),
+        ("ifneq", "Keyword"),
+        ("else", "Keyword"),
+        ("endif", "Keyword"),
+        ("escape", "MakeEscape"),
+        ("variable_reference", "MakeRef"),
+        ("automatic_variable", "MakeRef"),
+        ("substitution_reference", "MakeRef"),
+        ("=", "Op"),
+        (":=", "Op"),
+        ("::=", "Op"),
+        ("?=", "Op"),
+        ("+=", "Op"),
+        ("!=", "Op"),
+        ("@", "Prefix"),
+        ("-", "Prefix"),
+        ("+", "Prefix"),
+        ("prerequisites", "Prereqs"),
+        ("pattern_list", "Prereqs"),
+        ("raw_text", "Raw"),
+        ("\t", "Tab"),
+        ("text", "Value"),
+        ("shell_command", "Value"),
+        ("string", "Word"),
+        ("concatenation", "Word"),
+        ("archive", "Word"),
+        (".RECIPEPREFIX", "Word"),
+        ("VPATH", "Word"),
+        ("comment", "Comment"),
+        ("rule", "Rule"),
+        ("targets", "Targets"),
+        ("recipe", "Recipe"),
+        ("recipe_line", "RecipeLine"),
+        ("shell_text", "ShellText"),
+        ("conditional", "Conditional"),
+        ("word", "Word"),
+        ("|", "Pipe"),
+        (";", "Semi"),
+    ],
+};
+
+pub const COMPOSITE: Composite = Composite {
+    text: "Word",
+    injected: &[],
+    refine: &[],
+    continuation: true,
+    tolerant: &[],
+};

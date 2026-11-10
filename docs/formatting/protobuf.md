@@ -1,7 +1,7 @@
 # Protobuf (`lang-protobuf`)
 
 ## Parser
-tree-sitter-proto 0.6 (proto2, proto3 and editions, including the 2024 `export`/`local` modifiers) linked in natively and converted by `core-treesitter` ([../architecture/adding-a-language.md](../architecture/adding-a-language.md)); the node mapping is `crates/lang-protobuf/src/mapping.rs`, the tree shape `grammars/protobuf.grammar`. The grammar has rules and keywords of the same name (`message`), so the mapping quotes the keywords (`"\"message\""`).
+tree-sitter-proto 0.6 (proto2, proto3 and editions, including the 2024 `export`/`local` modifiers) linked in natively and converted by `core-treesitter` ([../architecture/adding-a-language.md](../architecture/adding-a-language.md)); the node mapping is the `mapping` of `crates/lang-protobuf/lang.yaml`, the tree shape `grammars/protobuf.grammar`. The grammar has rules and keywords of the same name (`message`), so the mapping quotes the keywords (`"\"message\""`).
 
 Files: `*.proto`. Tree-sitter reports syntax errors ("syntax error", "missing X"); a valid file never gets one: all 322 files of the corpus below parse.
 

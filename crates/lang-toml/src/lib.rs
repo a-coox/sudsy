@@ -1,10 +1,9 @@
-//! TOML: tree-sitter parses (through `core-treesitter`, mapping in `mapping.rs`), formatting is
+//! TOML: tree-sitter parses (through `core-treesitter`, mapping in `lang.yaml`), formatting is
 //! the shared shapes plus the table layout in `format.rs`.
 
 mod align;
 mod format;
 mod hooks;
-mod mapping;
 mod rules;
 mod validate;
 

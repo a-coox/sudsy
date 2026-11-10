@@ -9,3 +9,9 @@ options:
   - end_of_line
   - max_blank_lines: [1, "Largest number of blank lines kept between patterns and comments."]
 presets: [default]
+mapping:
+  same: 'document comment'
+  Entry: pattern
+  Whitespace: blank_line trailing_space trailing_carriage_return
+  Newline: line_ending
+  Pattern: 'negation glob_literal wildcard single_character recursive_wildcard path_separator escape set_open set_close set_negation set_text class_name range_character range_operator [ ] :'

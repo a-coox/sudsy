@@ -14,3 +14,12 @@ options:
   - end_of_line
   - max_blank_lines: [1, "Largest number of blank lines kept between elements, comments and declarations."]
 presets: [default, csharpier-compat]
+mapping:
+  wrap: {CharData: Chunk, Reference: Chunk, CData: Chunk, PI: Chunk, XmlDecl: Chunk, Doctype: Chunk}
+  same: 'document element STag ETag Attribute Comment Name AttValue CharData PI'
+  EmptyTag: EmptyElemTag
+  Reference: EntityRef CharRef
+  CData: CDSect
+  PI: StyleSheetPI XmlModelPI
+  XmlDecl: XMLDecl
+  Doctype: doctypedecl

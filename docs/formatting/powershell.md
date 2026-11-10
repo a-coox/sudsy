@@ -1,7 +1,7 @@
 # PowerShell (`lang-powershell`)
 
 ## Parser
-woodruffw-trough-tree-sitter-powershell 0.1 (MIT, tree-sitter 0.27, PowerShell 7.5 reference parser, release 2026-10; the crate of the `woodruffw-trough/tree-sitter-powershell` repository) linked in natively and converted by `core-treesitter` ([../architecture/adding-a-language.md](../architecture/adding-a-language.md)); the node mapping is `crates/lang-powershell/src/mapping.rs`, the tree shape `grammars/powershell.grammar`. The other grammar on crates.io (`tree-sitter-powershell` 0.26, airbus-cert, MIT) rejects 40 of the 210 corpus files, this one 1 (a C# source with a `.ps1` name). The cost is size: its `parser.c` is 51 MB (the airbus one 4.8 MB) and adds 11.7 MB to a release binary.
+woodruffw-trough-tree-sitter-powershell 0.1 (MIT, tree-sitter 0.27, PowerShell 7.5 reference parser, release 2026-10; the crate of the `woodruffw-trough/tree-sitter-powershell` repository) linked in natively and converted by `core-treesitter` ([../architecture/adding-a-language.md](../architecture/adding-a-language.md)); the node mapping is the `mapping` of `crates/lang-powershell/lang.yaml`, the tree shape `grammars/powershell.grammar`. The other grammar on crates.io (`tree-sitter-powershell` 0.26, airbus-cert, MIT) rejects 40 of the 210 corpus files, this one 1 (a C# source with a `.ps1` name). The cost is size: its `parser.c` is 51 MB (the airbus one 4.8 MB) and adds 11.7 MB to a release binary.
 
 Files: `*.ps1`, `*.psm1`, `*.psd1`. The adapter runs in composite text mode (`Composite { text: "Word" }`): a leaf the mapping does not name (identifiers, variables, numbers, `.`, `::`) is a `Word`, and a backtick that ends a line is whitespace trivia.
 

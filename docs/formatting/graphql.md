@@ -1,7 +1,7 @@
 # GraphQL (`lang-graphql`)
 
 ## Parser
-a fork of tree-sitter-graphql 0.3 (joowani's maintained fork of bkegley's grammar, MIT) in `grammars/tree-sitter-graphql/` (changes in its `FORK.md`; [../development/grammar-forks.md](../development/grammar-forks.md)), linked in natively and converted by `core-treesitter` ([../architecture/adding-a-language.md](../architecture/adding-a-language.md)); the node mapping is `crates/lang-graphql/src/mapping.rs`, the tree shape `grammars/graphql.grammar`. A `Document` holds the definitions (operations, fragments, the schema, types, directive definitions, extensions); names, values, `$variables` and directive locations are one token each, a type reference (`[A!]!`) is a `TypeRef` of tokens, and commas are whitespace (GraphQL ignores them).
+a fork of tree-sitter-graphql 0.3 (joowani's maintained fork of bkegley's grammar, MIT) in `grammars/tree-sitter-graphql/` (changes in its `FORK.md`; [../development/grammar-forks.md](../development/grammar-forks.md)), linked in natively and converted by `core-treesitter` ([../architecture/adding-a-language.md](../architecture/adding-a-language.md)); the node mapping is the `mapping` of `crates/lang-graphql/lang.yaml`, the tree shape `grammars/graphql.grammar`. A `Document` holds the definitions (operations, fragments, the schema, types, directive definitions, extensions); names, values, `$variables` and directive locations are one token each, a type reference (`[A!]!`) is a `TypeRef` of tokens, and commas are whitespace (GraphQL ignores them).
 
 Files: `*.graphql`, `*.gql`. Tree-sitter reports syntax errors ("syntax error", "missing X"); a file with one is not formatted.
 

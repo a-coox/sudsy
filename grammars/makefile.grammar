@@ -1,4 +1,4 @@
-// GNU Makefiles (Makefile, GNUmakefile, *.mk), parsed by tree-sitter (tree-sitter-make) and mapped by crates/lang-makefile/src/mapping.rs.
+// GNU Makefiles (Makefile, GNUmakefile, *.mk), parsed by tree-sitter (tree-sitter-make) and mapped by the mapping of crates/lang-makefile/lang.yaml.
 // Format: see crates/core-syntax/src/grammar/mod.rs.
 
 language makefile 15 "Makefile"

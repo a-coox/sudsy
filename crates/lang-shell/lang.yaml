@@ -3,7 +3,10 @@ grammar-path: grammars/tree-sitter-bash
 extensions: [sh, bash]
 file-names: [.bashrc, .bash_profile, .profile]
 formatter: ShellFormatter
-composite: mapping::COMPOSITE
+composite:
+  text: Word
+  continuation: true
+  tolerant: [variable_assignment, test_command, string, concatenation, command_substitution]
 deps: [regex]
 options:
   - indent_size: 4
@@ -15,3 +18,26 @@ options:
   - end_of_line
   - max_blank_lines: [1, "Largest number of blank lines kept between statements and comments."]
 presets: [shellcheck]
+mapping:
+  same: 'program command pipeline list subshell do_group case_item heredoc_redirect string array comment heredoc_body heredoc_end word'
+  Command: declaration_command unset_command variable_assignments
+  Redirected: redirected_statement
+  Negated: negated_command
+  Group: compound_statement
+  If: if_statement
+  Elif: elif_clause
+  Else: else_clause
+  While: while_statement
+  For: for_statement
+  CFor: c_style_for_statement
+  Case: case_statement
+  Function: function_definition
+  Assign: variable_assignment
+  Test: test_command
+  Concat: concatenation
+  Subst: command_substitution
+  Redirect: file_redirect herestring_redirect
+  HeredocOp: '<< <<-'
+  Word: number raw_string ansi_c_string translated_string expansion simple_expansion process_substitution arithmetic_expansion brace_expression extglob_pattern regex special_variable_name variable_name file_descriptor test_operator heredoc_start subscript
+  Keyword: 'if then elif else fi while until for in do done case esac function select ! { } ( )'
+  Op: '& && || | |& ;; ;& ;;&'

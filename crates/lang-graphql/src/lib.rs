@@ -1,9 +1,8 @@
 //! GraphQL (executable documents and schema definition language): tree-sitter parses (through
-//! `core-treesitter`, mapping in `mapping.rs`), `format.rs` lays the definitions out like Prettier.
+//! `core-treesitter`, mapping in `lang.yaml`), `format.rs` lays the definitions out like Prettier.
 
 mod format;
 mod hooks;
-mod mapping;
 mod rules;
 
 pub use format::{GraphqlFormatter, option_schema};

@@ -1,4 +1,4 @@
-// HCL (Terraform, OpenTofu, Packer, Nomad, Consul), parsed by tree-sitter (tree-sitter-hcl) and mapped by crates/lang-hcl/src/mapping.rs.
+// HCL (Terraform, OpenTofu, Packer, Nomad, Consul), parsed by tree-sitter (tree-sitter-hcl) and mapped by the mapping of crates/lang-hcl/lang.yaml.
 // Format: see crates/core-syntax/src/grammar/mod.rs.
 // Expressions are flat: operands, operators and brackets are the children of an `Expr` or of the node
 // that tree-sitter makes of the construct (call, conditional, `for`, template); `//` comments are

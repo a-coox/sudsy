@@ -1,4 +1,4 @@
-// Dockerfile and Containerfile, parsed by tree-sitter (tree-sitter-containerfile) and mapped by crates/lang-dockerfile/src/mapping.rs.
+// Dockerfile and Containerfile, parsed by tree-sitter (tree-sitter-containerfile) and mapped by the mapping of crates/lang-dockerfile/lang.yaml.
 // Format: see crates/core-syntax/src/grammar/mod.rs.
 
 language dockerfile 8 "Dockerfile"

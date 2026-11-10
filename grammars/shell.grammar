@@ -1,4 +1,4 @@
-// POSIX sh and Bash, parsed by tree-sitter (tree-sitter-bash) and mapped by crates/lang-shell/src/mapping.rs.
+// POSIX sh and Bash, parsed by tree-sitter (tree-sitter-bash) and mapped by the mapping of crates/lang-shell/lang.yaml.
 // Format: see crates/core-syntax/src/grammar/mod.rs.
 
 language shell 9 "Shell"

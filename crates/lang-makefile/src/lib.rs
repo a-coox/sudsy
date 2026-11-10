@@ -1,6 +1,5 @@
 mod embedded;
 mod format;
-mod mapping;
 mod rules;
 
 pub use format::{MakefileFormatter, option_schema};

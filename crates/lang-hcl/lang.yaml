@@ -9,3 +9,22 @@ options:
   - final_newline: true
   - end_of_line
 presets: [tflint-recommended]
+mapping:
+  same: 'body attribute block variable_expr get_attr new_index function_call conditional tuple object object_elem quoted_template template_directive comment legacy_index'
+  Document: config_file
+  Expr: expression
+  Binary: binary_operation
+  Unary: unary_operation
+  ForExpr: for_tuple_expr for_object_expr
+  Heredoc: heredoc_template
+  Interpolation: template_interpolation
+  Ident: identifier
+  Number: numeric_lit
+  Bool: bool_lit
+  "Null": null_lit
+  String: string_lit
+  TemplateText: template_literal
+  Strip: strip_marker
+  HeredocId: heredoc_identifier
+  Punct: 'heredoc_start quoted_template_start quoted_template_end template_interpolation_start template_interpolation_end template_directive_start template_directive_end block_start block_end object_start object_end tuple_start tuple_end ellipsis = : ? => , . .* [*] [ ] ( ) - ! * / % + > >= < <= == != && ||'
+  Keyword: for in if else endif endfor

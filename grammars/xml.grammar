@@ -1,4 +1,4 @@
-// XML 1.0, parsed by tree-sitter (tree-sitter-xml) and mapped by crates/lang-xml/src/mapping.rs.
+// XML 1.0, parsed by tree-sitter (tree-sitter-xml) and mapped by the mapping of crates/lang-xml/lang.yaml.
 // Format: see crates/core-syntax/src/grammar/mod.rs.
 
 language xml 5 "XML"

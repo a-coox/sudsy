@@ -2,7 +2,8 @@ grammar-crate: woodruffw-trough-tree-sitter-powershell
 grammar-version: "0.1"
 extensions: [ps1, psm1, psd1]
 formatter: PowerShellFormatter
-composite: mapping::COMPOSITE
+composite:
+  text: Word
 hooks: hooks::PowerShellHooks
 deps: [memchr]
 options:
@@ -15,3 +16,23 @@ options:
   - end_of_line
   - max_blank_lines: [10, "Largest number of blank lines kept between statements and comments."]
 presets: [psscriptanalyzer]
+mapping:
+  same: 'hash_entry command script_block catch_clause comment'
+  Program: source_file
+  Binary: binary_expression
+  Unary: unary_expression
+  Hash: hashtable_expression
+  Function: function_definition
+  ParamDecl: parameter
+  AssignStmt: assignment_statement
+  Foreach: foreach_statement
+  Block: statement_block
+  Whitespace: line_continuation
+  String: single_quoted_string expandable_string
+  HereString: single_quoted_here_string expandable_here_string
+  Parameter: 'command_parameter_name -regex -wildcard'
+  HashOpen: '@{'
+  OpenParen: '( $( @('
+  Assign: '= += -= *= /= %= ??='
+  Keyword: begin break catch class configuration continue data default do dynamicparam else elseif end enum exit filter finally for foreach function hidden if in namespace param process return static switch throw trap try until using while
+  Op: '! % * / + ++ - -- .. ? ?? -f -not -bnot -and -or -xor -as -is -isnot -in -notin -join -split -replace -band -bor -bxor -shl -shr -eq -ne -gt -ge -lt -le -like -notlike -match -notmatch -contains -notcontains -ceq -cne -cgt -cge -clt -cle -clike -cnotlike -cmatch -cnotmatch -ccontains -cnotcontains -creplace -csplit -ieq -ine -igt -ige -ilt -ile -ilike -inotlike -imatch -inotmatch -icontains -inotcontains -ireplace -isplit'

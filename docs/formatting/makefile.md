@@ -1,7 +1,7 @@
 # Makefile (`lang-makefile`)
 
 ## Parser
-tree-sitter-make 1.1.1 (GNU make, forked in `grammars/tree-sitter-make`) linked in natively and converted by `core-treesitter` ([../architecture/adding-a-language.md](../architecture/adding-a-language.md)); the node mapping is `crates/lang-makefile/src/mapping.rs`, the tree shape `grammars/makefile.grammar`. The language is a composite with no injected grammar: text no mapped node covers (function names, the parentheses of `ifeq`) is a `Word` and a `\` ending a line is whitespace. A `Rule` holds `Targets`, a `Colon`, `Prereqs` and a `Recipe` of `RecipeLine`s; an `Assign` is `Word Op Value`; `include`, `export`, `ifeq` and the like are `Directive`s, `ifeq` to `endif` a `Conditional`, `define` to `endef` a `Define` (its body one `Raw` token). References (`$(CC)`, `$@`) and quoted strings are single tokens.
+tree-sitter-make 1.1.1 (GNU make, forked in `grammars/tree-sitter-make`) linked in natively and converted by `core-treesitter` ([../architecture/adding-a-language.md](../architecture/adding-a-language.md)); the node mapping is the `mapping` of `crates/lang-makefile/lang.yaml`, the tree shape `grammars/makefile.grammar`. The language is a composite with no injected grammar: text no mapped node covers (function names, the parentheses of `ifeq`) is a `Word` and a `\` ending a line is whitespace. A `Rule` holds `Targets`, a `Colon`, `Prereqs` and a `Recipe` of `RecipeLine`s; an `Assign` is `Word Op Value`; `include`, `export`, `ifeq` and the like are `Directive`s, `ifeq` to `endif` a `Conditional`, `define` to `endef` a `Define` (its body one `Raw` token). References (`$(CC)`, `$@`) and quoted strings are single tokens.
 
 Files: `Makefile`, `GNUmakefile`, `makefile`, `*.mk` and `*.mak`.
 

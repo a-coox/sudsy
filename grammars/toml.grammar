@@ -1,4 +1,4 @@
-// TOML 1.0, parsed by tree-sitter (tree-sitter-toml-ng) and mapped by crates/lang-toml/src/mapping.rs.
+// TOML 1.0, parsed by tree-sitter (tree-sitter-toml-ng) and mapped by the mapping of crates/lang-toml/lang.yaml.
 // Format: see crates/core-syntax/src/grammar/mod.rs.
 
 language toml 4 "TOML"

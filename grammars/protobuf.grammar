@@ -1,4 +1,4 @@
-// Protocol Buffers (proto2, proto3 and editions), parsed by tree-sitter (tree-sitter-proto) and mapped by crates/lang-protobuf/src/mapping.rs.
+// Protocol Buffers (proto2, proto3 and editions), parsed by tree-sitter (tree-sitter-proto) and mapped by the mapping of crates/lang-protobuf/lang.yaml.
 // Format: see crates/core-syntax/src/grammar/mod.rs.
 
 language protobuf 13 "Protobuf"
