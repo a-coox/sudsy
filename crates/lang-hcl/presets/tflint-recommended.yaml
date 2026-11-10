@@ -1,0 +1,12 @@
+# The rules of tflint-ruleset-terraform's recommended preset that Sudsy has (the rest are in docs/parity/tflint.yaml).
+hcl:
+  lint:
+    rules:
+      deprecated-index: warn
+      deprecated-interpolation: warn
+      empty-list-equality: warn
+      no-duplicate-keys: warn
+      required-providers: warn
+      required-version: warn
+      typed-variables: warn
+      unused-declarations: warn

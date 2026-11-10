@@ -1,0 +1,1 @@
+naming-convention: { level: warn, options: { format: mixed_snake_case } }

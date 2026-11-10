@@ -97,6 +97,28 @@
       {"dir": "tests/conformance/corpus/proto", "suffixes": [".proto"], "prefix": "corpus/", "recursive": true}
     ]
   },
+  "terraform": {
+    "catalog": "terraform",
+    "install": {
+      "release": "https://releases.hashicorp.com/terraform/{version}/{asset}",
+      "assets": {
+        "windows": "terraform_{version}_windows_amd64.zip",
+        "linux-x86_64": "terraform_{version}_linux_amd64.zip",
+        "darwin-arm64": "terraform_{version}_darwin_arm64.zip",
+        "darwin-x86_64": "terraform_{version}_darwin_amd64.zip"
+      },
+      "exe": "terraform"
+    },
+    "fetch": ["tests/conformance/fetch-hcl-corpus.sh"],
+    "command": ["{exe}", "fmt", "-no-color", "-"],
+    "input": "stdin",
+    "sudsy_command": "fix",
+    "tool_may_reject": true,
+    "fixtures": [
+      {"suffixes": [".tf"]},
+      {"dir": "tests/conformance/corpus/hcl", "suffixes": [".tf", ".pkr.hcl"], "prefix": "corpus/", "recursive": true}
+    ]
+  },
   "csharpier": {
     "catalog": "csharpier",
     "install": {"dotnet-tool": "csharpier", "exe": "csharpier"},

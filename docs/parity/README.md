@@ -1,6 +1,6 @@
 # Parity catalog
 
-What the tools Sudsy aims to replace do, and where Sudsy stands. One file per tool: `yamllint.yaml`, `prettier.yaml` (YAML, JSON, Markdown and GraphQL), `markdownlint.yaml` (markdownlint 0.42, rules MD001-MD060), `biome.yaml` (JSON), `eslint-plugin-jsonc.yaml`, `graphql-eslint.yaml` (graphql-eslint 4.4.2, the rules that need no schema), `hadolint.yaml` (hadolint 2.15.1, rules DL1001-DL4006; the ShellCheck rules it runs on RUN are out of scope), `stylecop.yaml` (StyleCop.Analyzers 1.2.0-beta.556), `taplo.yaml` (TOML), `shfmt.yaml` (Shell format), `buf.yaml` (Protobuf format), `checkmake.yaml` (checkmake 0.3.2, Makefile rules), `psscriptanalyzer.yaml` (PowerShell format and lint), `shellcheck.yaml` (shellcheck 0.11.0, checks SC1000-SC3062), `actionlint.yaml` (actionlint 1.7.12, its error kinds split by check), `csharpier.yaml`, `dotnet-format-editorconfig.yaml` (the IDE0055 formatting options and `.editorconfig` keys), `roslynator.yaml` (overlaps with the others only). Upstream versions are in each file's `version`. Sudsy facts were observed on a debug build; entries without a "Verified" note follow from the documentation of the tool.
+What the tools Sudsy aims to replace do, and where Sudsy stands. One file per tool: `yamllint.yaml`, `prettier.yaml` (YAML, JSON, Markdown and GraphQL), `markdownlint.yaml` (markdownlint 0.42, rules MD001-MD060), `biome.yaml` (JSON), `eslint-plugin-jsonc.yaml`, `graphql-eslint.yaml` (graphql-eslint 4.4.2, the rules that need no schema), `hadolint.yaml` (hadolint 2.15.1, rules DL1001-DL4006; the ShellCheck rules it runs on RUN are out of scope), `stylecop.yaml` (StyleCop.Analyzers 1.2.0-beta.556), `taplo.yaml` (TOML), `terraform.yaml` (HCL format), `tflint.yaml` (tflint-ruleset-terraform 0.17.0, the rules that need no provider), `shfmt.yaml` (Shell format), `buf.yaml` (Protobuf format), `checkmake.yaml` (checkmake 0.3.2, Makefile rules), `psscriptanalyzer.yaml` (PowerShell format and lint), `shellcheck.yaml` (shellcheck 0.11.0, checks SC1000-SC3062), `actionlint.yaml` (actionlint 1.7.12, its error kinds split by check), `csharpier.yaml`, `dotnet-format-editorconfig.yaml` (the IDE0055 formatting options and `.editorconfig` keys), `roslynator.yaml` (overlaps with the others only). Upstream versions are in each file's `version`. Sudsy facts were observed on a debug build; entries without a "Verified" note follow from the documentation of the tool.
 
 The differential runner [`scripts/parity.sh`](../development/parity.md) compares a tool's output with `sudsy lint` on fixtures. A test (`crates/languages/tests/parity.rs`) fails when a `rule:` or `option:` status names something that does not exist, or when the counts below are stale.
 
@@ -52,6 +52,8 @@ The readers (`languages::catalog::parse`, used by the counts test, `init` and th
 | shfmt | 9 | 1 | 1 | 0 | 0 | 3 | 4 | 0 |
 | stylecop | 197 | 120 | 10 | 1 | 45 | 21 | 0 | 1 |
 | taplo | 23 | 11 | 7 | 0 | 0 | 0 | 5 | 0 |
+| terraform | 2 | 1 | 1 | 0 | 0 | 0 | 0 | 0 |
+| tflint | 20 | 8 | 4 | 0 | 0 | 0 | 8 | 0 |
 | yamllint | 65 | 62 | 3 | 0 | 0 | 0 | 0 | 0 |
 
 ## Batches

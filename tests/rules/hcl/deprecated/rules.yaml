@@ -1,0 +1,3 @@
+deprecated-interpolation: warn
+deprecated-index: warn
+comment-syntax: warn

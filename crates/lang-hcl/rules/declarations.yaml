@@ -1,0 +1,61 @@
+id: typed-variables
+message: 'the variable has no `type`'
+description: >-
+  A `variable` block with no `type` argument (tflint terraform_typed_variables).
+example: 'variable "x" {}'
+severity: off
+category: style
+rule: { kind: Block, regex: '^variable\b', not-has: { kind: Attribute, regex: '^type\b' } }
+report-on: first-token
+---
+id: documented-variables
+message: 'the variable has no `description`'
+description: >-
+  A `variable` block with no `description` argument (tflint terraform_documented_variables).
+example: 'variable "x" {}'
+severity: off
+category: style
+rule: { kind: Block, regex: '^variable\b', not-has: { kind: Attribute, regex: '^description\b' } }
+report-on: first-token
+---
+id: documented-outputs
+message: 'the output has no `description`'
+description: >-
+  An `output` block with no `description` argument (tflint terraform_documented_outputs).
+example: 'output "x" { value = 1 }'
+severity: off
+category: style
+rule: { kind: Block, regex: '^output\b', not-has: { kind: Attribute, regex: '^description\b' } }
+report-on: first-token
+---
+id: required-version
+message: 'the `terraform` block has no `required_version`'
+description: >-
+  A `terraform` block with no `required_version` argument (tflint terraform_required_version, in the
+  file that has the block: the rule does not know the other files of the module).
+example: 'terraform { backend "s3" {} }'
+severity: off
+category: style
+rule: { kind: Block, regex: '^terraform\b', not-has: { kind: Attribute, regex: '^required_version\b' } }
+report-on: first-token
+---
+id: required-providers
+message: 'the `terraform` block has no `required_providers`'
+description: >-
+  A `terraform` block with no `required_providers` block (tflint terraform_required_providers, in
+  the file that has the block: the rule does not know the other files of the module).
+example: 'terraform { required_version = ">= 1" }'
+severity: off
+category: style
+rule: { kind: Block, regex: '^terraform\b', not-has: { kind: Block, regex: '^required_providers\b' } }
+report-on: first-token
+---
+id: empty-list-equality
+message: 'compare with `length(x) == 0`, not with `[]`'
+description: >-
+  A comparison with an empty list, `x == []` or `x != []` (tflint terraform_empty_list_equality):
+  it is false for an empty set or a tuple of another type.
+example: 'x = var.a == []'
+severity: warn
+category: suspicious
+rule: { kind: Binary, regex: '^\[\s*\]\s*[=!]=|[=!]=\s*\[\s*\]$' }

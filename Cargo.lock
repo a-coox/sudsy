@@ -1412,6 +1412,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "lang-hcl"
+version = "0.1.0"
+dependencies = [
+ "core-config",
+ "core-format",
+ "core-packs",
+ "core-rules",
+ "core-syntax",
+ "core-treesitter",
+ "insta",
+ "provider-api",
+ "rowan",
+ "tree-sitter-hcl",
+]
+
+[[package]]
 name = "lang-ini"
 version = "0.1.0"
 dependencies = [
@@ -1585,6 +1601,7 @@ dependencies = [
  "lang-github-actions",
  "lang-gitignore",
  "lang-graphql",
+ "lang-hcl",
  "lang-ini",
  "lang-json",
  "lang-makefile",
@@ -1847,6 +1864,7 @@ dependencies = [
  "tree-sitter-bash",
  "tree-sitter-containerfile",
  "tree-sitter-graphql",
+ "tree-sitter-hcl",
  "tree-sitter-ini",
  "tree-sitter-make",
  "tree-sitter-md",
@@ -2824,6 +2842,16 @@ name = "tree-sitter-graphql"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8e3628190860fa4d04703babffb9d70f4da8ee934b8f79423c86ce8f3c6214b6"
+dependencies = [
+ "cc",
+ "tree-sitter-language",
+]
+
+[[package]]
+name = "tree-sitter-hcl"
+version = "1.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5a7b2cc3d7121553b84309fab9d11b3ff3d420403eef9ae50f9fd1cd9d9cf012"
 dependencies = [
  "cc",
  "tree-sitter-language",

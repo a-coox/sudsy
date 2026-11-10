@@ -31,6 +31,10 @@ and are not committed.
 * `tests/fixtures/presets/json-default/`: the examples of RFC 8259 section 13, used under the
   IETF Trust's Legal Provisions for code components (Revised BSD License).
 
+* `bench/inputs/tf/*.tf`: files of <https://github.com/terraform-aws-modules/terraform-aws-eks> and
+  <https://github.com/terraform-aws-modules/terraform-aws-vpc>, Copyright (c) Anton Babenko and
+  contributors, Apache License 2.0 (<https://www.apache.org/licenses/LICENSE-2.0>), unmodified.
+
 ## The MIT License
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and

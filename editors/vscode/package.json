@@ -29,6 +29,7 @@
     "onLanguage:protobuf",
     "onLanguage:graphql",
     "onLanguage:makefile",
+    "onLanguage:hcl",
     "onLanguage:powershell",
     "onLanguage:csharp",
     "workspaceContains:**/sudsy.{yaml,yml}"

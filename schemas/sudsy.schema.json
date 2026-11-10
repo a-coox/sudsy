@@ -115,6 +115,10 @@
               "$ref": "#/definitions/rule",
               "description": "A line comment has text right after its marker. Exempt: nothing but whitespace after the marker, a marker repeated (`////`, `##`), `--` separator lines, and a `#!` shebang on the first line. The fix inserts the space."
             },
+            "comment-syntax": {
+              "$ref": "#/definitions/rule",
+              "description": "A `//` comment where `#` is the convention (tflint terraform_comment_syntax). The fix writes `#`."
+            },
             "constant-on-right": {
               "$ref": "#/definitions/rule",
               "description": "A comparison with the constant on the left: `null == x` is `x == null`, `1 < x` is `x > 1`. Without the type layer a constant is a literal, `nameof`, `int.MaxValue`-style member or an expression of those; a named constant on the left is not recognised."
@@ -158,6 +162,14 @@
             "deprecated-commands": {
               "$ref": "#/definitions/rule",
               "description": "A script uses a workflow command that GitHub has disabled (`::set-output`, `::save-state`, `::set-env`, `::add-path`); write to `$GITHUB_OUTPUT`, `$GITHUB_STATE`, `$GITHUB_ENV` or `$GITHUB_PATH` instead."
+            },
+            "deprecated-index": {
+              "$ref": "#/definitions/rule",
+              "description": "A list item read with the legacy dot syntax, `a.0` (tflint terraform_deprecated_index). The fix writes `a[0]`."
+            },
+            "deprecated-interpolation": {
+              "$ref": "#/definitions/rule",
+              "description": "A string that is one interpolation, `\"${var.a}\"`, where the expression alone does (tflint terraform_deprecated_interpolation). The fix writes the expression. Not in Nomad job files (`.nomad`, `.nomad.hcl`), whose agent fills those in at run time."
             },
             "descriptive-link-text": {
               "$ref": "#/definitions/rule",
@@ -278,6 +290,14 @@
               "$ref": "#/definitions/rule",
               "description": "The first document does not start with `---`."
             },
+            "documented-outputs": {
+              "$ref": "#/definitions/rule",
+              "description": "An `output` block with no `description` argument (tflint terraform_documented_outputs)."
+            },
+            "documented-variables": {
+              "$ref": "#/definitions/rule",
+              "description": "A `variable` block with no `description` argument (tflint terraform_documented_variables)."
+            },
             "duplicate-ids": {
               "$ref": "#/definitions/rule",
               "description": "Job ids that differ only in case (ids are case-insensitive; exact repeats are `no-duplicate-keys`), and step ids repeated within a job."
@@ -289,6 +309,10 @@
             "empty-catch-block": {
               "$ref": "#/definitions/rule",
               "description": "A `catch` clause whose block has no statement (a comment does not count)."
+            },
+            "empty-list-equality": {
+              "$ref": "#/definitions/rule",
+              "description": "A comparison with an empty list, `x == []` or `x != []` (tflint terraform_empty_list_equality): it is false for an empty set or a tuple of another type."
             },
             "empty-section": {
               "$ref": "#/definitions/rule",
@@ -1433,6 +1457,14 @@
               "$ref": "#/definitions/rule",
               "description": "A `using` directive that nothing in the file needs (the compiler's hidden CS8019, IDE0005 in the SDK analyzers). Not reported in a file that has compiler errors or `#if` regions, because unresolved or inactive code could be the one using it."
             },
+            "required-providers": {
+              "$ref": "#/definitions/rule",
+              "description": "A `terraform` block with no `required_providers` block (tflint terraform_required_providers, in the file that has the block: the rule does not know the other files of the module)."
+            },
+            "required-version": {
+              "$ref": "#/definitions/rule",
+              "description": "A `terraform` block with no `required_version` argument (tflint terraform_required_version, in the file that has the block: the rule does not know the other files of the module)."
+            },
             "root-in-section": {
               "$ref": "#/definitions/rule",
               "description": "The `root` property stops the search for parent `.editorconfig` files, but only as a preamble pair (before the first `[section]`); inside a section editors ignore it. No fix: moving it into the preamble is the author's call."
@@ -1719,6 +1751,10 @@
               "$ref": "#/definitions/rule",
               "description": "A tuple type in the signature of a method, constructor, property, indexer, conversion operator or delegate whose elements have no names. Overrides and implementations of interface members are left alone (their names are not the member's to choose). No fix."
             },
+            "typed-variables": {
+              "$ref": "#/definitions/rule",
+              "description": "A `variable` block with no `type` argument (tflint terraform_typed_variables)."
+            },
             "unique-fragment-name": {
               "$ref": "#/definitions/rule",
               "description": "Two fragments of a document have the same name; a spread cannot tell which one it means. Checked within the file."
@@ -1838,6 +1874,10 @@
             "unused-assignment": {
               "$ref": "#/definitions/rule",
               "description": "A value is stored in a local variable and no path reads it before it is overwritten or the variable goes out of scope (a dead store). Variables that are captured or whose address is taken are not checked; a variable that is never read at all is reported by `unused-variable` instead. Overlaps the SDK analyzer IDE0059 (unnecessary assignment)."
+            },
+            "unused-declarations": {
+              "$ref": "#/definitions/rule",
+              "description": "A variable, local value or data source that nothing in the same file refers to (tflint terraform_unused_declarations, within one file: a module that uses its variables in other files needs the rule off or those files in one)."
             },
             "unused-private-member": {
               "$ref": "#/definitions/rule",
@@ -2579,6 +2619,7 @@
           "preset:dockerfile/hadolint",
           "preset:editorconfig/default",
           "preset:gitignore/default",
+          "preset:hcl/tflint-recommended",
           "preset:ini/default",
           "preset:json/biome",
           "preset:json/default",
@@ -2930,6 +2971,64 @@
       },
       "type": "object"
     },
+    "hcl": {
+      "additionalProperties": false,
+      "properties": {
+        "format": {
+          "additionalProperties": false,
+          "properties": {
+            "end_of_line": {
+              "default": "auto",
+              "description": "Line break style of the output: `lf`, `crlf`, or `auto` to keep the file's first              line break.",
+              "enum": [
+                "auto",
+                "lf",
+                "crlf"
+              ],
+              "type": "string"
+            },
+            "final_newline": {
+              "default": true,
+              "description": "End the file with a newline.",
+              "type": "boolean"
+            },
+            "indent_size": {
+              "default": 2,
+              "description": "Columns per indentation level (also the width of a tab).",
+              "maximum": 16,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          "type": "object"
+        },
+        "lint": {
+          "$ref": "#/definitions/lint"
+        },
+        "semantics": {
+          "additionalProperties": false,
+          "description": "Facts about methods that the flow analyses use.",
+          "properties": {
+            "does_not_return": {
+              "description": "Qualified method names without parameter lists; every overload is covered.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "pure": {
+              "description": "Qualified method names without parameter lists; every overload is covered.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          "type": "object"
+        }
+      },
+      "type": "object"
+    },
     "include": {
       "description": "Globs of the files to format and lint (everything when empty).",
       "items": {
@@ -3138,6 +3237,7 @@
           "protobuf",
           "graphql",
           "makefile",
+          "hcl",
           "powershell",
           "csharp"
         ]
@@ -4161,6 +4261,64 @@
                     "description": "Preferred maximum line width in columns.",
                     "maximum": 1000,
                     "minimum": 20,
+                    "type": "integer"
+                  }
+                },
+                "type": "object"
+              },
+              "lint": {
+                "$ref": "#/definitions/lint"
+              },
+              "semantics": {
+                "additionalProperties": false,
+                "description": "Facts about methods that the flow analyses use.",
+                "properties": {
+                  "does_not_return": {
+                    "description": "Qualified method names without parameter lists; every overload is covered.",
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "pure": {
+                    "description": "Qualified method names without parameter lists; every overload is covered.",
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  }
+                },
+                "type": "object"
+              }
+            },
+            "type": "object"
+          },
+          "hcl": {
+            "additionalProperties": false,
+            "properties": {
+              "format": {
+                "additionalProperties": false,
+                "properties": {
+                  "end_of_line": {
+                    "default": "auto",
+                    "description": "Line break style of the output: `lf`, `crlf`, or `auto` to keep the file's first              line break.",
+                    "enum": [
+                      "auto",
+                      "lf",
+                      "crlf"
+                    ],
+                    "type": "string"
+                  },
+                  "final_newline": {
+                    "default": true,
+                    "description": "End the file with a newline.",
+                    "type": "boolean"
+                  },
+                  "indent_size": {
+                    "default": 2,
+                    "description": "Columns per indentation level (also the width of a tab).",
+                    "maximum": 16,
+                    "minimum": 1,
                     "type": "integer"
                   }
                 },

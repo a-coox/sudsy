@@ -1,0 +1,5 @@
+grammar-crate: tree-sitter-hcl
+extensions: [hcl, tf, tfvars, nomad]
+formatter: HclFormatter
+deps: [rowan]
+dev-deps: [insta]

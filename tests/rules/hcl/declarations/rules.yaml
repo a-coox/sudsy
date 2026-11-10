@@ -1,0 +1,5 @@
+typed-variables: warn
+documented-variables: warn
+documented-outputs: warn
+required-version: warn
+required-providers: warn

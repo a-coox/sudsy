@@ -119,8 +119,8 @@ def upstream(config, prefix, version, copy, work):
     return copy.read_bytes().decode("utf-8") if mode == "in-place" else r.stdout.decode("utf-8")
 
 
-def sudsy_format(sudsy, fixture, work):
-    r = run([sudsy, "format", fixture.name], work, check=False)
+def sudsy_format(sudsy, fixture, work, command="format"):
+    r = run([sudsy, command, fixture.name], work, check=False)
     return fixture.read_bytes().decode("utf-8") if r.returncode == 0 else None  # None: Sudsy rejects the file
 
 
@@ -212,7 +212,7 @@ def main():
     for name, fixture in found:
         copy = work / name.replace("/", "__")
         shutil.copy(fixture, copy)
-        theirs, ours = upstream(config, prefix, version, copy, work), sudsy_format(sudsy, copy, work)
+        theirs, ours = upstream(config, prefix, version, copy, work), sudsy_format(sudsy, copy, work, config.get("sudsy_command", "format"))
         if config.get("ignore_trailing_blanks"):  # the tool keeps the trailing blanks of a line, Sudsy never does
             theirs, ours = (re.sub(r"[ 	]+$", "", t, flags=re.M) if t is not None else None for t in (theirs, ours))
         bad += verdict(name, theirs, ours, known, tool)

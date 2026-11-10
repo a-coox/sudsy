@@ -1,0 +1,7 @@
+# Fixtures where Sudsy and terraform fmt legitimately differ: "<fixture>: <reason>" per line.
+corpus/packer/hcl2template/testdata/build/post-processor_build_name_interpolation.pkr.hcl: terraform fmt unwraps `"${x}"` only as a whole argument; the rule deprecated-interpolation also fixes it inside a list
+corpus/packer/hcl2template/testdata/build/provisioner_build_name_interpolation.pkr.hcl: terraform fmt unwraps `"${x}"` only as a whole argument; the rule deprecated-interpolation also fixes it inside a list
+corpus/packer/hcl2template/testdata/init/duplicate_required_plugins/packer.pkr.hcl: terraform rejects the repeated plugin name (a semantic error); Sudsy formats it
+corpus/terraform/internal/command/testdata/fmt/general_in.tf: terraform fmt quotes the bare block label `variable instance_type`; Sudsy keeps the tokens
+corpus/terraform/internal/command/testdata/fmt/variable_type_in.tf: terraform fmt rewrites the legacy quoted types (`list` to `list(any)`); Sudsy keeps the tokens
+corpus/terraform/internal/configs/testdata/valid-files/variables.tf: terraform fmt rewrites the legacy type `list` to `list(any)`; Sudsy keeps the tokens

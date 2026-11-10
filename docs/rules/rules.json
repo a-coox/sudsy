@@ -221,7 +221,9 @@
           "type": "string"
         }
       ],
-      "presets": [],
+      "presets": [
+        "hcl/tflint-recommended"
+      ],
       "upstream": [
         {
           "id": "suspicious/noDuplicateObjectKeys",
@@ -5379,7 +5381,8 @@
       "fix": null,
       "id": "naming-convention",
       "languages": [
-        "graphql"
+        "graphql",
+        "hcl"
       ],
       "options": [
         {
@@ -5839,6 +5842,340 @@
       ],
       "presets": [
         "makefile/checkmake"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A `//` comment where `#` is the convention (tflint terraform_comment_syntax). The fix writes `#`.",
+      "example": {
+        "config": null,
+        "fixed": "# old style\n# fine\nx = 1 # trailing\n/* block */\n",
+        "input": "// old style\n# fine\nx = 1 // trailing\n/* block */\n",
+        "language": "hcl",
+        "spans": [
+          {
+            "column": 1,
+            "length": 2,
+            "line": 1
+          },
+          {
+            "column": 7,
+            "length": 2,
+            "line": 3
+          }
+        ]
+      },
+      "fix": "safe",
+      "id": "comment-syntax",
+      "languages": [
+        "hcl"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "warn",
+      "description": "A list item read with the legacy dot syntax, `a.0` (tflint terraform_deprecated_index). The fix writes `a[0]`.",
+      "example": {
+        "config": null,
+        "fixed": "resource \"a\" \"b\" {\n  name = var.name\n  tags = [var.a, \"x-${var.b}\", \"${var.c}${var.d}\"]\n  id   = var.e\n  raw  = \"${~ var.f ~}\"\n  id2  = aws_instance.web[0].id\n  all  = aws_instance.web[0].id\n  ids  = aws_instance.web.*.id\n  num  = local.versions[1][2]\n  key  = { (var.k) = 1 }\n  sum  = 1 + \"${var.n}\"\n}\n",
+        "input": "resource \"a\" \"b\" {\n  name = \"${var.name}\"\n  tags = [\"${var.a}\", \"x-${var.b}\", \"${var.c}${var.d}\"]\n  id   = \"${ var.e }\"\n  raw  = \"${~ var.f ~}\"\n  id2  = aws_instance.web.0.id\n  all  = aws_instance.web[0].id\n  ids  = aws_instance.web.*.id\n  num  = local.versions.1.2\n  key  = { \"${var.k}\" = 1 }\n  sum  = 1 + \"${var.n}\"\n}\n",
+        "language": "hcl",
+        "spans": [
+          {
+            "column": 26,
+            "length": 2,
+            "line": 6
+          },
+          {
+            "column": 24,
+            "length": 2,
+            "line": 9
+          },
+          {
+            "column": 26,
+            "length": 2,
+            "line": 9
+          }
+        ]
+      },
+      "fix": "safe",
+      "id": "deprecated-index",
+      "languages": [
+        "hcl"
+      ],
+      "options": [],
+      "presets": [
+        "hcl/tflint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "warn",
+      "description": "A string that is one interpolation, `\"${var.a}\"`, where the expression alone does (tflint terraform_deprecated_interpolation). The fix writes the expression. Not in Nomad job files (`.nomad`, `.nomad.hcl`), whose agent fills those in at run time.",
+      "example": {
+        "config": null,
+        "fixed": "resource \"a\" \"b\" {\n  name = var.name\n  tags = [var.a, \"x-${var.b}\", \"${var.c}${var.d}\"]\n  id   = var.e\n  raw  = \"${~ var.f ~}\"\n  id2  = aws_instance.web[0].id\n  all  = aws_instance.web[0].id\n  ids  = aws_instance.web.*.id\n  num  = local.versions[1][2]\n  key  = { (var.k) = 1 }\n  sum  = 1 + \"${var.n}\"\n}\n",
+        "input": "resource \"a\" \"b\" {\n  name = \"${var.name}\"\n  tags = [\"${var.a}\", \"x-${var.b}\", \"${var.c}${var.d}\"]\n  id   = \"${ var.e }\"\n  raw  = \"${~ var.f ~}\"\n  id2  = aws_instance.web.0.id\n  all  = aws_instance.web[0].id\n  ids  = aws_instance.web.*.id\n  num  = local.versions.1.2\n  key  = { \"${var.k}\" = 1 }\n  sum  = 1 + \"${var.n}\"\n}\n",
+        "language": "hcl",
+        "spans": [
+          {
+            "column": 10,
+            "length": 13,
+            "line": 2
+          },
+          {
+            "column": 11,
+            "length": 10,
+            "line": 3
+          },
+          {
+            "column": 10,
+            "length": 12,
+            "line": 4
+          },
+          {
+            "column": 12,
+            "length": 10,
+            "line": 10
+          },
+          {
+            "column": 14,
+            "length": 10,
+            "line": 11
+          }
+        ]
+      },
+      "fix": "safe",
+      "id": "deprecated-interpolation",
+      "languages": [
+        "hcl"
+      ],
+      "options": [],
+      "presets": [
+        "hcl/tflint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "An `output` block with no `description` argument (tflint terraform_documented_outputs).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "variable \"plain\" {}\n\nvariable \"full\" {\n  type        = string\n  description = \"Documented.\"\n  validation {\n    condition     = length(var.full) > 0\n    error_message = \"empty\"\n  }\n}\n\noutput \"bare\" {\n  value = 1\n}\n\noutput \"documented\" {\n  value       = 2\n  description = \"Documented.\"\n}\n",
+        "language": "hcl",
+        "spans": [
+          {
+            "column": 1,
+            "length": 6,
+            "line": 12
+          }
+        ]
+      },
+      "fix": null,
+      "id": "documented-outputs",
+      "languages": [
+        "hcl"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A `variable` block with no `description` argument (tflint terraform_documented_variables).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "variable \"plain\" {}\n\nvariable \"full\" {\n  type        = string\n  description = \"Documented.\"\n  validation {\n    condition     = length(var.full) > 0\n    error_message = \"empty\"\n  }\n}\n\noutput \"bare\" {\n  value = 1\n}\n\noutput \"documented\" {\n  value       = 2\n  description = \"Documented.\"\n}\n",
+        "language": "hcl",
+        "spans": [
+          {
+            "column": 1,
+            "length": 8,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "documented-variables",
+      "languages": [
+        "hcl"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "warn",
+      "description": "A comparison with an empty list, `x == []` or `x != []` (tflint terraform_empty_list_equality): it is false for an empty set or a tuple of another type.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "a = var.l == []\nb = var.l != []\nc = [] == var.l\nd = length(var.l) == 0\ne = var.l == [] && var.m\nf = var.l == [1]\n",
+        "language": "hcl",
+        "spans": [
+          {
+            "column": 5,
+            "length": 11,
+            "line": 1
+          },
+          {
+            "column": 5,
+            "length": 11,
+            "line": 2
+          },
+          {
+            "column": 5,
+            "length": 9,
+            "line": 3
+          },
+          {
+            "column": 5,
+            "length": 11,
+            "line": 5
+          }
+        ]
+      },
+      "fix": null,
+      "id": "empty-list-equality",
+      "languages": [
+        "hcl"
+      ],
+      "options": [],
+      "presets": [
+        "hcl/tflint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A `terraform` block with no `required_providers` block (tflint terraform_required_providers, in the file that has the block: the rule does not know the other files of the module).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "terraform {\n  backend \"s3\" {}\n}\n\nterraform {\n  required_version = \">= 1.5\"\n  required_providers {\n    aws = { source = \"hashicorp/aws\" }\n  }\n}\n",
+        "language": "hcl",
+        "spans": [
+          {
+            "column": 1,
+            "length": 9,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "required-providers",
+      "languages": [
+        "hcl"
+      ],
+      "options": [],
+      "presets": [
+        "hcl/tflint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A `terraform` block with no `required_version` argument (tflint terraform_required_version, in the file that has the block: the rule does not know the other files of the module).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "terraform {\n  backend \"s3\" {}\n}\n\nterraform {\n  required_version = \">= 1.5\"\n  required_providers {\n    aws = { source = \"hashicorp/aws\" }\n  }\n}\n",
+        "language": "hcl",
+        "spans": [
+          {
+            "column": 1,
+            "length": 9,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "required-version",
+      "languages": [
+        "hcl"
+      ],
+      "options": [],
+      "presets": [
+        "hcl/tflint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A `variable` block with no `type` argument (tflint terraform_typed_variables).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "variable \"plain\" {}\n\nvariable \"full\" {\n  type        = string\n  description = \"Documented.\"\n  validation {\n    condition     = length(var.full) > 0\n    error_message = \"empty\"\n  }\n}\n\noutput \"bare\" {\n  value = 1\n}\n\noutput \"documented\" {\n  value       = 2\n  description = \"Documented.\"\n}\n",
+        "language": "hcl",
+        "spans": [
+          {
+            "column": 1,
+            "length": 8,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "typed-variables",
+      "languages": [
+        "hcl"
+      ],
+      "options": [],
+      "presets": [
+        "hcl/tflint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "A variable, local value or data source that nothing in the same file refers to (tflint terraform_unused_declarations, within one file: a module that uses its variables in other files needs the rule off or those files in one).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "variable \"used\" {}\nvariable \"unused\" {}\nlocals {\n  used_local   = var.used\n  unused_local = 1\n}\ndata \"aws_ami\" \"used\" {}\ndata \"aws_ami\" \"unused\" {}\noutput \"x\" {\n  value = \"${local.used_local}-${data.aws_ami.used.id}\"\n}\n",
+        "language": "hcl",
+        "spans": [
+          {
+            "column": 10,
+            "length": 8,
+            "line": 2
+          },
+          {
+            "column": 3,
+            "length": 12,
+            "line": 5
+          },
+          {
+            "column": 16,
+            "length": 8,
+            "line": 8
+          }
+        ]
+      },
+      "fix": null,
+      "id": "unused-declarations",
+      "languages": [
+        "hcl"
+      ],
+      "options": [],
+      "presets": [
+        "hcl/tflint-recommended"
       ],
       "upstream": []
     },

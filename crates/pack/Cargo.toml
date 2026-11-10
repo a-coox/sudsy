@@ -21,6 +21,7 @@ tree-sitter-bash = { workspace = true, optional = true }
 tree-sitter-proto = { workspace = true, optional = true }
 tree-sitter-graphql = { workspace = true, optional = true }
 tree-sitter-make = { workspace = true, optional = true }
+tree-sitter-hcl = { workspace = true, optional = true }
 woodruffw-trough-tree-sitter-powershell = { workspace = true, optional = true }
 
 [features]
@@ -35,4 +36,5 @@ shell = ["dep:tree-sitter-bash"]
 protobuf = ["dep:tree-sitter-proto"]
 graphql = ["dep:tree-sitter-graphql"]
 makefile = ["dep:tree-sitter-make"]
+hcl = ["dep:tree-sitter-hcl"]
 powershell = ["dep:woodruffw-trough-tree-sitter-powershell"]

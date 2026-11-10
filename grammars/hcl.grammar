@@ -1,0 +1,61 @@
+// HCL (Terraform, OpenTofu, Packer, Nomad, Consul), parsed by tree-sitter (tree-sitter-hcl) and mapped by crates/lang-hcl/src/mapping.rs.
+// Format: see crates/core-syntax/src/grammar/mod.rs.
+// Expressions are flat: operands, operators and brackets are the children of an `Expr` or of the node
+// that tree-sitter makes of the construct (call, conditional, `for`, template); `//` comments are
+// trivia like `#` comments, but the shared comment rules know only `#`.
+
+language hcl 16 "HCL"
+comments line "#" block "/*" "*/"
+suppress disable-next-line "sudsy-disable-next-line"
+suppress disable-line "sudsy-disable-line"
+suppress disable "sudsy-disable"
+suppress enable "sudsy-enable"
+suppress disable-file "sudsy-disable-file"
+suppress ignore "sudsy-ignore"
+
+token Whitespace #trivia #whitespace
+token Newline #trivia #newline
+token Comment #trivia #comment
+
+// A name: attribute, block type, label, variable, function, attribute access, `for` variable.
+token Ident #label
+// `for`, `in`, `if`, `else`, `endif`, `endfor`.
+token Keyword
+// Every other piece of syntax: `= : ? => ( ) [ ] { } , . ... .* [*]`, operators and `<<`.
+token Punct #punctuation
+// A string with no interpolation, quotes included.
+token String #literal #string #label
+token Number #literal
+token Bool #literal
+token Null #literal
+// The text of a template and the `~` of a template marker.
+token TemplateText
+token Strip
+// The `EOT` of a heredoc.
+token HeredocId
+// A legacy index, `.0` in `a.b.0`.
+token LegacyIndex
+
+token Eof
+token Unknown #error
+
+node Document = Body? Object? Eof
+node Body #mapping = members:#member*
+node Attribute #member #key-value = key:Ident Punct value:Expr
+node Block #member = type:Ident labels:#label* Punct Body? Punct
+node Expr #term = #term*
+node VariableExpr #term = Ident
+node GetAttr #term = Punct Ident
+node NewIndex #term = Punct Expr Punct
+node FunctionCall #term = Ident Punct #term* Punct
+node Conditional #term = Expr Punct Expr Punct Expr
+node Binary #term = #term*
+node Unary #term = #term*
+node ForExpr #term = #term*
+node Tuple #term = #term*
+node Object #term #mapping = Punct pairs:ObjectElem* Punct
+node ObjectElem #key-value = key:Expr Punct value:Expr
+node QuotedTemplate #term = Punct #template* Punct
+node Heredoc #term = Punct HeredocId #template* HeredocId
+node Interpolation #template = Punct Strip? Expr? Strip? Punct
+node TemplateDirective #template = #term* #template*
