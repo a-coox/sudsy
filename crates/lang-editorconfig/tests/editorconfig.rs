@@ -33,6 +33,15 @@ fn conformance() {
 }
 
 #[test]
+fn keeps_comments_at_the_end_of_the_file() {
+    assert_eq!(
+        fmt("[*]\na = 1\n\n\n# tail\n; last"),
+        "[*]\na = 1\n\n# tail\n; last\n"
+    );
+    assert_eq!(fmt("# only"), "# only\n");
+}
+
+#[test]
 fn matches_the_file_name() {
     assert_file_names(
         &lang_editorconfig::provider(),

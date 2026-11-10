@@ -1,12 +1,14 @@
 //! Rules that apply to every language. A language-specific rule cannot reuse a shared rule's name.
 //! Those on keys and sequences ([`crate::keys`], [`crate::sorted`]) act on the grammar tags
-//! `#mapping` and `#sequence`, so they do nothing in a language that does not tag them.
+//! `#mapping` and `#sequence` (`no-duplicate-sections`: `#sections`), so they do nothing in a
+//! language that does not tag them.
 
 use crate::comments::{CommentSpace, NoEmptyComment};
 use crate::keys::{KeyNameCasing, NoDuplicateKeys, NoEmptyKeys};
 use crate::options::{Check, Opt, OptionDecl};
 use crate::rule;
 use crate::rule::{FileContext, Rule, RuleContext};
+use crate::sections::NoDuplicateSections;
 use crate::sorted::{SortedArrayValues, SortedKeys};
 use core_syntax::{TextRange, TextSize};
 
@@ -16,6 +18,7 @@ pub static RULES: &[&dyn Rule] = &[
     &NoEmptyComment,
     &NoDuplicateKeys,
     &NoEmptyKeys,
+    &NoDuplicateSections,
     &KeyNameCasing,
     &SortedKeys,
     &SortedArrayValues,

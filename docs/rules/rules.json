@@ -246,6 +246,32 @@
       ]
     },
     {
+      "category": "correctness",
+      "default_level": "warn",
+      "description": "Two sections of one file have the same name (EditorConfig: glob). Readers merge them or keep only one, so the settings of the other may be lost; merge them.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "[*.cs]\nindent_size = 4\n\n[*.vb]\nindent_size = 2\n\n[*.cs]\ntab_width = 4\n[*.CS]\ntab_width = 4\n",
+        "language": "editorconfig",
+        "spans": [
+          {
+            "column": 2,
+            "length": 4,
+            "line": 7
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-duplicate-sections",
+      "languages": [
+        "all"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
       "category": "style",
       "default_level": "off",
       "description": "A comment has no text. A block comment is reported wherever it is; an empty line comment only when it begins or ends a run of comments, because a bare `//` between two comment lines separates paragraphs.",
@@ -2167,33 +2193,6 @@
       "id": "invalid-property-value",
       "languages": [
         "editorconfig"
-      ],
-      "options": [],
-      "presets": [],
-      "upstream": []
-    },
-    {
-      "category": "correctness",
-      "default_level": "warn",
-      "description": "Two sections of one file have the same glob. Both apply, the later one winning, which is rarely the intent; merge them.",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "[*.cs]\nindent_size = 4\n\n[*.vb]\nindent_size = 2\n\n[*.cs]\ntab_width = 4\n[*.CS]\ntab_width = 4\n",
-        "language": "editorconfig",
-        "spans": [
-          {
-            "column": 2,
-            "length": 4,
-            "line": 7
-          }
-        ]
-      },
-      "fix": null,
-      "id": "no-duplicate-sections",
-      "languages": [
-        "editorconfig",
-        "ini"
       ],
       "options": [],
       "presets": [],

@@ -53,14 +53,7 @@ fn max_blank_lines(cx: &FormatCtx<'_>) -> usize {
 }
 
 fn document(cx: &FormatCtx<'_>, node: &SyntaxNode) -> Result<Doc, FormatError> {
-    let items: Vec<SyntaxNode> = node.children().collect();
-    statement_sequence_with(
-        cx,
-        &items,
-        max_blank_lines(cx),
-        Some(blank_before_section),
-        false,
-    )
+    core_format::shapes::document(cx, node, max_blank_lines(cx), Some(blank_before_section))
 }
 
 /// `[glob]` then its pairs, one per line.

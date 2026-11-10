@@ -959,7 +959,7 @@
             },
             "no-duplicate-sections": {
               "$ref": "#/definitions/rule",
-              "description": "Two sections of one file have the same glob. Both apply, the later one winning, which is rarely the intent; merge them."
+              "description": "Two sections of one file have the same name (EditorConfig: glob). Readers merge them or keep only one, so the settings of the other may be lost; merge them."
             },
             "no-egrep": {
               "$ref": "#/definitions/rule",

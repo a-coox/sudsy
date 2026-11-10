@@ -1,7 +1,5 @@
-//! The Rust rules of INI; syntax rules that fit a pattern are files in `rules/`.
-
-mod no_duplicate_sections;
+//! The Rust rules of INI (none yet); syntax rules that fit a pattern are files in `rules/`.
 
 use core_rules::Rule;
 
-pub static RULES: &[&dyn Rule] = &[&no_duplicate_sections::NoDuplicateSections];
+pub static RULES: &[&dyn Rule] = &[];

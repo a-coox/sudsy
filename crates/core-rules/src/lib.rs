@@ -26,6 +26,7 @@ pub mod paths;
 pub mod project;
 mod regex;
 pub mod rule;
+mod sections;
 pub mod shared;
 pub mod sorted;
 pub mod sorting;
