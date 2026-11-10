@@ -39,7 +39,7 @@ Adding a rule needs no Rust test: add `tests/rules/<language>/<folder>/<name>.<e
 1. A `rule!` declaration in the rule's module (id, category, description, default, fix, options with checks and descriptions; [../rules/engine.md](../rules/engine.md#rule-trait)) and register the rule.
    A syntax rule that fits a pattern is a file instead: `crates/lang-<language>/rules/<rule-id>.yaml` ([../rules/patterns.md](../rules/patterns.md#built-in-pattern-rules)), no Rust.
 2. A fixture folder `tests/rules/<language>/<rule-id>/` (or a case in the family folder) as above.
-3. The matching entry in `docs/parity/<tool>.yaml` (`sudsy: "rule: <id>"`) when another tool has an equivalent.
+3. The matching entry in `docs/parity/<tool>.yaml` (`<upstream id>: rule <id>`) when another tool has an equivalent.
 4. `cargo xtask codegen`: the rule table, option tables and `sudsy.schema.json` are generated; do not edit them by hand.
 
 ## Corpora (not fetched in CI)

@@ -5,13 +5,13 @@
 use serde::Deserialize;
 use std::sync::OnceLock;
 
-#[derive(Deserialize)]
 pub struct Entry {
     pub id: String,
+    /// `rule: <id>`, `option: <name>`, `formatter`, `sdk: <id>`, `config: <text>`, `planned`,
+    /// `deferred` or `wontfix: <reason>`.
     pub sudsy: String,
-    #[serde(default)]
+    /// `covered`, `partial`, `missing`, `sdk`, `wontfix` or `deferred`.
     pub coverage: String,
-    #[serde(default)]
     pub gap: String,
 }
 
@@ -19,8 +19,11 @@ pub struct Entry {
 pub struct Catalog {
     pub tool: String,
     pub languages: Vec<String>,
+    /// Filled by [`parse`] from `listed` and `deferred`.
+    #[serde(skip)]
     pub entries: Vec<Entry>,
-    /// The compact form of deferred entries; [`parse`] turns them into entries.
+    #[serde(rename = "entries")]
+    listed: Pairs,
     #[serde(default)]
     deferred: Vec<Deferred>,
 }
@@ -31,10 +34,55 @@ struct Deferred {
     ids: Vec<String>,
 }
 
-/// Reads a catalog file; each id under `deferred` becomes an entry with status and coverage
-/// `deferred` and the group's `gap`.
+/// A YAML map as its pairs in file order.
+#[derive(Default)]
+struct Pairs(Vec<(String, String)>);
+
+impl<'de> Deserialize<'de> for Pairs {
+    fn deserialize<D: serde::Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
+        struct V;
+        impl<'de> serde::de::Visitor<'de> for V {
+            type Value = Pairs;
+            fn expecting(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                f.write_str("a map of id to status")
+            }
+            fn visit_map<A: serde::de::MapAccess<'de>>(self, mut m: A) -> Result<Pairs, A::Error> {
+                let mut out = Vec::new();
+                while let Some(pair) = m.next_entry()? {
+                    out.push(pair);
+                }
+                Ok(Pairs(out))
+            }
+        }
+        d.deserialize_map(V)
+    }
+}
+
+/// Reads a catalog file (format: docs/parity/README.md): each `id: <status> [| <gap>]` of
+/// `entries`, then each id under `deferred` with the group's `gap`.
 pub fn parse(text: &str) -> Result<Catalog, String> {
     let mut c: Catalog = serde_saphyr::from_str(text).map_err(|e| e.to_string())?;
+    for (id, value) in std::mem::take(&mut c.listed).0 {
+        let (status, gap) = value.split_once(" | ").unwrap_or((&value, ""));
+        let (kind, arg) = status.split_once(' ').unwrap_or((status, ""));
+        let coverage = match kind {
+            "sdk" | "wontfix" | "deferred" => kind,
+            "planned" => "missing",
+            _ if gap.is_empty() => "covered",
+            _ => "partial",
+        };
+        let sudsy = if arg.is_empty() {
+            kind.into()
+        } else {
+            format!("{kind}: {arg}")
+        };
+        c.entries.push(Entry {
+            id,
+            sudsy,
+            coverage: coverage.into(),
+            gap: gap.into(),
+        });
+    }
     for d in std::mem::take(&mut c.deferred) {
         c.entries.extend(d.ids.into_iter().map(|id| Entry {
             id,

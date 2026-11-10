@@ -15,7 +15,7 @@ csharp:
 migrated .csharpierrc.yaml
 extends: preset:csharp/csharpier-compat
 not migrated: overrides (`overrides` applies options per glob; there is no `formatter` key to treat other extensions (.csr, .cst) as C#; a `.csx` with `#r` or `#load` fails to parse (the worker parses scripts as ordinary files))
-not migrated: preprocessorSymbolSets (The configured sets are not read (the value format is undocumented): csharp/csharpier-compat derives the sets from the conditions of each file instead; a branch no subset of those symbols activates (`#if false`) stays verbatim)
+not migrated: preprocessorSymbolSets (this setting has no Sudsy option; option: csharp.format.derive_symbol_sets)
 
 Add to .editorconfig (or run again with --write-editorconfig):
 

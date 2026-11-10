@@ -22,7 +22,15 @@ PARITY = ROOT / os.environ.get("CARGO_TARGET_DIR", "target") / "parity"
 
 def catalog_entries(tool, sub=False):
     catalog = yaml.safe_load((ROOT / "docs/parity" / f"{parity_format.tools()['lint'][tool]['catalog']}.yaml").read_text(encoding="utf-8"))
-    return [e for e in catalog["entries"] if sub or "." not in e["id"]]
+    out = []
+    for id_, value in catalog["entries"].items():  # `<status> [| <gap>]`, see docs/parity/README.md
+        status, _, gap = value.partition(" | ")
+        kind, _, arg = status.partition(" ")
+        coverage = kind if kind in ("sdk", "wontfix", "deferred") else "missing" if kind == "planned" else "partial" if gap else "covered"
+        out.append({"id": id_, "sudsy": f"{kind}: {arg}" if arg else kind, "coverage": coverage})
+    for group in catalog.get("deferred", []):
+        out += [{"id": i, "sudsy": "deferred", "coverage": "deferred"} for i in group["ids"]]
+    return [e for e in out if sub or "." not in e["id"]]
 
 
 def rule_map(tool):
@@ -220,26 +228,20 @@ def actionlint_check(d):
 def psscriptanalyzer(sudsy, version, prefix):
     """Invoke-ScriptAnalyzer against `sudsy lint` (preset powershell/psscriptanalyzer) on the PowerShell rule
     fixtures (tests/rules/powershell/*/*.ps1, annotations removed) and the PowerShell corpus, as
-    `(file, rule, line)` of the rules the catalog maps. Also checks that the catalog lists exactly the rules and
-    severities of the installed module. `tests/parity/psscriptanalyzer/expected-diff.txt` has the format of
+    `(file, rule, line)` of the rules the catalog maps. Also checks that the catalog lists exactly the rules
+    of the installed module. `tests/parity/psscriptanalyzer/expected-diff.txt` has the format of
     hadolint's: `<file> <psscriptanalyzer|sudsy>:<rule> <line>: <reason>` (a fixture is `<folder>-<name>.ps1`,
     a corpus file `corpus/<path>`); one that no longer differs fails."""
     script = ROOT / "scripts/parity_psscriptanalyzer.ps1"
     pwsh = lambda *args: subprocess.run(["pwsh", "-NoProfile", "-File", str(script), str(prefix), *args],
                                         capture_output=True, text=True, encoding="utf-8", check=True).stdout
-    # The catalog lists the module's rules, with its severities.
+    # The catalog lists the module's rules.
     module = dict(l.split() for l in pwsh("rules").splitlines())
-    catalog = {e["id"]: e for e in catalog_entries("psscriptanalyzer")}
-    for e in yaml.safe_load((ROOT / "docs/parity/psscriptanalyzer.yaml").read_text(encoding="utf-8"))["deferred"]:
-        catalog.update({i: {"default": ""} for i in e["ids"]})
+    catalog = {e["id"] for e in catalog_entries("psscriptanalyzer")}
     mismatches = 0
-    for rule in sorted(set(module) ^ set(catalog)):
+    for rule in sorted(set(module) ^ catalog):
         print(f"  catalog and module differ: {rule} ({'catalog only' if rule in catalog else 'module only'})")
         mismatches += 1
-    for rule, entry in catalog.items():
-        if rule in module and entry["default"] and entry["kind"] == "lint" and module[rule] not in entry["default"]:
-            print(f"  severity of {rule}: module {module[rule]}, catalog {entry['default']!r}")
-            mismatches += 1
     preset = yaml.safe_load((ROOT / "crates/lang-powershell/presets/psscriptanalyzer.yaml").read_text(encoding="utf-8"))
     mapping = {k: v for k, v in rule_map("psscriptanalyzer").items() if v in preset["powershell"]["lint"]["rules"]}
     folder = ROOT / "tests/parity/psscriptanalyzer"

@@ -13,11 +13,9 @@ pub struct PowerShellHooks;
 /// The Sudsy rule the catalog maps the PSScriptAnalyzer rule `name` to: a search for its entry,
 /// not a parse of the catalog.
 fn rule_for(name: &str) -> Option<&'static str> {
-    let at = CATALOG.find(&format!("- id: \"{name}\""))?;
-    let entry = &CATALOG[at + 1..];
-    let entry = &entry[..entry.find("- id: ").unwrap_or(entry.len())];
-    let rule = &entry[entry.find("sudsy: \"rule: ")? + 14..];
-    rule.split('"').next()
+    let at = CATALOG.find(&format!("\n  {name}: rule "))?;
+    let rule = &CATALOG[at + name.len() + 10..];
+    rule.split([' ', '\n']).next()
 }
 
 impl RuleHooks for PowerShellHooks {
