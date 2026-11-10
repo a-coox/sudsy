@@ -24,6 +24,18 @@ claim_slot() {
   export SUDSY_SLOT_RUN=$CARGO_TARGET_DIR
 }
 
+# The first run of a worktree in a slot deletes the earlier worktrees' outputs there
+# (clean-slots.sh --stale); the slot remembers which worktree it last pruned for. Before any build:
+# cargo's file names do not depend on the checkout path, so a prune running alongside a build
+# deleted outputs that build had just written ("extern location ... does not exist").
+prune_slot() {
+  [ -n "${CARGO_TARGET_DIR:-}" ] && [ "$(cat "$CARGO_TARGET_DIR/.pruned-for" 2>/dev/null)" != "$PWD" ] || return 0
+  local t=$SECONDS
+  scripts/clean-slots.sh --stale "$CARGO_TARGET_DIR" >"$CARGO_TARGET_DIR/cleanup.log" 2>&1 \
+    && echo "$PWD" >"$CARGO_TARGET_DIR/.pruned-for"
+  echo "   (slot cleanup: $((SECONDS - t))s)"
+}
+
 # Machine-wide queue for finish runs: at most SUDSY_FINISH_SEATS (default 2) build at once. One file
 # per run in <slot parent>/locks, named <start-ns>-<slot>, holding the run's pid; the first N live
 # files hold the seats, so there is no mutex to get stuck. Files of dead pids are reclaimed.

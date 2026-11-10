@@ -24,18 +24,7 @@ gate() {
   echo "   ($name: $((SECONDS - t))s)"
 }
 
-. scripts/slot-run.sh; claim_slot
-
-# The first gate of a worktree in a slot deletes the earlier worktrees' outputs there, which are
-# never used again (clean-slots.sh --stale); the slot remembers which worktree it last pruned for.
-# It touches no output this build uses, so it runs alongside the steps.
-cleanup=
-if [ -n "${CARGO_TARGET_DIR:-}" ] && [ "$(cat "$CARGO_TARGET_DIR/.pruned-for" 2>/dev/null)" != "$PWD" ]; then
-  slot=$CARGO_TARGET_DIR
-  { t=$SECONDS; scripts/clean-slots.sh --stale "$slot" >"$slot/cleanup.log" 2>&1 && echo "$PWD" >"$slot/.pruned-for"
-    echo "   (slot cleanup, alongside: $((SECONDS - t))s)"; } &
-  cleanup=$!
-fi
+. scripts/slot-run.sh; claim_slot; prune_slot
 
 # What runs: crates for clippy and tests (ws) and the other steps.
 if [ ${#pkg[@]} -gt 0 ]; then
@@ -80,7 +69,6 @@ if [ $rust_only -eq 0 ]; then
     gate "vscode build" npm --prefix editors/vscode run build
   fi
 fi
-[ -z "$cleanup" ] || wait $cleanup
 echo "ALL GATES PASSED (${SECONDS}s)"
 # Build caches only grow; warn before the disk fills (it has, mid-build).
 free_gb=$(df -BG --output=avail "${CARGO_TARGET_DIR:-target}" 2>/dev/null | tail -1 | tr -dc 0-9)

@@ -13,7 +13,9 @@
 //! folder in a string literal (`"../../tests/fixtures"`, `"workers/csharp/Sudsy.Worker"`, read at
 //! build or test time) or as a path dependency, when it depends on an affected crate, and (one
 //! level, its tests only) when it dev-depends on one. A changed path nothing claims selects
-//! everything.
+//! everything. The root `Cargo.lock` selects the members whose locked dependencies changed, the
+//! root `Cargo.toml` those using a changed `[workspace.dependencies]` entry; any other manifest
+//! change selects everything.
 
 use anyhow::{Context, Result, bail};
 use provider_api::LanguageProvider;
@@ -43,6 +45,8 @@ const NO_CHECK: &[&str] = &[
     ".vscode/",
     "scripts/",
     "site/",
+    // Read by scripts/parity.sh.
+    "tests/parity/",
     "README.md",
     "CHANGELOG.md",
     "CONTRIBUTING.md",
@@ -78,6 +82,9 @@ pub struct Workspace {
     /// (`bench/inputs` folder, comma-separated crates its measurement runs: the provider that
     /// claims its files, then the languages embedded in them; an empty name is unknown).
     pub bench: Vec<(String, String)>,
+    /// (`Cargo.toml` or `Cargo.lock`, the crates its change reaches) when the change is one
+    /// [`crate::manifests`] can narrow; otherwise the file selects everything.
+    pub manifests: Vec<(String, Vec<String>)>,
 }
 
 #[derive(Default, PartialEq, Debug)]
@@ -106,6 +113,11 @@ pub fn select(ws: &Workspace, changed: &[String]) -> Affected {
     let mut seeds = BTreeSet::new();
     let (mut inputs, mut harness) = (BTreeSet::new(), false);
     for path in &changed {
+        if let Some((_, by)) = ws.manifests.iter().find(|(m, _)| m == *path) {
+            seeds.extend(by.iter().cloned());
+            out.seeds.push((path.to_string(), by.clone()));
+            continue;
+        }
         if let Some(f) = FULL.iter().find(|f| under(path, f)) {
             out.full
                 .get_or_insert_with(|| format!("{path} (build set-up: {f})"));
@@ -224,11 +236,20 @@ pub fn print(a: &Affected) -> String {
 
 /// `cargo xtask affected` itself: reads the change and the workspace, prints the selection.
 pub fn run(root: &Path, base: Option<&str>, all: bool) -> Result<String> {
-    let ws = load(root)?;
+    let mut ws = load(root)?;
     let mut a = if all {
         select(&ws, &["Cargo.toml".into()])
     } else {
-        select(&ws, &changed_files(root, base)?)
+        let base = match base {
+            Some(b) => b.to_string(),
+            None => git(root, &["merge-base", "HEAD", "origin/main"])
+                .or_else(|_| git(root, &["rev-parse", "HEAD^"]))?
+                .trim()
+                .to_string(),
+        };
+        let changed = changed_files(root, &base)?;
+        ws.manifests = manifests(root, &base, &ws, &changed);
+        select(&ws, &changed)
     };
     if all {
         a.full = Some("--all".into());
@@ -244,15 +265,46 @@ fn git(root: &Path, args: &[&str]) -> Result<String> {
     Ok(String::from_utf8(out.stdout)?)
 }
 
-fn changed_files(root: &Path, base: Option<&str>) -> Result<Vec<String>> {
-    let base = match base {
-        Some(b) => b.to_string(),
-        None => git(root, &["merge-base", "HEAD", "origin/main"])
-            .or_else(|_| git(root, &["rev-parse", "HEAD^"]))?
-            .trim()
-            .to_string(),
+/// The crates the root manifest and lock changes reach, for the changes `crate::manifests` can narrow.
+fn manifests(
+    root: &Path,
+    base: &str,
+    ws: &Workspace,
+    changed: &[String],
+) -> Vec<(String, Vec<String>)> {
+    let read = |p: &str| -> Option<(String, String)> {
+        let old = git(root, &["show", &format!("{base}:{p}")]).ok()?;
+        Some((old, std::fs::read_to_string(root.join(p)).ok()?))
     };
-    let diff = git(root, &["diff", "-z", "--name-only", &base])?;
+    let is_crate = |n: &String| ws.crates.iter().any(|c| &c.name == n);
+    let mut out = Vec::new();
+    for p in changed
+        .iter()
+        .filter(|p| *p == "Cargo.toml" || *p == "Cargo.lock")
+    {
+        let crates = match read(p) {
+            Some((old, new)) if p == "Cargo.lock" => {
+                Some(crate::manifests::lock_changes(&old, &new))
+            }
+            Some((old, new)) => crate::manifests::manifest_changes(&old, &new).map(|deps| {
+                (ws.crates.iter())
+                    .filter(|c| {
+                        deps.contains(&c.name) || c.deps.iter().any(|(d, _)| deps.contains(d))
+                    })
+                    .map(|c| c.name.clone())
+                    .collect()
+            }),
+            None => None,
+        };
+        if let Some(c) = crates {
+            out.push((p.clone(), c.into_iter().filter(is_crate).collect()));
+        }
+    }
+    out
+}
+
+fn changed_files(root: &Path, base: &str) -> Result<Vec<String>> {
+    let diff = git(root, &["diff", "-z", "--name-only", base])?;
     let new = git(root, &["ls-files", "-z", "-o", "--exclude-standard"])?;
     Ok((diff.split('\0').chain(new.split('\0')))
         .filter(|p| !p.is_empty())
@@ -508,6 +560,7 @@ mod tests {
                 ("md".into(), "lang-markdown,lang-shell".into()),
                 ("sh".into(), "lang-shell".into()),
             ],
+            manifests: vec![("Cargo.lock".into(), vec!["lang-shell".into()])],
         }
     }
 
@@ -562,7 +615,7 @@ mod tests {
     fn unclaimed_paths_and_build_setup_select_everything() {
         for path in [
             "tests/new-thing/a.txt",
-            "Cargo.lock",
+            "Cargo.toml",
             "xtask/src/affected.rs",
         ] {
             let a = sel(&[path]);
@@ -581,6 +634,13 @@ mod tests {
         let bench: Vec<_> = a.bench.iter().map(|(f, _)| f.as_str()).collect();
         assert_eq!(bench, ["md", "sh", "startup"]);
         assert!(print(&a).contains("bench md lang-markdown,lang-shell\n"));
+    }
+
+    #[test]
+    fn narrowed_lock_change_selects_its_crates() {
+        let a = sel(&["Cargo.lock"]);
+        assert_eq!(a.full, None);
+        assert_eq!(names(&a), ["cli", "lang-shell", "languages", "perf-bench"]);
     }
 
     #[test]

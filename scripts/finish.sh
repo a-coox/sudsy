@@ -14,7 +14,11 @@ for a in "$@"; do
   [ "$prev" = --base ] && [ ${#gate[@]} -gt 0 ] && gate+=(--base "$a")
   prev=$a
 done
-. scripts/slot-run.sh; claim_slot; take_seat
+# The cheap checks agents most often miss fail before the wait for a seat and the builds.
+cargo fmt --all -- --check >/dev/null || { echo "FINISH FAILED: gate (cargo fmt --all)"; exit 1; }
+. scripts/slot-run.sh; claim_slot; prune_slot; take_seat
+# codegen --check builds xtask, which the selection needs anyway: inside the seat, before the gate and bench.
+cargo xtask codegen --check || { echo "FINISH FAILED: gate (stale generated files: cargo xtask codegen)"; exit 1; }
 log=${CARGO_TARGET_DIR:-target}/bench/finish.log
 mkdir -p "$(dirname "$log")"
 scripts/bench.sh "$@" >"$log" 2>&1 &

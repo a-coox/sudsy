@@ -6,6 +6,7 @@
 pub mod affected;
 mod docs;
 mod lang_crate;
+pub mod manifests;
 mod new_rule;
 mod registry;
 mod rules;
