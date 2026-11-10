@@ -279,6 +279,7 @@ impl<'a> FormatCtx<'a> {
             && matches!(last.kind, CommentKind::Line | CommentKind::Lines)
             && last.breaks_after >= 2
             && !last.text().starts_with("////")
+            && !(last.kind == CommentKind::Lines && last.text().starts_with('#'))
             && !comments::starts_file(self.grammar, tok)
         {
             last.breaks_after = 1;

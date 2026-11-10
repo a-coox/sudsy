@@ -18,7 +18,12 @@ a();
 b();
 /* block */
 
-c(); } }
+c(); }
+#region R
+int f;
+#endregion
+
+int g; }
 -----
 // header
 
@@ -38,4 +43,9 @@ class C
 
         c();
     }
+    #region R
+    int f;
+    #endregion
+
+    int g;
 }

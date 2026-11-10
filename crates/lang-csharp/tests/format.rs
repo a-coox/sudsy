@@ -436,7 +436,7 @@ snap!(
 );
 snap!(
     blank_line_after_comment_removed,
-    "// header\n\nclass C {\n/// <summary>s</summary>\n\nvoid M() {\n// one\n\n// two\n\na();\n//// code\n\nb();\n/* block */\n\nc(); } }",
+    "// header\n\nclass C {\n/// <summary>s</summary>\n\nvoid M() {\n// one\n\n// two\n\na();\n//// code\n\nb();\n/* block */\n\nc(); }\n#region R\nint f;\n#endregion\n\nint g; }",
     [("blank_line_after_comment", s("remove"))]
 );
 snap!(
