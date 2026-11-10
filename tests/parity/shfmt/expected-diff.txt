@@ -15,12 +15,11 @@ corpus/install/uninstall.sh: multi-line `$(...)` and array elements keep the sou
 corpus/install-scripts/src/dotnet-install.sh: command substitutions are kept as written (shfmt aligns and re-lays `$(a; b)` and rewrites `${v//x/}` to `${v//x}`)
 corpus/mysql/8.4/docker-entrypoint.sh: `$(< f)` and `<( cmd )` keep the blanks inside (shfmt removes them)
 corpus/nvm/install.sh: multi-line `$(...)` keeps the source indentation; `$(a ; b)` on one line is kept (shfmt breaks it into lines)
-corpus/nvm/nvm.sh: tree-sitter-bash cannot parse the file; Sudsy refuses it
+corpus/nvm/nvm.sh: multi-line `$(...)` keeps the source indentation; `if`/`elif` conditions and `case` arms continued with `\` are kept as written; `$((N+1))` and `||:` are kept (shfmt spaces them); the `;;` of a last arm and comment columns differ
 corpus/postgres/18/trixie/docker-entrypoint.sh: `$(< f)` keeps the blank inside (shfmt removes it)
 corpus/pyenv/plugins/pyenv-binary/test/test_helper.bash: backticks are kept (shfmt rewrites them to `$(...)`); the arms of a `case` used as an `if` condition are not indented a level further
 corpus/pyenv/plugins/pyenv-link/test/test_helper.bash: backticks are kept (shfmt rewrites them to `$(...)`); the arms of a `case` used as an `if` condition are not indented a level further
 corpus/pyenv/plugins/python-build/scripts/backport.sh: command substitutions are kept as written (shfmt breaks `$(a; b)` into lines and spaces `$((a+b))`)
 corpus/pyenv/pyenv.d/install/latest.bash: an array whose elements are a backslash-continued pipeline is kept as written
-corpus/pyenv/pyenv.d/rehash/conda.bash: tree-sitter-bash cannot parse `for x do`; Sudsy refuses the file
 corpus/pyenv/test/test_helper.bash: backticks are kept (shfmt rewrites them to `$(...)`); the arms of a `case` used as an `if` condition are not indented a level further
-corpus/rustup/rustup-init.sh: tree-sitter-bash cannot parse `grep -q 404$;`; Sudsy refuses the file
+corpus/rustup/rustup-init.sh: a last `case` arm without `;;` is kept (shfmt adds it); a comment after code keeps its blanks

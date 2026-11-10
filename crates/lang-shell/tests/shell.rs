@@ -88,12 +88,16 @@ fn a_trailing_comment_in_a_condition_is_stable() {
     );
 }
 
-/// tree-sitter-bash takes a line with two assignments and the next line for one command; the
-/// layout then stays as written.
+/// Forked-grammar cases: two assignments and a command on the next line are two statements,
+/// `for x do`, a word ending in `$`, a quoted string in a case pattern.
 #[test]
-fn a_misparsed_command_is_kept() {
+fn bash_the_upstream_grammar_rejects() {
     assert_eq!(
         fmt("a=1\nc=1 d=2\n  foo\nfoo   bar\n"),
-        "a=1\nc=1 d=2\n  foo\nfoo bar\n"
+        "a=1\nc=1 d=2\nfoo\nfoo bar\n"
+    );
+    assert_eq!(
+        fmt("for x do :; done\nif grep -q 404$; then :; fi\ncase $a in\n --*' '*) :;;\nesac\n"),
+        "for x; do :; done\nif grep -q 404$; then :; fi\ncase $a in\n--*' '*) : ;;\nesac\n"
     );
 }

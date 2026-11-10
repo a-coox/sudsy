@@ -46,7 +46,7 @@ tree-sitter-make = "1.1"
 tree-sitter-md = { version = "0.5", default-features = false }
 woodruffw-trough-tree-sitter-powershell = "0.1"
 tree-sitter-proto = "0.6"
-tree-sitter-bash = "0.25"
+tree-sitter-bash = { path = "grammars/tree-sitter-bash" }
 tree-sitter-toml-ng = "0.7"
 tree-sitter-xml = "0.7"
 # /generated

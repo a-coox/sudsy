@@ -1,5 +1,5 @@
 grammar-crate: tree-sitter-bash
-grammar-version: "0.25"
+grammar-path: grammars/tree-sitter-bash
 extensions: [sh, bash]
 file-names: [.bashrc, .bash_profile, .profile]
 formatter: ShellFormatter

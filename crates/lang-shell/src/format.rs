@@ -451,11 +451,6 @@ fn flow(cx: &FormatCtx<'_>, node: &SyntaxNode) -> Result<Doc, FormatError> {
         let after_op = matches!(prev.op(), Some("&&" | "||" | "|" | "|&"));
         let broken_after_op = after_op && (prev.cont || prev.tok().is_some_and(|t| breaks(cx, t)));
         let before_op = matches!(e.op(), Some("&&" | "||" | "|" | "|&"));
-        // A line break where only blanks can stand: the parser took two statements for one (it
-        // does that for `a=1 b=2` + line break + a command), so the text stays as written.
-        if !e.cont && !broken_after_op && prev.last(cx).is_some_and(|t| breaks(cx, &t)) {
-            return Ok(cx.verbatim_node(node));
-        }
         let glued = !e.cont
             && !broken_after_op
             && !after_op
