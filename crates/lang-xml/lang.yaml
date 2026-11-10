@@ -1,4 +1,5 @@
 grammar-crate: tree-sitter-xml
+grammar-version: "0.7"
 language-const: LANGUAGE_XML
 extensions: [xml, csproj, vbproj, fsproj, props, targets, slnx, config, resx, nuspec, xaml, axaml, manifest, ruleset, proj, projitems, shproj, vcxproj, wixproj, wxs, runsettings, vsixmanifest, pubxml, xsd, xslt, xsl, svg, plist]
 formatter: XmlFormatter

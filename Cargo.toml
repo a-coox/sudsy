@@ -34,20 +34,22 @@ sha2 = "0.10"
 tempfile = "3"
 thiserror = "2"
 tree-sitter = "0.27"
-tree-sitter-toml-ng = "0.7"
-tree-sitter-md = { version = "0.5", default-features = false }
 pulldown-cmark = { version = "0.13", default-features = false, features = ["html"] }
-tree-sitter-xml = "0.7"
-konomanoasa-tree-sitter-editorconfig = "0.9"
-tree-sitter-ini = "1.4"
-konomanoasa-tree-sitter-gitignore = "0.7"
+# generated:grammars
 tree-sitter-containerfile = "0.9"
-tree-sitter-bash = "0.25"
-tree-sitter-proto = "0.6"
+konomanoasa-tree-sitter-editorconfig = "0.9"
+konomanoasa-tree-sitter-gitignore = "0.7"
 tree-sitter-graphql = "0.3"
-tree-sitter-make = "1.1"
 tree-sitter-hcl = "1.1"
+tree-sitter-ini = "1.4"
+tree-sitter-make = "1.1"
+tree-sitter-md = { version = "0.5", default-features = false }
 woodruffw-trough-tree-sitter-powershell = "0.1"
+tree-sitter-proto = "0.6"
+tree-sitter-bash = "0.25"
+tree-sitter-toml-ng = "0.7"
+tree-sitter-xml = "0.7"
+# /generated
 
 core-config = { path = "crates/core-config" }
 core-patterns = { path = "crates/core-patterns" }
@@ -63,19 +65,21 @@ lang-csharp = { path = "crates/lang-csharp" }
 lang-json = { path = "crates/lang-json" }
 lang-yaml = { path = "crates/lang-yaml" }
 lang-github-actions = { path = "crates/lang-github-actions" }
-lang-toml = { path = "crates/lang-toml", default-features = false }
-lang-xml = { path = "crates/lang-xml", default-features = false }
-lang-markdown = { path = "crates/lang-markdown", default-features = false }
-lang-editorconfig = { path = "crates/lang-editorconfig", default-features = false }
-lang-ini = { path = "crates/lang-ini", default-features = false }
-lang-gitignore = { path = "crates/lang-gitignore", default-features = false }
+# generated:languages
 lang-dockerfile = { path = "crates/lang-dockerfile", default-features = false }
-lang-shell = { path = "crates/lang-shell", default-features = false }
+lang-editorconfig = { path = "crates/lang-editorconfig", default-features = false }
+lang-gitignore = { path = "crates/lang-gitignore", default-features = false }
+lang-graphql = { path = "crates/lang-graphql", default-features = false }
+lang-hcl = { path = "crates/lang-hcl", default-features = false }
+lang-ini = { path = "crates/lang-ini", default-features = false }
+lang-makefile = { path = "crates/lang-makefile", default-features = false }
+lang-markdown = { path = "crates/lang-markdown", default-features = false }
 lang-powershell = { path = "crates/lang-powershell", default-features = false }
 lang-protobuf = { path = "crates/lang-protobuf", default-features = false }
-lang-graphql = { path = "crates/lang-graphql", default-features = false }
-lang-makefile = { path = "crates/lang-makefile", default-features = false }
-lang-hcl = { path = "crates/lang-hcl", default-features = false }
+lang-shell = { path = "crates/lang-shell", default-features = false }
+lang-toml = { path = "crates/lang-toml", default-features = false }
+lang-xml = { path = "crates/lang-xml", default-features = false }
+# /generated
 core-packs = { path = "crates/core-packs" }
 core-treesitter = { path = "crates/core-treesitter" }
 core-syntax = { path = "crates/core-syntax" }

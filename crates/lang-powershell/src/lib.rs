@@ -2,7 +2,6 @@
 //! formatter in `format.rs` re-indents the lines and adds the blanks and breaks
 //! PSScriptAnalyzer's `Invoke-Formatter` adds.
 
-core_syntax::include_generated!();
 mod format;
 mod mapping;
 mod rules;

@@ -13,7 +13,7 @@ fn list(v: &Value, key: &str) -> Vec<String> {
         .collect()
 }
 
-fn text<'a>(v: &'a Value, key: &str, default: &'a str) -> &'a str {
+pub fn text<'a>(v: &'a Value, key: &str, default: &'a str) -> &'a str {
     v.get(key).and_then(Value::as_str).unwrap_or(default)
 }
 
@@ -28,8 +28,15 @@ fn workspace_deps(names: &[String]) -> Vec<String> {
         .collect()
 }
 
-pub fn generate(root: &Path) -> Result<Vec<(PathBuf, String)>> {
-    let mut files = Vec::new();
+/// A `lang.yaml` language: its crate directory name and the parsed manifest.
+pub struct Lang {
+    pub krate: String,
+    pub yaml: Value,
+}
+
+/// Every `crates/*/lang.yaml`, by crate name.
+pub fn load(root: &Path) -> Result<Vec<Lang>> {
+    let mut langs = Vec::new();
     for entry in std::fs::read_dir(root.join("crates"))? {
         let dir = entry?.path();
         let manifest = dir.join("lang.yaml");
@@ -38,14 +45,26 @@ pub fn generate(root: &Path) -> Result<Vec<(PathBuf, String)>> {
         }
         let krate = dir.file_name().and_then(|n| n.to_str()).unwrap_or_default();
         let src = std::fs::read_to_string(&manifest)?;
-        let v: Value = serde_saphyr::from_str(&src)
+        let yaml = serde_saphyr::from_str(&src)
             .with_context(|| format!("parsing {}", manifest.display()))?;
-        let rel = PathBuf::from("crates").join(krate);
-        files.push((rel.join("Cargo.toml"), cargo_toml(krate, &v)));
-        let name = krate.trim_start_matches("lang-");
-        files.push((rel.join("src/provider.generated.rs"), provider(name, &v)));
+        langs.push(Lang {
+            krate: krate.into(),
+            yaml,
+        });
     }
-    Ok(files)
+    langs.sort_by(|a, b| a.krate.cmp(&b.krate));
+    Ok(langs)
+}
+
+pub fn generate(langs: &[Lang]) -> Vec<(PathBuf, String)> {
+    let mut files = Vec::new();
+    for Lang { krate, yaml } in langs {
+        let rel = PathBuf::from("crates").join(krate);
+        files.push((rel.join("Cargo.toml"), cargo_toml(krate, yaml)));
+        let name = krate.trim_start_matches("lang-");
+        files.push((rel.join("src/provider.generated.rs"), provider(name, yaml)));
+    }
+    files
 }
 
 fn cargo_toml(krate: &str, v: &Value) -> String {
@@ -114,6 +133,6 @@ fn provider(name: &str, v: &Value) -> String {
         None => body,
     };
     format!(
-        "// Generated from lang.yaml by `cargo xtask codegen`.\nuse core_syntax::grammars;\nuse core_treesitter::{{Spec, TreeSitterProvider}};\n\n#[rustfmt::skip]\npub fn provider() -> TreeSitterProvider {{\n    {body}\n}}\n"
+        "// Generated from lang.yaml by `cargo xtask codegen`.\nuse core_syntax::grammars;\nuse core_treesitter::{{Spec, TreeSitterProvider}};\n\ncore_syntax::include_generated!();\n\n#[rustfmt::skip]\npub fn provider() -> TreeSitterProvider {{\n    {body}\n}}\n"
     )
 }

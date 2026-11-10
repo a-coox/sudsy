@@ -15,19 +15,21 @@ lang-csharp.workspace = true
 lang-json.workspace = true
 lang-yaml.workspace = true
 lang-github-actions.workspace = true
+# generated:dependencies
+lang-dockerfile.workspace = true
+lang-editorconfig.workspace = true
+lang-gitignore.workspace = true
+lang-graphql.workspace = true
+lang-hcl.workspace = true
+lang-ini.workspace = true
+lang-makefile.workspace = true
+lang-markdown.workspace = true
+lang-powershell.workspace = true
+lang-protobuf.workspace = true
+lang-shell.workspace = true
 lang-toml.workspace = true
 lang-xml.workspace = true
-lang-markdown.workspace = true
-lang-editorconfig.workspace = true
-lang-ini.workspace = true
-lang-gitignore.workspace = true
-lang-dockerfile.workspace = true
-lang-powershell.workspace = true
-lang-shell.workspace = true
-lang-protobuf.workspace = true
-lang-graphql.workspace = true
-lang-makefile.workspace = true
-lang-hcl.workspace = true
+# /generated
 core-workspace.workspace = true
 provider-api.workspace = true
 serde.workspace = true
@@ -38,7 +40,9 @@ thiserror.workspace = true
 [features]
 # Grammars linked in (dev, tests, `cargo install`); without it the tree-sitter languages load from packs.
 default = ["static-grammars"]
-static-grammars = ["lang-toml/static-grammars", "lang-xml/static-grammars", "lang-markdown/static-grammars", "lang-editorconfig/static-grammars", "lang-ini/static-grammars", "lang-gitignore/static-grammars", "lang-dockerfile/static-grammars", "lang-powershell/static-grammars", "lang-shell/static-grammars", "lang-protobuf/static-grammars", "lang-graphql/static-grammars", "lang-makefile/static-grammars", "lang-hcl/static-grammars"]
+# generated:static-grammars
+static-grammars = ["lang-dockerfile/static-grammars", "lang-editorconfig/static-grammars", "lang-gitignore/static-grammars", "lang-graphql/static-grammars", "lang-hcl/static-grammars", "lang-ini/static-grammars", "lang-makefile/static-grammars", "lang-markdown/static-grammars", "lang-powershell/static-grammars", "lang-protobuf/static-grammars", "lang-shell/static-grammars", "lang-toml/static-grammars", "lang-xml/static-grammars"]
+# /generated
 
 [lints]
 workspace = true

@@ -1582,875 +1582,6 @@
       "upstream": []
     },
     {
-      "category": "correctness",
-      "default_level": "warn",
-      "description": "An element of a project file (`PackageReference`, `ProjectReference`, `Compile`, ...) has the same `Include` as an earlier element of the same name in the same parent. The duplicate is a restore warning or a build error.",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "<Project>\n  <ItemGroup>\n    <PackageReference Include=\"A\" Version=\"1\" />\n    <PackageReference Include=\"B\" Version=\"1\" />\n    <PackageReference Include=\"A\" Version=\"2\"></PackageReference>\n    <Compile Include=\"A\" />\n    <ProjectReference Include=\"B\" />\n  </ItemGroup>\n  <ItemGroup>\n    <PackageReference Include=\"A\" />\n  </ItemGroup>\n</Project>\n",
-        "language": "xml",
-        "spans": [
-          {
-            "column": 31,
-            "length": 3,
-            "line": 5
-          }
-        ]
-      },
-      "fix": null,
-      "id": "no-duplicate-include",
-      "languages": [
-        "xml"
-      ],
-      "options": [],
-      "presets": [],
-      "upstream": []
-    },
-    {
-      "category": "suspicious",
-      "default_level": "warn",
-      "description": "A `PackageReference` (or `PackageVersion`) whose `Version` contains `*` restores a different package as new versions appear. Reported on the attribute; no fix, because the version to pin is a decision.",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "<Project>\n  <ItemGroup>\n    <PackageReference Include=\"A\" Version=\"1.0.0\" />\n    <PackageReference Include=\"B\" Version=\"1.*\" />\n    <PackageVersion Include=\"C\" Version=\"*\" ></PackageVersion>\n    <Other Include=\"D\" Version=\"1.*\" />\n  </ItemGroup>\n</Project>\n",
-        "language": "xml",
-        "spans": [
-          {
-            "column": 35,
-            "length": 13,
-            "line": 4
-          },
-          {
-            "column": 33,
-            "length": 11,
-            "line": 5
-          }
-        ]
-      },
-      "fix": null,
-      "id": "no-floating-package-version",
-      "languages": [
-        "xml"
-      ],
-      "options": [],
-      "presets": [],
-      "upstream": []
-    },
-    {
-      "category": "style",
-      "default_level": "warn",
-      "description": "A fenced code block in which every line starts with `$ ` shows commands without their output, which makes copying them awkward (markdownlint MD014).",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "```sh\n$ npm install\n$ npm test\n```\n\n```sh\n$ npm test\nall passed\n```\n\n```sh\nnpm test\n```\n",
-        "language": "markdown",
-        "spans": [
-          {
-            "column": 1,
-            "length": 1,
-            "line": 1
-          }
-        ]
-      },
-      "fix": null,
-      "id": "commands-show-output",
-      "languages": [
-        "markdown"
-      ],
-      "options": [],
-      "presets": [],
-      "upstream": []
-    },
-    {
-      "category": "style",
-      "default_level": "warn",
-      "description": "Link text that is `click here`, `here`, `link` or `more` (markdownlint MD059).",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "[here](https://example.com), [Click here](https://example.com) and [the guide](https://example.com).\n",
-        "language": "markdown",
-        "spans": [
-          {
-            "column": 1,
-            "length": 27,
-            "line": 1
-          },
-          {
-            "column": 30,
-            "length": 33,
-            "line": 1
-          }
-        ]
-      },
-      "fix": null,
-      "id": "descriptive-link-text",
-      "languages": [
-        "markdown"
-      ],
-      "options": [],
-      "presets": [],
-      "upstream": []
-    },
-    {
-      "category": "style",
-      "default_level": "warn",
-      "description": "A fenced code block without an info string (markdownlint MD040); name the language, or `text`.",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "```\nno language\n```\n\n```rust\nfn main() {}\n```\n",
-        "language": "markdown",
-        "spans": [
-          {
-            "column": 1,
-            "length": 1,
-            "line": 1
-          }
-        ]
-      },
-      "fix": null,
-      "id": "fenced-code-language",
-      "languages": [
-        "markdown"
-      ],
-      "options": [],
-      "presets": [],
-      "upstream": []
-    },
-    {
-      "category": "style",
-      "default_level": "warn",
-      "description": "A heading is more than one level deeper than the heading before it (an `h4` right after an `h2`). Going back up by any number of levels is fine (markdownlint MD001).",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "# One\n\n### Three\n\n## Two\n\n#### Four\n",
-        "language": "markdown",
-        "spans": [
-          {
-            "column": 1,
-            "length": 9,
-            "line": 3
-          },
-          {
-            "column": 1,
-            "length": 9,
-            "line": 7
-          }
-        ]
-      },
-      "fix": null,
-      "id": "heading-increment",
-      "languages": [
-        "markdown"
-      ],
-      "options": [],
-      "presets": [],
-      "upstream": []
-    },
-    {
-      "category": "style",
-      "default_level": "warn",
-      "description": "An image with empty alternate text, `![](url)` (markdownlint MD045).",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "![](logo.png) and ![Logo](logo.png).\n",
-        "language": "markdown",
-        "spans": [
-          {
-            "column": 1,
-            "length": 13,
-            "line": 1
-          }
-        ]
-      },
-      "fix": null,
-      "id": "no-alt-text",
-      "languages": [
-        "markdown"
-      ],
-      "options": [],
-      "presets": [],
-      "upstream": []
-    },
-    {
-      "category": "style",
-      "default_level": "warn",
-      "description": "A URL that is neither a link nor an autolink (markdownlint MD034), found when it follows a space or starts the paragraph. Reported on the paragraph.",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "https://example.com is bare.\n\n<https://example.com> and [site](https://example.com) are not.\n",
-        "language": "markdown",
-        "spans": [
-          {
-            "column": 1,
-            "length": 28,
-            "line": 1
-          }
-        ]
-      },
-      "fix": null,
-      "id": "no-bare-urls",
-      "languages": [
-        "markdown"
-      ],
-      "options": [],
-      "presets": [],
-      "upstream": []
-    },
-    {
-      "category": "style",
-      "default_level": "warn",
-      "description": "Two headings have the same text (markdownlint MD024), which makes their anchors ambiguous.",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "# Usage\n\n## Install\n\n## Usage\n\nSetext\n------\n\nSetext\n======\n",
-        "language": "markdown",
-        "spans": [
-          {
-            "column": 1,
-            "length": 8,
-            "line": 5
-          },
-          {
-            "column": 1,
-            "length": 6,
-            "line": 10
-          }
-        ]
-      },
-      "fix": null,
-      "id": "no-duplicate-heading",
-      "languages": [
-        "markdown"
-      ],
-      "options": [],
-      "presets": [],
-      "upstream": []
-    },
-    {
-      "category": "style",
-      "default_level": "warn",
-      "description": "A one-line paragraph that is only emphasized text without closing punctuation (markdownlint MD036); use a heading.",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "**Overview**\n\n*Notes*\n\n**A sentence.**\n\nText with **bold** inside.\n",
-        "language": "markdown",
-        "spans": [
-          {
-            "column": 1,
-            "length": 12,
-            "line": 1
-          },
-          {
-            "column": 1,
-            "length": 7,
-            "line": 3
-          }
-        ]
-      },
-      "fix": null,
-      "id": "no-emphasis-as-heading",
-      "languages": [
-        "markdown"
-      ],
-      "options": [],
-      "presets": [],
-      "upstream": []
-    },
-    {
-      "category": "correctness",
-      "default_level": "warn",
-      "description": "A link whose destination is empty or only `#` (markdownlint MD042).",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "A [docs]() and [anchor](#) and [ok](#top) link.\n",
-        "language": "markdown",
-        "spans": [
-          {
-            "column": 3,
-            "length": 8,
-            "line": 1
-          },
-          {
-            "column": 16,
-            "length": 11,
-            "line": 1
-          }
-        ]
-      },
-      "fix": null,
-      "id": "no-empty-links",
-      "languages": [
-        "markdown"
-      ],
-      "options": [],
-      "presets": [],
-      "upstream": []
-    },
-    {
-      "category": "style",
-      "default_level": "warn",
-      "description": "Raw HTML in a document (markdownlint MD033). Comments are not reported. Reported once per HTML block, not per tag.",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "Text with <b>bold</b> HTML and <!-- a comment -->.\n\n<div>\nblock\n</div>\n\n<!-- only a comment -->\n",
-        "language": "markdown",
-        "spans": [
-          {
-            "column": 11,
-            "length": 3,
-            "line": 1
-          },
-          {
-            "column": 18,
-            "length": 4,
-            "line": 1
-          },
-          {
-            "column": 1,
-            "length": 1,
-            "line": 3
-          }
-        ]
-      },
-      "fix": null,
-      "id": "no-inline-html",
-      "languages": [
-        "markdown"
-      ],
-      "options": [],
-      "presets": [],
-      "upstream": []
-    },
-    {
-      "category": "correctness",
-      "default_level": "warn",
-      "description": "A paragraph that starts with one to six `#` and no space reads as a heading to people but is plain text to Markdown (markdownlint MD018).",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "#Heading\n\n## Fine\n\n###Also missing\n\nText with #hash inside.\n",
-        "language": "markdown",
-        "spans": [
-          {
-            "column": 1,
-            "length": 8,
-            "line": 1
-          },
-          {
-            "column": 1,
-            "length": 15,
-            "line": 5
-          }
-        ]
-      },
-      "fix": null,
-      "id": "no-missing-space-atx",
-      "languages": [
-        "markdown"
-      ],
-      "options": [],
-      "presets": [],
-      "upstream": []
-    },
-    {
-      "category": "correctness",
-      "default_level": "warn",
-      "description": "Link syntax written the wrong way round, `(text)[url]` (markdownlint MD011), at the start of a paragraph or after a blank. Reported on the paragraph; no fix, because `(text)[url]` may be meant literally.",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "(Docs)[https://example.com] is reversed, [Docs](https://example.com) is not.\n\nText (with parentheses) and [brackets] stay.\n",
-        "language": "markdown",
-        "spans": [
-          {
-            "column": 1,
-            "length": 76,
-            "line": 1
-          }
-        ]
-      },
-      "fix": null,
-      "id": "no-reversed-links",
-      "languages": [
-        "markdown"
-      ],
-      "options": [],
-      "presets": [],
-      "upstream": []
-    },
-    {
-      "category": "style",
-      "default_level": "warn",
-      "description": "A code span that starts or ends with a space (markdownlint MD038). A span with a space on both sides of a backtick-led or backtick-ended content is allowed.",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "A ` code` and `code ` and `code` span.\n",
-        "language": "markdown",
-        "spans": [
-          {
-            "column": 3,
-            "length": 7,
-            "line": 1
-          },
-          {
-            "column": 15,
-            "length": 7,
-            "line": 1
-          }
-        ]
-      },
-      "fix": null,
-      "id": "no-space-in-code",
-      "languages": [
-        "markdown"
-      ],
-      "options": [],
-      "presets": [],
-      "upstream": []
-    },
-    {
-      "category": "style",
-      "default_level": "warn",
-      "description": "Link text that starts or ends with a space (markdownlint MD039).",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "A [ docs](https://example.com) and [docs ](https://example.com) and [docs](https://example.com).\n",
-        "language": "markdown",
-        "spans": [
-          {
-            "column": 3,
-            "length": 28,
-            "line": 1
-          },
-          {
-            "column": 36,
-            "length": 28,
-            "line": 1
-          }
-        ]
-      },
-      "fix": null,
-      "id": "no-space-in-links",
-      "languages": [
-        "markdown"
-      ],
-      "options": [],
-      "presets": [],
-      "upstream": []
-    },
-    {
-      "category": "style",
-      "default_level": "warn",
-      "description": "A heading that ends with `.`, `,`, `;`, `:` or `!` (or the full-width forms) reads as a sentence, not a title (markdownlint MD026). `?` is allowed.",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "# Introduction.\n\n## Why?\n\n## Setup:\n\nOverview!\n---------\n",
-        "language": "markdown",
-        "spans": [
-          {
-            "column": 3,
-            "length": 13,
-            "line": 1
-          },
-          {
-            "column": 4,
-            "length": 6,
-            "line": 5
-          },
-          {
-            "column": 1,
-            "length": 9,
-            "line": 7
-          }
-        ]
-      },
-      "fix": null,
-      "id": "no-trailing-punctuation",
-      "languages": [
-        "markdown"
-      ],
-      "options": [],
-      "presets": [],
-      "upstream": []
-    },
-    {
-      "category": "style",
-      "default_level": "warn",
-      "description": "A document has more than one top-level heading (markdownlint MD025). The second and later `h1` are reported.",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "# One\n\n## Sub\n\n# Two\n\nThree\n=====\n",
-        "language": "markdown",
-        "spans": [
-          {
-            "column": 1,
-            "length": 5,
-            "line": 5
-          },
-          {
-            "column": 1,
-            "length": 5,
-            "line": 7
-          }
-        ]
-      },
-      "fix": null,
-      "id": "single-title",
-      "languages": [
-        "markdown"
-      ],
-      "options": [],
-      "presets": [],
-      "upstream": []
-    },
-    {
-      "category": "correctness",
-      "default_level": "warn",
-      "description": "A known EditorConfig or .NET property has a value it does not accept (`indent_style = tabs`, `dotnet_diagnostic.CA1000.severity = high`). Values are case-insensitive, `unset` is always valid, and .NET code-style options may end in `:silent`, `:suggestion`, `:warning` or `:error`; formatting options do not (Roslyn parses them with `bool.TryParse`, EditorConfigValueSerializer.cs). A trailing `# comment` is ignored, as Roslyn does. Unknown properties are not checked.",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "indent_style = tabs\nindent_style = Tab\nindent_size = four\nindent_size = 4\nindent_size = TAB\nindent_size = 4 # four\nindent_size = four ; words\nindent_size = unset\ntab_width =\nmax_line_length = off\ncharset = \"utf-8-bom\"\ntrim_trailing_whitespace = yes\nend_of_line = LF\ndotnet_diagnostic.CA1000.severity = high\ndotnet_diagnostic.CA1000.severity = Warning\ndotnet_style_qualification_for_field = maybe:suggestion\ncsharp_style_var_elsewhere = true:suggestoin\ncsharp_style_var_elsewhere = true:suggestion\ncsharp_new_line_before_open_brace = all\ncsharp_new_line_before_open_brace = methods, types\ncsharp_new_line_before_open_brace = methods, typs\ncsharp_new_line_before_else = true:suggestion\ndotnet_naming_symbols.x.applicable_kinds = class, strukt\ndotnet_code_quality.CA1822.api_surface = anything, goes\nnot_a_known_property = whatever\n",
-        "language": "editorconfig",
-        "spans": [
-          {
-            "column": 16,
-            "length": 4,
-            "line": 1
-          },
-          {
-            "column": 15,
-            "length": 4,
-            "line": 3
-          },
-          {
-            "column": 15,
-            "length": 12,
-            "line": 7
-          },
-          {
-            "column": 1,
-            "length": 9,
-            "line": 9
-          },
-          {
-            "column": 11,
-            "length": 11,
-            "line": 11
-          },
-          {
-            "column": 28,
-            "length": 3,
-            "line": 12
-          },
-          {
-            "column": 37,
-            "length": 4,
-            "line": 14
-          },
-          {
-            "column": 40,
-            "length": 16,
-            "line": 16
-          },
-          {
-            "column": 30,
-            "length": 15,
-            "line": 17
-          },
-          {
-            "column": 37,
-            "length": 13,
-            "line": 21
-          },
-          {
-            "column": 31,
-            "length": 15,
-            "line": 22
-          },
-          {
-            "column": 44,
-            "length": 13,
-            "line": 23
-          }
-        ]
-      },
-      "fix": null,
-      "id": "invalid-property-value",
-      "languages": [
-        "editorconfig"
-      ],
-      "options": [],
-      "presets": [],
-      "upstream": []
-    },
-    {
-      "category": "correctness",
-      "default_level": "warn",
-      "description": "The `root` property stops the search for parent `.editorconfig` files, but only as a preamble pair (before the first `[section]`); inside a section editors ignore it. No fix: moving it into the preamble is the author's call.",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "root = true\n\n[*.cs]\nindent_size = 4\nRoot = true\n[*.vb]\nrooted = true\n",
-        "language": "editorconfig",
-        "spans": [
-          {
-            "column": 1,
-            "length": 11,
-            "line": 5
-          }
-        ]
-      },
-      "fix": null,
-      "id": "root-in-section",
-      "languages": [
-        "editorconfig"
-      ],
-      "options": [],
-      "presets": [],
-      "upstream": []
-    },
-    {
-      "category": "correctness",
-      "default_level": "warn",
-      "description": "A property name that is not an EditorConfig or .NET (`dotnet_*`, `csharp_*`, `visual_basic_*`, `dotnet_diagnostic.<ID>.severity`, naming rule) property but is one typo away from one: the setting is silently ignored. Names of other tools (`resharper_*`, `ij_*`) are left alone. Known properties and values: `crates/lang-editorconfig/data/properties.txt`.",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "[*.cs]\nindent_syle = space\nINDENT_STYLE = space\ndotnet_style_qualification_for_feild = false:suggestion\ncsharp_new_line_befor_open_brace = all\ndotnet_diagnostic.CA1000.sevrity = none\ndotnet_naming_rule.types.symbol = types\ndotnet_diagnostic.CA1000.severity = none\ndotnet_naming_style.pascal.capitalization = pascal_case\nresharper_apply_auto_detected_rules = false\nij_formatter_enabled = true\ndotnet_a_new_option_nothing_like_any = true\n",
-        "language": "editorconfig",
-        "spans": [
-          {
-            "column": 1,
-            "length": 11,
-            "line": 2
-          },
-          {
-            "column": 1,
-            "length": 36,
-            "line": 4
-          },
-          {
-            "column": 1,
-            "length": 32,
-            "line": 5
-          },
-          {
-            "column": 1,
-            "length": 32,
-            "line": 6
-          },
-          {
-            "column": 1,
-            "length": 31,
-            "line": 7
-          }
-        ]
-      },
-      "fix": null,
-      "id": "unknown-property",
-      "languages": [
-        "editorconfig"
-      ],
-      "options": [
-        {
-          "default": false,
-          "description": "Also report `dotnet_*`, `csharp_*` and `visual_basic_*` names that are close to no known property (the list may lag behind new .NET options).",
-          "name": "strict",
-          "type": "bool"
-        }
-      ],
-      "presets": [],
-      "upstream": []
-    },
-    {
-      "category": "suspicious",
-      "default_level": "warn",
-      "description": "A `[section]` header with nothing under it, usually left behind by a removed setting. Comments do not count as settings.",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "[core]\nbare = false\n\n[empty]\n\n[comment-only]\n; nothing here\n\n[user]\nname = a\n",
-        "language": "ini",
-        "spans": [
-          {
-            "column": 1,
-            "length": 1,
-            "line": 4
-          },
-          {
-            "column": 1,
-            "length": 1,
-            "line": 6
-          }
-        ]
-      },
-      "fix": null,
-      "id": "empty-section",
-      "languages": [
-        "ini"
-      ],
-      "options": [],
-      "presets": [],
-      "upstream": []
-    },
-    {
-      "category": "correctness",
-      "default_level": "warn",
-      "description": "`build\\out` is the pattern `buildout`: the backslash escapes `o`. Windows-style separators never match what was meant. Reported for a backslash before a letter, digit, `_` or `-` (`\\.` and `\\#` are ordinary escapes). No fix.",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "build\\out\n\\#file\nfoo\\.bar\n",
-        "language": "gitignore",
-        "spans": [
-          {
-            "column": 6,
-            "length": 2,
-            "line": 1
-          }
-        ]
-      },
-      "fix": null,
-      "id": "backslash-separator",
-      "languages": [
-        "gitignore"
-      ],
-      "options": [],
-      "presets": [],
-      "upstream": []
-    },
-    {
-      "category": "correctness",
-      "default_level": "warn",
-      "description": "Gitignore-syntax files have no end-of-line comments: `*.log # logs` is the pattern `*.log # logs`, a file name with spaces and a `#`. No fix: put the comment on its own line.",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "*.log # logs\n# a # b\nname#x\ndist/\n",
-        "language": "gitignore",
-        "spans": [
-          {
-            "column": 1,
-            "length": 12,
-            "line": 1
-          }
-        ]
-      },
-      "fix": null,
-      "id": "inline-comment",
-      "languages": [
-        "gitignore"
-      ],
-      "options": [],
-      "presets": [],
-      "upstream": []
-    },
-    {
-      "category": "correctness",
-      "default_level": "warn",
-      "description": "Git cannot re-include a file when a parent directory is excluded: `!a/b` after `a/` has no effect. Exclude the contents (`a/*`) instead. Not reported in `.dockerignore`, where the later pattern wins. Only literal paths are checked.",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "node_modules/\n!node_modules/keep.js\n/a/b\n!/a/b/c\n*.o\n!/lib/a.o\nvendor/\n!vendor/\n!vendor/x\nsrc/gen\n!other/src/gen/x\n",
-        "language": "gitignore",
-        "spans": [
-          {
-            "column": 1,
-            "length": 21,
-            "line": 2
-          },
-          {
-            "column": 1,
-            "length": 7,
-            "line": 4
-          }
-        ]
-      },
-      "fix": null,
-      "id": "negation-of-excluded-parent",
-      "languages": [
-        "gitignore"
-      ],
-      "options": [],
-      "presets": [],
-      "upstream": []
-    },
-    {
-      "category": "suspicious",
-      "default_level": "warn",
-      "description": "The same pattern appears twice with no opposite pattern (`!x` for `x`) in between, so the second one changes nothing.",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "*.log\nbuild/\n*.log\n!keep.log\n!keep.log\n*.tmp\n!*.tmp\n*.tmp\n",
-        "language": "gitignore",
-        "spans": [
-          {
-            "column": 1,
-            "length": 5,
-            "line": 3
-          },
-          {
-            "column": 1,
-            "length": 9,
-            "line": 5
-          }
-        ]
-      },
-      "fix": null,
-      "id": "no-duplicate-pattern",
-      "languages": [
-        "gitignore"
-      ],
-      "options": [],
-      "presets": [],
-      "upstream": []
-    },
-    {
-      "category": "suspicious",
-      "default_level": "warn",
-      "description": "A name pattern such as `foo` already matches files and directories called `foo` at every level, so a later `foo/` or `/foo` adds nothing (no `!` pattern in between).",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "build\n/build/\nout/\nbin\n!bin\nbin/\ndist/dir\n/dist/dir/\n",
-        "language": "gitignore",
-        "spans": [
-          {
-            "column": 1,
-            "length": 7,
-            "line": 2
-          }
-        ]
-      },
-      "fix": null,
-      "id": "redundant-pattern",
-      "languages": [
-        "gitignore"
-      ],
-      "options": [],
-      "presets": [],
-      "upstream": []
-    },
-    {
       "category": "performance",
       "default_level": "off",
       "description": "apk add without --no-cache.",
@@ -3897,6 +3028,2751 @@
       "upstream": []
     },
     {
+      "category": "correctness",
+      "default_level": "warn",
+      "description": "A known EditorConfig or .NET property has a value it does not accept (`indent_style = tabs`, `dotnet_diagnostic.CA1000.severity = high`). Values are case-insensitive, `unset` is always valid, and .NET code-style options may end in `:silent`, `:suggestion`, `:warning` or `:error`; formatting options do not (Roslyn parses them with `bool.TryParse`, EditorConfigValueSerializer.cs). A trailing `# comment` is ignored, as Roslyn does. Unknown properties are not checked.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "indent_style = tabs\nindent_style = Tab\nindent_size = four\nindent_size = 4\nindent_size = TAB\nindent_size = 4 # four\nindent_size = four ; words\nindent_size = unset\ntab_width =\nmax_line_length = off\ncharset = \"utf-8-bom\"\ntrim_trailing_whitespace = yes\nend_of_line = LF\ndotnet_diagnostic.CA1000.severity = high\ndotnet_diagnostic.CA1000.severity = Warning\ndotnet_style_qualification_for_field = maybe:suggestion\ncsharp_style_var_elsewhere = true:suggestoin\ncsharp_style_var_elsewhere = true:suggestion\ncsharp_new_line_before_open_brace = all\ncsharp_new_line_before_open_brace = methods, types\ncsharp_new_line_before_open_brace = methods, typs\ncsharp_new_line_before_else = true:suggestion\ndotnet_naming_symbols.x.applicable_kinds = class, strukt\ndotnet_code_quality.CA1822.api_surface = anything, goes\nnot_a_known_property = whatever\n",
+        "language": "editorconfig",
+        "spans": [
+          {
+            "column": 16,
+            "length": 4,
+            "line": 1
+          },
+          {
+            "column": 15,
+            "length": 4,
+            "line": 3
+          },
+          {
+            "column": 15,
+            "length": 12,
+            "line": 7
+          },
+          {
+            "column": 1,
+            "length": 9,
+            "line": 9
+          },
+          {
+            "column": 11,
+            "length": 11,
+            "line": 11
+          },
+          {
+            "column": 28,
+            "length": 3,
+            "line": 12
+          },
+          {
+            "column": 37,
+            "length": 4,
+            "line": 14
+          },
+          {
+            "column": 40,
+            "length": 16,
+            "line": 16
+          },
+          {
+            "column": 30,
+            "length": 15,
+            "line": 17
+          },
+          {
+            "column": 37,
+            "length": 13,
+            "line": 21
+          },
+          {
+            "column": 31,
+            "length": 15,
+            "line": 22
+          },
+          {
+            "column": 44,
+            "length": 13,
+            "line": 23
+          }
+        ]
+      },
+      "fix": null,
+      "id": "invalid-property-value",
+      "languages": [
+        "editorconfig"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "correctness",
+      "default_level": "warn",
+      "description": "The `root` property stops the search for parent `.editorconfig` files, but only as a preamble pair (before the first `[section]`); inside a section editors ignore it. No fix: moving it into the preamble is the author's call.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "root = true\n\n[*.cs]\nindent_size = 4\nRoot = true\n[*.vb]\nrooted = true\n",
+        "language": "editorconfig",
+        "spans": [
+          {
+            "column": 1,
+            "length": 11,
+            "line": 5
+          }
+        ]
+      },
+      "fix": null,
+      "id": "root-in-section",
+      "languages": [
+        "editorconfig"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "correctness",
+      "default_level": "warn",
+      "description": "A property name that is not an EditorConfig or .NET (`dotnet_*`, `csharp_*`, `visual_basic_*`, `dotnet_diagnostic.<ID>.severity`, naming rule) property but is one typo away from one: the setting is silently ignored. Names of other tools (`resharper_*`, `ij_*`) are left alone. Known properties and values: `crates/lang-editorconfig/data/properties.txt`.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "[*.cs]\nindent_syle = space\nINDENT_STYLE = space\ndotnet_style_qualification_for_feild = false:suggestion\ncsharp_new_line_befor_open_brace = all\ndotnet_diagnostic.CA1000.sevrity = none\ndotnet_naming_rule.types.symbol = types\ndotnet_diagnostic.CA1000.severity = none\ndotnet_naming_style.pascal.capitalization = pascal_case\nresharper_apply_auto_detected_rules = false\nij_formatter_enabled = true\ndotnet_a_new_option_nothing_like_any = true\n",
+        "language": "editorconfig",
+        "spans": [
+          {
+            "column": 1,
+            "length": 11,
+            "line": 2
+          },
+          {
+            "column": 1,
+            "length": 36,
+            "line": 4
+          },
+          {
+            "column": 1,
+            "length": 32,
+            "line": 5
+          },
+          {
+            "column": 1,
+            "length": 32,
+            "line": 6
+          },
+          {
+            "column": 1,
+            "length": 31,
+            "line": 7
+          }
+        ]
+      },
+      "fix": null,
+      "id": "unknown-property",
+      "languages": [
+        "editorconfig"
+      ],
+      "options": [
+        {
+          "default": false,
+          "description": "Also report `dotnet_*`, `csharp_*` and `visual_basic_*` names that are close to no known property (the list may lag behind new .NET options).",
+          "name": "strict",
+          "type": "bool"
+        }
+      ],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "correctness",
+      "default_level": "warn",
+      "description": "`build\\out` is the pattern `buildout`: the backslash escapes `o`. Windows-style separators never match what was meant. Reported for a backslash before a letter, digit, `_` or `-` (`\\.` and `\\#` are ordinary escapes). No fix.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "build\\out\n\\#file\nfoo\\.bar\n",
+        "language": "gitignore",
+        "spans": [
+          {
+            "column": 6,
+            "length": 2,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "backslash-separator",
+      "languages": [
+        "gitignore"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "correctness",
+      "default_level": "warn",
+      "description": "Gitignore-syntax files have no end-of-line comments: `*.log # logs` is the pattern `*.log # logs`, a file name with spaces and a `#`. No fix: put the comment on its own line.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "*.log # logs\n# a # b\nname#x\ndist/\n",
+        "language": "gitignore",
+        "spans": [
+          {
+            "column": 1,
+            "length": 12,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "inline-comment",
+      "languages": [
+        "gitignore"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "correctness",
+      "default_level": "warn",
+      "description": "Git cannot re-include a file when a parent directory is excluded: `!a/b` after `a/` has no effect. Exclude the contents (`a/*`) instead. Not reported in `.dockerignore`, where the later pattern wins. Only literal paths are checked.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "node_modules/\n!node_modules/keep.js\n/a/b\n!/a/b/c\n*.o\n!/lib/a.o\nvendor/\n!vendor/\n!vendor/x\nsrc/gen\n!other/src/gen/x\n",
+        "language": "gitignore",
+        "spans": [
+          {
+            "column": 1,
+            "length": 21,
+            "line": 2
+          },
+          {
+            "column": 1,
+            "length": 7,
+            "line": 4
+          }
+        ]
+      },
+      "fix": null,
+      "id": "negation-of-excluded-parent",
+      "languages": [
+        "gitignore"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "warn",
+      "description": "The same pattern appears twice with no opposite pattern (`!x` for `x`) in between, so the second one changes nothing.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "*.log\nbuild/\n*.log\n!keep.log\n!keep.log\n*.tmp\n!*.tmp\n*.tmp\n",
+        "language": "gitignore",
+        "spans": [
+          {
+            "column": 1,
+            "length": 5,
+            "line": 3
+          },
+          {
+            "column": 1,
+            "length": 9,
+            "line": 5
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-duplicate-pattern",
+      "languages": [
+        "gitignore"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "warn",
+      "description": "A name pattern such as `foo` already matches files and directories called `foo` at every level, so a later `foo/` or `/foo` adds nothing (no `!` pattern in between).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "build\n/build/\nout/\nbin\n!bin\nbin/\ndist/dir\n/dist/dir/\n",
+        "language": "gitignore",
+        "spans": [
+          {
+            "column": 1,
+            "length": 7,
+            "line": 2
+          }
+        ]
+      },
+      "fix": null,
+      "id": "redundant-pattern",
+      "languages": [
+        "gitignore"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "warn",
+      "description": "A name does not follow the style set for what it names: operations, fragments, variables, fields, arguments, types, enum values and directives. `PascalCase` and `camelCase` allow letters and digits only, `snake_case` and `UPPER_CASE` forbid the other case; leading underscores are ignored. No fix: renaming changes the schema or the queries that use it. Equivalent: graphql-eslint naming-convention (styles only, no prefix or suffix lists).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "query get_user($User_id: ID) { user }\nfragment user_fields on User { id }\ntype user_account { first_name(Arg_one: Int): String }\nenum Color { red GREEN }\ndirective @Auth on FIELD\ninput Filter { Name: String }\ntype _Ok { __typename: String }\n",
+        "language": "graphql",
+        "spans": [
+          {
+            "column": 7,
+            "length": 8,
+            "line": 1
+          },
+          {
+            "column": 16,
+            "length": 8,
+            "line": 1
+          },
+          {
+            "column": 10,
+            "length": 11,
+            "line": 2
+          },
+          {
+            "column": 6,
+            "length": 12,
+            "line": 3
+          },
+          {
+            "column": 21,
+            "length": 10,
+            "line": 3
+          },
+          {
+            "column": 32,
+            "length": 7,
+            "line": 3
+          },
+          {
+            "column": 14,
+            "length": 3,
+            "line": 4
+          },
+          {
+            "column": 12,
+            "length": 4,
+            "line": 5
+          },
+          {
+            "column": 16,
+            "length": 4,
+            "line": 6
+          }
+        ]
+      },
+      "fix": null,
+      "id": "naming-convention",
+      "languages": [
+        "graphql",
+        "hcl"
+      ],
+      "options": [
+        {
+          "choices": [
+            "PascalCase",
+            "camelCase",
+            "snake_case",
+            "UPPER_CASE",
+            "off"
+          ],
+          "default": "PascalCase",
+          "description": "Style of operation names: `PascalCase`, `camelCase`, `snake_case`, `UPPER_CASE` or `off`.",
+          "name": "operations",
+          "type": "string"
+        },
+        {
+          "choices": [
+            "PascalCase",
+            "camelCase",
+            "snake_case",
+            "UPPER_CASE",
+            "off"
+          ],
+          "default": "PascalCase",
+          "description": "Style of fragment names: `PascalCase`, `camelCase`, `snake_case`, `UPPER_CASE` or `off`.",
+          "name": "fragments",
+          "type": "string"
+        },
+        {
+          "choices": [
+            "PascalCase",
+            "camelCase",
+            "snake_case",
+            "UPPER_CASE",
+            "off"
+          ],
+          "default": "camelCase",
+          "description": "Style of variable names: `PascalCase`, `camelCase`, `snake_case`, `UPPER_CASE` or `off`.",
+          "name": "variables",
+          "type": "string"
+        },
+        {
+          "choices": [
+            "PascalCase",
+            "camelCase",
+            "snake_case",
+            "UPPER_CASE",
+            "off"
+          ],
+          "default": "camelCase",
+          "description": "Style of field and input field names in definitions: `PascalCase`, `camelCase`, `snake_case`, `UPPER_CASE` or `off`.",
+          "name": "fields",
+          "type": "string"
+        },
+        {
+          "choices": [
+            "PascalCase",
+            "camelCase",
+            "snake_case",
+            "UPPER_CASE",
+            "off"
+          ],
+          "default": "camelCase",
+          "description": "Style of argument names in definitions: `PascalCase`, `camelCase`, `snake_case`, `UPPER_CASE` or `off`.",
+          "name": "arguments",
+          "type": "string"
+        },
+        {
+          "choices": [
+            "PascalCase",
+            "camelCase",
+            "snake_case",
+            "UPPER_CASE",
+            "off"
+          ],
+          "default": "PascalCase",
+          "description": "Style of type names: `PascalCase`, `camelCase`, `snake_case`, `UPPER_CASE` or `off`.",
+          "name": "types",
+          "type": "string"
+        },
+        {
+          "choices": [
+            "PascalCase",
+            "camelCase",
+            "snake_case",
+            "UPPER_CASE",
+            "off"
+          ],
+          "default": "UPPER_CASE",
+          "description": "Style of enum values: `PascalCase`, `camelCase`, `snake_case`, `UPPER_CASE` or `off`.",
+          "name": "enum_values",
+          "type": "string"
+        },
+        {
+          "choices": [
+            "PascalCase",
+            "camelCase",
+            "snake_case",
+            "UPPER_CASE",
+            "off"
+          ],
+          "default": "camelCase",
+          "description": "Style of directive names: `PascalCase`, `camelCase`, `snake_case`, `UPPER_CASE` or `off`.",
+          "name": "directives",
+          "type": "string"
+        }
+      ],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "warn",
+      "description": "An operation without a name (`{ a }`, `query { a }`), which tools that log, trace or cache by operation name cannot tell apart. Equivalent - graphql-eslint no-anonymous-operations.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "query Named { a }\n{ b }\nquery { c }\nmutation ($x: Int) { d }\nsubscription S @live { e }\n",
+        "language": "graphql",
+        "spans": [
+          {
+            "column": 1,
+            "length": 1,
+            "line": 2
+          },
+          {
+            "column": 1,
+            "length": 5,
+            "line": 3
+          },
+          {
+            "column": 1,
+            "length": 8,
+            "line": 4
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-anonymous-operations",
+      "languages": [
+        "graphql"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "warn",
+      "description": "A field of an object or interface type starts with the name of the type (`type User { userId: ID }`); the type already says it (case ignored). No fix: renaming a field changes the schema.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "type User {\n  userId: ID\n  id: ID\n}\ninterface Node { nodeKind: String }\ninput UserInput { userName: String }\n",
+        "language": "graphql",
+        "spans": [
+          {
+            "column": 3,
+            "length": 6,
+            "line": 2
+          },
+          {
+            "column": 18,
+            "length": 8,
+            "line": 5
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-typename-prefix",
+      "languages": [
+        "graphql"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "An operation or fragment nests selection sets deeper than allowed, which makes a query expensive to execute. Fragments that are spread are not followed.",
+      "example": {
+        "config": "selection-set-depth:\n  level: warn\n  options:\n    max_depth: 2\n",
+        "fixed": null,
+        "input": "query Q { a { b { c } } }\nfragment F on T { a { b } }\n",
+        "language": "graphql",
+        "spans": [
+          {
+            "column": 9,
+            "length": 1,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "selection-set-depth",
+      "languages": [
+        "graphql"
+      ],
+      "options": [
+        {
+          "default": 7,
+          "description": "The deepest allowed nesting; the operation's own selection set is level 1.",
+          "name": "max_depth",
+          "type": "int"
+        }
+      ],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "correctness",
+      "default_level": "error",
+      "description": "Two fragments of a document have the same name; a spread cannot tell which one it means. Checked within the file.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "query A { a }\nquery A { b }\nquery B { c }\nfragment F on T { a }\nfragment F on T { b }\n",
+        "language": "graphql",
+        "spans": [
+          {
+            "column": 10,
+            "length": 1,
+            "line": 5
+          }
+        ]
+      },
+      "fix": null,
+      "id": "unique-fragment-name",
+      "languages": [
+        "graphql"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "correctness",
+      "default_level": "error",
+      "description": "Two operations of a document have the same name; a server cannot tell which to run and tools that key on the name (caches, persisted queries) collide. Checked within the file.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "query A { a }\nquery A { b }\nquery B { c }\nfragment F on T { a }\nfragment F on T { b }\n",
+        "language": "graphql",
+        "spans": [
+          {
+            "column": 7,
+            "length": 1,
+            "line": 2
+          }
+        ]
+      },
+      "fix": null,
+      "id": "unique-operation-name",
+      "languages": [
+        "graphql"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A `//` comment where `#` is the convention (tflint terraform_comment_syntax). The fix writes `#`.",
+      "example": {
+        "config": null,
+        "fixed": "# old style\n# fine\nx = 1 # trailing\n/* block */\n",
+        "input": "// old style\n# fine\nx = 1 // trailing\n/* block */\n",
+        "language": "hcl",
+        "spans": [
+          {
+            "column": 1,
+            "length": 2,
+            "line": 1
+          },
+          {
+            "column": 7,
+            "length": 2,
+            "line": 3
+          }
+        ]
+      },
+      "fix": "safe",
+      "id": "comment-syntax",
+      "languages": [
+        "hcl"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "warn",
+      "description": "A list item read with the legacy dot syntax, `a.0` (tflint terraform_deprecated_index). The fix writes `a[0]`.",
+      "example": {
+        "config": null,
+        "fixed": "resource \"a\" \"b\" {\n  name = var.name\n  tags = [var.a, \"x-${var.b}\", \"${var.c}${var.d}\"]\n  id   = var.e\n  raw  = \"${~ var.f ~}\"\n  id2  = aws_instance.web[0].id\n  all  = aws_instance.web[0].id\n  ids  = aws_instance.web.*.id\n  num  = local.versions[1][2]\n  key  = { (var.k) = 1 }\n  sum  = 1 + \"${var.n}\"\n}\n",
+        "input": "resource \"a\" \"b\" {\n  name = \"${var.name}\"\n  tags = [\"${var.a}\", \"x-${var.b}\", \"${var.c}${var.d}\"]\n  id   = \"${ var.e }\"\n  raw  = \"${~ var.f ~}\"\n  id2  = aws_instance.web.0.id\n  all  = aws_instance.web[0].id\n  ids  = aws_instance.web.*.id\n  num  = local.versions.1.2\n  key  = { \"${var.k}\" = 1 }\n  sum  = 1 + \"${var.n}\"\n}\n",
+        "language": "hcl",
+        "spans": [
+          {
+            "column": 26,
+            "length": 2,
+            "line": 6
+          },
+          {
+            "column": 24,
+            "length": 2,
+            "line": 9
+          },
+          {
+            "column": 26,
+            "length": 2,
+            "line": 9
+          }
+        ]
+      },
+      "fix": "safe",
+      "id": "deprecated-index",
+      "languages": [
+        "hcl"
+      ],
+      "options": [],
+      "presets": [
+        "hcl/tflint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "warn",
+      "description": "A string that is one interpolation, `\"${var.a}\"`, where the expression alone does (tflint terraform_deprecated_interpolation). The fix writes the expression. Not in Nomad job files (`.nomad`, `.nomad.hcl`), whose agent fills those in at run time.",
+      "example": {
+        "config": null,
+        "fixed": "resource \"a\" \"b\" {\n  name = var.name\n  tags = [var.a, \"x-${var.b}\", \"${var.c}${var.d}\"]\n  id   = var.e\n  raw  = \"${~ var.f ~}\"\n  id2  = aws_instance.web[0].id\n  all  = aws_instance.web[0].id\n  ids  = aws_instance.web.*.id\n  num  = local.versions[1][2]\n  key  = { (var.k) = 1 }\n  sum  = 1 + \"${var.n}\"\n}\n",
+        "input": "resource \"a\" \"b\" {\n  name = \"${var.name}\"\n  tags = [\"${var.a}\", \"x-${var.b}\", \"${var.c}${var.d}\"]\n  id   = \"${ var.e }\"\n  raw  = \"${~ var.f ~}\"\n  id2  = aws_instance.web.0.id\n  all  = aws_instance.web[0].id\n  ids  = aws_instance.web.*.id\n  num  = local.versions.1.2\n  key  = { \"${var.k}\" = 1 }\n  sum  = 1 + \"${var.n}\"\n}\n",
+        "language": "hcl",
+        "spans": [
+          {
+            "column": 10,
+            "length": 13,
+            "line": 2
+          },
+          {
+            "column": 11,
+            "length": 10,
+            "line": 3
+          },
+          {
+            "column": 10,
+            "length": 12,
+            "line": 4
+          },
+          {
+            "column": 12,
+            "length": 10,
+            "line": 10
+          },
+          {
+            "column": 14,
+            "length": 10,
+            "line": 11
+          }
+        ]
+      },
+      "fix": "safe",
+      "id": "deprecated-interpolation",
+      "languages": [
+        "hcl"
+      ],
+      "options": [],
+      "presets": [
+        "hcl/tflint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "An `output` block with no `description` argument (tflint terraform_documented_outputs).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "variable \"plain\" {}\n\nvariable \"full\" {\n  type        = string\n  description = \"Documented.\"\n  validation {\n    condition     = length(var.full) > 0\n    error_message = \"empty\"\n  }\n}\n\noutput \"bare\" {\n  value = 1\n}\n\noutput \"documented\" {\n  value       = 2\n  description = \"Documented.\"\n}\n",
+        "language": "hcl",
+        "spans": [
+          {
+            "column": 1,
+            "length": 6,
+            "line": 12
+          }
+        ]
+      },
+      "fix": null,
+      "id": "documented-outputs",
+      "languages": [
+        "hcl"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A `variable` block with no `description` argument (tflint terraform_documented_variables).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "variable \"plain\" {}\n\nvariable \"full\" {\n  type        = string\n  description = \"Documented.\"\n  validation {\n    condition     = length(var.full) > 0\n    error_message = \"empty\"\n  }\n}\n\noutput \"bare\" {\n  value = 1\n}\n\noutput \"documented\" {\n  value       = 2\n  description = \"Documented.\"\n}\n",
+        "language": "hcl",
+        "spans": [
+          {
+            "column": 1,
+            "length": 8,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "documented-variables",
+      "languages": [
+        "hcl"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "warn",
+      "description": "A comparison with an empty list, `x == []` or `x != []` (tflint terraform_empty_list_equality): it is false for an empty set or a tuple of another type.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "a = var.l == []\nb = var.l != []\nc = [] == var.l\nd = length(var.l) == 0\ne = var.l == [] && var.m\nf = var.l == [1]\n",
+        "language": "hcl",
+        "spans": [
+          {
+            "column": 5,
+            "length": 11,
+            "line": 1
+          },
+          {
+            "column": 5,
+            "length": 11,
+            "line": 2
+          },
+          {
+            "column": 5,
+            "length": 9,
+            "line": 3
+          },
+          {
+            "column": 5,
+            "length": 11,
+            "line": 5
+          }
+        ]
+      },
+      "fix": null,
+      "id": "empty-list-equality",
+      "languages": [
+        "hcl"
+      ],
+      "options": [],
+      "presets": [
+        "hcl/tflint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A `terraform` block with no `required_providers` block (tflint terraform_required_providers, in the file that has the block: the rule does not know the other files of the module).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "terraform {\n  backend \"s3\" {}\n}\n\nterraform {\n  required_version = \">= 1.5\"\n  required_providers {\n    aws = { source = \"hashicorp/aws\" }\n  }\n}\n",
+        "language": "hcl",
+        "spans": [
+          {
+            "column": 1,
+            "length": 9,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "required-providers",
+      "languages": [
+        "hcl"
+      ],
+      "options": [],
+      "presets": [
+        "hcl/tflint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A `terraform` block with no `required_version` argument (tflint terraform_required_version, in the file that has the block: the rule does not know the other files of the module).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "terraform {\n  backend \"s3\" {}\n}\n\nterraform {\n  required_version = \">= 1.5\"\n  required_providers {\n    aws = { source = \"hashicorp/aws\" }\n  }\n}\n",
+        "language": "hcl",
+        "spans": [
+          {
+            "column": 1,
+            "length": 9,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "required-version",
+      "languages": [
+        "hcl"
+      ],
+      "options": [],
+      "presets": [
+        "hcl/tflint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A `variable` block with no `type` argument (tflint terraform_typed_variables).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "variable \"plain\" {}\n\nvariable \"full\" {\n  type        = string\n  description = \"Documented.\"\n  validation {\n    condition     = length(var.full) > 0\n    error_message = \"empty\"\n  }\n}\n\noutput \"bare\" {\n  value = 1\n}\n\noutput \"documented\" {\n  value       = 2\n  description = \"Documented.\"\n}\n",
+        "language": "hcl",
+        "spans": [
+          {
+            "column": 1,
+            "length": 8,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "typed-variables",
+      "languages": [
+        "hcl"
+      ],
+      "options": [],
+      "presets": [
+        "hcl/tflint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "A variable, local value or data source that nothing in the same file refers to (tflint terraform_unused_declarations, within one file: a module that uses its variables in other files needs the rule off or those files in one).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "variable \"used\" {}\nvariable \"unused\" {}\nlocals {\n  used_local   = var.used\n  unused_local = 1\n}\ndata \"aws_ami\" \"used\" {}\ndata \"aws_ami\" \"unused\" {}\noutput \"x\" {\n  value = \"${local.used_local}-${data.aws_ami.used.id}\"\n}\n",
+        "language": "hcl",
+        "spans": [
+          {
+            "column": 10,
+            "length": 8,
+            "line": 2
+          },
+          {
+            "column": 3,
+            "length": 12,
+            "line": 5
+          },
+          {
+            "column": 16,
+            "length": 8,
+            "line": 8
+          }
+        ]
+      },
+      "fix": null,
+      "id": "unused-declarations",
+      "languages": [
+        "hcl"
+      ],
+      "options": [],
+      "presets": [
+        "hcl/tflint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "warn",
+      "description": "A `[section]` header with nothing under it, usually left behind by a removed setting. Comments do not count as settings.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "[core]\nbare = false\n\n[empty]\n\n[comment-only]\n; nothing here\n\n[user]\nname = a\n",
+        "language": "ini",
+        "spans": [
+          {
+            "column": 1,
+            "length": 1,
+            "line": 4
+          },
+          {
+            "column": 1,
+            "length": 1,
+            "line": 6
+          }
+        ]
+      },
+      "fix": null,
+      "id": "empty-section",
+      "languages": [
+        "ini"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "cleanup",
+      "default_level": "off",
+      "description": "A rule whose recipe has more lines than allowed (checkmake `maxbodylength`). Every physical line counts, a continued command and a tab-indented comment included.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "build:\n\techo 1\n\techo 2\n\techo 3\n\techo 4\n\techo 5\n\techo 6\nfine:\n\techo 1\n",
+        "language": "makefile",
+        "spans": [
+          {
+            "column": 1,
+            "length": 5,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "max-body-length",
+      "languages": [
+        "makefile"
+      ],
+      "options": [
+        {
+          "default": 5,
+          "description": "The most lines a recipe may have.",
+          "name": "max",
+          "type": "int"
+        }
+      ],
+      "presets": [
+        "makefile/checkmake"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "A target that must exist and be declared `.PHONY` (checkmake `minphony`). Reported on the `.PHONY` line, or the last rule's when there is none.",
+      "example": {
+        "config": "min-phony:\n  level: warn\n  options:\n    required: [all, build]\n",
+        "fixed": null,
+        "input": ".PHONY: all test\nall:\ntest:\n",
+        "language": "makefile",
+        "spans": [
+          {
+            "column": 1,
+            "length": 6,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "min-phony",
+      "languages": [
+        "makefile"
+      ],
+      "options": [
+        {
+          "default": [
+            "all",
+            "clean",
+            "test"
+          ],
+          "description": "The targets every Makefile must declare `.PHONY`.",
+          "name": "required",
+          "type": "list"
+        }
+      ],
+      "presets": [
+        "makefile/checkmake"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "warn",
+      "description": "A target with no recipe that is not declared `.PHONY` (checkmake `phonydeclared`); targets that start with a `.` are special and skipped.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": ".PHONY: all clean\nall: build\nclean:\nbuild:\n\techo\n.DEFAULT: ;\nempty: all\nboth one two:\n$(OBJS): ;\n",
+        "language": "makefile",
+        "spans": [
+          {
+            "column": 1,
+            "length": 5,
+            "line": 7
+          },
+          {
+            "column": 1,
+            "length": 4,
+            "line": 8
+          },
+          {
+            "column": 6,
+            "length": 3,
+            "line": 8
+          },
+          {
+            "column": 10,
+            "length": 3,
+            "line": 8
+          }
+        ]
+      },
+      "fix": null,
+      "id": "phony-declared",
+      "languages": [
+        "makefile"
+      ],
+      "options": [],
+      "presets": [
+        "makefile/checkmake"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "warn",
+      "description": "A variable whose value runs `date` and that is not simply expanded (`:=`, `::=`): every use runs `date` again and the values differ within one build (checkmake `timestampexpanded`).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "A = $(shell date +%s)\nB := $(shell date +%s)\nC ?= a date\nD = date\nE += $(shell date)\nF ::= $(shell date)\nG != date\nfoo: H = $(shell date)\n",
+        "language": "makefile",
+        "spans": [
+          {
+            "column": 1,
+            "length": 1,
+            "line": 1
+          },
+          {
+            "column": 1,
+            "length": 1,
+            "line": 3
+          },
+          {
+            "column": 1,
+            "length": 1,
+            "line": 5
+          },
+          {
+            "column": 1,
+            "length": 3,
+            "line": 8
+          }
+        ]
+      },
+      "fix": null,
+      "id": "timestamp-expanded",
+      "languages": [
+        "makefile"
+      ],
+      "options": [],
+      "presets": [
+        "makefile/checkmake"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "warn",
+      "description": "A target defined by more than one rule, which merges prerequisites and overrides recipes (checkmake `uniquetargets`). Double-colon rules, `.PHONY` and the targets of `ignore` are skipped.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "a:\n\techo\na:\n\techo\nb::\nb::\n.PHONY: a\n.PHONY: b\nc d:\nd:\n",
+        "language": "makefile",
+        "spans": [
+          {
+            "column": 1,
+            "length": 1,
+            "line": 3
+          },
+          {
+            "column": 1,
+            "length": 1,
+            "line": 10
+          }
+        ]
+      },
+      "fix": null,
+      "id": "unique-targets",
+      "languages": [
+        "makefile"
+      ],
+      "options": [
+        {
+          "default": [],
+          "description": "Targets that may be defined more than once.",
+          "name": "ignore",
+          "type": "list"
+        }
+      ],
+      "presets": [
+        "makefile/checkmake"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "warn",
+      "description": "A fenced code block in which every line starts with `$ ` shows commands without their output, which makes copying them awkward (markdownlint MD014).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "```sh\n$ npm install\n$ npm test\n```\n\n```sh\n$ npm test\nall passed\n```\n\n```sh\nnpm test\n```\n",
+        "language": "markdown",
+        "spans": [
+          {
+            "column": 1,
+            "length": 1,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "commands-show-output",
+      "languages": [
+        "markdown"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "warn",
+      "description": "Link text that is `click here`, `here`, `link` or `more` (markdownlint MD059).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "[here](https://example.com), [Click here](https://example.com) and [the guide](https://example.com).\n",
+        "language": "markdown",
+        "spans": [
+          {
+            "column": 1,
+            "length": 27,
+            "line": 1
+          },
+          {
+            "column": 30,
+            "length": 33,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "descriptive-link-text",
+      "languages": [
+        "markdown"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "warn",
+      "description": "A fenced code block without an info string (markdownlint MD040); name the language, or `text`.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "```\nno language\n```\n\n```rust\nfn main() {}\n```\n",
+        "language": "markdown",
+        "spans": [
+          {
+            "column": 1,
+            "length": 1,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "fenced-code-language",
+      "languages": [
+        "markdown"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "warn",
+      "description": "A heading is more than one level deeper than the heading before it (an `h4` right after an `h2`). Going back up by any number of levels is fine (markdownlint MD001).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "# One\n\n### Three\n\n## Two\n\n#### Four\n",
+        "language": "markdown",
+        "spans": [
+          {
+            "column": 1,
+            "length": 9,
+            "line": 3
+          },
+          {
+            "column": 1,
+            "length": 9,
+            "line": 7
+          }
+        ]
+      },
+      "fix": null,
+      "id": "heading-increment",
+      "languages": [
+        "markdown"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "warn",
+      "description": "An image with empty alternate text, `![](url)` (markdownlint MD045).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "![](logo.png) and ![Logo](logo.png).\n",
+        "language": "markdown",
+        "spans": [
+          {
+            "column": 1,
+            "length": 13,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-alt-text",
+      "languages": [
+        "markdown"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "warn",
+      "description": "A URL that is neither a link nor an autolink (markdownlint MD034), found when it follows a space or starts the paragraph. Reported on the paragraph.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "https://example.com is bare.\n\n<https://example.com> and [site](https://example.com) are not.\n",
+        "language": "markdown",
+        "spans": [
+          {
+            "column": 1,
+            "length": 28,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-bare-urls",
+      "languages": [
+        "markdown"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "warn",
+      "description": "Two headings have the same text (markdownlint MD024), which makes their anchors ambiguous.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "# Usage\n\n## Install\n\n## Usage\n\nSetext\n------\n\nSetext\n======\n",
+        "language": "markdown",
+        "spans": [
+          {
+            "column": 1,
+            "length": 8,
+            "line": 5
+          },
+          {
+            "column": 1,
+            "length": 6,
+            "line": 10
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-duplicate-heading",
+      "languages": [
+        "markdown"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "warn",
+      "description": "A one-line paragraph that is only emphasized text without closing punctuation (markdownlint MD036); use a heading.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "**Overview**\n\n*Notes*\n\n**A sentence.**\n\nText with **bold** inside.\n",
+        "language": "markdown",
+        "spans": [
+          {
+            "column": 1,
+            "length": 12,
+            "line": 1
+          },
+          {
+            "column": 1,
+            "length": 7,
+            "line": 3
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-emphasis-as-heading",
+      "languages": [
+        "markdown"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "correctness",
+      "default_level": "warn",
+      "description": "A link whose destination is empty or only `#` (markdownlint MD042).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "A [docs]() and [anchor](#) and [ok](#top) link.\n",
+        "language": "markdown",
+        "spans": [
+          {
+            "column": 3,
+            "length": 8,
+            "line": 1
+          },
+          {
+            "column": 16,
+            "length": 11,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-empty-links",
+      "languages": [
+        "markdown"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "warn",
+      "description": "Raw HTML in a document (markdownlint MD033). Comments are not reported. Reported once per HTML block, not per tag.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "Text with <b>bold</b> HTML and <!-- a comment -->.\n\n<div>\nblock\n</div>\n\n<!-- only a comment -->\n",
+        "language": "markdown",
+        "spans": [
+          {
+            "column": 11,
+            "length": 3,
+            "line": 1
+          },
+          {
+            "column": 18,
+            "length": 4,
+            "line": 1
+          },
+          {
+            "column": 1,
+            "length": 1,
+            "line": 3
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-inline-html",
+      "languages": [
+        "markdown"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "correctness",
+      "default_level": "warn",
+      "description": "A paragraph that starts with one to six `#` and no space reads as a heading to people but is plain text to Markdown (markdownlint MD018).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "#Heading\n\n## Fine\n\n###Also missing\n\nText with #hash inside.\n",
+        "language": "markdown",
+        "spans": [
+          {
+            "column": 1,
+            "length": 8,
+            "line": 1
+          },
+          {
+            "column": 1,
+            "length": 15,
+            "line": 5
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-missing-space-atx",
+      "languages": [
+        "markdown"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "correctness",
+      "default_level": "warn",
+      "description": "Link syntax written the wrong way round, `(text)[url]` (markdownlint MD011), at the start of a paragraph or after a blank. Reported on the paragraph; no fix, because `(text)[url]` may be meant literally.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "(Docs)[https://example.com] is reversed, [Docs](https://example.com) is not.\n\nText (with parentheses) and [brackets] stay.\n",
+        "language": "markdown",
+        "spans": [
+          {
+            "column": 1,
+            "length": 76,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-reversed-links",
+      "languages": [
+        "markdown"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "warn",
+      "description": "A code span that starts or ends with a space (markdownlint MD038). A span with a space on both sides of a backtick-led or backtick-ended content is allowed.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "A ` code` and `code ` and `code` span.\n",
+        "language": "markdown",
+        "spans": [
+          {
+            "column": 3,
+            "length": 7,
+            "line": 1
+          },
+          {
+            "column": 15,
+            "length": 7,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-space-in-code",
+      "languages": [
+        "markdown"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "warn",
+      "description": "Link text that starts or ends with a space (markdownlint MD039).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "A [ docs](https://example.com) and [docs ](https://example.com) and [docs](https://example.com).\n",
+        "language": "markdown",
+        "spans": [
+          {
+            "column": 3,
+            "length": 28,
+            "line": 1
+          },
+          {
+            "column": 36,
+            "length": 28,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-space-in-links",
+      "languages": [
+        "markdown"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "warn",
+      "description": "A heading that ends with `.`, `,`, `;`, `:` or `!` (or the full-width forms) reads as a sentence, not a title (markdownlint MD026). `?` is allowed.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "# Introduction.\n\n## Why?\n\n## Setup:\n\nOverview!\n---------\n",
+        "language": "markdown",
+        "spans": [
+          {
+            "column": 3,
+            "length": 13,
+            "line": 1
+          },
+          {
+            "column": 4,
+            "length": 6,
+            "line": 5
+          },
+          {
+            "column": 1,
+            "length": 9,
+            "line": 7
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-trailing-punctuation",
+      "languages": [
+        "markdown"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "warn",
+      "description": "A document has more than one top-level heading (markdownlint MD025). The second and later `h1` are reported.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "# One\n\n## Sub\n\n# Two\n\nThree\n=====\n",
+        "language": "markdown",
+        "spans": [
+          {
+            "column": 1,
+            "length": 5,
+            "line": 5
+          },
+          {
+            "column": 1,
+            "length": 5,
+            "line": 7
+          }
+        ]
+      },
+      "fix": null,
+      "id": "single-title",
+      "languages": [
+        "markdown"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "warn",
+      "description": "A function named `Verb-Noun` whose verb is not in the list `Get-Verb` returns. Names without a dash are not checked.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "function Fetch-Data {\n    param(\n        [string]$Password,\n        [Parameter(Mandatory)][string] $UserPassphrase = 'x',\n        [securestring]$Secret,\n        [string]$Name,\n        [switch]$Force = $true,\n        [switch]$Quiet\n    )\n    try { Get-Item x } catch { }\n    try { Get-Item x } catch {\n        # ignored\n    }\n    try { Get-Item x } catch { Write-Error $_ }\n    try { 1 } catch { try { 2 } catch { throw } }\n}\nfunction Get-Thing { }\nfunction Fetch { }\nfunction global:Make-Thing { }\n$global:count = 1\n$x = $global:count + 1\nSet-Item $env:Path -Value $Global:Foo\n$script:count = 1\n$input = 1\n$true = 0\n$count = 1\n$x -eq $null\n$null -eq $x\nif ($a -ne $null -and $b -ceq $null) { }\n$x -eq $nullable\n$null = 1\n$global:LASTEXITCODE = 1\nforeach ($Event in 1) { }\nfunction Show-It($Error, [string]$Credential) { }\n",
+        "language": "powershell",
+        "spans": [
+          {
+            "column": 10,
+            "length": 10,
+            "line": 1
+          },
+          {
+            "column": 10,
+            "length": 17,
+            "line": 19
+          }
+        ]
+      },
+      "fix": null,
+      "id": "approved-verbs",
+      "languages": [
+        "powershell"
+      ],
+      "options": [],
+      "presets": [
+        "powershell/psscriptanalyzer"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "warn",
+      "description": "A `catch` clause whose block has no statement (a comment does not count).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "function Fetch-Data {\n    param(\n        [string]$Password,\n        [Parameter(Mandatory)][string] $UserPassphrase = 'x',\n        [securestring]$Secret,\n        [string]$Name,\n        [switch]$Force = $true,\n        [switch]$Quiet\n    )\n    try { Get-Item x } catch { }\n    try { Get-Item x } catch {\n        # ignored\n    }\n    try { Get-Item x } catch { Write-Error $_ }\n    try { 1 } catch { try { 2 } catch { throw } }\n}\nfunction Get-Thing { }\nfunction Fetch { }\nfunction global:Make-Thing { }\n$global:count = 1\n$x = $global:count + 1\nSet-Item $env:Path -Value $Global:Foo\n$script:count = 1\n$input = 1\n$true = 0\n$count = 1\n$x -eq $null\n$null -eq $x\nif ($a -ne $null -and $b -ceq $null) { }\n$x -eq $nullable\n$null = 1\n$global:LASTEXITCODE = 1\nforeach ($Event in 1) { }\nfunction Show-It($Error, [string]$Credential) { }\n",
+        "language": "powershell",
+        "spans": [
+          {
+            "column": 24,
+            "length": 9,
+            "line": 10
+          },
+          {
+            "column": 24,
+            "length": 1,
+            "line": 11
+          }
+        ]
+      },
+      "fix": null,
+      "id": "empty-catch-block",
+      "languages": [
+        "powershell"
+      ],
+      "options": [],
+      "presets": [
+        "powershell/psscriptanalyzer"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "correctness",
+      "default_level": "warn",
+      "description": "An assignment to, a parameter named like, or a `foreach` variable named like an automatic variable (`$Error`, `$Event`, `$input`, `$PSItem`, `$_`, `$PWD`, `$Host`, `$this`, `$true`, ...). `$null = ...` is fine.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "function Fetch-Data {\n    param(\n        [string]$Password,\n        [Parameter(Mandatory)][string] $UserPassphrase = 'x',\n        [securestring]$Secret,\n        [string]$Name,\n        [switch]$Force = $true,\n        [switch]$Quiet\n    )\n    try { Get-Item x } catch { }\n    try { Get-Item x } catch {\n        # ignored\n    }\n    try { Get-Item x } catch { Write-Error $_ }\n    try { 1 } catch { try { 2 } catch { throw } }\n}\nfunction Get-Thing { }\nfunction Fetch { }\nfunction global:Make-Thing { }\n$global:count = 1\n$x = $global:count + 1\nSet-Item $env:Path -Value $Global:Foo\n$script:count = 1\n$input = 1\n$true = 0\n$count = 1\n$x -eq $null\n$null -eq $x\nif ($a -ne $null -and $b -ceq $null) { }\n$x -eq $nullable\n$null = 1\n$global:LASTEXITCODE = 1\nforeach ($Event in 1) { }\nfunction Show-It($Error, [string]$Credential) { }\n",
+        "language": "powershell",
+        "spans": [
+          {
+            "column": 1,
+            "length": 10,
+            "line": 24
+          },
+          {
+            "column": 1,
+            "length": 9,
+            "line": 25
+          },
+          {
+            "column": 1,
+            "length": 25,
+            "line": 33
+          },
+          {
+            "column": 18,
+            "length": 6,
+            "line": 34
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-automatic-variable-assignment",
+      "languages": [
+        "powershell"
+      ],
+      "options": [],
+      "presets": [
+        "powershell/psscriptanalyzer"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "warn",
+      "description": "A command written with one of the default aliases of Windows PowerShell and PowerShell 7 (`gci`, `ls`, `%`, `?`, `iex`, ...). The table is the one of a Windows host; PSScriptAnalyzer reads the aliases of the host it runs on.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "gci -Recurse | % { $_ }\nGet-ChildItem | ? Name -eq x\nls\n1..3 | %{ $_ }\nGet-ChildItem | Where-Object { $_ } | foreach { $_ }\n$x = dir\nWrite-Output ls\n",
+        "language": "powershell",
+        "spans": [
+          {
+            "column": 1,
+            "length": 3,
+            "line": 1
+          },
+          {
+            "column": 16,
+            "length": 1,
+            "line": 1
+          },
+          {
+            "column": 17,
+            "length": 1,
+            "line": 2
+          },
+          {
+            "column": 1,
+            "length": 2,
+            "line": 3
+          },
+          {
+            "column": 8,
+            "length": 1,
+            "line": 4
+          },
+          {
+            "column": 39,
+            "length": 7,
+            "line": 5
+          },
+          {
+            "column": 6,
+            "length": 3,
+            "line": 6
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-cmdlet-aliases",
+      "languages": [
+        "powershell"
+      ],
+      "options": [],
+      "presets": [
+        "powershell/psscriptanalyzer"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "warn",
+      "description": "A `[switch]` parameter with the default value `$true`.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "function Fetch-Data {\n    param(\n        [string]$Password,\n        [Parameter(Mandatory)][string] $UserPassphrase = 'x',\n        [securestring]$Secret,\n        [string]$Name,\n        [switch]$Force = $true,\n        [switch]$Quiet\n    )\n    try { Get-Item x } catch { }\n    try { Get-Item x } catch {\n        # ignored\n    }\n    try { Get-Item x } catch { Write-Error $_ }\n    try { 1 } catch { try { 2 } catch { throw } }\n}\nfunction Get-Thing { }\nfunction Fetch { }\nfunction global:Make-Thing { }\n$global:count = 1\n$x = $global:count + 1\nSet-Item $env:Path -Value $Global:Foo\n$script:count = 1\n$input = 1\n$true = 0\n$count = 1\n$x -eq $null\n$null -eq $x\nif ($a -ne $null -and $b -ceq $null) { }\n$x -eq $nullable\n$null = 1\n$global:LASTEXITCODE = 1\nforeach ($Event in 1) { }\nfunction Show-It($Error, [string]$Credential) { }\n",
+        "language": "powershell",
+        "spans": [
+          {
+            "column": 9,
+            "length": 22,
+            "line": 7
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-default-true-switch",
+      "languages": [
+        "powershell"
+      ],
+      "options": [],
+      "presets": [
+        "powershell/psscriptanalyzer"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "warn",
+      "description": "A variable in the `global:` scope, other than the special variables PSScriptAnalyzer exempts (`$global:LASTEXITCODE`, `$global:ErrorActionPreference`, `$global:PSDefaultParameterValues`, ...).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "function Fetch-Data {\n    param(\n        [string]$Password,\n        [Parameter(Mandatory)][string] $UserPassphrase = 'x',\n        [securestring]$Secret,\n        [string]$Name,\n        [switch]$Force = $true,\n        [switch]$Quiet\n    )\n    try { Get-Item x } catch { }\n    try { Get-Item x } catch {\n        # ignored\n    }\n    try { Get-Item x } catch { Write-Error $_ }\n    try { 1 } catch { try { 2 } catch { throw } }\n}\nfunction Get-Thing { }\nfunction Fetch { }\nfunction global:Make-Thing { }\n$global:count = 1\n$x = $global:count + 1\nSet-Item $env:Path -Value $Global:Foo\n$script:count = 1\n$input = 1\n$true = 0\n$count = 1\n$x -eq $null\n$null -eq $x\nif ($a -ne $null -and $b -ceq $null) { }\n$x -eq $nullable\n$null = 1\n$global:LASTEXITCODE = 1\nforeach ($Event in 1) { }\nfunction Show-It($Error, [string]$Credential) { }\n",
+        "language": "powershell",
+        "spans": [
+          {
+            "column": 1,
+            "length": 13,
+            "line": 20
+          },
+          {
+            "column": 6,
+            "length": 13,
+            "line": 21
+          },
+          {
+            "column": 27,
+            "length": 11,
+            "line": 22
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-global-vars",
+      "languages": [
+        "powershell"
+      ],
+      "options": [],
+      "presets": [
+        "powershell/psscriptanalyzer"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "warn",
+      "description": "A call of `Invoke-Expression` or its alias `iex`.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "Write-Host \"hi\"\nwrite-host\nWrite-Output \"ok\"\nGet-Help Write-Host\niex $script\nInvoke-Expression -Command $c\nConvertTo-SecureString $p -AsPlainText -Force\nConvertTo-SecureString $p\nConvertTo-SecureString `\n    $p -AsPlainText\nGet-WmiObject Win32_Process\nGet-CimInstance Win32_Process\nConvertTo-SecureString -AsPlainText \"x\" -Force\n",
+        "language": "powershell",
+        "spans": [
+          {
+            "column": 1,
+            "length": 3,
+            "line": 5
+          },
+          {
+            "column": 1,
+            "length": 17,
+            "line": 6
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-invoke-expression",
+      "languages": [
+        "powershell"
+      ],
+      "options": [],
+      "presets": [
+        "powershell/psscriptanalyzer"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "correctness",
+      "default_level": "warn",
+      "description": "A backtick that is followed by blanks before the end of the line, so it does not continue the line.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "Get-ChildItem `  \n    -Force `\n    -Name\n$x = 1 + `\t\n    2\n",
+        "language": "powershell",
+        "spans": [
+          {
+            "column": 15,
+            "length": 1,
+            "line": 1
+          },
+          {
+            "column": 10,
+            "length": 1,
+            "line": 4
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-misleading-backtick",
+      "languages": [
+        "powershell"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "warn",
+      "description": "A `[string]` parameter whose name contains `password`, `passphrase` or `cred`.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "function Fetch-Data {\n    param(\n        [string]$Password,\n        [Parameter(Mandatory)][string] $UserPassphrase = 'x',\n        [securestring]$Secret,\n        [string]$Name,\n        [switch]$Force = $true,\n        [switch]$Quiet\n    )\n    try { Get-Item x } catch { }\n    try { Get-Item x } catch {\n        # ignored\n    }\n    try { Get-Item x } catch { Write-Error $_ }\n    try { 1 } catch { try { 2 } catch { throw } }\n}\nfunction Get-Thing { }\nfunction Fetch { }\nfunction global:Make-Thing { }\n$global:count = 1\n$x = $global:count + 1\nSet-Item $env:Path -Value $Global:Foo\n$script:count = 1\n$input = 1\n$true = 0\n$count = 1\n$x -eq $null\n$null -eq $x\nif ($a -ne $null -and $b -ceq $null) { }\n$x -eq $nullable\n$null = 1\n$global:LASTEXITCODE = 1\nforeach ($Event in 1) { }\nfunction Show-It($Error, [string]$Credential) { }\n",
+        "language": "powershell",
+        "spans": [
+          {
+            "column": 9,
+            "length": 17,
+            "line": 3
+          },
+          {
+            "column": 9,
+            "length": 52,
+            "line": 4
+          },
+          {
+            "column": 26,
+            "length": 19,
+            "line": 34
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-plain-text-password",
+      "languages": [
+        "powershell"
+      ],
+      "options": [],
+      "presets": [
+        "powershell/psscriptanalyzer"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "error",
+      "description": "A call of `ConvertTo-SecureString` with `-AsPlainText`.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "Write-Host \"hi\"\nwrite-host\nWrite-Output \"ok\"\nGet-Help Write-Host\niex $script\nInvoke-Expression -Command $c\nConvertTo-SecureString $p -AsPlainText -Force\nConvertTo-SecureString $p\nConvertTo-SecureString `\n    $p -AsPlainText\nGet-WmiObject Win32_Process\nGet-CimInstance Win32_Process\nConvertTo-SecureString -AsPlainText \"x\" -Force\n",
+        "language": "powershell",
+        "spans": [
+          {
+            "column": 1,
+            "length": 22,
+            "line": 7
+          },
+          {
+            "column": 1,
+            "length": 22,
+            "line": 9
+          },
+          {
+            "column": 1,
+            "length": 22,
+            "line": 13
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-plain-text-secure-string",
+      "languages": [
+        "powershell"
+      ],
+      "options": [],
+      "presets": [
+        "powershell/psscriptanalyzer"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "warn",
+      "description": "A call of `Get-WmiObject`, `Invoke-WmiMethod`, `Register-WmiEvent`, `Remove-WmiObject` or `Set-WmiInstance`.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "Write-Host \"hi\"\nwrite-host\nWrite-Output \"ok\"\nGet-Help Write-Host\niex $script\nInvoke-Expression -Command $c\nConvertTo-SecureString $p -AsPlainText -Force\nConvertTo-SecureString $p\nConvertTo-SecureString `\n    $p -AsPlainText\nGet-WmiObject Win32_Process\nGet-CimInstance Win32_Process\nConvertTo-SecureString -AsPlainText \"x\" -Force\n",
+        "language": "powershell",
+        "spans": [
+          {
+            "column": 1,
+            "length": 13,
+            "line": 11
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-wmi-cmdlets",
+      "languages": [
+        "powershell"
+      ],
+      "options": [],
+      "presets": [
+        "powershell/psscriptanalyzer"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "warn",
+      "description": "A call of `Write-Host`.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "Write-Host \"hi\"\nwrite-host\nWrite-Output \"ok\"\nGet-Help Write-Host\niex $script\nInvoke-Expression -Command $c\nConvertTo-SecureString $p -AsPlainText -Force\nConvertTo-SecureString $p\nConvertTo-SecureString `\n    $p -AsPlainText\nGet-WmiObject Win32_Process\nGet-CimInstance Win32_Process\nConvertTo-SecureString -AsPlainText \"x\" -Force\n",
+        "language": "powershell",
+        "spans": [
+          {
+            "column": 1,
+            "length": 10,
+            "line": 1
+          },
+          {
+            "column": 1,
+            "length": 10,
+            "line": 2
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-write-host",
+      "languages": [
+        "powershell"
+      ],
+      "options": [],
+      "presets": [
+        "powershell/psscriptanalyzer"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "correctness",
+      "default_level": "warn",
+      "description": "A `-eq`, `-ne` (or case variant) comparison with `$null` on the right.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "function Fetch-Data {\n    param(\n        [string]$Password,\n        [Parameter(Mandatory)][string] $UserPassphrase = 'x',\n        [securestring]$Secret,\n        [string]$Name,\n        [switch]$Force = $true,\n        [switch]$Quiet\n    )\n    try { Get-Item x } catch { }\n    try { Get-Item x } catch {\n        # ignored\n    }\n    try { Get-Item x } catch { Write-Error $_ }\n    try { 1 } catch { try { 2 } catch { throw } }\n}\nfunction Get-Thing { }\nfunction Fetch { }\nfunction global:Make-Thing { }\n$global:count = 1\n$x = $global:count + 1\nSet-Item $env:Path -Value $Global:Foo\n$script:count = 1\n$input = 1\n$true = 0\n$count = 1\n$x -eq $null\n$null -eq $x\nif ($a -ne $null -and $b -ceq $null) { }\n$x -eq $nullable\n$null = 1\n$global:LASTEXITCODE = 1\nforeach ($Event in 1) { }\nfunction Show-It($Error, [string]$Credential) { }\n",
+        "language": "powershell",
+        "spans": [
+          {
+            "column": 1,
+            "length": 12,
+            "line": 27
+          },
+          {
+            "column": 5,
+            "length": 12,
+            "line": 29
+          },
+          {
+            "column": 23,
+            "length": 13,
+            "line": 29
+          }
+        ]
+      },
+      "fix": null,
+      "id": "null-comparison-side",
+      "languages": [
+        "powershell"
+      ],
+      "options": [],
+      "presets": [
+        "powershell/psscriptanalyzer"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "correctness",
+      "default_level": "off",
+      "description": "The first value of an enum is not 0 (buf lint ENUM_FIRST_VALUE_ZERO).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "syntax = \"proto2\";\n\npackage acme.v1;\n\nenum Good {\n  GOOD_UNSPECIFIED = 0;\n  GOOD_ONE = 1;\n}\n\nenum FirstNotZero {\n  FIRST_NOT_ZERO_ONE = 1;\n  FIRST_NOT_ZERO_UNSPECIFIED = 0;\n}\n\nenum NoSuffix {\n  NO_SUFFIX_NONE = 0;\n  NO_SUFFIX_ONE = 1;\n}\n\nenum HTTPCode {\n  HTTP_CODE_UNSPECIFIED = 0;\n  OTHER_PREFIX = 1;\n}\n\nenum Aliased {\n  option allow_alias = true;\n  ALIASED_UNSPECIFIED = 0;\n  ALIASED_NONE = 0;\n}\n",
+        "language": "protobuf",
+        "spans": [
+          {
+            "column": 24,
+            "length": 1,
+            "line": 11
+          }
+        ]
+      },
+      "fix": null,
+      "id": "enum-first-value-zero",
+      "languages": [
+        "protobuf"
+      ],
+      "options": [],
+      "presets": [
+        "protobuf/buf-standard"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "`option allow_alias = true;` in an enum (buf lint ENUM_NO_ALLOW_ALIAS).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "syntax = \"proto2\";\n\npackage acme.v1;\n\nenum Good {\n  GOOD_UNSPECIFIED = 0;\n  GOOD_ONE = 1;\n}\n\nenum FirstNotZero {\n  FIRST_NOT_ZERO_ONE = 1;\n  FIRST_NOT_ZERO_UNSPECIFIED = 0;\n}\n\nenum NoSuffix {\n  NO_SUFFIX_NONE = 0;\n  NO_SUFFIX_ONE = 1;\n}\n\nenum HTTPCode {\n  HTTP_CODE_UNSPECIFIED = 0;\n  OTHER_PREFIX = 1;\n}\n\nenum Aliased {\n  option allow_alias = true;\n  ALIASED_UNSPECIFIED = 0;\n  ALIASED_NONE = 0;\n}\n",
+        "language": "protobuf",
+        "spans": [
+          {
+            "column": 3,
+            "length": 26,
+            "line": 26
+          }
+        ]
+      },
+      "fix": null,
+      "id": "enum-no-allow-alias",
+      "languages": [
+        "protobuf"
+      ],
+      "options": [],
+      "presets": [
+        "protobuf/buf-standard"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "An enum name that is not PascalCase (buf lint ENUM_PASCAL_CASE).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "syntax = \"proto3\";\n\npackage acme.v1;\n\nmessage Good {\n  string good_name = 1;\n  int32 field_2 = 2;\n  map<string, string> good_map = 3;\n  oneof good_choice {\n    string a = 4;\n  }\n}\n\nmessage bad_message {\n  string BadName = 1;\n  map<string, string> BadMap = 2;\n  oneof BadChoice {\n    string b = 3;\n    string C = 4;\n  }\n}\n\nenum bad_enum {\n  BAD_ENUM_UNSPECIFIED = 0;\n  Bad_Value = 1;\n}\n\nservice bad_service {\n  rpc bad_call(Good) returns (Good);\n}\n",
+        "language": "protobuf",
+        "spans": [
+          {
+            "column": 6,
+            "length": 8,
+            "line": 23
+          }
+        ]
+      },
+      "fix": null,
+      "id": "enum-pascal-case",
+      "languages": [
+        "protobuf"
+      ],
+      "options": [],
+      "presets": [
+        "protobuf/buf-standard"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "An enum value does not start with the enum's name in UPPER_SNAKE_CASE and an underscore (buf lint ENUM_VALUE_PREFIX).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "syntax = \"proto2\";\n\npackage acme.v1;\n\nenum Good {\n  GOOD_UNSPECIFIED = 0;\n  GOOD_ONE = 1;\n}\n\nenum FirstNotZero {\n  FIRST_NOT_ZERO_ONE = 1;\n  FIRST_NOT_ZERO_UNSPECIFIED = 0;\n}\n\nenum NoSuffix {\n  NO_SUFFIX_NONE = 0;\n  NO_SUFFIX_ONE = 1;\n}\n\nenum HTTPCode {\n  HTTP_CODE_UNSPECIFIED = 0;\n  OTHER_PREFIX = 1;\n}\n\nenum Aliased {\n  option allow_alias = true;\n  ALIASED_UNSPECIFIED = 0;\n  ALIASED_NONE = 0;\n}\n",
+        "language": "protobuf",
+        "spans": [
+          {
+            "column": 3,
+            "length": 12,
+            "line": 22
+          }
+        ]
+      },
+      "fix": null,
+      "id": "enum-value-prefix",
+      "languages": [
+        "protobuf"
+      ],
+      "options": [],
+      "presets": [
+        "protobuf/buf-standard"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "An enum value name that is not UPPER_SNAKE_CASE (buf lint ENUM_VALUE_UPPER_SNAKE_CASE).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "syntax = \"proto3\";\n\npackage acme.v1;\n\nmessage Good {\n  string good_name = 1;\n  int32 field_2 = 2;\n  map<string, string> good_map = 3;\n  oneof good_choice {\n    string a = 4;\n  }\n}\n\nmessage bad_message {\n  string BadName = 1;\n  map<string, string> BadMap = 2;\n  oneof BadChoice {\n    string b = 3;\n    string C = 4;\n  }\n}\n\nenum bad_enum {\n  BAD_ENUM_UNSPECIFIED = 0;\n  Bad_Value = 1;\n}\n\nservice bad_service {\n  rpc bad_call(Good) returns (Good);\n}\n",
+        "language": "protobuf",
+        "spans": [
+          {
+            "column": 3,
+            "length": 9,
+            "line": 25
+          }
+        ]
+      },
+      "fix": null,
+      "id": "enum-value-upper-snake-case",
+      "languages": [
+        "protobuf"
+      ],
+      "options": [],
+      "presets": [
+        "protobuf/buf-standard"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "An enum value numbered 0 whose name does not end in `_UNSPECIFIED` (buf lint ENUM_ZERO_VALUE_SUFFIX with its default suffix).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "syntax = \"proto2\";\n\npackage acme.v1;\n\nenum Good {\n  GOOD_UNSPECIFIED = 0;\n  GOOD_ONE = 1;\n}\n\nenum FirstNotZero {\n  FIRST_NOT_ZERO_ONE = 1;\n  FIRST_NOT_ZERO_UNSPECIFIED = 0;\n}\n\nenum NoSuffix {\n  NO_SUFFIX_NONE = 0;\n  NO_SUFFIX_ONE = 1;\n}\n\nenum HTTPCode {\n  HTTP_CODE_UNSPECIFIED = 0;\n  OTHER_PREFIX = 1;\n}\n\nenum Aliased {\n  option allow_alias = true;\n  ALIASED_UNSPECIFIED = 0;\n  ALIASED_NONE = 0;\n}\n",
+        "language": "protobuf",
+        "spans": [
+          {
+            "column": 3,
+            "length": 14,
+            "line": 16
+          },
+          {
+            "column": 3,
+            "length": 12,
+            "line": 28
+          }
+        ]
+      },
+      "fix": null,
+      "id": "enum-zero-value-suffix",
+      "languages": [
+        "protobuf"
+      ],
+      "options": [],
+      "presets": [
+        "protobuf/buf-standard"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A field name that is not lower_snake_case (buf lint FIELD_LOWER_SNAKE_CASE).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "syntax = \"proto3\";\n\npackage acme.v1;\n\nmessage Good {\n  string good_name = 1;\n  int32 field_2 = 2;\n  map<string, string> good_map = 3;\n  oneof good_choice {\n    string a = 4;\n  }\n}\n\nmessage bad_message {\n  string BadName = 1;\n  map<string, string> BadMap = 2;\n  oneof BadChoice {\n    string b = 3;\n    string C = 4;\n  }\n}\n\nenum bad_enum {\n  BAD_ENUM_UNSPECIFIED = 0;\n  Bad_Value = 1;\n}\n\nservice bad_service {\n  rpc bad_call(Good) returns (Good);\n}\n",
+        "language": "protobuf",
+        "spans": [
+          {
+            "column": 10,
+            "length": 7,
+            "line": 15
+          },
+          {
+            "column": 23,
+            "length": 6,
+            "line": 16
+          },
+          {
+            "column": 12,
+            "length": 1,
+            "line": 19
+          }
+        ]
+      },
+      "fix": null,
+      "id": "field-lower-snake-case",
+      "languages": [
+        "protobuf"
+      ],
+      "options": [],
+      "presets": [
+        "protobuf/buf-standard"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "A proto2 `required` field (buf lint FIELD_NOT_REQUIRED).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "import public \"google/protobuf/empty.proto\";\n\nmessage Old {\n  required string name = 1;\n}\n",
+        "language": "protobuf",
+        "spans": [
+          {
+            "column": 3,
+            "length": 25,
+            "line": 4
+          }
+        ]
+      },
+      "fix": null,
+      "id": "field-not-required",
+      "languages": [
+        "protobuf"
+      ],
+      "options": [],
+      "presets": [
+        "protobuf/buf-standard"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "The file name (without `.proto`) is not lower_snake_case (buf lint FILE_LOWER_SNAKE_CASE).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "import public \"google/protobuf/empty.proto\";\n\nmessage Old {\n  required string name = 1;\n}\n",
+        "language": "protobuf",
+        "spans": [
+          {
+            "column": 1,
+            "length": 1,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "file-lower-snake-case",
+      "languages": [
+        "protobuf"
+      ],
+      "options": [],
+      "presets": [
+        "protobuf/buf-standard"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "`import public` (buf lint IMPORT_NO_PUBLIC).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "import public \"google/protobuf/empty.proto\";\n\nmessage Old {\n  required string name = 1;\n}\n",
+        "language": "protobuf",
+        "spans": [
+          {
+            "column": 1,
+            "length": 44,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "import-no-public",
+      "languages": [
+        "protobuf"
+      ],
+      "options": [],
+      "presets": [
+        "protobuf/buf-standard"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A message name that is not PascalCase (buf lint MESSAGE_PASCAL_CASE).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "syntax = \"proto3\";\n\npackage acme.v1;\n\nmessage Good {\n  string good_name = 1;\n  int32 field_2 = 2;\n  map<string, string> good_map = 3;\n  oneof good_choice {\n    string a = 4;\n  }\n}\n\nmessage bad_message {\n  string BadName = 1;\n  map<string, string> BadMap = 2;\n  oneof BadChoice {\n    string b = 3;\n    string C = 4;\n  }\n}\n\nenum bad_enum {\n  BAD_ENUM_UNSPECIFIED = 0;\n  Bad_Value = 1;\n}\n\nservice bad_service {\n  rpc bad_call(Good) returns (Good);\n}\n",
+        "language": "protobuf",
+        "spans": [
+          {
+            "column": 9,
+            "length": 11,
+            "line": 14
+          }
+        ]
+      },
+      "fix": null,
+      "id": "message-pascal-case",
+      "languages": [
+        "protobuf"
+      ],
+      "options": [],
+      "presets": [
+        "protobuf/buf-standard"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A oneof name that is not lower_snake_case (buf lint ONEOF_LOWER_SNAKE_CASE).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "syntax = \"proto3\";\n\npackage acme.v1;\n\nmessage Good {\n  string good_name = 1;\n  int32 field_2 = 2;\n  map<string, string> good_map = 3;\n  oneof good_choice {\n    string a = 4;\n  }\n}\n\nmessage bad_message {\n  string BadName = 1;\n  map<string, string> BadMap = 2;\n  oneof BadChoice {\n    string b = 3;\n    string C = 4;\n  }\n}\n\nenum bad_enum {\n  BAD_ENUM_UNSPECIFIED = 0;\n  Bad_Value = 1;\n}\n\nservice bad_service {\n  rpc bad_call(Good) returns (Good);\n}\n",
+        "language": "protobuf",
+        "spans": [
+          {
+            "column": 9,
+            "length": 9,
+            "line": 17
+          }
+        ]
+      },
+      "fix": null,
+      "id": "oneof-lower-snake-case",
+      "languages": [
+        "protobuf"
+      ],
+      "options": [],
+      "presets": [
+        "protobuf/buf-standard"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A file without a `package` statement (buf lint PACKAGE_DEFINED).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "import public \"google/protobuf/empty.proto\";\n\nmessage Old {\n  required string name = 1;\n}\n",
+        "language": "protobuf",
+        "spans": [
+          {
+            "column": 1,
+            "length": 6,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "package-defined",
+      "languages": [
+        "protobuf"
+      ],
+      "options": [],
+      "presets": [
+        "protobuf/buf-standard"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A package whose components are not lower_snake_case (buf lint PACKAGE_LOWER_SNAKE_CASE).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "syntax = \"proto3\";\n\npackage Acme.core;\n\nservice Thing {}\n",
+        "language": "protobuf",
+        "spans": [
+          {
+            "column": 9,
+            "length": 9,
+            "line": 3
+          }
+        ]
+      },
+      "fix": null,
+      "id": "package-lower-snake-case",
+      "languages": [
+        "protobuf"
+      ],
+      "options": [],
+      "presets": [
+        "protobuf/buf-standard"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A package whose last component is not `v1`, `v1test...`, `v1alpha1`, `v1beta1` or `v1p1alpha1` (`v1beta` too; buf lint PACKAGE_VERSION_SUFFIX).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "syntax = \"proto3\";\n\npackage Acme.core;\n\nservice Thing {}\n",
+        "language": "protobuf",
+        "spans": [
+          {
+            "column": 9,
+            "length": 9,
+            "line": 3
+          }
+        ]
+      },
+      "fix": null,
+      "id": "package-version-suffix",
+      "languages": [
+        "protobuf"
+      ],
+      "options": [],
+      "presets": [
+        "protobuf/buf-standard"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "An rpc name that is not PascalCase (buf lint RPC_PASCAL_CASE).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "syntax = \"proto3\";\n\npackage acme.v1;\n\nmessage Good {\n  string good_name = 1;\n  int32 field_2 = 2;\n  map<string, string> good_map = 3;\n  oneof good_choice {\n    string a = 4;\n  }\n}\n\nmessage bad_message {\n  string BadName = 1;\n  map<string, string> BadMap = 2;\n  oneof BadChoice {\n    string b = 3;\n    string C = 4;\n  }\n}\n\nenum bad_enum {\n  BAD_ENUM_UNSPECIFIED = 0;\n  Bad_Value = 1;\n}\n\nservice bad_service {\n  rpc bad_call(Good) returns (Good);\n}\n",
+        "language": "protobuf",
+        "spans": [
+          {
+            "column": 7,
+            "length": 8,
+            "line": 29
+          }
+        ]
+      },
+      "fix": null,
+      "id": "rpc-pascal-case",
+      "languages": [
+        "protobuf"
+      ],
+      "options": [],
+      "presets": [
+        "protobuf/buf-standard"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "The request type of an rpc is not named `<Rpc>Request` or `<Service><Rpc>Request` (buf lint RPC_REQUEST_STANDARD_NAME).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "syntax = \"proto3\";\n\npackage acme.v1;\n\nmessage GetRequest {}\nmessage GetResponse {}\nmessage Other {}\nmessage FooServiceListRequest {}\nmessage FooServiceListResponse {}\n\nservice FooService {\n  rpc Get(GetRequest) returns (GetResponse);\n  rpc List(FooServiceListRequest) returns (FooServiceListResponse);\n  rpc Put(Other) returns (Other);\n}\n",
+        "language": "protobuf",
+        "spans": [
+          {
+            "column": 11,
+            "length": 5,
+            "line": 14
+          }
+        ]
+      },
+      "fix": null,
+      "id": "rpc-request-standard-name",
+      "languages": [
+        "protobuf"
+      ],
+      "options": [],
+      "presets": [
+        "protobuf/buf-standard"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "The response type of an rpc is not named `<Rpc>Response` or `<Service><Rpc>Response` (buf lint RPC_RESPONSE_STANDARD_NAME).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "syntax = \"proto3\";\n\npackage acme.v1;\n\nmessage GetRequest {}\nmessage GetResponse {}\nmessage Other {}\nmessage FooServiceListRequest {}\nmessage FooServiceListResponse {}\n\nservice FooService {\n  rpc Get(GetRequest) returns (GetResponse);\n  rpc List(FooServiceListRequest) returns (FooServiceListResponse);\n  rpc Put(Other) returns (Other);\n}\n",
+        "language": "protobuf",
+        "spans": [
+          {
+            "column": 27,
+            "length": 5,
+            "line": 14
+          }
+        ]
+      },
+      "fix": null,
+      "id": "rpc-response-standard-name",
+      "languages": [
+        "protobuf"
+      ],
+      "options": [],
+      "presets": [
+        "protobuf/buf-standard"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A service name that is not PascalCase (buf lint SERVICE_PASCAL_CASE).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "syntax = \"proto3\";\n\npackage acme.v1;\n\nmessage Good {\n  string good_name = 1;\n  int32 field_2 = 2;\n  map<string, string> good_map = 3;\n  oneof good_choice {\n    string a = 4;\n  }\n}\n\nmessage bad_message {\n  string BadName = 1;\n  map<string, string> BadMap = 2;\n  oneof BadChoice {\n    string b = 3;\n    string C = 4;\n  }\n}\n\nenum bad_enum {\n  BAD_ENUM_UNSPECIFIED = 0;\n  Bad_Value = 1;\n}\n\nservice bad_service {\n  rpc bad_call(Good) returns (Good);\n}\n",
+        "language": "protobuf",
+        "spans": [
+          {
+            "column": 9,
+            "length": 11,
+            "line": 28
+          }
+        ]
+      },
+      "fix": null,
+      "id": "service-pascal-case",
+      "languages": [
+        "protobuf"
+      ],
+      "options": [],
+      "presets": [
+        "protobuf/buf-standard"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A service whose name does not end in `Service` (buf lint SERVICE_SUFFIX with its default suffix).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "syntax = \"proto3\";\n\npackage Acme.core;\n\nservice Thing {}\n",
+        "language": "protobuf",
+        "spans": [
+          {
+            "column": 9,
+            "length": 5,
+            "line": 5
+          }
+        ]
+      },
+      "fix": null,
+      "id": "service-suffix",
+      "languages": [
+        "protobuf"
+      ],
+      "options": [],
+      "presets": [
+        "protobuf/buf-standard"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A file without `syntax = ...;` or `edition = ...;`, which makes it proto2 (buf lint SYNTAX_SPECIFIED).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "import public \"google/protobuf/empty.proto\";\n\nmessage Old {\n  required string name = 1;\n}\n",
+        "language": "protobuf",
+        "spans": [
+          {
+            "column": 1,
+            "length": 6,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "syntax-specified",
+      "languages": [
+        "protobuf"
+      ],
+      "options": [],
+      "presets": [
+        "protobuf/buf-standard"
+      ],
+      "upstream": []
+    },
+    {
       "category": "suspicious",
       "default_level": "off",
       "description": "A list `a && b || c` of three commands, unless `c` is `echo`, `printf`, `true`, `:`, `return` or `exit`.",
@@ -4720,841 +6596,25 @@
     },
     {
       "category": "correctness",
-      "default_level": "off",
-      "description": "The first value of an enum is not 0 (buf lint ENUM_FIRST_VALUE_ZERO).",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "syntax = \"proto2\";\n\npackage acme.v1;\n\nenum Good {\n  GOOD_UNSPECIFIED = 0;\n  GOOD_ONE = 1;\n}\n\nenum FirstNotZero {\n  FIRST_NOT_ZERO_ONE = 1;\n  FIRST_NOT_ZERO_UNSPECIFIED = 0;\n}\n\nenum NoSuffix {\n  NO_SUFFIX_NONE = 0;\n  NO_SUFFIX_ONE = 1;\n}\n\nenum HTTPCode {\n  HTTP_CODE_UNSPECIFIED = 0;\n  OTHER_PREFIX = 1;\n}\n\nenum Aliased {\n  option allow_alias = true;\n  ALIASED_UNSPECIFIED = 0;\n  ALIASED_NONE = 0;\n}\n",
-        "language": "protobuf",
-        "spans": [
-          {
-            "column": 24,
-            "length": 1,
-            "line": 11
-          }
-        ]
-      },
-      "fix": null,
-      "id": "enum-first-value-zero",
-      "languages": [
-        "protobuf"
-      ],
-      "options": [],
-      "presets": [
-        "protobuf/buf-standard"
-      ],
-      "upstream": []
-    },
-    {
-      "category": "suspicious",
-      "default_level": "off",
-      "description": "`option allow_alias = true;` in an enum (buf lint ENUM_NO_ALLOW_ALIAS).",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "syntax = \"proto2\";\n\npackage acme.v1;\n\nenum Good {\n  GOOD_UNSPECIFIED = 0;\n  GOOD_ONE = 1;\n}\n\nenum FirstNotZero {\n  FIRST_NOT_ZERO_ONE = 1;\n  FIRST_NOT_ZERO_UNSPECIFIED = 0;\n}\n\nenum NoSuffix {\n  NO_SUFFIX_NONE = 0;\n  NO_SUFFIX_ONE = 1;\n}\n\nenum HTTPCode {\n  HTTP_CODE_UNSPECIFIED = 0;\n  OTHER_PREFIX = 1;\n}\n\nenum Aliased {\n  option allow_alias = true;\n  ALIASED_UNSPECIFIED = 0;\n  ALIASED_NONE = 0;\n}\n",
-        "language": "protobuf",
-        "spans": [
-          {
-            "column": 3,
-            "length": 26,
-            "line": 26
-          }
-        ]
-      },
-      "fix": null,
-      "id": "enum-no-allow-alias",
-      "languages": [
-        "protobuf"
-      ],
-      "options": [],
-      "presets": [
-        "protobuf/buf-standard"
-      ],
-      "upstream": []
-    },
-    {
-      "category": "style",
-      "default_level": "off",
-      "description": "An enum name that is not PascalCase (buf lint ENUM_PASCAL_CASE).",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "syntax = \"proto3\";\n\npackage acme.v1;\n\nmessage Good {\n  string good_name = 1;\n  int32 field_2 = 2;\n  map<string, string> good_map = 3;\n  oneof good_choice {\n    string a = 4;\n  }\n}\n\nmessage bad_message {\n  string BadName = 1;\n  map<string, string> BadMap = 2;\n  oneof BadChoice {\n    string b = 3;\n    string C = 4;\n  }\n}\n\nenum bad_enum {\n  BAD_ENUM_UNSPECIFIED = 0;\n  Bad_Value = 1;\n}\n\nservice bad_service {\n  rpc bad_call(Good) returns (Good);\n}\n",
-        "language": "protobuf",
-        "spans": [
-          {
-            "column": 6,
-            "length": 8,
-            "line": 23
-          }
-        ]
-      },
-      "fix": null,
-      "id": "enum-pascal-case",
-      "languages": [
-        "protobuf"
-      ],
-      "options": [],
-      "presets": [
-        "protobuf/buf-standard"
-      ],
-      "upstream": []
-    },
-    {
-      "category": "style",
-      "default_level": "off",
-      "description": "An enum value does not start with the enum's name in UPPER_SNAKE_CASE and an underscore (buf lint ENUM_VALUE_PREFIX).",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "syntax = \"proto2\";\n\npackage acme.v1;\n\nenum Good {\n  GOOD_UNSPECIFIED = 0;\n  GOOD_ONE = 1;\n}\n\nenum FirstNotZero {\n  FIRST_NOT_ZERO_ONE = 1;\n  FIRST_NOT_ZERO_UNSPECIFIED = 0;\n}\n\nenum NoSuffix {\n  NO_SUFFIX_NONE = 0;\n  NO_SUFFIX_ONE = 1;\n}\n\nenum HTTPCode {\n  HTTP_CODE_UNSPECIFIED = 0;\n  OTHER_PREFIX = 1;\n}\n\nenum Aliased {\n  option allow_alias = true;\n  ALIASED_UNSPECIFIED = 0;\n  ALIASED_NONE = 0;\n}\n",
-        "language": "protobuf",
-        "spans": [
-          {
-            "column": 3,
-            "length": 12,
-            "line": 22
-          }
-        ]
-      },
-      "fix": null,
-      "id": "enum-value-prefix",
-      "languages": [
-        "protobuf"
-      ],
-      "options": [],
-      "presets": [
-        "protobuf/buf-standard"
-      ],
-      "upstream": []
-    },
-    {
-      "category": "style",
-      "default_level": "off",
-      "description": "An enum value name that is not UPPER_SNAKE_CASE (buf lint ENUM_VALUE_UPPER_SNAKE_CASE).",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "syntax = \"proto3\";\n\npackage acme.v1;\n\nmessage Good {\n  string good_name = 1;\n  int32 field_2 = 2;\n  map<string, string> good_map = 3;\n  oneof good_choice {\n    string a = 4;\n  }\n}\n\nmessage bad_message {\n  string BadName = 1;\n  map<string, string> BadMap = 2;\n  oneof BadChoice {\n    string b = 3;\n    string C = 4;\n  }\n}\n\nenum bad_enum {\n  BAD_ENUM_UNSPECIFIED = 0;\n  Bad_Value = 1;\n}\n\nservice bad_service {\n  rpc bad_call(Good) returns (Good);\n}\n",
-        "language": "protobuf",
-        "spans": [
-          {
-            "column": 3,
-            "length": 9,
-            "line": 25
-          }
-        ]
-      },
-      "fix": null,
-      "id": "enum-value-upper-snake-case",
-      "languages": [
-        "protobuf"
-      ],
-      "options": [],
-      "presets": [
-        "protobuf/buf-standard"
-      ],
-      "upstream": []
-    },
-    {
-      "category": "style",
-      "default_level": "off",
-      "description": "An enum value numbered 0 whose name does not end in `_UNSPECIFIED` (buf lint ENUM_ZERO_VALUE_SUFFIX with its default suffix).",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "syntax = \"proto2\";\n\npackage acme.v1;\n\nenum Good {\n  GOOD_UNSPECIFIED = 0;\n  GOOD_ONE = 1;\n}\n\nenum FirstNotZero {\n  FIRST_NOT_ZERO_ONE = 1;\n  FIRST_NOT_ZERO_UNSPECIFIED = 0;\n}\n\nenum NoSuffix {\n  NO_SUFFIX_NONE = 0;\n  NO_SUFFIX_ONE = 1;\n}\n\nenum HTTPCode {\n  HTTP_CODE_UNSPECIFIED = 0;\n  OTHER_PREFIX = 1;\n}\n\nenum Aliased {\n  option allow_alias = true;\n  ALIASED_UNSPECIFIED = 0;\n  ALIASED_NONE = 0;\n}\n",
-        "language": "protobuf",
-        "spans": [
-          {
-            "column": 3,
-            "length": 14,
-            "line": 16
-          },
-          {
-            "column": 3,
-            "length": 12,
-            "line": 28
-          }
-        ]
-      },
-      "fix": null,
-      "id": "enum-zero-value-suffix",
-      "languages": [
-        "protobuf"
-      ],
-      "options": [],
-      "presets": [
-        "protobuf/buf-standard"
-      ],
-      "upstream": []
-    },
-    {
-      "category": "style",
-      "default_level": "off",
-      "description": "A field name that is not lower_snake_case (buf lint FIELD_LOWER_SNAKE_CASE).",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "syntax = \"proto3\";\n\npackage acme.v1;\n\nmessage Good {\n  string good_name = 1;\n  int32 field_2 = 2;\n  map<string, string> good_map = 3;\n  oneof good_choice {\n    string a = 4;\n  }\n}\n\nmessage bad_message {\n  string BadName = 1;\n  map<string, string> BadMap = 2;\n  oneof BadChoice {\n    string b = 3;\n    string C = 4;\n  }\n}\n\nenum bad_enum {\n  BAD_ENUM_UNSPECIFIED = 0;\n  Bad_Value = 1;\n}\n\nservice bad_service {\n  rpc bad_call(Good) returns (Good);\n}\n",
-        "language": "protobuf",
-        "spans": [
-          {
-            "column": 10,
-            "length": 7,
-            "line": 15
-          },
-          {
-            "column": 23,
-            "length": 6,
-            "line": 16
-          },
-          {
-            "column": 12,
-            "length": 1,
-            "line": 19
-          }
-        ]
-      },
-      "fix": null,
-      "id": "field-lower-snake-case",
-      "languages": [
-        "protobuf"
-      ],
-      "options": [],
-      "presets": [
-        "protobuf/buf-standard"
-      ],
-      "upstream": []
-    },
-    {
-      "category": "suspicious",
-      "default_level": "off",
-      "description": "A proto2 `required` field (buf lint FIELD_NOT_REQUIRED).",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "import public \"google/protobuf/empty.proto\";\n\nmessage Old {\n  required string name = 1;\n}\n",
-        "language": "protobuf",
-        "spans": [
-          {
-            "column": 3,
-            "length": 25,
-            "line": 4
-          }
-        ]
-      },
-      "fix": null,
-      "id": "field-not-required",
-      "languages": [
-        "protobuf"
-      ],
-      "options": [],
-      "presets": [
-        "protobuf/buf-standard"
-      ],
-      "upstream": []
-    },
-    {
-      "category": "style",
-      "default_level": "off",
-      "description": "The file name (without `.proto`) is not lower_snake_case (buf lint FILE_LOWER_SNAKE_CASE).",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "import public \"google/protobuf/empty.proto\";\n\nmessage Old {\n  required string name = 1;\n}\n",
-        "language": "protobuf",
-        "spans": [
-          {
-            "column": 1,
-            "length": 1,
-            "line": 1
-          }
-        ]
-      },
-      "fix": null,
-      "id": "file-lower-snake-case",
-      "languages": [
-        "protobuf"
-      ],
-      "options": [],
-      "presets": [
-        "protobuf/buf-standard"
-      ],
-      "upstream": []
-    },
-    {
-      "category": "suspicious",
-      "default_level": "off",
-      "description": "`import public` (buf lint IMPORT_NO_PUBLIC).",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "import public \"google/protobuf/empty.proto\";\n\nmessage Old {\n  required string name = 1;\n}\n",
-        "language": "protobuf",
-        "spans": [
-          {
-            "column": 1,
-            "length": 44,
-            "line": 1
-          }
-        ]
-      },
-      "fix": null,
-      "id": "import-no-public",
-      "languages": [
-        "protobuf"
-      ],
-      "options": [],
-      "presets": [
-        "protobuf/buf-standard"
-      ],
-      "upstream": []
-    },
-    {
-      "category": "style",
-      "default_level": "off",
-      "description": "A message name that is not PascalCase (buf lint MESSAGE_PASCAL_CASE).",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "syntax = \"proto3\";\n\npackage acme.v1;\n\nmessage Good {\n  string good_name = 1;\n  int32 field_2 = 2;\n  map<string, string> good_map = 3;\n  oneof good_choice {\n    string a = 4;\n  }\n}\n\nmessage bad_message {\n  string BadName = 1;\n  map<string, string> BadMap = 2;\n  oneof BadChoice {\n    string b = 3;\n    string C = 4;\n  }\n}\n\nenum bad_enum {\n  BAD_ENUM_UNSPECIFIED = 0;\n  Bad_Value = 1;\n}\n\nservice bad_service {\n  rpc bad_call(Good) returns (Good);\n}\n",
-        "language": "protobuf",
-        "spans": [
-          {
-            "column": 9,
-            "length": 11,
-            "line": 14
-          }
-        ]
-      },
-      "fix": null,
-      "id": "message-pascal-case",
-      "languages": [
-        "protobuf"
-      ],
-      "options": [],
-      "presets": [
-        "protobuf/buf-standard"
-      ],
-      "upstream": []
-    },
-    {
-      "category": "style",
-      "default_level": "off",
-      "description": "A oneof name that is not lower_snake_case (buf lint ONEOF_LOWER_SNAKE_CASE).",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "syntax = \"proto3\";\n\npackage acme.v1;\n\nmessage Good {\n  string good_name = 1;\n  int32 field_2 = 2;\n  map<string, string> good_map = 3;\n  oneof good_choice {\n    string a = 4;\n  }\n}\n\nmessage bad_message {\n  string BadName = 1;\n  map<string, string> BadMap = 2;\n  oneof BadChoice {\n    string b = 3;\n    string C = 4;\n  }\n}\n\nenum bad_enum {\n  BAD_ENUM_UNSPECIFIED = 0;\n  Bad_Value = 1;\n}\n\nservice bad_service {\n  rpc bad_call(Good) returns (Good);\n}\n",
-        "language": "protobuf",
-        "spans": [
-          {
-            "column": 9,
-            "length": 9,
-            "line": 17
-          }
-        ]
-      },
-      "fix": null,
-      "id": "oneof-lower-snake-case",
-      "languages": [
-        "protobuf"
-      ],
-      "options": [],
-      "presets": [
-        "protobuf/buf-standard"
-      ],
-      "upstream": []
-    },
-    {
-      "category": "style",
-      "default_level": "off",
-      "description": "A file without a `package` statement (buf lint PACKAGE_DEFINED).",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "import public \"google/protobuf/empty.proto\";\n\nmessage Old {\n  required string name = 1;\n}\n",
-        "language": "protobuf",
-        "spans": [
-          {
-            "column": 1,
-            "length": 6,
-            "line": 1
-          }
-        ]
-      },
-      "fix": null,
-      "id": "package-defined",
-      "languages": [
-        "protobuf"
-      ],
-      "options": [],
-      "presets": [
-        "protobuf/buf-standard"
-      ],
-      "upstream": []
-    },
-    {
-      "category": "style",
-      "default_level": "off",
-      "description": "A package whose components are not lower_snake_case (buf lint PACKAGE_LOWER_SNAKE_CASE).",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "syntax = \"proto3\";\n\npackage Acme.core;\n\nservice Thing {}\n",
-        "language": "protobuf",
-        "spans": [
-          {
-            "column": 9,
-            "length": 9,
-            "line": 3
-          }
-        ]
-      },
-      "fix": null,
-      "id": "package-lower-snake-case",
-      "languages": [
-        "protobuf"
-      ],
-      "options": [],
-      "presets": [
-        "protobuf/buf-standard"
-      ],
-      "upstream": []
-    },
-    {
-      "category": "style",
-      "default_level": "off",
-      "description": "A package whose last component is not `v1`, `v1test...`, `v1alpha1`, `v1beta1` or `v1p1alpha1` (`v1beta` too; buf lint PACKAGE_VERSION_SUFFIX).",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "syntax = \"proto3\";\n\npackage Acme.core;\n\nservice Thing {}\n",
-        "language": "protobuf",
-        "spans": [
-          {
-            "column": 9,
-            "length": 9,
-            "line": 3
-          }
-        ]
-      },
-      "fix": null,
-      "id": "package-version-suffix",
-      "languages": [
-        "protobuf"
-      ],
-      "options": [],
-      "presets": [
-        "protobuf/buf-standard"
-      ],
-      "upstream": []
-    },
-    {
-      "category": "style",
-      "default_level": "off",
-      "description": "An rpc name that is not PascalCase (buf lint RPC_PASCAL_CASE).",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "syntax = \"proto3\";\n\npackage acme.v1;\n\nmessage Good {\n  string good_name = 1;\n  int32 field_2 = 2;\n  map<string, string> good_map = 3;\n  oneof good_choice {\n    string a = 4;\n  }\n}\n\nmessage bad_message {\n  string BadName = 1;\n  map<string, string> BadMap = 2;\n  oneof BadChoice {\n    string b = 3;\n    string C = 4;\n  }\n}\n\nenum bad_enum {\n  BAD_ENUM_UNSPECIFIED = 0;\n  Bad_Value = 1;\n}\n\nservice bad_service {\n  rpc bad_call(Good) returns (Good);\n}\n",
-        "language": "protobuf",
-        "spans": [
-          {
-            "column": 7,
-            "length": 8,
-            "line": 29
-          }
-        ]
-      },
-      "fix": null,
-      "id": "rpc-pascal-case",
-      "languages": [
-        "protobuf"
-      ],
-      "options": [],
-      "presets": [
-        "protobuf/buf-standard"
-      ],
-      "upstream": []
-    },
-    {
-      "category": "style",
-      "default_level": "off",
-      "description": "The request type of an rpc is not named `<Rpc>Request` or `<Service><Rpc>Request` (buf lint RPC_REQUEST_STANDARD_NAME).",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "syntax = \"proto3\";\n\npackage acme.v1;\n\nmessage GetRequest {}\nmessage GetResponse {}\nmessage Other {}\nmessage FooServiceListRequest {}\nmessage FooServiceListResponse {}\n\nservice FooService {\n  rpc Get(GetRequest) returns (GetResponse);\n  rpc List(FooServiceListRequest) returns (FooServiceListResponse);\n  rpc Put(Other) returns (Other);\n}\n",
-        "language": "protobuf",
-        "spans": [
-          {
-            "column": 11,
-            "length": 5,
-            "line": 14
-          }
-        ]
-      },
-      "fix": null,
-      "id": "rpc-request-standard-name",
-      "languages": [
-        "protobuf"
-      ],
-      "options": [],
-      "presets": [
-        "protobuf/buf-standard"
-      ],
-      "upstream": []
-    },
-    {
-      "category": "style",
-      "default_level": "off",
-      "description": "The response type of an rpc is not named `<Rpc>Response` or `<Service><Rpc>Response` (buf lint RPC_RESPONSE_STANDARD_NAME).",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "syntax = \"proto3\";\n\npackage acme.v1;\n\nmessage GetRequest {}\nmessage GetResponse {}\nmessage Other {}\nmessage FooServiceListRequest {}\nmessage FooServiceListResponse {}\n\nservice FooService {\n  rpc Get(GetRequest) returns (GetResponse);\n  rpc List(FooServiceListRequest) returns (FooServiceListResponse);\n  rpc Put(Other) returns (Other);\n}\n",
-        "language": "protobuf",
-        "spans": [
-          {
-            "column": 27,
-            "length": 5,
-            "line": 14
-          }
-        ]
-      },
-      "fix": null,
-      "id": "rpc-response-standard-name",
-      "languages": [
-        "protobuf"
-      ],
-      "options": [],
-      "presets": [
-        "protobuf/buf-standard"
-      ],
-      "upstream": []
-    },
-    {
-      "category": "style",
-      "default_level": "off",
-      "description": "A service name that is not PascalCase (buf lint SERVICE_PASCAL_CASE).",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "syntax = \"proto3\";\n\npackage acme.v1;\n\nmessage Good {\n  string good_name = 1;\n  int32 field_2 = 2;\n  map<string, string> good_map = 3;\n  oneof good_choice {\n    string a = 4;\n  }\n}\n\nmessage bad_message {\n  string BadName = 1;\n  map<string, string> BadMap = 2;\n  oneof BadChoice {\n    string b = 3;\n    string C = 4;\n  }\n}\n\nenum bad_enum {\n  BAD_ENUM_UNSPECIFIED = 0;\n  Bad_Value = 1;\n}\n\nservice bad_service {\n  rpc bad_call(Good) returns (Good);\n}\n",
-        "language": "protobuf",
-        "spans": [
-          {
-            "column": 9,
-            "length": 11,
-            "line": 28
-          }
-        ]
-      },
-      "fix": null,
-      "id": "service-pascal-case",
-      "languages": [
-        "protobuf"
-      ],
-      "options": [],
-      "presets": [
-        "protobuf/buf-standard"
-      ],
-      "upstream": []
-    },
-    {
-      "category": "style",
-      "default_level": "off",
-      "description": "A service whose name does not end in `Service` (buf lint SERVICE_SUFFIX with its default suffix).",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "syntax = \"proto3\";\n\npackage Acme.core;\n\nservice Thing {}\n",
-        "language": "protobuf",
-        "spans": [
-          {
-            "column": 9,
-            "length": 5,
-            "line": 5
-          }
-        ]
-      },
-      "fix": null,
-      "id": "service-suffix",
-      "languages": [
-        "protobuf"
-      ],
-      "options": [],
-      "presets": [
-        "protobuf/buf-standard"
-      ],
-      "upstream": []
-    },
-    {
-      "category": "style",
-      "default_level": "off",
-      "description": "A file without `syntax = ...;` or `edition = ...;`, which makes it proto2 (buf lint SYNTAX_SPECIFIED).",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "import public \"google/protobuf/empty.proto\";\n\nmessage Old {\n  required string name = 1;\n}\n",
-        "language": "protobuf",
-        "spans": [
-          {
-            "column": 1,
-            "length": 6,
-            "line": 1
-          }
-        ]
-      },
-      "fix": null,
-      "id": "syntax-specified",
-      "languages": [
-        "protobuf"
-      ],
-      "options": [],
-      "presets": [
-        "protobuf/buf-standard"
-      ],
-      "upstream": []
-    },
-    {
-      "category": "style",
       "default_level": "warn",
-      "description": "A name does not follow the style set for what it names: operations, fragments, variables, fields, arguments, types, enum values and directives. `PascalCase` and `camelCase` allow letters and digits only, `snake_case` and `UPPER_CASE` forbid the other case; leading underscores are ignored. No fix: renaming changes the schema or the queries that use it. Equivalent: graphql-eslint naming-convention (styles only, no prefix or suffix lists).",
+      "description": "An element of a project file (`PackageReference`, `ProjectReference`, `Compile`, ...) has the same `Include` as an earlier element of the same name in the same parent. The duplicate is a restore warning or a build error.",
       "example": {
         "config": null,
         "fixed": null,
-        "input": "query get_user($User_id: ID) { user }\nfragment user_fields on User { id }\ntype user_account { first_name(Arg_one: Int): String }\nenum Color { red GREEN }\ndirective @Auth on FIELD\ninput Filter { Name: String }\ntype _Ok { __typename: String }\n",
-        "language": "graphql",
+        "input": "<Project>\n  <ItemGroup>\n    <PackageReference Include=\"A\" Version=\"1\" />\n    <PackageReference Include=\"B\" Version=\"1\" />\n    <PackageReference Include=\"A\" Version=\"2\"></PackageReference>\n    <Compile Include=\"A\" />\n    <ProjectReference Include=\"B\" />\n  </ItemGroup>\n  <ItemGroup>\n    <PackageReference Include=\"A\" />\n  </ItemGroup>\n</Project>\n",
+        "language": "xml",
         "spans": [
           {
-            "column": 7,
-            "length": 8,
-            "line": 1
-          },
-          {
-            "column": 16,
-            "length": 8,
-            "line": 1
-          },
-          {
-            "column": 10,
-            "length": 11,
-            "line": 2
-          },
-          {
-            "column": 6,
-            "length": 12,
-            "line": 3
-          },
-          {
-            "column": 21,
-            "length": 10,
-            "line": 3
-          },
-          {
-            "column": 32,
-            "length": 7,
-            "line": 3
-          },
-          {
-            "column": 14,
+            "column": 31,
             "length": 3,
-            "line": 4
-          },
-          {
-            "column": 12,
-            "length": 4,
-            "line": 5
-          },
-          {
-            "column": 16,
-            "length": 4,
-            "line": 6
-          }
-        ]
-      },
-      "fix": null,
-      "id": "naming-convention",
-      "languages": [
-        "graphql",
-        "hcl"
-      ],
-      "options": [
-        {
-          "choices": [
-            "PascalCase",
-            "camelCase",
-            "snake_case",
-            "UPPER_CASE",
-            "off"
-          ],
-          "default": "PascalCase",
-          "description": "Style of operation names: `PascalCase`, `camelCase`, `snake_case`, `UPPER_CASE` or `off`.",
-          "name": "operations",
-          "type": "string"
-        },
-        {
-          "choices": [
-            "PascalCase",
-            "camelCase",
-            "snake_case",
-            "UPPER_CASE",
-            "off"
-          ],
-          "default": "PascalCase",
-          "description": "Style of fragment names: `PascalCase`, `camelCase`, `snake_case`, `UPPER_CASE` or `off`.",
-          "name": "fragments",
-          "type": "string"
-        },
-        {
-          "choices": [
-            "PascalCase",
-            "camelCase",
-            "snake_case",
-            "UPPER_CASE",
-            "off"
-          ],
-          "default": "camelCase",
-          "description": "Style of variable names: `PascalCase`, `camelCase`, `snake_case`, `UPPER_CASE` or `off`.",
-          "name": "variables",
-          "type": "string"
-        },
-        {
-          "choices": [
-            "PascalCase",
-            "camelCase",
-            "snake_case",
-            "UPPER_CASE",
-            "off"
-          ],
-          "default": "camelCase",
-          "description": "Style of field and input field names in definitions: `PascalCase`, `camelCase`, `snake_case`, `UPPER_CASE` or `off`.",
-          "name": "fields",
-          "type": "string"
-        },
-        {
-          "choices": [
-            "PascalCase",
-            "camelCase",
-            "snake_case",
-            "UPPER_CASE",
-            "off"
-          ],
-          "default": "camelCase",
-          "description": "Style of argument names in definitions: `PascalCase`, `camelCase`, `snake_case`, `UPPER_CASE` or `off`.",
-          "name": "arguments",
-          "type": "string"
-        },
-        {
-          "choices": [
-            "PascalCase",
-            "camelCase",
-            "snake_case",
-            "UPPER_CASE",
-            "off"
-          ],
-          "default": "PascalCase",
-          "description": "Style of type names: `PascalCase`, `camelCase`, `snake_case`, `UPPER_CASE` or `off`.",
-          "name": "types",
-          "type": "string"
-        },
-        {
-          "choices": [
-            "PascalCase",
-            "camelCase",
-            "snake_case",
-            "UPPER_CASE",
-            "off"
-          ],
-          "default": "UPPER_CASE",
-          "description": "Style of enum values: `PascalCase`, `camelCase`, `snake_case`, `UPPER_CASE` or `off`.",
-          "name": "enum_values",
-          "type": "string"
-        },
-        {
-          "choices": [
-            "PascalCase",
-            "camelCase",
-            "snake_case",
-            "UPPER_CASE",
-            "off"
-          ],
-          "default": "camelCase",
-          "description": "Style of directive names: `PascalCase`, `camelCase`, `snake_case`, `UPPER_CASE` or `off`.",
-          "name": "directives",
-          "type": "string"
-        }
-      ],
-      "presets": [],
-      "upstream": []
-    },
-    {
-      "category": "suspicious",
-      "default_level": "warn",
-      "description": "An operation without a name (`{ a }`, `query { a }`), which tools that log, trace or cache by operation name cannot tell apart. Equivalent - graphql-eslint no-anonymous-operations.",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "query Named { a }\n{ b }\nquery { c }\nmutation ($x: Int) { d }\nsubscription S @live { e }\n",
-        "language": "graphql",
-        "spans": [
-          {
-            "column": 1,
-            "length": 1,
-            "line": 2
-          },
-          {
-            "column": 1,
-            "length": 5,
-            "line": 3
-          },
-          {
-            "column": 1,
-            "length": 8,
-            "line": 4
-          }
-        ]
-      },
-      "fix": null,
-      "id": "no-anonymous-operations",
-      "languages": [
-        "graphql"
-      ],
-      "options": [],
-      "presets": [],
-      "upstream": []
-    },
-    {
-      "category": "style",
-      "default_level": "warn",
-      "description": "A field of an object or interface type starts with the name of the type (`type User { userId: ID }`); the type already says it (case ignored). No fix: renaming a field changes the schema.",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "type User {\n  userId: ID\n  id: ID\n}\ninterface Node { nodeKind: String }\ninput UserInput { userName: String }\n",
-        "language": "graphql",
-        "spans": [
-          {
-            "column": 3,
-            "length": 6,
-            "line": 2
-          },
-          {
-            "column": 18,
-            "length": 8,
             "line": 5
           }
         ]
       },
       "fix": null,
-      "id": "no-typename-prefix",
+      "id": "no-duplicate-include",
       "languages": [
-        "graphql"
+        "xml"
       ],
       "options": [],
       "presets": [],
@@ -5562,1093 +6622,33 @@
     },
     {
       "category": "suspicious",
-      "default_level": "off",
-      "description": "An operation or fragment nests selection sets deeper than allowed, which makes a query expensive to execute. Fragments that are spread are not followed.",
-      "example": {
-        "config": "selection-set-depth:\n  level: warn\n  options:\n    max_depth: 2\n",
-        "fixed": null,
-        "input": "query Q { a { b { c } } }\nfragment F on T { a { b } }\n",
-        "language": "graphql",
-        "spans": [
-          {
-            "column": 9,
-            "length": 1,
-            "line": 1
-          }
-        ]
-      },
-      "fix": null,
-      "id": "selection-set-depth",
-      "languages": [
-        "graphql"
-      ],
-      "options": [
-        {
-          "default": 7,
-          "description": "The deepest allowed nesting; the operation's own selection set is level 1.",
-          "name": "max_depth",
-          "type": "int"
-        }
-      ],
-      "presets": [],
-      "upstream": []
-    },
-    {
-      "category": "correctness",
-      "default_level": "error",
-      "description": "Two fragments of a document have the same name; a spread cannot tell which one it means. Checked within the file.",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "query A { a }\nquery A { b }\nquery B { c }\nfragment F on T { a }\nfragment F on T { b }\n",
-        "language": "graphql",
-        "spans": [
-          {
-            "column": 10,
-            "length": 1,
-            "line": 5
-          }
-        ]
-      },
-      "fix": null,
-      "id": "unique-fragment-name",
-      "languages": [
-        "graphql"
-      ],
-      "options": [],
-      "presets": [],
-      "upstream": []
-    },
-    {
-      "category": "correctness",
-      "default_level": "error",
-      "description": "Two operations of a document have the same name; a server cannot tell which to run and tools that key on the name (caches, persisted queries) collide. Checked within the file.",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "query A { a }\nquery A { b }\nquery B { c }\nfragment F on T { a }\nfragment F on T { b }\n",
-        "language": "graphql",
-        "spans": [
-          {
-            "column": 7,
-            "length": 1,
-            "line": 2
-          }
-        ]
-      },
-      "fix": null,
-      "id": "unique-operation-name",
-      "languages": [
-        "graphql"
-      ],
-      "options": [],
-      "presets": [],
-      "upstream": []
-    },
-    {
-      "category": "cleanup",
-      "default_level": "off",
-      "description": "A rule whose recipe has more lines than allowed (checkmake `maxbodylength`). Every physical line counts, a continued command and a tab-indented comment included.",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "build:\n\techo 1\n\techo 2\n\techo 3\n\techo 4\n\techo 5\n\techo 6\nfine:\n\techo 1\n",
-        "language": "makefile",
-        "spans": [
-          {
-            "column": 1,
-            "length": 5,
-            "line": 1
-          }
-        ]
-      },
-      "fix": null,
-      "id": "max-body-length",
-      "languages": [
-        "makefile"
-      ],
-      "options": [
-        {
-          "default": 5,
-          "description": "The most lines a recipe may have.",
-          "name": "max",
-          "type": "int"
-        }
-      ],
-      "presets": [
-        "makefile/checkmake"
-      ],
-      "upstream": []
-    },
-    {
-      "category": "suspicious",
-      "default_level": "off",
-      "description": "A target that must exist and be declared `.PHONY` (checkmake `minphony`). Reported on the `.PHONY` line, or the last rule's when there is none.",
-      "example": {
-        "config": "min-phony:\n  level: warn\n  options:\n    required: [all, build]\n",
-        "fixed": null,
-        "input": ".PHONY: all test\nall:\ntest:\n",
-        "language": "makefile",
-        "spans": [
-          {
-            "column": 1,
-            "length": 6,
-            "line": 1
-          }
-        ]
-      },
-      "fix": null,
-      "id": "min-phony",
-      "languages": [
-        "makefile"
-      ],
-      "options": [
-        {
-          "default": [
-            "all",
-            "clean",
-            "test"
-          ],
-          "description": "The targets every Makefile must declare `.PHONY`.",
-          "name": "required",
-          "type": "list"
-        }
-      ],
-      "presets": [
-        "makefile/checkmake"
-      ],
-      "upstream": []
-    },
-    {
-      "category": "suspicious",
       "default_level": "warn",
-      "description": "A target with no recipe that is not declared `.PHONY` (checkmake `phonydeclared`); targets that start with a `.` are special and skipped.",
+      "description": "A `PackageReference` (or `PackageVersion`) whose `Version` contains `*` restores a different package as new versions appear. Reported on the attribute; no fix, because the version to pin is a decision.",
       "example": {
         "config": null,
         "fixed": null,
-        "input": ".PHONY: all clean\nall: build\nclean:\nbuild:\n\techo\n.DEFAULT: ;\nempty: all\nboth one two:\n$(OBJS): ;\n",
-        "language": "makefile",
+        "input": "<Project>\n  <ItemGroup>\n    <PackageReference Include=\"A\" Version=\"1.0.0\" />\n    <PackageReference Include=\"B\" Version=\"1.*\" />\n    <PackageVersion Include=\"C\" Version=\"*\" ></PackageVersion>\n    <Other Include=\"D\" Version=\"1.*\" />\n  </ItemGroup>\n</Project>\n",
+        "language": "xml",
         "spans": [
           {
-            "column": 1,
-            "length": 5,
-            "line": 7
-          },
-          {
-            "column": 1,
-            "length": 4,
-            "line": 8
-          },
-          {
-            "column": 6,
-            "length": 3,
-            "line": 8
-          },
-          {
-            "column": 10,
-            "length": 3,
-            "line": 8
-          }
-        ]
-      },
-      "fix": null,
-      "id": "phony-declared",
-      "languages": [
-        "makefile"
-      ],
-      "options": [],
-      "presets": [
-        "makefile/checkmake"
-      ],
-      "upstream": []
-    },
-    {
-      "category": "suspicious",
-      "default_level": "warn",
-      "description": "A variable whose value runs `date` and that is not simply expanded (`:=`, `::=`): every use runs `date` again and the values differ within one build (checkmake `timestampexpanded`).",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "A = $(shell date +%s)\nB := $(shell date +%s)\nC ?= a date\nD = date\nE += $(shell date)\nF ::= $(shell date)\nG != date\nfoo: H = $(shell date)\n",
-        "language": "makefile",
-        "spans": [
-          {
-            "column": 1,
-            "length": 1,
-            "line": 1
-          },
-          {
-            "column": 1,
-            "length": 1,
-            "line": 3
-          },
-          {
-            "column": 1,
-            "length": 1,
-            "line": 5
-          },
-          {
-            "column": 1,
-            "length": 3,
-            "line": 8
-          }
-        ]
-      },
-      "fix": null,
-      "id": "timestamp-expanded",
-      "languages": [
-        "makefile"
-      ],
-      "options": [],
-      "presets": [
-        "makefile/checkmake"
-      ],
-      "upstream": []
-    },
-    {
-      "category": "suspicious",
-      "default_level": "warn",
-      "description": "A target defined by more than one rule, which merges prerequisites and overrides recipes (checkmake `uniquetargets`). Double-colon rules, `.PHONY` and the targets of `ignore` are skipped.",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "a:\n\techo\na:\n\techo\nb::\nb::\n.PHONY: a\n.PHONY: b\nc d:\nd:\n",
-        "language": "makefile",
-        "spans": [
-          {
-            "column": 1,
-            "length": 1,
-            "line": 3
-          },
-          {
-            "column": 1,
-            "length": 1,
-            "line": 10
-          }
-        ]
-      },
-      "fix": null,
-      "id": "unique-targets",
-      "languages": [
-        "makefile"
-      ],
-      "options": [
-        {
-          "default": [],
-          "description": "Targets that may be defined more than once.",
-          "name": "ignore",
-          "type": "list"
-        }
-      ],
-      "presets": [
-        "makefile/checkmake"
-      ],
-      "upstream": []
-    },
-    {
-      "category": "style",
-      "default_level": "off",
-      "description": "A `//` comment where `#` is the convention (tflint terraform_comment_syntax). The fix writes `#`.",
-      "example": {
-        "config": null,
-        "fixed": "# old style\n# fine\nx = 1 # trailing\n/* block */\n",
-        "input": "// old style\n# fine\nx = 1 // trailing\n/* block */\n",
-        "language": "hcl",
-        "spans": [
-          {
-            "column": 1,
-            "length": 2,
-            "line": 1
-          },
-          {
-            "column": 7,
-            "length": 2,
-            "line": 3
-          }
-        ]
-      },
-      "fix": "safe",
-      "id": "comment-syntax",
-      "languages": [
-        "hcl"
-      ],
-      "options": [],
-      "presets": [],
-      "upstream": []
-    },
-    {
-      "category": "style",
-      "default_level": "warn",
-      "description": "A list item read with the legacy dot syntax, `a.0` (tflint terraform_deprecated_index). The fix writes `a[0]`.",
-      "example": {
-        "config": null,
-        "fixed": "resource \"a\" \"b\" {\n  name = var.name\n  tags = [var.a, \"x-${var.b}\", \"${var.c}${var.d}\"]\n  id   = var.e\n  raw  = \"${~ var.f ~}\"\n  id2  = aws_instance.web[0].id\n  all  = aws_instance.web[0].id\n  ids  = aws_instance.web.*.id\n  num  = local.versions[1][2]\n  key  = { (var.k) = 1 }\n  sum  = 1 + \"${var.n}\"\n}\n",
-        "input": "resource \"a\" \"b\" {\n  name = \"${var.name}\"\n  tags = [\"${var.a}\", \"x-${var.b}\", \"${var.c}${var.d}\"]\n  id   = \"${ var.e }\"\n  raw  = \"${~ var.f ~}\"\n  id2  = aws_instance.web.0.id\n  all  = aws_instance.web[0].id\n  ids  = aws_instance.web.*.id\n  num  = local.versions.1.2\n  key  = { \"${var.k}\" = 1 }\n  sum  = 1 + \"${var.n}\"\n}\n",
-        "language": "hcl",
-        "spans": [
-          {
-            "column": 26,
-            "length": 2,
-            "line": 6
-          },
-          {
-            "column": 24,
-            "length": 2,
-            "line": 9
-          },
-          {
-            "column": 26,
-            "length": 2,
-            "line": 9
-          }
-        ]
-      },
-      "fix": "safe",
-      "id": "deprecated-index",
-      "languages": [
-        "hcl"
-      ],
-      "options": [],
-      "presets": [
-        "hcl/tflint-recommended"
-      ],
-      "upstream": []
-    },
-    {
-      "category": "style",
-      "default_level": "warn",
-      "description": "A string that is one interpolation, `\"${var.a}\"`, where the expression alone does (tflint terraform_deprecated_interpolation). The fix writes the expression. Not in Nomad job files (`.nomad`, `.nomad.hcl`), whose agent fills those in at run time.",
-      "example": {
-        "config": null,
-        "fixed": "resource \"a\" \"b\" {\n  name = var.name\n  tags = [var.a, \"x-${var.b}\", \"${var.c}${var.d}\"]\n  id   = var.e\n  raw  = \"${~ var.f ~}\"\n  id2  = aws_instance.web[0].id\n  all  = aws_instance.web[0].id\n  ids  = aws_instance.web.*.id\n  num  = local.versions[1][2]\n  key  = { (var.k) = 1 }\n  sum  = 1 + \"${var.n}\"\n}\n",
-        "input": "resource \"a\" \"b\" {\n  name = \"${var.name}\"\n  tags = [\"${var.a}\", \"x-${var.b}\", \"${var.c}${var.d}\"]\n  id   = \"${ var.e }\"\n  raw  = \"${~ var.f ~}\"\n  id2  = aws_instance.web.0.id\n  all  = aws_instance.web[0].id\n  ids  = aws_instance.web.*.id\n  num  = local.versions.1.2\n  key  = { \"${var.k}\" = 1 }\n  sum  = 1 + \"${var.n}\"\n}\n",
-        "language": "hcl",
-        "spans": [
-          {
-            "column": 10,
+            "column": 35,
             "length": 13,
-            "line": 2
-          },
-          {
-            "column": 11,
-            "length": 10,
-            "line": 3
-          },
-          {
-            "column": 10,
-            "length": 12,
             "line": 4
           },
           {
-            "column": 12,
-            "length": 10,
-            "line": 10
-          },
-          {
-            "column": 14,
-            "length": 10,
-            "line": 11
-          }
-        ]
-      },
-      "fix": "safe",
-      "id": "deprecated-interpolation",
-      "languages": [
-        "hcl"
-      ],
-      "options": [],
-      "presets": [
-        "hcl/tflint-recommended"
-      ],
-      "upstream": []
-    },
-    {
-      "category": "style",
-      "default_level": "off",
-      "description": "An `output` block with no `description` argument (tflint terraform_documented_outputs).",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "variable \"plain\" {}\n\nvariable \"full\" {\n  type        = string\n  description = \"Documented.\"\n  validation {\n    condition     = length(var.full) > 0\n    error_message = \"empty\"\n  }\n}\n\noutput \"bare\" {\n  value = 1\n}\n\noutput \"documented\" {\n  value       = 2\n  description = \"Documented.\"\n}\n",
-        "language": "hcl",
-        "spans": [
-          {
-            "column": 1,
-            "length": 6,
-            "line": 12
+            "column": 33,
+            "length": 11,
+            "line": 5
           }
         ]
       },
       "fix": null,
-      "id": "documented-outputs",
+      "id": "no-floating-package-version",
       "languages": [
-        "hcl"
+        "xml"
       ],
       "options": [],
       "presets": [],
-      "upstream": []
-    },
-    {
-      "category": "style",
-      "default_level": "off",
-      "description": "A `variable` block with no `description` argument (tflint terraform_documented_variables).",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "variable \"plain\" {}\n\nvariable \"full\" {\n  type        = string\n  description = \"Documented.\"\n  validation {\n    condition     = length(var.full) > 0\n    error_message = \"empty\"\n  }\n}\n\noutput \"bare\" {\n  value = 1\n}\n\noutput \"documented\" {\n  value       = 2\n  description = \"Documented.\"\n}\n",
-        "language": "hcl",
-        "spans": [
-          {
-            "column": 1,
-            "length": 8,
-            "line": 1
-          }
-        ]
-      },
-      "fix": null,
-      "id": "documented-variables",
-      "languages": [
-        "hcl"
-      ],
-      "options": [],
-      "presets": [],
-      "upstream": []
-    },
-    {
-      "category": "suspicious",
-      "default_level": "warn",
-      "description": "A comparison with an empty list, `x == []` or `x != []` (tflint terraform_empty_list_equality): it is false for an empty set or a tuple of another type.",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "a = var.l == []\nb = var.l != []\nc = [] == var.l\nd = length(var.l) == 0\ne = var.l == [] && var.m\nf = var.l == [1]\n",
-        "language": "hcl",
-        "spans": [
-          {
-            "column": 5,
-            "length": 11,
-            "line": 1
-          },
-          {
-            "column": 5,
-            "length": 11,
-            "line": 2
-          },
-          {
-            "column": 5,
-            "length": 9,
-            "line": 3
-          },
-          {
-            "column": 5,
-            "length": 11,
-            "line": 5
-          }
-        ]
-      },
-      "fix": null,
-      "id": "empty-list-equality",
-      "languages": [
-        "hcl"
-      ],
-      "options": [],
-      "presets": [
-        "hcl/tflint-recommended"
-      ],
-      "upstream": []
-    },
-    {
-      "category": "style",
-      "default_level": "off",
-      "description": "A `terraform` block with no `required_providers` block (tflint terraform_required_providers, in the file that has the block: the rule does not know the other files of the module).",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "terraform {\n  backend \"s3\" {}\n}\n\nterraform {\n  required_version = \">= 1.5\"\n  required_providers {\n    aws = { source = \"hashicorp/aws\" }\n  }\n}\n",
-        "language": "hcl",
-        "spans": [
-          {
-            "column": 1,
-            "length": 9,
-            "line": 1
-          }
-        ]
-      },
-      "fix": null,
-      "id": "required-providers",
-      "languages": [
-        "hcl"
-      ],
-      "options": [],
-      "presets": [
-        "hcl/tflint-recommended"
-      ],
-      "upstream": []
-    },
-    {
-      "category": "style",
-      "default_level": "off",
-      "description": "A `terraform` block with no `required_version` argument (tflint terraform_required_version, in the file that has the block: the rule does not know the other files of the module).",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "terraform {\n  backend \"s3\" {}\n}\n\nterraform {\n  required_version = \">= 1.5\"\n  required_providers {\n    aws = { source = \"hashicorp/aws\" }\n  }\n}\n",
-        "language": "hcl",
-        "spans": [
-          {
-            "column": 1,
-            "length": 9,
-            "line": 1
-          }
-        ]
-      },
-      "fix": null,
-      "id": "required-version",
-      "languages": [
-        "hcl"
-      ],
-      "options": [],
-      "presets": [
-        "hcl/tflint-recommended"
-      ],
-      "upstream": []
-    },
-    {
-      "category": "style",
-      "default_level": "off",
-      "description": "A `variable` block with no `type` argument (tflint terraform_typed_variables).",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "variable \"plain\" {}\n\nvariable \"full\" {\n  type        = string\n  description = \"Documented.\"\n  validation {\n    condition     = length(var.full) > 0\n    error_message = \"empty\"\n  }\n}\n\noutput \"bare\" {\n  value = 1\n}\n\noutput \"documented\" {\n  value       = 2\n  description = \"Documented.\"\n}\n",
-        "language": "hcl",
-        "spans": [
-          {
-            "column": 1,
-            "length": 8,
-            "line": 1
-          }
-        ]
-      },
-      "fix": null,
-      "id": "typed-variables",
-      "languages": [
-        "hcl"
-      ],
-      "options": [],
-      "presets": [
-        "hcl/tflint-recommended"
-      ],
-      "upstream": []
-    },
-    {
-      "category": "suspicious",
-      "default_level": "off",
-      "description": "A variable, local value or data source that nothing in the same file refers to (tflint terraform_unused_declarations, within one file: a module that uses its variables in other files needs the rule off or those files in one).",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "variable \"used\" {}\nvariable \"unused\" {}\nlocals {\n  used_local   = var.used\n  unused_local = 1\n}\ndata \"aws_ami\" \"used\" {}\ndata \"aws_ami\" \"unused\" {}\noutput \"x\" {\n  value = \"${local.used_local}-${data.aws_ami.used.id}\"\n}\n",
-        "language": "hcl",
-        "spans": [
-          {
-            "column": 10,
-            "length": 8,
-            "line": 2
-          },
-          {
-            "column": 3,
-            "length": 12,
-            "line": 5
-          },
-          {
-            "column": 16,
-            "length": 8,
-            "line": 8
-          }
-        ]
-      },
-      "fix": null,
-      "id": "unused-declarations",
-      "languages": [
-        "hcl"
-      ],
-      "options": [],
-      "presets": [
-        "hcl/tflint-recommended"
-      ],
-      "upstream": []
-    },
-    {
-      "category": "style",
-      "default_level": "warn",
-      "description": "A function named `Verb-Noun` whose verb is not in the list `Get-Verb` returns. Names without a dash are not checked.",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "function Fetch-Data {\n    param(\n        [string]$Password,\n        [Parameter(Mandatory)][string] $UserPassphrase = 'x',\n        [securestring]$Secret,\n        [string]$Name,\n        [switch]$Force = $true,\n        [switch]$Quiet\n    )\n    try { Get-Item x } catch { }\n    try { Get-Item x } catch {\n        # ignored\n    }\n    try { Get-Item x } catch { Write-Error $_ }\n    try { 1 } catch { try { 2 } catch { throw } }\n}\nfunction Get-Thing { }\nfunction Fetch { }\nfunction global:Make-Thing { }\n$global:count = 1\n$x = $global:count + 1\nSet-Item $env:Path -Value $Global:Foo\n$script:count = 1\n$input = 1\n$true = 0\n$count = 1\n$x -eq $null\n$null -eq $x\nif ($a -ne $null -and $b -ceq $null) { }\n$x -eq $nullable\n$null = 1\n$global:LASTEXITCODE = 1\nforeach ($Event in 1) { }\nfunction Show-It($Error, [string]$Credential) { }\n",
-        "language": "powershell",
-        "spans": [
-          {
-            "column": 10,
-            "length": 10,
-            "line": 1
-          },
-          {
-            "column": 10,
-            "length": 17,
-            "line": 19
-          }
-        ]
-      },
-      "fix": null,
-      "id": "approved-verbs",
-      "languages": [
-        "powershell"
-      ],
-      "options": [],
-      "presets": [
-        "powershell/psscriptanalyzer"
-      ],
-      "upstream": []
-    },
-    {
-      "category": "suspicious",
-      "default_level": "warn",
-      "description": "A `catch` clause whose block has no statement (a comment does not count).",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "function Fetch-Data {\n    param(\n        [string]$Password,\n        [Parameter(Mandatory)][string] $UserPassphrase = 'x',\n        [securestring]$Secret,\n        [string]$Name,\n        [switch]$Force = $true,\n        [switch]$Quiet\n    )\n    try { Get-Item x } catch { }\n    try { Get-Item x } catch {\n        # ignored\n    }\n    try { Get-Item x } catch { Write-Error $_ }\n    try { 1 } catch { try { 2 } catch { throw } }\n}\nfunction Get-Thing { }\nfunction Fetch { }\nfunction global:Make-Thing { }\n$global:count = 1\n$x = $global:count + 1\nSet-Item $env:Path -Value $Global:Foo\n$script:count = 1\n$input = 1\n$true = 0\n$count = 1\n$x -eq $null\n$null -eq $x\nif ($a -ne $null -and $b -ceq $null) { }\n$x -eq $nullable\n$null = 1\n$global:LASTEXITCODE = 1\nforeach ($Event in 1) { }\nfunction Show-It($Error, [string]$Credential) { }\n",
-        "language": "powershell",
-        "spans": [
-          {
-            "column": 24,
-            "length": 9,
-            "line": 10
-          },
-          {
-            "column": 24,
-            "length": 1,
-            "line": 11
-          }
-        ]
-      },
-      "fix": null,
-      "id": "empty-catch-block",
-      "languages": [
-        "powershell"
-      ],
-      "options": [],
-      "presets": [
-        "powershell/psscriptanalyzer"
-      ],
-      "upstream": []
-    },
-    {
-      "category": "correctness",
-      "default_level": "warn",
-      "description": "An assignment to, a parameter named like, or a `foreach` variable named like an automatic variable (`$Error`, `$Event`, `$input`, `$PSItem`, `$_`, `$PWD`, `$Host`, `$this`, `$true`, ...). `$null = ...` is fine.",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "function Fetch-Data {\n    param(\n        [string]$Password,\n        [Parameter(Mandatory)][string] $UserPassphrase = 'x',\n        [securestring]$Secret,\n        [string]$Name,\n        [switch]$Force = $true,\n        [switch]$Quiet\n    )\n    try { Get-Item x } catch { }\n    try { Get-Item x } catch {\n        # ignored\n    }\n    try { Get-Item x } catch { Write-Error $_ }\n    try { 1 } catch { try { 2 } catch { throw } }\n}\nfunction Get-Thing { }\nfunction Fetch { }\nfunction global:Make-Thing { }\n$global:count = 1\n$x = $global:count + 1\nSet-Item $env:Path -Value $Global:Foo\n$script:count = 1\n$input = 1\n$true = 0\n$count = 1\n$x -eq $null\n$null -eq $x\nif ($a -ne $null -and $b -ceq $null) { }\n$x -eq $nullable\n$null = 1\n$global:LASTEXITCODE = 1\nforeach ($Event in 1) { }\nfunction Show-It($Error, [string]$Credential) { }\n",
-        "language": "powershell",
-        "spans": [
-          {
-            "column": 1,
-            "length": 10,
-            "line": 24
-          },
-          {
-            "column": 1,
-            "length": 9,
-            "line": 25
-          },
-          {
-            "column": 1,
-            "length": 25,
-            "line": 33
-          },
-          {
-            "column": 18,
-            "length": 6,
-            "line": 34
-          }
-        ]
-      },
-      "fix": null,
-      "id": "no-automatic-variable-assignment",
-      "languages": [
-        "powershell"
-      ],
-      "options": [],
-      "presets": [
-        "powershell/psscriptanalyzer"
-      ],
-      "upstream": []
-    },
-    {
-      "category": "style",
-      "default_level": "warn",
-      "description": "A command written with one of the default aliases of Windows PowerShell and PowerShell 7 (`gci`, `ls`, `%`, `?`, `iex`, ...). The table is the one of a Windows host; PSScriptAnalyzer reads the aliases of the host it runs on.",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "gci -Recurse | % { $_ }\nGet-ChildItem | ? Name -eq x\nls\n1..3 | %{ $_ }\nGet-ChildItem | Where-Object { $_ } | foreach { $_ }\n$x = dir\nWrite-Output ls\n",
-        "language": "powershell",
-        "spans": [
-          {
-            "column": 1,
-            "length": 3,
-            "line": 1
-          },
-          {
-            "column": 16,
-            "length": 1,
-            "line": 1
-          },
-          {
-            "column": 17,
-            "length": 1,
-            "line": 2
-          },
-          {
-            "column": 1,
-            "length": 2,
-            "line": 3
-          },
-          {
-            "column": 8,
-            "length": 1,
-            "line": 4
-          },
-          {
-            "column": 39,
-            "length": 7,
-            "line": 5
-          },
-          {
-            "column": 6,
-            "length": 3,
-            "line": 6
-          }
-        ]
-      },
-      "fix": null,
-      "id": "no-cmdlet-aliases",
-      "languages": [
-        "powershell"
-      ],
-      "options": [],
-      "presets": [
-        "powershell/psscriptanalyzer"
-      ],
-      "upstream": []
-    },
-    {
-      "category": "suspicious",
-      "default_level": "warn",
-      "description": "A `[switch]` parameter with the default value `$true`.",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "function Fetch-Data {\n    param(\n        [string]$Password,\n        [Parameter(Mandatory)][string] $UserPassphrase = 'x',\n        [securestring]$Secret,\n        [string]$Name,\n        [switch]$Force = $true,\n        [switch]$Quiet\n    )\n    try { Get-Item x } catch { }\n    try { Get-Item x } catch {\n        # ignored\n    }\n    try { Get-Item x } catch { Write-Error $_ }\n    try { 1 } catch { try { 2 } catch { throw } }\n}\nfunction Get-Thing { }\nfunction Fetch { }\nfunction global:Make-Thing { }\n$global:count = 1\n$x = $global:count + 1\nSet-Item $env:Path -Value $Global:Foo\n$script:count = 1\n$input = 1\n$true = 0\n$count = 1\n$x -eq $null\n$null -eq $x\nif ($a -ne $null -and $b -ceq $null) { }\n$x -eq $nullable\n$null = 1\n$global:LASTEXITCODE = 1\nforeach ($Event in 1) { }\nfunction Show-It($Error, [string]$Credential) { }\n",
-        "language": "powershell",
-        "spans": [
-          {
-            "column": 9,
-            "length": 22,
-            "line": 7
-          }
-        ]
-      },
-      "fix": null,
-      "id": "no-default-true-switch",
-      "languages": [
-        "powershell"
-      ],
-      "options": [],
-      "presets": [
-        "powershell/psscriptanalyzer"
-      ],
-      "upstream": []
-    },
-    {
-      "category": "suspicious",
-      "default_level": "warn",
-      "description": "A variable in the `global:` scope, other than the special variables PSScriptAnalyzer exempts (`$global:LASTEXITCODE`, `$global:ErrorActionPreference`, `$global:PSDefaultParameterValues`, ...).",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "function Fetch-Data {\n    param(\n        [string]$Password,\n        [Parameter(Mandatory)][string] $UserPassphrase = 'x',\n        [securestring]$Secret,\n        [string]$Name,\n        [switch]$Force = $true,\n        [switch]$Quiet\n    )\n    try { Get-Item x } catch { }\n    try { Get-Item x } catch {\n        # ignored\n    }\n    try { Get-Item x } catch { Write-Error $_ }\n    try { 1 } catch { try { 2 } catch { throw } }\n}\nfunction Get-Thing { }\nfunction Fetch { }\nfunction global:Make-Thing { }\n$global:count = 1\n$x = $global:count + 1\nSet-Item $env:Path -Value $Global:Foo\n$script:count = 1\n$input = 1\n$true = 0\n$count = 1\n$x -eq $null\n$null -eq $x\nif ($a -ne $null -and $b -ceq $null) { }\n$x -eq $nullable\n$null = 1\n$global:LASTEXITCODE = 1\nforeach ($Event in 1) { }\nfunction Show-It($Error, [string]$Credential) { }\n",
-        "language": "powershell",
-        "spans": [
-          {
-            "column": 1,
-            "length": 13,
-            "line": 20
-          },
-          {
-            "column": 6,
-            "length": 13,
-            "line": 21
-          },
-          {
-            "column": 27,
-            "length": 11,
-            "line": 22
-          }
-        ]
-      },
-      "fix": null,
-      "id": "no-global-vars",
-      "languages": [
-        "powershell"
-      ],
-      "options": [],
-      "presets": [
-        "powershell/psscriptanalyzer"
-      ],
-      "upstream": []
-    },
-    {
-      "category": "suspicious",
-      "default_level": "warn",
-      "description": "A call of `Invoke-Expression` or its alias `iex`.",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "Write-Host \"hi\"\nwrite-host\nWrite-Output \"ok\"\nGet-Help Write-Host\niex $script\nInvoke-Expression -Command $c\nConvertTo-SecureString $p -AsPlainText -Force\nConvertTo-SecureString $p\nConvertTo-SecureString `\n    $p -AsPlainText\nGet-WmiObject Win32_Process\nGet-CimInstance Win32_Process\nConvertTo-SecureString -AsPlainText \"x\" -Force\n",
-        "language": "powershell",
-        "spans": [
-          {
-            "column": 1,
-            "length": 3,
-            "line": 5
-          },
-          {
-            "column": 1,
-            "length": 17,
-            "line": 6
-          }
-        ]
-      },
-      "fix": null,
-      "id": "no-invoke-expression",
-      "languages": [
-        "powershell"
-      ],
-      "options": [],
-      "presets": [
-        "powershell/psscriptanalyzer"
-      ],
-      "upstream": []
-    },
-    {
-      "category": "correctness",
-      "default_level": "warn",
-      "description": "A backtick that is followed by blanks before the end of the line, so it does not continue the line.",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "Get-ChildItem `  \n    -Force `\n    -Name\n$x = 1 + `\t\n    2\n",
-        "language": "powershell",
-        "spans": [
-          {
-            "column": 15,
-            "length": 1,
-            "line": 1
-          },
-          {
-            "column": 10,
-            "length": 1,
-            "line": 4
-          }
-        ]
-      },
-      "fix": null,
-      "id": "no-misleading-backtick",
-      "languages": [
-        "powershell"
-      ],
-      "options": [],
-      "presets": [],
-      "upstream": []
-    },
-    {
-      "category": "suspicious",
-      "default_level": "warn",
-      "description": "A `[string]` parameter whose name contains `password`, `passphrase` or `cred`.",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "function Fetch-Data {\n    param(\n        [string]$Password,\n        [Parameter(Mandatory)][string] $UserPassphrase = 'x',\n        [securestring]$Secret,\n        [string]$Name,\n        [switch]$Force = $true,\n        [switch]$Quiet\n    )\n    try { Get-Item x } catch { }\n    try { Get-Item x } catch {\n        # ignored\n    }\n    try { Get-Item x } catch { Write-Error $_ }\n    try { 1 } catch { try { 2 } catch { throw } }\n}\nfunction Get-Thing { }\nfunction Fetch { }\nfunction global:Make-Thing { }\n$global:count = 1\n$x = $global:count + 1\nSet-Item $env:Path -Value $Global:Foo\n$script:count = 1\n$input = 1\n$true = 0\n$count = 1\n$x -eq $null\n$null -eq $x\nif ($a -ne $null -and $b -ceq $null) { }\n$x -eq $nullable\n$null = 1\n$global:LASTEXITCODE = 1\nforeach ($Event in 1) { }\nfunction Show-It($Error, [string]$Credential) { }\n",
-        "language": "powershell",
-        "spans": [
-          {
-            "column": 9,
-            "length": 17,
-            "line": 3
-          },
-          {
-            "column": 9,
-            "length": 52,
-            "line": 4
-          },
-          {
-            "column": 26,
-            "length": 19,
-            "line": 34
-          }
-        ]
-      },
-      "fix": null,
-      "id": "no-plain-text-password",
-      "languages": [
-        "powershell"
-      ],
-      "options": [],
-      "presets": [
-        "powershell/psscriptanalyzer"
-      ],
-      "upstream": []
-    },
-    {
-      "category": "suspicious",
-      "default_level": "error",
-      "description": "A call of `ConvertTo-SecureString` with `-AsPlainText`.",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "Write-Host \"hi\"\nwrite-host\nWrite-Output \"ok\"\nGet-Help Write-Host\niex $script\nInvoke-Expression -Command $c\nConvertTo-SecureString $p -AsPlainText -Force\nConvertTo-SecureString $p\nConvertTo-SecureString `\n    $p -AsPlainText\nGet-WmiObject Win32_Process\nGet-CimInstance Win32_Process\nConvertTo-SecureString -AsPlainText \"x\" -Force\n",
-        "language": "powershell",
-        "spans": [
-          {
-            "column": 1,
-            "length": 22,
-            "line": 7
-          },
-          {
-            "column": 1,
-            "length": 22,
-            "line": 9
-          },
-          {
-            "column": 1,
-            "length": 22,
-            "line": 13
-          }
-        ]
-      },
-      "fix": null,
-      "id": "no-plain-text-secure-string",
-      "languages": [
-        "powershell"
-      ],
-      "options": [],
-      "presets": [
-        "powershell/psscriptanalyzer"
-      ],
-      "upstream": []
-    },
-    {
-      "category": "suspicious",
-      "default_level": "warn",
-      "description": "A call of `Get-WmiObject`, `Invoke-WmiMethod`, `Register-WmiEvent`, `Remove-WmiObject` or `Set-WmiInstance`.",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "Write-Host \"hi\"\nwrite-host\nWrite-Output \"ok\"\nGet-Help Write-Host\niex $script\nInvoke-Expression -Command $c\nConvertTo-SecureString $p -AsPlainText -Force\nConvertTo-SecureString $p\nConvertTo-SecureString `\n    $p -AsPlainText\nGet-WmiObject Win32_Process\nGet-CimInstance Win32_Process\nConvertTo-SecureString -AsPlainText \"x\" -Force\n",
-        "language": "powershell",
-        "spans": [
-          {
-            "column": 1,
-            "length": 13,
-            "line": 11
-          }
-        ]
-      },
-      "fix": null,
-      "id": "no-wmi-cmdlets",
-      "languages": [
-        "powershell"
-      ],
-      "options": [],
-      "presets": [
-        "powershell/psscriptanalyzer"
-      ],
-      "upstream": []
-    },
-    {
-      "category": "suspicious",
-      "default_level": "warn",
-      "description": "A call of `Write-Host`.",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "Write-Host \"hi\"\nwrite-host\nWrite-Output \"ok\"\nGet-Help Write-Host\niex $script\nInvoke-Expression -Command $c\nConvertTo-SecureString $p -AsPlainText -Force\nConvertTo-SecureString $p\nConvertTo-SecureString `\n    $p -AsPlainText\nGet-WmiObject Win32_Process\nGet-CimInstance Win32_Process\nConvertTo-SecureString -AsPlainText \"x\" -Force\n",
-        "language": "powershell",
-        "spans": [
-          {
-            "column": 1,
-            "length": 10,
-            "line": 1
-          },
-          {
-            "column": 1,
-            "length": 10,
-            "line": 2
-          }
-        ]
-      },
-      "fix": null,
-      "id": "no-write-host",
-      "languages": [
-        "powershell"
-      ],
-      "options": [],
-      "presets": [
-        "powershell/psscriptanalyzer"
-      ],
-      "upstream": []
-    },
-    {
-      "category": "correctness",
-      "default_level": "warn",
-      "description": "A `-eq`, `-ne` (or case variant) comparison with `$null` on the right.",
-      "example": {
-        "config": null,
-        "fixed": null,
-        "input": "function Fetch-Data {\n    param(\n        [string]$Password,\n        [Parameter(Mandatory)][string] $UserPassphrase = 'x',\n        [securestring]$Secret,\n        [string]$Name,\n        [switch]$Force = $true,\n        [switch]$Quiet\n    )\n    try { Get-Item x } catch { }\n    try { Get-Item x } catch {\n        # ignored\n    }\n    try { Get-Item x } catch { Write-Error $_ }\n    try { 1 } catch { try { 2 } catch { throw } }\n}\nfunction Get-Thing { }\nfunction Fetch { }\nfunction global:Make-Thing { }\n$global:count = 1\n$x = $global:count + 1\nSet-Item $env:Path -Value $Global:Foo\n$script:count = 1\n$input = 1\n$true = 0\n$count = 1\n$x -eq $null\n$null -eq $x\nif ($a -ne $null -and $b -ceq $null) { }\n$x -eq $nullable\n$null = 1\n$global:LASTEXITCODE = 1\nforeach ($Event in 1) { }\nfunction Show-It($Error, [string]$Credential) { }\n",
-        "language": "powershell",
-        "spans": [
-          {
-            "column": 1,
-            "length": 12,
-            "line": 27
-          },
-          {
-            "column": 5,
-            "length": 12,
-            "line": 29
-          },
-          {
-            "column": 23,
-            "length": 13,
-            "line": 29
-          }
-        ]
-      },
-      "fix": null,
-      "id": "null-comparison-side",
-      "languages": [
-        "powershell"
-      ],
-      "options": [],
-      "presets": [
-        "powershell/psscriptanalyzer"
-      ],
       "upstream": []
     },
     {

@@ -1,7 +1,6 @@
 //! Gitignore-syntax files (`.gitignore`, `.dockerignore`, ...): tree-sitter parses (through
 //! `core-treesitter`, mapping in `mapping.rs`), the formatter in `format.rs` trims and spaces lines.
 
-core_syntax::include_generated!();
 mod format;
 mod mapping;
 mod rules;

@@ -1,4 +1,7 @@
 grammar-crate: tree-sitter-md
+grammar-version: "0.5"
+grammar-default-features: false
+inline-language-const: INLINE_LANGUAGE
 extensions: [md, markdown]
 formatter: MarkdownFormatter
 mapping: mapping::BLOCK

@@ -1,4 +1,5 @@
 grammar-crate: tree-sitter-ini
+grammar-version: "1.4"
 extensions: [ini]
 formatter: IniFormatter
 dev-deps: [insta]

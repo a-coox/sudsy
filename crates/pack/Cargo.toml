@@ -10,31 +10,35 @@ publish.workspace = true
 crate-type = ["cdylib"]
 
 [dependencies]
+# generated:dependencies
+tree-sitter-containerfile = { workspace = true, optional = true }
+konomanoasa-tree-sitter-editorconfig = { workspace = true, optional = true }
+konomanoasa-tree-sitter-gitignore = { workspace = true, optional = true }
+tree-sitter-graphql = { workspace = true, optional = true }
+tree-sitter-hcl = { workspace = true, optional = true }
+tree-sitter-ini = { workspace = true, optional = true }
+tree-sitter-make = { workspace = true, optional = true }
+tree-sitter-md = { workspace = true, optional = true }
+woodruffw-trough-tree-sitter-powershell = { workspace = true, optional = true }
+tree-sitter-proto = { workspace = true, optional = true }
+tree-sitter-bash = { workspace = true, optional = true }
 tree-sitter-toml-ng = { workspace = true, optional = true }
 tree-sitter-xml = { workspace = true, optional = true }
-tree-sitter-md = { workspace = true, optional = true }
-konomanoasa-tree-sitter-editorconfig = { workspace = true, optional = true }
-tree-sitter-ini = { workspace = true, optional = true }
-konomanoasa-tree-sitter-gitignore = { workspace = true, optional = true }
-tree-sitter-containerfile = { workspace = true, optional = true }
-tree-sitter-bash = { workspace = true, optional = true }
-tree-sitter-proto = { workspace = true, optional = true }
-tree-sitter-graphql = { workspace = true, optional = true }
-tree-sitter-make = { workspace = true, optional = true }
-tree-sitter-hcl = { workspace = true, optional = true }
-woodruffw-trough-tree-sitter-powershell = { workspace = true, optional = true }
+# /generated
 
 [features]
+# generated:features
+dockerfile = ["dep:tree-sitter-containerfile"]
+editorconfig = ["dep:konomanoasa-tree-sitter-editorconfig"]
+gitignore = ["dep:konomanoasa-tree-sitter-gitignore"]
+graphql = ["dep:tree-sitter-graphql"]
+hcl = ["dep:tree-sitter-hcl"]
+ini = ["dep:tree-sitter-ini"]
+makefile = ["dep:tree-sitter-make"]
+markdown = ["dep:tree-sitter-md"]
+powershell = ["dep:woodruffw-trough-tree-sitter-powershell"]
+protobuf = ["dep:tree-sitter-proto"]
+shell = ["dep:tree-sitter-bash"]
 toml = ["dep:tree-sitter-toml-ng"]
 xml = ["dep:tree-sitter-xml"]
-markdown = ["dep:tree-sitter-md"]
-editorconfig = ["dep:konomanoasa-tree-sitter-editorconfig"]
-ini = ["dep:tree-sitter-ini"]
-gitignore = ["dep:konomanoasa-tree-sitter-gitignore"]
-dockerfile = ["dep:tree-sitter-containerfile"]
-shell = ["dep:tree-sitter-bash"]
-protobuf = ["dep:tree-sitter-proto"]
-graphql = ["dep:tree-sitter-graphql"]
-makefile = ["dep:tree-sitter-make"]
-hcl = ["dep:tree-sitter-hcl"]
-powershell = ["dep:woodruffw-trough-tree-sitter-powershell"]
+# /generated

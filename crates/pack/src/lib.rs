@@ -13,37 +13,25 @@ macro_rules! export {
     };
 }
 
-export!("toml", sudsy_language, tree_sitter_toml_ng::LANGUAGE);
-export!("xml", sudsy_language, tree_sitter_xml::LANGUAGE_XML);
-export!("markdown", sudsy_language, tree_sitter_md::LANGUAGE);
-export!(
-    "markdown",
-    sudsy_language_inline,
-    tree_sitter_md::INLINE_LANGUAGE
-);
-export!(
-    "editorconfig",
-    sudsy_language,
-    konomanoasa_tree_sitter_editorconfig::LANGUAGE
-);
-export!(
-    "gitignore",
-    sudsy_language,
-    konomanoasa_tree_sitter_gitignore::LANGUAGE
-);
-export!(
-    "dockerfile",
-    sudsy_language,
-    tree_sitter_containerfile::LANGUAGE
-);
-export!("ini", sudsy_language, tree_sitter_ini::LANGUAGE);
-export!("shell", sudsy_language, tree_sitter_bash::LANGUAGE);
-export!("protobuf", sudsy_language, tree_sitter_proto::LANGUAGE);
-export!("graphql", sudsy_language, tree_sitter_graphql::LANGUAGE);
-export!("makefile", sudsy_language, tree_sitter_make::LANGUAGE);
-export!("hcl", sudsy_language, tree_sitter_hcl::LANGUAGE);
-export!(
-    "powershell",
-    sudsy_language,
-    woodruffw_trough_tree_sitter_powershell::LANGUAGE
-);
+macro_rules! exports {
+    ($($feature:literal, $symbol:ident, $language:expr;)*) => { $(export!($feature, $symbol, $language);)* };
+}
+
+exports! {
+    // generated:exports
+    "dockerfile", sudsy_language, tree_sitter_containerfile::LANGUAGE;
+    "editorconfig", sudsy_language, konomanoasa_tree_sitter_editorconfig::LANGUAGE;
+    "gitignore", sudsy_language, konomanoasa_tree_sitter_gitignore::LANGUAGE;
+    "graphql", sudsy_language, tree_sitter_graphql::LANGUAGE;
+    "hcl", sudsy_language, tree_sitter_hcl::LANGUAGE;
+    "ini", sudsy_language, tree_sitter_ini::LANGUAGE;
+    "makefile", sudsy_language, tree_sitter_make::LANGUAGE;
+    "markdown", sudsy_language, tree_sitter_md::LANGUAGE;
+    "markdown", sudsy_language_inline, tree_sitter_md::INLINE_LANGUAGE;
+    "powershell", sudsy_language, woodruffw_trough_tree_sitter_powershell::LANGUAGE;
+    "protobuf", sudsy_language, tree_sitter_proto::LANGUAGE;
+    "shell", sudsy_language, tree_sitter_bash::LANGUAGE;
+    "toml", sudsy_language, tree_sitter_toml_ng::LANGUAGE;
+    "xml", sudsy_language, tree_sitter_xml::LANGUAGE_XML;
+    // /generated
+}

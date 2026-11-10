@@ -1,4 +1,3 @@
-core_syntax::include_generated!();
 mod embedded;
 mod format;
 mod mapping;

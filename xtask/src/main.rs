@@ -35,15 +35,18 @@ fn print_new_rule(language: &str, id: &str, rust: bool) -> Result<()> {
 
 /// This binary embeds the providers, whose glue `codegen` rewrites (`provider.generated.rs`), so
 /// outputs derived from them (the VS Code selector, docs) are stale after a change. A run that
-/// rewrote crates/ re-runs once in a fresh build, which must not change crates/ again.
+/// rewrote crates/ or the root manifest re-runs once in a fresh build, which must not change crates/ again.
 fn codegen() -> Result<()> {
     const PASS: &str = "SUDSY_CODEGEN_PASS2";
     let changed = xtask::write_generated()?;
     let second = std::env::var_os(PASS).is_some();
-    if second && changed.iter().any(|p| p.starts_with("crates")) {
+    let rebuilds = changed
+        .iter()
+        .any(|p| p.starts_with("crates") || p == "Cargo.toml");
+    if second && rebuilds {
         bail!("codegen did not converge: the second run changed {changed:?}");
     }
-    if !second && changed.iter().any(|p| p.starts_with("crates")) {
+    if !second && rebuilds {
         // Windows will not let cargo replace the running exe, but it allows renaming it.
         let exe = std::env::current_exe()?;
         std::fs::rename(&exe, exe.with_extension("old"))?;

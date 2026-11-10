@@ -1,4 +1,5 @@
 grammar-crate: tree-sitter-containerfile
+grammar-version: "0.9"
 extensions: [dockerfile]
 file-names: [Dockerfile, Containerfile, "Dockerfile.*", "Containerfile.*"]
 formatter: DockerfileFormatter
