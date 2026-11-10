@@ -24,7 +24,7 @@ gate() {
   echo "   ($name: $((SECONDS - t))s)"
 }
 
-. scripts/slot-run.sh; claim_slot; prune_slot
+. scripts/slot-run.sh; claim_slot; sweep_slot || exit 1
 
 # What runs: crates for clippy and tests (ws) and the other steps.
 if [ ${#pkg[@]} -gt 0 ]; then

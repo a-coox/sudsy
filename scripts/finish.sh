@@ -16,7 +16,7 @@ for a in "$@"; do
 done
 # The cheap checks agents most often miss fail before the wait for a seat and the builds.
 cargo fmt --all -- --check >/dev/null || { echo "FINISH FAILED: gate (cargo fmt --all)"; exit 1; }
-. scripts/slot-run.sh; claim_slot; prune_slot; take_seat
+. scripts/slot-run.sh; claim_slot; sweep_slot || exit 1; take_seat
 # codegen --check builds xtask, which the selection needs anyway: inside the seat, before the gate and bench.
 cargo xtask codegen --check || { echo "FINISH FAILED: gate (stale generated files: cargo xtask codegen)"; exit 1; }
 log=${CARGO_TARGET_DIR:-target}/bench/finish.log

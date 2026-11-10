@@ -24,16 +24,33 @@ claim_slot() {
   export SUDSY_SLOT_RUN=$CARGO_TARGET_DIR
 }
 
-# The first run of a worktree in a slot deletes the earlier worktrees' outputs there
-# (clean-slots.sh --stale); the slot remembers which worktree it last pruned for. Before any build:
-# cargo's file names do not depend on the checkout path, so a prune running alongside a build
-# deleted outputs that build had just written ("extern location ... does not exist").
-prune_slot() {
-  [ -n "${CARGO_TARGET_DIR:-}" ] && [ "$(cat "$CARGO_TARGET_DIR/.pruned-for" 2>/dev/null)" != "$PWD" ] || return 0
-  local t=$SECONDS
-  scripts/clean-slots.sh --stale "$CARGO_TARGET_DIR" >"$CARGO_TARGET_DIR/cleanup.log" 2>&1 \
-    && echo "$PWD" >"$CARGO_TARGET_DIR/.pruned-for"
-  echo "   (slot cleanup: $((SECONDS - t))s)"
+# cargo never deletes outputs: every dependency graph (each Cargo.lock change) and build kind leaves
+# a full set behind. At most once an hour, before any build, the slot is cut to SUDSY_SLOT_MAX
+# (default 120GB) and its WSL bench builds to SUDSY_SLOT_WSL_MAX (30GB) by cargo-sweep, which
+# removes the outputs builds read least recently (the access time of cargo's fingerprint files,
+# read for every unit a build uses), so what current builds reuse stays. Incremental caches, which
+# it does not track, go when nothing compiled their crate for 3 days.
+sweep_slot() {
+  [ -n "${CARGO_TARGET_DIR:-}" ] && [ -d "$CARGO_TARGET_DIR" ] || return 0
+  [ -n "$(find "$CARGO_TARGET_DIR/.swept" -mmin -60 2>/dev/null)" ] && return 0
+  command -v cargo-sweep >/dev/null || { echo "cargo-sweep missing: cargo install cargo-sweep --locked (also in WSL)" >&2; return 1; }
+  local t=$SECONDS log=$CARGO_TARGET_DIR/sweep.log
+  local i; : >"$log"
+  for i in $(find "$CARGO_TARGET_DIR" -maxdepth 4 -type d -name incremental); do
+    find "$i" -mindepth 1 -maxdepth 1 -type d -mtime +3 -exec rm -rf {} + >>"$log" 2>&1
+  done
+  cargo sweep --maxsize "${SUDSY_SLOT_MAX:-120GB}" . >>"$log" 2>&1 || { echo "cargo sweep failed: $log" >&2; return 1; }
+  case "$(uname -s)" in MINGW*|MSYS*)
+    local p drive; p=$(cygpath -m "$PWD"); drive=${p:0:1}; drive=${drive,,}
+    MSYS_NO_PATHCONV=1 wsl -d "${BENCH_WSL_DISTRO:-Ubuntu}" -e bash -c "export PATH=\$HOME/.cargo/bin:\$PATH
+      d=\$HOME/.cache/sudsy-bench/$(basename "$CARGO_TARGET_DIR"); [ -d \$d ] || exit 0
+      command -v cargo-sweep >/dev/null || { echo 'cargo-sweep missing in WSL: cargo install cargo-sweep --locked' >&2; exit 1; }
+      for i in \$(find \$d -maxdepth 4 -type d -name incremental); do find \$i -mindepth 1 -maxdepth 1 -type d -mtime +3 -exec rm -rf {} +; done
+      cd /mnt/$drive${p:2} && CARGO_TARGET_DIR=\$d cargo sweep --maxsize ${SUDSY_SLOT_WSL_MAX:-30GB} ." >>"$log" 2>&1 \
+      || { echo "cargo sweep in WSL failed: $log" >&2; return 1; } ;;
+  esac
+  touch "$CARGO_TARGET_DIR/.swept"
+  echo "   (slot sweep: $((SECONDS - t))s)"
 }
 
 # Machine-wide queue for finish runs: at most SUDSY_FINISH_SEATS (default 2) build at once. One file
