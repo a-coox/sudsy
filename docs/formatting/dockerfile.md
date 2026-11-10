@@ -19,7 +19,8 @@ Known gap: the grammar fails on a shell line that starts with `[` right after an
 dockerfmt (reteps/dockerfmt) is the comparable tool; it rewrites shell code with mvdan/sh, converts legacy `ENV` and `MAINTAINER`, and ships Linux and macOS binaries only, so there is no parity entry: its output would differ on nearly every `RUN`, and Sudsy's conservative layout leaves shell code to a later Shell language.
 
 ## Options
-<!-- generated:options -->| Option | Values | Default | Description |
+<!-- generated:options -->
+| Option | Values | Default | Description |
 |---|---|---|---|
 | `indent_size` | int 1-16 | `4` | Columns per indentation level (also the width of a tab). |
 | `indent_style` | `space`, `tab` | `space` | Indent with spaces or tabs. |

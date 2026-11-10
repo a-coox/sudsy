@@ -4,7 +4,7 @@
 use crate::generated::kind as k;
 use core_config::{OptionDef, OptionSchema, Preset, shared};
 use core_format::shapes::statement_sequence_with;
-use core_format::{Doc, FormatCtx, FormatError, NodeFormatter, comments, doc};
+use core_format::{Doc, FormatCtx, FormatError, NodeFormatter, doc};
 use core_syntax::SyntaxNode;
 
 pub const MAX_BLANK_LINES: &str = "max_blank_lines";
@@ -77,29 +77,7 @@ fn max_blank_lines(cx: &FormatCtx<'_>) -> usize {
 }
 
 fn document(cx: &FormatCtx<'_>, node: &SyntaxNode) -> Result<Doc, FormatError> {
-    let items: Vec<SyntaxNode> = node.children().collect();
-    let mut parts = vec![statement_sequence_with(
-        cx,
-        &items,
-        max_blank_lines(cx),
-        Some(blank_before_section),
-        false,
-    )?];
-    // The comments at the end of the file belong to the end-of-file token.
-    let eof = node
-        .last_token()
-        .ok_or_else(|| FormatError::Shape("Document without tokens".into()))?;
-    let trailing = comments::leading_comments(cx.grammar, &eof);
-    if !trailing.is_empty() {
-        if !items.is_empty() {
-            parts.push(doc::hardline());
-            if comments::blank_lines_before(cx.grammar, &eof) > 0 {
-                parts.push(doc::hardline());
-            }
-        }
-        parts.push(core_format::context::leading_comments_doc(&trailing));
-    }
-    Ok(doc::concat(parts))
+    core_format::shapes::document(cx, node, max_blank_lines(cx), Some(blank_before_section))
 }
 
 /// `[name]` then its settings, one per line.

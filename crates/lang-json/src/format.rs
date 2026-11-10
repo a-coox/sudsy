@@ -4,7 +4,7 @@
 use crate::generated::kind as k;
 use core_config::{OptionDef, OptionSchema, Preset, ResolvedOptions, shared};
 use core_format::shapes::{ListLayout, ListStyle, TrailingComma, delimited_list};
-use core_format::{Doc, FormatCtx, FormatError, NodeFormatter, comments, doc};
+use core_format::{Doc, FormatCtx, FormatError, NodeFormatter};
 use core_syntax::SyntaxNode;
 
 pub const COLLAPSE: &str = "collapse";
@@ -90,25 +90,7 @@ impl NodeFormatter for JsonFormatter {
 
 /// The value, then comments after it (which are owned by the end-of-file token).
 fn document(cx: &FormatCtx<'_>, node: &SyntaxNode) -> Result<Doc, FormatError> {
-    let mut parts = Vec::new();
-    for child in node.children() {
-        parts.push(cx.format(&child)?);
-    }
-    let eof = cx
-        .last_token(node)
-        .or_else(|| node.last_token())
-        .ok_or_else(|| FormatError::Shape("Document without tokens".into()))?;
-    let trailing = comments::leading_comments(cx.grammar, &eof);
-    if !trailing.is_empty() {
-        if !parts.is_empty() {
-            parts.push(doc::hardline());
-            if comments::blank_lines_before(cx.grammar, &eof) > 0 {
-                parts.push(doc::hardline());
-            }
-        }
-        parts.push(core_format::context::leading_comments_doc(&trailing));
-    }
-    Ok(doc::concat(parts))
+    core_format::shapes::document(cx, node, 1, None)
 }
 
 /// The presets are plain config files in `presets/` next to the crate's manifest.

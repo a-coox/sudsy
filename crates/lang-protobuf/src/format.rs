@@ -5,7 +5,7 @@
 use crate::generated::kind as k;
 use crate::sort;
 use core_config::{OptionSchema, Preset, shared};
-use core_format::shapes::{BlockStyle, block_between, dangling_comments, statement_sequence_with};
+use core_format::shapes::{BlockStyle, block_between, dangling_comments};
 use core_format::{Doc, FormatCtx, FormatError, NodeFormatter, comments, doc};
 use core_syntax::{SyntaxElement, SyntaxNode, SyntaxToken};
 
@@ -90,29 +90,7 @@ fn force_blank(_: &FormatCtx<'_>, prev: &SyntaxNode, next: &SyntaxNode) -> bool 
 
 /// The statements, then the comments after them (owned by the end-of-file token).
 fn document(cx: &FormatCtx<'_>, node: &SyntaxNode) -> Result<Doc, FormatError> {
-    let items: Vec<SyntaxNode> = node.children().collect();
-    let mut parts = vec![statement_sequence_with(
-        cx,
-        &items,
-        1,
-        Some(force_blank),
-        false,
-    )?];
-    let eof = cx
-        .last_token(node)
-        .or_else(|| node.last_token())
-        .ok_or_else(|| FormatError::Shape("Document without tokens".into()))?;
-    let trailing = comments::leading_comments(cx.grammar, &eof);
-    if !trailing.is_empty() {
-        if !items.is_empty() {
-            parts.push(doc::hardline());
-            if comments::blank_lines_before(cx.grammar, &eof) > 0 {
-                parts.push(doc::hardline());
-            }
-        }
-        parts.push(core_format::context::leading_comments_doc(&trailing));
-    }
-    Ok(doc::concat(parts))
+    core_format::shapes::document(cx, node, 1, Some(force_blank))
 }
 
 fn elements(cx: &FormatCtx<'_>, node: &SyntaxNode) -> Vec<SyntaxElement> {
