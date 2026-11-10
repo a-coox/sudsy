@@ -2,9 +2,9 @@
 
 use crate::view::{Entry, entries, get, items, root_mapping, scalar, scalar_list};
 use core_rules::rule;
-use core_rules::{Check, FileContext, Opt, OptionDecl, RuleContext};
+use core_rules::{Check, FileContext, Opt, OptionDecl, Re, RuleContext};
 use core_syntax::{SyntaxNode, TextRange};
-use regex::{Regex, RegexBuilder};
+use regex::Regex;
 use std::collections::HashMap;
 use std::sync::LazyLock;
 
@@ -230,7 +230,7 @@ rule! {
             .options
             .list("labels")
             .iter()
-            .filter_map(|p| RegexBuilder::new(&format!("^(?:{p})$")).case_insensitive(true).build().ok())
+            .filter_map(|p| Re::lazy(&format!("^(?i:(?:{p}))$")).ok())
             .collect();
         for job in jobs(file) {
             let Some(job_node) = job.value else { continue };
