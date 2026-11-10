@@ -27,3 +27,24 @@ example: 'enum E { option allow_alias = true; A = 0; B = 0; }'
 severity: off
 category: suspicious
 rule: { kind: OptionDecl, parent: { kind: EnumBody }, regex: '^option\s+allow_alias\s*=\s*true\b' }
+---
+id: enum-first-value-zero
+message: 'the first value of an enum must be 0'
+description: >-
+  The first value of an enum is not 0 (buf lint ENUM_FIRST_VALUE_ZERO).
+example: 'enum E { A = 1; }'
+severity: off
+category: correctness
+rule: { kind: EnumField, nth: 1 }
+token: { kind: [Int], not-regex: '^(?:0[xX])?0*$' }
+---
+id: enum-value-prefix
+message: 'the value `$0` should start with `${NAME:upper-snake}_`'
+description: >-
+  An enum value does not start with the enum's name in UPPER_SNAKE_CASE and an underscore (buf lint
+  ENUM_VALUE_PREFIX).
+example: 'enum FooBar { BAZ = 0; }'
+severity: off
+category: style
+rule: { kind: EnumField, inside: { kind: Enum, regex: '^enum\s+(?<NAME>\w+)' } }
+token: { kind: [Ident], not-regex: '^${NAME:upper-snake}_' }

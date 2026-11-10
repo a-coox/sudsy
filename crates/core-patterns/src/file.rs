@@ -23,8 +23,8 @@
 //! ```
 
 use crate::expr::{Ctx, Expr, STEP_BUDGET, Spec};
-use crate::matcher::{Captures, SnippetParser};
-use crate::metavar::rewrite;
+use crate::matcher::{Capture, Captures, SnippetParser};
+use crate::metavar::{Meta, names, template, transform};
 use core_config::Level;
 use core_format::Directive;
 use core_rules::tree::{TraversalCache, significant_range};
@@ -144,14 +144,101 @@ struct TokenSpec {
     /// The first own token of this kind is not read (a command's name).
     #[serde(rename = "skip-first")]
     skip_first: Option<String>,
+    /// Read every descendant of the matched node, not only its own children.
+    #[serde(default)]
+    deep: bool,
 }
 
 struct TokenMatch {
     kinds: Vec<SyntaxKind>,
     needs: Vec<char>,
-    regex: Option<Re>,
-    not_regex: Option<Re>,
+    regex: Option<Rx>,
+    not_regex: Option<Rx>,
     skip_first: Option<SyntaxKind>,
+    deep: bool,
+    /// The names of the groups of `regex`, which a hit captures (`$1`, `$NAME`); `$0` is the child.
+    groups: Vec<String>,
+    /// Does a template or `report-on`/`fix-on` read `$0` or a group? Only then a hit builds them.
+    hit_captures: bool,
+}
+
+/// A regex of a constraint or of `token:`. One with `${NAME}` in it (a capture of the rule,
+/// escaped) is built for each match.
+enum Rx {
+    Fixed(Re),
+    Template(String, RegexCache),
+}
+
+/// Regexes compiled once for each source text they take.
+#[derive(Default)]
+struct RegexCache(Mutex<HashMap<String, Option<Arc<Re>>>>);
+
+impl RegexCache {
+    fn is_match(&self, source: &str, text: &str) -> bool {
+        let re = {
+            let mut cache = self.0.lock().unwrap();
+            match cache.get(source) {
+                Some(re) => re.clone(),
+                None => {
+                    let re = Re::new(source).ok().map(Arc::new);
+                    cache.insert(source.to_string(), re.clone());
+                    re
+                }
+            }
+        };
+        re.is_some_and(|re| re.is_match(text))
+    }
+}
+
+/// What a metavariable of a template stands for in `text`: the capture, transformed.
+fn captured(meta: &Meta, captures: &Captures, text: &str) -> String {
+    let text = captures.get(&meta.name).map_or("", |c| c.text(text));
+    match meta.transform.as_deref() {
+        Some(t) => transform(t, text).unwrap_or_else(|| text.to_string()),
+        None => text.to_string(),
+    }
+}
+
+impl Rx {
+    fn compile(source: &str, known: &dyn Fn(&str) -> bool) -> Result<Rx, String> {
+        if !source.contains("${") {
+            return Re::new(source)
+                .map(Rx::Fixed)
+                .map_err(|e| format!("regex `{source}`: {e}"));
+        }
+        let metas = names(source, true);
+        check_template(&metas, known)?;
+        Re::new(&template(source, |_| "x".into())).map_err(|e| format!("regex `{source}`: {e}"))?;
+        Ok(Rx::Template(source.to_string(), RegexCache::default()))
+    }
+
+    fn is_match(&self, subject: &str, ascii: bool, captures: &Captures, text: &str) -> bool {
+        match self {
+            Rx::Fixed(re) => re.is_match_in(subject, ascii),
+            Rx::Template(source, cache) => {
+                let resolved = template(source, |m| regex::escape(&captured(m, captures, text)));
+                cache.is_match(&resolved, subject)
+            }
+        }
+    }
+}
+
+/// Every name of a template is captured (`known`) and every transform exists.
+fn check_template(metas: &[Meta], known: &dyn Fn(&str) -> bool) -> Result<(), String> {
+    for meta in metas.iter().filter(|m| m.captures()) {
+        if !known(&meta.name) {
+            return Err(format!(
+                "`${}` is used in the message, fix or a regex but no pattern outside has/child/not captures it",
+                meta.name
+            ));
+        }
+        if let Some(t) = &meta.transform
+            && transform(t, "").is_none()
+        {
+            return Err(format!("`{t}` is not a transform (`upper-snake`)"));
+        }
+    }
+    Ok(())
 }
 
 #[derive(Debug, Deserialize)]
@@ -197,42 +284,21 @@ struct FileSpec {
 }
 
 struct CompiledConstraint {
-    regex: Option<Re>,
-    not_regex: Option<Re>,
+    regex: Option<Rx>,
+    not_regex: Option<Rx>,
     kind: Option<SyntaxKind>,
     /// The list option (true) or string option (false) the capture must be in or equal.
     in_option: Option<(String, bool)>,
-    regex_option: Option<OptionRegex>,
-}
-
-/// The `regex` option a constraint matches against, compiled once for each value it takes.
-struct OptionRegex {
-    option: String,
-    compiled: Mutex<HashMap<String, Option<Arc<Re>>>>,
-}
-
-impl OptionRegex {
-    fn is_match(&self, options: &RuleOptions, text: &str) -> bool {
-        let value = options.string(&self.option);
-        let re = {
-            let mut cache = self.compiled.lock().unwrap();
-            match cache.get(value) {
-                Some(re) => re.clone(),
-                None => {
-                    let re = Re::new(value).ok().map(Arc::new);
-                    cache.insert(value.to_string(), re.clone());
-                    re
-                }
-            }
-        };
-        re.is_some_and(|re| re.is_match(text))
-    }
+    /// The name of the `regex` option a constraint matches against, compiled once for each value.
+    regex_option: Option<(String, RegexCache)>,
 }
 
 /// Where a diagnostic points: the matched node or what a metavariable captured, or the first
 /// token of either.
 struct ReportOn {
     first_token: bool,
+    /// An empty span at the start.
+    start: bool,
     target: Option<String>,
 }
 
@@ -242,17 +308,22 @@ fn report_on(text: &str) -> Result<ReportOn, String> {
         Some(rest) => (true, rest.trim()),
         None => (false, text),
     };
+    let (start, rest) = match rest.strip_prefix("start") {
+        Some(rest) => (true, rest.trim()),
+        None => (false, rest),
+    };
     let target = match rest.strip_prefix('$') {
         _ if rest.is_empty() => None,
         Some(name) if !name.is_empty() => Some(name.to_string()),
         _ => {
             return Err(format!(
-                "report-on `{text}`: write `$NAME`, `first-token` or `first-token $NAME`"
+                "report-on `{text}`: write `$NAME`, `first-token`, `first-token $NAME`, `start` or `start $NAME`"
             ));
         }
     };
     Ok(ReportOn {
         first_token,
+        start,
         target,
     })
 }
@@ -379,10 +450,11 @@ fn compile_constraint(
     c: &Constraint,
     parser: &dyn SnippetParser,
     options: &[OptionDecl],
+    known: &dyn Fn(&str) -> bool,
 ) -> Result<CompiledConstraint, String> {
     let regex = |text: &Option<String>| {
         text.as_deref()
-            .map(|t| Re::new(t).map_err(|e| format!("constraint {name}: regex `{t}`: {e}")))
+            .map(|t| Rx::compile(t, known).map_err(|e| format!("constraint {name}: {e}")))
             .transpose()
     };
     let kind =
@@ -418,10 +490,7 @@ fn compile_constraint(
     let regex_option = option(&c.regex_option, "regex-option")?
         .map(|d| {
             if d.check == Check::Regex {
-                Ok(OptionRegex {
-                    option: d.name.to_string(),
-                    compiled: Mutex::default(),
-                })
+                Ok((d.name.to_string(), RegexCache::default()))
             } else {
                 Err(format!(
                     "constraint {name}: regex-option `{}` must be a `regex` option",
@@ -470,18 +539,19 @@ fn compile_body(
     let token = spec
         .token
         .as_ref()
-        .map(|t| compile_token(t, parser))
+        .map(|t| compile_token(t, parser, &known))
         .transpose()?;
-    if token.is_some()
-        && (spec.message.is_none()
-            || spec.fix.is_some()
-            || report_on.is_some()
-            || !spec.layout.is_empty())
-    {
-        return Err(
-            "`token` needs a `message` and goes without `fix`, `report-on` and `layout`".into(),
-        );
+    if token.is_some() && (spec.message.is_none() || !spec.layout.is_empty()) {
+        return Err("`token` needs a `message` and goes without `layout`".into());
     }
+    // What a hit of `token` captures besides the rule: the child (`$0`) and the groups of `regex`.
+    let rule_known = known;
+    let known = |name: &str| {
+        rule_known(name)
+            || token
+                .as_ref()
+                .is_some_and(|t| name == "0" || t.groups.iter().any(|g| g == name))
+    };
     if report_on.is_some() && spec.message.is_none() {
         return Err("`report-on` needs a `message`".into());
     }
@@ -512,23 +582,29 @@ fn compile_body(
     }
     let template_uses = [spec.message.as_ref(), spec.fix.as_ref()];
     for text in template_uses.into_iter().flatten() {
-        for meta in crate::metavar::names(text) {
-            if meta.captures() && !known(&meta.name) {
-                return Err(format!(
-                    "`${}` is used in the message or fix but no pattern outside inside/has/not captures it",
-                    meta.name
-                ));
-            }
-        }
+        check_template(&names(text, true), &known)?;
     }
     let mut constraints = BTreeMap::new();
     for (name, c) in &spec.constraints {
-        if !known(name) {
+        if !rule_known(name) {
             return Err(format!(
                 "constraint on `${name}`, which no pattern captures"
             ));
         }
-        constraints.insert(name.clone(), compile_constraint(name, c, parser, options)?);
+        let compiled = compile_constraint(name, c, parser, options, &rule_known)?;
+        constraints.insert(name.clone(), compiled);
+    }
+    let mut token = token;
+    if let Some(t) = &mut token {
+        let of_hit = |n: &str| n == "0" || t.groups.iter().any(|g| g == n);
+        let used = [spec.message.as_deref(), spec.fix.as_deref()]
+            .into_iter()
+            .flatten()
+            .flat_map(|text| names(text, true))
+            .map(|m| m.name)
+            .chain(report_on.iter().filter_map(|r| r.target.clone()))
+            .chain(fix_on.clone());
+        t.hit_captures = used.into_iter().any(|n| of_hit(&n));
     }
     let mut kinds = expr.kinds().ok_or(
         "the rule must say where it starts: give it a `pattern` or a `kind` (at the top, or in every branch of `any`), so that it runs on nodes of those kinds only",
@@ -557,11 +633,20 @@ fn compile_body(
     })
 }
 
-fn compile_token(t: &TokenSpec, parser: &dyn SnippetParser) -> Result<TokenMatch, String> {
+fn compile_token(
+    t: &TokenSpec,
+    parser: &dyn SnippetParser,
+    known: &dyn Fn(&str) -> bool,
+) -> Result<TokenMatch, String> {
     let re = |r: &Option<String>| {
         r.as_deref()
-            .map(|r| Re::new(r).map_err(|e| format!("token regex `{r}`: {e}")))
+            .map(|r| Rx::compile(r, known).map_err(|e| format!("token {e}")))
             .transpose()
+    };
+    let regex = re(&t.regex)?;
+    let groups = match &regex {
+        Some(Rx::Fixed(re)) => re.groups(),
+        _ => Vec::new(),
     };
     let kind = |n: &String| {
         parser
@@ -573,9 +658,12 @@ fn compile_token(t: &TokenSpec, parser: &dyn SnippetParser) -> Result<TokenMatch
     Ok(TokenMatch {
         kinds,
         needs: t.needs.chars().collect(),
-        regex: re(&t.regex)?,
+        regex,
         not_regex: re(&t.not_regex)?,
         skip_first: t.skip_first.as_ref().map(kind).transpose()?,
+        deep: t.deep,
+        groups,
+        hit_captures: false,
     })
 }
 
@@ -753,13 +841,8 @@ pub fn load_lazy(
         .collect()
 }
 
-fn substitute(template: &str, captures: &Captures, text: &str) -> String {
-    rewrite(template, |meta| {
-        captures
-            .get(&meta.name)
-            .map_or("", |c| c.text(text))
-            .to_string()
-    })
+fn substitute(tpl: &str, captures: &Captures, text: &str) -> String {
+    template(tpl, |meta| captured(meta, captures, text))
 }
 
 /// Reported once per file, after which the rule skips the rest of the file.
@@ -813,12 +896,15 @@ impl PatternRule {
         let Some(on) = &self.body().report_on else {
             return range;
         };
-        let target = on
-            .target
-            .as_ref()
-            .and_then(|n| captures.get(n))
-            .map_or(range, |c| c.range);
-        if on.first_token {
+        let capture = on.target.as_ref().and_then(|n| captures.get(n));
+        let target = capture.map_or(range, |c| c.range);
+        if on.start {
+            // Of the whole node, trivia before it included, when no capture is named.
+            let at = capture
+                .map_or_else(|| node.text_range(), |c| c.range)
+                .start();
+            TextRange::empty(at)
+        } else if on.first_token {
             first_token_range(node, target, grammar)
         } else {
             target
@@ -850,8 +936,12 @@ impl PatternRule {
                 return true;
             };
             let captured = capture.text(text);
-            c.regex.as_ref().is_none_or(|re| re.is_match(captured))
-                && c.not_regex.as_ref().is_none_or(|re| !re.is_match(captured))
+            c.regex
+                .as_ref()
+                .is_none_or(|re| re.is_match(captured, false, captures, text))
+                && c.not_regex
+                    .as_ref()
+                    .is_none_or(|re| !re.is_match(captured, false, captures, text))
                 && c.kind.is_none_or(|k| capture.kind == Some(k))
                 && c.in_option.as_ref().is_none_or(|(option, is_list)| {
                     if *is_list {
@@ -862,7 +952,7 @@ impl PatternRule {
                 })
                 && c.regex_option
                     .as_ref()
-                    .is_none_or(|o| o.is_match(options, captured))
+                    .is_none_or(|(option, cache)| cache.is_match(options.string(option), captured))
         })
     }
 
@@ -927,6 +1017,7 @@ impl Rule for PatternRule {
         let ranges = ctx.ranges().unwrap_or(&local);
         let cx = Ctx {
             grammar: file.grammar,
+            path: file.path,
             text: file.text,
             options: ctx.options,
             budget: Cell::new(STEP_BUDGET),
@@ -950,37 +1041,107 @@ impl Rule for PatternRule {
                 return;
             }
             let ascii = ranges.ascii(file.text);
-            let mut skip = t.skip_first;
-            for child in node.children_with_tokens() {
-                let kind = child.kind();
-                if skip == Some(kind) {
-                    skip = None;
-                    continue;
-                }
-                if !t.kinds.contains(&kind) {
-                    continue;
-                }
-                let range = match &child {
-                    SyntaxElement::Node(n) => significant_range(n, file.grammar),
-                    SyntaxElement::Token(t) => t.text_range(),
-                };
-                let text = &file.text[usize::from(range.start())..usize::from(range.end())];
-                let hit = |r: &Option<Re>| r.as_ref().map(|r| r.is_match_in(text, ascii));
-                if hit(&t.regex).unwrap_or(true) && !hit(&t.not_regex).unwrap_or(false) {
-                    let message = self.message.as_deref().unwrap_or_default();
-                    ctx.report(range, substitute(message, &captures, file.text));
-                }
+            if t.deep {
+                self.token_hits(
+                    node.descendants_with_tokens(),
+                    node,
+                    t,
+                    ascii,
+                    &captures,
+                    ctx,
+                );
+            } else {
+                self.token_hits(node.children_with_tokens(), node, t, ascii, &captures, ctx);
             }
             return;
         }
         let range = ranges.significant_range(node, file.grammar);
         if ctx.laying_out() {
             self.attach_layout(node, &captures, ctx);
-        } else if let Some(message) = &self.message {
-            let at = self.report_range(node, &captures, range, file.grammar);
-            let diagnostic = ctx.report(at, substitute(message, &captures, file.text));
+        } else {
+            self.report_hit(node, &captures, range, ctx);
+        }
+    }
+}
+
+impl PatternRule {
+    /// Reports the elements of `children` that the rule's `token` asks for.
+    fn token_hits(
+        &self,
+        children: impl Iterator<Item = SyntaxElement>,
+        node: &SyntaxNode,
+        t: &TokenMatch,
+        ascii: bool,
+        captures: &Captures,
+        ctx: &mut RuleContext<'_>,
+    ) {
+        let mut skip = t.skip_first;
+        for child in children {
+            let kind = child.kind();
+            if skip == Some(kind) {
+                skip = None;
+            } else if t.kinds.contains(&kind) {
+                self.token_hit(node, t, child, ascii, captures, ctx);
+            }
+        }
+    }
+
+    /// Reports `child` when it is a token the rule asks for.
+    #[inline(never)]
+    fn token_hit(
+        &self,
+        node: &SyntaxNode,
+        t: &TokenMatch,
+        child: SyntaxElement,
+        ascii: bool,
+        captures: &Captures,
+        ctx: &mut RuleContext<'_>,
+    ) {
+        let file = ctx.file;
+        let range = match &child {
+            SyntaxElement::Node(n) => significant_range(n, file.grammar),
+            SyntaxElement::Token(t) => t.text_range(),
+        };
+        let text = &file.text[usize::from(range.start())..usize::from(range.end())];
+        let mut spans = Vec::new();
+        match t.regex.as_ref() {
+            Some(Rx::Fixed(re)) if !t.groups.is_empty() => match re.groups_in(text, ascii) {
+                Some(g) => spans = g,
+                None => return,
+            },
+            Some(re) if !re.is_match(text, ascii, captures, file.text) => return,
+            _ => {}
+        }
+        if t.not_regex
+            .as_ref()
+            .is_some_and(|r| r.is_match(text, ascii, captures, file.text))
+        {
+            return;
+        }
+        if !t.hit_captures {
+            return self.report_hit(node, captures, range, ctx);
+        }
+        // `$0` is the child, `$1`... the groups of `regex`.
+        let mut hit = captures.clone();
+        hit.insert("0".into(), Capture::span(range));
+        hit.extend(Capture::groups(&t.groups, spans, range.start()));
+        self.report_hit(node, &hit, range, ctx);
+    }
+
+    /// Reports one match, at `range` unless `report-on` says otherwise, with the fix of the rule.
+    fn report_hit(
+        &self,
+        node: &SyntaxNode,
+        captures: &Captures,
+        range: TextRange,
+        ctx: &mut RuleContext<'_>,
+    ) {
+        let (file, body) = (ctx.file, self.body());
+        if let Some(message) = &self.message {
+            let at = self.report_range(node, captures, range, file.grammar);
+            let diagnostic = ctx.report(at, substitute(message, captures, file.text));
             if let Some(fix) = &body.fix {
-                let edit = Self::fix_edit(fix, &captures, range, file.text);
+                let edit = Self::fix_edit(fix, captures, range, file.text);
                 diagnostic.fix(Fix::new(fix.title.clone(), fix.kind, vec![edit]));
             }
         }

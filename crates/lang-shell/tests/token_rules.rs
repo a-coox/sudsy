@@ -25,9 +25,9 @@ fn reports_the_matching_tokens_of_a_node() {
 }
 
 #[test]
-fn a_token_rule_cannot_fix() {
+fn a_token_rule_cannot_have_layout() {
     let p = lang_shell::provider();
-    let source = format!("{RULE}fix: x\n");
+    let source = format!("{RULE}layout: [break-all]\n");
     let error = pattern_error(&p, &source).expect("refused");
     assert!(error.contains("`token`"), "{error}");
 }

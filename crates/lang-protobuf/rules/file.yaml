@@ -55,3 +55,13 @@ example: 'service Foo {}'
 severity: off
 category: style
 rule: { kind: ServiceName, not: { regex: 'Service$' } }
+---
+id: file-lower-snake-case
+message: 'the file name should be lower_snake_case'
+description: >-
+  The file name (without `.proto`) is not lower_snake_case (buf lint FILE_LOWER_SNAKE_CASE).
+example: 'FooBar.proto'
+severity: off
+category: style
+rule: { kind: Document, not: { path: '(?:^|/)[a-z0-9]+(?:_[a-z0-9]+)*(?:\.[^./]*)?$' } }
+report-on: start

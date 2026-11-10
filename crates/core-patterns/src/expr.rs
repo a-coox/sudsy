@@ -2,13 +2,14 @@
 //! `regex`, and the relations `inside`, `not-inside`, `has`, `not-has`) and the combinators
 //! `all`, `any` and `not`.
 
-use crate::matcher::{Captures, Pattern, SnippetParser};
+use crate::matcher::{Capture, Captures, Pattern, SnippetParser};
 use crate::metavar::Meta;
 use core_rules::tree::TraversalCache;
 use core_rules::{Opt, OptionDecl, Re, RuleOptions};
 use core_syntax::{Grammar, SyntaxKind, SyntaxNode};
 use serde::Deserialize;
 use std::cell::Cell;
+use std::path::Path;
 
 /// The rule as written in the file.
 #[derive(Debug, Default, Deserialize)]
@@ -17,6 +18,10 @@ pub struct Spec {
     pub pattern: Option<String>,
     pub kind: Option<String>,
     pub regex: Option<String>,
+    /// The file path (with `/`) matches this regex.
+    pub path: Option<String>,
+    /// The node is the Nth (from 1) of the children of its parent that have its kind.
+    pub nth: Option<usize>,
     pub inside: Option<Box<Spec>>,
     #[serde(rename = "not-inside")]
     pub not_inside: Option<Box<Spec>>,
@@ -36,6 +41,7 @@ pub struct Spec {
 /// What an expression is evaluated against.
 pub struct Ctx<'a> {
     pub grammar: &'a Grammar,
+    pub path: &'a Path,
     pub text: &'a str,
     pub options: &'a RuleOptions,
     /// Matching steps left for this evaluation (see [`STEP_BUDGET`]); 0 means it ran out and
@@ -61,7 +67,10 @@ pub const STEP_BUDGET: u32 = 1_000_000;
 pub enum Expr {
     Pattern(Pattern),
     Kind(SyntaxKind),
-    Regex(Re),
+    /// With the names of its capture groups.
+    Regex(Re, Vec<String>),
+    Path(Re),
+    Nth(usize),
     Inside(Box<Expr>),
     Has(Box<Expr>),
     Parent(Box<Expr>),
@@ -92,9 +101,20 @@ impl Expr {
             all.push(Expr::Kind(kind));
         }
         if let Some(text) = &spec.regex {
-            all.push(Expr::Regex(
-                Re::new(text).map_err(|e| format!("regex `{text}`: {e}"))?,
+            let re = Re::new(text).map_err(|e| format!("regex `{text}`: {e}"))?;
+            let groups = re.groups();
+            all.push(Expr::Regex(re, groups));
+        }
+        if let Some(text) = &spec.path {
+            all.push(Expr::Path(
+                Re::new(text).map_err(|e| format!("path regex `{text}`: {e}"))?,
             ));
+        }
+        if let Some(n) = spec.nth {
+            if n == 0 {
+                return Err("nth counts from 1".into());
+            }
+            all.push(Expr::Nth(n));
         }
         if let Some(s) = &spec.inside {
             all.push(Expr::Inside(Box::new(sub(s)?)));
@@ -132,7 +152,7 @@ impl Expr {
         }
         match all.len() {
             0 => Err(
-                "a rule needs at least one of pattern, kind, regex, inside, not-inside, \
+                "a rule needs at least one of pattern, kind, regex, path, nth, inside, not-inside, \
                       has, not-has, parent, child, option, all, any, not"
                     .into(),
             ),
@@ -146,26 +166,37 @@ impl Expr {
         match self {
             Expr::Pattern(p) => p.matches(node, cx.grammar, &cx.budget),
             Expr::Kind(k) => (node.kind() == *k).then(Captures::new),
-            Expr::Regex(re) => {
+            Expr::Regex(re, groups) => {
                 let range = cx.ranges.significant_range(node, cx.grammar);
                 let text = &cx.text[range];
-                re.is_match_in(text, cx.ranges.ascii(cx.text))
-                    .then(Captures::new)
+                let ascii = cx.ranges.ascii(cx.text);
+                if groups.is_empty() {
+                    return re.is_match_in(text, ascii).then(Captures::new);
+                }
+                let spans = re.groups_in(text, ascii)?;
+                Some(Capture::groups(groups, spans, range.start()).collect())
+            }
+            Expr::Path(re) => {
+                let path = cx.path.to_string_lossy().replace('\\', "/");
+                re.is_match(&path).then(Captures::new)
+            }
+            Expr::Nth(n) => {
+                let mut same = node
+                    .parent()?
+                    .children()
+                    .filter(|c| c.kind() == node.kind());
+                (same.nth(n - 1).as_ref() == Some(node)).then(Captures::new)
             }
             Expr::Inside(e) => node
                 .ancestors()
                 .skip(1)
-                .any(|a| cx.spend() && e.matches(&a, cx).is_some())
-                .then(Captures::new),
+                .find_map(|a| if cx.spend() { e.matches(&a, cx) } else { None }),
             Expr::Has(e) => node
                 .descendants()
                 .skip(1)
                 .any(|d| cx.spend() && e.matches(&d, cx).is_some())
                 .then(Captures::new),
-            Expr::Parent(e) => node
-                .parent()
-                .is_some_and(|p| e.matches(&p, cx).is_some())
-                .then(Captures::new),
+            Expr::Parent(e) => e.matches(&node.parent()?, cx),
             Expr::Child(e) => node
                 .children()
                 .any(|c| cx.spend() && e.matches(&c, cx).is_some())
@@ -193,7 +224,9 @@ impl Expr {
             Expr::Inside(_) | Expr::Has(_) => true,
             Expr::All(list) | Expr::Any(list) => list.iter().any(Expr::superlinear),
             Expr::Not(e) | Expr::Parent(e) | Expr::Child(e) => e.superlinear(),
-            Expr::Kind(_) | Expr::Regex(_) | Expr::Option(_) => false,
+            Expr::Kind(_) | Expr::Regex(..) | Expr::Path(_) | Expr::Nth(_) | Expr::Option(_) => {
+                false
+            }
         }
     }
 
@@ -215,18 +248,25 @@ impl Expr {
         }
     }
 
-    /// Every metavariable a match can capture: those of the patterns outside `inside`, `has` and
-    /// `not`, whose captures are dropped.
+    /// Every metavariable a match can capture: those of the patterns outside `has`, `child` and
+    /// `not`, whose captures are dropped, and the groups of a `regex` (`$1`).
     pub fn metas(&self, out: &mut Vec<Meta>) {
         match self {
             Expr::Pattern(p) => out.extend(p.metas().iter().cloned()),
+            Expr::Regex(_, groups) => {
+                out.extend(groups.iter().filter(|n| !n.is_empty()).map(|name| Meta {
+                    multi: false,
+                    name: name.clone(),
+                    transform: None,
+                }))
+            }
             Expr::All(list) | Expr::Any(list) => list.iter().for_each(|e| e.metas(out)),
+            Expr::Inside(e) | Expr::Parent(e) => e.metas(out),
             Expr::Kind(_)
-            | Expr::Regex(_)
+            | Expr::Path(_)
+            | Expr::Nth(_)
             | Expr::Option(_)
-            | Expr::Inside(_)
             | Expr::Has(_)
-            | Expr::Parent(_)
             | Expr::Child(_)
             | Expr::Not(_) => {}
         }

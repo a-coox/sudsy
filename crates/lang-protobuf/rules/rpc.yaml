@@ -1,0 +1,31 @@
+id: rpc-request-standard-name
+message: 'the type should be named `${RPC}Request` or `${SERVICE}${RPC}Request`'
+description: >-
+  The request type of an rpc is not named `<Rpc>Request` or `<Service><Rpc>Request` (buf lint
+  RPC_REQUEST_STANDARD_NAME).
+example: 'service S { rpc Get(Foo) returns (GetResponse); }'
+severity: off
+category: style
+rule:
+  kind: MessageType
+  nth: 1
+  regex: '(?s)^(?<TYPE>.*)$'
+  parent: { kind: Rpc, regex: '^rpc\s+(?<RPC>\w+)', parent: { kind: Service, regex: '^service\s+(?<SERVICE>\w+)' } }
+constraints:
+  TYPE: { not-regex: '(?:^|\.)(?:${SERVICE})?${RPC}Request$' }
+---
+id: rpc-response-standard-name
+message: 'the type should be named `${RPC}Response` or `${SERVICE}${RPC}Response`'
+description: >-
+  The response type of an rpc is not named `<Rpc>Response` or `<Service><Rpc>Response` (buf lint
+  RPC_RESPONSE_STANDARD_NAME).
+example: 'service S { rpc Get(GetRequest) returns (Foo); }'
+severity: off
+category: style
+rule:
+  kind: MessageType
+  nth: 2
+  regex: '(?s)^(?<TYPE>.*)$'
+  parent: { kind: Rpc, regex: '^rpc\s+(?<RPC>\w+)', parent: { kind: Service, regex: '^service\s+(?<SERVICE>\w+)' } }
+constraints:
+  TYPE: { not-regex: '(?:^|\.)(?:${SERVICE})?${RPC}Response$' }

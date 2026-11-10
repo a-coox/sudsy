@@ -74,6 +74,74 @@ impl Re {
         self.is_match_in(text, false)
     }
 
+    /// The name of each capture group 1.. (empty for an unnamed one), or nothing when no group
+    /// is named: `(?<NAME>...)` is how a rule captures.
+    pub fn groups(&self) -> Vec<String> {
+        if !self.source.contains("(?<") && !self.source.contains("(?P<") {
+            return Vec::new(); // no named group: most regexes have none
+        }
+        let names: Vec<Option<String>> = match self.ascii() {
+            Some(re) => re.capture_names().map(|n| n.map(String::from)).collect(),
+            None => self
+                .full
+                .get_or_init(|| Regex::new(&self.source).ok())
+                .iter()
+                .flat_map(|re| re.capture_names().map(|n| n.map(String::from)))
+                .collect(),
+        };
+        let names: Vec<String> = names
+            .into_iter()
+            .skip(1)
+            .map(Option::unwrap_or_default)
+            .collect();
+        // Only named groups are captures; the rest of the regexes are matched as before.
+        if names.iter().all(String::is_empty) {
+            Vec::new()
+        } else {
+            names
+        }
+    }
+
+    /// The byte span of each group 1.. (`None`: the group did not take part) of the first match.
+    /// Same text handling as [`Re::is_match_in`].
+    pub fn groups_in(
+        &self,
+        text: &str,
+        in_ascii_file: bool,
+    ) -> Option<Vec<Option<(usize, usize)>>> {
+        if (in_ascii_file || text.len() <= ASCII_LIMIT && text.is_ascii())
+            && let Some(re) = self.ascii()
+        {
+            let c = re.captures(text.as_bytes())?;
+            return Some(
+                c.iter()
+                    .skip(1)
+                    .map(|m| m.map(|m| (m.start(), m.end())))
+                    .collect(),
+            );
+        }
+        match self.full.get_or_init(|| Regex::new(&self.source).ok()) {
+            Some(full) => {
+                let c = full.captures(text)?;
+                Some(
+                    c.iter()
+                        .skip(1)
+                        .map(|m| m.map(|m| (m.start(), m.end())))
+                        .collect(),
+                )
+            }
+            None => {
+                let c = self.ascii()?.captures(text.as_bytes())?;
+                Some(
+                    c.iter()
+                        .skip(1)
+                        .map(|m| m.map(|m| (m.start(), m.end())))
+                        .collect(),
+                )
+            }
+        }
+    }
+
     /// [`Re::is_match`] on text that is a part of a file known to be ASCII (`in_ascii_file`), so
     /// that it need not be scanned.
     pub fn is_match_in(&self, text: &str, in_ascii_file: bool) -> bool {

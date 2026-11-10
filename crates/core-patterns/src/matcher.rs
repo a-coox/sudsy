@@ -120,7 +120,7 @@ impl Pattern {
     /// Parses `text` as a snippet of the language and keeps the node that spans all of it. A
     /// pattern that is not a complete construct on its own is retried in [`CONTEXTS`].
     pub fn compile(text: &str, parser: &dyn SnippetParser) -> Result<Pattern, String> {
-        let metas = metavar::names(text);
+        let metas = metavar::names(text, false);
         let grammar = parser.grammar();
         let trimmed = text.trim();
         for style in [Style::Identifier, Style::String] {
@@ -349,6 +349,31 @@ impl<'p> Cx<'p> {
 }
 
 impl Capture {
+    /// A group of a `regex`: some text, no node.
+    pub fn span(range: TextRange) -> Capture {
+        Capture {
+            range,
+            kind: None,
+            normalized: None,
+        }
+    }
+
+    /// The groups (named `names`, at byte `spans` of text that starts at `at`) that took part.
+    pub fn groups(
+        names: &[String],
+        spans: Vec<Option<(usize, usize)>>,
+        at: TextSize,
+    ) -> impl Iterator<Item = (String, Capture)> {
+        let size = move |n: usize| at + TextSize::from(n as u32);
+        names.iter().zip(spans).filter_map(move |(name, span)| {
+            let (from, to) = span.filter(|_| !name.is_empty())?;
+            Some((
+                name.clone(),
+                Capture::span(TextRange::new(size(from), size(to))),
+            ))
+        })
+    }
+
     /// The captured source text.
     pub fn text<'a>(&self, source: &'a str) -> &'a str {
         &source[self.range]
