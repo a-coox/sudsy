@@ -1,0 +1,4 @@
+unique-targets:
+  level: warn
+  options:
+    ignore: [d]

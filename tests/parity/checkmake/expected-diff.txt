@@ -1,0 +1,4 @@
+phony-declared/cases checkmake:phony-declared 9: `$(OBJS): ;` has an explicit empty recipe; checkmake reads it as no body
+timestamp-expanded/cases sudsy:timestamp-expanded 8: checkmake does not read the target-specific `foo: H = ...` as a variable
+unique-targets/cases checkmake:unique-targets 6: a repeated `::` rule is allowed by make; checkmake reports it
+unique-targets/cases sudsy:unique-targets 10: checkmake reads the `c d:` rule as one target named `c d`; Sudsy checks `d` on its own

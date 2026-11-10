@@ -1,0 +1,4 @@
+max-body-length:
+  level: warn
+  options:
+    max: 3

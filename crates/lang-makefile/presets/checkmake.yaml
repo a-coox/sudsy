@@ -1,0 +1,9 @@
+# checkmake's rules, all on as checkmake runs them (its defaults: 5 lines of recipe, all, clean and test required).
+makefile:
+  lint:
+    rules:
+      min-phony: warn
+      phony-declared: warn
+      timestamp-expanded: warn
+      max-body-length: warn
+      unique-targets: warn

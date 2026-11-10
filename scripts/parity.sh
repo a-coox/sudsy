@@ -5,7 +5,7 @@
 # Tools: yamllint (installed at the catalog's version into a venv under target/parity/), eslint-jsonc
 # (ESLint 9 + eslint-plugin-jsonc at the catalog's version, installed with npm), stylecop
 # (StyleCop.Analyzers at the catalog's version, restored by `dotnet build` of the fixture project),
-# hadolint (the release binary at the catalog's version, downloaded from GitHub).
+# hadolint and checkmake (the release binary at the catalog's version, downloaded from GitHub).
 # Format mode: scripts/parity.sh format <tool>, the tools of scripts/parity_format.json (see docs/development/parity.md).
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -28,8 +28,8 @@ if [ "$tool" = format ]; then
   exec "$py" scripts/parity_format.py "$tool" "$sudsy" "$tdir"
 fi
 case "$tool" in
-  yamllint|stylecop|eslint-jsonc|markdownlint|hadolint|shellcheck|psscriptanalyzer|buf) ;;
-  *) echo "usage: scripts/parity.sh yamllint|stylecop|eslint-jsonc|markdownlint|hadolint|shellcheck|psscriptanalyzer|buf | format <tool>" >&2; exit 2 ;;
+  yamllint|stylecop|eslint-jsonc|markdownlint|hadolint|shellcheck|psscriptanalyzer|buf|checkmake) ;;
+  *) echo "usage: scripts/parity.sh yamllint|stylecop|eslint-jsonc|markdownlint|hadolint|shellcheck|psscriptanalyzer|buf|checkmake | format <tool>" >&2; exit 2 ;;
 esac
 
 py=
@@ -83,6 +83,21 @@ if [ "$tool" = hadolint ]; then
   if [ ! -x "$dir/$exe" ]; then
     mkdir -p "$dir"
     curl -fsSL -o "$dir/$exe" "https://github.com/hadolint/hadolint/releases/download/v$version/$asset"
+    chmod +x "$dir/$exe"
+  fi
+  extra="$dir/$exe"
+fi
+if [ "$tool" = checkmake ]; then
+  # The release executable at the catalog's version (needs network on first use).
+  case "$(uname -s)" in
+    MINGW*|MSYS*|CYGWIN*) asset=checkmake-v$version.windows.amd64.exe; exe=checkmake.exe ;;
+    Darwin) asset=checkmake-v$version.darwin.$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/'); exe=checkmake ;;
+    *) asset=checkmake-v$version.linux.$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/'); exe=checkmake ;;
+  esac
+  dir="$tdir/parity/checkmake-$version"
+  if [ ! -x "$dir/$exe" ]; then
+    mkdir -p "$dir"
+    curl -fsSL -o "$dir/$exe" "https://github.com/checkmake/checkmake/releases/download/v$version/$asset"
     chmod +x "$dir/$exe"
   fi
   extra="$dir/$exe"

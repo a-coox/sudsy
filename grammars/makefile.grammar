@@ -1,0 +1,56 @@
+// GNU Makefiles (Makefile, GNUmakefile, *.mk), parsed by tree-sitter (tree-sitter-make) and mapped by crates/lang-makefile/src/mapping.rs.
+// Format: see crates/core-syntax/src/grammar/mod.rs.
+
+language makefile 15 "Makefile"
+comments line "#"
+suppress disable-next-line "sudsy-disable-next-line"
+suppress disable-line "sudsy-disable-line"
+suppress disable "sudsy-disable"
+suppress enable "sudsy-enable"
+suppress disable-file "sudsy-disable-file"
+suppress ignore "sudsy-ignore"
+
+token Whitespace #trivia #whitespace
+token Newline #trivia #newline
+token Comment #trivia #comment
+
+// A target, prerequisite, variable name or argument: a word, a variable reference, a function call or a quoted string.
+token Word
+// A directive keyword: `include`, `ifeq`, `else`, `endif`, `define`, `export`, ...
+token Keyword #restyle
+// The `=`, `:=`, `::=`, `?=`, `+=` or `!=` of an assignment.
+token Op
+// The value of an assignment (and the shell command of `!=`): blanks around it and line breaks inside it are not meaningful to the formatter.
+token Value #literal #restyle
+// The body of a `define`, one token.
+token Raw #literal
+// The `:`, `::` or `&:` of a rule or of a target-specific variable.
+token Colon #punctuation #separator
+token Pipe "|" #punctuation
+token Semi ";" #punctuation
+token Tab #punctuation
+// `@`, `-` or `+` before a recipe command.
+token Prefix #punctuation #restyle
+// A `$(...)`, `${...}` or `$x` reference and a `$$` escape inside a recipe command, which the shell never sees.
+token MakeRef
+token MakeEscape
+
+token Eof
+token Unknown #error
+
+node Document = items:#item* Eof
+// `targets: prerequisites` with its recipe; `; command` after the prerequisites starts the recipe on the rule line.
+node Rule #item = Targets Colon Targets? Colon? Prereqs? Pipe? Prereqs? Recipe?
+node Targets = Word*
+node Prereqs = Word*
+node Recipe = Semi? items:#item*
+// One command; the shell code is `ShellText`.
+node RecipeLine #item = Prefix* ShellText?
+node ShellText = MakeRef* MakeEscape* Word*
+node Assign #item = Targets? Colon? Word Op Value?
+node Define #item = Keyword Word Op? Raw? Keyword
+node Call #item = Word*
+// `include`, `export`, `override`, `vpath`, ... and the condition of `ifeq` and friends.
+node Directive #item = Keyword Word*
+node Conditional #item = Directive items:#item* Else* Keyword
+node Else = Keyword Directive? items:#item*

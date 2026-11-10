@@ -1,0 +1,7 @@
+grammar-crate: tree-sitter-make
+extensions: [mk, mak]
+file-names: [Makefile, GNUmakefile, makefile]
+formatter: MakefileFormatter
+composite: mapping::COMPOSITE
+embedded: embedded::find
+dev-deps: [core-config, core-incremental, lang-shell]

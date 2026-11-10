@@ -483,6 +483,37 @@
               "$ref": "#/definitions/rule",
               "description": "A stage whose last USER is root (`root`, `0`, `root:group`, `0:group`)."
             },
+            "max-body-length": {
+              "description": "A rule whose recipe has more lines than allowed (checkmake `maxbodylength`). Every physical line counts, a continued command and a tab-indented comment included.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "max": {
+                          "default": 5,
+                          "description": "The most lines a recipe may have.",
+                          "type": "integer"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
             "max-line-length": {
               "description": "A line is longer than the configured number of characters.",
               "oneOf": [
@@ -574,6 +605,44 @@
             "message-pascal-case": {
               "$ref": "#/definitions/rule",
               "description": "A message name that is not PascalCase (buf lint MESSAGE_PASCAL_CASE)."
+            },
+            "min-phony": {
+              "description": "A target that must exist and be declared `.PHONY` (checkmake `minphony`). Reported on the `.PHONY` line, or the last rule's when there is none.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "required": {
+                          "default": [
+                            "all",
+                            "clean",
+                            "test"
+                          ],
+                          "description": "The targets every Makefile must declare `.PHONY`.",
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
             },
             "naming-convention": {
               "description": "A name does not follow the style set for what it names: operations, fragments, variables, fields, arguments, types, enum values and directives. `PascalCase` and `camelCase` allow letters and digits only, `snake_case` and `UPPER_CASE` forbid the other case; leading underscores are ignored. No fix: renaming changes the schema or the queries that use it. Equivalent: graphql-eslint naming-convention (styles only, no prefix or suffix lists).",
@@ -1159,6 +1228,10 @@
               "$ref": "#/definitions/rule",
               "description": "A package whose last component is not `v1`, `v1test...`, `v1alpha1`, `v1beta1` or `v1p1alpha1` (`v1beta` too; buf lint PACKAGE_VERSION_SUFFIX)."
             },
+            "phony-declared": {
+              "$ref": "#/definitions/rule",
+              "description": "A target with no recipe that is not declared `.PHONY` (checkmake `phonydeclared`); targets that start with a `.` are special and skipped."
+            },
             "pip-pin-versions": {
               "$ref": "#/definitions/rule",
               "description": "A pip install package without a version."
@@ -1554,6 +1627,10 @@
               "$ref": "#/definitions/rule",
               "description": "A test that negates `-z` or `-n`."
             },
+            "timestamp-expanded": {
+              "$ref": "#/definitions/rule",
+              "description": "A variable whose value runs `date` and that is not simply expanded (`:=`, `::=`): every use runs `date` again and the values differ within one build (checkmake `timestampexpanded`)."
+            },
             "trap-expands-now": {
               "$ref": "#/definitions/rule",
               "description": "A `trap` whose double-quoted command contains an expansion."
@@ -1569,6 +1646,40 @@
             "unique-operation-name": {
               "$ref": "#/definitions/rule",
               "description": "Two operations of a document have the same name; a server cannot tell which to run and tools that key on the name (caches, persisted queries) collide. Checked within the file."
+            },
+            "unique-targets": {
+              "description": "A target defined by more than one rule, which merges prerequisites and overrides recipes (checkmake `uniquetargets`). Double-colon rules, `.PHONY` and the targets of `ignore` are skipped.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "ignore": {
+                          "default": [],
+                          "description": "Targets that may be defined more than once.",
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
             },
             "unknown-property": {
               "description": "A property name that is not an EditorConfig or .NET (`dotnet_*`, `csharp_*`, `visual_basic_*`, `dotnet_diagnostic.<ID>.severity`, naming rule) property but is one typo away from one: the setting is silently ignored. Names of other tools (`resharper_*`, `ij_*`) are left alone. Known properties and values: `crates/lang-editorconfig/data/properties.txt`.",
@@ -2388,6 +2499,7 @@
           "preset:json/biome",
           "preset:json/default",
           "preset:json/prettier-compat",
+          "preset:makefile/checkmake",
           "preset:markdown/prettier-compat",
           "preset:powershell/psscriptanalyzer",
           "preset:protobuf/buf-standard",
@@ -2801,6 +2913,7 @@
           "shell",
           "protobuf",
           "graphql",
+          "makefile",
           "powershell",
           "csharp"
         ]
@@ -2809,6 +2922,90 @@
     },
     "lint": {
       "$ref": "#/definitions/lint"
+    },
+    "makefile": {
+      "additionalProperties": false,
+      "properties": {
+        "format": {
+          "additionalProperties": false,
+          "properties": {
+            "end_of_line": {
+              "default": "auto",
+              "description": "Line break style of the output: `lf`, `crlf`, or `auto` to keep the file's first              line break.",
+              "enum": [
+                "auto",
+                "lf",
+                "crlf"
+              ],
+              "type": "string"
+            },
+            "final_newline": {
+              "default": true,
+              "description": "End the file with a newline.",
+              "type": "boolean"
+            },
+            "indent_size": {
+              "default": 2,
+              "description": "Columns per indentation level (also the width of a tab).",
+              "maximum": 16,
+              "minimum": 1,
+              "type": "integer"
+            },
+            "indent_style": {
+              "default": "space",
+              "description": "Indent with spaces or tabs.",
+              "enum": [
+                "space",
+                "tab"
+              ],
+              "type": "string"
+            },
+            "max_blank_lines": {
+              "default": 2,
+              "description": "Largest number of blank lines kept between statements and comments.",
+              "maximum": 10,
+              "minimum": 0,
+              "type": "integer"
+            },
+            "space_around_assignment": {
+              "default": true,
+              "description": "Write `A := b` rather than `A:=b`.",
+              "type": "boolean"
+            },
+            "space_before_colon": {
+              "default": false,
+              "description": "Write `target : prerequisite` rather than `target: prerequisite`.",
+              "type": "boolean"
+            }
+          },
+          "type": "object"
+        },
+        "lint": {
+          "$ref": "#/definitions/lint"
+        },
+        "semantics": {
+          "additionalProperties": false,
+          "description": "Facts about methods that the flow analyses use.",
+          "properties": {
+            "does_not_return": {
+              "description": "Qualified method names without parameter lists; every overload is covered.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "pure": {
+              "description": "Qualified method names without parameter lists; every overload is covered.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          "type": "object"
+        }
+      },
+      "type": "object"
     },
     "markdown": {
       "additionalProperties": false,
@@ -3812,6 +4009,90 @@
           },
           "lint": {
             "$ref": "#/definitions/lint"
+          },
+          "makefile": {
+            "additionalProperties": false,
+            "properties": {
+              "format": {
+                "additionalProperties": false,
+                "properties": {
+                  "end_of_line": {
+                    "default": "auto",
+                    "description": "Line break style of the output: `lf`, `crlf`, or `auto` to keep the file's first              line break.",
+                    "enum": [
+                      "auto",
+                      "lf",
+                      "crlf"
+                    ],
+                    "type": "string"
+                  },
+                  "final_newline": {
+                    "default": true,
+                    "description": "End the file with a newline.",
+                    "type": "boolean"
+                  },
+                  "indent_size": {
+                    "default": 2,
+                    "description": "Columns per indentation level (also the width of a tab).",
+                    "maximum": 16,
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  "indent_style": {
+                    "default": "space",
+                    "description": "Indent with spaces or tabs.",
+                    "enum": [
+                      "space",
+                      "tab"
+                    ],
+                    "type": "string"
+                  },
+                  "max_blank_lines": {
+                    "default": 2,
+                    "description": "Largest number of blank lines kept between statements and comments.",
+                    "maximum": 10,
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "space_around_assignment": {
+                    "default": true,
+                    "description": "Write `A := b` rather than `A:=b`.",
+                    "type": "boolean"
+                  },
+                  "space_before_colon": {
+                    "default": false,
+                    "description": "Write `target : prerequisite` rather than `target: prerequisite`.",
+                    "type": "boolean"
+                  }
+                },
+                "type": "object"
+              },
+              "lint": {
+                "$ref": "#/definitions/lint"
+              },
+              "semantics": {
+                "additionalProperties": false,
+                "description": "Facts about methods that the flow analyses use.",
+                "properties": {
+                  "does_not_return": {
+                    "description": "Qualified method names without parameter lists; every overload is covered.",
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "pure": {
+                    "description": "Qualified method names without parameter lists; every overload is covered.",
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  }
+                },
+                "type": "object"
+              }
+            },
+            "type": "object"
           },
           "markdown": {
             "additionalProperties": false,

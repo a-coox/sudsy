@@ -45,6 +45,7 @@ tree-sitter-containerfile = "0.9"
 tree-sitter-bash = "0.25"
 tree-sitter-proto = "0.6"
 tree-sitter-graphql = "0.3"
+tree-sitter-make = "1.1"
 woodruffw-trough-tree-sitter-powershell = "0.1"
 
 core-config = { path = "crates/core-config" }
@@ -71,6 +72,7 @@ lang-shell = { path = "crates/lang-shell", default-features = false }
 lang-powershell = { path = "crates/lang-powershell", default-features = false }
 lang-protobuf = { path = "crates/lang-protobuf", default-features = false }
 lang-graphql = { path = "crates/lang-graphql", default-features = false }
+lang-makefile = { path = "crates/lang-makefile", default-features = false }
 core-packs = { path = "crates/core-packs" }
 core-treesitter = { path = "crates/core-treesitter" }
 core-syntax = { path = "crates/core-syntax" }

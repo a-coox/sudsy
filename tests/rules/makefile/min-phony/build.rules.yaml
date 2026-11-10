@@ -1,0 +1,4 @@
+min-phony:
+  level: warn
+  options:
+    required: [all, build]

@@ -120,7 +120,7 @@ def markdownlint(version, folder):
 
 
 def rule_fixtures(tool, sudsy, version, exe):
-    """Runs the tool (hadolint, shellcheck) and `sudsy lint` on the rule fixtures of its language
+    """Runs the tool (hadolint, shellcheck, checkmake) and `sudsy lint` on the rule fixtures of its language
     (tests/rules/<lang>/<folder>/*<suffix>, annotations removed) and compares `(rule, line)` of the
     catalog's rules: upstream codes the catalog does not map are left out.
     `tests/parity/<tool>/expected-diff.txt` lists known differences as
@@ -133,6 +133,9 @@ def rule_fixtures(tool, sudsy, version, exe):
         # one JSON object per line; --path limits the findings to the fixture, the rest of the module is its imports
         "buf": ("protobuf", ".proto", [exe, "lint", "--error-format=json", "--path"],
                 lambda d: (d["type"], d["start_line"]), lambda out: [json.loads(l) for l in out.splitlines()]),
+        "checkmake": ("makefile", ".mk", [exe, "--format", '{"rule":"{{.Rule}}","line":{{.LineNumber}}}'],
+                      lambda d: (d["rule"], d["line"]),
+                      lambda out: [json.loads(l) for l in out.splitlines() if l.startswith("{")]),
     }[tool]
     mapping = rule_map(tool)
     folder = ROOT / "tests/parity" / tool
@@ -150,6 +153,8 @@ def rule_fixtures(tool, sudsy, version, exe):
                 expected[key] = reason
     used, mismatches, total = set(), 0, 0
     for source in sorted((ROOT / "tests/rules" / lang).glob(f"*/*{suffix}")):
+        if source.with_suffix(".rules.yaml").exists():
+            continue  # the case sets rule options; both tools run with their defaults here
         text = "".join(
             l for l in source.read_text(encoding="utf-8").splitlines(keepends=True) if not re.match(r"\s*(?:#|//)?\s*\^", l)
         )
@@ -157,8 +162,13 @@ def rule_fixtures(tool, sudsy, version, exe):
         fixture = work / f"{source.parent.name}-{source.stem}{suffix}"
         fixture.write_text(text, encoding="utf-8", newline="")
         out = subprocess.run(command + [fixture.name], cwd=work, capture_output=True, text=True, check=False).stdout
-        upstream = {(mapping[c], l, 0) for c, l in map(parse, load(out)) if c in mapping}
+        # checkmake runs every rule on every file: a fixture is compared on the rule of its folder, and
+        # checkmake reports a variable (and `.PHONY`, which it reads as one) a line late.
+        late = {"timestampexpanded", "minphony"} if tool == "checkmake" else set()
+        upstream = {(mapping[c], l - (c in late), 0) for c, l in map(parse, load(out)) if c in mapping}
         ours = {(r, l, 0) for r, l, _ in sudsy_lint(sudsy, fixture, work, set(mapping.values()))}
+        if tool == "checkmake":
+            upstream, ours = ({row for row in side if row[0] == source.parent.name} for side in (upstream, ours))
         fixture.unlink()  # buf compiles the whole folder: fixtures that share a package must not meet
         total += len(upstream)
         problems = []
@@ -345,7 +355,7 @@ def main():
         return stylecop(sudsy, version)
     if tool == "psscriptanalyzer":
         return psscriptanalyzer(sudsy, version)
-    if tool in ("hadolint", "shellcheck"):
+    if tool in ("hadolint", "shellcheck", "checkmake"):
         return rule_fixtures(tool, sudsy, version, sys.argv[4])
     if tool == "buf":  # installed like the format mode's, by its entry in parity_format.json
         config = json.loads((ROOT / "scripts/parity_format.json").read_text())["buf"]

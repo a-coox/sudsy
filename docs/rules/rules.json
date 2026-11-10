@@ -5288,6 +5288,206 @@
       "upstream": []
     },
     {
+      "category": "cleanup",
+      "default_level": "off",
+      "description": "A rule whose recipe has more lines than allowed (checkmake `maxbodylength`). Every physical line counts, a continued command and a tab-indented comment included.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "build:\n\techo 1\n\techo 2\n\techo 3\n\techo 4\n\techo 5\n\techo 6\nfine:\n\techo 1\n",
+        "language": "makefile",
+        "spans": [
+          {
+            "column": 1,
+            "length": 5,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "max-body-length",
+      "languages": [
+        "makefile"
+      ],
+      "options": [
+        {
+          "default": 5,
+          "description": "The most lines a recipe may have.",
+          "name": "max",
+          "type": "int"
+        }
+      ],
+      "presets": [
+        "makefile/checkmake"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "A target that must exist and be declared `.PHONY` (checkmake `minphony`). Reported on the `.PHONY` line, or the last rule's when there is none.",
+      "example": {
+        "config": "min-phony:\n  level: warn\n  options:\n    required: [all, build]\n",
+        "fixed": null,
+        "input": ".PHONY: all test\nall:\ntest:\n",
+        "language": "makefile",
+        "spans": [
+          {
+            "column": 1,
+            "length": 6,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "min-phony",
+      "languages": [
+        "makefile"
+      ],
+      "options": [
+        {
+          "default": [
+            "all",
+            "clean",
+            "test"
+          ],
+          "description": "The targets every Makefile must declare `.PHONY`.",
+          "name": "required",
+          "type": "list"
+        }
+      ],
+      "presets": [
+        "makefile/checkmake"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "warn",
+      "description": "A target with no recipe that is not declared `.PHONY` (checkmake `phonydeclared`); targets that start with a `.` are special and skipped.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": ".PHONY: all clean\nall: build\nclean:\nbuild:\n\techo\n.DEFAULT: ;\nempty: all\nboth one two:\n$(OBJS): ;\n",
+        "language": "makefile",
+        "spans": [
+          {
+            "column": 1,
+            "length": 5,
+            "line": 7
+          },
+          {
+            "column": 1,
+            "length": 4,
+            "line": 8
+          },
+          {
+            "column": 6,
+            "length": 3,
+            "line": 8
+          },
+          {
+            "column": 10,
+            "length": 3,
+            "line": 8
+          }
+        ]
+      },
+      "fix": null,
+      "id": "phony-declared",
+      "languages": [
+        "makefile"
+      ],
+      "options": [],
+      "presets": [
+        "makefile/checkmake"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "warn",
+      "description": "A variable whose value runs `date` and that is not simply expanded (`:=`, `::=`): every use runs `date` again and the values differ within one build (checkmake `timestampexpanded`).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "A = $(shell date +%s)\nB := $(shell date +%s)\nC ?= a date\nD = date\nE += $(shell date)\nF ::= $(shell date)\nG != date\nfoo: H = $(shell date)\n",
+        "language": "makefile",
+        "spans": [
+          {
+            "column": 1,
+            "length": 1,
+            "line": 1
+          },
+          {
+            "column": 1,
+            "length": 1,
+            "line": 3
+          },
+          {
+            "column": 1,
+            "length": 1,
+            "line": 5
+          },
+          {
+            "column": 1,
+            "length": 3,
+            "line": 8
+          }
+        ]
+      },
+      "fix": null,
+      "id": "timestamp-expanded",
+      "languages": [
+        "makefile"
+      ],
+      "options": [],
+      "presets": [
+        "makefile/checkmake"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "warn",
+      "description": "A target defined by more than one rule, which merges prerequisites and overrides recipes (checkmake `uniquetargets`). Double-colon rules, `.PHONY` and the targets of `ignore` are skipped.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "a:\n\techo\na:\n\techo\nb::\nb::\n.PHONY: a\n.PHONY: b\nc d:\nd:\n",
+        "language": "makefile",
+        "spans": [
+          {
+            "column": 1,
+            "length": 1,
+            "line": 3
+          },
+          {
+            "column": 1,
+            "length": 1,
+            "line": 10
+          }
+        ]
+      },
+      "fix": null,
+      "id": "unique-targets",
+      "languages": [
+        "makefile"
+      ],
+      "options": [
+        {
+          "default": [],
+          "description": "Targets that may be defined more than once.",
+          "name": "ignore",
+          "type": "list"
+        }
+      ],
+      "presets": [
+        "makefile/checkmake"
+      ],
+      "upstream": []
+    },
+    {
       "category": "style",
       "default_level": "warn",
       "description": "A function named `Verb-Noun` whose verb is not in the list `Get-Verb` returns. Names without a dash are not checked.",
