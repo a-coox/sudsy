@@ -60,7 +60,71 @@ pub fn generate(providers: &[Box<dyn LanguageProvider>]) -> Result<Vec<(PathBuf,
         "docs/architecture/overview.md",
         &[("crates", crates)],
     )?);
+    out.push(splice(
+        "docs/parity/README.md",
+        &[("counts", catalog_counts()?)],
+    )?);
+    out.push(splice(
+        "docs/development/parity.md",
+        &[("parity-tools", parity_tools()?)],
+    )?);
     Ok(out)
+}
+
+/// One row per catalog (`docs/parity/*.yaml`): the entries by coverage.
+fn catalog_counts() -> Result<String> {
+    let mut catalogs = Vec::new();
+    for file in std::fs::read_dir(crate::repo_root().join("docs/parity"))? {
+        let path = file?.path();
+        if path.extension().is_some_and(|e| e == "yaml") {
+            let text = std::fs::read_to_string(&path)?;
+            catalogs.push(
+                languages::catalog::parse(&text)
+                    .map_err(|e| anyhow::anyhow!("{}: {e}", path.display()))?,
+            );
+        }
+    }
+    catalogs.sort_by(|a, b| a.tool.cmp(&b.tool));
+    let mut out = String::from(
+        "| Tool | Entries | Covered | Partial | Missing | SDK | Wontfix | Deferred | Planned |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+",
+    );
+    for c in catalogs {
+        let n = |coverage: &str| c.entries.iter().filter(|e| e.coverage == coverage).count();
+        let planned = c.entries.iter().filter(|e| e.sudsy == "planned").count();
+        out += &format!(
+            "| {} | {} | {} | {} | {} | {} | {} | {} | {planned} |
+",
+            c.tool,
+            c.entries.len(),
+            n("covered"),
+            n("partial"),
+            n("missing"),
+            n("sdk"),
+            n("wontfix"),
+            n("deferred"),
+        );
+    }
+    Ok(out)
+}
+
+/// The tools of `scripts/parity_tools.json`, per mode.
+fn parity_tools() -> Result<String> {
+    let text = std::fs::read_to_string(crate::repo_root().join("scripts/parity_tools.json"))?;
+    let modes: BTreeMap<String, BTreeMap<String, serde_json::Value>> = serde_json::from_str(&text)?;
+    let list = |mode: &str| {
+        modes[mode]
+            .keys()
+            .map(|t| format!("`{t}`"))
+            .collect::<Vec<_>>()
+            .join(", ")
+    };
+    Ok(format!(
+        "{} (lint mode); {} (format mode, below).",
+        list("lint"),
+        list("format")
+    ))
 }
 
 /// The file with the body of each named block replaced.

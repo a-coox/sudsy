@@ -1,5 +1,4 @@
-//! The parity catalog (`docs/parity/*.yaml`) only names rules and options that exist, and the
-//! counts in `docs/parity/README.md` match the files.
+//! The parity catalog (`docs/parity/*.yaml`) only names rules and options that exist.
 
 use core_rules::{Extensions, SYNTAX_ERROR};
 use languages::catalog::{self, Catalog, Entry};
@@ -100,39 +99,4 @@ fn every_rule_and_option_a_status_names_exists() {
         }
     }
     assert!(problems.is_empty(), "{}", problems.join("\n"));
-}
-
-#[test]
-fn the_readme_counts_match_the_catalogs() {
-    let readme = std::fs::read_to_string(parity_dir().join("README.md")).unwrap();
-    for catalog in catalogs() {
-        let count = |coverage: &str| {
-            catalog
-                .entries
-                .iter()
-                .filter(|e| e.coverage == coverage)
-                .count()
-        };
-        let planned = catalog
-            .entries
-            .iter()
-            .filter(|e| e.sudsy == "planned")
-            .count();
-        let row = format!(
-            "| {} | {} | {} | {} | {} | {} | {} | {} | {} |",
-            catalog.tool,
-            catalog.entries.len(),
-            count("covered"),
-            count("partial"),
-            count("missing"),
-            count("sdk"),
-            count("wontfix"),
-            count("deferred"),
-            planned
-        );
-        assert!(
-            readme.contains(&row),
-            "docs/parity/README.md has no row `{row}`"
-        );
-    }
 }

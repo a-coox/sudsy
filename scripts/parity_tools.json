@@ -1,0 +1,220 @@
+{
+  "format": {
+    "prettier": {
+      "catalog": "prettier",
+      "install": {"npm": "prettier"},
+      "fetch": ["tests/conformance/fetch-markdown-corpus.sh", "tests/conformance/fetch-graphql-corpus.sh"],
+      "command": ["node", "{prefix}/node_modules/prettier/bin/prettier.cjs", "--no-config", "--no-editorconfig", "--embedded-language-formatting=off", "{file}"],
+      "input": "arg",
+      "tool_may_reject": true,
+      "fixtures": [
+        {"suffixes": [".json", ".jsonc", ".yaml", ".yml", ".md", ".graphql", ".gql"]},
+        {"dir": "docs", "suffixes": [".md"], "prefix": "docs/", "recursive": true},
+        {"dir": "tests/conformance/corpus/runtime-docs/docs", "suffixes": [".md"], "prefix": "runtime-docs/", "recursive": true},
+        {"dir": "tests/conformance/corpus/graphql", "suffixes": [".graphql", ".gql"], "prefix": "graphql/", "recursive": true}
+      ]
+    },
+    "biome": {
+      "catalog": "biome",
+      "install": {"npm": "@biomejs/biome"},
+      "command": ["node", "{prefix}/node_modules/@biomejs/biome/bin/biome", "format", "--stdin-file-path={file}"],
+      "input": "stdin",
+      "fixtures": [{"suffixes": [".json", ".jsonc", ".yaml", ".yml"]}]
+    },
+    "taplo": {
+      "catalog": "taplo",
+      "install": {
+        "release": "https://github.com/tamasfe/taplo/releases/download/{version}/{asset}",
+        "assets": {
+          "windows": "taplo-windows-x86_64.zip",
+          "linux-x86_64": "taplo-linux-x86_64.gz",
+          "darwin-arm64": "taplo-darwin-aarch64.gz",
+          "darwin-x86_64": "taplo-darwin-x86_64.gz"
+        },
+        "exe": "taplo"
+      },
+      "fetch": ["tests/conformance/fetch-toml-corpus.sh"],
+      "command": ["{exe}", "fmt", "--no-auto-config", "-"],
+      "input": "stdin",
+      "tool_may_reject": true,
+      "fixtures": [
+        {"suffixes": [".toml"]},
+        {"dir": "tests/fixtures/toml", "suffixes": [".toml"], "prefix": "fixtures/"},
+        {"dir": "tests/conformance/corpus/toml-test/tests", "list": "files-toml-1.0.0", "starts": "valid/", "suffixes": [".toml"]}
+      ]
+    },
+    "shfmt": {
+      "catalog": "shfmt",
+      "install": {
+        "release": "https://github.com/mvdan/sh/releases/download/v{version}/{asset}",
+        "assets": {
+          "windows": "shfmt_v{version}_windows_amd64.exe",
+          "linux-x86_64": "shfmt_v{version}_linux_amd64",
+          "darwin-arm64": "shfmt_v{version}_darwin_arm64",
+          "darwin-x86_64": "shfmt_v{version}_darwin_amd64"
+        },
+        "exe": "shfmt"
+      },
+      "fetch": ["tests/conformance/fetch-shell-corpus.sh"],
+      "command": ["{exe}", "{file}"],
+      "input": "arg",
+      "tool_may_reject": true,
+      "fixtures": [
+        {"suffixes": [".sh"]},
+        {"dir": "tests/conformance/corpus/shell", "suffixes": [".sh", ".bash"], "prefix": "corpus/", "recursive": true}
+      ]
+    },
+    "invoke-formatter": {
+      "catalog": "psscriptanalyzer",
+      "install": {"psmodule": "PSScriptAnalyzer"},
+      "fetch": ["tests/conformance/fetch-powershell-corpus.sh"],
+      "command": ["pwsh", "-NoProfile", "-File", "{root}/scripts/parity_invoke_formatter.ps1", "{prefix}", "{file}"],
+      "input": "arg",
+      "tool_may_reject": true,
+      "ignore_trailing_blanks": true,
+      "fixtures": [
+        {"suffixes": [".ps1"]},
+        {"dir": "tests/conformance/corpus/powershell", "suffixes": [".ps1", ".psm1"], "prefix": "corpus/", "recursive": true}
+      ]
+    },
+    "buf": {
+      "catalog": "buf",
+      "install": {
+        "release": "https://github.com/bufbuild/buf/releases/download/v{version}/{asset}",
+        "assets": {
+          "windows": "buf-Windows-x86_64.exe",
+          "linux-x86_64": "buf-Linux-x86_64",
+          "darwin-arm64": "buf-Darwin-arm64",
+          "darwin-x86_64": "buf-Darwin-x86_64"
+        },
+        "exe": "buf"
+      },
+      "fetch": ["tests/conformance/fetch-proto-corpus.sh"],
+      "command": ["{exe}", "format", "{file}"],
+      "input": "arg",
+      "tool_may_reject": true,
+      "fixtures": [
+        {"suffixes": [".proto"]},
+        {"dir": "tests/conformance/corpus/proto", "suffixes": [".proto"], "prefix": "corpus/", "recursive": true}
+      ]
+    },
+    "terraform": {
+      "catalog": "terraform",
+      "install": {
+        "release": "https://releases.hashicorp.com/terraform/{version}/{asset}",
+        "assets": {
+          "windows": "terraform_{version}_windows_amd64.zip",
+          "linux-x86_64": "terraform_{version}_linux_amd64.zip",
+          "darwin-arm64": "terraform_{version}_darwin_arm64.zip",
+          "darwin-x86_64": "terraform_{version}_darwin_amd64.zip"
+        },
+        "exe": "terraform"
+      },
+      "fetch": ["tests/conformance/fetch-hcl-corpus.sh"],
+      "command": ["{exe}", "fmt", "-no-color", "-"],
+      "input": "stdin",
+      "sudsy_command": "fix",
+      "tool_may_reject": true,
+      "fixtures": [
+        {"suffixes": [".tf"]},
+        {"dir": "tests/conformance/corpus/hcl", "suffixes": [".tf", ".pkr.hcl"], "prefix": "corpus/", "recursive": true}
+      ]
+    },
+    "csharpier": {
+      "catalog": "csharpier",
+      "install": {"dotnet-tool": "csharpier", "exe": "csharpier"},
+      "needs": ["worker"],
+      "command": ["{exe}", "format", "{file}"],
+      "input": "in-place",
+      "tool_may_reject": true,
+      "fixtures": [{"suffixes": [".cs"]}]
+    },
+    "csharpier-xml": {
+      "catalog": "csharpier",
+      "install": {"dotnet-tool": "csharpier", "exe": "csharpier"},
+      "fetch": ["tests/conformance/fetch-xml-projects.sh"],
+      "command": ["{exe}", "format", "{file}"],
+      "input": "in-place",
+      "tool_may_reject": true,
+      "fixtures": [
+        {"suffixes": [".csproj", ".props", ".targets", ".config", ".resx", ".xml", ".slnx", ".xaml"]},
+        {"dir": "tests/fixtures/xml", "suffixes": [".csproj", ".props", ".targets", ".config", ".resx", ".xml", ".slnx", ".xaml"], "prefix": "fixtures/"},
+        {"dir": "tests/conformance/corpus/xml-projects", "suffixes": [".csproj", ".props", ".targets", ".config", ".resx", ".xml", ".slnx", ".xaml"], "prefix": "corpus/", "recursive": true}
+      ]
+    },
+    "dotnet-format": {
+      "version_command": ["dotnet", "--version"],
+      "needs": ["worker"],
+      "kind": "editorconfig-cases"
+    }
+  },
+  "lint": {
+    "yamllint": {"catalog": "yamllint", "install": {"pip": "yamllint"}},
+    "eslint-jsonc": {"catalog": "eslint-plugin-jsonc", "install": {"npm": "eslint-plugin-jsonc", "with": ["eslint@9"]}},
+    "markdownlint": {"catalog": "markdownlint", "install": {"npm": "markdownlint-cli2"}},
+    "hadolint": {
+      "catalog": "hadolint",
+      "install": {
+        "release": "https://github.com/hadolint/hadolint/releases/download/v{version}/{asset}",
+        "assets": {
+          "windows": "hadolint-windows-x86_64.exe",
+          "linux-x86_64": "hadolint-linux-x86_64",
+          "linux-aarch64": "hadolint-linux-arm64",
+          "darwin-arm64": "hadolint-macos-arm64",
+          "darwin-x86_64": "hadolint-macos-x86_64"
+        },
+        "exe": "hadolint"
+      }
+    },
+    "shellcheck": {
+      "catalog": "shellcheck",
+      "install": {
+        "release": "https://github.com/koalaman/shellcheck/releases/download/v{version}/{asset}",
+        "assets": {
+          "windows": "shellcheck-v{version}.zip",
+          "linux-x86_64": "shellcheck-v{version}.linux.x86_64.tar.xz",
+          "linux-aarch64": "shellcheck-v{version}.linux.aarch64.tar.xz",
+          "darwin-arm64": "shellcheck-v{version}.darwin.arm64.tar.xz",
+          "darwin-x86_64": "shellcheck-v{version}.darwin.x86_64.tar.xz"
+        },
+        "exe": "shellcheck"
+      }
+    },
+    "actionlint": {
+      "catalog": "actionlint",
+      "install": {
+        "release": "https://github.com/rhysd/actionlint/releases/download/v{version}/{asset}",
+        "assets": {
+          "windows": "actionlint_{version}_windows_amd64.zip",
+          "linux-x86_64": "actionlint_{version}_linux_amd64.tar.gz",
+          "linux-aarch64": "actionlint_{version}_linux_arm64.tar.gz",
+          "darwin-arm64": "actionlint_{version}_darwin_arm64.tar.gz",
+          "darwin-x86_64": "actionlint_{version}_darwin_amd64.tar.gz"
+        },
+        "exe": "actionlint"
+      },
+      "fetch": ["tests/conformance/fetch-github-actions-corpus.sh"]
+    },
+    "checkmake": {
+      "catalog": "checkmake",
+      "install": {
+        "release": "https://github.com/checkmake/checkmake/releases/download/v{version}/{asset}",
+        "assets": {
+          "windows": "checkmake-v{version}.windows.amd64.exe",
+          "linux-x86_64": "checkmake-v{version}.linux.amd64",
+          "linux-aarch64": "checkmake-v{version}.linux.arm64",
+          "darwin-arm64": "checkmake-v{version}.darwin.arm64",
+          "darwin-x86_64": "checkmake-v{version}.darwin.amd64"
+        },
+        "exe": "checkmake"
+      }
+    },
+    "buf": {"catalog": "buf", "install": "buf"},
+    "psscriptanalyzer": {
+      "catalog": "psscriptanalyzer",
+      "install": {"psmodule": "PSScriptAnalyzer"},
+      "fetch": ["tests/conformance/fetch-powershell-corpus.sh"]
+    },
+    "stylecop": {"catalog": "stylecop", "needs": ["worker"]}
+  }
+}

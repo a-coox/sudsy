@@ -2,7 +2,7 @@
 
 What the tools Sudsy aims to replace do, and where Sudsy stands. One file per tool: `yamllint.yaml`, `prettier.yaml` (YAML, JSON, Markdown and GraphQL), `markdownlint.yaml` (markdownlint 0.42, rules MD001-MD060), `biome.yaml` (JSON), `eslint-plugin-jsonc.yaml`, `graphql-eslint.yaml` (graphql-eslint 4.4.2, the rules that need no schema), `hadolint.yaml` (hadolint 2.15.1, rules DL1001-DL4006; the ShellCheck rules it runs on RUN are out of scope), `stylecop.yaml` (StyleCop.Analyzers 1.2.0-beta.556), `taplo.yaml` (TOML), `terraform.yaml` (HCL format), `tflint.yaml` (tflint-ruleset-terraform 0.17.0, the rules that need no provider), `shfmt.yaml` (Shell format), `buf.yaml` (Protobuf format), `checkmake.yaml` (checkmake 0.3.2, Makefile rules), `psscriptanalyzer.yaml` (PowerShell format and lint), `shellcheck.yaml` (shellcheck 0.11.0, checks SC1000-SC3062), `actionlint.yaml` (actionlint 1.7.12, its error kinds split by check), `csharpier.yaml`, `dotnet-format-editorconfig.yaml` (the IDE0055 formatting options and `.editorconfig` keys), `roslynator.yaml` (overlaps with the others only). Upstream versions are in each file's `version`. Sudsy facts were observed on a debug build; entries without a "Verified" note follow from the documentation of the tool.
 
-The differential runner [`scripts/parity.sh`](../development/parity.md) compares a tool's output with `sudsy lint` on fixtures. A test (`crates/languages/tests/parity.rs`) fails when a `rule:` or `option:` status names something that does not exist, or when the counts below are stale.
+The differential runner [`scripts/parity.sh`](../development/parity.md) compares a tool's output with `sudsy lint` on fixtures. A test (`crates/languages/tests/parity.rs`) fails when a `rule:` or `option:` status names something that does not exist; the counts below are generated (`cargo xtask codegen`).
 
 ## Entry fields
 `id`, `name`, `default` (upstream default), `kind` (`lint` or `format-option`), `sudsy` (status), `coverage`, `notes`, `gap` (what is missing), `priority` (`p1` on by default upstream, `p2` popular opt-in, `p3` rare; judgment, not measured), `usage` (judgment), `batch` (planning group, see below). Option-level entries have ids like `line-length.max`, so tools with many sub-options weigh more in the counts.
@@ -15,7 +15,7 @@ deferred:
   - gap: "Needs the configured label schema."
     ids: [DL3049, DL3050]
 ```
-The readers (`languages::catalog::parse`, used by the counts test, `init` and the rule tables) expand the list; scripts that read `entries` only need covered and partial ones. Move an id back to `entries` to give it notes or a status other than `deferred`.
+The readers (`languages::catalog::parse`, used by the counts, `init` and the rule tables) expand the list; scripts that read `entries` only need covered and partial ones. Move an id back to `entries` to give it notes or a status other than `deferred`.
 
 ## Status (`sudsy`)
 | Status | Meaning |
@@ -33,6 +33,7 @@ The readers (`languages::catalog::parse`, used by the counts test, `init` and th
 `covered` (at the upstream default, or via a non-default option, as the notes say), `partial` (the primary mapping exists, `gap` says what is missing), `missing`, `sdk`, `wontfix`, `deferred`.
 
 ## Counts
+<!-- generated:counts -->
 | Tool | Entries | Covered | Partial | Missing | SDK | Wontfix | Deferred | Planned |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|
 | actionlint | 26 | 5 | 4 | 0 | 0 | 0 | 17 | 0 |
@@ -55,6 +56,7 @@ The readers (`languages::catalog::parse`, used by the counts test, `init` and th
 | terraform | 2 | 1 | 1 | 0 | 0 | 0 | 0 | 0 |
 | tflint | 20 | 8 | 4 | 0 | 0 | 0 | 8 | 0 |
 | yamllint | 65 | 62 | 3 | 0 | 0 | 0 | 0 | 0 |
+<!-- /generated -->
 
 ## Batches
 Planned work is grouped so related entries land together.

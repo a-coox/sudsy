@@ -31,9 +31,13 @@ def run(cmd, cwd, stdin=None, check=True):
     return r
 
 
+def tools():
+    return json.loads((ROOT / "scripts/parity_tools.json").read_text())
+
+
 def catalog_version(name):
     text = (ROOT / "docs/parity" / f"{name}.yaml").read_text(encoding="utf-8")
-    return re.search(r'^version: "([0-9][0-9.]*)', text, re.M).group(1)
+    return re.search(r'^version: "([^ "]+)', text, re.M).group(1)
 
 
 def executable(prefix, name):
@@ -46,7 +50,10 @@ def install(spec, catalog, version, prefix):
     if "npm" in spec:
         if not (prefix / "node_modules" / spec["npm"]).is_dir():
             prefix.mkdir(parents=True, exist_ok=True)
-            run(["npm", "install", "--silent", "--no-audit", "--no-fund", "--prefix", prefix, f"{spec['npm']}@{version}"], ROOT)
+            run(["npm", "install", "--silent", "--no-audit", "--no-fund", "--prefix", prefix, *spec.get("with", []), f"{spec['npm']}@{version}"], ROOT)
+    elif "pip" in spec:  # a Python tool, run with PYTHONPATH=prefix
+        if not (prefix / spec["pip"]).is_dir():
+            run([sys.executable, "-m", "pip", "install", "--quiet", "--target", prefix, f"{spec['pip']}=={version}"], ROOT)
     elif "dotnet-tool" in spec:
         if not executable(prefix, spec["exe"]).exists():
             run(["dotnet", "tool", "install", spec["dotnet-tool"], "--version", version, "--tool-path", prefix], ROOT)
@@ -62,8 +69,12 @@ def install(spec, catalog, version, prefix):
             asset = (spec["assets"].get(key) or sys.exit(f"parity: no {catalog} release for {key}")).format(version=version)
             archive = prefix / asset
             run(["curl", "-fsSL", "-o", archive, spec["release"].format(version=version, asset=asset)], ROOT)
-            if asset.endswith(".zip"):
-                run(["unzip", "-oq", archive, "-d", prefix], ROOT)
+            if asset.endswith((".zip", ".tar.gz", ".tar.xz")):
+                shutil.unpack_archive(archive, prefix)
+                if not executable(prefix, spec["exe"]).exists():  # inside a folder of the archive
+                    found = next(p for n in (spec["exe"] + ".exe", spec["exe"]) for p in prefix.rglob(n))
+                    found.replace(prefix / found.name)
+                    (prefix / found.name).chmod(0o755)
             elif asset.endswith(".gz"):
                 target = prefix / spec["exe"]
                 run(["gunzip", "-f", archive], ROOT)
@@ -183,22 +194,29 @@ def editorconfig_cases(version, sudsy, parity):
     return bad
 
 
-def main():
-    sys.stdout.reconfigure(encoding="utf-8")
-    tool, sudsy, target = sys.argv[1:4]
-    config = json.loads((ROOT / "scripts/parity_format.json").read_text())[tool]
-    parity = Path(target).resolve() / "parity"
+def prepare(config, parity):
+    """Builds what the entry needs, fetches its corpora and installs the tool; returns (version, prefix)."""
     if "worker" in config.get("needs", []):
         run(["dotnet", "build", "--nologo", "-v:q", "workers/csharp/Sudsy.Worker"], ROOT)
         os.environ.setdefault("SUDSY_CSHARP_WORKER", str(ROOT / "workers/csharp/Sudsy.Worker/bin/Debug/net10.0/Sudsy.Worker.dll"))
     for script in config.get("fetch", []):
         run(["bash", script], ROOT)
-    if "catalog" in config:
-        version = catalog_version(config["catalog"])
-        prefix = parity / f"{config['catalog']}-{version}"
-        install(config["install"], config["catalog"], version, prefix)
-    else:
-        version = run(config["version_command"], ROOT).stdout.decode().strip()
+    if "catalog" not in config:
+        return run(config["version_command"], ROOT).stdout.decode().strip(), None
+    version = catalog_version(config["catalog"])
+    prefix = parity / f"{config['catalog']}-{version}"
+    spec = config.get("install")
+    if spec:  # a name: the install of that format entry
+        install(tools()["format"][spec]["install"] if isinstance(spec, str) else spec, config["catalog"], version, prefix)
+    return version, prefix
+
+
+def main():
+    sys.stdout.reconfigure(encoding="utf-8")
+    tool, sudsy, target = sys.argv[1:4]
+    config = tools()["format"][tool]
+    parity = Path(target).resolve() / "parity"
+    version, prefix = prepare(config, parity)
     if config.get("kind") == "editorconfig-cases":
         return 1 if editorconfig_cases(version, sudsy, parity) else 0
     folder = ROOT / "tests/parity" / tool

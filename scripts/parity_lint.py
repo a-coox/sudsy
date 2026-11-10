@@ -1,6 +1,8 @@
 """Compares an upstream tool with `sudsy lint` on tests/parity/<tool>/ (run by scripts/parity.sh).
 
-Usage: parity_compare.py <tool> <version> <sudsy-binary>
+Usage: parity_lint.py <tool> <sudsy-binary> <target-dir>
+
+The tool's version, install and corpora come from its entry in parity_tools.json (parity_format.prepare).
 """
 import json
 import os
@@ -16,11 +18,10 @@ import parity_format
 
 ROOT = Path(__file__).resolve().parent.parent
 PARITY = ROOT / os.environ.get("CARGO_TARGET_DIR", "target") / "parity"
-CATALOGS = {"eslint-jsonc": "eslint-plugin-jsonc"}  # tool name -> catalog file, where they differ
 
 
 def catalog_entries(tool, sub=False):
-    catalog = yaml.safe_load((ROOT / "docs/parity" / f"{CATALOGS.get(tool, tool)}.yaml").read_text(encoding="utf-8"))
+    catalog = yaml.safe_load((ROOT / "docs/parity" / f"{parity_format.tools()['lint'][tool]['catalog']}.yaml").read_text(encoding="utf-8"))
     return [e for e in catalog["entries"] if sub or "." not in e["id"]]
 
 
@@ -50,11 +51,11 @@ def formatter_ids(tool):
     return ids("covered"), ids("partial")
 
 
-def yamllint(fixture, cwd):
+def yamllint(fixture, cwd, prefix):
     """`{(upstream rule, line, column)}` of the fixture."""
     out = subprocess.run(
         [sys.executable, "-m", "yamllint", "-f", "parsable", "-c", ".yamllint", fixture.name],
-        cwd=cwd, capture_output=True, text=True, check=False,
+        cwd=cwd, capture_output=True, text=True, check=False, env={**os.environ, "PYTHONPATH": str(prefix)},
     ).stdout
     found = set()
     for line in out.splitlines():
@@ -76,11 +77,10 @@ def yamllint(fixture, cwd):
     return found
 
 
-def eslint_jsonc(version, folder):
+def eslint_jsonc(install, folder):
     """`{fixture name: {(upstream rule, line, column)}}` of the `.json` fixtures. ESLint and the plugin
-    are installed by parity.sh into target/parity/eslint-jsonc-<version>/; the fixtures and the flat
-    config are copied below it so that the config finds the plugin."""
-    install = PARITY / f"eslint-jsonc-{version}"
+    are installed in `install`; the fixtures and the flat config are copied below it so that the
+    config finds the plugin."""
     work = install / "work"
     shutil.rmtree(work, ignore_errors=True)
     shutil.copytree(folder, work, ignore=shutil.ignore_patterns("sudsy.yaml"))
@@ -98,12 +98,11 @@ def eslint_jsonc(version, folder):
     }
 
 
-def markdownlint(version, folder):
+def markdownlint(install, folder):
     """`{fixture name: {(upstream rule, line, 0)}}` of the `.md` fixtures (markdownlint reports a column
     for some rules only, so the column is left out of the comparison; Sudsy's is zeroed alike).
-    markdownlint-cli2 is installed by parity.sh into target/parity/markdownlint-<version>/; the
-    fixtures and their `.markdownlint.jsonc` are copied below it."""
-    install = PARITY / f"markdownlint-{version}"
+    markdownlint-cli2 is installed in `install`; the fixtures and their `.markdownlint.jsonc` are
+    copied below it."""
     work = install / "work"
     shutil.rmtree(work, ignore_errors=True)
     shutil.copytree(folder, work, ignore=shutil.ignore_patterns("sudsy.yaml"))
@@ -119,7 +118,7 @@ def markdownlint(version, folder):
     return found
 
 
-def rule_fixtures(tool, sudsy, version, exe):
+def rule_fixtures(tool, sudsy, version, prefix, exe):
     """Runs the tool (hadolint, shellcheck, checkmake) and `sudsy lint` on the rule fixtures of its language
     (tests/rules/<lang>/<folder>/*<suffix>, annotations removed) and compares `(rule, line)` of the
     catalog's rules: upstream codes the catalog does not map are left out.
@@ -142,7 +141,7 @@ def rule_fixtures(tool, sudsy, version, exe):
     }[tool]
     mapping = rule_map(tool)
     folder = ROOT / "tests/parity" / tool
-    work = PARITY / f"{tool}-{version}" / "work"
+    work = prefix / "work"
     shutil.rmtree(work, ignore_errors=True)
     work.mkdir(parents=True)
     for config in ("sudsy.yaml", "buf.yaml"):
@@ -218,19 +217,14 @@ def actionlint_check(d):
     return kind
 
 
-def psscriptanalyzer(sudsy, version):
+def psscriptanalyzer(sudsy, version, prefix):
     """Invoke-ScriptAnalyzer against `sudsy lint` (preset powershell/psscriptanalyzer) on the PowerShell rule
     fixtures (tests/rules/powershell/*/*.ps1, annotations removed) and the PowerShell corpus, as
     `(file, rule, line)` of the rules the catalog maps. Also checks that the catalog lists exactly the rules and
     severities of the installed module. `tests/parity/psscriptanalyzer/expected-diff.txt` has the format of
     hadolint's: `<file> <psscriptanalyzer|sudsy>:<rule> <line>: <reason>` (a fixture is `<folder>-<name>.ps1`,
     a corpus file `corpus/<path>`); one that no longer differs fails."""
-    prefix = PARITY / f"psscriptanalyzer-{version}"
     script = ROOT / "scripts/parity_psscriptanalyzer.ps1"
-    if not (prefix / "PSScriptAnalyzer").is_dir():
-        prefix.mkdir(parents=True, exist_ok=True)
-        subprocess.run(["pwsh", "-NoProfile", "-Command",
-                        f"Save-Module PSScriptAnalyzer -RequiredVersion {version} -Path '{prefix}'"], check=True)
     pwsh = lambda *args: subprocess.run(["pwsh", "-NoProfile", "-File", str(script), str(prefix), *args],
                                         capture_output=True, text=True, encoding="utf-8", check=True).stdout
     # The catalog lists the module's rules, with its severities.
@@ -254,8 +248,6 @@ def psscriptanalyzer(sudsy, version):
     work.mkdir(parents=True)
     shutil.copy(folder / "sudsy.yaml", work / "sudsy.yaml")
     corpus = ROOT / "tests/conformance/corpus/powershell"
-    if not corpus.is_dir():
-        subprocess.run(["bash", str(ROOT / "tests/conformance/fetch-powershell-corpus.sh")], check=True)
     for source in sorted((ROOT / "tests/rules/powershell").glob("*/*.ps1")):
         text = "".join(
             l for l in source.read_text(encoding="utf-8").splitlines(keepends=True) if not re.match(r"\s*#?\s*\^", l)
@@ -379,26 +371,24 @@ def stylecop(sudsy, version):
 
 
 def main():
-    tool, version, sudsy = sys.argv[1:4]
+    tool, sudsy, target = sys.argv[1:4]
+    config = parity_format.tools()["lint"][tool]
+    version, prefix = parity_format.prepare(config, Path(target).resolve() / "parity")
     if tool == "stylecop":
         return stylecop(sudsy, version)
     if tool == "psscriptanalyzer":
-        return psscriptanalyzer(sudsy, version)
-    if tool in ("hadolint", "shellcheck", "checkmake", "actionlint"):
-        return rule_fixtures(tool, sudsy, version, sys.argv[4])
-    if tool == "buf":  # installed like the format mode's, by its entry in parity_format.json
-        config = json.loads((ROOT / "scripts/parity_format.json").read_text())["buf"]
-        prefix = PARITY / f"buf-{version}"
-        parity_format.install(config["install"], "buf", version, prefix)
-        return rule_fixtures(tool, sudsy, version, str(parity_format.executable(prefix, "buf")))
+        return psscriptanalyzer(sudsy, version, prefix)
+    if tool in ("hadolint", "shellcheck", "checkmake", "actionlint", "buf"):
+        exe = parity_format.tools()["format"][config["install"]] if isinstance(config["install"], str) else config
+        return rule_fixtures(tool, sudsy, version, prefix, str(parity_format.executable(prefix, exe["install"]["exe"])))
     mapping = rule_map(tool)
     folder = ROOT / "tests/parity" / tool
     suffixes = {"eslint-jsonc": (".json",), "markdownlint": (".md",)}.get(tool, (".yaml", ".yml"))
     fixtures = sorted(p for p in folder.iterdir() if p.suffix in suffixes and p.name != "sudsy.yaml")
-    eslint = {"eslint-jsonc": eslint_jsonc, "markdownlint": markdownlint}[tool](version, folder) if tool in ("eslint-jsonc", "markdownlint") else None
+    eslint = {"eslint-jsonc": eslint_jsonc, "markdownlint": markdownlint}[tool](prefix, folder) if tool in ("eslint-jsonc", "markdownlint") else None
     mismatches = 0
     for fixture in fixtures:
-        found = eslint.get(fixture.name, set()) if eslint is not None else yamllint(fixture, folder)
+        found = eslint.get(fixture.name, set()) if eslint is not None else yamllint(fixture, folder, prefix)
         # An upstream rule with no mapping can never match: report it.
         upstream = {(mapping.get(r, f"<unmapped {tool} rule {r}>"), l, c) for r, l, c in found}
         mismatches += compare(fixture.name, upstream, sudsy_lint(sudsy, fixture, folder), tool)
