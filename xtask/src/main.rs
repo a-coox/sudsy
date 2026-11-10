@@ -1,4 +1,5 @@
-use anyhow::{Result, bail};
+use anyhow::{Result, bail, ensure};
+use std::process::Command;
 
 fn main() -> Result<()> {
     let args: Vec<String> = std::env::args().skip(1).collect();
@@ -8,15 +9,23 @@ fn main() -> Result<()> {
         .collect::<Vec<_>>()
         .as_slice()
     {
-        ["codegen"] => codegen(),
-        ["codegen", "--check"] => {
-            let stale = xtask::stale_files()?;
-            if stale.is_empty() {
-                return Ok(());
-            }
-            bail!("stale generated files (run `cargo xtask codegen`): {stale:?}");
+        ["codegen"] => {
+            xtask::write(xtask::generate()?)?;
+            full(&["codegen"])
         }
-        ["affected", rest @ ..] => affected(rest),
+        ["codegen", "--check"] => {
+            // Stage 2 builds the languages, which stale glue would break: report that first.
+            let stale = xtask::stale(xtask::generate()?);
+            if !stale.is_empty() {
+                bail!("stale generated files (run `cargo xtask codegen`): {stale:?}");
+            }
+            full(&["codegen", "--check"])
+        }
+        ["affected", rest @ ..] => {
+            let mut a = vec!["affected"];
+            a.extend(rest);
+            full(&a)
+        }
         ["new-rule", language, id] => print_new_rule(language, id, false),
         ["new-rule", language, id, "--rust"] => print_new_rule(language, id, true),
         _ => bail!(
@@ -33,40 +42,12 @@ fn print_new_rule(language: &str, id: &str, rust: bool) -> Result<()> {
     Ok(())
 }
 
-/// This binary embeds the providers, whose glue `codegen` rewrites (`provider.generated.rs`), so
-/// outputs derived from them (the VS Code selector, docs) are stale after a change. A run that
-/// rewrote crates/ or the root manifest re-runs once in a fresh build, which must not change crates/ again.
-fn codegen() -> Result<()> {
-    const PASS: &str = "SUDSY_CODEGEN_PASS2";
-    let changed = xtask::write_generated()?;
-    let second = std::env::var_os(PASS).is_some();
-    let rebuilds = changed
-        .iter()
-        .any(|p| p.starts_with("crates") || p == "Cargo.toml");
-    if second && rebuilds {
-        bail!("codegen did not converge: the second run changed {changed:?}");
-    }
-    if !second && rebuilds {
-        // Windows will not let cargo replace the running exe, but it allows renaming it.
-        let exe = std::env::current_exe()?;
-        std::fs::rename(&exe, exe.with_extension("old"))?;
-        let status = std::process::Command::new("cargo")
-            .args(["run", "--quiet", "--package", "xtask", "--", "codegen"])
-            .env(PASS, "1")
-            .status()?;
-        anyhow::ensure!(status.success(), "second codegen pass failed");
-    }
-    Ok(())
-}
-
-fn affected(args: &[&str]) -> Result<()> {
-    let (base, all) = match args {
-        [] => (None, false),
-        ["--all"] => (None, true),
-        ["--base", rev] => (Some(*rev), false),
-        ["--base", rev, "--all"] | ["--all", "--base", rev] => (Some(*rev), true),
-        _ => bail!("usage: cargo xtask affected [--base REV] [--all]"),
-    };
-    print!("{}", xtask::affected::run(&xtask::repo_root(), base, all)?);
+/// Stage 2 and the commands that need the compiled languages: `xtask-full`, built after stage 1.
+fn full(args: &[&str]) -> Result<()> {
+    let status = Command::new("cargo")
+        .args(["run", "--quiet", "--package", "xtask-full", "--"])
+        .args(args)
+        .status()?;
+    ensure!(status.success(), "xtask-full {args:?} failed");
     Ok(())
 }

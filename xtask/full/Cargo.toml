@@ -1,0 +1,18 @@
+[package]
+name = "xtask-full"
+edition.workspace = true
+license.workspace = true
+version.workspace = true
+publish.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+core-config.workspace = true
+core-rules.workspace = true
+languages = { path = "../../crates/languages" }
+provider-api.workspace = true
+serde_json.workspace = true
+xtask = { path = ".." }
+
+[lints]
+workspace = true

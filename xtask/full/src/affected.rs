@@ -625,7 +625,7 @@ mod tests {
         for path in [
             "tests/new-thing/a.txt",
             "Cargo.toml",
-            "xtask/src/affected.rs",
+            "xtask/full/src/affected.rs",
         ] {
             let a = sel(&[path]);
             assert!(
@@ -672,7 +672,7 @@ mod tests {
 
     #[test]
     fn every_language_names_its_crate() {
-        let root = crate::repo_root();
+        let root = xtask::repo_root();
         for p in languages::providers() {
             let name = p.crate_name();
             assert!(

@@ -51,7 +51,7 @@ pub fn generate(providers: &[Box<dyn LanguageProvider>]) -> Result<Vec<(PathBuf,
     );
 
     let rel = "editors/vscode/package.json";
-    let mut package = std::fs::read_to_string(crate::repo_root().join(rel))?;
+    let mut package = std::fs::read_to_string(xtask::repo_root().join(rel))?;
     let from = package
         .find("\"activationEvents\": [")
         .with_context(|| format!("{rel}: no activationEvents"))?;

@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["crates/*", "xtask", "tools/wire-bench", "tools/perf-bench"]
+members = ["crates/*", "xtask", "xtask/full", "tools/wire-bench", "tools/perf-bench"]
 # Builds for wasm32-wasip2 on its own (the plugin tests do that); not part of the host build.
 exclude = ["tests/plugins/sample"]
 

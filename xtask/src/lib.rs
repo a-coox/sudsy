@@ -1,24 +1,19 @@
-//! Repository automation. `cargo xtask codegen` regenerates checked-in files from
-//! the C# grammar (the worker's constants), the language providers, the JSON Schema of the config and the reference tables
-//! of the docs; `cargo xtask codegen --check` (and the `codegen_is_fresh` test)
-//! fails when they are stale.
+//! Repository automation, stage 1: `cargo xtask codegen` writes the glue of the language crates
+//! (registration, provider, node mapping, options) and the worker's grammar constants from
+//! `lang.yaml` and the grammar files only, so it compiles when that glue is stale. Stage 2
+//! (`xtask-full`) builds the languages and writes what derives from them (schema, docs, editor
+//! lists). `cargo xtask codegen --check` (and the `codegen_is_fresh` test) fails when either is stale.
 
-pub mod affected;
-mod docs;
 mod lang_crate;
-pub mod manifests;
 mod mapping;
 mod new_rule;
 mod options;
 mod registry;
-mod rules;
-mod vscode;
 
 pub use new_rule::new_rule;
 
 use anyhow::{Context, Result, ensure};
 use core_syntax::{Grammar, codegen};
-use provider_api::LanguageProvider;
 use std::path::{Path, PathBuf};
 
 pub fn repo_root() -> PathBuf {
@@ -28,14 +23,10 @@ pub fn repo_root() -> PathBuf {
         .to_path_buf()
 }
 
-/// Every generated file as (path relative to the repo root, contents).
+/// The stage 1 files as (path relative to the repo root, contents).
 pub fn generate() -> Result<Vec<(PathBuf, String)>> {
     let root = repo_root();
-    let providers = languages::providers();
-    let mut files: Vec<(PathBuf, String)> = vec![(
-        "schemas/sudsy.schema.json".into(),
-        config_schema(&providers)?,
-    )];
+    let mut files: Vec<(PathBuf, String)> = Vec::new();
     let mut ids = Vec::new();
     for entry in std::fs::read_dir(root.join("grammars"))? {
         let path = entry?.path();
@@ -61,37 +52,26 @@ pub fn generate() -> Result<Vec<(PathBuf, String)>> {
     let langs = lang_crate::load(&root)?;
     files.extend(lang_crate::generate(&langs)?);
     files.extend(registry::generate(&lang_crate::tree_sitter(&langs))?);
-    files.extend(vscode::generate(&providers)?);
-    files.extend(docs::generate(&providers)?);
     Ok(files)
 }
 
-/// The JSON Schema of `sudsy.yaml`, from the option declarations of the providers; editors register it for completion and validation of the config.
-fn config_schema(providers: &[Box<dyn LanguageProvider>]) -> Result<String> {
-    let schema = core_config::json_schema(
-        &languages::schemas(providers),
-        &languages::rule_schemas(providers),
-    );
-    Ok(serde_json::to_string_pretty(&schema)? + "\n")
-}
-
 /// Paths of generated files whose checked-in content differs from fresh output.
-pub fn stale_files() -> Result<Vec<PathBuf>> {
+pub fn stale(files: Vec<(PathBuf, String)>) -> Vec<PathBuf> {
     let root = repo_root();
-    Ok(generate()?
+    files
         .into_iter()
         .filter(|(rel, content)| {
             std::fs::read_to_string(root.join(rel)).ok().as_deref() != Some(content)
         })
         .map(|(rel, _)| rel)
-        .collect())
+        .collect()
 }
 
-/// Writes every generated file; returns those that changed on disk.
-pub fn write_generated() -> Result<Vec<PathBuf>> {
+/// Writes the files; returns those that changed on disk.
+pub fn write(files: Vec<(PathBuf, String)>) -> Result<Vec<PathBuf>> {
     let root = repo_root();
     let mut changed = Vec::new();
-    for (rel, content) in generate()? {
+    for (rel, content) in files {
         let path = root.join(&rel);
         if std::fs::read_to_string(&path).ok().as_deref() == Some(&content) {
             continue;

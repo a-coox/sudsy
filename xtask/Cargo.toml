@@ -5,13 +5,11 @@ license.workspace = true
 version.workspace = true
 publish.workspace = true
 
+# No `languages` here: this crate writes the glue the language crates are built from, so it must
+# compile when that glue is stale. What needs the compiled languages lives in `xtask-full`.
 [dependencies]
 anyhow.workspace = true
-core-config.workspace = true
-core-rules.workspace = true
 core-syntax.workspace = true
-languages = { path = "../crates/languages" }
-provider-api.workspace = true
 serde-saphyr.workspace = true
 serde_json.workspace = true
 

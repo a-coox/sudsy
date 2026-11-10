@@ -3624,13 +3624,22 @@ name = "xtask"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "core-config",
- "core-rules",
  "core-syntax",
- "languages",
- "provider-api",
  "serde-saphyr",
  "serde_json",
+]
+
+[[package]]
+name = "xtask-full"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "core-config",
+ "core-rules",
+ "languages",
+ "provider-api",
+ "serde_json",
+ "xtask",
 ]
 
 [[package]]

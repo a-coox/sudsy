@@ -25,7 +25,7 @@ A Rust core owns everything language-neutral; each language contributes a provid
 | `cli`, `lsp` | Front ends. `lsp` is a library; the server is `sudsy lsp` (one binary) |
 | `plugin-sdk` | Public crate for rule authors |
 
-Other: `xtask` (`cargo xtask codegen [--check]`), `tools/perf-bench`, `tools/wire-bench`, `workers/csharp`, `grammars/`, `wit/rules.wit`, `editors/vscode`, `schemas/sudsy.schema.json` (generated).
+Other: `xtask` (`cargo xtask codegen [--check]`: stage 1 writes the language glue from `lang.yaml` without compiling the languages; `xtask/full` is stage 2, [adding-a-language.md](adding-a-language.md)), `tools/perf-bench`, `tools/wire-bench`, `workers/csharp`, `grammars/`, `wit/rules.wit`, `editors/vscode`, `schemas/sudsy.schema.json` (generated).
 
 ## Dependency rules
 - Language crates depend on core crates, never the reverse. Shared behavior lives in a core crate.

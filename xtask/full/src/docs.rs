@@ -74,7 +74,7 @@ pub fn generate(providers: &[Box<dyn LanguageProvider>]) -> Result<Vec<(PathBuf,
 /// One row per catalog (`docs/parity/*.yaml`): the entries by coverage.
 fn catalog_counts() -> Result<String> {
     let mut catalogs = Vec::new();
-    for file in std::fs::read_dir(crate::repo_root().join("docs/parity"))? {
+    for file in std::fs::read_dir(xtask::repo_root().join("docs/parity"))? {
         let path = file?.path();
         if path.extension().is_some_and(|e| e == "yaml") {
             let text = std::fs::read_to_string(&path)?;
@@ -111,7 +111,7 @@ fn catalog_counts() -> Result<String> {
 
 /// The tools of `scripts/parity_tools.json`, per mode.
 fn parity_tools() -> Result<String> {
-    let text = std::fs::read_to_string(crate::repo_root().join("scripts/parity_tools.json"))?;
+    let text = std::fs::read_to_string(xtask::repo_root().join("scripts/parity_tools.json"))?;
     let modes: BTreeMap<String, BTreeMap<String, serde_json::Value>> = serde_json::from_str(&text)?;
     let list = |mode: &str| {
         modes[mode]
@@ -129,7 +129,7 @@ fn parity_tools() -> Result<String> {
 
 /// The file with the body of each named block replaced.
 fn splice(rel: &str, blocks: &[(&str, String)]) -> Result<(PathBuf, String)> {
-    let path = crate::repo_root().join(rel);
+    let path = xtask::repo_root().join(rel);
     let mut text = std::fs::read_to_string(&path).with_context(|| format!("reading {rel}"))?;
     for (name, body) in blocks {
         let start = format!("<!-- generated:{name} -->");

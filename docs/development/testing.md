@@ -18,7 +18,7 @@ Every formatter test checks lossless round trip, idempotency, unchanged meaning 
 | Scaling guards | Work counts, not time | `core-format/tests/scaling.rs`, `tools/perf-bench/tests/scaling.rs` |
 | Parity catalog | `docs/parity/*.yaml` only name rules and options that exist; README counts are current | `languages/tests/parity.rs` |
 | `init --from` | each tool fixture under `tests/fixtures/init/` migrates to a config that loads (snapshots), mappings agree with the catalog | `cli/tests/init.rs` |
-| Codegen | Generated files and doc tables are fresh | `xtask/tests/codegen_is_fresh.rs` |
+| Codegen | Generated files and doc tables are fresh | `xtask/full/tests/codegen_is_fresh.rs` |
 
 Tree-sitter languages share `provider_api::format_testing` (see [adding-a-language.md](../architecture/adding-a-language.md)): their formatter and corpus tests are a few lines each.
 
