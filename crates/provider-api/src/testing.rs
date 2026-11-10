@@ -76,13 +76,17 @@ fn analyze(
     text: &str,
     rules: &str,
 ) -> Analysis {
-    let yaml = format!(
-        "lint:\n  rules:\n{}",
+    // An empty block is a null, which the YAML reader no longer accepts for a mapping.
+    let body = if rules.is_empty() {
+        " {}\n".to_string()
+    } else {
         rules
             .lines()
-            .map(|l| format!("    {l}\n"))
+            .map(|l| format!("\n    {l}"))
             .collect::<String>()
-    );
+            + "\n"
+    };
+    let yaml = format!("lint:\n  rules:{body}");
     let chain = ConfigChain::parse(&yaml).expect("the test config is valid");
     let resolved = chain
         .rules(

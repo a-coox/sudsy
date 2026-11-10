@@ -9,6 +9,8 @@ updates:
     directory: /editors/vscode
     schedule: { interval: monthly }
     groups: { npm: { patterns: ["*"] } }
+    # typescript-eslint peers cap typescript below 7; drop this once it accepts 7.
+    ignore: [{ dependency-name: typescript, update-types: ["version-update:semver-major"] }]
   - package-ecosystem: nuget
     directory: /workers/csharp
     schedule: { interval: monthly }
