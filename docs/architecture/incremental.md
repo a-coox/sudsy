@@ -2,7 +2,7 @@
 
 ## Graph
 - Inputs: `File { path, version, text, had_bom }`, singleton `ConfigFile { path, text }`, `ExtensionSet` (pattern rules and plugins). The provider list is fixed per database.
-- Queries: `config` -> `selection` (provider + dialect from the path) -> `options` -> `language_version` (the only part of options parsing reads, so an `indent_size` edit keeps the parse) -> `parse` (green tree + errors) -> `format` (safety check inside in debug builds; `Ok(text)` or a failure; it reads `layout(file)`, the directives of the layout rules, which reads `parse`, the extension set and `lint_settings` and nothing when the language has no layout rule). Also `lint_settings(file)`, `semantics(file)` (asks only the layers active rules need and the depth allows) and `lint(file)`.
+- Queries: `config` -> `selection` (provider + dialect from the path) -> `options` -> `language_version` (the only part of options parsing reads, so an `indent_size` edit keeps the parse) -> `parse` (green tree + errors) -> `format` (safety check inside in debug builds; `Ok(text)` or a failure; it reads `layout(file)`, the directives of the layout rules, which reads `parse`, the extension set and `lint_settings` and nothing when the language has no layout rule). Also `lint_settings(file)`, `semantics(file)` (asks only the layers active rules need and the depth allows; when that is any, it also reads the `WorkspaceRevision` input, which the LSP bumps after edits, since another file feeds the model; `format` and syntax-only `lint` never read it) and `lint(file)`.
 - Fix loop: `fix_text` / `transient` (same file, other text) are shared by `sudsy fix` and the editor's fix-all.
 
 ## Behaviour

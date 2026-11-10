@@ -122,6 +122,7 @@ Markdown (tree-sitter-md block and inline grammars through `core-treesitter` as 
 | First pull (first workspace build) | 3.2-3.7 s |
 | Typing, 40 edits 30 ms apart: last pull answered after last edit | 0.10-0.25 s |
 | Typing: pulls that did the full work | 1-2 of 40 |
+| Refresh after an edit (`lsp-latency` refresh phase: 5 open C# files, `bench/inputs/cs`, release server, debug worker, Windows; one edit, the server bumps `WorkspaceRevision` after 400 ms, then the 4 other files are pulled) | 68-85 ms for the 4 pulls (one worker round trip each, about 7 ms per file) against 54-55 ms for the same pulls with no edit; format and syntax-only lint do not read the revision (`scripts/bench.sh` unchanged) |
 
 ## Dev loop / tooling (persistent `CARGO_TARGET_DIR` slot, `docs/development/dev-loop.md`)
 Method: `scripts/devloop-times.sh` in slot3 (warm slot; a comment appended to `crates/lang-toml/src/lib.rs`, selection against HEAD), and the `finish.sh` runs of the commit that added the selection for "everything" (a change to the gate and bench scripts), Git Bash, wall seconds, no other agent running; 13 bench languages, 714 tests. Before this setup (full debug info, `cargo test`, callgrind in batches of 6, no baseline cache, gate then bench in a row): gate 361 s + bench 429 s = 790 s.

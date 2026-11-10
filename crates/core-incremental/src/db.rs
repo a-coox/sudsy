@@ -1,6 +1,6 @@
 //! The database: salsa storage plus the (immutable) provider list.
 
-use crate::inputs::{ConfigFile, ExtensionSet, File};
+use crate::inputs::{ConfigFile, ExtensionSet, File, WorkspaceRevision};
 use core_config::{ConfigChain, ConfigError, EditorConfig};
 use provider_api::{LanguageProvider, select_provider_index};
 use salsa::Setter;
@@ -58,6 +58,7 @@ impl Database {
         };
         ConfigFile::new(&db, Ok(ConfigChain::default()));
         ExtensionSet::new(&db, core_rules::Extensions::default());
+        WorkspaceRevision::new(&db, 0);
         db
     }
 
@@ -86,6 +87,13 @@ impl Database {
     pub fn set_file_text(&mut self, file: File, version: u64, text: String) {
         file.set_text(self).to(text);
         file.set_version(self).to(version);
+    }
+
+    /// Some document opened, changed or closed: other files' semantic answers are stale.
+    pub fn bump_workspace_revision(&mut self) {
+        let input = WorkspaceRevision::get(self);
+        let next = input.revision(self) + 1;
+        input.set_revision(self).to(next);
     }
 
     /// The `.editorconfig` values of `file` changed.

@@ -56,6 +56,14 @@ pub struct ConfigFile {
     pub chain: Result<ConfigChain, ConfigError>,
 }
 
+/// Bumped by the editor whenever any document opens, changes or closes. Semantic answers read it,
+/// since another file's edit can change them; format and syntax-only lint do not.
+#[salsa::input(singleton, debug)]
+pub struct WorkspaceRevision {
+    #[returns(copy)]
+    pub revision: u64,
+}
+
 /// The rules that pattern files and plugins add to the providers' own (empty by default).
 #[salsa::input(singleton, debug)]
 pub struct ExtensionSet {

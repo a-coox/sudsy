@@ -188,6 +188,12 @@ impl Workspace {
         }
     }
 
+    /// Makes the files' semantic answers depend on the edits so far. Setting the input cancels the
+    /// queries of other handles: call it while none runs.
+    pub fn bump_revision(&mut self) {
+        self.db.bump_workspace_revision();
+    }
+
     /// Does the config ask for `analysis: deep`?
     pub fn is_deep(&self) -> bool {
         self.project

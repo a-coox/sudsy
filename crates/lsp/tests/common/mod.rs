@@ -204,6 +204,22 @@ impl Client {
         }
     }
 
+    /// Reads messages until the server has made a request of `method` (or did already).
+    pub fn wait_for_request(&mut self, method: &str) {
+        while !self.server_requests.iter().any(|m| m == method) {
+            match self
+                .conn
+                .receiver
+                .recv_timeout(TIMEOUT)
+                .expect("a request arrives")
+            {
+                Message::Request(r) => self.answer(r),
+                Message::Notification(n) => self.notes.push((n.method, n.params)),
+                Message::Response(_) => {}
+            }
+        }
+    }
+
     pub fn path(&self, name: &str) -> PathBuf {
         self.root.join(name)
     }

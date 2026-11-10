@@ -4,7 +4,7 @@
 use crate::db::Db;
 use crate::embedded::{lint_embedded, parse_embedded};
 use crate::failure::{Failure, Stage};
-use crate::inputs::{ExtensionSet, File};
+use crate::inputs::{ExtensionSet, File, WorkspaceRevision};
 use crate::queries::{config, parse, parse_settings, provider_of, selection, source_file};
 use core_config::{Depth, FileInput, ResolvedRule};
 use core_format::DirectiveTable;
@@ -168,6 +168,8 @@ pub fn semantics(db: &dyn Db, file: File) -> Result<Option<FileSemantics>, Failu
     if layers.is_empty() {
         return Ok(None);
     }
+    // Other files feed the model: ask again when any document changed.
+    WorkspaceRevision::get(db).revision(db);
     let provider = provider_of(db, file)?;
     let source = source_file(db, file, parse_settings(db, file));
     provider

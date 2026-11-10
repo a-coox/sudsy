@@ -187,3 +187,32 @@ fn a_missing_runtime_is_prompted_once_and_the_action_opens_the_download() {
     assert_eq!(documents[0]["external"], true);
     assert!(client.notes.iter().all(|(m, _)| m != "window/showMessage"));
 }
+
+#[test]
+fn an_edit_of_another_file_refreshes_the_semantic_findings_of_an_open_one() {
+    let t = tempfile::tempdir().unwrap();
+    std::fs::write(
+        t.path().join("sudsy.yaml"),
+        "lint:\n  rules:\n    remove-unused-usings: warn\n",
+    )
+    .unwrap();
+    let mut client = Client::start(t.path(), providers(&worker_dll()));
+    let a = client.open(
+        "A.cs",
+        "csharp",
+        "using N;\nusing M;\nclass A { T f; U g; }\n",
+    );
+    let src = "namespace N { class T {} } namespace M { class U {} }\n";
+    let b = client.open("B.cs", "csharp", src);
+    assert!(client.diagnostics(&a).is_empty());
+    // `T` moves to `M`: the import of `N` is unused now, with no compile error in A.
+    let moved = "namespace N { class X {} } namespace M { class T {} class U {} }\n";
+    client.change(&b, 2, None, moved);
+    // The client pulls the edited file, then the server asks it to pull again.
+    client.diagnostics(&b);
+    client.wait_for_request("workspace/diagnostic/refresh");
+    let found = client.diagnostics(&a);
+    assert_eq!(found.len(), 1, "{found:?}");
+    assert_eq!(found[0].range.start.line, 0);
+    client.shutdown();
+}

@@ -9,6 +9,7 @@ use crate::notifier::{
 };
 use crate::workspace::Workspace;
 use anyhow::{Result, anyhow};
+use crossbeam_channel::RecvTimeoutError;
 use lsp_server::{Connection, ErrorCode, Message, Notification, Request, RequestId, Response};
 use lsp_types::notification::{
     Cancel as CancelRequest, DidChangeTextDocument, DidChangeWatchedFiles, DidCloseTextDocument,
@@ -32,6 +33,7 @@ use provider_api::LanguageProvider;
 use serde::Serialize;
 use serde::de::DeserializeOwned;
 use std::path::PathBuf;
+use std::time::{Duration, Instant};
 
 /// What the client told us it can do.
 #[derive(Default)]
@@ -90,7 +92,13 @@ pub struct Server {
     /// Runs diagnostics and code actions off the message loop.
     analysis: Analysis,
     next_request_id: i32,
+    /// When a document last changed, until the clients are told to pull diagnostics again.
+    edited_at: Option<Instant>,
 }
+
+/// Quiet time after an edit before open files' diagnostics are asked for again: another file's
+/// edit can change them.
+const REFRESH_DELAY: Duration = Duration::from_millis(400);
 
 /// Runs the server on `conn` until the client shuts it down.
 pub fn serve(conn: Connection, providers: Vec<Box<dyn LanguageProvider>>) -> Result<()> {
@@ -122,6 +130,7 @@ pub fn serve(conn: Connection, providers: Vec<Box<dyn LanguageProvider>>) -> Res
         notifier,
         analysis,
         next_request_id: 0,
+        edited_at: None,
     };
     if let Some(error) = config_error {
         server.notifier.config_failed(error);
@@ -137,7 +146,19 @@ impl Server {
     fn run(&mut self) -> Result<()> {
         // Iterate over a clone of the receiver, so that handlers can borrow `self`.
         let receiver = self.conn.receiver.clone();
-        for message in &receiver {
+        loop {
+            let message = match self.edited_at {
+                None => receiver.recv().map_err(|_| RecvTimeoutError::Disconnected),
+                Some(at) => receiver.recv_timeout(REFRESH_DELAY.saturating_sub(at.elapsed())),
+            };
+            let message = match message {
+                Ok(message) => message,
+                Err(RecvTimeoutError::Timeout) => {
+                    self.refresh_after_edits()?;
+                    continue;
+                }
+                Err(RecvTimeoutError::Disconnected) => break,
+            };
             match message {
                 Message::Request(req) => {
                     if self.conn.handle_shutdown(&req)? {
@@ -148,6 +169,21 @@ impl Server {
                 Message::Notification(note) => self.notification(note)?,
                 Message::Response(response) => self.response(response)?,
             }
+        }
+        Ok(())
+    }
+
+    /// Other files' diagnostics may have changed with the edits: the queries are re-asked (once no
+    /// request holds the database) and the client pulls again.
+    fn refresh_after_edits(&mut self) -> Result<()> {
+        if self.analysis.is_busy() {
+            self.edited_at = Some(Instant::now());
+            return Ok(());
+        }
+        self.edited_at = None;
+        self.workspace.bump_revision();
+        if self.support.diagnostic_refresh {
+            self.call::<WorkspaceDiagnosticRefresh>(())?;
         }
         Ok(())
     }
@@ -301,12 +337,14 @@ impl Server {
                         self.notifier.language_missing(&language, &why);
                     }
                     self.workspace.open(path, doc.version, doc.text);
+                    self.edited_at = Some(Instant::now());
                 }
             }
             DidChangeTextDocument::METHOD => {
                 let p: DidChangeTextDocumentParams = serde_json::from_value(note.params)?;
                 if let Some(path) = path_of(&p.text_document.uri) {
                     self.analysis.supersede(&path);
+                    self.edited_at = Some(Instant::now());
                     self.workspace.change(
                         &path,
                         p.text_document.version,
@@ -320,6 +358,7 @@ impl Server {
                 if let Some(path) = path_of(&p.text_document.uri) {
                     self.analysis.supersede(&path);
                     self.workspace.close(&path);
+                    self.edited_at = Some(Instant::now());
                 }
             }
             DidChangeWatchedFiles::METHOD => {

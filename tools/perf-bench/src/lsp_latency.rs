@@ -8,6 +8,9 @@
 //! * typing: with the compilation warm, the client types (an edit every 30 ms) as
 //!   vscode-languageclient does: each edit cancels the pull in flight and asks for a new one.
 //!   How long after the last edit does the answer to the last pull arrive?
+//! * refresh: with `OPEN` other files open, one edit makes the server ask the client to pull
+//!   again; what do the other files' pulls cost (one worker round trip each), against the same
+//!   pulls without an edit?
 
 use anyhow::{Result, anyhow, bail};
 use lsp_server::{Connection, Message, Notification, Request, RequestId, Response};
@@ -233,6 +236,51 @@ fn typing(root: &Path, worker: &Path, file: &Path, text: &str) -> (f64, usize, u
     (ms(answered - last_edit), with_result, pulls.len())
 }
 
+const OPEN: usize = 4;
+
+/// Opens `OPEN` more files next to `file`, edits `file` and times the pulls of the others, which
+/// the server's refresh asks for, then the same pulls again without an edit.
+fn refresh(root: &Path, worker: &Path, file: &Path, text: &str) -> Result<(f64, f64)> {
+    let mut client = Client::start(root, worker);
+    let uri = client.open(file, text);
+    let mut others = Vec::new();
+    for entry in std::fs::read_dir(root)? {
+        let path = entry?.path();
+        if path != file && path.extension().is_some_and(|e| e == "cs") && others.len() < OPEN {
+            let other = std::fs::read_to_string(&path)?;
+            others.push(client.open(&path, &other));
+        }
+    }
+    for u in std::iter::once(&uri).chain(&others) {
+        let id = client.pull(u);
+        client.wait(id);
+    }
+    let pull_others = |client: &mut Client| {
+        let start = Instant::now();
+        for u in &others {
+            let id = client.pull(u);
+            client.wait(id);
+        }
+        ms(start.elapsed())
+    };
+    client.notify(
+        "textDocument/didChange",
+        json!({
+            "textDocument": {"uri": uri, "version": 2},
+            "contentChanges": [{"text": format!("{text}\n")}]
+        }),
+    );
+    let id = client.pull(&uri);
+    client.wait(id);
+    // The server bumps the workspace revision after its quiet time; the pulls after it are what
+    // an edit costs the other files.
+    client.pump(Duration::from_millis(700));
+    let after_edit = pull_others(&mut client);
+    let unchanged = pull_others(&mut client);
+    client.shutdown();
+    Ok((after_edit, unchanged))
+}
+
 fn main() -> Result<()> {
     let args: Vec<String> = std::env::args().skip(1).collect();
     let [corpus, worker, rest @ ..] = args.as_slice() else {
@@ -256,6 +304,12 @@ fn main() -> Result<()> {
         let (last, ok, total) = typing(&root, worker, &file, &text);
         println!(
             "typing, run {run}: last pull answered {last:.0} ms after the last edit ({ok} of {total} pulls returned diagnostics)"
+        );
+    }
+    for run in 1..=repeats {
+        let (edit, unchanged) = refresh(&root, worker, &file, &text)?;
+        println!(
+            "refresh, run {run}: pulling {OPEN} other open files takes {edit:.0} ms after an edit, {unchanged:.0} ms without one"
         );
     }
     let _ = std::fs::remove_dir_all(&root);
