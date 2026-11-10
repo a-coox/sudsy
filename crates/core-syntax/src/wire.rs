@@ -19,7 +19,7 @@ use crate::tree::{SyntaxNode, TreeBuilder};
 use rowan::GreenNode;
 use serde::{Deserialize, Serialize};
 
-pub const WIRE_VERSION: u32 = 1;
+pub const WIRE_VERSION: u32 = 2;
 
 /// Deepest nesting a decoded tree may have. Dropping a green tree recurses once per level inside
 /// rowan, which a debug build on a 2 MB thread stack survives up to about 3000 levels; real code
@@ -52,7 +52,7 @@ pub enum WireError {
 
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct FlatTree {
-    pub kinds: Vec<u16>,
+    pub kinds: Vec<u32>,
     pub values: Vec<u32>,
 }
 
@@ -147,7 +147,7 @@ impl FlatTree {
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct WireTree {
     pub version: u32,
-    /// Kinds as little-endian `u16`.
+    /// Kinds as little-endian `u32`.
     #[serde(with = "serde_bytes")]
     pub kinds: Vec<u8>,
     /// Values as LEB128 varints.
@@ -160,15 +160,15 @@ impl WireTree {
         if self.version != WIRE_VERSION {
             return Err(WireError::Version(self.version));
         }
-        if !self.kinds.len().is_multiple_of(2) {
+        if !self.kinds.len().is_multiple_of(4) {
             return Err(WireError::Malformed("odd kinds length".into()));
         }
-        let kinds: Vec<u16> = self
+        let kinds: Vec<u32> = self
             .kinds
-            .as_chunks::<2>()
+            .as_chunks::<4>()
             .0
             .iter()
-            .map(|c| u16::from_le_bytes(*c))
+            .map(|c| u32::from_le_bytes(*c))
             .collect();
         let mut values = Vec::with_capacity(kinds.len());
         let mut rest = &self.values[..];
@@ -220,10 +220,10 @@ mod tests {
 
     fn node_kind(i: u16) -> SyntaxKind {
         let lang = [LanguageId::CORE, LanguageId::JSON, LanguageId::CSHARP][i as usize % 3];
-        SyntaxKind::new(lang, false, i % 40)
+        SyntaxKind::new(lang, false, u32::from(i % 40))
     }
     fn token_kind(i: u16) -> SyntaxKind {
-        SyntaxKind::new(LanguageId::new(1 + (i % 3) as u8), true, i % 300)
+        SyntaxKind::new(LanguageId::new(1 + (i % 3) as u8), true, u32::from(i % 300))
     }
 
     fn arb_tree() -> impl Strategy<Value = T> {

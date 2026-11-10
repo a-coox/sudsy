@@ -1,9 +1,9 @@
 //! `SyntaxKind` namespacing.
 //!
-//! A kind is a `u16` laid out as
+//! A kind is a `u32` laid out as
 //!
 //! ```text
-//!  15..11  10     9..0
+//!  31..24  23     22..0
 //! +-------+-----+----------+
 //! | lang  | tok |  index   |
 //! +-------+-----+----------+
@@ -16,9 +16,9 @@
 //! * `index`: position among the language's nodes or tokens, in grammar
 //!   declaration order (so reordering a grammar changes ids and its hash).
 //!
-//! Each language therefore has up to 1024 node kinds and 1024 token kinds, and there are 31 languages.
+//! Each language therefore has up to 8,388,608 node kinds and as many token kinds, and there are 255 languages.
 
-/// Identifies a language namespace (5 bits).
+/// Identifies a language namespace (8 bits).
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct LanguageId(u8);
 
@@ -27,11 +27,10 @@ impl LanguageId {
     pub const JSON: LanguageId = LanguageId(1);
     pub const CSHARP: LanguageId = LanguageId(2);
     pub const YAML: LanguageId = LanguageId(3);
-    /// Largest id that fits the 5-bit namespace.
-    pub const MAX: u8 = 31;
+    /// Largest id that fits the 8-bit namespace.
+    pub const MAX: u8 = u8::MAX;
 
     pub const fn new(id: u8) -> Self {
-        assert!(id <= Self::MAX);
         LanguageId(id)
     }
 
@@ -42,21 +41,21 @@ impl LanguageId {
 
 /// A node or token kind. See the module docs for the bit layout.
 #[derive(Copy, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
-pub struct SyntaxKind(pub u16);
+pub struct SyntaxKind(pub u32);
 
 impl SyntaxKind {
-    const LANG_SHIFT: u16 = 11;
-    const TOKEN_BIT: u16 = 1 << 10;
+    const LANG_SHIFT: u32 = 24;
+    const TOKEN_BIT: u32 = 1 << 23;
     /// Largest `index` (exclusive) per language and per node/token class.
-    pub const MAX_INDEX: u16 = 1 << 10;
+    pub const MAX_INDEX: u32 = 1 << 23;
 
     /// A subtree the parser could not make sense of. Every token stays in the tree.
     pub const ERROR: SyntaxKind = SyntaxKind::new(LanguageId::CORE, false, 0);
 
-    pub const fn new(lang: LanguageId, token: bool, index: u16) -> Self {
+    pub const fn new(lang: LanguageId, token: bool, index: u32) -> Self {
         assert!(index < Self::MAX_INDEX);
         let token_bit = if token { Self::TOKEN_BIT } else { 0 };
-        SyntaxKind(((lang.0 as u16) << Self::LANG_SHIFT) | token_bit | index)
+        SyntaxKind(((lang.0 as u32) << Self::LANG_SHIFT) | token_bit | index)
     }
 
     pub const fn lang(self) -> LanguageId {
@@ -67,7 +66,7 @@ impl SyntaxKind {
         self.0 & Self::TOKEN_BIT != 0
     }
 
-    pub const fn index(self) -> u16 {
+    pub const fn index(self) -> u32 {
         self.0 & (Self::MAX_INDEX - 1)
     }
 }
@@ -94,7 +93,7 @@ mod tests {
         assert_eq!(k.lang(), LanguageId::CSHARP);
         assert!(k.is_token());
         assert_eq!(k.index(), 1000);
-        assert_eq!(k.0, 0x1000 | 0x400 | 1000);
+        assert_eq!(k.0, (2 << 24) | (1 << 23) | 1000);
     }
 
     #[test]

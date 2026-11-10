@@ -1,7 +1,7 @@
 # Syntax tree, grammars, wire encoding
 
 ## Tree
-- `rowan` green/red tree; kinds are `u16`: 5 bits language (0 core, 1 JSON, 2 C#, 3 YAML, ...), 1 token bit, 10 bits index.
+- `rowan` green/red tree (vendored in `third_party/rowan` with a 32-bit `SyntaxKind`; upstream is 16-bit); kinds are `u32`: 8 bits language (0 core, 1 JSON, 2 C#, 3 YAML, ...), 1 token bit, 23 bits index.
 - Lossless: printing the tree reproduces the source byte for byte; every conformance test checks it.
 - Trivia (whitespace, newlines, comments) are tokens. C# doc comments and directives are structured trivia nodes (tag `#trivia`); disabled `#if` text is one verbatim token.
 - `ERROR` nodes hold what could not be parsed; every token stays in the tree. Formatter and rules skip subtrees with errors; files with syntax errors are not formatted.
@@ -22,7 +22,7 @@ Trailing trivia: after a token up to and including the end of its line. Leading:
 
 ## Wire encoding (`core-syntax/src/wire.rs`)
 Per file, never per node; token text is not sent (the receiver has the source).
-- `version: u32`, `kinds`: `bin` of little-endian u16, `values`: `bin` of LEB128 varints (token: UTF-8 width; node: child count), inside the MessagePack message.
+- `version: u32`, `kinds`: `bin` of little-endian u32 (version 2), `values`: `bin` of LEB128 varints (token: UTF-8 width; node: child count), inside the MessagePack message.
 - Node widths are derived from children. Whether an element is a token is a bit of its kind.
 - Why flat arrays in `bin`: smallest encode+decode overhead (4.8% of Roslyn parse on CoreLib) and no second container format.
 - The real cost is not the encoding but Roslyn's red-node materialization during the mapping walk (see [numbers](../performance/numbers.md)).

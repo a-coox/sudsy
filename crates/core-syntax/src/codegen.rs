@@ -362,10 +362,10 @@ pub fn csharp_constants(g: &Grammar, grammar_path: &str) -> Result<String, Codeg
         g.language_id.get()
     );
     out.push_str("    /// <summary>Kind id by grammar name; tokens carry bit 11.</summary>\n");
-    out.push_str("    public static readonly (string Name, ushort Id)[] Kinds =\n    [\n");
+    out.push_str("    public static readonly (string Name, uint Id)[] Kinds =\n    [\n");
     for d in g.tokens().iter().chain(g.nodes()) {
         check_ident("kind", &d.name)?;
-        let _ = writeln!(out, "        (\"{}\", 0x{:04X}),", d.name, d.kind.0);
+        let _ = writeln!(out, "        (\"{}\", 0x{:08X}),", d.name, d.kind.0);
     }
     out.push_str("    ];\n}\n");
     Ok(out)

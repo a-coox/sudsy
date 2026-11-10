@@ -1,0 +1,14 @@
+[package]
+name = "rowan"
+version = "0.16.1"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+description = "rowan 0.16.1 with a 32-bit SyntaxKind (upstream: 16-bit)"
+repository = "https://github.com/rust-analyzer/rowan"
+publish = false
+
+[dependencies]
+countme = "3.0.0"
+hashbrown = { version = "0.14.3", features = ["inline-more"], default-features = false }
+rustc-hash = "1.0.1"
+text-size = "1.1.0"

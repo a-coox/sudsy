@@ -10,7 +10,7 @@ public static class ProtocolInfo
 {
     public const uint Version = 3;
     public const uint FlowGraphFormatVersion = 1;
-    public const uint WireFormatVersion = 1;
+    public const uint WireFormatVersion = 2;
 }
 
 [MessagePackObject]

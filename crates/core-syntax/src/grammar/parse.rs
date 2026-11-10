@@ -355,7 +355,7 @@ fn resolve(
 ) -> Result<Grammar, GrammarError> {
     // Pass 1: assign ids.
     let mut by_name: HashMap<String, SyntaxKind> = HashMap::new();
-    let (mut n_nodes, mut n_tokens) = (0u16, 0u16);
+    let (mut n_nodes, mut n_tokens) = (0u32, 0u32);
     let mut kinds = Vec::new();
     for r in &raw {
         let counter = if r.is_token {
@@ -364,7 +364,7 @@ fn resolve(
             &mut n_nodes
         };
         if *counter >= SyntaxKind::MAX_INDEX {
-            return err(r.line, "too many kinds of this class (max 1024)");
+            return err(r.line, "too many kinds of this class (max 8388608)");
         }
         let kind = SyntaxKind::new(language_id, r.is_token, *counter);
         *counter += 1;

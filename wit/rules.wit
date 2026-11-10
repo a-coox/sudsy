@@ -2,7 +2,7 @@
 ///
 /// A plugin is a component that exports `rules`. The host (`core-plugins`, wasmtime) copies the
 /// file into the plugin once per call: the text, the syntax tree in the wire encoding of
-/// `core-syntax` (kinds as little-endian u16 and values as varints; token text is not sent, the
+/// `core-syntax` (kinds as little-endian u32 and values as varints; token text is not sent, the
 /// plugin has the source), and, for rules that need semantic layers, the file's answers and
 /// flow graphs as MessagePack. Diagnostics come back with byte spans into the text.
 ///
@@ -103,7 +103,7 @@ interface rules {
         tree-kinds: list<u8>,
         tree-values: list<u8>,
         /// The node kinds that are bodies (methods, lambdas, local functions).
-        body-kinds: list<u16>,
+        body-kinds: list<u32>,
         /// MessagePack of the file's semantic answers and the behavior summaries that apply;
         /// absent when the file's rules need no layer.
         semantics: option<list<u8>>,
@@ -112,7 +112,7 @@ interface rules {
     /// A layout directive a rule attaches to a node. The node is named by its kind (the number
     /// the tree encoding uses) and byte range, trivia included, as in the tree sent with the file.
     record layout-request {
-        kind: u16,
+        kind: u32,
         start: u32,
         end: u32,
         /// Where the node starts, trivia excluded: a `sudsy-disable-next-line` comment on the

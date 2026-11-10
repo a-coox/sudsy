@@ -1,6 +1,6 @@
 //! Shared syntax tree model for every language Sudsy handles.
 //!
-//! * [`kind`]: the 16-bit `SyntaxKind` namespace scheme.
+//! * [`kind`]: the 32-bit `SyntaxKind` namespace scheme.
 //! * [`tree`]: the `rowan`-based lossless tree and a small builder.
 //! * [`trivia`]: the single trivia attachment rule and a checker for it.
 //! * [`grammar`]: the `.grammar` description format, its loader and content hash.

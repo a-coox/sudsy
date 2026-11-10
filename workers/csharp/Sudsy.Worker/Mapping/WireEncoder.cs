@@ -2,20 +2,19 @@ using Sudsy.Worker.Protocol;
 
 namespace Sudsy.Worker.Mapping;
 
-/// <summary>Serializes a <see cref="FlatTree"/>: kinds as little-endian u16, values as LEB128 varints.</summary>
+/// <summary>Serializes a <see cref="FlatTree"/>: kinds as little-endian u32, values as LEB128 varints.</summary>
 public static class WireEncoder
 {
     public static WireTree Encode(FlatTree tree)
     {
-        var kinds = new byte[tree.Count * 2];
+        var kinds = new byte[tree.Count * 4];
         var values = new byte[tree.Count * 5];
         var used = 0;
         var k = tree.Kinds;
         var v = tree.Values;
         for (var i = 0; i < k.Length; i++)
         {
-            kinds[2 * i] = (byte)k[i];
-            kinds[(2 * i) + 1] = (byte)(k[i] >> 8);
+            System.Buffers.Binary.BinaryPrimitives.WriteUInt32LittleEndian(kinds.AsSpan(4 * i), k[i]);
             used += WriteVarint(values.AsSpan(used), v[i]);
         }
 
@@ -32,7 +31,7 @@ public static class WireEncoder
     {
         var tree = new FlatTree();
         var pos = 0;
-        for (var i = 0; i < wire.Kinds.Length / 2; i++)
+        for (var i = 0; i < wire.Kinds.Length / 4; i++)
         {
             var value = 0u;
             var shift = 0;
@@ -44,7 +43,7 @@ public static class WireEncoder
                 shift += 7;
             }
             while ((b & 0x80) != 0);
-            tree.Add((ushort)(wire.Kinds[2 * i] | (wire.Kinds[(2 * i) + 1] << 8)), value);
+            tree.Add(System.Buffers.Binary.BinaryPrimitives.ReadUInt32LittleEndian(wire.Kinds.AsSpan(4 * i)), value);
         }
 
         return tree;
