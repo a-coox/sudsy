@@ -35,7 +35,7 @@ case "${1:-build}" in
     end=$(date +%s)
     echo "rules: $n  build: $((end - start)) s"
     echo "pages: $(find "$SITE_OUT" -name index.html | wc -l)"
-    echo "output: $(du -sk "$SITE_OUT" | cut -f1) KB, search index: $(du -sk "$SITE_OUT/pagefind" | cut -f1) KB"
+    echo "output: $(du -sk --apparent-size "$SITE_OUT" | cut -f1) KB, search index: $(du -sk --apparent-size "$SITE_OUT/pagefind" | cut -f1) KB"
     env -u SUDSY_RULES_JSON npm run generate >/dev/null  # leave the real pages in place
     ;;
   *) echo "usage: scripts/site.sh build | dev | preview | test | scale-test [N]" >&2; exit 2 ;;

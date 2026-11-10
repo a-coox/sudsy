@@ -94,17 +94,17 @@ for (const r of rules()) {
 }
 
 // One Sudsy rule: redirect to it. Several: list them (a redirect would hide the others).
-for (const [key, s] of stubs) {
+// Plain static files in public/ (a Starlight page would carry 19 KB of layout each).
+rmSync(pub + 'rules', { recursive: true, force: true });
+for (const s of stubs.values()) {
   const ids = [...s.rules];
   const tools = [...s.tools].join(', ');
-  const front = { title: s.id, slug: `rules/${s.slug}`, description: `${tools} ${s.id} in Sudsy: ${ids.join(', ')}.` };
-  if (ids.length === 1) {
-    front.head = [
-      { tag: 'meta', attrs: { 'http-equiv': 'refresh', content: `0; url=${url(ids[0])}` } },
-      { tag: 'link', attrs: { rel: 'canonical', href: site + url(ids[0]) } },
-    ];
-  }
-  put(`up-${key}.md`, front, `${tools} \`${s.id}\` is covered by ${ids.map((i) => `[${i}](${url(i)})`).join(', ')}.`);
+  const head = ids.length === 1
+    ? `<meta http-equiv="refresh" content="0; url=${url(ids[0])}"><link rel="canonical" href="${site + url(ids[0])}">`
+    : '';
+  mkdirSync(`${pub}rules/${s.slug}`, { recursive: true });
+  writeFileSync(`${pub}rules/${s.slug}/index.html`,
+    `<!doctype html><meta charset="utf-8"><title>${s.id} | Sudsy</title>${head}<body>${tools} <code>${s.id}</code> is covered by ${ids.map((i) => `<a href="${url(i)}">${i}</a>`).join(', ')}.\n`);
 }
 
 // Presets: the notes of docs/formatting/presets.md next to each preset file.

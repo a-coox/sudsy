@@ -142,7 +142,7 @@ Method: `scripts/devloop-times.sh` in slot3 (warm slot; a comment appended to `c
 Slot size: 240-266 GB before pruning the outputs of earlier worktrees, 56-70 GB after; the WSL bench cache 33 GB, 16 GB without its dead directories.
 
 ## Documentation site (`scripts/site.sh scale-test`, [development/site.md](../development/site.md))
-Astro 7.4.7 + Starlight 0.42.9, same machine, Node 24, one run, 10 000 synthetic rules (copies of the 101 real ones with unique ids): 21 986 pages (rules, upstream-id stubs, fixed pages), full build 165 s, output 690 MB (about 31 KB per page; GitHub Pages allows 1 GB), Pagefind index 50 MB. The real 101 rules: 225 pages, 8 s with `npm ci` cached.
+Astro 7.4.7 + Starlight 0.42.9, same machine, Node 24, one run, 10 000 synthetic rules (copies of the 101 real ones with unique ids): 14 891 pages (10 000 rule pages at a median 27 KB, 4 887 upstream-id redirect stubs of about 0.3 KB, fixed pages), full build 310 s, output 336 MB apparent size (about 33 KB per rule including its stubs and search index; GitHub Pages allows 1 GB, the workflow guard is 800 MB), Pagefind index 35 MB. Upstream-id stubs are plain files in `public/` (as Starlight pages they were 19 KB each: 21 986 pages, 690 MB). The real 101 rules: 9.5 MB, 9 s with `npm ci` cached.
 
 ## Not measured repeatably
 - LSP completion/hover/format request latency in `bench.sh`.
