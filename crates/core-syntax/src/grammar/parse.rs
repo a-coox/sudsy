@@ -263,7 +263,7 @@ pub(super) fn parse(source: &str) -> Result<Grammar, GrammarError> {
                 let name = c.ident("language name")?;
                 let id = match c.next() {
                     Some(Lexeme::Int(n)) if (1..=LanguageId::MAX as u32).contains(n) => *n as u8,
-                    _ => return err(d.line, "language id must be 1..=15"),
+                    _ => return err(d.line, "language id must be 1..=31"),
                 };
                 let title = match c.peek() {
                     Some(Lexeme::Str(_)) => c.string("display name")?,
@@ -364,7 +364,7 @@ fn resolve(
             &mut n_nodes
         };
         if *counter >= SyntaxKind::MAX_INDEX {
-            return err(r.line, "too many kinds of this class (max 2048)");
+            return err(r.line, "too many kinds of this class (max 1024)");
         }
         let kind = SyntaxKind::new(language_id, r.is_token, *counter);
         *counter += 1;

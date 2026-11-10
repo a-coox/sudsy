@@ -2,7 +2,7 @@
 //!
 //! ```text
 //! // comment
-//! language json 1 "JSON"              // name, LanguageId (1..=15), display name (optional)
+//! language json 1 "JSON"              // name, LanguageId (1..=31), display name (optional)
 //! comments line "//" block "/*" "*/"   // either part optional
 //! suppress disable-next-line "sudsy-disable-next-line"   // role, marker; roles: disable-next-line,
 //!                                                        // disable-line, disable, enable, disable-file, ignore*

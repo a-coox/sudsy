@@ -1,7 +1,7 @@
 # Syntax tree, grammars, wire encoding
 
 ## Tree
-- `rowan` green/red tree; kinds are `u16`: 4 bits language (0 core, 1 JSON, 2 C#, 3 YAML), 1 token bit, 11 bits index.
+- `rowan` green/red tree; kinds are `u16`: 5 bits language (0 core, 1 JSON, 2 C#, 3 YAML, ...), 1 token bit, 10 bits index.
 - Lossless: printing the tree reproduces the source byte for byte; every conformance test checks it.
 - Trivia (whitespace, newlines, comments) are tokens. C# doc comments and directives are structured trivia nodes (tag `#trivia`); disabled `#if` text is one verbatim token.
 - `ERROR` nodes hold what could not be parsed; every token stays in the tree. Formatter and rules skip subtrees with errors; files with syntax errors are not formatted.

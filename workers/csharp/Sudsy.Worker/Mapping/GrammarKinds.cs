@@ -8,7 +8,7 @@ namespace Sudsy.Worker.Mapping;
 public static class GrammarKinds
 {
     public const ushort Unmapped = ushort.MaxValue;
-    private const ushort TokenBit = 1 << 11;
+    private const ushort TokenBit = 1 << 10;
 
     /// <summary>The core <c>ERROR</c> node kind (<c>SyntaxKind::ERROR</c> in core-syntax).</summary>
     public const ushort Error = 0;

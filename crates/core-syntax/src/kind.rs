@@ -3,7 +3,7 @@
 //! A kind is a `u16` laid out as
 //!
 //! ```text
-//!  15..12  11     10..0
+//!  15..11  10     9..0
 //! +-------+-----+----------+
 //! | lang  | tok |  index   |
 //! +-------+-----+----------+
@@ -16,9 +16,9 @@
 //! * `index`: position among the language's nodes or tokens, in grammar
 //!   declaration order (so reordering a grammar changes ids and its hash).
 //!
-//! Each language therefore has up to 2048 node kinds and 2048 token kinds.
+//! Each language therefore has up to 1024 node kinds and 1024 token kinds, and there are 31 languages.
 
-/// Identifies a language namespace (4 bits).
+/// Identifies a language namespace (5 bits).
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct LanguageId(u8);
 
@@ -27,8 +27,8 @@ impl LanguageId {
     pub const JSON: LanguageId = LanguageId(1);
     pub const CSHARP: LanguageId = LanguageId(2);
     pub const YAML: LanguageId = LanguageId(3);
-    /// Largest id that fits the 4-bit namespace.
-    pub const MAX: u8 = 15;
+    /// Largest id that fits the 5-bit namespace.
+    pub const MAX: u8 = 31;
 
     pub const fn new(id: u8) -> Self {
         assert!(id <= Self::MAX);
@@ -45,10 +45,10 @@ impl LanguageId {
 pub struct SyntaxKind(pub u16);
 
 impl SyntaxKind {
-    const LANG_SHIFT: u16 = 12;
-    const TOKEN_BIT: u16 = 1 << 11;
+    const LANG_SHIFT: u16 = 11;
+    const TOKEN_BIT: u16 = 1 << 10;
     /// Largest `index` (exclusive) per language and per node/token class.
-    pub const MAX_INDEX: u16 = 1 << 11;
+    pub const MAX_INDEX: u16 = 1 << 10;
 
     /// A subtree the parser could not make sense of. Every token stays in the tree.
     pub const ERROR: SyntaxKind = SyntaxKind::new(LanguageId::CORE, false, 0);
@@ -90,11 +90,11 @@ mod tests {
 
     #[test]
     fn layout_round_trips() {
-        let k = SyntaxKind::new(LanguageId::CSHARP, true, 1234);
+        let k = SyntaxKind::new(LanguageId::CSHARP, true, 1000);
         assert_eq!(k.lang(), LanguageId::CSHARP);
         assert!(k.is_token());
-        assert_eq!(k.index(), 1234);
-        assert_eq!(k.0, 0x2000 | 0x800 | 1234);
+        assert_eq!(k.index(), 1000);
+        assert_eq!(k.0, 0x1000 | 0x400 | 1000);
     }
 
     #[test]
