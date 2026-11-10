@@ -575,6 +575,128 @@
               "$ref": "#/definitions/rule",
               "description": "A message name that is not PascalCase (buf lint MESSAGE_PASCAL_CASE)."
             },
+            "naming-convention": {
+              "description": "A name does not follow the style set for what it names: operations, fragments, variables, fields, arguments, types, enum values and directives. `PascalCase` and `camelCase` allow letters and digits only, `snake_case` and `UPPER_CASE` forbid the other case; leading underscores are ignored. No fix: renaming changes the schema or the queries that use it. Equivalent: graphql-eslint naming-convention (styles only, no prefix or suffix lists).",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "arguments": {
+                          "default": "camelCase",
+                          "description": "Style of argument names in definitions: `PascalCase`, `camelCase`, `snake_case`, `UPPER_CASE` or `off`.",
+                          "enum": [
+                            "PascalCase",
+                            "camelCase",
+                            "snake_case",
+                            "UPPER_CASE",
+                            "off"
+                          ],
+                          "type": "string"
+                        },
+                        "directives": {
+                          "default": "camelCase",
+                          "description": "Style of directive names: `PascalCase`, `camelCase`, `snake_case`, `UPPER_CASE` or `off`.",
+                          "enum": [
+                            "PascalCase",
+                            "camelCase",
+                            "snake_case",
+                            "UPPER_CASE",
+                            "off"
+                          ],
+                          "type": "string"
+                        },
+                        "enum_values": {
+                          "default": "UPPER_CASE",
+                          "description": "Style of enum values: `PascalCase`, `camelCase`, `snake_case`, `UPPER_CASE` or `off`.",
+                          "enum": [
+                            "PascalCase",
+                            "camelCase",
+                            "snake_case",
+                            "UPPER_CASE",
+                            "off"
+                          ],
+                          "type": "string"
+                        },
+                        "fields": {
+                          "default": "camelCase",
+                          "description": "Style of field and input field names in definitions: `PascalCase`, `camelCase`, `snake_case`, `UPPER_CASE` or `off`.",
+                          "enum": [
+                            "PascalCase",
+                            "camelCase",
+                            "snake_case",
+                            "UPPER_CASE",
+                            "off"
+                          ],
+                          "type": "string"
+                        },
+                        "fragments": {
+                          "default": "PascalCase",
+                          "description": "Style of fragment names: `PascalCase`, `camelCase`, `snake_case`, `UPPER_CASE` or `off`.",
+                          "enum": [
+                            "PascalCase",
+                            "camelCase",
+                            "snake_case",
+                            "UPPER_CASE",
+                            "off"
+                          ],
+                          "type": "string"
+                        },
+                        "operations": {
+                          "default": "PascalCase",
+                          "description": "Style of operation names: `PascalCase`, `camelCase`, `snake_case`, `UPPER_CASE` or `off`.",
+                          "enum": [
+                            "PascalCase",
+                            "camelCase",
+                            "snake_case",
+                            "UPPER_CASE",
+                            "off"
+                          ],
+                          "type": "string"
+                        },
+                        "types": {
+                          "default": "PascalCase",
+                          "description": "Style of type names: `PascalCase`, `camelCase`, `snake_case`, `UPPER_CASE` or `off`.",
+                          "enum": [
+                            "PascalCase",
+                            "camelCase",
+                            "snake_case",
+                            "UPPER_CASE",
+                            "off"
+                          ],
+                          "type": "string"
+                        },
+                        "variables": {
+                          "default": "camelCase",
+                          "description": "Style of variable names: `PascalCase`, `camelCase`, `snake_case`, `UPPER_CASE` or `off`.",
+                          "enum": [
+                            "PascalCase",
+                            "camelCase",
+                            "snake_case",
+                            "UPPER_CASE",
+                            "off"
+                          ],
+                          "type": "string"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
             "negation-of-excluded-parent": {
               "$ref": "#/definitions/rule",
               "description": "Git cannot re-include a file when a parent directory is excluded: `!a/b` after `a/` has no effect. Exclude the contents (`a/*`) instead. Not reported in `.dockerignore`, where the later pattern wins. Only literal paths are checked."
@@ -582,6 +704,10 @@
             "no-alt-text": {
               "$ref": "#/definitions/rule",
               "description": "An image with empty alternate text, `![](url)` (markdownlint MD045)."
+            },
+            "no-anonymous-operations": {
+              "$ref": "#/definitions/rule",
+              "description": "An operation without a name (`{ a }`, `query { a }`), which tools that log, trace or cache by operation name cannot tell apart. Equivalent - graphql-eslint no-anonymous-operations."
             },
             "no-apt": {
               "$ref": "#/definitions/rule",
@@ -973,6 +1099,10 @@
               "$ref": "#/definitions/rule",
               "description": "A heading that ends with `.`, `,`, `;`, `:` or `!` (or the full-width forms) reads as a sentence, not a title (markdownlint MD026). `?` is allowed."
             },
+            "no-typename-prefix": {
+              "$ref": "#/definitions/rule",
+              "description": "A field of an object or interface type starts with the name of the type (`type User { userId: ID }`); the type already says it (case ignored). No fix: renaming a field changes the schema."
+            },
             "no-undefined-alias": {
               "$ref": "#/definitions/rule",
               "description": "An alias names an anchor that is not defined earlier in the same document."
@@ -1173,6 +1303,37 @@
             "rpm-pin-versions": {
               "$ref": "#/definitions/rule",
               "description": "A yum or dnf install package without a version."
+            },
+            "selection-set-depth": {
+              "description": "An operation or fragment nests selection sets deeper than allowed, which makes a query expensive to execute. Fragments that are spread are not followed.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "max_depth": {
+                          "default": 7,
+                          "description": "The deepest allowed nesting; the operation's own selection set is level 1.",
+                          "type": "integer"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
             },
             "separate-attributes": {
               "$ref": "#/definitions/rule",
@@ -1400,6 +1561,14 @@
             "tuple-element-names-in-signatures": {
               "$ref": "#/definitions/rule",
               "description": "A tuple type in the signature of a method, constructor, property, indexer, conversion operator or delegate whose elements have no names. Overrides and implementations of interface members are left alone (their names are not the member's to choose). No fix."
+            },
+            "unique-fragment-name": {
+              "$ref": "#/definitions/rule",
+              "description": "Two fragments of a document have the same name; a spread cannot tell which one it means. Checked within the file."
+            },
+            "unique-operation-name": {
+              "$ref": "#/definitions/rule",
+              "description": "Two operations of a document have the same name; a server cannot tell which to run and tools that key on the name (caches, persisted queries) collide. Checked within the file."
             },
             "unknown-property": {
               "description": "A property name that is not an EditorConfig or .NET (`dotnet_*`, `csharp_*`, `visual_basic_*`, `dotnet_diagnostic.<ID>.severity`, naming rule) property but is one typo away from one: the setting is silently ignored. Names of other tools (`resharper_*`, `ij_*`) are left alone. Known properties and values: `crates/lang-editorconfig/data/properties.txt`.",
@@ -2347,6 +2516,85 @@
       },
       "type": "object"
     },
+    "graphql": {
+      "additionalProperties": false,
+      "properties": {
+        "format": {
+          "additionalProperties": false,
+          "properties": {
+            "bracket_spacing": {
+              "default": true,
+              "description": "Spaces inside the braces of a one-line mapping or object: `{ a: 1 }` or `{a: 1}`.",
+              "type": "boolean"
+            },
+            "end_of_line": {
+              "default": "auto",
+              "description": "Line break style of the output: `lf`, `crlf`, or `auto` to keep the file's first              line break.",
+              "enum": [
+                "auto",
+                "lf",
+                "crlf"
+              ],
+              "type": "string"
+            },
+            "final_newline": {
+              "default": true,
+              "description": "End the file with a newline.",
+              "type": "boolean"
+            },
+            "indent_size": {
+              "default": 2,
+              "description": "Columns per indentation level (also the width of a tab).",
+              "maximum": 16,
+              "minimum": 1,
+              "type": "integer"
+            },
+            "indent_style": {
+              "default": "space",
+              "description": "Indent with spaces or tabs.",
+              "enum": [
+                "space",
+                "tab"
+              ],
+              "type": "string"
+            },
+            "line_width": {
+              "default": 80,
+              "description": "Preferred maximum line width in columns.",
+              "maximum": 1000,
+              "minimum": 20,
+              "type": "integer"
+            }
+          },
+          "type": "object"
+        },
+        "lint": {
+          "$ref": "#/definitions/lint"
+        },
+        "semantics": {
+          "additionalProperties": false,
+          "description": "Facts about methods that the flow analyses use.",
+          "properties": {
+            "does_not_return": {
+              "description": "Qualified method names without parameter lists; every overload is covered.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "pure": {
+              "description": "Qualified method names without parameter lists; every overload is covered.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          "type": "object"
+        }
+      },
+      "type": "object"
+    },
     "include": {
       "description": "Globs of the files to format and lint (everything when empty).",
       "items": {
@@ -2552,6 +2800,7 @@
           "dockerfile",
           "shell",
           "protobuf",
+          "graphql",
           "powershell",
           "csharp"
         ]
@@ -3273,6 +3522,85 @@
                     "description": "Largest number of blank lines kept between patterns and comments.",
                     "maximum": 10,
                     "minimum": 0,
+                    "type": "integer"
+                  }
+                },
+                "type": "object"
+              },
+              "lint": {
+                "$ref": "#/definitions/lint"
+              },
+              "semantics": {
+                "additionalProperties": false,
+                "description": "Facts about methods that the flow analyses use.",
+                "properties": {
+                  "does_not_return": {
+                    "description": "Qualified method names without parameter lists; every overload is covered.",
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "pure": {
+                    "description": "Qualified method names without parameter lists; every overload is covered.",
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  }
+                },
+                "type": "object"
+              }
+            },
+            "type": "object"
+          },
+          "graphql": {
+            "additionalProperties": false,
+            "properties": {
+              "format": {
+                "additionalProperties": false,
+                "properties": {
+                  "bracket_spacing": {
+                    "default": true,
+                    "description": "Spaces inside the braces of a one-line mapping or object: `{ a: 1 }` or `{a: 1}`.",
+                    "type": "boolean"
+                  },
+                  "end_of_line": {
+                    "default": "auto",
+                    "description": "Line break style of the output: `lf`, `crlf`, or `auto` to keep the file's first              line break.",
+                    "enum": [
+                      "auto",
+                      "lf",
+                      "crlf"
+                    ],
+                    "type": "string"
+                  },
+                  "final_newline": {
+                    "default": true,
+                    "description": "End the file with a newline.",
+                    "type": "boolean"
+                  },
+                  "indent_size": {
+                    "default": 2,
+                    "description": "Columns per indentation level (also the width of a tab).",
+                    "maximum": 16,
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  "indent_style": {
+                    "default": "space",
+                    "description": "Indent with spaces or tabs.",
+                    "enum": [
+                      "space",
+                      "tab"
+                    ],
+                    "type": "string"
+                  },
+                  "line_width": {
+                    "default": 80,
+                    "description": "Preferred maximum line width in columns.",
+                    "maximum": 1000,
+                    "minimum": 20,
                     "type": "integer"
                   }
                 },

@@ -2,13 +2,15 @@
   "prettier": {
     "catalog": "prettier",
     "install": {"npm": "prettier"},
-    "fetch": ["tests/conformance/fetch-markdown-corpus.sh"],
+    "fetch": ["tests/conformance/fetch-markdown-corpus.sh", "tests/conformance/fetch-graphql-corpus.sh"],
     "command": ["node", "{prefix}/node_modules/prettier/bin/prettier.cjs", "--no-config", "--no-editorconfig", "--embedded-language-formatting=off", "{file}"],
     "input": "arg",
+    "tool_may_reject": true,
     "fixtures": [
-      {"suffixes": [".json", ".jsonc", ".yaml", ".yml", ".md"]},
+      {"suffixes": [".json", ".jsonc", ".yaml", ".yml", ".md", ".graphql", ".gql"]},
       {"dir": "docs", "suffixes": [".md"], "prefix": "docs/", "recursive": true},
-      {"dir": "tests/conformance/corpus/runtime-docs/docs", "suffixes": [".md"], "prefix": "runtime-docs/", "recursive": true}
+      {"dir": "tests/conformance/corpus/runtime-docs/docs", "suffixes": [".md"], "prefix": "runtime-docs/", "recursive": true},
+      {"dir": "tests/conformance/corpus/graphql", "suffixes": [".graphql", ".gql"], "prefix": "graphql/", "recursive": true}
     ]
   },
   "biome": {

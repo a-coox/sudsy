@@ -27,6 +27,7 @@
     "onLanguage:dockerfile",
     "onLanguage:shell",
     "onLanguage:protobuf",
+    "onLanguage:graphql",
     "onLanguage:powershell",
     "onLanguage:csharp",
     "workspaceContains:**/sudsy.{yaml,yml}"

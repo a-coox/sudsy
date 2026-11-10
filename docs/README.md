@@ -22,6 +22,8 @@ Current state only; history is in git. Update the doc for the area you change in
 | [formatting/dockerfile.md](formatting/dockerfile.md) | Dockerfile parser (tree-sitter), formatter, options, grammar gap, conformance |
 | [formatting/shell.md](formatting/shell.md) | Shell (sh and Bash) parser (tree-sitter), formatter after shfmt, parser limits, conformance |
 | [formatting/powershell.md](formatting/powershell.md) | PowerShell parser (tree-sitter), formatter after PSScriptAnalyzer's Invoke-Formatter, parity, conformance |
+| [formatting/protobuf.md](formatting/protobuf.md) | Protobuf parser (tree-sitter), formatter after `buf format`, parity, conformance |
+| [formatting/graphql.md](formatting/graphql.md) | GraphQL parser (tree-sitter), formatter after Prettier, grammar gaps, rules, parity |
 | [formatting/markdown.md](formatting/markdown.md) | Markdown parser (two tree-sitter grammars), formatter, safety checks, rules, conformance |
 | [formatting/presets.md](formatting/presets.md) | Preset list and notes |
 | [parity/README.md](parity/README.md) | Parity catalog: what yamllint, Prettier, Biome, eslint-plugin-jsonc, StyleCop, CSharpier do and where Sudsy stands |

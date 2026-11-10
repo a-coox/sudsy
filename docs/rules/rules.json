@@ -4967,6 +4967,329 @@
     {
       "category": "style",
       "default_level": "warn",
+      "description": "A name does not follow the style set for what it names: operations, fragments, variables, fields, arguments, types, enum values and directives. `PascalCase` and `camelCase` allow letters and digits only, `snake_case` and `UPPER_CASE` forbid the other case; leading underscores are ignored. No fix: renaming changes the schema or the queries that use it. Equivalent: graphql-eslint naming-convention (styles only, no prefix or suffix lists).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "query get_user($User_id: ID) { user }\nfragment user_fields on User { id }\ntype user_account { first_name(Arg_one: Int): String }\nenum Color { red GREEN }\ndirective @Auth on FIELD\ninput Filter { Name: String }\ntype _Ok { __typename: String }\n",
+        "language": "graphql",
+        "spans": [
+          {
+            "column": 7,
+            "length": 8,
+            "line": 1
+          },
+          {
+            "column": 16,
+            "length": 8,
+            "line": 1
+          },
+          {
+            "column": 10,
+            "length": 11,
+            "line": 2
+          },
+          {
+            "column": 6,
+            "length": 12,
+            "line": 3
+          },
+          {
+            "column": 21,
+            "length": 10,
+            "line": 3
+          },
+          {
+            "column": 32,
+            "length": 7,
+            "line": 3
+          },
+          {
+            "column": 14,
+            "length": 3,
+            "line": 4
+          },
+          {
+            "column": 12,
+            "length": 4,
+            "line": 5
+          },
+          {
+            "column": 16,
+            "length": 4,
+            "line": 6
+          }
+        ]
+      },
+      "fix": null,
+      "id": "naming-convention",
+      "languages": [
+        "graphql"
+      ],
+      "options": [
+        {
+          "choices": [
+            "PascalCase",
+            "camelCase",
+            "snake_case",
+            "UPPER_CASE",
+            "off"
+          ],
+          "default": "PascalCase",
+          "description": "Style of operation names: `PascalCase`, `camelCase`, `snake_case`, `UPPER_CASE` or `off`.",
+          "name": "operations",
+          "type": "string"
+        },
+        {
+          "choices": [
+            "PascalCase",
+            "camelCase",
+            "snake_case",
+            "UPPER_CASE",
+            "off"
+          ],
+          "default": "PascalCase",
+          "description": "Style of fragment names: `PascalCase`, `camelCase`, `snake_case`, `UPPER_CASE` or `off`.",
+          "name": "fragments",
+          "type": "string"
+        },
+        {
+          "choices": [
+            "PascalCase",
+            "camelCase",
+            "snake_case",
+            "UPPER_CASE",
+            "off"
+          ],
+          "default": "camelCase",
+          "description": "Style of variable names: `PascalCase`, `camelCase`, `snake_case`, `UPPER_CASE` or `off`.",
+          "name": "variables",
+          "type": "string"
+        },
+        {
+          "choices": [
+            "PascalCase",
+            "camelCase",
+            "snake_case",
+            "UPPER_CASE",
+            "off"
+          ],
+          "default": "camelCase",
+          "description": "Style of field and input field names in definitions: `PascalCase`, `camelCase`, `snake_case`, `UPPER_CASE` or `off`.",
+          "name": "fields",
+          "type": "string"
+        },
+        {
+          "choices": [
+            "PascalCase",
+            "camelCase",
+            "snake_case",
+            "UPPER_CASE",
+            "off"
+          ],
+          "default": "camelCase",
+          "description": "Style of argument names in definitions: `PascalCase`, `camelCase`, `snake_case`, `UPPER_CASE` or `off`.",
+          "name": "arguments",
+          "type": "string"
+        },
+        {
+          "choices": [
+            "PascalCase",
+            "camelCase",
+            "snake_case",
+            "UPPER_CASE",
+            "off"
+          ],
+          "default": "PascalCase",
+          "description": "Style of type names: `PascalCase`, `camelCase`, `snake_case`, `UPPER_CASE` or `off`.",
+          "name": "types",
+          "type": "string"
+        },
+        {
+          "choices": [
+            "PascalCase",
+            "camelCase",
+            "snake_case",
+            "UPPER_CASE",
+            "off"
+          ],
+          "default": "UPPER_CASE",
+          "description": "Style of enum values: `PascalCase`, `camelCase`, `snake_case`, `UPPER_CASE` or `off`.",
+          "name": "enum_values",
+          "type": "string"
+        },
+        {
+          "choices": [
+            "PascalCase",
+            "camelCase",
+            "snake_case",
+            "UPPER_CASE",
+            "off"
+          ],
+          "default": "camelCase",
+          "description": "Style of directive names: `PascalCase`, `camelCase`, `snake_case`, `UPPER_CASE` or `off`.",
+          "name": "directives",
+          "type": "string"
+        }
+      ],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "warn",
+      "description": "An operation without a name (`{ a }`, `query { a }`), which tools that log, trace or cache by operation name cannot tell apart. Equivalent - graphql-eslint no-anonymous-operations.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "query Named { a }\n{ b }\nquery { c }\nmutation ($x: Int) { d }\nsubscription S @live { e }\n",
+        "language": "graphql",
+        "spans": [
+          {
+            "column": 1,
+            "length": 1,
+            "line": 2
+          },
+          {
+            "column": 1,
+            "length": 5,
+            "line": 3
+          },
+          {
+            "column": 1,
+            "length": 8,
+            "line": 4
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-anonymous-operations",
+      "languages": [
+        "graphql"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "warn",
+      "description": "A field of an object or interface type starts with the name of the type (`type User { userId: ID }`); the type already says it (case ignored). No fix: renaming a field changes the schema.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "type User {\n  userId: ID\n  id: ID\n}\ninterface Node { nodeKind: String }\ninput UserInput { userName: String }\n",
+        "language": "graphql",
+        "spans": [
+          {
+            "column": 3,
+            "length": 6,
+            "line": 2
+          },
+          {
+            "column": 18,
+            "length": 8,
+            "line": 5
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-typename-prefix",
+      "languages": [
+        "graphql"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "An operation or fragment nests selection sets deeper than allowed, which makes a query expensive to execute. Fragments that are spread are not followed.",
+      "example": {
+        "config": "selection-set-depth:\n  level: warn\n  options:\n    max_depth: 2\n",
+        "fixed": null,
+        "input": "query Q { a { b { c } } }\nfragment F on T { a { b } }\n",
+        "language": "graphql",
+        "spans": [
+          {
+            "column": 9,
+            "length": 1,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "selection-set-depth",
+      "languages": [
+        "graphql"
+      ],
+      "options": [
+        {
+          "default": 7,
+          "description": "The deepest allowed nesting; the operation's own selection set is level 1.",
+          "name": "max_depth",
+          "type": "int"
+        }
+      ],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "correctness",
+      "default_level": "error",
+      "description": "Two fragments of a document have the same name; a spread cannot tell which one it means. Checked within the file.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "query A { a }\nquery A { b }\nquery B { c }\nfragment F on T { a }\nfragment F on T { b }\n",
+        "language": "graphql",
+        "spans": [
+          {
+            "column": 10,
+            "length": 1,
+            "line": 5
+          }
+        ]
+      },
+      "fix": null,
+      "id": "unique-fragment-name",
+      "languages": [
+        "graphql"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "correctness",
+      "default_level": "error",
+      "description": "Two operations of a document have the same name; a server cannot tell which to run and tools that key on the name (caches, persisted queries) collide. Checked within the file.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "query A { a }\nquery A { b }\nquery B { c }\nfragment F on T { a }\nfragment F on T { b }\n",
+        "language": "graphql",
+        "spans": [
+          {
+            "column": 7,
+            "length": 1,
+            "line": 2
+          }
+        ]
+      },
+      "fix": null,
+      "id": "unique-operation-name",
+      "languages": [
+        "graphql"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "warn",
       "description": "A function named `Verb-Noun` whose verb is not in the list `Get-Verb` returns. Names without a dash are not checked.",
       "example": {
         "config": null,

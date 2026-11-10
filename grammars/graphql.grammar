@@ -1,0 +1,81 @@
+// GraphQL (executable documents and schema definition language), parsed by tree-sitter (tree-sitter-graphql) and mapped by crates/lang-graphql/src/mapping.rs.
+// Format: see crates/core-syntax/src/grammar/mod.rs.
+
+language graphql 14 "GraphQL"
+comments line "#"
+suppress disable-next-line "sudsy-disable-next-line"
+suppress disable-line "sudsy-disable-line"
+suppress disable "sudsy-disable"
+suppress enable "sudsy-enable"
+suppress disable-file "sudsy-disable-file"
+suppress ignore "sudsy-ignore"
+
+token Whitespace #trivia #whitespace
+token Newline #trivia #newline
+token Comment #trivia #comment
+
+// `query`, `type`, `on`, `implements`, ...
+token Keyword
+// `(`, `)`, `[`, `]`, `:`, `=`, `!`, `@` and `...`.
+token Punct #punctuation
+token LBrace "{" #punctuation
+token RBrace "}" #punctuation
+// `&` between interfaces and `|` between union members and directive locations: the formatter writes them itself.
+token Amp "&" #punctuation #separator
+token Pipe "|" #punctuation #separator
+
+token Name
+// `$name`
+token Variable
+// A directive location: `FIELD_DEFINITION`.
+token Location
+// Block strings are re-indented: GraphqlFormatter::extra_check compares their values.
+token String #literal #string #restyle
+token Int #literal
+token Float #literal
+token Bool #literal
+token Null #literal
+
+token Eof
+token Unknown #error
+
+node Document = items:#item* Eof
+node Description = String
+
+node Operation #item = Keyword? name:Name? VarDefs? Directive* SelectionSet
+node Fragment #item = Keyword name:FragmentName TypeCondition Directive* SelectionSet
+node FragmentName = Name
+node TypeCondition = Keyword Name
+node VarDefs #mapping = Punct VarDef* Punct
+node VarDef #key-value = key:Variable Punct TypeRef DefaultValue? Directive*
+node DefaultValue = Punct String? Int? Float? Bool? Null? Name? Variable? ListValue? ObjectValue?
+node SelectionSet #mapping = LBrace items:#item* RBrace
+node Field #item #key-value = alias:Alias? key:Name Arguments? Directive* SelectionSet?
+node Alias = Name Punct
+node InlineFragment #item = Punct TypeCondition? Directive* SelectionSet
+node FragmentSpread #item = Punct FragmentName Directive*
+node Arguments #mapping = Punct Argument* Punct
+node Argument #key-value = key:Name Punct String? Int? Float? Bool? Null? Name? Variable? ListValue? ObjectValue?
+node ListValue = Punct String* Int* Float* Bool* Null* Name* Variable* ListValue* ObjectValue* Punct
+node ObjectValue #mapping = LBrace ObjectField* RBrace
+node ObjectField #key-value = key:Name Punct String? Int? Float? Bool? Null? Name? Variable? ListValue? ObjectValue?
+node Directive = Punct name:Name Arguments?
+// A type reference: `[Name!]!` (the brackets and bangs are tokens).
+node TypeRef = Punct* Name Punct*
+
+node Schema #item = Description? Keyword* Directive* LBrace? RootOp* RBrace?
+node RootOp = Keyword Punct Name
+node ScalarType #item = Description? Keyword* name:Name Directive*
+node ObjectType #item = Description? Keyword* name:Name Keyword? Name* Amp* Directive* FieldsDef?
+node InterfaceType #item = Description? Keyword* name:Name Keyword? Name* Amp* Directive* FieldsDef?
+node UnionType #item = Description? Keyword* name:Name Directive* Punct? Pipe? Name* Pipe*
+node EnumType #item = Description? Keyword* name:Name Directive* EnumValues?
+node InputType #item = Description? Keyword* name:Name Directive* InputFields*
+node DirectiveDef #item = Description? Keyword Punct name:Name ArgsDef? Keyword* Pipe? Location* Pipe*
+node FieldsDef #mapping = LBrace FieldDef* RBrace
+node FieldDef #key-value = Description? key:Name ArgsDef? Punct TypeRef Directive*
+node ArgsDef #mapping = Punct InputValueDef* Punct
+node InputValueDef #key-value = Description? key:Name Punct TypeRef DefaultValue? Directive*
+node InputFields #mapping = LBrace InputValueDef* RBrace
+node EnumValues #mapping = LBrace EnumValueDef* RBrace
+node EnumValueDef #key-value = Description? key:Name Directive*

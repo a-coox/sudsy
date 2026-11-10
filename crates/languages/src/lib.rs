@@ -33,6 +33,7 @@ pub fn providers() -> Vec<Box<dyn LanguageProvider>> {
         Box::new(lang_dockerfile::provider()),
         Box::new(lang_shell::provider()),
         Box::new(lang_protobuf::provider()),
+        Box::new(lang_graphql::provider()),
         Box::new(lang_powershell::provider()),
         Box::new(lang_csharp::provider(&worker)),
     ]

@@ -1,0 +1,8 @@
+query Named { a }
+{ b }
+^ no-anonymous-operations
+query { c }
+^^^^^ no-anonymous-operations
+mutation ($x: Int) { d }
+^^^^^^^^ no-anonymous-operations
+subscription S @live { e }

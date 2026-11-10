@@ -1,0 +1,6 @@
+type T {
+  b: Int
+# ^ sorted-keys
+  a(z: Int, y: Int): Int
+#   ^ sorted-keys
+}

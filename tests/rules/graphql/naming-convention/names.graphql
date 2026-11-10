@@ -1,0 +1,16 @@
+query get_user($User_id: ID) { user }
+#     ^^^^^^^^ naming-convention
+#              ^^^^^^^^ naming-convention
+fragment user_fields on User { id }
+#        ^^^^^^^^^^^ naming-convention
+type user_account { first_name(Arg_one: Int): String }
+#    ^^^^^^^^^^^^ naming-convention
+#                   ^^^^^^^^^^ naming-convention
+#                              ^^^^^^^ naming-convention
+enum Color { red GREEN }
+#            ^^^ naming-convention
+directive @Auth on FIELD
+#          ^^^^ naming-convention
+input Filter { Name: String }
+#              ^^^^ naming-convention
+type _Ok { __typename: String }

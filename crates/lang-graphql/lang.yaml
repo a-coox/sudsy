@@ -1,0 +1,5 @@
+grammar-crate: tree-sitter-graphql
+extensions: [graphql, gql]
+formatter: GraphqlFormatter
+hooks: hooks::GraphqlHooks
+dev-deps: [insta]

@@ -1,0 +1,8 @@
+// Generated from lang.yaml by `cargo xtask codegen`.
+use core_syntax::grammars;
+use core_treesitter::{Spec, TreeSitterProvider};
+
+#[rustfmt::skip]
+pub fn provider() -> TreeSitterProvider {
+    TreeSitterProvider::new(Spec { crate_name: env!("CARGO_PKG_NAME"), language: || core_packs::language!("graphql", tree_sitter_graphql::LANGUAGE), grammar: grammars::GRAPHQL, mapping: &mapping::MAPPING, extensions: &["graphql", "gql"], file_names: &[], schema: option_schema(), formatter: &GraphqlFormatter, hooks: &hooks::GraphqlHooks, rules: rules::RULES, pattern_files: provider_api::pattern_files!(), families: &[], validate: None })
+}

@@ -1,0 +1,4 @@
+type T {
+  a(y: Int, z: Int): Int
+  b: Int
+}

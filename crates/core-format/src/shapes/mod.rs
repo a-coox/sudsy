@@ -7,7 +7,9 @@ mod chain;
 mod key_value;
 mod list;
 
-pub use block::{BlockStyle, block, block_between, statement_sequence, statement_sequence_with};
+pub use block::{
+    BlockStyle, block, block_between, document, statement_sequence, statement_sequence_with,
+};
 pub use chain::{
     MemberChain, binary_chain, ends_in_line_comment, gap_after_operator, member_chain,
 };

@@ -1,13 +1,13 @@
 tool: "prettier"
 version: "3.9.10 (npm latest; the options page does not print the version)"
-languages: ["yaml", "json", "markdown"]
+languages: ["yaml", "json", "markdown", "graphql"]
 sources:
   - "https://registry.npmjs.org/prettier/latest"
   - "https://prettier.io/docs/options"
   - "https://prettier.io/docs/rationale"
   - "https://raw.githubusercontent.com/prettier/prettier/main/src/language-yaml/options.js (YAML-specific options: bracketSpacing, singleQuote, proseWrap)"
   - "https://prettier.io/blog/2024/01/12/3.2.0"
-scope: "YAML, JSON/JSONC and Markdown only; formatter has no lint rules"
+scope: "YAML, JSON/JSONC, Markdown and GraphQL only; formatter has no lint rules"
 legend:
   sudsy: "rule: <id> | option: <language>.format.<name> | formatter | sdk: <id> | config: <text> | planned | deferred | wontfix: <reason>"
   coverage: "covered | partial | missing | sdk | wontfix | deferred (planned counts as missing; partial keeps its primary mapping and states the gap)"
@@ -245,4 +245,14 @@ entries:
     gap: "Code spans with three backticks, blocks with tabs and lists that would parse differently when restyled are kept as written; trailing blanks in code are kept; no front matter formatting; the code of fences is formatted with the formatter of its language (`embedded_language_formatting`, default `auto` as in Prettier; the comparison runs with it off)."
     priority: "p2"
     batch: "B14 markdown-defaults"
+    usage: "medium"
+  - id: "graphql: formatting"
+    name: "GraphQL"
+    default: "automatic"
+    kind: "format-option"
+    sudsy: "formatter"
+    coverage: "partial"
+    notes: "Sudsy's defaults against Prettier 3.9 on a GraphQL corpus (Prettier's own format tests, graphql-js, GraphiQL, Apollo Federation, graphql-eslint; `scripts/parity.sh format prettier`): 105 of 132 files identical; 24 of the other 27 hold syntax the grammar rejects (or Prettier rejects), the last 3 are `# prettier-ignore` and comments between the interfaces and the body (`tests/parity/prettier/expected-diff.txt`). `line_width` and `bracket_spacing` are options; Prettier's other options do not apply to GraphQL."
+    gap: "A file the tree-sitter grammar cannot parse is not formatted (more than one directive on a field, backslashes in strings, descriptions on operations; see docs/formatting/graphql.md); `# prettier-ignore` is not read (`sudsy-ignore` is); Unicode escapes in strings are kept, Prettier decodes them."
+    priority: "p2"
     usage: "medium"

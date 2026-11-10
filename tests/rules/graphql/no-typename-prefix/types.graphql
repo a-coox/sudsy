@@ -1,0 +1,8 @@
+type User {
+  userId: ID
+# ^^^^^^ no-typename-prefix
+  id: ID
+}
+interface Node { nodeKind: String }
+#                ^^^^^^^^ no-typename-prefix
+input UserInput { userName: String }

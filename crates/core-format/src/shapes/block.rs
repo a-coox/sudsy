@@ -180,3 +180,36 @@ fn shares_line(cx: &FormatCtx<'_>, prev: &Rendered, next: &Rendered) -> bool {
         && comments::trailing_comments(g, &end).is_empty()
         && comments::leading_comments(g, &after).is_empty()
 }
+
+/// A document of statements: the root's items as a [`statement_sequence_with`], then the comments
+/// at the end of the file, which the zero-width end-of-file token owns.
+pub fn document(
+    cx: &FormatCtx<'_>,
+    node: &SyntaxNode,
+    max_blank_lines: usize,
+    force_blank: Option<BlankRule>,
+) -> Result<Doc, FormatError> {
+    let items: Vec<SyntaxNode> = node.children().collect();
+    let mut parts = vec![statement_sequence_with(
+        cx,
+        &items,
+        max_blank_lines,
+        force_blank,
+        false,
+    )?];
+    let eof = cx
+        .last_token(node)
+        .or_else(|| node.last_token())
+        .ok_or_else(|| FormatError::Shape("Document without tokens".into()))?;
+    let trailing = comments::leading_comments(cx.grammar, &eof);
+    if !trailing.is_empty() {
+        if !items.is_empty() {
+            parts.push(doc::hardline());
+            if comments::blank_lines_before(cx.grammar, &eof) > 0 {
+                parts.push(doc::hardline());
+            }
+        }
+        parts.push(crate::context::leading_comments_doc(&trailing));
+    }
+    Ok(doc::concat(parts))
+}

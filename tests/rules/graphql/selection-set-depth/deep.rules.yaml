@@ -1,0 +1,4 @@
+selection-set-depth:
+  level: warn
+  options:
+    max_depth: 2

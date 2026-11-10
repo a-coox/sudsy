@@ -39,6 +39,7 @@ export!(
 export!("ini", sudsy_language, tree_sitter_ini::LANGUAGE);
 export!("shell", sudsy_language, tree_sitter_bash::LANGUAGE);
 export!("protobuf", sudsy_language, tree_sitter_proto::LANGUAGE);
+export!("graphql", sudsy_language, tree_sitter_graphql::LANGUAGE);
 export!(
     "powershell",
     sudsy_language,

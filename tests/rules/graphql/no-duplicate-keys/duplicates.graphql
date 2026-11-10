@@ -1,0 +1,11 @@
+query Q($a: Int, $a: Int) { f(x: 1, x: 2) { b: x, b: y, c, c } }
+#                ^^ no-duplicate-keys
+#                                   ^ no-duplicate-keys
+#                                                    ^ no-duplicate-keys
+#                                                          ^ no-duplicate-keys
+type T { a: Int, a: Int }
+#                ^ no-duplicate-keys
+enum E { A, A }
+#           ^ no-duplicate-keys
+query R { o(i: { k: 1, k: 2 }) }
+#                      ^ no-duplicate-keys

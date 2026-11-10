@@ -1,0 +1,7 @@
+query A { a }
+query A { b }
+#     ^ unique-operation-name
+query B { c }
+fragment F on T { a }
+fragment F on T { b }
+#        ^ unique-fragment-name
