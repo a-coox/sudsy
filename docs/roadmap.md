@@ -10,7 +10,7 @@ One line each; none is committed.
 - Dockerfile: rules (hadolint parity); shell code inside `RUN` as a Shell language injected through the composite adapter (the formatter keeps it as written); (low priority) vendor tree-sitter-containerfile's `scanner.c` with a fix for consecutive `[`-led continuation lines, which make 24 corpus files unparseable ([formatting/dockerfile.md](formatting/dockerfile.md)).
 - Shell: rules (shellcheck subset); reformatting the inside of `$(...)`, `(( ))` and arrays like shfmt ([formatting/shell.md](formatting/shell.md)).
 - PowerShell: rules (PSScriptAnalyzer subset) ([formatting/powershell.md](formatting/powershell.md)).
-- Makefile: the files the grammar rejects (7 of 59 in the corpus, [formatting/makefile.md](formatting/makefile.md)) need a grammar fix or fork; shell code in `$(shell ...)` and `define` bodies; rules beyond checkmake's five.
+- Makefile: shell code in `$(shell ...)` and `define` bodies; rules beyond checkmake's five.
 - GitHub Actions: the actionlint checks not built ([parity/actionlint.yaml](parity/actionlint.yaml): types of expressions, events, globs, matrix, permission scopes, action metadata); a matcher for `.github/workflows` as a path, not a folder name ([formatting/github-actions.md](formatting/github-actions.md)).
 - Protobuf: the cross-file buf lint rules ([parity/buf.yaml](parity/buf.yaml)); the remaining `buf format` differences ([formatting/protobuf.md](formatting/protobuf.md)).
 - GraphQL: `# prettier-ignore`, the graphql-eslint rules that need no schema and are not built (`docs/parity/graphql-eslint.yaml`), schema-aware rules.

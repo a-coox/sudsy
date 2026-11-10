@@ -359,7 +359,13 @@ fn relay_header(
 ) {
     for e in node.children_with_tokens() {
         match e {
-            SyntaxElement::Node(n) if n.kind() == k::DIRECTIVE && body.is_empty() => {
+            // `else override A = b`: only an `if...` directive is the condition, any other starts the body
+            SyntaxElement::Node(n)
+                if n.kind() == k::DIRECTIVE
+                    && body.is_empty()
+                    && n.first_token()
+                        .is_some_and(|t| t.text().trim_start().starts_with("if")) =>
+            {
                 relay(cx, n.children_with_tokens(), line);
             }
             SyntaxElement::Node(n) => body.push(n),

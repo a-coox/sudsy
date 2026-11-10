@@ -15,12 +15,16 @@ fn fmt(input: &str) -> String {
 fn conformance() {
     let (count, unparsed) = check_corpus(lang_makefile::provider(), "Makefile", "makefile", &[]);
     println!("{count} files, {} with syntax errors", unparsed.len());
-    // The grammar gaps in docs/formatting/makefile.md.
-    assert_eq!(
-        unparsed.len(),
-        7,
+    assert!(
+        unparsed.is_empty(),
         "valid files with syntax errors: {unparsed:#?}"
     );
+}
+
+#[test]
+fn grammar_fork_constructs() {
+    let src = "ifeq (a,b)\n  X = $(dir)\nelse\n  override Y = $(if $(a),b,)\nendif\nS = ( \\\n\tls \\\n\t)\nall:\n\t@for m in $$($(GO) list a); do x; done\n\t$(info goal(s) $(@:%.o=%.c))\n";
+    assert_eq!(fmt(src), src);
 }
 
 #[test]

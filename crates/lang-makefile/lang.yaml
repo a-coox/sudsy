@@ -1,5 +1,5 @@
 grammar-crate: tree-sitter-make
-grammar-version: "1.1"
+grammar-path: grammars/tree-sitter-make
 extensions: [mk, mak]
 file-names: [Makefile, GNUmakefile, makefile]
 formatter: MakefileFormatter
