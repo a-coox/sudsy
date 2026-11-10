@@ -53,7 +53,23 @@ pub fn load(root: &Path) -> Result<Vec<Lang>> {
         });
     }
     langs.sort_by(|a, b| a.krate.cmp(&b.krate));
+    no_duplicate_matchers(&langs)?;
     Ok(langs)
+}
+
+/// Two languages claiming the same extension or file name tie in `select_provider_index`.
+fn no_duplicate_matchers(langs: &[Lang]) -> Result<()> {
+    let mut seen = std::collections::HashMap::new();
+    for l in langs {
+        for key in ["extensions", "file-names"] {
+            for m in list(&l.yaml, key) {
+                if let Some(first) = seen.insert((key, m.clone()), &l.krate) {
+                    anyhow::bail!("{first} and {} both claim {key} entry `{m}`", l.krate);
+                }
+            }
+        }
+    }
+    Ok(())
 }
 
 pub fn generate(langs: &[Lang]) -> Vec<(PathBuf, String)> {
@@ -135,4 +151,55 @@ fn provider(name: &str, v: &Value) -> String {
     format!(
         "// Generated from lang.yaml by `cargo xtask codegen`.\nuse core_syntax::grammars;\nuse core_treesitter::{{Spec, TreeSitterProvider}};\n\ncore_syntax::include_generated!();\n\n#[rustfmt::skip]\npub fn provider() -> TreeSitterProvider {{\n    {body}\n}}\n"
     )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn lang(krate: &str, yaml: &str) -> Lang {
+        Lang {
+            krate: krate.into(),
+            yaml: serde_saphyr::from_str(yaml).unwrap(),
+        }
+    }
+
+    #[test]
+    fn duplicate_matchers_name_both_languages() {
+        let langs = [
+            lang("lang-a", "extensions: [x]"),
+            lang("lang-b", "extensions: [x]"),
+        ];
+        let err = no_duplicate_matchers(&langs).unwrap_err().to_string();
+        assert!(err.contains("lang-a") && err.contains("lang-b"), "{err}");
+        let ok = [
+            lang("lang-a", "extensions: [x]"),
+            lang("lang-b", "file-names: [x]"),
+        ];
+        assert!(no_duplicate_matchers(&ok).is_ok());
+    }
+
+    /// The cap on the committed bench inputs of one language (docs/performance/tooling.md).
+    #[test]
+    fn bench_inputs_stay_under_150_kb_per_language() {
+        let dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("../bench/inputs");
+        for lang in std::fs::read_dir(dir).unwrap() {
+            let lang = lang.unwrap().path();
+            let size = walk(&lang);
+            assert!(size <= 150_000, "{} is {size} bytes", lang.display());
+        }
+    }
+
+    fn walk(dir: &Path) -> u64 {
+        let files = std::fs::read_dir(dir).unwrap().map(|e| e.unwrap().path());
+        files
+            .map(|p| {
+                if p.is_dir() {
+                    walk(&p)
+                } else {
+                    p.metadata().unwrap().len()
+                }
+            })
+            .sum()
+    }
 }

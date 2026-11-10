@@ -1,0 +1,2 @@
+# metric max-instructions; scripts/bench.sh fails when a measured metric exceeds its budget
+startup.lint.instr 1500000
