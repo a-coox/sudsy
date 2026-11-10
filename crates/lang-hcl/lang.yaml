@@ -4,3 +4,8 @@ extensions: [hcl, tf, tfvars, nomad]
 formatter: HclFormatter
 deps: [rowan]
 dev-deps: [insta]
+options:
+  - indent_size: 2
+  - final_newline: true
+  - end_of_line
+presets: [tflint-recommended]

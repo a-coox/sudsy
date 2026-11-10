@@ -5,3 +5,13 @@ formatter: PowerShellFormatter
 composite: mapping::COMPOSITE
 hooks: hooks::PowerShellHooks
 deps: [memchr]
+options:
+  - indent_size: 4
+  - indent_style:
+      values: ["space", "tab"]
+      default: "space"
+      doc: "Indent with spaces or tabs."
+  - final_newline: true
+  - end_of_line
+  - max_blank_lines: [10, "Largest number of blank lines kept between statements and comments."]
+presets: [psscriptanalyzer]

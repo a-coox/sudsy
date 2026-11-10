@@ -1,0 +1,33 @@
+options:
+  - line_width: 80
+  - indent_size: 2
+  - final_newline: true
+  - end_of_line
+  - bracket_spacing: true
+  - array_bracket_spacing: false
+  - sequence_indent:
+      values: ["preserve", "indented", "flush"]
+      default: "preserve"
+      doc: "A block sequence that is the value of a mapping key: `indented` puts the dashes one level in, `flush` at the key's column, `preserve` keeps each sequence as written."
+  - quote_style:
+      values: ["preserve", "single", "double", "prefer_double"]
+      default: "preserve"
+      doc: "Quote style of quoted scalars. With `single` and `double` a scalar keeps its quotes when the other style would change its value or need more escapes; `prefer_double` uses double quotes, except single quotes for text that contains a `\"` (unless it has other escapes, which keep it as written)."
+  - document_start:
+      values: ["preserve", "always", "never"]
+      default: "preserve"
+      doc: "The `---` marker: `always` starts every document with it, `never` leaves it out of the first document when that is possible, `preserve` keeps what is written."
+  - document_end:
+      values: ["preserve", "always", "never"]
+      default: "preserve"
+      doc: "The `...` marker: `always` ends every document with it, `never` leaves it out unless the next document has a directive or no `---`, or the document is empty, `preserve` keeps what is written."
+  - max_blank_lines: [1, "Largest number of blank lines kept between entries, comments and documents."]
+  - blank_lines_after_key:
+      values: ["preserve", "remove"]
+      default: "preserve"
+      doc: "Blank lines between a key and its block value on the next line: `preserve` keeps \n             them (up to `max_blank_lines`); `remove` drops them."
+  - comment_spacing:
+      range: [1, 10]
+      default: 1
+      doc: "Spaces between a value and a comment after it on the same line."
+presets: [default, prettier-compat, yamllint]

@@ -6,3 +6,24 @@ hooks: hooks::TomlHooks
 validate: validate::validate
 deps: [rowan, tree-sitter, unicode-width]
 dev-deps: [insta]
+options:
+  - line_width: 80
+  - indent_size: 2
+  - indent_style
+  - final_newline: true
+  - end_of_line
+  - bracket_spacing: true
+  - array_bracket_spacing: false
+  - collapse:
+      values: ["preserve", "always", "never"]
+      default: "preserve"
+      doc: "Arrays on one line: `preserve` keeps one that has a line break between its brackets expanded and puts the others on one line if they fit; `always` puts every one that fits on one line; `never` puts every non-empty one on several lines."
+  - trailing_commas:
+      values: ["never", "multiline"]
+      default: "multiline"
+      doc: "Trailing comma after the last item of a multi-line array."
+  - max_blank_lines: [1, "Largest number of blank lines kept between entries, tables and comments."]
+  - align_comments:
+      default: false
+      doc: "Start the trailing comments of consecutive entries in one column (entries with no              blank line or comment line between them); a run with an entry on several lines is not \n             aligned."
+presets: [default, taplo-compat]

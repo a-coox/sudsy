@@ -5,3 +5,10 @@ formatter: GraphqlFormatter
 hooks: hooks::GraphqlHooks
 dev-deps: [insta]
 families: "&[core_rules::unique::FAMILY]"
+options:
+  - indent_size: 2
+  - indent_style
+  - line_width: 80
+  - bracket_spacing: true
+  - final_newline: true
+  - end_of_line

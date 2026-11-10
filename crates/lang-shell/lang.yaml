@@ -5,3 +5,13 @@ file-names: [.bashrc, .bash_profile, .profile]
 formatter: ShellFormatter
 composite: mapping::COMPOSITE
 deps: [regex]
+options:
+  - indent_size: 4
+  - indent_style:
+      values: ["space", "tab"]
+      default: "tab"
+      doc: "Indent with spaces or tabs."
+  - final_newline: true
+  - end_of_line
+  - max_blank_lines: [1, "Largest number of blank lines kept between statements and comments."]
+presets: [shellcheck]

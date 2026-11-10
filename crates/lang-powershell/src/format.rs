@@ -5,37 +5,13 @@
 //! formatter walks the tokens.
 
 use crate::generated::kind as k;
-use core_config::{OptionDef, OptionSchema, Preset, shared};
+use core_config::shared;
 use core_format::comments::{self, Comment, CommentStyle};
 use core_format::{Doc, FormatCtx, FormatError, NodeFormatter, doc};
 use core_syntax::{Grammar, SyntaxKind, SyntaxNode, SyntaxToken};
 use std::collections::HashMap;
 
-pub const MAX_BLANK_LINES: &str = "max_blank_lines";
-
-pub fn option_schema() -> OptionSchema {
-    OptionSchema::new(vec![
-        shared::indent_size(4),
-        OptionDef::choice(
-            shared::INDENT_STYLE,
-            &["space", "tab"],
-            "space",
-            "Indent with spaces or tabs.",
-        ),
-        shared::final_newline(true),
-        shared::end_of_line(),
-        OptionDef::int(
-            MAX_BLANK_LINES,
-            10,
-            (0, 10),
-            "Largest number of blank lines kept between statements and comments.",
-        ),
-    ])
-    .with_presets(vec![Preset::new(
-        "powershell/psscriptanalyzer",
-        include_str!("../presets/psscriptanalyzer.yaml"),
-    )])
-}
+include!("schema.generated.rs");
 
 pub struct PowerShellFormatter;
 
@@ -430,7 +406,7 @@ fn close(frames: &mut Vec<Frame>) {
 
 fn program(cx: &FormatCtx<'_>, root: &SyntaxNode) -> Doc {
     let g = cx.grammar;
-    let max_blank = cx.options.int(MAX_BLANK_LINES) as usize;
+    let max_blank = cx.options.int(shared::MAX_BLANK_LINES) as usize;
     let mut tks = collect(g, root);
     pair_brackets(&mut tks);
     place_breaks(&mut tks);

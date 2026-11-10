@@ -4,7 +4,7 @@
 
 use crate::align::{self, AlignTable};
 use crate::generated::kind as k;
-use core_config::{OptionDef, OptionSchema, Preset, ResolvedOptions, shared};
+use core_config::{ResolvedOptions, shared};
 use core_format::shapes::{
     KeyValueStyle, ListLayout, ListStyle, TrailingComma, delimited_list, key_value,
     statement_sequence,
@@ -12,42 +12,7 @@ use core_format::shapes::{
 use core_format::{Doc, FormatCtx, FormatError, NodeFormatter, doc};
 use core_syntax::{SyntaxElement, SyntaxNode};
 
-pub const COLLAPSE: &str = "collapse";
-pub const TRAILING_COMMAS: &str = "trailing_commas";
-pub const ALIGN_COMMENTS: &str = "align_comments";
-
-pub fn option_schema() -> OptionSchema {
-    OptionSchema::new(vec![
-        shared::line_width(80),
-        shared::indent_size(2),
-        shared::indent_style(),
-        shared::final_newline(true),
-        shared::end_of_line(),
-        shared::bracket_spacing(true),
-        shared::array_bracket_spacing(false),
-        OptionDef::choice(
-            COLLAPSE,
-            &["preserve", "always", "never"],
-            "preserve",
-            "Arrays on one line: `preserve` keeps one that has a line break between its brackets \
-             expanded and puts the others on one line if they fit; `always` puts every one that \
-             fits on one line; `never` puts every non-empty one on several lines.",
-        ),
-        OptionDef::choice(
-            TRAILING_COMMAS,
-            &["never", "multiline"],
-            "multiline",
-            "Trailing comma after the last item of a multi-line array.",
-        ),
-        shared::max_blank_lines(1, "Largest number of blank lines kept between entries, tables and comments."),
-        OptionDef::boolean(
-            ALIGN_COMMENTS,
-            false,
-            "Start the trailing comments of consecutive entries in one column (entries with no              blank line or comment line between them); a run with an entry on several lines is not \n             aligned.",
-        ),
-    ])
-    .with_presets(presets())
-}
+include!("schema.generated.rs");
 
 pub struct TomlFormatter;
 
@@ -159,15 +124,4 @@ fn document(cx: &FormatCtx<'_>, node: &SyntaxNode) -> Result<Doc, FormatError> {
         cx.cached(|| AlignTable::build(cx, node));
     }
     core_format::shapes::document(cx, node, cx.options.max_blank_lines(), None)
-}
-
-/// The presets are plain config files in `presets/` next to the crate's manifest.
-fn presets() -> Vec<Preset> {
-    vec![
-        Preset::new("toml/default", include_str!("../presets/default.yaml")),
-        Preset::new(
-            "toml/taplo-compat",
-            include_str!("../presets/taplo-compat.yaml"),
-        ),
-    ]
 }

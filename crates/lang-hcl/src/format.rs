@@ -5,22 +5,12 @@
 //! tokens; the layout works on the token stream, as hclwrite does.
 
 use crate::generated::kind as k;
-use core_config::{OptionSchema, Preset, shared};
+use core_config::shared;
 use core_format::{Doc, FormatCtx, FormatError, NodeFormatter, doc};
 use core_syntax::{SyntaxElement, SyntaxNode, SyntaxToken};
 use rowan::WalkEvent;
 
-pub fn option_schema() -> OptionSchema {
-    OptionSchema::new(vec![
-        shared::indent_size(2),
-        shared::final_newline(true),
-        shared::end_of_line(),
-    ])
-    .with_presets(vec![Preset::new(
-        "hcl/tflint-recommended",
-        include_str!("../presets/tflint-recommended.yaml"),
-    )])
-}
+include!("schema.generated.rs");
 
 pub struct HclFormatter;
 

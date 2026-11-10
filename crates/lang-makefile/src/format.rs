@@ -4,40 +4,12 @@
 //! blanks aside); recipe commands are Shell code, which the Shell language formats on its own.
 
 use crate::generated::kind as k;
-use core_config::{OptionDef, OptionSchema, Preset, shared};
+use core_config::shared;
 use core_format::shapes::statement_sequence;
 use core_format::{Doc, FormatCtx, FormatError, NodeFormatter, comments, doc};
 use core_syntax::{SyntaxElement, SyntaxKind, SyntaxNode, SyntaxNodeExt, SyntaxToken, TextRange};
 
-pub const SPACE_AROUND_ASSIGNMENT: &str = "space_around_assignment";
-pub const SPACE_BEFORE_COLON: &str = "space_before_colon";
-
-pub fn option_schema() -> OptionSchema {
-    OptionSchema::new(vec![
-        shared::indent_size(2),
-        shared::indent_style(),
-        shared::final_newline(true),
-        shared::end_of_line(),
-        OptionDef::boolean(
-            SPACE_AROUND_ASSIGNMENT,
-            true,
-            "Write `A := b` rather than `A:=b`.",
-        ),
-        OptionDef::boolean(
-            SPACE_BEFORE_COLON,
-            false,
-            "Write `target : prerequisite` rather than `target: prerequisite`.",
-        ),
-        shared::max_blank_lines(
-            2,
-            "Largest number of blank lines kept between statements and comments.",
-        ),
-    ])
-    .with_presets(vec![Preset::new(
-        "makefile/checkmake",
-        include_str!("../presets/checkmake.yaml"),
-    )])
-}
+include!("schema.generated.rs");
 
 pub struct MakefileFormatter;
 

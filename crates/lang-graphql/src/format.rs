@@ -3,21 +3,12 @@
 //! (no commas) when they do not, block strings re-indented, commas dropped.
 
 use crate::generated::kind as k;
-use core_config::{OptionSchema, shared};
+use core_config::shared;
 use core_format::shapes::{BlockStyle, block, block_between, dangling_comments, document};
 use core_format::{Doc, FormatCtx, FormatError, NodeFormatter, comments, doc};
 use core_syntax::{SyntaxElement, SyntaxKind, SyntaxNode, SyntaxNodeExt, SyntaxToken};
 
-pub fn option_schema() -> OptionSchema {
-    OptionSchema::new(vec![
-        shared::indent_size(2),
-        shared::indent_style(),
-        shared::line_width(80),
-        shared::bracket_spacing(true),
-        shared::final_newline(true),
-        shared::end_of_line(),
-    ])
-}
+include!("schema.generated.rs");
 
 pub struct GraphqlFormatter;
 

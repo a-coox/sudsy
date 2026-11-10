@@ -27,7 +27,7 @@ fn splice(rel: &str, regions: &[(&str, &str, String)]) -> Result<(PathBuf, Strin
 }
 
 /// One line per language.
-fn lines(langs: &[Lang], f: impl Fn(&Lang) -> String) -> String {
+fn lines(langs: &[&Lang], f: impl Fn(&Lang) -> String) -> String {
     langs.iter().map(|l| f(l) + "\n").collect()
 }
 
@@ -66,13 +66,13 @@ fn exports(l: &Lang) -> String {
     out
 }
 
-pub fn generate(langs: &[Lang]) -> Result<Vec<(PathBuf, String)>> {
+pub fn generate(langs: &[&Lang]) -> Result<Vec<(PathBuf, String)>> {
     let features = langs
         .iter()
         .map(|l| format!("\"{}/static-grammars\"", l.krate))
         .collect::<Vec<_>>()
         .join(", ");
-    let packs = langs.iter().map(name).collect::<Vec<_>>().join(" ");
+    let packs = langs.iter().map(|l| name(l)).collect::<Vec<_>>().join(" ");
     Ok(vec![
         splice(
             "Cargo.toml",
@@ -141,7 +141,7 @@ pub fn generate(langs: &[Lang]) -> Result<Vec<(PathBuf, String)>> {
         )?,
         splice(
             "crates/pack/src/lib.rs",
-            &[("//", "exports", langs.iter().map(exports).collect())],
+            &[("//", "exports", langs.iter().map(|l| exports(l)).collect())],
         )?,
         splice(
             "scripts/pack.sh",

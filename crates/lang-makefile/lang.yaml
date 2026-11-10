@@ -6,3 +6,16 @@ formatter: MakefileFormatter
 composite: mapping::COMPOSITE
 embedded: embedded::find
 dev-deps: [core-config, core-incremental, lang-shell]
+options:
+  - indent_size: 2
+  - indent_style
+  - final_newline: true
+  - end_of_line
+  - space_around_assignment:
+      default: true
+      doc: "Write `A := b` rather than `A:=b`."
+  - space_before_colon:
+      default: false
+      doc: "Write `target : prerequisite` rather than `target: prerequisite`."
+  - max_blank_lines: [2, "Largest number of blank lines kept between statements and comments."]
+presets: [checkmake]

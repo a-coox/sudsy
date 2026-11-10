@@ -17,28 +17,12 @@ use signature::signature;
 
 pub(crate) use embedded::find as find_embedded;
 
-use core_config::{OptionDef, OptionSchema, Preset, shared};
+use core_config::shared;
 use core_format::{Doc, FormatCtx, FormatError, NodeFormatter, doc};
 use core_syntax::{SyntaxElement, SyntaxKind, SyntaxNode, SyntaxToken};
 use unicode_width::UnicodeWidthStr;
 
-pub fn option_schema() -> OptionSchema {
-    OptionSchema::new(vec![
-        shared::indent_size(2),
-        shared::final_newline(true),
-        shared::end_of_line(),
-        OptionDef::choice(
-            "embedded_language_formatting",
-            &["auto", "off"],
-            "auto",
-            "Format the code of a fenced block with the formatter of the language its info string names (`auto`, Prettier's `embeddedLanguageFormatting`), or keep it as written (`off`). Code that does not parse, or of a language that is not installed, is kept either way.",
-        ),
-    ])
-    .with_presets(vec![Preset::new(
-        "markdown/prettier-compat",
-        include_str!("../../presets/prettier-compat.yaml"),
-    )])
-}
+include!("../schema.generated.rs");
 
 pub struct MarkdownFormatter;
 

@@ -4,26 +4,11 @@
 //! multi-line text are re-indented (never inside a quote, where the blanks are content).
 
 use crate::generated::kind as k;
-use core_config::{OptionSchema, Preset, shared};
+use core_config::shared;
 use core_format::{Doc, FormatCtx, FormatError, NodeFormatter, comments, doc};
 use core_syntax::{SyntaxKind, SyntaxNode};
 
-pub fn option_schema() -> OptionSchema {
-    OptionSchema::new(vec![
-        shared::indent_size(4),
-        shared::indent_style(),
-        shared::final_newline(true),
-        shared::end_of_line(),
-        shared::max_blank_lines(
-            1,
-            "Largest number of blank lines kept between instructions and comments.",
-        ),
-    ])
-    .with_presets(vec![Preset::new(
-        "dockerfile/hadolint",
-        include_str!("../presets/hadolint.yaml"),
-    )])
-}
+include!("schema.generated.rs");
 
 pub struct DockerfileFormatter;
 

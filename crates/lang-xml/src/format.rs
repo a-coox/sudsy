@@ -4,31 +4,12 @@
 //! child element on its own line, indented. A tag that does not fit breaks its attributes.
 
 use crate::generated::kind as k;
-use core_config::{OptionSchema, Preset, shared};
+use core_config::shared;
 use core_format::shapes::{dangling_comments, statement_sequence};
 use core_format::{Doc, FormatCtx, FormatError, NodeFormatter, comments, context, doc};
 use core_syntax::{SyntaxElement, SyntaxNode, SyntaxNodeExt, SyntaxToken};
 
-pub fn option_schema() -> OptionSchema {
-    OptionSchema::new(vec![
-        shared::line_width(100),
-        shared::indent_size(2),
-        shared::indent_style(),
-        shared::final_newline(true),
-        shared::end_of_line(),
-        shared::max_blank_lines(
-            1,
-            "Largest number of blank lines kept between elements, comments and declarations.",
-        ),
-    ])
-    .with_presets(vec![
-        Preset::new("xml/default", include_str!("../presets/default.yaml")),
-        Preset::new(
-            "xml/csharpier-compat",
-            include_str!("../presets/csharpier-compat.yaml"),
-        ),
-    ])
-}
+include!("schema.generated.rs");
 
 pub struct XmlFormatter;
 

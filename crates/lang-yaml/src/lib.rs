@@ -15,8 +15,7 @@ mod tree;
 mod value_rules;
 
 pub use format::{
-    COMMENT_SPACING, DOCUMENT_START, MAX_BLANK_LINES, QUOTE_STYLE, SEQUENCE_INDENT, YamlFormatter,
-    option_schema,
+    COMMENT_SPACING, DOCUMENT_START, QUOTE_STYLE, SEQUENCE_INDENT, YamlFormatter, option_schema,
 };
 pub use parser::{MAX_DEPTH, Parsed, parse};
 

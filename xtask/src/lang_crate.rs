@@ -72,15 +72,28 @@ fn no_duplicate_matchers(langs: &[Lang]) -> Result<()> {
     Ok(())
 }
 
-pub fn generate(langs: &[Lang]) -> Vec<(PathBuf, String)> {
+/// The languages with a tree-sitter grammar; a hand-written one (JSON, YAML, C#) has a `lang.yaml`
+/// for its options only.
+pub fn tree_sitter(langs: &[Lang]) -> Vec<&Lang> {
+    let ts = |l: &&Lang| l.yaml.get("grammar-crate").is_some();
+    langs.iter().filter(ts).collect()
+}
+
+pub fn generate(langs: &[Lang]) -> Result<Vec<(PathBuf, String)>> {
     let mut files = Vec::new();
-    for Lang { krate, yaml } in langs {
+    for l in langs {
+        let Lang { krate, yaml } = l;
         let rel = PathBuf::from("crates").join(krate);
-        files.push((rel.join("Cargo.toml"), cargo_toml(krate, yaml)));
         let name = krate.trim_start_matches("lang-");
-        files.push((rel.join("src/provider.generated.rs"), provider(name, yaml)));
+        if yaml.get("grammar-crate").is_some() {
+            files.push((rel.join("Cargo.toml"), cargo_toml(krate, yaml)));
+            files.push((rel.join("src/provider.generated.rs"), provider(name, yaml)));
+        }
+        if let Some(schema) = crate::options::generate(name, l)? {
+            files.push((rel.join("src/schema.generated.rs"), schema));
+        }
     }
-    files
+    Ok(files)
 }
 
 fn cargo_toml(krate: &str, v: &Value) -> String {

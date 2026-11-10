@@ -9,3 +9,12 @@ composite: mapping::COMPOSITE
 embedded: format::find_embedded
 deps: [rowan, tree-sitter, unicode-width]
 dev-deps: [insta, pulldown-cmark, serde_json]
+options:
+  - indent_size: 2
+  - final_newline: true
+  - end_of_line
+  - embedded_language_formatting:
+      values: ["auto", "off"]
+      default: "auto"
+      doc: "Format the code of a fenced block with the formatter of the language its info string names (`auto`, Prettier's `embeddedLanguageFormatting`), or keep it as written (`off`). Code that does not parse, or of a language that is not installed, is kept either way."
+presets: [prettier-compat]

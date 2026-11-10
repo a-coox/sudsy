@@ -2,49 +2,12 @@
 //! options onto the list shape for objects and arrays and handles the document's end.
 
 use crate::generated::kind as k;
-use core_config::{OptionDef, OptionSchema, Preset, ResolvedOptions, shared};
+use core_config::{ResolvedOptions, shared};
 use core_format::shapes::{ListLayout, ListStyle, TrailingComma, delimited_list};
 use core_format::{Doc, FormatCtx, FormatError, NodeFormatter};
 use core_syntax::SyntaxNode;
 
-pub const COLLAPSE: &str = "collapse";
-pub const TRAILING_COMMAS: &str = "trailing_commas";
-pub const DIALECT: &str = "dialect";
-
-pub fn option_schema() -> OptionSchema {
-    OptionSchema::new(vec![
-        shared::line_width(80),
-        shared::indent_size(2),
-        shared::indent_style(),
-        shared::final_newline(true),
-        shared::end_of_line(),
-        shared::bracket_spacing(true),
-        shared::array_bracket_spacing(false),
-        OptionDef::choice(
-            COLLAPSE,
-            &["preserve", "always", "never", "opening_break"],
-            "preserve",
-            "Objects and arrays on one line: `preserve` keeps one that has a line break between \
-             its brackets expanded and puts the others on one line if they fit; `always` puts \
-             every one that fits on one line; `never` puts every non-empty one on several lines; \
-             `opening_break` keeps an object expanded when a line break follows its opening \
-             brace and puts every array that fits on one line.",
-        ),
-        OptionDef::choice(
-            TRAILING_COMMAS,
-            &["never", "multiline"],
-            "never",
-            "Trailing commas after the last item of a multi-line object or array (JSONC only).",
-        ),
-        OptionDef::choice(
-            DIALECT,
-            &["auto", "json", "jsonc"],
-            "auto",
-            "JSON or JSONC (comments, trailing commas); `auto` decides by file name.",
-        ),
-    ])
-    .with_presets(presets())
-}
+include!("schema.generated.rs");
 
 pub struct JsonFormatter;
 
@@ -91,16 +54,4 @@ impl NodeFormatter for JsonFormatter {
 /// The value, then comments after it (which are owned by the end-of-file token).
 fn document(cx: &FormatCtx<'_>, node: &SyntaxNode) -> Result<Doc, FormatError> {
     core_format::shapes::document(cx, node, 1, None)
-}
-
-/// The presets are plain config files in `presets/` next to the crate's manifest.
-fn presets() -> Vec<Preset> {
-    vec![
-        Preset::new("json/biome", include_str!("../presets/biome.yaml")),
-        Preset::new("json/default", include_str!("../presets/default.yaml")),
-        Preset::new(
-            "json/prettier-compat",
-            include_str!("../presets/prettier-compat.yaml"),
-        ),
-    ]
 }

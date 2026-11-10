@@ -4,3 +4,8 @@ extensions: [gitignore, dockerignore]
 file-names: [.gitignore, .dockerignore, .npmignore, .prettierignore, .eslintignore, .sudsyignore, .git/info/exclude]
 formatter: GitignoreFormatter
 dev-deps: [insta]
+options:
+  - final_newline: true
+  - end_of_line
+  - max_blank_lines: [1, "Largest number of blank lines kept between patterns and comments."]
+presets: [default]

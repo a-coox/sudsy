@@ -15,79 +15,12 @@ pub(crate) use scalars::restyle;
 
 use crate::generated::kind as k;
 use crate::model;
-use core_config::{OptionDef, OptionSchema, Preset, ResolvedOptions, shared};
+use core_config::{ResolvedOptions, shared};
 use core_format::comments::CommentStyle;
 use core_format::{Doc, FormatCtx, FormatError, NodeFormatter};
 use core_syntax::SyntaxNode;
 
-pub const SEQUENCE_INDENT: &str = "sequence_indent";
-pub const QUOTE_STYLE: &str = "quote_style";
-pub const DOCUMENT_START: &str = "document_start";
-pub const DOCUMENT_END: &str = "document_end";
-pub const MAX_BLANK_LINES: &str = "max_blank_lines";
-pub const BLANK_LINES_AFTER_KEY: &str = "blank_lines_after_key";
-pub const COMMENT_SPACING: &str = "comment_spacing";
-
-pub fn option_schema() -> OptionSchema {
-    OptionSchema::new(vec![
-        shared::line_width(80),
-        shared::indent_size(2),
-        shared::final_newline(true),
-        shared::end_of_line(),
-        shared::bracket_spacing(true),
-        shared::array_bracket_spacing(false),
-        OptionDef::choice(
-            SEQUENCE_INDENT,
-            &["preserve", "indented", "flush"],
-            "preserve",
-            "A block sequence that is the value of a mapping key: `indented` puts the dashes one \
-             level in, `flush` at the key's column, `preserve` keeps each sequence as written.",
-        ),
-        OptionDef::choice(
-            QUOTE_STYLE,
-            &["preserve", "single", "double", "prefer_double"],
-            "preserve",
-            "Quote style of quoted scalars. With `single` and `double` a scalar keeps its quotes \
-             when the other style would change its value or need more escapes; `prefer_double` \
-             uses double quotes, except single quotes for text that contains a `\"` (unless it \
-             has other escapes, which keep it as written).",
-        ),
-        OptionDef::choice(
-            DOCUMENT_START,
-            &["preserve", "always", "never"],
-            "preserve",
-            "The `---` marker: `always` starts every document with it, `never` leaves it out of \
-             the first document when that is possible, `preserve` keeps what is written.",
-        ),
-        OptionDef::choice(
-            DOCUMENT_END,
-            &["preserve", "always", "never"],
-            "preserve",
-            "The `...` marker: `always` ends every document with it, `never` leaves it out \
-             unless the next document has a directive or no `---`, or the document is empty, \
-             `preserve` keeps what is written.",
-        ),
-        OptionDef::int(
-            MAX_BLANK_LINES,
-            1,
-            (0, 10),
-            "Largest number of blank lines kept between entries, comments and documents.",
-        ),
-        OptionDef::choice(
-            BLANK_LINES_AFTER_KEY,
-            &["preserve", "remove"],
-            "preserve",
-            "Blank lines between a key and its block value on the next line: `preserve` keeps \n             them (up to `max_blank_lines`); `remove` drops them.",
-        ),
-        OptionDef::int(
-            COMMENT_SPACING,
-            1,
-            (1, 10),
-            "Spaces between a value and a comment after it on the same line.",
-        ),
-    ])
-    .with_presets(presets())
-}
+include!("../schema.generated.rs");
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub(crate) enum SequenceIndent {
@@ -156,7 +89,7 @@ impl Style {
                 "never" => DocumentEnd::Never,
                 _ => DocumentEnd::Preserve,
             },
-            max_blank: options.int(MAX_BLANK_LINES) as usize,
+            max_blank: options.int(shared::MAX_BLANK_LINES) as usize,
         }
     }
 }
@@ -209,16 +142,4 @@ impl NodeFormatter for YamlFormatter {
             Some(i) => Err(format!("the data model of document {} changed", i + 1)),
         }
     }
-}
-
-/// The presets are plain config files in `presets/` next to the crate's manifest.
-fn presets() -> Vec<Preset> {
-    vec![
-        Preset::new("yaml/default", include_str!("../../presets/default.yaml")),
-        Preset::new(
-            "yaml/prettier-compat",
-            include_str!("../../presets/prettier-compat.yaml"),
-        ),
-        Preset::new("yaml/yamllint", include_str!("../../presets/yamllint.yaml")),
-    ]
 }

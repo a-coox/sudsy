@@ -6,3 +6,10 @@ formatter: DockerfileFormatter
 families: rules::FAMILIES
 embedded: embedded::find
 dev-deps: [insta, lang-shell]
+options:
+  - indent_size: 4
+  - indent_style
+  - final_newline: true
+  - end_of_line
+  - max_blank_lines: [1, "Largest number of blank lines kept between instructions and comments."]
+presets: [hadolint]

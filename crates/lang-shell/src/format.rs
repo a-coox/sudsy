@@ -4,32 +4,12 @@
 //! expansions, substitutions and tests are kept as written; only the layout between them changes.
 
 use crate::generated::kind as k;
-use core_config::{OptionDef, OptionSchema, Preset, shared};
+use core_config::shared;
 use core_format::shapes::dangling_comments;
 use core_format::{Doc, FormatCtx, FormatError, NodeFormatter, comments, doc};
 use core_syntax::{SyntaxElement, SyntaxNode, SyntaxToken, TextRange};
 
-pub fn option_schema() -> OptionSchema {
-    OptionSchema::new(vec![
-        shared::indent_size(4),
-        OptionDef::choice(
-            shared::INDENT_STYLE,
-            &["space", "tab"],
-            "tab",
-            "Indent with spaces or tabs.",
-        ),
-        shared::final_newline(true),
-        shared::end_of_line(),
-        shared::max_blank_lines(
-            1,
-            "Largest number of blank lines kept between statements and comments.",
-        ),
-    ])
-    .with_presets(vec![Preset::new(
-        "shell/shellcheck",
-        include_str!("../presets/shellcheck.yaml"),
-    )])
-}
+include!("schema.generated.rs");
 
 pub struct ShellFormatter;
 

@@ -2,26 +2,13 @@
 //! each section. Keys, globs, values and comments are kept as written.
 
 use crate::generated::kind as k;
-use core_config::{OptionSchema, Preset, shared};
+use core_config::shared;
 use core_format::shapes::statement_sequence_with;
 use core_format::{Doc, FormatCtx, FormatError, NodeFormatter, doc};
 use core_syntax::SyntaxNode;
 use core_syntax::SyntaxNodeExt;
 
-pub fn option_schema() -> OptionSchema {
-    OptionSchema::new(vec![
-        shared::final_newline(true),
-        shared::end_of_line(),
-        shared::max_blank_lines(
-            1,
-            "Largest number of blank lines kept between entries, sections and comments.",
-        ),
-    ])
-    .with_presets(vec![Preset::new(
-        "editorconfig/default",
-        include_str!("../presets/default.yaml"),
-    )])
-}
+include!("schema.generated.rs");
 
 pub struct EditorConfigFormatter;
 

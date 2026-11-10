@@ -8,6 +8,7 @@ mod docs;
 mod lang_crate;
 pub mod manifests;
 mod new_rule;
+mod options;
 mod registry;
 mod rules;
 mod vscode;
@@ -57,8 +58,8 @@ pub fn generate() -> Result<Vec<(PathBuf, String)>> {
     ids.dedup();
     ensure!(ids.len() == n, "two grammars share a language id");
     let langs = lang_crate::load(&root)?;
-    files.extend(lang_crate::generate(&langs));
-    files.extend(registry::generate(&langs)?);
+    files.extend(lang_crate::generate(&langs)?);
+    files.extend(registry::generate(&lang_crate::tree_sitter(&langs))?);
     files.extend(vscode::generate(&providers)?);
     files.extend(docs::generate(&providers)?);
     Ok(files)

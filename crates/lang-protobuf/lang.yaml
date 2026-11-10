@@ -3,3 +3,9 @@ grammar-version: "0.6"
 extensions: [proto]
 formatter: ProtoFormatter
 dev-deps: [insta]
+options:
+  - indent_size: 2
+  - indent_style
+  - final_newline: true
+  - end_of_line
+presets: [buf-standard]

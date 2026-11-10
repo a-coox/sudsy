@@ -6,3 +6,11 @@ formatter: XmlFormatter
 validate: validate::validate
 deps: [rowan]
 dev-deps: [regex]
+options:
+  - line_width: 100
+  - indent_size: 2
+  - indent_style
+  - final_newline: true
+  - end_of_line
+  - max_blank_lines: [1, "Largest number of blank lines kept between elements, comments and declarations."]
+presets: [default, csharpier-compat]

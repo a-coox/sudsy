@@ -1,0 +1,21 @@
+options:
+  - line_width: 80
+  - indent_size: 2
+  - indent_style
+  - final_newline: true
+  - end_of_line
+  - bracket_spacing: true
+  - array_bracket_spacing: false
+  - collapse:
+      values: ["preserve", "always", "never", "opening_break"]
+      default: "preserve"
+      doc: "Objects and arrays on one line: `preserve` keeps one that has a line break between its brackets expanded and puts the others on one line if they fit; `always` puts every one that fits on one line; `never` puts every non-empty one on several lines; `opening_break` keeps an object expanded when a line break follows its opening brace and puts every array that fits on one line."
+  - trailing_commas:
+      values: ["never", "multiline"]
+      default: "never"
+      doc: "Trailing commas after the last item of a multi-line object or array (JSONC only)."
+  - dialect:
+      values: ["auto", "json", "jsonc"]
+      default: "auto"
+      doc: "JSON or JSONC (comments, trailing commas); `auto` decides by file name."
+presets: [biome, default, prettier-compat]
