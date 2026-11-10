@@ -25,8 +25,14 @@ fn matches_the_file_names() {
             ".dockerignore",
             "x/.npmignore",
             ".prettierignore",
+            "repo/.git/info/exclude",
         ],
-        &["a/gitignore.txt", "a/exclude"],
+        &[
+            "a/gitignore.txt",
+            "a/exclude",
+            "info/exclude",
+            "x/.git/exclude",
+        ],
     );
 }
 

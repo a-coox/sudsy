@@ -3,7 +3,7 @@
 ## Parser
 konomanoasa-tree-sitter-gitignore 0.7 (MIT, git 2.56 gitignore manual) linked in natively and converted by `core-treesitter` ([../architecture/adding-a-language.md](../architecture/adding-a-language.md)); the node mapping is `crates/lang-gitignore/src/mapping.rs`, the tree shape `grammars/gitignore.grammar`. A `Document` holds one `Entry` per pattern line; an `Entry` is its adjacent `Pattern` tokens (`!`, names, `*`, `/`, escapes, bracket-expression parts). Comment lines are `Comment` trivia; blank lines, trailing spaces and carriage returns are whitespace. The grammar's issue nodes (a trailing lone `\`, an unterminated `[`) are unmapped, so such a line is a parse error and the file is refused. Chosen over a hand parser because the grammar follows the manual and the adapter, formatter shape and comment handling come with it.
 
-Files: `.gitignore`, `.dockerignore`, `.npmignore`, `.prettierignore`, `.eslintignore`, `.sudsyignore` (by name) and `*.gitignore`, `*.dockerignore` (by extension; the fixtures and bench inputs use them). `.git/info/exclude` is not claimed: the file matchers cannot name a directory (see the roadmap).
+Files: `.gitignore`, `.dockerignore`, `.npmignore`, `.prettierignore`, `.eslintignore`, `.sudsyignore`, `.git/info/exclude` (by name; a name with a `/` is a path suffix) and `*.gitignore`, `*.dockerignore` (by extension; the fixtures and bench inputs use them).
 
 ## Formatting
 - Trailing spaces are removed; a space escaped with `\` (`foo\ `) is part of the pattern and stays. Git strips spaces only, so blanks that contain a tab after a pattern are kept as written.

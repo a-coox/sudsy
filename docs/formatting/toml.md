@@ -3,7 +3,7 @@
 ## Parser
 tree-sitter-toml-ng 0.7 (TOML 1.0) linked in natively and converted by `core-treesitter` ([../architecture/adding-a-language.md](../architecture/adding-a-language.md)); the node mapping is `crates/lang-toml/src/mapping.rs`, the tree shape `grammars/toml.grammar`. Every key is a `Key` node (one part or dotted: `a."b c".d`), every value a `Literal`, `Array` or `InlineTable`; `Table` (`[a.b]`) and `ArrayTable` (`[[a.b]]`) hold their pairs. Tree-sitter reports syntax errors ("syntax error", "missing X"). When it finds none, `validate.rs` checks what the grammar cannot and reports the violations as parse errors too, so a document that is not TOML is refused by the formatter and reported by the linter like a syntax error: duplicate keys (decoded, so `a`, `"a"` and `'a'` are one key; dotted keys; inline tables), redefined tables, tables and arrays of tables that conflict, extending an inline table, a value or a dotted-key table through a later header or dotted key, bad escapes and control characters in strings, quote runs in multi-line strings, date and time ranges (month, day by month and leap year, hour, minute, second, offset) and a missing line break after an entry. TOML 1.1 syntax (line breaks in inline tables, `\e` and `\xHH` escapes, seconds-less times) is a syntax error.
 
-Files: `*.toml`.
+Files: `*.toml`. `Cargo.lock` (generated, cargo's own layout) is not claimed, so it is left untouched like other lockfiles.
 
 ## Formatting
 - `key = value` with one space around `=`; dotted keys without spaces (`a.b`); comments, quoted keys and string quotes kept as written.

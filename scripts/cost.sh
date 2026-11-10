@@ -4,13 +4,13 @@
 cd "$(dirname "$0")/.." || exit 1
 range=${1:-$(git merge-base origin/main HEAD)}
 {
-  git diff --numstat -M "$range" -- . ':!Cargo.lock'
+  git diff --numstat -M "$range" -- .
   [ -n "${1:-}" ] || git ls-files -o --exclude-standard | while IFS= read -r f; do
     printf '%s\t0\t%s\n' "$(wc -l <"$f")" "$f"
   done
 } | awk -F'\t' '
 function cat(f) {
-  if (f ~ /(^|\/)generated\.rs$|\.generated\.|\.g\.cs$|\.snap$|^schemas\/|\/registry\.rs$|^docs\/rules\/rules\.json$|package-lock\.json$/) return "generated"
+  if (f ~ /(^|\/)generated\.rs$|\.generated\.|\.g\.cs$|\.snap$|^schemas\/|\/registry\.rs$|^docs\/rules\/rules\.json$|package-lock\.json$|(^|\/)Cargo\.(toml|lock)$/) return "generated"
   if (f ~ /^tests\/rules\//) return "rule fixtures"
   if (f ~ /^docs\/|\.md$/) return "docs"
   if (f ~ /\/tests\/.*\.rs$|^tests\/.*\.rs$/) return "Rust tests"
