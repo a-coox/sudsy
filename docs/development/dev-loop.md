@@ -8,7 +8,7 @@
 |---|---|
 | `gate.sh [--rust-only] [--affected [--base REV]] [-p crate]...` | The pre-commit gate (prints each step's seconds; a step is killed after `GATE_TIMEOUT` seconds, default 1800): fmt, clippy, tests (`cargo nextest run`, which runs the test binaries in parallel; needs `cargo install cargo-nextest --locked`; then the doctests), codegen check, sample plugin fmt+tests, each worker's `workers/<name>/check.sh` (C#: dotnet build+test), vscode typecheck/lint/test/build. `--affected`: only what the change selects (below). `-p` (repeatable) limits clippy and tests to those crates and skips the other steps. |
 | `cargo xtask affected [--base REV] [--all]` | What a change needs checked, from its diff against REV (default the merge-base with origin/main; uncommitted and untracked files included): see [Affected checks](#affected-checks) |
-| `ship.sh` | Push the current branch, then watch the CI run for HEAD (`gh run watch`); refuses with staged changes; CI is manual for now (see ci-release.md), so it stops after the push |
+| `ship.sh` | Push the current branch, then watch the CI run for HEAD (`gh run watch`); refuses with staged changes |
 | `dogfood.sh` | Build debug CLI + worker into `target/dogfood/` for the editor |
 | `bench.sh`, `bench-time.sh`, `bench-measure.sh`, `bench-setup-wsl.sh` | [performance/tooling.md](../performance/tooling.md) |
 | `parity.sh <tool>`, `parity.sh format <tool>` | Differential test against an upstream tool on `tests/parity/<tool>/` fixtures: [parity.md](parity.md) |

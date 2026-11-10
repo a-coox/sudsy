@@ -51,5 +51,5 @@ One line each; none is committed.
 - Editor extensions other than VS Code (other editors use `sudsy lsp`).
 - Self-contained C# worker for machines without .NET.
 - Repeatable benchmarks for the paths listed in [performance/numbers.md](performance/numbers.md).
-- Publish the documentation site ([development/site.md](development/site.md)): enable the Pages deploy job when the repository is public; then switch `DOCS_BASE_URL` on and add `codeDescription` links to diagnostics.
+- Publish the documentation site ([development/site.md](development/site.md)): the Pages deploy runs from main; switch `DOCS_BASE_URL` on and add `codeDescription` links to diagnostics.
 - Release: first Marketplace publish ([development/ci-release.md](development/ci-release.md)).

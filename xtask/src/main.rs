@@ -64,6 +64,7 @@ fn affected(args: &[&str]) -> Result<()> {
         [] => (None, false),
         ["--all"] => (None, true),
         ["--base", rev] => (Some(*rev), false),
+        ["--base", rev, "--all"] | ["--all", "--base", rev] => (Some(*rev), true),
         _ => bail!("usage: cargo xtask affected [--base REV] [--all]"),
     };
     print!("{}", xtask::affected::run(&xtask::repo_root(), base, all)?);

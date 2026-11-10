@@ -1,10 +1,25 @@
 name: Site
 
-# Documentation site (site/, docs/development/site.md). Manual like ci.yml while the repository is
-# private (Actions minutes); once public, add push (branches: [main]) and pull_request triggers with
-# paths site/**, docs/rules/rules.json, docs/formatting/presets.md, schemas/sudsy.schema.json,
-# crates/lang-*/presets/**, and switch the deploy job on.
+# Documentation site (site/, docs/development/site.md). Built on pull requests and pushes that touch
+# its inputs; a push to main also deploys it to GitHub Pages.
 on:
+  push:
+    branches: [main]
+    paths:
+      - site/**
+      - docs/rules/rules.json
+      - docs/formatting/presets.md
+      - schemas/sudsy.schema.json
+      - crates/lang-*/presets/**
+      - .github/workflows/site.yml
+  pull_request:
+    paths:
+      - site/**
+      - docs/rules/rules.json
+      - docs/formatting/presets.md
+      - schemas/sudsy.schema.json
+      - crates/lang-*/presets/**
+      - .github/workflows/site.yml
   workflow_dispatch:
   workflow_call:
 
@@ -22,14 +37,15 @@ jobs:
           cache: npm
           cache-dependency-path: site/package-lock.json
       - run: scripts/site.sh build
+      # Pages rejects an artifact over 1 GB.
+      - name: Size guard
+        run: test "$(du -sm site/dist | cut -f1)" -le 800
       - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           path: site/dist
 
   deploy:
-    # DEPLOY SWITCH: change `false` to `github.event_name != 'pull_request'` once the repository is
-    # public and Settings > Pages > Source is "GitHub Actions". Nothing else needs to change.
-    if: false
+    if: github.event_name != 'pull_request'
     needs: build
     runs-on: ubuntu-latest
     permissions:

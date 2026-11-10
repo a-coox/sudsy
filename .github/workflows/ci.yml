@@ -1,10 +1,18 @@
 name: CI
 
-# Manual only while the repo is private (Actions minutes are limited); restore push: [main] and
-# pull_request when it goes public. The local gate (scripts/gate.sh) is the check until then.
+# Every push to main and every pull request runs the gates of scripts/gate.sh on Linux plus
+# `cargo test` on Windows. Runs for a push to main are never cancelled; other refs cancel their
+# previous run. The `CI ok` job is the one required check. release.yml reuses this workflow.
 on:
+  push:
+    branches: [main]
+  pull_request:
   workflow_dispatch:
   workflow_call:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 permissions:
   contents: read
@@ -13,8 +21,25 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
+  # Decides what to run: `code` is false for prose-only changes, `package` is false for changes that
+  # cannot affect the extension packages (scripts/ci-changes.sh). Dispatch and tag runs do everything.
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      code: ${{ steps.c.outputs.code }}
+      package: ${{ steps.c.outputs.package }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+      - id: c
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || (github.event_name == 'push' && github.ref_type == 'branch' && github.event.before) || '' }}
+          HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: bash scripts/ci-changes.sh "$BASE" "$HEAD" >> "$GITHUB_OUTPUT"
+
   dco:
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' && github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -22,12 +47,12 @@ jobs:
           fetch-depth: 0
       - run: scripts/check-dco.sh ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }}
 
+  # Linux: the full gate. Includes the worker contract tests, which build and run the C# worker;
+  # the big dotnet/runtime corpus test is #[ignore]d and not fetched here.
   rust:
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, windows-latest]
-    runs-on: ${{ matrix.os }}
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec # stable
@@ -39,17 +64,37 @@ jobs:
         with:
           dotnet-version: 10.0.x
       - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/main' }}
       - run: cargo fmt --all -- --check
       - run: cargo clippy --workspace --all-targets -- -D warnings
-      # Includes the worker contract tests, which build and run the C# worker.
-      # The big dotnet/runtime corpus test is #[ignore]d and not fetched here.
       - run: cargo test --workspace
+      - run: cargo xtask codegen --check
       - run: cargo fmt --manifest-path tests/plugins/sample/Cargo.toml -- --check
       - run: cargo test --manifest-path tests/plugins/sample/Cargo.toml
 
-  # Tier 1 of scripts/bench.sh against the PR base (or the previous main commit): deterministic
-  # instruction and allocation counts, fails on a regression.
+  # Windows: tests only. They build and run the worker there, so there is no separate Windows dotnet job.
+  windows:
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec # stable
+        with:
+          targets: wasm32-wasip2
+      - uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6
+        with:
+          dotnet-version: 10.0.x
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+      - run: cargo test --workspace
+
+  # Dependabot PRs only: tier 1 of scripts/bench.sh (deterministic instruction and allocation counts
+  # of every language) against the PR base; fails on a regression.
   bench:
+    if: github.event_name == 'pull_request' && github.actor == 'dependabot[bot]'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -62,20 +107,18 @@ jobs:
         with:
           dotnet-version: 10.0.x
       - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/main' }}
       - run: sudo apt-get update && sudo apt-get install -y valgrind
       - name: Benchmark against the base
         env:
-          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
-        run: |
-          case "$BASE" in 0000000*|"") BASE=$(git rev-parse HEAD^) ;; esac
-          bash scripts/bench.sh --base "$BASE" --all --no-record
+          BASE: ${{ github.event.pull_request.base.sha }}
+        run: bash scripts/bench.sh --base "$BASE" --all --no-record
 
   dotnet:
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, windows-latest]
-    runs-on: ${{ matrix.os }}
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6
@@ -85,6 +128,8 @@ jobs:
       - run: dotnet test workers/csharp
 
   vscode:
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -103,8 +148,11 @@ jobs:
       - run: npm run build
 
   # One extension package per platform, each with its own native binary and the C# worker, and a
-  # check that the staged binary finds the worker without being told where it is.
+  # check that the staged binary finds the worker without being told where it is. Only when
+  # packaging inputs changed (scripts/ci-changes.sh) or on dispatch.
   package:
+    needs: changes
+    if: needs.changes.outputs.package == 'true'
     strategy:
       fail-fast: false
       matrix:
@@ -115,6 +163,9 @@ jobs:
           - os: windows-latest
             target: win32-x64
             exe: sudsy.exe
+          - os: macos-latest
+            target: darwin-arm64
+            exe: sudsy
     runs-on: ${{ matrix.os }}
     defaults:
       run:
@@ -131,6 +182,8 @@ jobs:
           cache: npm
           cache-dependency-path: editors/vscode/package-lock.json
       - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/main' }}
       - run: cargo build --release -p cli
       - run: dotnet publish workers/csharp/Sudsy.Worker -c Release -o "$RUNNER_TEMP/worker"
       - run: npm ci
@@ -150,3 +203,13 @@ jobs:
         with:
           name: sudsy-${{ matrix.target }}
           path: editors/vscode/*.vsix
+          retention-days: 3
+
+  # The one required check: green when every job that ran passed (skipped jobs are fine).
+  ci:
+    name: CI ok
+    if: always()
+    needs: [changes, dco, rust, windows, bench, dotnet, vscode, package]
+    runs-on: ubuntu-latest
+    steps:
+      - run: test "${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}" = false
