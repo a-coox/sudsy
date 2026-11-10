@@ -79,6 +79,34 @@ fn run_is_linted_as_shell_at_host_positions() {
 }
 
 #[test]
+fn shell_form_cmd_and_backtick_continuations_are_shell() {
+    let db = db("dockerfile:\n  lint:\n    rules:\n      use-workdir-not-cd: off\n");
+    for text in [
+        "FROM a:1\nCMD cd /x; make\n",
+        "FROM a:1\nENTRYPOINT cd /x; make\n",
+        "FROM a:1\nHEALTHCHECK CMD cd /x; make\n",
+        "# escape=`\nFROM a:1\nCMD echo a `\n  && cd /x; make\n",
+    ] {
+        let rules = found(&db, "Dockerfile", text);
+        assert!(
+            rules.iter().any(|(r, _)| r == "cd-without-exit"),
+            "{text}: {rules:?}"
+        );
+    }
+    // The exec form is not shell; a backtick continuation is not a substitution.
+    for text in [
+        "FROM a:1\nCMD [\"cd\", \"/x\"]\n",
+        "# escape=`\nFROM a:1\nRUN echo a `\n  && echo b `\n  && echo c\n",
+    ] {
+        let rules = found(&db, "Dockerfile", text);
+        assert!(
+            rules.iter().all(|(r, _)| r != "cd-without-exit"),
+            "{rules:?}"
+        );
+    }
+}
+
+#[test]
 fn fences_are_linted_with_their_language() {
     let db = db("");
     let text = "# T\n\n- item\n\n  ```json\n  {\"a\": 1, \"a\": 2}\n  ```\n\n```text\n{\"a\": 1, \"a\": 2}\n```\n";

@@ -64,10 +64,10 @@ fn comments_between_continued_arguments_stay() {
 
 #[test]
 fn the_escape_directive_changes_the_continuation_character() {
-    let out = fmt("# escape=`\nFROM x\nRUN a  `\n  b `\n   c\nCOPY a `\n b\n");
+    let out = fmt("# escape=`\nFROM x\nRUN a  `\n  b `\n   c\nCOPY a `\n b\nCMD a  `\n b\n");
     assert_eq!(
         out,
-        "# escape=`\nFROM x\nRUN a `\n    b `\n    c\nCOPY a `\n    b\n"
+        "# escape=`\nFROM x\nRUN a `\n    b `\n    c\nCOPY a `\n    b\nCMD a `\n    b\n"
     );
 }
 
