@@ -28,8 +28,8 @@ if [ "$tool" = format ]; then
   exec "$py" scripts/parity_format.py "$tool" "$sudsy" "$tdir"
 fi
 case "$tool" in
-  yamllint|stylecop|eslint-jsonc|markdownlint|hadolint|shellcheck|psscriptanalyzer|buf|checkmake) ;;
-  *) echo "usage: scripts/parity.sh yamllint|stylecop|eslint-jsonc|markdownlint|hadolint|shellcheck|psscriptanalyzer|buf|checkmake | format <tool>" >&2; exit 2 ;;
+  yamllint|stylecop|eslint-jsonc|markdownlint|hadolint|shellcheck|psscriptanalyzer|buf|checkmake|actionlint) ;;
+  *) echo "usage: scripts/parity.sh yamllint|stylecop|eslint-jsonc|markdownlint|hadolint|shellcheck|psscriptanalyzer|buf|checkmake|actionlint | format <tool>" >&2; exit 2 ;;
 esac
 
 py=
@@ -86,6 +86,23 @@ if [ "$tool" = hadolint ]; then
     chmod +x "$dir/$exe"
   fi
   extra="$dir/$exe"
+fi
+if [ "$tool" = actionlint ]; then
+  # The release archive at the catalog's version (zip on Windows, tar.gz elsewhere; needs network on first use), and the corpus.
+  case "$(uname -s)" in
+    MINGW*|MSYS*|CYGWIN*) asset=actionlint_${version}_windows_amd64.zip; exe=actionlint.exe ;;
+    Darwin) asset=actionlint_${version}_darwin_$(uname -m | sed 's/x86_64/amd64/').tar.gz; exe=actionlint ;;
+    *) asset=actionlint_${version}_linux_$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/').tar.gz; exe=actionlint ;;
+  esac
+  dir="$tdir/parity/actionlint-$version"
+  if [ ! -x "$dir/$exe" ]; then
+    mkdir -p "$dir"
+    curl -fsSL -o "$dir/$asset" "https://github.com/rhysd/actionlint/releases/download/v$version/$asset"
+    "$py" -c 'import shutil,sys; shutil.unpack_archive(sys.argv[1], sys.argv[2])' "$dir/$asset" "$dir"
+    chmod +x "$dir/$exe"
+  fi
+  extra="$dir/$exe"
+  bash tests/conformance/fetch-github-actions-corpus.sh
 fi
 if [ "$tool" = checkmake ]; then
   # The release executable at the catalog's version (needs network on first use).

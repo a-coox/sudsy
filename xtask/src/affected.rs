@@ -330,7 +330,11 @@ fn load(root: &Path) -> Result<Workspace> {
     for e in std::fs::read_dir(root.join("bench/inputs"))? {
         let folder = e?.file_name().to_string_lossy().into_owned();
         // As `perf-bench list`: `.editorconfig` is claimed by file name, the others by extension.
-        let samples = [format!("bench.{folder}"), format!(".{folder}")];
+        let workflow = ".github/workflows/bench.yml".to_string();
+        let samples = match folder.as_str() {
+            "github-actions" => [workflow, String::new()],
+            _ => [format!("bench.{folder}"), format!(".{folder}")],
+        };
         if let Some(p) = providers.iter().find(|p| {
             (samples.iter()).any(|s| p.file_matchers().iter().any(|m| m.matches(s.as_ref())))
         }) {

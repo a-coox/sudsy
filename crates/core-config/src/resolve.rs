@@ -68,6 +68,9 @@ impl fmt::Display for Source {
 pub struct FileInput<'a> {
     /// The grammar's language name (`csharp`, `json`, `yaml`).
     pub language: &'a str,
+    /// The language whose section applies below `language`'s own (a dialect with a provider of
+    /// its own, GitHub Actions on `yaml`): its format options, rule levels and `semantics:`.
+    pub base: Option<&'a str>,
     /// Absolute path, for `overrides`. Without one no override applies.
     pub path: Option<&'a Path>,
     pub editorconfig: Option<&'a EditorConfig>,
@@ -77,9 +80,20 @@ impl<'a> FileInput<'a> {
     pub fn language(language: &'a str) -> Self {
         FileInput {
             language,
+            base: None,
             path: None,
             editorconfig: None,
         }
+    }
+
+    pub fn with_base(mut self, base: Option<&'a str>) -> Self {
+        self.base = base;
+        self
+    }
+
+    /// The sections that apply, the base's first.
+    fn sections(&self) -> impl Iterator<Item = &'a str> + use<'a> {
+        self.base.into_iter().chain([self.language])
     }
 
     pub fn with_path(mut self, path: &'a Path) -> Self {
@@ -203,7 +217,6 @@ impl ConfigChain {
 
         let presets = self.preset_files(input.language, schema)?;
         // Presets are a base layer: all their tiers sit below those of the chain's files.
-        let label = format!("{}.format", input.language);
         for files in [
             presets.iter().collect::<Vec<_>>(),
             self.files.iter().collect(),
@@ -215,15 +228,18 @@ impl ConfigChain {
                 })
                 .map_err(|e| loaded.attribute(e))?;
             }
-            for loaded in &files {
-                let Some(section) = loaded.config.language_section(input.language) else {
-                    continue;
-                };
-                apply_options(&section.format, schema, &mut options, |name, at| {
-                    let (line, column) = (at.referenced.line(), at.referenced.column());
-                    sources.insert(name.into(), loaded.source(line, column, &label));
-                })
-                .map_err(|e| loaded.attribute(e))?;
+            for section_name in input.sections() {
+                for loaded in &files {
+                    let Some(section) = loaded.config.language_section(section_name) else {
+                        continue;
+                    };
+                    let label = format!("{section_name}.format");
+                    apply_options(&section.format, schema, &mut options, |name, at| {
+                        let (line, column) = (at.referenced.line(), at.referenced.column());
+                        sources.insert(name.into(), loaded.source(line, column, &label));
+                    })
+                    .map_err(|e| loaded.attribute(e))?;
+                }
             }
             for (loaded, index, o) in Self::matching_overrides(&files, input) {
                 let shared_label = format!("overrides[{index}].format");
@@ -232,8 +248,11 @@ impl ConfigChain {
                     sources.insert(name.into(), loaded.source(line, column, &shared_label));
                 })
                 .map_err(|e| loaded.attribute(e))?;
-                if let Some(section) = o.language_section(input.language) {
-                    let label = format!("overrides[{index}].{}.format", input.language);
+                for section_name in input.sections() {
+                    let Some(section) = o.language_section(section_name) else {
+                        continue;
+                    };
+                    let label = format!("overrides[{index}].{section_name}.format");
                     apply_options(&section.format, schema, &mut options, |name, at| {
                         let (line, column) = (at.referenced.line(), at.referenced.column());
                         sources.insert(name.into(), loaded.source(line, column, &label));
@@ -278,14 +297,16 @@ impl ConfigChain {
             out.pure.extend(s.pure.iter().cloned());
         };
         let files: Vec<&Loaded> = self.files.iter().collect();
-        for loaded in &files {
-            if let Some(section) = loaded.config.language_section(input.language) {
-                add(&section.semantics);
+        for section_name in input.sections() {
+            for loaded in &files {
+                if let Some(section) = loaded.config.language_section(section_name) {
+                    add(&section.semantics);
+                }
             }
-        }
-        for (_, _, o) in Self::matching_overrides(&files, input) {
-            if let Some(section) = o.language_section(input.language) {
-                add(&section.semantics);
+            for (_, _, o) in Self::matching_overrides(&files, input) {
+                if let Some(section) = o.language_section(section_name) {
+                    add(&section.semantics);
+                }
             }
         }
         out
@@ -327,23 +348,23 @@ impl ConfigChain {
             for loaded in &files {
                 put(&loaded.config.lint, loaded, "lint.rules");
             }
-            for loaded in &files {
-                if let Some(section) = loaded.config.language_section(input.language) {
-                    put(
-                        &section.lint,
-                        loaded,
-                        &format!("{}.lint.rules", input.language),
-                    );
+            for section_name in input.sections() {
+                for loaded in &files {
+                    if let Some(section) = loaded.config.language_section(section_name) {
+                        put(&section.lint, loaded, &format!("{section_name}.lint.rules"));
+                    }
                 }
             }
             for (loaded, index, o) in Self::matching_overrides(&files, input) {
                 put(&o.lint, loaded, &format!("overrides[{index}].lint.rules"));
-                if let Some(section) = o.language_section(input.language) {
-                    put(
-                        &section.lint,
-                        loaded,
-                        &format!("overrides[{index}].{}.lint.rules", input.language),
-                    );
+                for section_name in input.sections() {
+                    if let Some(section) = o.language_section(section_name) {
+                        put(
+                            &section.lint,
+                            loaded,
+                            &format!("overrides[{index}].{section_name}.lint.rules"),
+                        );
+                    }
                 }
             }
         }

@@ -23,22 +23,28 @@ fn measured(f: &mut dyn FnMut() -> usize) -> (usize, u64) {
     (std::hint::black_box(work), crate::allocs() - before)
 }
 
+/// The folder of GitHub Actions workflows: they are claimed by their directory, not by the
+/// extension the folder would be named for.
+const WORKFLOWS: &str = "github-actions";
+
 pub(crate) fn texts(lang: &str, dir: &Path) -> Result<Vec<(String, String)>> {
     let mut out = Vec::new();
     let mut names: Vec<_> = std::fs::read_dir(dir.join(lang))?
         .filter_map(|e| e.ok().map(|e| e.path()))
-        .filter(|p| p.extension().is_some_and(|e| e == lang))
+        .filter(|p| lang == WORKFLOWS || p.extension().is_some_and(|e| e == lang))
         .collect();
     names.sort();
     for p in names {
         let t = String::from_utf8(std::fs::read(&p)?)?;
-        let name = p.file_name().unwrap().to_string_lossy();
+        let name: String = p.file_name().unwrap().to_string_lossy().into();
         out.push((
             // The provider claims only the file name `.editorconfig`: one folder per input.
             if lang == "editorconfig" {
                 format!("{}/.editorconfig", p.file_stem().unwrap().to_string_lossy())
+            } else if lang == WORKFLOWS {
+                format!(".github/workflows/{name}")
             } else {
-                name.into()
+                name
             },
             t.trim_start_matches('\u{feff}').into(),
         ));
@@ -100,7 +106,7 @@ pub fn list(dir: &Path) -> Result<()> {
         };
         let mut phases = vec!["parse", "format", "format-query", "lint", "lint-all"];
         // The languages that embed others: the engine's lint is where their cost is.
-        if matches!(lang.as_str(), "dockerfile" | "md") {
+        if matches!(lang.as_str(), "dockerfile" | "md" | WORKFLOWS) {
             phases.push("lint-query");
         }
         let documented = |r: &&dyn core_rules::Rule| DOCUMENTATION_RULES.contains(&r.meta().id);
@@ -135,7 +141,10 @@ pub(crate) fn named_provider(language: &str) -> Box<dyn LanguageProvider> {
 /// The provider that claims files with the extension `lang`.
 pub(crate) fn make_provider(lang: &str) -> Result<Box<dyn LanguageProvider>> {
     // `.editorconfig` is claimed by file name, the others by extension.
-    let samples = [format!("bench.{lang}"), format!(".{lang}")];
+    let samples = match lang {
+        WORKFLOWS => [".github/workflows/bench.yml".to_string(), String::new()],
+        _ => [format!("bench.{lang}"), format!(".{lang}")],
+    };
     languages::providers()
         .into_iter()
         .find(|p| {

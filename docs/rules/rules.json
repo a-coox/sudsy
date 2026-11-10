@@ -617,6 +617,7 @@
       "fix": "unsafe",
       "id": "ambiguous-booleans",
       "languages": [
+        "github-actions",
         "yaml"
       ],
       "options": [
@@ -661,6 +662,63 @@
       ]
     },
     {
+      "category": "correctness",
+      "default_level": "error",
+      "description": "The `needs` of the jobs form a cycle, so no job of it can start.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "jobs:\n  a:\n    needs: b\n  b:\n    needs: [c]\n  c:\n    needs: a\n  d:\n    needs: a\n",
+        "language": "github-actions",
+        "spans": [
+          {
+            "column": 3,
+            "length": 1,
+            "line": 2
+          }
+        ]
+      },
+      "fix": null,
+      "id": "cyclic-needs",
+      "languages": [
+        "github-actions"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "correctness",
+      "default_level": "error",
+      "description": "A script uses a workflow command that GitHub has disabled (`::set-output`, `::save-state`, `::set-env`, `::add-path`); write to `$GITHUB_OUTPUT`, `$GITHUB_STATE`, `$GITHUB_ENV` or `$GITHUB_PATH` instead.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "jobs:\n  a:\n    steps:\n      - run: echo \"::set-output name=v::1\"\n      - run: |\n          echo \"::save-state name=a::b\"\n          echo ok\n      - run: echo \"::notice::fine\"\n",
+        "language": "github-actions",
+        "spans": [
+          {
+            "column": 20,
+            "length": 12,
+            "line": 4
+          },
+          {
+            "column": 17,
+            "length": 12,
+            "line": 6
+          }
+        ]
+      },
+      "fix": null,
+      "id": "deprecated-commands",
+      "languages": [
+        "github-actions"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
       "category": "style",
       "default_level": "off",
       "description": "A document without the `...` end marker (or, with `present: false`, one that has it).",
@@ -680,6 +738,7 @@
       "fix": "safe",
       "id": "document-end",
       "languages": [
+        "github-actions",
         "yaml"
       ],
       "options": [
@@ -719,6 +778,7 @@
       "fix": "safe",
       "id": "document-start",
       "languages": [
+        "github-actions",
         "yaml"
       ],
       "options": [],
@@ -732,6 +792,37 @@
           "tool": "yamllint"
         }
       ]
+    },
+    {
+      "category": "correctness",
+      "default_level": "error",
+      "description": "Job ids that differ only in case (ids are case-insensitive; exact repeats are `no-duplicate-keys`), and step ids repeated within a job.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "jobs:\n  Build:\n    runs-on: ubuntu-latest\n    steps:\n      - id: a\n        run: echo\n      - id: A\n        run: echo\n      - id: b\n        run: echo\n  build:\n    runs-on: ubuntu-latest\n  other:\n    runs-on: ubuntu-latest\n    steps:\n      - id: a\n        run: echo\n",
+        "language": "github-actions",
+        "spans": [
+          {
+            "column": 13,
+            "length": 1,
+            "line": 7
+          },
+          {
+            "column": 3,
+            "length": 5,
+            "line": 11
+          }
+        ]
+      },
+      "fix": null,
+      "id": "duplicate-ids",
+      "languages": [
+        "github-actions"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
     },
     {
       "category": "style",
@@ -758,6 +849,7 @@
       "fix": "safe",
       "id": "float-style",
       "languages": [
+        "github-actions",
         "yaml"
       ],
       "options": [
@@ -801,6 +893,190 @@
       ]
     },
     {
+      "category": "correctness",
+      "default_level": "error",
+      "description": "A `${{ }}` expression that is not closed or empty, has unbalanced brackets or a string that is not closed, uses a character expressions do not have (such as a double quote), or names a context or function that does not exist.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "name: ${{ github.workflow }}\nenv:\n  B: ${{ }}\n  C: ${{ foo.bar }}\n  D: ${{ contains(github.ref, 'x' }}\n  E: ${{ nope(1) }}\n  F: ${{ \"a\" }}\n  G: ${{ format('{0} }}', env.A) }}\n  H: ${{ github.event.commits[0].message }}\n  I: ${{ github.ref == 'it''s' && !cancelled() }}\n  J: ${{ secrets.X }}-${{ inputs.y }}\n  K: ${{ github.event. }}\n  A: ${{ github.sha\n",
+        "language": "github-actions",
+        "spans": [
+          {
+            "column": 9,
+            "length": 1,
+            "line": 3
+          },
+          {
+            "column": 10,
+            "length": 1,
+            "line": 4
+          },
+          {
+            "column": 18,
+            "length": 1,
+            "line": 5
+          },
+          {
+            "column": 10,
+            "length": 1,
+            "line": 6
+          },
+          {
+            "column": 10,
+            "length": 1,
+            "line": 7
+          },
+          {
+            "column": 24,
+            "length": 1,
+            "line": 12
+          },
+          {
+            "column": 6,
+            "length": 3,
+            "line": 13
+          }
+        ]
+      },
+      "fix": null,
+      "id": "invalid-expression",
+      "languages": [
+        "github-actions"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "correctness",
+      "default_level": "error",
+      "description": "A job id must start with a letter or `_` and contain only letters, digits, `-` and `_`.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "jobs:\n  build:\n    runs-on: ubuntu-latest\n  _x-1:\n    runs-on: ubuntu-latest\n  build app:\n    runs-on: ubuntu-latest\n  1st:\n    runs-on: ubuntu-latest\n",
+        "language": "github-actions",
+        "spans": [
+          {
+            "column": 3,
+            "length": 9,
+            "line": 6
+          },
+          {
+            "column": 3,
+            "length": 3,
+            "line": 8
+          }
+        ]
+      },
+      "fix": null,
+      "id": "invalid-job-id",
+      "languages": [
+        "github-actions"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "warn",
+      "description": "A `runs-on` label that is not one of the known runner labels. A job that also has `self-hosted` is not checked; `${{ matrix.name }}` stands for the matrix's values, other expressions are skipped.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "jobs:\n  a:\n    runs-on: ubuntu-latest\n  b:\n    runs-on: ubuntu-lates\n  c:\n    runs-on: [self-hosted, gpu]\n  d:\n    runs-on: [ubuntu-22.04, windows-2022]\n  e:\n    runs-on: ${{ matrix.os }}\n    strategy:\n      matrix:\n        os: [ubuntu-latest, linux-latest]\n        include:\n          - os: macos-10\n  f:\n    runs-on:\n      group: big\n      labels: [ubuntu-large]\n  g:\n    runs-on: macos-15\n  h:\n    runs-on:\n    steps: []\n",
+        "language": "github-actions",
+        "spans": [
+          {
+            "column": 14,
+            "length": 12,
+            "line": 5
+          },
+          {
+            "column": 29,
+            "length": 12,
+            "line": 14
+          },
+          {
+            "column": 17,
+            "length": 8,
+            "line": 16
+          },
+          {
+            "column": 16,
+            "length": 12,
+            "line": 20
+          },
+          {
+            "column": 5,
+            "length": 7,
+            "line": 24
+          }
+        ]
+      },
+      "fix": null,
+      "id": "invalid-runs-on",
+      "languages": [
+        "github-actions"
+      ],
+      "options": [
+        {
+          "default": [
+            "ubuntu-slim",
+            "ubuntu-latest(-(4|8|16)-cores)?",
+            "ubuntu-(24|22)\\.04(-arm)?",
+            "windows-latest(-8-cores)?",
+            "windows-2025(-vs2026)?",
+            "windows-2022",
+            "windows-11-arm",
+            "macos-latest(-(xlarge|large))?",
+            "macos-(26|15)(-(intel|xlarge|large))?",
+            "macos-14(-(xlarge|large))?",
+            "self-hosted",
+            "linux",
+            "macos",
+            "windows",
+            "x64",
+            "arm",
+            "arm64"
+          ],
+          "description": "Regular expressions; a label is valid when one matches all of it, ignoring case.",
+          "name": "labels",
+          "type": "list"
+        }
+      ],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "A job without `permissions`, in a workflow without top-level `permissions`: it gets the repository's default token permissions, often write access.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "jobs:\n  a:\n    runs-on: ubuntu-latest\n  b:\n    permissions: read-all\n    runs-on: ubuntu-latest\n",
+        "language": "github-actions",
+        "spans": [
+          {
+            "column": 3,
+            "length": 1,
+            "line": 2
+          }
+        ]
+      },
+      "fix": null,
+      "id": "missing-permissions",
+      "languages": [
+        "github-actions"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
       "category": "suspicious",
       "default_level": "off",
       "description": "An anchor name is defined again in the same document; an alias refers to the latest definition above it, which is easy to misread.",
@@ -820,6 +1096,7 @@
       "fix": null,
       "id": "no-duplicate-anchors",
       "languages": [
+        "github-actions",
         "yaml"
       ],
       "options": [],
@@ -857,6 +1134,7 @@
       "fix": null,
       "id": "no-empty-values",
       "languages": [
+        "github-actions",
         "yaml"
       ],
       "options": [
@@ -913,6 +1191,7 @@
       "fix": null,
       "id": "no-flow-mappings",
       "languages": [
+        "github-actions",
         "yaml"
       ],
       "options": [
@@ -952,6 +1231,7 @@
       "fix": null,
       "id": "no-flow-sequences",
       "languages": [
+        "github-actions",
         "yaml"
       ],
       "options": [
@@ -991,6 +1271,7 @@
       "fix": null,
       "id": "no-octal-values",
       "languages": [
+        "github-actions",
         "yaml"
       ],
       "options": [
@@ -1041,6 +1322,7 @@
       "fix": null,
       "id": "no-undefined-alias",
       "languages": [
+        "github-actions",
         "yaml"
       ],
       "options": [],
@@ -1080,6 +1362,7 @@
       "fix": "safe",
       "id": "no-unused-anchors",
       "languages": [
+        "github-actions",
         "yaml"
       ],
       "options": [],
@@ -1112,6 +1395,7 @@
       "fix": "unsafe",
       "id": "quoted-strings",
       "languages": [
+        "github-actions",
         "yaml"
       ],
       "options": [
@@ -1196,6 +1480,78 @@
           "tool": "yamllint"
         }
       ]
+    },
+    {
+      "category": "correctness",
+      "default_level": "warn",
+      "description": "An expression in a `run` script reads text that an attacker can choose (an issue or pull request title, a branch name, a commit message): it is pasted into the script before the shell runs, so it can inject commands. Pass it through an environment variable (`env:`) and read `\"$VAR\"` instead.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "jobs:\n  a:\n    steps:\n      - run: echo \"${{ github.event.issue.title }}\"\n      - run: |\n          echo ${{ github.head_ref }}\n          echo ${{ github.event.commits[0].message }} ${{ github.sha }}\n      - name: ${{ github.event.issue.title }}\n        run: echo \"$TITLE\"\n        env:\n          TITLE: ${{ github.event.issue.title }}\n      - run: echo '${{ toJSON(github.event.*.body) }}'\n      - uses: actions/github-script@v7\n        with:\n          script: console.log('${{ github.event.head_commit.message }}')\n",
+        "language": "github-actions",
+        "spans": [
+          {
+            "column": 24,
+            "length": 24,
+            "line": 4
+          },
+          {
+            "column": 20,
+            "length": 15,
+            "line": 6
+          },
+          {
+            "column": 20,
+            "length": 31,
+            "line": 7
+          },
+          {
+            "column": 31,
+            "length": 19,
+            "line": 12
+          },
+          {
+            "column": 36,
+            "length": 32,
+            "line": 15
+          }
+        ]
+      },
+      "fix": null,
+      "id": "script-injection",
+      "languages": [
+        "github-actions"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "correctness",
+      "default_level": "error",
+      "description": "`needs` names a job that the workflow does not define.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "jobs:\n  build:\n    runs-on: ubuntu-latest\n  test:\n    needs: build\n    runs-on: ubuntu-latest\n  deploy:\n    needs: [Build, test, lint]\n    runs-on: ubuntu-latest\n",
+        "language": "github-actions",
+        "spans": [
+          {
+            "column": 26,
+            "length": 4,
+            "line": 8
+          }
+        ]
+      },
+      "fix": null,
+      "id": "unknown-needs",
+      "languages": [
+        "github-actions"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
     },
     {
       "category": "correctness",

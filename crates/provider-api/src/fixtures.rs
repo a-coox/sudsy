@@ -85,7 +85,11 @@ pub fn rule_fixtures(provider: &dyn LanguageProvider) {
         }
     }
     assert!(count > 0, "no rule fixtures under {}", root.display());
+    let inherited = provider.base_rules();
     for rule in provider.rules() {
+        if inherited.iter().any(|r| r.meta().id == rule.meta().id) {
+            continue;
+        }
         let id = rule.meta().id;
         if !named.contains(id) {
             failures.push(format!(

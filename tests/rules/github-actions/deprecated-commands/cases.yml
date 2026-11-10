@@ -1,0 +1,10 @@
+jobs:
+  a:
+    steps:
+      - run: echo "::set-output name=v::1"
+#                  ^^^^^^^^^^^^ deprecated-commands
+      - run: |
+          echo "::save-state name=a::b"
+#               ^^^^^^^^^^^^ deprecated-commands
+          echo ok
+      - run: echo "::notice::fine"

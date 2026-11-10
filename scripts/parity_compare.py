@@ -133,6 +133,9 @@ def rule_fixtures(tool, sudsy, version, exe):
         # one JSON object per line; --path limits the findings to the fixture, the rest of the module is its imports
         "buf": ("protobuf", ".proto", [exe, "lint", "--error-format=json", "--path"],
                 lambda d: (d["type"], d["start_line"]), lambda out: [json.loads(l) for l in out.splitlines()]),
+        # shellcheck and pyflakes are the shell and python checks of the scripts, which Sudsy's Shell language does
+        "actionlint": ("github-actions", ".yml", [exe, "-no-color", "-format", "{{json .}}", "-shellcheck=", "-pyflakes="],
+                       lambda d: (actionlint_check(d), d["line"]), lambda out: json.loads(out) or []),
         "checkmake": ("makefile", ".mk", [exe, "--format", '{"rule":"{{.Rule}}","line":{{.LineNumber}}}'],
                       lambda d: (d["rule"], d["line"]),
                       lambda out: [json.loads(l) for l in out.splitlines() if l.startswith("{")]),
@@ -152,16 +155,22 @@ def rule_fixtures(tool, sudsy, version, exe):
             if " " in key:  # a format-mode entry (buf shares the file) has no space
                 expected[key] = reason
     used, mismatches, total = set(), 0, 0
-    for source in sorted((ROOT / "tests/rules" / lang).glob(f"*/*{suffix}")):
-        if source.with_suffix(".rules.yaml").exists():
-            continue  # the case sets rule options; both tools run with their defaults here
+    sources = [(f"{s.parent.name}/{s.stem}", f"{s.parent.name}-{s.stem}{suffix}", s) for s in sorted((ROOT / "tests/rules" / lang).glob(f"*/*{suffix}"))
+               if not s.with_suffix(".rules.yaml").exists()]  # a case that sets rule options: both tools run with their defaults here
+    if tool == "actionlint":  # the corpus too (tests/conformance/fetch-github-actions-corpus.sh), a file per name
+        corpus = ROOT / "tests/conformance/corpus/github-actions"
+        sources += [(f"corpus/{p.relative_to(corpus).as_posix()}", "-".join(p.relative_to(corpus).parts), p) for p in sorted(corpus.rglob("*.y*ml")) if p.is_file()]
+    # A workflow is claimed by its folder.
+    where = work / ".github" / "workflows" if tool == "actionlint" else work
+    where.mkdir(parents=True, exist_ok=True)
+    for label, name, source in sources:
         text = "".join(
             l for l in source.read_text(encoding="utf-8").splitlines(keepends=True) if not re.match(r"\s*(?:#|//)?\s*\^", l)
         )
-        label = f"{source.parent.name}/{source.stem}"
-        fixture = work / f"{source.parent.name}-{source.stem}{suffix}"
+        fixture = where / name
         fixture.write_text(text, encoding="utf-8", newline="")
-        out = subprocess.run(command + [fixture.name], cwd=work, capture_output=True, text=True, check=False).stdout
+        rel = fixture.relative_to(work).as_posix()
+        out = subprocess.run(command + [rel], cwd=work, capture_output=True, text=True, check=False).stdout
         # checkmake runs every rule on every file: a fixture is compared on the rule of its folder, and
         # checkmake reports a variable (and `.PHONY`, which it reads as one) a line late.
         late = {"timestampexpanded", "minphony"} if tool == "checkmake" else set()
@@ -187,6 +196,26 @@ def rule_fixtures(tool, sudsy, version, exe):
         mismatches += 1
     print(f"{total} {tool} findings, {mismatches} mismatch(es) ({tool} {version}, {len(used)} known)")
     return 1 if mismatches else 0
+
+
+def actionlint_check(d):
+    """The catalog id of an actionlint error: its kind, split by message where one kind holds several checks."""
+    kind, message = d["kind"], d["message"]
+    if kind == "expression":
+        if "potentially untrusted" in message:
+            return "expression/untrusted"
+        if re.match(r"got unexpected|unexpected end|undefined (variable|function)|expected|.*while (lexing|parsing)", message):
+            return "expression/syntax"
+        return "expression/types"
+    if kind == "id":
+        return "id/duplicate" if "duplicate" in message else "id/job" if "job ID" in message else "id/step"
+    if kind == "job-needs":
+        return "job-needs/cycle" if "cyclic" in message else "job-needs/unknown" if "does not exist" in message else "job-needs/duplicate"
+    if kind == "runner-label":
+        return "runner-label/unknown" if "unknown" in message else "runner-label/conflict"
+    if kind == "syntax-check" and "is duplicated" in message:
+        return "syntax-check/duplicate-job" if 'in "jobs" section' in message else "syntax-check/duplicate-key"
+    return kind
 
 
 def psscriptanalyzer(sudsy, version):
@@ -267,7 +296,7 @@ def psscriptanalyzer(sudsy, version):
 def sudsy_lint(sudsy, fixture, cwd, only=None):
     """`{(rule, line, column)}`; with `only`, the diagnostics of those rules."""
     out = subprocess.run(
-        [sudsy, "lint", "--format", "json", fixture.name],
+        [sudsy, "lint", "--format", "json", fixture.relative_to(cwd).as_posix()],
         cwd=cwd, capture_output=True, text=True, check=False,
     )
     report = json.loads(out.stdout)
@@ -355,7 +384,7 @@ def main():
         return stylecop(sudsy, version)
     if tool == "psscriptanalyzer":
         return psscriptanalyzer(sudsy, version)
-    if tool in ("hadolint", "shellcheck", "checkmake"):
+    if tool in ("hadolint", "shellcheck", "checkmake", "actionlint"):
         return rule_fixtures(tool, sudsy, version, sys.argv[4])
     if tool == "buf":  # installed like the format mode's, by its entry in parity_format.json
         config = json.loads((ROOT / "scripts/parity_format.json").read_text())["buf"]

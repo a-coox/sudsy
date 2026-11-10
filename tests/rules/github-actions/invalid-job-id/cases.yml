@@ -1,0 +1,11 @@
+jobs:
+  build:
+    runs-on: ubuntu-latest
+  _x-1:
+    runs-on: ubuntu-latest
+  build app:
+# ^^^^^^^^^ invalid-job-id
+    runs-on: ubuntu-latest
+  1st:
+# ^^^ invalid-job-id
+    runs-on: ubuntu-latest

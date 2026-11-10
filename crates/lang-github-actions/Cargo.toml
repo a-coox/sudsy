@@ -1,0 +1,23 @@
+[package]
+name = "lang-github-actions"
+edition.workspace = true
+license.workspace = true
+version.workspace = true
+publish.workspace = true
+
+[dependencies]
+core-config.workspace = true
+core-format.workspace = true
+core-rules.workspace = true
+core-syntax.workspace = true
+lang-yaml.workspace = true
+provider-api.workspace = true
+regex.workspace = true
+
+[dev-dependencies]
+core-incremental.workspace = true
+lang-shell = { workspace = true, features = ["static-grammars"] }
+lang-powershell = { workspace = true, features = ["static-grammars"] }
+
+[lints]
+workspace = true

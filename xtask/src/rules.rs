@@ -170,7 +170,7 @@ pub fn table(docs: &[RuleDoc]) -> String {
                     format!(
                         "`{}` (default `{}`{choices}): {}",
                         o.name,
-                        o.default.display(),
+                        cell(&o.default.display()),
                         cell(o.description).trim_end_matches('.')
                     )
                 })

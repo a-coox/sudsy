@@ -1,0 +1,10 @@
+jobs:
+  build:
+    runs-on: ubuntu-latest
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+  deploy:
+    needs: [Build, test, lint]
+#                        ^^^^ unknown-needs
+    runs-on: ubuntu-latest

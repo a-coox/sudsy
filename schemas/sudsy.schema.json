@@ -139,6 +139,10 @@
               "$ref": "#/definitions/rule",
               "description": "A COPY with more than one source whose last argument does not end with `/`."
             },
+            "cyclic-needs": {
+              "$ref": "#/definitions/rule",
+              "description": "The `needs` of the jobs form a cycle, so no job of it can start."
+            },
             "debug-assert-message": {
               "$ref": "#/definitions/rule",
               "description": "`Debug.Assert` without a message, or with a constant blank one. With the type layer the call is checked against `System.Diagnostics.Debug`; without it any call written `Debug.Assert` is. No fix."
@@ -150,6 +154,10 @@
             "declare-and-assign-separately": {
               "$ref": "#/definitions/rule",
               "description": "`export`, `local`, `declare`, `readonly` or `typeset` with a command substitution as the value reports the status of the declaration, not of the command."
+            },
+            "deprecated-commands": {
+              "$ref": "#/definitions/rule",
+              "description": "A script uses a workflow command that GitHub has disabled (`::set-output`, `::save-state`, `::set-env`, `::add-path`); write to `$GITHUB_OUTPUT`, `$GITHUB_STATE`, `$GITHUB_ENV` or `$GITHUB_PATH` instead."
             },
             "descriptive-link-text": {
               "$ref": "#/definitions/rule",
@@ -269,6 +277,10 @@
             "document-start": {
               "$ref": "#/definitions/rule",
               "description": "The first document does not start with `---`."
+            },
+            "duplicate-ids": {
+              "$ref": "#/definitions/rule",
+              "description": "Job ids that differ only in case (ids are case-insensitive; exact repeats are `no-duplicate-keys`), and step ids repeated within a job."
             },
             "duplicate-stage-name": {
               "$ref": "#/definitions/rule",
@@ -412,9 +424,69 @@
               "$ref": "#/definitions/rule",
               "description": "Gitignore-syntax files have no end-of-line comments: `*.log # logs` is the pattern `*.log # logs`, a file name with spaces and a `#`. No fix: put the comment on its own line."
             },
+            "invalid-expression": {
+              "$ref": "#/definitions/rule",
+              "description": "A `${{ }}` expression that is not closed or empty, has unbalanced brackets or a string that is not closed, uses a character expressions do not have (such as a double quote), or names a context or function that does not exist."
+            },
+            "invalid-job-id": {
+              "$ref": "#/definitions/rule",
+              "description": "A job id must start with a letter or `_` and contain only letters, digits, `-` and `_`."
+            },
             "invalid-property-value": {
               "$ref": "#/definitions/rule",
               "description": "A known EditorConfig or .NET property has a value it does not accept (`indent_style = tabs`, `dotnet_diagnostic.CA1000.severity = high`). Values are case-insensitive, `unset` is always valid, and .NET code-style options may end in `:silent`, `:suggestion`, `:warning` or `:error`; formatting options do not (Roslyn parses them with `bool.TryParse`, EditorConfigValueSerializer.cs). A trailing `# comment` is ignored, as Roslyn does. Unknown properties are not checked."
+            },
+            "invalid-runs-on": {
+              "description": "A `runs-on` label that is not one of the known runner labels. A job that also has `self-hosted` is not checked; `${{ matrix.name }}` stands for the matrix's values, other expressions are skipped.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "labels": {
+                          "default": [
+                            "ubuntu-slim",
+                            "ubuntu-latest(-(4|8|16)-cores)?",
+                            "ubuntu-(24|22)\\.04(-arm)?",
+                            "windows-latest(-8-cores)?",
+                            "windows-2025(-vs2026)?",
+                            "windows-2022",
+                            "windows-11-arm",
+                            "macos-latest(-(xlarge|large))?",
+                            "macos-(26|15)(-(intel|xlarge|large))?",
+                            "macos-14(-(xlarge|large))?",
+                            "self-hosted",
+                            "linux",
+                            "macos",
+                            "windows",
+                            "x64",
+                            "arm",
+                            "arm64"
+                          ],
+                          "description": "Regular expressions; a label is valid when one matches all of it, ignoring case.",
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
             },
             "iterate-find-output": {
               "$ref": "#/definitions/rule",
@@ -643,6 +715,10 @@
                   "type": "object"
                 }
               ]
+            },
+            "missing-permissions": {
+              "$ref": "#/definitions/rule",
+              "description": "A job without `permissions`, in a workflow without top-level `permissions`: it gets the repository's default token permissions, often write access."
             },
             "naming-convention": {
               "description": "A name does not follow the style set for what it names: operations, fragments, variables, fields, arguments, types, enum values and directives. `PascalCase` and `camelCase` allow letters and digits only, `snake_case` and `UPPER_CASE` forbid the other case; leading underscores are ignored. No fix: renaming changes the schema or the queries that use it. Equivalent: graphql-eslint naming-convention (styles only, no prefix or suffix lists).",
@@ -1377,6 +1453,10 @@
               "$ref": "#/definitions/rule",
               "description": "A yum or dnf install package without a version."
             },
+            "script-injection": {
+              "$ref": "#/definitions/rule",
+              "description": "An expression in a `run` script reads text that an attacker can choose (an issue or pull request title, a branch name, a commit message): it is pasted into the script before the shell runs, so it can inject commands. Pass it through an environment variable (`env:`) and read `\"$VAR\"` instead."
+            },
             "selection-set-depth": {
               "description": "An operation or fragment nests selection sets deeper than allowed, which makes a query expensive to execute. Fragments that are spread are not followed.",
               "oneOf": [
@@ -1680,6 +1760,10 @@
                   "type": "object"
                 }
               ]
+            },
+            "unknown-needs": {
+              "$ref": "#/definitions/rule",
+              "description": "`needs` names a job that the workflow does not define."
             },
             "unknown-property": {
               "description": "A property name that is not an EditorConfig or .NET (`dotnet_*`, `csharp_*`, `visual_basic_*`, `dotnet_diagnostic.<ID>.severity`, naming rule) property but is one typo away from one: the setting is silently ignored. Names of other tools (`resharper_*`, `ij_*`) are left alone. Known properties and values: `crates/lang-editorconfig/data/properties.txt`.",
@@ -2570,6 +2654,145 @@
       },
       "type": "object"
     },
+    "github-actions": {
+      "additionalProperties": false,
+      "properties": {
+        "format": {
+          "additionalProperties": false,
+          "properties": {
+            "array_bracket_spacing": {
+              "default": false,
+              "description": "Spaces inside the brackets of a one-line sequence or array: `[ 1, 2 ]` or `[1, 2]`.",
+              "type": "boolean"
+            },
+            "blank_lines_after_key": {
+              "default": "preserve",
+              "description": "Blank lines between a key and its block value on the next line: `preserve` keeps \n             them (up to `max_blank_lines`); `remove` drops them.",
+              "enum": [
+                "preserve",
+                "remove"
+              ],
+              "type": "string"
+            },
+            "bracket_spacing": {
+              "default": true,
+              "description": "Spaces inside the braces of a one-line mapping or object: `{ a: 1 }` or `{a: 1}`.",
+              "type": "boolean"
+            },
+            "comment_spacing": {
+              "default": 1,
+              "description": "Spaces between a value and a comment after it on the same line.",
+              "maximum": 10,
+              "minimum": 1,
+              "type": "integer"
+            },
+            "document_end": {
+              "default": "preserve",
+              "description": "The `...` marker: `always` ends every document with it, `never` leaves it out unless the next document has a directive or no `---`, or the document is empty, `preserve` keeps what is written.",
+              "enum": [
+                "preserve",
+                "always",
+                "never"
+              ],
+              "type": "string"
+            },
+            "document_start": {
+              "default": "preserve",
+              "description": "The `---` marker: `always` starts every document with it, `never` leaves it out of the first document when that is possible, `preserve` keeps what is written.",
+              "enum": [
+                "preserve",
+                "always",
+                "never"
+              ],
+              "type": "string"
+            },
+            "end_of_line": {
+              "default": "auto",
+              "description": "Line break style of the output: `lf`, `crlf`, or `auto` to keep the file's first              line break.",
+              "enum": [
+                "auto",
+                "lf",
+                "crlf"
+              ],
+              "type": "string"
+            },
+            "final_newline": {
+              "default": true,
+              "description": "End the file with a newline.",
+              "type": "boolean"
+            },
+            "indent_size": {
+              "default": 2,
+              "description": "Columns per indentation level (also the width of a tab).",
+              "maximum": 16,
+              "minimum": 1,
+              "type": "integer"
+            },
+            "line_width": {
+              "default": 80,
+              "description": "Preferred maximum line width in columns.",
+              "maximum": 1000,
+              "minimum": 20,
+              "type": "integer"
+            },
+            "max_blank_lines": {
+              "default": 1,
+              "description": "Largest number of blank lines kept between entries, comments and documents.",
+              "maximum": 10,
+              "minimum": 0,
+              "type": "integer"
+            },
+            "quote_style": {
+              "default": "preserve",
+              "description": "Quote style of quoted scalars. With `single` and `double` a scalar keeps its quotes when the other style would change its value or need more escapes; `prefer_double` uses double quotes, except single quotes for text that contains a `\"` (unless it has other escapes, which keep it as written).",
+              "enum": [
+                "preserve",
+                "single",
+                "double",
+                "prefer_double"
+              ],
+              "type": "string"
+            },
+            "sequence_indent": {
+              "default": "preserve",
+              "description": "A block sequence that is the value of a mapping key: `indented` puts the dashes one level in, `flush` at the key's column, `preserve` keeps each sequence as written.",
+              "enum": [
+                "preserve",
+                "indented",
+                "flush"
+              ],
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "lint": {
+          "$ref": "#/definitions/lint"
+        },
+        "semantics": {
+          "additionalProperties": false,
+          "description": "Facts about methods that the flow analyses use.",
+          "properties": {
+            "does_not_return": {
+              "description": "Qualified method names without parameter lists; every overload is covered.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "pure": {
+              "description": "Qualified method names without parameter lists; every overload is covered.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          "type": "object"
+        }
+      },
+      "type": "object"
+    },
     "gitignore": {
       "additionalProperties": false,
       "properties": {
@@ -2903,6 +3126,7 @@
         "enum": [
           "json",
           "yaml",
+          "github-actions",
           "toml",
           "xml",
           "markdown",
@@ -3689,6 +3913,145 @@
                 "maximum": 1000,
                 "minimum": 20,
                 "type": "integer"
+              }
+            },
+            "type": "object"
+          },
+          "github-actions": {
+            "additionalProperties": false,
+            "properties": {
+              "format": {
+                "additionalProperties": false,
+                "properties": {
+                  "array_bracket_spacing": {
+                    "default": false,
+                    "description": "Spaces inside the brackets of a one-line sequence or array: `[ 1, 2 ]` or `[1, 2]`.",
+                    "type": "boolean"
+                  },
+                  "blank_lines_after_key": {
+                    "default": "preserve",
+                    "description": "Blank lines between a key and its block value on the next line: `preserve` keeps \n             them (up to `max_blank_lines`); `remove` drops them.",
+                    "enum": [
+                      "preserve",
+                      "remove"
+                    ],
+                    "type": "string"
+                  },
+                  "bracket_spacing": {
+                    "default": true,
+                    "description": "Spaces inside the braces of a one-line mapping or object: `{ a: 1 }` or `{a: 1}`.",
+                    "type": "boolean"
+                  },
+                  "comment_spacing": {
+                    "default": 1,
+                    "description": "Spaces between a value and a comment after it on the same line.",
+                    "maximum": 10,
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  "document_end": {
+                    "default": "preserve",
+                    "description": "The `...` marker: `always` ends every document with it, `never` leaves it out unless the next document has a directive or no `---`, or the document is empty, `preserve` keeps what is written.",
+                    "enum": [
+                      "preserve",
+                      "always",
+                      "never"
+                    ],
+                    "type": "string"
+                  },
+                  "document_start": {
+                    "default": "preserve",
+                    "description": "The `---` marker: `always` starts every document with it, `never` leaves it out of the first document when that is possible, `preserve` keeps what is written.",
+                    "enum": [
+                      "preserve",
+                      "always",
+                      "never"
+                    ],
+                    "type": "string"
+                  },
+                  "end_of_line": {
+                    "default": "auto",
+                    "description": "Line break style of the output: `lf`, `crlf`, or `auto` to keep the file's first              line break.",
+                    "enum": [
+                      "auto",
+                      "lf",
+                      "crlf"
+                    ],
+                    "type": "string"
+                  },
+                  "final_newline": {
+                    "default": true,
+                    "description": "End the file with a newline.",
+                    "type": "boolean"
+                  },
+                  "indent_size": {
+                    "default": 2,
+                    "description": "Columns per indentation level (also the width of a tab).",
+                    "maximum": 16,
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  "line_width": {
+                    "default": 80,
+                    "description": "Preferred maximum line width in columns.",
+                    "maximum": 1000,
+                    "minimum": 20,
+                    "type": "integer"
+                  },
+                  "max_blank_lines": {
+                    "default": 1,
+                    "description": "Largest number of blank lines kept between entries, comments and documents.",
+                    "maximum": 10,
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "quote_style": {
+                    "default": "preserve",
+                    "description": "Quote style of quoted scalars. With `single` and `double` a scalar keeps its quotes when the other style would change its value or need more escapes; `prefer_double` uses double quotes, except single quotes for text that contains a `\"` (unless it has other escapes, which keep it as written).",
+                    "enum": [
+                      "preserve",
+                      "single",
+                      "double",
+                      "prefer_double"
+                    ],
+                    "type": "string"
+                  },
+                  "sequence_indent": {
+                    "default": "preserve",
+                    "description": "A block sequence that is the value of a mapping key: `indented` puts the dashes one level in, `flush` at the key's column, `preserve` keeps each sequence as written.",
+                    "enum": [
+                      "preserve",
+                      "indented",
+                      "flush"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              },
+              "lint": {
+                "$ref": "#/definitions/lint"
+              },
+              "semantics": {
+                "additionalProperties": false,
+                "description": "Facts about methods that the flow analyses use.",
+                "properties": {
+                  "does_not_return": {
+                    "description": "Qualified method names without parameter lists; every overload is covered.",
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "pure": {
+                    "description": "Qualified method names without parameter lists; every overload is covered.",
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  }
+                },
+                "type": "object"
               }
             },
             "type": "object"

@@ -108,6 +108,7 @@ pub fn options(db: &dyn Db, file: File) -> Result<FileOptions, Failure> {
     let config = config(db).as_ref().map_err(Clone::clone)?;
     let provider = &db.providers()[sel.provider];
     let input = FileInput::language(provider.language())
+        .with_base(provider.config_base())
         .with_path(file.path(db))
         .with_editorconfig(file.editorconfig(db));
     let mut resolved = config

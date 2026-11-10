@@ -20,8 +20,10 @@ fn language_ids(provider: &dyn LanguageProvider) -> Vec<String> {
 }
 
 pub fn generate(providers: &[Box<dyn LanguageProvider>]) -> Result<Vec<(PathBuf, String)>> {
+    // A provider that shares another's grammar (GitHub Actions on YAML) has no language id of its own.
     let ids: Vec<String> = providers
         .iter()
+        .filter(|p| p.grammar().language == p.language())
         .flat_map(|p| language_ids(p.as_ref()))
         .collect();
     // By extension as well, so that it works without an extension that names the language.

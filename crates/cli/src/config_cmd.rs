@@ -102,7 +102,7 @@ fn language(
 ) -> Result<()> {
     let name = provider.language();
     let editorconfig = file.map(EditorConfig::for_file);
-    let mut input = FileInput::language(name);
+    let mut input = FileInput::language(name).with_base(provider.config_base());
     if let Some(path) = file {
         input = input.with_path(path);
     }

@@ -31,6 +31,9 @@ overrides:
 ## Resolution (highest first)
 CLI flags (`--analysis`) -> matching `overrides` -> language section -> top-level shared settings -> `extends` chain -> `.editorconfig` -> provider defaults. Across tiers this order holds whichever file wrote the value; within a tier, chain files apply base first so the file closest to the user wins. Presets sit below all files. `sudsy config print [file]` shows the result and the source (file:line, `preset <name>`, `.editorconfig`, default) of every value. A comment-only edit re-resolves options (locations take part in equality).
 
+## Dialects
+A language whose provider names a config base (`LanguageProvider::config_base`: GitHub Actions on `yaml`) takes the base's section first and its own on top, in every tier that has one: the `format:` and `lint:` rules of the file's sections and of matching `overrides`, and `semantics:`. `config print` names the section each value came from. The base's rules are the dialect's too (`base_rules`), so the base's section configures them. A dialect is a language of its own for selection, docs and extra rules.
+
 ## `languages`
 Maps a language name (a provider's grammar name; others are errors with a suggestion) to `required` or `ignored`, for languages that may not be installed ([../architecture/language-packs.md](../architecture/language-packs.md)). `sudsy languages sync` installs the `required` ones. Files of a language that is not installed are skipped; unless it is `ignored`, a warning names the install command and the exit status is 3. The file closest to the user wins across `extends`.
 

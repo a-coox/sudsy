@@ -1366,6 +1366,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "lang-github-actions"
+version = "0.1.0"
+dependencies = [
+ "core-config",
+ "core-format",
+ "core-incremental",
+ "core-rules",
+ "core-syntax",
+ "lang-powershell",
+ "lang-shell",
+ "lang-yaml",
+ "provider-api",
+ "regex",
+]
+
+[[package]]
 name = "lang-gitignore"
 version = "0.1.0"
 dependencies = [
@@ -1566,6 +1582,7 @@ dependencies = [
  "lang-csharp",
  "lang-dockerfile",
  "lang-editorconfig",
+ "lang-github-actions",
  "lang-gitignore",
  "lang-graphql",
  "lang-ini",

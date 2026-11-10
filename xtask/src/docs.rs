@@ -39,12 +39,11 @@ pub fn generate(providers: &[Box<dyn LanguageProvider>]) -> Result<Vec<(PathBuf,
         .map(|p| (p.grammar().title.as_str(), p.language()))
         .collect();
     titles.sort();
-    let (last, rest) = titles.split_last().expect("a language");
-    let names = format!(
-        "{} and {}",
-        rest.iter().map(|t| t.0).collect::<Vec<_>>().join(", "),
-        last.0
-    );
+    // A dialect with its own provider (GitHub Actions) shares its grammar, and so its title, with its base.
+    let mut shown: Vec<&str> = titles.iter().map(|t| t.0).collect();
+    shown.dedup();
+    let (last, rest) = shown.split_last().expect("a language");
+    let names = format!("{} and {last}", rest.join(", "));
     let crates = titles
         .iter()
         .map(|t| format!("`lang-{}`", t.1))

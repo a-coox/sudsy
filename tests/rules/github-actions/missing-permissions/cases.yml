@@ -1,0 +1,7 @@
+jobs:
+  a:
+# ^ missing-permissions
+    runs-on: ubuntu-latest
+  b:
+    permissions: read-all
+    runs-on: ubuntu-latest

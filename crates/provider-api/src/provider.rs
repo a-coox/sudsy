@@ -62,6 +62,25 @@ pub trait LanguageProvider: Send + Sync {
         Vec::new()
     }
 
+    /// The language whose config section also applies to this one's files (a dialect with a
+    /// provider of its own): its options, rule levels and `semantics:` come first, this
+    /// language's section on top.
+    fn config_base(&self) -> Option<&str> {
+        None
+    }
+
+    /// The rules of the [`config_base`](Self::config_base) language that [`rules`](Self::rules)
+    /// includes: their fixtures are the base's.
+    fn base_rules(&self) -> &'static [&'static dyn Rule] {
+        &[]
+    }
+
+    /// Whether any of the regions of [`embedded`](Self::embedded) has `format` set; when not,
+    /// `format` does not look for them.
+    fn formats_embedded(&self) -> bool {
+        true
+    }
+
     /// Whether another language's file may embed this one: not a language with a worker process,
     /// which would start for a snippet.
     fn embeddable(&self) -> bool {

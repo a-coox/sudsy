@@ -1,0 +1,5 @@
+permissions:
+  contents: read
+jobs:
+  a:
+    runs-on: ubuntu-latest

@@ -1,0 +1,20 @@
+name: ${{ github.workflow }}
+env:
+  B: ${{ }}
+#       ^ invalid-expression
+  C: ${{ foo.bar }}
+#        ^ invalid-expression
+  D: ${{ contains(github.ref, 'x' }}
+#                ^ invalid-expression
+  E: ${{ nope(1) }}
+#        ^ invalid-expression
+  F: ${{ "a" }}
+#        ^ invalid-expression
+  G: ${{ format('{0} }}', env.A) }}
+  H: ${{ github.event.commits[0].message }}
+  I: ${{ github.ref == 'it''s' && !cancelled() }}
+  J: ${{ secrets.X }}-${{ inputs.y }}
+  K: ${{ github.event. }}
+#                      ^ invalid-expression
+  A: ${{ github.sha
+#    ^^^ invalid-expression

@@ -14,6 +14,7 @@ Current state only; history is in git. Update the doc for the area you change in
 | [formatting/csharp.md](formatting/csharp.md) | C# formatter and options |
 | [formatting/json.md](formatting/json.md) | JSON/JSONC parser, formatter, options |
 | [formatting/yaml.md](formatting/yaml.md) | YAML parser, data model, formatter, options |
+| [formatting/github-actions.md](formatting/github-actions.md) | GitHub Actions workflows and `action.yml`: selection by path, embedded `run:` scripts, rules after actionlint |
 | [formatting/toml.md](formatting/toml.md) | TOML parser (tree-sitter), formatter, options, conformance |
 | [formatting/xml.md](formatting/xml.md) | XML parser (tree-sitter), well-formedness checks, formatter, options, conformance |
 | [formatting/editorconfig.md](formatting/editorconfig.md) | `.editorconfig` parser (tree-sitter), formatter, options, conformance |

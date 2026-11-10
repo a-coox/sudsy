@@ -72,7 +72,9 @@ pub struct LintSettings {
 pub fn lint_settings(db: &dyn Db, file: File) -> Result<LintSettings, Failure> {
     let provider = provider_of(db, file)?;
     let config = config(db).as_ref().map_err(Clone::clone)?;
-    let input = FileInput::language(provider.language()).with_path(file.path(db));
+    let input = FileInput::language(provider.language())
+        .with_base(provider.config_base())
+        .with_path(file.path(db));
     let rules = config
         .rules(&input, provider.option_schema())
         .map_err(|e| Failure::new(Stage::Config, &e))?;

@@ -86,7 +86,7 @@ fn analyze(
     let chain = ConfigChain::parse(&yaml).expect("the test config is valid");
     let resolved = chain
         .rules(
-            &FileInput::language(provider.language()),
+            &FileInput::language(provider.language()).with_base(provider.config_base()),
             provider.option_schema(),
         )
         .expect("the test rules resolve");

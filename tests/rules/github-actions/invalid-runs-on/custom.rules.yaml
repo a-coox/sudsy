@@ -1,0 +1,4 @@
+invalid-runs-on:
+  level: warn
+  options:
+    labels: ["gpu-.*"]

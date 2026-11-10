@@ -46,7 +46,9 @@ pub(crate) fn lint_embedded(
             // Read only now: a file with no embedded code does not depend on the config here.
             let config = config(db).as_ref().map_err(Clone::clone)?;
             let extensions = ExtensionSet::get(db).extensions(db);
-            let input = FileInput::language(language).with_path(file.path(db));
+            let input = FileInput::language(language)
+                .with_base(e.provider.config_base())
+                .with_path(file.path(db));
             let rules = (config.rules(&input, e.provider.option_schema()))
                 .map_err(|e| Failure::new(Stage::Config, &e))?;
             let mut rules = activate(
@@ -118,7 +120,7 @@ pub(crate) fn format_embedded(
         all.retain(|r| r.format);
         all
     };
-    if off || regions(input_root, file.text(db)).is_empty() {
+    if off || !host.formats_embedded() || regions(input_root, file.text(db)).is_empty() {
         return formatted;
     }
     let source = SourceFile {
@@ -196,7 +198,9 @@ fn regions_agree(
 fn format_code(db: &dyn Db, file: File, language: &str, code: &str) -> Option<String> {
     let code = code.replace("\r\n", "\n");
     let (provider, dialect) = lookup(db, language)?;
-    let input = FileInput::language(provider.language()).with_path(file.path(db));
+    let input = FileInput::language(provider.language())
+        .with_base(provider.config_base())
+        .with_path(file.path(db));
     let mut options = (config(db).as_ref().ok()?)
         .format_options(&input, provider.option_schema())
         .ok()?

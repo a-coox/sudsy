@@ -1,0 +1,30 @@
+jobs:
+  a:
+    runs-on: ubuntu-latest
+  b:
+    runs-on: ubuntu-lates
+#            ^^^^^^^^^^^^ invalid-runs-on
+  c:
+    runs-on: [self-hosted, gpu]
+  d:
+    runs-on: [ubuntu-22.04, windows-2022]
+  e:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, linux-latest]
+#                           ^^^^^^^^^^^^ invalid-runs-on
+        include:
+          - os: macos-10
+#               ^^^^^^^^ invalid-runs-on
+  f:
+    runs-on:
+      group: big
+      labels: [ubuntu-large]
+#              ^^^^^^^^^^^^ invalid-runs-on
+  g:
+    runs-on: macos-15
+  h:
+    runs-on:
+#   ^^^^^^^ invalid-runs-on
+    steps: []

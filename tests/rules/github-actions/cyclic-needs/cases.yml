@@ -1,0 +1,10 @@
+jobs:
+  a:
+# ^ cyclic-needs
+    needs: b
+  b:
+    needs: [c]
+  c:
+    needs: a
+  d:
+    needs: a

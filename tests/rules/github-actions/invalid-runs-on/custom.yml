@@ -1,0 +1,6 @@
+jobs:
+  a:
+    runs-on: gpu-box
+  b:
+    runs-on: ubuntu-latest
+#            ^^^^^^^^^^^^^ invalid-runs-on

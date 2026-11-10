@@ -61,6 +61,7 @@ core-workspace = { path = "crates/core-workspace" }
 lang-csharp = { path = "crates/lang-csharp" }
 lang-json = { path = "crates/lang-json" }
 lang-yaml = { path = "crates/lang-yaml" }
+lang-github-actions = { path = "crates/lang-github-actions" }
 lang-toml = { path = "crates/lang-toml", default-features = false }
 lang-xml = { path = "crates/lang-xml", default-features = false }
 lang-markdown = { path = "crates/lang-markdown", default-features = false }

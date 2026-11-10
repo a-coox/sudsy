@@ -1,0 +1,19 @@
+jobs:
+  Build:
+    runs-on: ubuntu-latest
+    steps:
+      - id: a
+        run: echo
+      - id: A
+#           ^ duplicate-ids
+        run: echo
+      - id: b
+        run: echo
+  build:
+# ^^^^^ duplicate-ids
+    runs-on: ubuntu-latest
+  other:
+    runs-on: ubuntu-latest
+    steps:
+      - id: a
+        run: echo
