@@ -9,6 +9,7 @@ use crate::lines::LineBreaks;
 use crate::shapes::{self, BlockStyle, KeyValueStyle, ListStyle};
 use core_config::ResolvedOptions;
 use core_syntax::{Grammar, SyntaxElement, SyntaxNode, SyntaxToken, TextRange, TextSize};
+use std::collections::HashMap;
 use std::sync::Mutex;
 
 /// A provider's formatting code. Nodes it does not handle fall back to the shared shape of their
@@ -100,6 +101,8 @@ pub struct FormatCtx<'a> {
     detached: Mutex<Vec<(TextSize, Option<Vec<Comment>>)>>,
     /// A provider's per-run data derived from the options (see [`FormatCtx::cached`]).
     cache: std::sync::OnceLock<Box<dyn std::any::Any + Send + Sync>>,
+    /// Documents of nodes formatted for a layout, by node and flags (see [`FormatCtx::layout`]).
+    layouts: Mutex<HashMap<(TextRange, u32, u32), Doc>>,
 }
 
 impl<'a> FormatCtx<'a> {
@@ -118,6 +121,7 @@ impl<'a> FormatCtx<'a> {
             line_breaks: Mutex::new(None),
             detached: Mutex::new(Vec::new()),
             cache: std::sync::OnceLock::new(),
+            layouts: Mutex::new(HashMap::new()),
         }
     }
 
@@ -128,6 +132,34 @@ impl<'a> FormatCtx<'a> {
             .get_or_init(|| Box::new(make()))
             .downcast_ref::<T>()
             .expect("one cached type per FormatCtx")
+    }
+
+    /// The document `make` builds for `node` under `flags` (a provider's own numbering of the
+    /// layouts it tries), built once: a layout that prints a child in two candidates (the last
+    /// call argument hugged or not) reuses the child's document instead of formatting it again,
+    /// which would take 2^depth runs for nested callbacks. The result is [`doc::shared`], so
+    /// clones cost nothing.
+    pub fn layout(
+        &self,
+        node: &SyntaxNode,
+        flags: u32,
+        make: impl FnOnce() -> Result<Doc, FormatError>,
+    ) -> Result<Doc, FormatError> {
+        let key = (node.text_range(), node.kind().0, flags);
+        if let Some(d) = self
+            .layouts
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .get(&key)
+        {
+            return Ok(d.clone());
+        }
+        let d = doc::shared(make()?);
+        self.layouts
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .insert(key, d.clone());
+        Ok(d)
     }
 
     /// Does the source contain a line break (`\n` or `\r`) within `range`, which is given in the
@@ -433,4 +465,33 @@ pub fn trailing_comments_doc(st: &CommentStyle, cs: &[Comment]) -> Doc {
         }
     }
     doc::concat(parts)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use core_syntax::{TreeBuilder, grammars};
+    use std::cell::Cell;
+
+    #[test]
+    fn layout_builds_once_per_node_and_flags() {
+        let g = grammars::json();
+        let mut b = TreeBuilder::new();
+        b.start_node(g.kind_by_name("Document").unwrap());
+        b.token(g.kind_by_name("Number").unwrap(), "1");
+        b.finish_node();
+        let root = SyntaxNode::new_root(b.finish());
+        let (options, table) = (ResolvedOptions::default(), DirectiveTable::default());
+        let cx = FormatCtx::new(g, &options, &table, &DefaultFormatter);
+        let runs = Cell::new(0);
+        let make = || {
+            runs.set(runs.get() + 1);
+            Ok(doc::concat(vec![doc::lit("a"), doc::line()]))
+        };
+        let first = cx.layout(&root, 0, make).unwrap();
+        assert_eq!(cx.layout(&root, 0, make).unwrap(), first);
+        assert_eq!(runs.get(), 1);
+        cx.layout(&root, 1, make).unwrap();
+        assert_eq!(runs.get(), 2);
+    }
 }

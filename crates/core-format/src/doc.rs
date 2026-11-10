@@ -39,9 +39,12 @@ pub enum Doc {
     Indent(Box<Doc>),
     /// Indent by this many extra spaces (not levels).
     Align(usize, Box<Doc>),
+    /// `broken` when the enclosing group (or, with `group`, the group with that id, printed
+    /// before it) is broken, else `flat`.
     IfBreak {
         broken: Box<Doc>,
         flat: Box<Doc>,
+        group: Option<GroupId>,
     },
     /// Alternating `content, separator, content, ...`; separators break only where the next
     /// content no longer fits.
@@ -56,6 +59,11 @@ pub enum Doc {
     /// A subtree that is cloned by reference count: layouts that try several candidates share
     /// the documents the candidates have in common instead of copying them (see [`shared`]).
     Shared(Arc<SharedDoc>),
+    /// Prints as its contents; a parent's layout code reads the tag with [`Doc::label_of`].
+    Label(&'static str, Box<Doc>),
+    /// A hard line when a line suffix is pending, else nothing: what follows must not move before
+    /// the comment (it does not break the enclosing groups).
+    LineSuffixBoundary,
 }
 
 /// Names a group so that [`Doc::IndentIfBreak`] can ask whether it was printed broken.
@@ -89,11 +97,25 @@ impl Doc {
         matches!(self, Doc::Nil)
     }
 
+    /// The tag of a [`label`], also through [`shared`].
+    pub fn label_of(&self) -> Option<&'static str> {
+        match self {
+            Doc::Label(l, _) => Some(l),
+            Doc::Shared(s) => s.doc.label_of(),
+            _ => None,
+        }
+    }
+
     /// Marks groups that contain a forced break as broken. The printer does this itself; call it
     /// directly only to inspect a document.
     pub fn propagate_breaks(&mut self) -> bool {
         match self {
-            Doc::Nil | Doc::Text(_) | Doc::Verbatim(_) | Doc::Line | Doc::SoftLine => false,
+            Doc::Nil
+            | Doc::Text(_)
+            | Doc::Verbatim(_)
+            | Doc::Line
+            | Doc::SoftLine
+            | Doc::LineSuffixBoundary => false,
             Doc::HardLine | Doc::BreakParent | Doc::LineStart(_) | Doc::NewlineIfNeeded => true,
             Doc::Shared(s) => s.forced,
             _ => crate::deep(|| self.propagate_breaks_in()),
@@ -110,8 +132,9 @@ impl Doc {
                 | Doc::Indent(d)
                 | Doc::Align(_, d)
                 | Doc::LineSuffix(d)
+                | Doc::Label(_, d)
                 | Doc::IndentIfBreak(_, d) => pending.push(*d),
-                Doc::IfBreak { broken, flat } => pending.extend([*broken, *flat]),
+                Doc::IfBreak { broken, flat, .. } => pending.extend([*broken, *flat]),
                 Doc::Concat(parts) | Doc::Fill(parts) => pending.extend(parts),
                 Doc::Group(g) => {
                     let g = *g;
@@ -135,14 +158,21 @@ impl Doc {
                 d.propagate_breaks();
                 true
             }
-            Doc::Nil | Doc::Text(_) | Doc::Verbatim(_) | Doc::Line | Doc::SoftLine => false,
+            Doc::Nil
+            | Doc::Text(_)
+            | Doc::Verbatim(_)
+            | Doc::Line
+            | Doc::SoftLine
+            | Doc::LineSuffixBoundary => false,
             Doc::Shared(s) => s.forced,
-            Doc::IndentIfBreak(_, d) => d.propagate_breaks(),
+            Doc::Label(_, d) | Doc::IndentIfBreak(_, d) => d.propagate_breaks(),
             Doc::Concat(parts) | Doc::Fill(parts) => parts
                 .iter_mut()
                 .fold(false, |forced, d| d.propagate_breaks() | forced),
             Doc::Indent(d) | Doc::Align(_, d) | Doc::LineSuffix(d) => d.propagate_breaks(),
-            Doc::IfBreak { broken, flat } => broken.propagate_breaks() | flat.propagate_breaks(),
+            Doc::IfBreak { broken, flat, .. } => {
+                broken.propagate_breaks() | flat.propagate_breaks()
+            }
             Doc::Group(g) => {
                 let forced = g.contents.propagate_breaks();
                 let mut every_candidate = !g.states.is_empty();
@@ -335,7 +365,27 @@ pub fn if_break(broken: Doc, flat: Doc) -> Doc {
     Doc::IfBreak {
         broken: Box::new(broken),
         flat: Box::new(flat),
+        group: None,
     }
+}
+
+/// `broken` if the group `id` (printed before it) broke, else `flat`.
+pub fn if_break_in(id: GroupId, broken: Doc, flat: Doc) -> Doc {
+    Doc::IfBreak {
+        broken: Box::new(broken),
+        flat: Box::new(flat),
+        group: Some(id),
+    }
+}
+
+/// See [`Doc::Label`].
+pub fn label(tag: &'static str, d: Doc) -> Doc {
+    Doc::Label(tag, Box::new(d))
+}
+
+/// See [`Doc::LineSuffixBoundary`].
+pub fn line_suffix_boundary() -> Doc {
+    Doc::LineSuffixBoundary
 }
 
 pub fn fill(parts: Vec<Doc>) -> Doc {

@@ -5,7 +5,7 @@ a fork of tree-sitter-graphql 0.3 (joowani's maintained fork of bkegley's gramma
 
 Files: `*.graphql`, `*.gql`. Tree-sitter reports syntax errors ("syntax error", "missing X"); a file with one is not formatted.
 
-Grammar gaps: `extend directive` and `# prettier-ignore` (not read; `sudsy-ignore` is). An empty selection set is invalid and refused (Prettier rejects it too).
+Grammar gap: `extend directive`. `# prettier-ignore` and `# sudsy-ignore` keep the next definition or field as written. An empty selection set is invalid and refused (Prettier rejects it too).
 
 ## Formatting
 Layout follows Prettier's GraphQL printer (`scripts/parity.sh format prettier` compares them): two-space indentation, one definition, field, enum value or argument definition per line, blank lines kept (at most one), comments kept; commas dropped.
@@ -16,7 +16,7 @@ Layout follows Prettier's GraphQL printer (`scripts/parity.sh format prettier` c
 - A description goes on the line above its definition (a one-line `"..."` description of an argument stays on its line when the argument list fits).
 
 ## Parity
-`scripts/parity.sh format prettier` compares with Prettier 3.9.10 (`docs/parity/prettier.yaml`) on 132 GraphQL files with Sudsy's defaults (`tests/conformance/fetch-graphql-corpus.sh`: Prettier's own format tests, graphql-js, GraphiQL, Apollo Federation, graphql-eslint; the 368 KB GitHub schema among them): 127 are identical. The other 5 are listed with their reasons in `tests/parity/prettier/expected-diff.txt`: `extend directive` (not in the spec) and Prettier's range markers are not parsed, 2 use `# prettier-ignore`, 1 has comments between the interfaces and the body. 130 of the 132 parse without errors; every file that parses formats with the same tokens and idempotently (`cargo test --profile corpus -p lang-graphql --test graphql -- --ignored --nocapture conformance`).
+`scripts/parity.sh format prettier` compares with Prettier 3.9.10 (`docs/parity/prettier.yaml`) on 132 GraphQL files with Sudsy's defaults (`tests/conformance/fetch-graphql-corpus.sh`: Prettier's own format tests, graphql-js, GraphiQL, Apollo Federation, graphql-eslint; the 368 KB GitHub schema among them): 129 are identical. The other 3 are listed with their reasons in `tests/parity/prettier/expected-diff.txt`: `extend directive` (not in the spec) and Prettier's range markers are not parsed, 1 has comments between the interfaces and the body. 130 of the 132 parse without errors; every file that parses formats with the same tokens and idempotently (`cargo test --profile corpus -p lang-graphql --test graphql -- --ignored --nocapture conformance`).
 
 ## Rules
 Rules of graphql-eslint that need no schema and no other file (`docs/parity/graphql-eslint.yaml` lists every rule and its status):

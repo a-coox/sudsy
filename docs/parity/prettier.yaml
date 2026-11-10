@@ -38,4 +38,4 @@ entries:
   "yaml: long scalars / flow collections": "formatter | Sudsy does not re-wrap long plain/quoted scalars or comments (known gap); flow collections that do not fit move/break"
   "yaml: # prettier-ignore": "formatter"
   "markdown: formatting at proseWrap=preserve": "formatter"
-  "graphql: formatting": "formatter | A file the tree-sitter grammar cannot parse is not formatted (`extend directive`); `# prettier-ignore` is not read (`sudsy-ignore` is); Unicode escapes in strings are kept, Prettier decodes them."
+  "graphql: formatting": "formatter | A file the tree-sitter grammar cannot parse is not formatted (`extend directive`); Unicode escapes in strings are kept, Prettier decodes them."

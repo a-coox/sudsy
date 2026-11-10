@@ -9,6 +9,7 @@ suppress disable "sudsy-disable"
 suppress enable "sudsy-enable"
 suppress disable-file "sudsy-disable-file"
 suppress ignore "sudsy-ignore"
+suppress ignore "prettier-ignore"
 
 token Whitespace #trivia #whitespace
 token Newline #trivia #newline

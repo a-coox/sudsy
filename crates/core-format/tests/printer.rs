@@ -219,3 +219,66 @@ fn wide_characters_count_by_display_width() {
 fn text_without_content_is_nil() {
     assert_eq!(text(""), nil());
 }
+
+#[test]
+fn if_break_in_asks_another_group() {
+    // The outer group breaks, the inner one fits: only the named group decides.
+    let build = |id| {
+        concat(vec![
+            group_with_id(id, concat(vec![t("a"), line(), t("b")])),
+            if_break_in(id, t("[broken]"), t("[flat]")),
+        ])
+    };
+    let id = new_group_id();
+    assert_eq!(run(build(id), 80), "a b[flat]");
+    let id = new_group_id();
+    assert_eq!(
+        run(build(id), 2),
+        "a
+b[broken]"
+    );
+}
+
+#[test]
+fn if_break_in_sees_a_group_printed_in_a_broken_parent() {
+    let id = new_group_id();
+    let d = group(concat(vec![
+        group_with_id(id, t("x")),
+        hardline(),
+        if_break_in(id, t("B"), t("F")),
+    ]));
+    assert_eq!(
+        run(d, 80),
+        "x
+F"
+    );
+}
+
+#[test]
+fn label_prints_its_contents_and_is_readable() {
+    let d = label("member-chain", concat(vec![t("a"), t(".b")]));
+    assert_eq!(d.label_of(), Some("member-chain"));
+    assert_eq!(shared(d.clone()).label_of(), Some("member-chain"));
+    assert_eq!(t("a").label_of(), None);
+    assert_eq!(run(d, 80), "a.b");
+}
+
+#[test]
+fn line_suffix_boundary_flushes_a_pending_suffix() {
+    let d = concat(vec![
+        t("a"),
+        line_suffix(t(" // c")),
+        line_suffix_boundary(),
+        t("b"),
+    ]);
+    assert_eq!(
+        run(d, 80),
+        "a // c
+b"
+    );
+    // Nothing pending: nothing happens.
+    assert_eq!(
+        run(concat(vec![t("a"), line_suffix_boundary(), t("b")]), 80),
+        "ab"
+    );
+}

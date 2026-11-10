@@ -9,9 +9,7 @@ runtime-docs/coding-guidelines/mono-code-guide.md: a code span over two lines in
 runtime-docs/coding-guidelines/vectorization-guidelines.md: trailing blanks inside a code block are code; Prettier removes them
 docs/formatting/csharp.md: an HTML block right after a table gets a blank line in front (Prettier keeps it on the next line; both parse it as HTML)
 # GraphQL fixtures (corpus/<repo>/<path> under graphql/)
-graphql/graphiql/packages/vscode-graphql-syntax/tests/__fixtures__/consecutive-descriptions.graphql: `# prettier-ignore` is not read (`sudsy-ignore` is)
 graphql/prettier/tests/format/graphql/interface/separator-detection.graphql: comments between the interfaces and the `{` stay in front of the `{` where Prettier moves them into the body (and one in front of `&` after the list)
-graphql/prettier/tests/format/graphql/prettier-ignore/prettier-ignore-comment.graphql: `# prettier-ignore` is not read (`sudsy-ignore` is)
 graphql/prettier/tests/format/graphql/range/issue2296.graphql: the file holds Prettier's range markers: not GraphQL
 graphql/prettier/tests/format/graphql/directive-decl/directives-on-directive-definitions.graphql: `extend directive` is not in the GraphQL spec: the grammar rejects it
 graphql/prettier/tests/format/graphql/selection-set/empty-1.graphql: an empty selection set is invalid GraphQL: Prettier rejects it too

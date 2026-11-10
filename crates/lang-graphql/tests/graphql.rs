@@ -23,6 +23,22 @@ fn conformance() {
 }
 
 #[test]
+fn prettier_ignore_keeps_the_next_definition() {
+    assert_eq!(
+        fmt("# prettier-ignore
+type A{a:Int}
+type B{b:Int}
+"),
+        "# prettier-ignore
+type A{a:Int}
+type B {
+  b: Int
+}
+"
+    );
+}
+
+#[test]
 fn operations_and_selections() {
     assert_eq!(
         fmt(

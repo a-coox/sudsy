@@ -21,11 +21,11 @@ fn body(g: &Grammar, c: &Comment) -> String {
     }
 }
 
-fn marker<'a>(g: &'a Grammar, role: &str) -> Option<&'a str> {
+/// A role may list several marker words (`sudsy-ignore` next to `prettier-ignore`).
+fn has_marker(g: &Grammar, role: &str, word: &str) -> bool {
     g.suppressions
         .iter()
-        .find(|s| s.role == role)
-        .map(|s| s.marker.as_str())
+        .any(|s| s.role == role && s.marker == word)
 }
 
 pub fn mark_of(g: &Grammar, c: &Comment) -> Option<IgnoreMark> {
@@ -37,7 +37,7 @@ pub fn mark_of(g: &Grammar, c: &Comment) -> Option<IgnoreMark> {
         ("ignore-end", IgnoreMark::End),
     ]
     .into_iter()
-    .find(|(role, _)| marker(g, role) == Some(word))
+    .find(|(role, _)| has_marker(g, role, word))
     .map(|(_, mark)| mark)
 }
 

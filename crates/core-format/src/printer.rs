@@ -218,6 +218,11 @@ impl<'a> Printer<'a> {
         }
     }
 
+    /// How the group `id` was printed; a group not printed yet counts as flat.
+    fn group_mode(&self, id: GroupId) -> Mode {
+        self.group_modes.get(&id).copied().unwrap_or(Mode::Flat)
+    }
+
     fn width_left(&self) -> isize {
         self.opts.line_width as isize - self.pos as isize
     }
@@ -298,6 +303,12 @@ impl<'a> Printer<'a> {
         match doc {
             Doc::Nil | Doc::BreakParent => {}
             Doc::Shared(s) => push(cmds, indent, mode, &s.doc),
+            Doc::Label(_, d) => push(cmds, indent, mode, d),
+            Doc::LineSuffixBoundary => {
+                if !self.suffixes.is_empty() {
+                    push(cmds, indent, mode, &Doc::HardLine);
+                }
+            }
             Doc::IndentIfBreak(id, d) => {
                 let broken = self.group_modes.get(id) == Some(&Mode::Break);
                 let i = if broken {
@@ -345,12 +356,17 @@ impl<'a> Printer<'a> {
                 let i = self.indents.align(indent, *n);
                 push(cmds, i, mode, d);
             }
-            Doc::IfBreak { broken, flat } => {
+            Doc::IfBreak {
+                broken,
+                flat,
+                group,
+            } => {
+                let m = group.map_or(mode, |id| self.group_mode(id));
                 push(
                     cmds,
                     indent,
                     mode,
-                    if mode == Mode::Break { broken } else { flat },
+                    if m == Mode::Break { broken } else { flat },
                 );
             }
             Doc::Fill(parts) => cmds.push(Cmd {
@@ -412,7 +428,17 @@ impl<'a> Printer<'a> {
                 self.remeasure = false;
                 let next = flat_cmd(&g.contents);
                 let width = self.width_left();
-                if !g.broken && fits(&mut self.measure, next, cmds, width, false) {
+                if !g.broken
+                    && fits(
+                        &mut self.measure,
+                        next,
+                        cmds,
+                        width,
+                        false,
+                        &self.group_modes,
+                        !self.suffixes.is_empty(),
+                    )
+                {
                     if let Some(id) = g.id {
                         self.group_modes.insert(id, Mode::Flat);
                     }
@@ -426,10 +452,17 @@ impl<'a> Printer<'a> {
                         push(cmds, indent, Mode::Break, most_expanded);
                         return;
                     }
-                    let chosen = g.states[1..]
-                        .iter()
-                        .map(flat_cmd)
-                        .find(|c| fits(&mut self.measure, *c, cmds, width, false));
+                    let chosen = g.states[1..].iter().map(flat_cmd).find(|c| {
+                        fits(
+                            &mut self.measure,
+                            *c,
+                            cmds,
+                            width,
+                            false,
+                            &self.group_modes,
+                            !self.suffixes.is_empty(),
+                        )
+                    });
                     match chosen {
                         Some(c) => cmds.push(chosen_cmd(c)),
                         None => push(cmds, indent, Mode::Break, most_expanded),
@@ -449,7 +482,15 @@ impl<'a> Printer<'a> {
         let width = self.width_left();
         let [content, rest @ ..] = parts else { return };
         let content_flat = cmd(Mode::Flat, Item::Doc(content));
-        let content_fits = fits(&mut self.measure, content_flat, &[], width, true);
+        let content_fits = fits(
+            &mut self.measure,
+            content_flat,
+            &[],
+            width,
+            true,
+            &self.group_modes,
+            !self.suffixes.is_empty(),
+        );
         let [whitespace, rest @ ..] = rest else {
             let m = if content_fits {
                 Mode::Flat
@@ -471,7 +512,15 @@ impl<'a> Printer<'a> {
         }
         let remaining = cmd(mode, Item::Fill(rest));
         let first_two = cmd(Mode::Flat, Item::Seq(&parts[..3]));
-        let first_two_fit = fits(&mut self.measure, first_two, &[], width, true);
+        let first_two_fit = fits(
+            &mut self.measure,
+            first_two,
+            &[],
+            width,
+            true,
+            &self.group_modes,
+            !self.suffixes.is_empty(),
+        );
         if first_two_fit {
             cmds.extend([remaining, ws(Mode::Flat), content_cmd(Mode::Flat)]);
         } else if content_fits {
@@ -509,6 +558,8 @@ fn fits<'a>(
     rest: &[Cmd<'a>],
     width: isize,
     must_be_flat: bool,
+    groups: &HashMap<GroupId, Mode>,
+    mut suffix: bool,
 ) -> bool {
     let mut width = width;
     let mut rest_idx = rest.len();
@@ -533,9 +584,15 @@ fn fits<'a>(
             }
         };
         match doc {
-            Doc::Nil | Doc::BreakParent | Doc::LineSuffix(_) => {}
+            Doc::Nil | Doc::BreakParent => {}
+            Doc::LineSuffix(_) => suffix = true,
             Doc::Shared(s) => m.stack.push((mode, Item::Doc(&s.doc))),
-            Doc::IndentIfBreak(_, d) => m.stack.push((mode, Item::Doc(d))),
+            Doc::IndentIfBreak(_, d) | Doc::Label(_, d) => m.stack.push((mode, Item::Doc(d))),
+            Doc::LineSuffixBoundary => {
+                if suffix {
+                    return true;
+                }
+            }
             Doc::Text(s) => {
                 if let Some(answer) = measure(s, &mut width) {
                     return answer;
@@ -549,10 +606,17 @@ fn fits<'a>(
             Doc::LineStart(_) | Doc::Outdent(..) | Doc::NewlineIfNeeded => return true,
             Doc::Concat(parts) => m.stack.push((mode, Item::Seq(parts))),
             Doc::Indent(d) | Doc::Align(_, d) => m.stack.push((mode, Item::Doc(d))),
-            Doc::IfBreak { broken, flat } => m.stack.push((
-                mode,
-                Item::Doc(if mode == Mode::Break { broken } else { flat }),
-            )),
+            Doc::IfBreak {
+                broken,
+                flat,
+                group,
+            } => {
+                let gm = group.map_or(mode, |id| groups.get(&id).copied().unwrap_or(Mode::Flat));
+                m.stack.push((
+                    mode,
+                    Item::Doc(if gm == Mode::Break { broken } else { flat }),
+                ));
+            }
             Doc::Fill(parts) => m.stack.push((mode, Item::Fill(parts))),
             Doc::Group(g) => {
                 if must_be_flat && g.broken {
