@@ -36,7 +36,7 @@ jobs:
           node-version: 24
           cache: npm
           cache-dependency-path: site/package-lock.json
-      - run: scripts/site.sh build
+      - run: bash scripts/site.sh build
       # Pages rejects an artifact over 1 GB.
       - name: Size guard
         run: test "$(du -sm site/dist | cut -f1)" -le 800
