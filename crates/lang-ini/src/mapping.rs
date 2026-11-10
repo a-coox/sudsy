@@ -21,5 +21,6 @@ pub const MAPPING: Mapping = Mapping {
         ("text", "Name"),
         ("setting_name", "Key"),
         ("setting_value", "Value"),
+        ("continuation", "Continuation"),
     ],
 };

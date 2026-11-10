@@ -24,6 +24,9 @@ token Key
 // The blanks around a value are part of its token: `#restyle`, IniFormatter::extra_check compares the trimmed text.
 token Value #literal #restyle
 
+// An indented line under `key =`, as written (blanks included).
+token Continuation
+
 token Eof
 token Unknown #error
 
@@ -31,4 +34,4 @@ token Unknown #error
 node Document #mapping #sections = items:#item* Eof
 node Section #item #mapping = header:SectionHeader entries:Setting*
 node SectionHeader #section = LBracket name:Name? RBracket
-node Setting #item #key-value = key:Key Equals value:Value?
+node Setting #item #key-value = key:Key Equals? value:Value? lines:Continuation*

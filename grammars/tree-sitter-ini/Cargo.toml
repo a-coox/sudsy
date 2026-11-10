@@ -1,0 +1,18 @@
+[package]
+name = "tree-sitter-ini"
+description = "INI grammar for tree-sitter (fork of tree-sitter-ini 1.4.0, see FORK.md)"
+version = "1.4.0"
+license = "Apache-2.0"
+edition.workspace = true
+publish = false
+autoexamples = false
+build = "bindings/rust/build.rs"
+
+[lib]
+path = "bindings/rust/lib.rs"
+
+[dependencies]
+tree-sitter-language = "0.1.8"
+
+[build-dependencies]
+cc = "1.2"

@@ -1,5 +1,6 @@
 grammar-crate: tree-sitter-ini
-grammar-version: "1.4"
-extensions: [ini]
+grammar-path: grammars/tree-sitter-ini
+extensions: [ini, cfg]
+file-names: [.gitconfig, .gitmodules]
 formatter: IniFormatter
 dev-deps: [insta]

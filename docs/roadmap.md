@@ -3,7 +3,7 @@
 One line each; none is committed.
 
 ## Languages and analysis
-- INI: `.cfg`, `.gitconfig`, `.gitmodules`, `.properties` (tox.ini and setup.cfg continuation lines, gitconfig keys without `=` and repeated multi-value keys, Java properties syntax); tree-sitter-ini has no continuation lines or bare keys, so they would be refused or get syntax errors. Needs a grammar fork (generated parser vendored) or a hand-written parser, and a dialect per family.
+- INI: `.properties` (`:` and blank separators, `\` continuations, `!` comments); a `.gitconfig` dialect that allows repeated multi-value keys.
 - TOML: TOML 1.1 syntax (the tree-sitter grammar targets 1.0; needs an upstream fix or a fork).
 - XML: the inside of a DOCTYPE (the grammar cannot parse every DTD declaration) and DTD-dependent well-formedness (entities, attribute defaults); reflowing text (the formatter keeps mixed content as written); a `xmlWhitespaceSensitivity: ignore` mode; sorting `PackageReference` items.
 - Gitignore syntax: `.dockerignore`-specific rules (root-only `*.log`).

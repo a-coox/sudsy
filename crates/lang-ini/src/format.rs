@@ -32,11 +32,11 @@ pub fn option_schema() -> OptionSchema {
 
 pub struct IniFormatter;
 
-/// The values of a tree without the blanks around them (the formatter trims them).
+/// The values and continuation lines of a tree without the blanks around them (the formatter trims them).
 fn values(tree: &SyntaxNode) -> Vec<String> {
     tree.descendants_with_tokens()
         .filter_map(|e| e.into_token())
-        .filter(|t| t.kind() == k::VALUE)
+        .filter(|t| matches!(t.kind(), k::VALUE | k::CONTINUATION))
         .map(|t| t.text().trim().to_string())
         .filter(|v| !v.is_empty())
         .collect()
@@ -99,20 +99,49 @@ fn section(cx: &FormatCtx<'_>, node: &SyntaxNode) -> Result<Doc, FormatError> {
     Ok(doc::concat(parts))
 }
 
-/// `key = value`; a setting without a value is `key =`.
+/// `key = value`; a setting without a value is `key =`, a bare key stays as it is. Continuation
+/// lines stay on their own lines with their indentation as written.
 fn setting(cx: &FormatCtx<'_>, node: &SyntaxNode) -> Doc {
     let space = cx.options.bool(SPACE_AROUND_EQUALS);
+    let max_blank = cx.options.max_blank_lines();
     let mut parts = Vec::new();
-    for t in node.tokens().filter(|t| !cx.grammar.is_trivia(t.kind())) {
-        if space && t.kind() != k::KEY {
-            parts.push(doc::lit(" "));
+    // Line breaks and the indentation seen since the last token of text, for the own-line parts.
+    let (mut breaks, mut indent) = (0usize, String::new());
+    let mut started = false;
+    for t in node.tokens() {
+        match t.kind() {
+            k::NEWLINE => {
+                breaks += 1;
+                indent.clear();
+            }
+            k::WHITESPACE => indent = t.text().to_string(),
+            // Comments in front of the key are the key's own (`cx.token`).
+            k::CONTINUATION | k::COMMENT if started => {
+                // Blank lines between continuation lines are part of the value: kept, capped.
+                for _ in 0..=breaks.saturating_sub(1).min(max_blank) {
+                    parts.push(doc::hardline());
+                }
+                // A continuation's token holds its indentation; a comment's is the blanks before it.
+                if t.kind() == k::COMMENT {
+                    parts.push(doc::text(indent.as_str()));
+                }
+                parts.push(doc::text(t.text().trim_end()));
+                breaks = 0;
+            }
+            kind if cx.grammar.is_trivia(kind) => {}
+            kind => {
+                started |= kind == k::KEY;
+                if space && kind != k::KEY {
+                    parts.push(doc::lit(" "));
+                }
+                // The parser's value token keeps the blanks around it.
+                parts.push(if kind == k::VALUE {
+                    doc::text(t.text().trim())
+                } else {
+                    cx.token(&t)
+                });
+            }
         }
-        // The parser's value token keeps the blanks around it.
-        parts.push(if t.kind() == k::VALUE {
-            doc::text(t.text().trim())
-        } else {
-            cx.token(&t)
-        });
     }
     doc::concat(parts)
 }

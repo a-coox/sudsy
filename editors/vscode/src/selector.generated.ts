@@ -31,6 +31,7 @@ export const documentSelector = [
   { scheme: "file", pattern: "**/*.tfvars" },
   { scheme: "file", pattern: "**/*.nomad" },
   { scheme: "file", pattern: "**/*.ini" },
+  { scheme: "file", pattern: "**/*.cfg" },
   { scheme: "file", pattern: "**/*.mk" },
   { scheme: "file", pattern: "**/*.mak" },
   { scheme: "file", pattern: "**/*.md" },

@@ -47,6 +47,8 @@ const NO_CHECK: &[&str] = &[
     "site/",
     // Read by scripts/parity.sh.
     "tests/parity/",
+    // Corpus fetch and speed scripts: run by hand, read by ignored tests only.
+    "tests/conformance/",
     "README.md",
     "CHANGELOG.md",
     "CONTRIBUTING.md",
@@ -354,6 +356,13 @@ fn load(root: &Path) -> Result<Workspace> {
     // nothing: each crate's files are its own.
     let holds_crates = |p: &str| members.iter().any(|m| under(m, &format!("{p}/")));
     ws.claims.retain(|(p, _)| !holds_crates(p));
+    // `grammars/<name>.grammar` is read by the build script of `lang-<name>` (build/lang-crate.rs).
+    for c in &ws.crates {
+        if let Some(lang) = c.name.strip_prefix("lang-") {
+            ws.claims
+                .push((format!("grammars/{lang}.grammar"), c.name.clone()));
+        }
+    }
     for c in &ws.crates {
         let dir = root.join(&c.dir);
         let mut found = BTreeSet::new();
