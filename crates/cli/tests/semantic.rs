@@ -2,19 +2,8 @@
 //! the `semantics:` config.
 
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::process::{Command, Output};
-
-fn csharp_worker() -> PathBuf {
-    let project = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../workers/csharp/Sudsy.Worker");
-    let status = Command::new("dotnet")
-        .args(["build", "-c", "Debug", "--nologo", "-v", "q"])
-        .arg(&project)
-        .status()
-        .expect("dotnet is installed");
-    assert!(status.success(), "dotnet build failed");
-    project.join("bin/Debug/net10.0/Sudsy.Worker.dll")
-}
 
 fn write(dir: &Path, rel: &str, content: &str) {
     fs::write(dir.join(rel), content).unwrap();
@@ -23,7 +12,7 @@ fn write(dir: &Path, rel: &str, content: &str) {
 fn sudsy(dir: &Path, args: &[&str]) -> Output {
     Command::new(env!("CARGO_BIN_EXE_sudsy"))
         .args(args)
-        .env("SUDSY_CSHARP_WORKER", csharp_worker())
+        .env("SUDSY_CSHARP_WORKER", lang_csharp::testing::built_worker())
         .current_dir(dir)
         .output()
         .unwrap()

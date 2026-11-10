@@ -3,6 +3,7 @@
 
 mod format;
 mod rules;
+pub mod testing;
 mod using_sort;
 core_syntax::include_generated!();
 

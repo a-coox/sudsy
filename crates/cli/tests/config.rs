@@ -2,7 +2,7 @@
 //! messages, `config print`, `init` and the C# preprocessor symbols.
 
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::process::{Command, Output};
 
 fn sudsy(dir: &Path, args: &[&str]) -> Output {
@@ -310,23 +310,6 @@ fn init_writes_a_starter_config_and_will_not_overwrite() {
     assert!(!t.path().join("sudsy.yaml").exists());
 }
 
-/// Builds the worker once per test process (tests run in parallel threads).
-fn csharp_worker() -> PathBuf {
-    static DLL: std::sync::OnceLock<PathBuf> = std::sync::OnceLock::new();
-    DLL.get_or_init(|| {
-        let project =
-            Path::new(env!("CARGO_MANIFEST_DIR")).join("../../workers/csharp/Sudsy.Worker");
-        let status = Command::new("dotnet")
-            .args(["build", "-c", "Debug", "--nologo", "-v", "q"])
-            .arg(&project)
-            .status()
-            .expect("dotnet is installed");
-        assert!(status.success(), "dotnet build failed");
-        project.join("bin/Debug/net10.0/Sudsy.Worker.dll")
-    })
-    .clone()
-}
-
 #[test]
 fn unmapped_editorconfig_formatting_keys_warn_once() {
     let t = tempfile::tempdir().unwrap();
@@ -339,7 +322,7 @@ fn unmapped_editorconfig_formatting_keys_warn_once() {
     write(t.path(), "B.cs", "class B { }\n");
     let out = Command::new(env!("CARGO_BIN_EXE_sudsy"))
         .arg("format")
-        .env("SUDSY_CSHARP_WORKER", csharp_worker())
+        .env("SUDSY_CSHARP_WORKER", lang_csharp::testing::built_worker())
         .current_dir(t.path())
         .output()
         .unwrap();
@@ -366,7 +349,7 @@ fn preprocessor_symbols_from_the_config_select_the_branch_that_parses() {
     let run = |dir: &Path| {
         Command::new(env!("CARGO_BIN_EXE_sudsy"))
             .arg("format")
-            .env("SUDSY_CSHARP_WORKER", csharp_worker())
+            .env("SUDSY_CSHARP_WORKER", lang_csharp::testing::built_worker())
             .current_dir(dir)
             .output()
             .unwrap()

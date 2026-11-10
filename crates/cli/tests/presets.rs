@@ -14,17 +14,6 @@ fn root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR")).join("../../tests/fixtures/presets")
 }
 
-fn csharp_worker() -> PathBuf {
-    let project = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../workers/csharp/Sudsy.Worker");
-    let status = Command::new("dotnet")
-        .args(["build", "-c", "Debug", "--nologo", "-v", "q"])
-        .arg(&project)
-        .status()
-        .expect("dotnet is installed");
-    assert!(status.success(), "dotnet build failed");
-    project.join("bin/Debug/net10.0/Sudsy.Worker.dll")
-}
-
 fn format(dir: &Path, worker: &Path) -> std::process::Output {
     Command::new(env!("CARGO_BIN_EXE_sudsy"))
         .arg("format")
@@ -44,7 +33,7 @@ fn split(file: &str) -> Option<(&str, &str, &str)> {
 
 #[test]
 fn every_preset_reproduces_its_samples() {
-    let worker = csharp_worker();
+    let worker = lang_csharp::testing::built_worker();
     let mut presets = 0;
     let mut cases = 0;
     let mut all_failures: Vec<String> = Vec::new();
@@ -105,7 +94,7 @@ fn every_preset_reproduces_its_samples() {
 /// every sample exactly like `extends: [preset:...]`.
 #[test]
 fn spelled_out_options_equal_the_preset() {
-    let worker = csharp_worker();
+    let worker = lang_csharp::testing::built_worker();
     for entry in fs::read_dir(root()).unwrap() {
         let dir = entry.unwrap().path();
         let dir_name = dir.file_name().unwrap().to_string_lossy().into_owned();

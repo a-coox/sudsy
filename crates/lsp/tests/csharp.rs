@@ -5,25 +5,7 @@ mod common;
 use common::{Client, apply};
 use lsp_types::{Position, Range};
 use provider_api::LanguageProvider;
-use std::path::{Path, PathBuf};
-use std::process::Command;
-
-/// The C# worker, built once for the test process.
-fn worker_dll() -> PathBuf {
-    static BUILT: std::sync::OnceLock<PathBuf> = std::sync::OnceLock::new();
-    BUILT.get_or_init(build_worker).clone()
-}
-
-fn build_worker() -> PathBuf {
-    let project = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../workers/csharp/Sudsy.Worker");
-    let status = Command::new("dotnet")
-        .args(["build", "-c", "Debug", "--nologo", "-v", "q"])
-        .arg(&project)
-        .status()
-        .expect("dotnet is installed");
-    assert!(status.success(), "dotnet build failed");
-    project.join("bin/Debug/net10.0/Sudsy.Worker.dll")
-}
+use std::path::Path;
 
 fn providers(worker: &Path) -> Vec<Box<dyn LanguageProvider>> {
     vec![
@@ -40,7 +22,7 @@ fn edits_diagnostics_and_formatting_share_one_worker() {
         "lint:\n  rules:\n    no-empty-catch: error\n",
     )
     .unwrap();
-    let mut client = Client::start(t.path(), providers(&worker_dll()));
+    let mut client = Client::start(t.path(), providers(&lang_csharp::testing::built_worker()));
     let text = "class A{void M(){try{}catch{}}}";
     let uri = client.open("A.cs", "csharp", text);
 
@@ -96,7 +78,7 @@ fn semantic_rules_run_in_the_editor_and_follow_edits() {
         "lint:\n  rules:\n    unused-variable: warn\n",
     )
     .unwrap();
-    let mut client = Client::start(t.path(), providers(&worker_dll()));
+    let mut client = Client::start(t.path(), providers(&lang_csharp::testing::built_worker()));
     let text = "class A { int F() { int k = 5; return 1; } }";
     let uri = client.open("A.cs", "csharp", text);
     let found = client.diagnostics(&uri);
@@ -129,7 +111,7 @@ fn deep_diagnostics_use_every_file_of_the_project_not_only_the_open_ones() {
         "partial class P { int Get() { return used; } }\n",
     )
     .unwrap();
-    let mut client = Client::start(t.path(), providers(&worker_dll()));
+    let mut client = Client::start(t.path(), providers(&lang_csharp::testing::built_worker()));
     let uri = client.open(
         "A.cs",
         "csharp",
@@ -196,7 +178,7 @@ fn an_edit_of_another_file_refreshes_the_semantic_findings_of_an_open_one() {
         "lint:\n  rules:\n    remove-unused-usings: warn\n",
     )
     .unwrap();
-    let mut client = Client::start(t.path(), providers(&worker_dll()));
+    let mut client = Client::start(t.path(), providers(&lang_csharp::testing::built_worker()));
     let a = client.open(
         "A.cs",
         "csharp",

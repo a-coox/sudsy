@@ -2,7 +2,7 @@
 //! `fix` honor them, config levels and suppressions apply, conflicts are errors.
 
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::process::{Command, Output};
 
 fn sudsy(dir: &Path, args: &[&str]) -> Output {
@@ -10,26 +10,9 @@ fn sudsy(dir: &Path, args: &[&str]) -> Output {
     command.args(args).current_dir(dir);
     // Only C# needs the worker, and building it is slow.
     if args.iter().any(|a| a.ends_with(".cs")) {
-        command.env("SUDSY_CSHARP_WORKER", csharp_worker());
+        command.env("SUDSY_CSHARP_WORKER", lang_csharp::testing::built_worker());
     }
     command.output().unwrap()
-}
-
-/// The C# worker, built once per test process (tests run in parallel).
-fn csharp_worker() -> PathBuf {
-    static DLL: std::sync::OnceLock<PathBuf> = std::sync::OnceLock::new();
-    DLL.get_or_init(build_worker).clone()
-}
-
-fn build_worker() -> PathBuf {
-    let project = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../workers/csharp/Sudsy.Worker");
-    let status = Command::new("dotnet")
-        .args(["build", "-c", "Debug", "--nologo", "-v", "q"])
-        .arg(&project)
-        .status()
-        .expect("dotnet is installed");
-    assert!(status.success(), "dotnet build failed");
-    project.join("bin/Debug/net10.0/Sudsy.Worker.dll")
 }
 
 fn err(o: &Output) -> String {

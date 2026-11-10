@@ -261,18 +261,6 @@ fn yaml_syntax_errors_fail_without_touching_the_file() {
     assert_eq!(read(t.path(), "ok.yaml"), YAML_CLEAN);
 }
 
-/// The C# worker, built once for the test process.
-fn csharp_worker() -> std::path::PathBuf {
-    let project = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../workers/csharp/Sudsy.Worker");
-    let status = Command::new("dotnet")
-        .args(["build", "-c", "Debug", "--nologo", "-v", "q"])
-        .arg(&project)
-        .status()
-        .expect("dotnet is installed");
-    assert!(status.success(), "dotnet build failed");
-    project.join("bin/Debug/net10.0/Sudsy.Worker.dll")
-}
-
 #[test]
 fn formats_csharp_files_with_the_worker() {
     let t = tempfile::tempdir().unwrap();
@@ -280,7 +268,7 @@ fn formats_csharp_files_with_the_worker() {
     write(t.path(), "bad.cs", "class A {");
     let out = Command::new(env!("CARGO_BIN_EXE_sudsy"))
         .arg("format")
-        .env("SUDSY_CSHARP_WORKER", csharp_worker())
+        .env("SUDSY_CSHARP_WORKER", lang_csharp::testing::built_worker())
         .current_dir(t.path())
         .output()
         .unwrap();

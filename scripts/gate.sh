@@ -57,9 +57,6 @@ if [ ${#ws[@]} -gt 0 ]; then
   # nextest runs the tests of all binaries in parallel (cargo test runs one binary after another);
   # it skips doctests, which cargo test --doc runs.
   command -v cargo-nextest >/dev/null || { echo "GATE FAILED: cargo-nextest missing (cargo install cargo-nextest --locked)" >&2; exit 1; }
-  # Tests that need the C# worker each run `dotnet build` on it; after a worker change, test
-  # processes compiling it at once collide on its obj/ files. One build first leaves theirs no-ops.
-  gate "C# worker build" dotnet build workers/csharp/Sudsy.Worker --nologo -v q
   gate "cargo nextest" cargo nextest run "${ws[@]}" --no-fail-fast --no-tests=pass
   gate "cargo test --doc" cargo test "${ws[@]}" --doc
 fi

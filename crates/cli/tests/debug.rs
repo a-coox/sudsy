@@ -4,22 +4,6 @@ fn sudsy() -> Command {
     Command::new(env!("CARGO_BIN_EXE_sudsy"))
 }
 
-fn worker_dll() -> std::path::PathBuf {
-    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .unwrap()
-        .parent()
-        .unwrap();
-    let project = root.join("workers/csharp/Sudsy.Worker");
-    let status = Command::new("dotnet")
-        .args(["build", "-c", "Debug", "--nologo", "-v", "q"])
-        .arg(&project)
-        .status()
-        .unwrap();
-    assert!(status.success());
-    project.join("bin/Debug/net10.0/Sudsy.Worker.dll")
-}
-
 #[test]
 fn debug_parse_prints_the_tree_and_checks_the_round_trip() {
     let dir = tempfile::tempdir().unwrap();
@@ -28,7 +12,7 @@ fn debug_parse_prints_the_tree_and_checks_the_round_trip() {
     let out = sudsy()
         .args(["debug", "parse"])
         .arg(&file)
-        .env("SUDSY_CSHARP_WORKER", worker_dll())
+        .env("SUDSY_CSHARP_WORKER", lang_csharp::testing::built_worker())
         .output()
         .unwrap();
     assert!(

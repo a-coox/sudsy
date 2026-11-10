@@ -10,29 +10,7 @@ use core_rules::{
 use lang_json::JsonProvider;
 use provider_api::LanguageProvider;
 use provider_api::testing::{expect, fix_with, lint_with};
-use std::path::{Path, PathBuf};
-use std::process::Command;
-use std::sync::OnceLock;
-
-fn repo_root() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR")).join("../..")
-}
-
-/// Builds the C# worker once per test process.
-fn worker_dll() -> PathBuf {
-    static DLL: OnceLock<PathBuf> = OnceLock::new();
-    DLL.get_or_init(|| {
-        let project = repo_root().join("workers/csharp/Sudsy.Worker");
-        let status = Command::new("dotnet")
-            .args(["build", "-c", "Debug", "--nologo", "-v", "q"])
-            .arg(&project)
-            .status()
-            .expect("dotnet is installed");
-        assert!(status.success(), "dotnet build failed");
-        project.join("bin/Debug/net10.0/Sudsy.Worker.dll")
-    })
-    .clone()
-}
+use std::path::Path;
 
 fn extensions() -> Extensions {
     let path = &provider_api::testing::sample_plugin();
@@ -106,7 +84,7 @@ fn a_plugin_rule_reports_fixes_and_obeys_levels_options_and_suppressions() {
 #[test]
 fn a_body_rule_reads_the_flow_graph_through_the_plugin_boundary() {
     let ext = extensions();
-    let csharp = lang_csharp::provider(&worker_dll());
+    let csharp = lang_csharp::provider(&lang_csharp::testing::built_worker());
     let text = "class A {\n void Few(int a) { if (a > 1) { } }\n void Many(int a) { if (a > 1) { } if (a > 2) { } if (a > 3) { } }\n}\n";
     let found = lint_with(
         &csharp,

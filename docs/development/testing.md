@@ -22,6 +22,9 @@ Every formatter test checks lossless round trip, idempotency, unchanged meaning 
 
 Tree-sitter languages share `provider_api::format_testing` (see [adding-a-language.md](../architecture/adding-a-language.md)): their formatter and corpus tests are a few lines each.
 
+## The C# worker in tests
+Every test that needs the worker calls `lang_csharp::testing::built_worker()`: `SUDSY_CSHARP_WORKER` if set, else one Debug `dotnet build` per test process under a file lock (`workers/csharp/Sudsy.Worker/obj/test-build.lock`). Test binaries run as parallel processes (nextest, concurrent gates); unlocked, two of them compiling the same project collide on its `obj/` files (CS2012 "file is being used by another process"). Never build the worker in a test file by hand.
+
 ## Rule fixtures
 Adding a rule needs no Rust test: add `tests/rules/<language>/<folder>/<name>.<ext>` files (C# fixtures run through the worker). A folder is named for a rule (`no-empty-catch`) or for a family of rules that share inputs (`doc-tags`, `type-layer`); inputs are small and cover the rules' own cases, and a shared input is never copied into several folders.
 - `<name>.<ext>` is the input. Expected diagnostics are written under the line they point at, `// ^^^ rule-id` (`#` in YAML; carets give the span length, the marker may be left out when the span starts in the first columns). No annotation means no diagnostic. The id is checked, so a fixture also shows other rules that fire by default.
