@@ -1,14 +1,16 @@
 # Design: JavaScript / TypeScript / JSX / TSX (wave 3b)
 
-Proposal for the lead and the user to decide from; nothing here is built. Once decided, the result moves into `docs/formatting/js.md` and this note is deleted. Numbers marked (measured) come from the spike below; line counts are estimates.
+Decided plan (section 5), being built in the steps of section 4; each step moves what it builds into `docs/formatting/js.md`, and this note is deleted when step 14 lands. Numbers marked (measured) come from the spike below; line counts are estimates.
 
-## Summary of recommendations
+Goal and priority: JS/TS is the language most repositories need, so the goal is a formatter and linter people switch to: Prettier's output, ESLint's core findings, migration from their configs. Speed matters only as "faster than Prettier and ESLint", which the oxc parser already gives; no optimization steps are planned beyond the per-step bench.
+
+## Summary
 1. Parser: **oxc_parser** (MIT, pinned exact version) behind a new AST-to-lossless-tree adapter, not tree-sitter. 30-40x faster, 0.8 MB instead of 3.3 MB, passes 30/30 modern-syntax probes where tree-sitter-typescript passes 27/30.
 2. One language `js` for `.js .mjs .cjs .jsx .ts .mts .cts .tsx`, one grammar file, ESTree/oxc node names.
 3. Layout: `core-format` already has most Prettier doc primitives; it lacks 4 small ones (group-id `if_break`, `label`, `line_suffix_boundary`, a layout cache for "print this node twice") and multi-word ignore markers. The rest (member chains, call-argument hugging, assignment layouts, JSX, ternaries, parens) is lang-js code, about 7k lines.
 4. Comments: keep Sudsy's token-owned trivia model (as Biome does) and add targeted relocations; do not port Prettier's attach algorithm.
 5. Parity: Prettier's own `tests/format` corpus plus a pinned real-world corpus, differential against the pinned Prettier, ESLint 9 core and typescript-eslint (non-type-aware) as catalogs; syntax-only rules first, scope rules through `oxc_semantic` second.
-6. Land in ~14 pushable steps; an unimplemented node prints verbatim, so every step is safe on real files.
+6. Land in 15 pushable steps; an unimplemented node prints verbatim, so every step is safe on real files. Step 14 migrates Prettier and ESLint configs through the existing `sudsy init --from` importers.
 
 ## 1. Parser
 
@@ -58,7 +60,7 @@ Total lang-js formatter: about 7k lines of Rust (C#'s formatter is 3.0 K, its ru
 ## 3. Parity plan
 
 Format (pinned Prettier, the version in `docs/parity/prettier.yaml`, installed by `scripts/parity.sh format prettier` as for JSON/YAML):
-- Prettier's own corpus: tarball of the pinned tag, `tests/format/{js,jsx,typescript}/**` inputs minus the Flow-only folders, minus files Prettier's own babel/typescript parsers reject; default options; compare bytes of Prettier's output with `sudsy format`. Expect several thousand files (count at fetch time). Known differences go to `tests/parity/prettier-js/expected-diff.txt` with a reason each, stale entries fail (the existing format). Staged targets: 60% byte-identical after the expression step, 85% after TypeScript and JSX, 92%+ at the end.
+- Prettier's own corpus: tarball of the pinned tag, `tests/format/{js,jsx,typescript}/**` inputs minus the Flow-only folders, minus files Prettier's own babel/typescript parsers reject; default options; compare bytes of Prettier's output with `sudsy format`. Expect several thousand files (count at fetch time), too many for a reason per file: this corpus is a ratchet, a minimum identical-file count kept as data that the run fails below and each step raises. `expected-diff.txt` with a reason per file is kept for the real-world corpus only. Staged targets: 60% byte-identical after the expression step, 85% after TypeScript and JSX, 92%+ at the end.
 - Real-world corpus, pinned tarballs, gitignored, as the other `fetch-*-corpus.sh`: Prettier-formatted projects (vuejs/core, docusaurus, excalidraw, MUI, TypeScript's own `src` is not Prettier-formatted) check `sudsy(x) == x`; unformatted ones (lodash, three.js, express, TypeScript compiler, a vscode slice) check `sudsy(x) == prettier(x)`. Target 98% identical files; every file round-trips, formats idempotently, keeps meaning (the safety check). Option matrix on a subset: `semi: false`, `singleQuote`, `trailingComma none/es5`, `arrowParens avoid`, `bracketSpacing false`, `useTabs`.
 - Biome's reported 97% compatibility on this corpus (with a rowan CST and token trivia, the same model) is the calibration for the end state; it is not re-measured.
 - Speed: `bench/inputs/js/` (150 KB), `perf-bench` modes, recorded in `performance/numbers.md`.
@@ -78,33 +80,34 @@ Each step is one pushable commit with `finish.sh` (gate + bench); new language c
 | 1 | core-format gaps: group-id `if_break`, `label`, `line_suffix_boundary`, layout cache, multi-word ignore markers (+ GraphQL `prettier-ignore`) | 400 | `core-format`, `lang-graphql` grammar | 2, 3 |
 | 2 | Parser: `grammars/js.grammar`, `lang-js` crate (lang.yaml, adapter, kind table, provider), file matchers on, formatter prints everything verbatim, syntax-error diagnostics, `bench/inputs/js`, numbers | 1100 | `lang-js`, `grammars`, generated regions | 1, 3 |
 | 3 | Parity harness: `fetch-js-corpus.sh`, `tests/parity/prettier-js`, `docs/parity/prettier.yaml` JS entries, `eslint.yaml` skeleton, `scripts/parity.sh` modes (kept under `scripts/`) | 500 | `scripts/`, `tests/conformance`, `docs/parity` | 1, 2 |
-| 4 | Formatter core: file/statement sequences, blank lines, declarations, functions, classes, blocks, control flow, imports/exports, strings, numbers, directives, `semi` and quote options, token-owned comments | 1500 | `lang-js/src/format/{stmt,decl,class,literal}.rs` | none (sets the dispatch) |
+| 4 | Formatter core: file/statement sequences, blank lines, declarations, functions, classes, blocks, control flow, imports/exports, strings, numbers, directives, `semi` and quote options, token-owned comments; the safety `extra_check` (reparse and compare the AST, decision 11) lands here, before the first step that rewrites tokens | 1500 | `lang-js/src/format/{stmt,decl,class,literal}.rs`, `safety.rs` | none (sets the dispatch) |
 | 5 | Expressions: calls and argument hugging, member chains, binary/logical, assignment layouts, ternaries, arrows, `needs_parens`, templates | 1800 | `format/{call,chain,binary,assign,ternary,arrow,parens}.rs` | 6, 7 |
 | 6 | TypeScript: annotations, interfaces, type aliases, unions/intersections, generics, enums, namespaces, `declare`, decorators, abstract/overload, mapped/conditional types | 1500 | `format/ts/*.rs` | 5, 7 |
 | 7 | JSX/TSX: elements, attributes, fill with jsx-whitespace, conditional chains in JSX, fragments, `jsx*` options | 700 | `format/jsx.rs` | 5, 6 |
 | 8 | Objects/arrays/destructuring, preserved first-line break, `quote_props`, `trailing_commas`, `bracket_spacing`, `arrow_parens`, `bracket_same_line`, options schema and docs `formatting/js.md` | 600 | `format/object.rs`, `lang.yaml` | 5-7 (own file) |
-| 9 | Comment long tail and `prettier-ignore`, safety `extra_check`, ASI protection for `semi: false`; first parity numbers recorded | 900 | `format/comments.rs`, `safety.rs` | after 4-8 |
-| 10 | Parity ratchet: fix by category until the targets; expected-diff list; option matrix | 1000 | `lang-js/src/format` | serial, may split by area |
+| 9 | Comment long tail and `prettier-ignore`, ASI protection for `semi: false` | 900 | `format/comments.rs` | after 4-8 |
+| 10 | Parity ratchet: fix by category until the targets; real-world expected-diff list; option matrix | 1000 | `lang-js/src/format` | serial, may split by area |
 | 11 | Lint, syntax-only: ESLint core pattern rules and Rust rules, hooks for the shared rules, `preset:js/eslint-recommended`, catalog, parity runner | 1800 | `lang-js/rules`, `rules.rs`, `docs/parity` | 4-10 (own dirs) |
 | 12 | Lint, typescript-eslint syntax rules + preset | 900 | `lang-js/rules`, catalog | 11 |
 | 13 | Embedding: JS/TS fences in Markdown formatted and linted; lint of `.vue`/HTML is later | 150 | `lang-markdown` embedded table | after 9 |
-| 14 | Scope-aware rules: semantic layer from `oxc_semantic` (re-parse at semantic time, results by span) + the second-wave rules | 1400 | `lang-js/src/semantic.rs`, `core-semantics` hook | after 11 |
+| 14 | Migration: extend the existing `sudsy init --from prettier` and `--from eslint` importers (`crates/cli/src/init/`; eslint already maps `jsonc/` rules through the catalog) to the `js.format.*` options and the ESLint core and typescript-eslint rules through their catalogs; `.prettierignore` and `.eslintignore`/`ignores` become `exclude` patterns | 300 | `crates/cli/src/init/{prettier,eslint}.rs` | after 8 and 12 |
+| 15 | Scope-aware rules: semantic layer from `oxc_semantic` (re-parse at semantic time, results by span) + the second-wave rules | 1400 | `lang-js/src/semantic.rs`, `core-semantics` hook | after 11; runs beside the CSS/HTML work, not before it |
 
-Total about 14 K lines including fixtures (formatter about 8 K, lint about 4 K, harness and parser about 1.6 K). The 4-to-5 handoff needs step 4's dispatch merged first; steps 5, 6, 7 and 8 then work in disjoint files (one registration line each in `format/mod.rs`). Steps 1, 2 and 3 share nothing but generated regions.
+Total about 14 K lines including fixtures (formatter about 8 K, lint about 4 K, harness, parser and migration about 1.9 K). Steps 1-14 make JS/TS usable; CSS, SCSS and HTML (the rest of wave 3b) share no files with lang-js and run in other slots alongside it, not after step 15. The 4-to-5 handoff needs step 4's dispatch merged first; steps 5, 6, 7 and 8 then work in disjoint files (one registration line each in `format/mod.rs`). Steps 1, 2 and 3 share nothing but generated regions.
 
-## 5. Open decisions
+## 5. Decisions
 
-1. **Parser: oxc (recommended) or tree-sitter fork.** oxc costs an adapter and a weekly-breaking 0.x dependency; tree-sitter costs two grammar forks and 3 known gaps today, slower parses and 3.3 MB.
-2. **One language `js` (recommended) or two (`javascript`, `typescript`).** One shares the options, grammar and formatter; TS-only nodes cannot occur in `.js`. A user who wants different options per extension uses `overrides`.
-3. **Comments: token-owned plus relocations (recommended) or Prettier's enclosing/preceding/following attach.** The second would move comment placement into core-format (about 600 lines, a new model beside the C# one) and gain the last few percent of parity; revisit if step 10 stalls under 90%.
-4. **Landing policy.** Recommended: register the extensions at step 2 with a verbatim formatter (lossless, safe), so each step improves files in place; alternative: keep the language unregistered until step 10 reaches 85%.
-5. **Scope analysis for lint (step 14): `oxc_semantic` (recommended; 2-4 ms per 500 KB, already linked) or our own binder** (about 1500 lines, same tree and kinds as the rest, but we would own the TypeScript scoping rules). Not needed before step 14.
-6. **Type-aware rules** (typescript-eslint `recommended-type-checked`): out of this wave, as the roadmap says (TypeScript native compiler API through a worker). Recommended: keep deferred in the catalog.
-7. **Defaults and presets.** Recommended: defaults equal Prettier's (width 80, 2 spaces, double quotes, `semi`, `trailing_commas: all`); presets are rule sets only (`js/eslint-recommended`, `js/typescript-eslint-recommended`); a `js/standard` or `js/biome` formatter preset is added when asked, as pure option values.
-8. **Embedded code in templates** (`css`, `graphql`, `html`, markdown tagged templates; Prettier formats them) and `<script>` in HTML/Vue/Svelte: deferred to those languages. Fences in Markdown ship (step 13).
-9. **Flow** (`@flow` files, React Native sources): unsupported by oxc and tree-sitter; the formatter reports a syntax error. Recommended: not supported, documented.
-10. **oxc update policy.** Recommended: pin exact, bump by a dedicated step each few months (kind table + adapter + parity rerun), never automatically.
-11. **Output verification for rewrites.** JS rewrites tokens (quotes, parens, semicolons). Recommended: the `extra_check` AST comparison of step 9 stays on in debug builds and the corpus runs, as YAML's data-model check does.
+1. **Parser: oxc** (user, 2026-11-10). Costs the adapter and a 0.x dependency; tree-sitter would have cost two grammar forks with 3 known gaps, a 20x slower parse and 3.3 MB.
+2. **One language `js`.** One shares the options, grammar and formatter; TS-only nodes cannot occur in `.js`. Different options per extension go through `overrides`.
+3. **Comments: token-owned plus relocations**, not Prettier's enclosing/preceding/following attach (about 600 lines and a second comment model in core-format). Revisit only if step 10 stalls under 90%.
+4. **Register early** (user, 2026-11-10): the extensions are on from step 2 with a verbatim formatter (lossless, safe), so each step improves files in place.
+5. **Scope analysis: `oxc_semantic`** (2-4 ms per 500 KB, already linked), not our own binder (about 1500 lines plus TypeScript scoping rules to own). Needed from step 15.
+6. **Type-aware rules** (typescript-eslint `recommended-type-checked`): out of this wave (TypeScript compiler through a worker, roadmap); `deferred` in the catalog.
+7. **Defaults and presets:** defaults equal Prettier's (width 80, 2 spaces, double quotes, `semi`, `trailing_commas: all`); presets are rule sets (`js/eslint-recommended`, `js/typescript-eslint-recommended`); a formatter preset such as `js/standard` is added when asked, as pure option values.
+8. **Embedded code in templates** (`css`, `graphql`, `html` tagged templates) and `<script>` in HTML/Vue/Svelte: with those languages. Markdown fences ship in step 13.
+9. **Flow:** not supported, documented; such files report a syntax error and are left unchanged.
+10. **oxc updates:** pinned exact and ignored by Dependabot; bumped by a dedicated step (kind table, adapter, parity rerun), never automatically.
+11. **Output verification:** the safety check as for every language (engine.md: debug builds, tests and the `corpus` profile; release builds trust the formatter). JS rewrites tokens (quotes, parens, semicolons), so its `extra_check` compares the reparsed AST with those normalized; it lands in step 4, before the first step that rewrites tokens, so every later step is checked on the corpus.
 
 ## Not checked
 Prettier's corpus size and the pass rates are projections; Biome's 97% is from its documentation, not re-run; swc and Biome parsers were not built; oxc build time and its transitive crate count were not measured; Prettier's printer size in lines is not stated because it was not counted.
