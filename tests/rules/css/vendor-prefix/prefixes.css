@@ -1,0 +1,12 @@
+@-webkit-keyframes k { from { color: red } }
+^^^^^^^^^^^^^^^^^^ at-rule-no-vendor-prefix
+@media (-webkit-min-device-pixel-ratio: 2) {}
+//      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ media-feature-name-no-vendor-prefix
+a { -webkit-transition: none; -webkit-foo: 1; display: -webkit-flex; background: -webkit-linear-gradient(red, blue) }
+//  ^^^^^^^^^^^^^^^^^^ property-no-vendor-prefix
+//                                                     ^^^^^^^^^^^^ value-no-vendor-prefix
+//                                                                               ^^^^^^^^^^^^^^^^^^^^^^^ value-no-vendor-prefix
+a::-moz-selection {}
+// ^^^^^^^^^^^^^^ selector-no-vendor-prefix
+a:-moz-placeholder, a::-webkit-scrollbar {}
+//^^^^^^^^^^^^^^^^ selector-no-vendor-prefix

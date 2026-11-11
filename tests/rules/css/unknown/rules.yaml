@@ -1,0 +1,8 @@
+property-no-unknown: warn
+at-rule-no-unknown: warn
+unit-no-unknown: warn
+function-no-unknown: warn
+media-feature-name-no-unknown: warn
+selector-pseudo-class-no-unknown: warn
+selector-pseudo-element-no-unknown: warn
+selector-type-no-unknown: warn

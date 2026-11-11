@@ -12,5 +12,5 @@ entries:
   less/container-name-pattern: planned
   less/no-duplicate-variables: planned
 deferred:
-  - gap: "Needs the CSS value-syntax grammar (the property and at-rule syntaxes of mdn-data), which the table rules of step 6 do not provide."
+  - gap: "Needs the CSS value-syntax grammar (the property and at-rule syntaxes of mdn-data), which the name tables do not provide."
     ids: [less/declaration-property-value-no-unknown]

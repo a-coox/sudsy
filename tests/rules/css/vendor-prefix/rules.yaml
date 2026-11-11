@@ -1,0 +1,5 @@
+property-no-vendor-prefix: warn
+value-no-vendor-prefix: warn
+selector-no-vendor-prefix: warn
+at-rule-no-vendor-prefix: warn
+media-feature-name-no-vendor-prefix: warn

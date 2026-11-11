@@ -26,10 +26,15 @@ fn main() -> Result<()> {
             a.extend(rest);
             full(&a)
         }
+        ["css-data", dir] => {
+            let path = xtask::repo_root().join("crates/lang-css/data/names.txt");
+            std::fs::write(path, xtask::css_data(std::path::Path::new(dir))?)?;
+            Ok(())
+        }
         ["new-rule", language, id] => print_new_rule(language, id, false),
         ["new-rule", language, id, "--rust"] => print_new_rule(language, id, true),
         _ => bail!(
-            "usage: cargo xtask codegen [--check] | affected [--base REV] [--all] | new-rule <language> <id> [--rust]"
+            "usage: cargo xtask codegen [--check] | affected [--base REV] [--all] | new-rule <language> <id> [--rust] | css-data <npm dir>"
         ),
     }
 }

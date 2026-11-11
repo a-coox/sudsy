@@ -156,8 +156,7 @@ impl Names {
                 }
             }
             Target::Function => {
-                let after_colon = prev_token(node).is_some_and(|t| t.kind() == k::COLON);
-                if let (false, Some(t)) = (after_colon, model::function_name(node)) {
+                if let (false, Some(t)) = (after_colon(node), model::function_name(node)) {
                     out.push((t.text().to_string(), t.text_range()));
                 }
             }
@@ -325,6 +324,11 @@ impl Names {
     }
 }
 
+/// Whether a `:` comes just before `node` (a pseudo-class, not a function).
+pub(super) fn after_colon(node: &SyntaxNode) -> bool {
+    prev_token(node).is_some_and(|t| t.kind() == k::COLON)
+}
+
 fn prev_token(node: &SyntaxNode) -> Option<core_syntax::SyntaxToken> {
     let mut e = node.prev_sibling_or_token();
     while let Some(el) = e {
@@ -340,7 +344,7 @@ fn prev_token(node: &SyntaxNode) -> Option<core_syntax::SyntaxToken> {
 }
 
 /// Whether `entry` (a name, or `/regex/`) selects `name`.
-fn selects(entry: &str, name: &str, insensitive: bool) -> bool {
+pub(super) fn selects(entry: &str, name: &str, insensitive: bool) -> bool {
     match entry.strip_prefix('/').and_then(|e| e.strip_suffix('/')) {
         Some(re) => Re::lazy(re).is_ok_and(|re| re.is_match(name)),
         None if insensitive => entry.eq_ignore_ascii_case(name),

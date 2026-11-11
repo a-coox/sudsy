@@ -1,0 +1,186 @@
+id: property-no-unknown
+family: table
+params: { target: property, mode: unknown, data: property }
+message: "unknown property `{name}`"
+description: A property that no CSS specification lists. Vendor-prefixed and custom properties, descriptors of `@font-face` and the like, and names with interpolation or SCSS and Less variables are left out.
+example: "a { colour: red }   # reported"
+severity: off
+category: correctness
+options:
+  - { name: ignore, type: list, default: [], description: "Names left out: names, or `/regex/`." }
+---
+id: at-rule-no-unknown
+family: table
+params: { target: at-rule, mode: unknown, data: at-rule }
+message: "unknown at-rule `@{name}`"
+description: An at-rule that no CSS specification lists. Vendor-prefixed ones are left out; SCSS has its own (`@include`, `@mixin`, ...), and Less at-rules are not checked.
+example: "@foo {}   # reported"
+severity: off
+category: correctness
+options:
+  - { name: ignore, type: list, default: [], description: "Names left out: names, or `/regex/`." }
+---
+id: unit-no-unknown
+family: table
+params: { target: unit, mode: unknown, data: unit }
+message: "unknown unit `{name}`"
+description: A unit that is not a CSS unit, in values and `@media` preludes. `x` counts only in `image-set()`, `image-resolution` and `resolution` media features.
+example: "a { width: 1foo }   # reported"
+severity: off
+category: correctness
+options:
+  - { name: ignore, type: list, default: [], description: "Names left out: names, or `/regex/`." }
+---
+id: function-no-unknown
+family: table
+params: { target: function, mode: unknown, data: function }
+message: "unknown function `{name}`"
+description: A function in a declaration value that no CSS specification lists. Not checked in SCSS and Less, whose built-in functions are not in the table.
+example: "a { width: foo(1) }   # reported"
+severity: off
+category: correctness
+options:
+  - { name: ignore, type: list, default: [], description: "Names left out: names, or `/regex/`." }
+---
+id: media-feature-name-no-unknown
+family: table
+params: { target: media-feature, mode: unknown, data: media-feature }
+message: "unknown media feature `{name}`"
+description: A media feature name in `@media` that is not a CSS one. Vendor-prefixed names are left out.
+example: "@media (foo: 1) {}   # reported"
+severity: off
+category: correctness
+options:
+  - { name: ignore, type: list, default: [], description: "Names left out: names, or `/regex/`." }
+---
+id: selector-pseudo-class-no-unknown
+family: table
+params: { target: pseudo-class, mode: unknown, data: pseudo-class }
+message: "unknown pseudo-class `:{name}`"
+description: A pseudo-class that is not a CSS one. Vendor-prefixed ones are left out, and the `-webkit-scrollbar` ones count after those pseudo-elements.
+example: "a:foo {}   # reported"
+severity: off
+category: correctness
+options:
+  - { name: ignore, type: list, default: [], description: "Names left out: names, or `/regex/`." }
+---
+id: selector-pseudo-element-no-unknown
+family: table
+params: { target: pseudo-element, mode: unknown, data: pseudo-element }
+message: "unknown pseudo-element `::{name}`"
+description: A pseudo-element that is not a CSS one. Vendor-prefixed ones are left out.
+example: "a::foo {}   # reported"
+severity: off
+category: correctness
+options:
+  - { name: ignore, type: list, default: [], description: "Names left out: names, or `/regex/`." }
+---
+id: selector-type-no-unknown
+family: table
+params: { target: type, mode: unknown, data: type }
+message: "unknown type selector `{name}`"
+description: A type selector that is not an HTML, SVG or MathML element (custom elements included). Keyframe selectors and the arguments of `:lang()`, `:nth-child()` and the like are left out.
+example: "foo {}   # reported"
+severity: off
+category: correctness
+options:
+  - { name: ignore, type: list, default: [], description: "Names left out: names, or `/regex/`." }
+---
+id: property-no-vendor-prefix
+family: table
+params: { target: property, mode: prefixed, data: prefixed-property }
+message: "the prefix of `{name}` is not needed"
+description: A vendor-prefixed property that autoprefixer knows the standard property of.
+example: "a { -webkit-transition: none }   # reported"
+severity: off
+category: style
+options:
+  - { name: ignore, type: list, default: [], description: "Names left out: names, or `/regex/`." }
+---
+id: value-no-vendor-prefix
+family: table
+params: { target: value, mode: listed, data: prefixed-value }
+message: "the prefix of `{name}` is not needed"
+description: A vendor-prefixed keyword or function that autoprefixer knows the standard value of.
+example: "a { display: -webkit-flex }   # reported"
+severity: off
+category: style
+options:
+  - { name: ignore, type: list, default: [], description: "Names left out: names, or `/regex/`." }
+---
+id: selector-no-vendor-prefix
+family: table
+params: { target: selector, mode: listed, data: prefixed-selector }
+message: "the prefix of `{name}` is not needed"
+description: A vendor-prefixed pseudo-class or pseudo-element that autoprefixer knows the standard one of.
+example: "a::-moz-selection {}   # reported"
+severity: off
+category: style
+options:
+  - { name: ignore, type: list, default: [], description: "Names left out: names, or `/regex/`." }
+---
+id: at-rule-no-vendor-prefix
+family: table
+params: { target: at-rule, mode: listed, data: prefixed-at-rule }
+message: "the prefix of `@{name}` is not needed"
+description: A vendor-prefixed at-rule that autoprefixer knows the standard one of.
+example: "@-webkit-keyframes k {}   # reported"
+severity: off
+category: style
+options:
+  - { name: ignore, type: list, default: [], description: "Names left out: names, or `/regex/`." }
+---
+id: media-feature-name-no-vendor-prefix
+family: table
+params: { target: media-feature, mode: listed, data: prefixed-media-feature }
+message: "the prefix of `{name}` is not needed"
+description: A vendor-prefixed `device-pixel-ratio` media feature.
+example: "@media (-webkit-min-device-pixel-ratio: 2) {}   # reported"
+severity: off
+category: style
+options:
+  - { name: ignore, type: list, default: [], description: "Names left out: names, or `/regex/`." }
+---
+id: at-rule-no-deprecated
+family: table
+params: { target: at-rule, mode: listed, data: deprecated-at-rule }
+message: "deprecated at-rule `@{name}`"
+description: A deprecated at-rule (`@document`, `@nest`, `@viewport`).
+example: "@nest a {}   # reported"
+severity: off
+category: suspicious
+options:
+  - { name: ignore, type: list, default: [], description: "Names left out: names, or `/regex/`." }
+---
+id: property-no-deprecated
+family: table
+params: { target: property, mode: listed, data: deprecated-property }
+message: "deprecated property `{name}`"
+description: A deprecated property (`clip`, `word-wrap`, `grid-gap`, the `box-*` of the old flexbox, ...).
+example: "a { word-wrap: break-word }   # reported"
+severity: off
+category: suspicious
+options:
+  - { name: ignore, type: list, default: [], description: "Names left out: names, or `/regex/`." }
+---
+id: selector-no-deprecated
+family: table
+params: { target: selector, mode: listed, data: deprecated-selector }
+message: "deprecated selector `{name}`"
+description: A deprecated pseudo-class, pseudo-element or HTML or SVG element.
+example: "center {}   # reported"
+severity: off
+category: suspicious
+options:
+  - { name: ignore, type: list, default: [], description: "Names left out: names, or `/regex/`." }
+---
+id: media-type-no-deprecated
+family: table
+params: { target: media-type, mode: listed, data: deprecated-media-type }
+message: "deprecated media type `{name}`"
+description: A deprecated media type (`tv`, `handheld`, `projection`, ...) in `@media`.
+example: "@media tv {}   # reported"
+severity: off
+category: suspicious
+options:
+  - { name: ignore, type: list, default: [], description: "Names left out: names, or `/regex/`." }

@@ -167,6 +167,108 @@
                 }
               ]
             },
+            "at-rule-no-deprecated": {
+              "description": "A deprecated at-rule (`@document`, `@nest`, `@viewport`).",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "ignore": {
+                          "default": [],
+                          "description": "Names left out: names, or `/regex/`.",
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            "at-rule-no-unknown": {
+              "description": "An at-rule that no CSS specification lists. Vendor-prefixed ones are left out; SCSS has its own (`@include`, `@mixin`, ...), and Less at-rules are not checked.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "ignore": {
+                          "default": [],
+                          "description": "Names left out: names, or `/regex/`.",
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            "at-rule-no-vendor-prefix": {
+              "description": "A vendor-prefixed at-rule that autoprefixer knows the standard one of.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "ignore": {
+                          "default": [],
+                          "description": "Names left out: names, or `/regex/`.",
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
             "backslash-separator": {
               "$ref": "#/definitions/rule",
               "description": "`build\\out` is the pattern `buildout`: the backslash escapes `o`. Windows-style separators never match what was meant. Reported for a backslash before a letter, digit, `_` or `-` (`\\.` and `\\#` are ordinary escapes). No fix."
@@ -806,6 +908,40 @@
               "$ref": "#/definitions/rule",
               "description": "A function name with capitals (`translateX` and the like keep theirs)."
             },
+            "function-no-unknown": {
+              "description": "A function in a declaration value that no CSS specification lists. Not checked in SCSS and Less, whose built-in functions are not in the table.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "ignore": {
+                          "default": [],
+                          "description": "Names left out: names, or `/regex/`.",
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
             "function-url-quotes": {
               "$ref": "#/definitions/rule",
               "description": "An unquoted `url(...)`: quote its argument."
@@ -1210,6 +1346,108 @@
                         "list": {
                           "default": [],
                           "description": "The disallowed media features: names, or `/regex/`.",
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            "media-feature-name-no-unknown": {
+              "description": "A media feature name in `@media` that is not a CSS one. Vendor-prefixed names are left out.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "ignore": {
+                          "default": [],
+                          "description": "Names left out: names, or `/regex/`.",
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            "media-feature-name-no-vendor-prefix": {
+              "description": "A vendor-prefixed `device-pixel-ratio` media feature.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "ignore": {
+                          "default": [],
+                          "description": "Names left out: names, or `/regex/`.",
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            "media-type-no-deprecated": {
+              "description": "A deprecated media type (`tv`, `handheld`, `projection`, ...) in `@media`.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "ignore": {
+                          "default": [],
+                          "description": "Names left out: names, or `/regex/`.",
                           "items": {
                             "type": "string"
                           },
@@ -2162,6 +2400,108 @@
                 }
               ]
             },
+            "property-no-deprecated": {
+              "description": "A deprecated property (`clip`, `word-wrap`, `grid-gap`, the `box-*` of the old flexbox, ...).",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "ignore": {
+                          "default": [],
+                          "description": "Names left out: names, or `/regex/`.",
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            "property-no-unknown": {
+              "description": "A property that no CSS specification lists. Vendor-prefixed and custom properties, descriptors of `@font-face` and the like, and names with interpolation or SCSS and Less variables are left out.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "ignore": {
+                          "default": [],
+                          "description": "Names left out: names, or `/regex/`.",
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            "property-no-vendor-prefix": {
+              "description": "A vendor-prefixed property that autoprefixer knows the standard property of.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "ignore": {
+                          "default": [],
+                          "description": "Names left out: names, or `/regex/`.",
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
             "property-summary-matches-accessors": {
               "$ref": "#/definitions/rule",
               "description": "A property summary starts with \"Gets\", \"Sets\" or \"Gets or sets\" (\"Gets a value indicating whether\" and so on for `bool`), as the property's accessors reachable from outside the type say. The type is read from the declaration (`bool`, `Boolean`, `System.Boolean`). The fix replaces the start of the text and lower-cases what follows."
@@ -2864,9 +3204,77 @@
                 }
               ]
             },
+            "selector-no-deprecated": {
+              "description": "A deprecated pseudo-class, pseudo-element or HTML or SVG element.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "ignore": {
+                          "default": [],
+                          "description": "Names left out: names, or `/regex/`.",
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
             "selector-no-qualifying-type": {
               "$ref": "#/definitions/rule",
               "description": "A type selector in the same compound as a class, id or attribute selector (`ul.nav`)."
+            },
+            "selector-no-vendor-prefix": {
+              "description": "A vendor-prefixed pseudo-class or pseudo-element that autoprefixer knows the standard one of.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "ignore": {
+                          "default": [],
+                          "description": "Names left out: names, or `/regex/`.",
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
             },
             "selector-pseudo-class-allowed-list": {
               "description": "A pseudo-class that is not in the `list` option. An empty list allows everything.",
@@ -2920,6 +3328,40 @@
                         "list": {
                           "default": [],
                           "description": "The disallowed pseudo-classes, without `:`: names, or `/regex/`.",
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            "selector-pseudo-class-no-unknown": {
+              "description": "A pseudo-class that is not a CSS one. Vendor-prefixed ones are left out, and the `-webkit-scrollbar` ones count after those pseudo-elements.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "ignore": {
+                          "default": [],
+                          "description": "Names left out: names, or `/regex/`.",
                           "items": {
                             "type": "string"
                           },
@@ -3008,9 +3450,77 @@
                 }
               ]
             },
+            "selector-pseudo-element-no-unknown": {
+              "description": "A pseudo-element that is not a CSS one. Vendor-prefixed ones are left out.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "ignore": {
+                          "default": [],
+                          "description": "Names left out: names, or `/regex/`.",
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
             "selector-type-case": {
               "$ref": "#/definitions/rule",
               "description": "A type selector with capitals."
+            },
+            "selector-type-no-unknown": {
+              "description": "A type selector that is not an HTML, SVG or MathML element (custom elements included). Keyframe selectors and the arguments of `:lang()`, `:nth-child()` and the like are left out.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "ignore": {
+                          "default": [],
+                          "description": "Names left out: names, or `/regex/`.",
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
             },
             "separate-attributes": {
               "$ref": "#/definitions/rule",
@@ -3361,6 +3871,40 @@
                 }
               ]
             },
+            "unit-no-unknown": {
+              "description": "A unit that is not a CSS unit, in values and `@media` preludes. `x` counts only in `image-set()`, `image-resolution` and `resolution` media features.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "ignore": {
+                          "default": [],
+                          "description": "Names left out: names, or `/regex/`.",
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
             "unknown-needs": {
               "$ref": "#/definitions/rule",
               "description": "`needs` names a job that the workflow does not define."
@@ -3545,6 +4089,40 @@
             "valid-typeof": {
               "$ref": "#/definitions/rule",
               "description": "`typeof x` compared with a string that is not a type name, or with `undefined`."
+            },
+            "value-no-vendor-prefix": {
+              "description": "A vendor-prefixed keyword or function that autoprefixer knows the standard value of.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "ignore": {
+                          "default": [],
+                          "description": "Names left out: names, or `/regex/`.",
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
             },
             "wget-progress": {
               "$ref": "#/definitions/rule",

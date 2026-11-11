@@ -2056,6 +2056,146 @@
     {
       "category": "suspicious",
       "default_level": "off",
+      "description": "A deprecated at-rule (`@document`, `@nest`, `@viewport`).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "@nest a {}\na { word-wrap: break-word; clip: rect(0 0 0 0); -webkit-box-flex: 1; grid-gap: 1px }\n@media tv, only handheld and (color), print {}\ncenter, a:matches(b), a::content, b {}\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 1,
+            "length": 5,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "at-rule-no-deprecated",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [
+        {
+          "default": [],
+          "description": "Names left out: names, or `/regex/`.",
+          "name": "ignore",
+          "type": "list"
+        }
+      ],
+      "presets": [
+        "css/stylelint-recommended",
+        "css/stylelint-recommended",
+        "css/stylelint-recommended"
+      ],
+      "upstream": [
+        {
+          "id": "at-rule-no-deprecated",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
+    },
+    {
+      "category": "correctness",
+      "default_level": "off",
+      "description": "An at-rule that no CSS specification lists. Vendor-prefixed ones are left out; SCSS has its own (`@include`, `@mixin`, ...), and Less at-rules are not checked.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "@foo {}\n@media (foo: 1) and (min-width: 1px) and (-webkit-min-device-pixel-ratio: 2) and (400px <= width) {}\n@media (min-resolution: 2x) {}\na { colour: red; width: 1foo; height: 2x; -webkit-foo: 1; --x: 1foo; width: foo(1) bar(2) var(--a) calc(1px + 2px) }\na { background: image-set(url(\"a.png\") 1x); margin: 1PX 2% 1e3em }\na:foo, a:hover, a::foo, a::before, a:before, a:-moz-foo, a:nth-child(even), a:lang(en), a:not(:bar) {}\nfoo, div, b::slotted(x-y), svg > circle {}\n::-webkit-scrollbar-thumb:horizontal {}\na:horizontal {}\n@page :first { margin: 1cm }\n@font-face {\n  src: url(\"a\");\n  font-display: swap;\n}\n@keyframes k { from { color: red } 50% { color: blue } }\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 1,
+            "length": 4,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "at-rule-no-unknown",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [
+        {
+          "default": [],
+          "description": "Names left out: names, or `/regex/`.",
+          "name": "ignore",
+          "type": "list"
+        }
+      ],
+      "presets": [
+        "css/stylelint-recommended",
+        "css/stylelint-recommended",
+        "css/stylelint-recommended"
+      ],
+      "upstream": [
+        {
+          "id": "at-rule-no-unknown",
+          "partial": true,
+          "tool": "stylelint"
+        },
+        {
+          "id": "scss/at-rule-no-unknown",
+          "partial": true,
+          "tool": "stylelint-scss"
+        }
+      ]
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A vendor-prefixed at-rule that autoprefixer knows the standard one of.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "@-webkit-keyframes k { from { color: red } }\n@media (-webkit-min-device-pixel-ratio: 2) {}\na { -webkit-transition: none; -webkit-foo: 1; display: -webkit-flex; background: -webkit-linear-gradient(red, blue) }\na::-moz-selection {}\na:-moz-placeholder, a::-webkit-scrollbar {}\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 1,
+            "length": 18,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "at-rule-no-vendor-prefix",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [
+        {
+          "default": [],
+          "description": "Names left out: names, or `/regex/`.",
+          "name": "ignore",
+          "type": "list"
+        }
+      ],
+      "presets": [
+        "css/stylelint-standard",
+        "css/stylelint-standard",
+        "css/stylelint-standard"
+      ],
+      "upstream": [
+        {
+          "id": "at-rule-no-vendor-prefix",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
       "description": "A rule or at-rule block with nothing in it, comments included.",
       "example": {
         "config": null,
@@ -2667,7 +2807,7 @@
       "upstream": [
         {
           "id": "declaration-block-single-line-max-declarations",
-          "partial": false,
+          "partial": true,
           "tool": "stylelint"
         }
       ]
@@ -3062,6 +3202,57 @@
       ]
     },
     {
+      "category": "correctness",
+      "default_level": "off",
+      "description": "A function in a declaration value that no CSS specification lists. Not checked in SCSS and Less, whose built-in functions are not in the table.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "@foo {}\n@media (foo: 1) and (min-width: 1px) and (-webkit-min-device-pixel-ratio: 2) and (400px <= width) {}\n@media (min-resolution: 2x) {}\na { colour: red; width: 1foo; height: 2x; -webkit-foo: 1; --x: 1foo; width: foo(1) bar(2) var(--a) calc(1px + 2px) }\na { background: image-set(url(\"a.png\") 1x); margin: 1PX 2% 1e3em }\na:foo, a:hover, a::foo, a::before, a:before, a:-moz-foo, a:nth-child(even), a:lang(en), a:not(:bar) {}\nfoo, div, b::slotted(x-y), svg > circle {}\n::-webkit-scrollbar-thumb:horizontal {}\na:horizontal {}\n@page :first { margin: 1cm }\n@font-face {\n  src: url(\"a\");\n  font-display: swap;\n}\n@keyframes k { from { color: red } 50% { color: blue } }\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 77,
+            "length": 3,
+            "line": 4
+          },
+          {
+            "column": 84,
+            "length": 3,
+            "line": 4
+          }
+        ]
+      },
+      "fix": null,
+      "id": "function-no-unknown",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [
+        {
+          "default": [],
+          "description": "Names left out: names, or `/regex/`.",
+          "name": "ignore",
+          "type": "list"
+        }
+      ],
+      "presets": [],
+      "upstream": [
+        {
+          "id": "function-no-unknown",
+          "partial": true,
+          "tool": "stylelint"
+        },
+        {
+          "id": "scss/function-no-unknown",
+          "partial": true,
+          "tool": "stylelint-scss"
+        }
+      ]
+    },
+    {
       "category": "style",
       "default_level": "off",
       "description": "An unquoted `url(...)`: quote its argument.",
@@ -3094,7 +3285,7 @@
       "upstream": [
         {
           "id": "function-url-quotes",
-          "partial": false,
+          "partial": true,
           "tool": "stylelint"
         }
       ]
@@ -3512,6 +3703,146 @@
       "upstream": [
         {
           "id": "media-feature-name-disallowed-list",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
+    },
+    {
+      "category": "correctness",
+      "default_level": "off",
+      "description": "A media feature name in `@media` that is not a CSS one. Vendor-prefixed names are left out.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "@foo {}\n@media (foo: 1) and (min-width: 1px) and (-webkit-min-device-pixel-ratio: 2) and (400px <= width) {}\n@media (min-resolution: 2x) {}\na { colour: red; width: 1foo; height: 2x; -webkit-foo: 1; --x: 1foo; width: foo(1) bar(2) var(--a) calc(1px + 2px) }\na { background: image-set(url(\"a.png\") 1x); margin: 1PX 2% 1e3em }\na:foo, a:hover, a::foo, a::before, a:before, a:-moz-foo, a:nth-child(even), a:lang(en), a:not(:bar) {}\nfoo, div, b::slotted(x-y), svg > circle {}\n::-webkit-scrollbar-thumb:horizontal {}\na:horizontal {}\n@page :first { margin: 1cm }\n@font-face {\n  src: url(\"a\");\n  font-display: swap;\n}\n@keyframes k { from { color: red } 50% { color: blue } }\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 9,
+            "length": 3,
+            "line": 2
+          }
+        ]
+      },
+      "fix": null,
+      "id": "media-feature-name-no-unknown",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [
+        {
+          "default": [],
+          "description": "Names left out: names, or `/regex/`.",
+          "name": "ignore",
+          "type": "list"
+        }
+      ],
+      "presets": [
+        "css/stylelint-recommended",
+        "css/stylelint-recommended",
+        "css/stylelint-recommended"
+      ],
+      "upstream": [
+        {
+          "id": "media-feature-name-no-unknown",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A vendor-prefixed `device-pixel-ratio` media feature.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "@-webkit-keyframes k { from { color: red } }\n@media (-webkit-min-device-pixel-ratio: 2) {}\na { -webkit-transition: none; -webkit-foo: 1; display: -webkit-flex; background: -webkit-linear-gradient(red, blue) }\na::-moz-selection {}\na:-moz-placeholder, a::-webkit-scrollbar {}\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 9,
+            "length": 30,
+            "line": 2
+          }
+        ]
+      },
+      "fix": null,
+      "id": "media-feature-name-no-vendor-prefix",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [
+        {
+          "default": [],
+          "description": "Names left out: names, or `/regex/`.",
+          "name": "ignore",
+          "type": "list"
+        }
+      ],
+      "presets": [
+        "css/stylelint-standard",
+        "css/stylelint-standard",
+        "css/stylelint-standard"
+      ],
+      "upstream": [
+        {
+          "id": "media-feature-name-no-vendor-prefix",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "A deprecated media type (`tv`, `handheld`, `projection`, ...) in `@media`.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "@nest a {}\na { word-wrap: break-word; clip: rect(0 0 0 0); -webkit-box-flex: 1; grid-gap: 1px }\n@media tv, only handheld and (color), print {}\ncenter, a:matches(b), a::content, b {}\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 8,
+            "length": 2,
+            "line": 3
+          },
+          {
+            "column": 17,
+            "length": 8,
+            "line": 3
+          }
+        ]
+      },
+      "fix": null,
+      "id": "media-type-no-deprecated",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [
+        {
+          "default": [],
+          "description": "Names left out: names, or `/regex/`.",
+          "name": "ignore",
+          "type": "list"
+        }
+      ],
+      "presets": [
+        "css/stylelint-recommended",
+        "css/stylelint-recommended",
+        "css/stylelint-recommended"
+      ],
+      "upstream": [
+        {
+          "id": "media-type-no-deprecated",
           "partial": false,
           "tool": "stylelint"
         }
@@ -3961,6 +4292,161 @@
         {
           "id": "property-disallowed-list",
           "partial": false,
+          "tool": "stylelint"
+        }
+      ]
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "A deprecated property (`clip`, `word-wrap`, `grid-gap`, the `box-*` of the old flexbox, ...).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "@nest a {}\na { word-wrap: break-word; clip: rect(0 0 0 0); -webkit-box-flex: 1; grid-gap: 1px }\n@media tv, only handheld and (color), print {}\ncenter, a:matches(b), a::content, b {}\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 5,
+            "length": 9,
+            "line": 2
+          },
+          {
+            "column": 28,
+            "length": 4,
+            "line": 2
+          },
+          {
+            "column": 49,
+            "length": 16,
+            "line": 2
+          },
+          {
+            "column": 70,
+            "length": 8,
+            "line": 2
+          }
+        ]
+      },
+      "fix": null,
+      "id": "property-no-deprecated",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [
+        {
+          "default": [],
+          "description": "Names left out: names, or `/regex/`.",
+          "name": "ignore",
+          "type": "list"
+        }
+      ],
+      "presets": [
+        "css/stylelint-recommended",
+        "css/stylelint-recommended",
+        "css/stylelint-recommended"
+      ],
+      "upstream": [
+        {
+          "id": "property-no-deprecated",
+          "partial": true,
+          "tool": "stylelint"
+        }
+      ]
+    },
+    {
+      "category": "correctness",
+      "default_level": "off",
+      "description": "A property that no CSS specification lists. Vendor-prefixed and custom properties, descriptors of `@font-face` and the like, and names with interpolation or SCSS and Less variables are left out.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "@foo {}\n@media (foo: 1) and (min-width: 1px) and (-webkit-min-device-pixel-ratio: 2) and (400px <= width) {}\n@media (min-resolution: 2x) {}\na { colour: red; width: 1foo; height: 2x; -webkit-foo: 1; --x: 1foo; width: foo(1) bar(2) var(--a) calc(1px + 2px) }\na { background: image-set(url(\"a.png\") 1x); margin: 1PX 2% 1e3em }\na:foo, a:hover, a::foo, a::before, a:before, a:-moz-foo, a:nth-child(even), a:lang(en), a:not(:bar) {}\nfoo, div, b::slotted(x-y), svg > circle {}\n::-webkit-scrollbar-thumb:horizontal {}\na:horizontal {}\n@page :first { margin: 1cm }\n@font-face {\n  src: url(\"a\");\n  font-display: swap;\n}\n@keyframes k { from { color: red } 50% { color: blue } }\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 5,
+            "length": 6,
+            "line": 4
+          }
+        ]
+      },
+      "fix": null,
+      "id": "property-no-unknown",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [
+        {
+          "default": [],
+          "description": "Names left out: names, or `/regex/`.",
+          "name": "ignore",
+          "type": "list"
+        }
+      ],
+      "presets": [
+        "css/stylelint-recommended",
+        "css/stylelint-recommended",
+        "css/stylelint-recommended"
+      ],
+      "upstream": [
+        {
+          "id": "property-no-unknown",
+          "partial": false,
+          "tool": "stylelint"
+        },
+        {
+          "id": "scss/property-no-unknown",
+          "partial": false,
+          "tool": "stylelint-scss"
+        }
+      ]
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A vendor-prefixed property that autoprefixer knows the standard property of.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "@-webkit-keyframes k { from { color: red } }\n@media (-webkit-min-device-pixel-ratio: 2) {}\na { -webkit-transition: none; -webkit-foo: 1; display: -webkit-flex; background: -webkit-linear-gradient(red, blue) }\na::-moz-selection {}\na:-moz-placeholder, a::-webkit-scrollbar {}\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 5,
+            "length": 18,
+            "line": 3
+          }
+        ]
+      },
+      "fix": null,
+      "id": "property-no-vendor-prefix",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [
+        {
+          "default": [],
+          "description": "Names left out: names, or `/regex/`.",
+          "name": "ignore",
+          "type": "list"
+        }
+      ],
+      "presets": [
+        "css/stylelint-standard",
+        "css/stylelint-standard",
+        "css/stylelint-standard"
+      ],
+      "upstream": [
+        {
+          "id": "property-no-vendor-prefix",
+          "partial": true,
           "tool": "stylelint"
         }
       ]
@@ -4510,7 +4996,7 @@
       "upstream": [
         {
           "id": "selector-max-combinators",
-          "partial": false,
+          "partial": true,
           "tool": "stylelint"
         }
       ]
@@ -4721,6 +5207,61 @@
       ]
     },
     {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "A deprecated pseudo-class, pseudo-element or HTML or SVG element.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "@nest a {}\na { word-wrap: break-word; clip: rect(0 0 0 0); -webkit-box-flex: 1; grid-gap: 1px }\n@media tv, only handheld and (color), print {}\ncenter, a:matches(b), a::content, b {}\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 1,
+            "length": 6,
+            "line": 4
+          },
+          {
+            "column": 11,
+            "length": 10,
+            "line": 4
+          },
+          {
+            "column": 26,
+            "length": 7,
+            "line": 4
+          }
+        ]
+      },
+      "fix": null,
+      "id": "selector-no-deprecated",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [
+        {
+          "default": [],
+          "description": "Names left out: names, or `/regex/`.",
+          "name": "ignore",
+          "type": "list"
+        }
+      ],
+      "presets": [
+        "css/stylelint-recommended",
+        "css/stylelint-recommended",
+        "css/stylelint-recommended"
+      ],
+      "upstream": [
+        {
+          "id": "selector-no-deprecated",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
+    },
+    {
       "category": "style",
       "default_level": "off",
       "description": "A type selector in the same compound as a class, id or attribute selector (`ul.nav`).",
@@ -4749,6 +5290,56 @@
       "upstream": [
         {
           "id": "selector-no-qualifying-type",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A vendor-prefixed pseudo-class or pseudo-element that autoprefixer knows the standard one of.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "@-webkit-keyframes k { from { color: red } }\n@media (-webkit-min-device-pixel-ratio: 2) {}\na { -webkit-transition: none; -webkit-foo: 1; display: -webkit-flex; background: -webkit-linear-gradient(red, blue) }\na::-moz-selection {}\na:-moz-placeholder, a::-webkit-scrollbar {}\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 4,
+            "length": 14,
+            "line": 4
+          },
+          {
+            "column": 3,
+            "length": 16,
+            "line": 5
+          }
+        ]
+      },
+      "fix": null,
+      "id": "selector-no-vendor-prefix",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [
+        {
+          "default": [],
+          "description": "Names left out: names, or `/regex/`.",
+          "name": "ignore",
+          "type": "list"
+        }
+      ],
+      "presets": [
+        "css/stylelint-standard",
+        "css/stylelint-standard",
+        "css/stylelint-standard"
+      ],
+      "upstream": [
+        {
+          "id": "selector-no-vendor-prefix",
           "partial": false,
           "tool": "stylelint"
         }
@@ -4831,6 +5422,61 @@
       "upstream": [
         {
           "id": "selector-pseudo-class-disallowed-list",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
+    },
+    {
+      "category": "correctness",
+      "default_level": "off",
+      "description": "A pseudo-class that is not a CSS one. Vendor-prefixed ones are left out, and the `-webkit-scrollbar` ones count after those pseudo-elements.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "@foo {}\n@media (foo: 1) and (min-width: 1px) and (-webkit-min-device-pixel-ratio: 2) and (400px <= width) {}\n@media (min-resolution: 2x) {}\na { colour: red; width: 1foo; height: 2x; -webkit-foo: 1; --x: 1foo; width: foo(1) bar(2) var(--a) calc(1px + 2px) }\na { background: image-set(url(\"a.png\") 1x); margin: 1PX 2% 1e3em }\na:foo, a:hover, a::foo, a::before, a:before, a:-moz-foo, a:nth-child(even), a:lang(en), a:not(:bar) {}\nfoo, div, b::slotted(x-y), svg > circle {}\n::-webkit-scrollbar-thumb:horizontal {}\na:horizontal {}\n@page :first { margin: 1cm }\n@font-face {\n  src: url(\"a\");\n  font-display: swap;\n}\n@keyframes k { from { color: red } 50% { color: blue } }\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 3,
+            "length": 3,
+            "line": 6
+          },
+          {
+            "column": 96,
+            "length": 3,
+            "line": 6
+          },
+          {
+            "column": 3,
+            "length": 10,
+            "line": 9
+          }
+        ]
+      },
+      "fix": null,
+      "id": "selector-pseudo-class-no-unknown",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [
+        {
+          "default": [],
+          "description": "Names left out: names, or `/regex/`.",
+          "name": "ignore",
+          "type": "list"
+        }
+      ],
+      "presets": [
+        "css/stylelint-recommended",
+        "css/stylelint-recommended",
+        "css/stylelint-recommended"
+      ],
+      "upstream": [
+        {
+          "id": "selector-pseudo-class-no-unknown",
           "partial": false,
           "tool": "stylelint"
         }
@@ -4957,6 +5603,51 @@
       ]
     },
     {
+      "category": "correctness",
+      "default_level": "off",
+      "description": "A pseudo-element that is not a CSS one. Vendor-prefixed ones are left out.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "@foo {}\n@media (foo: 1) and (min-width: 1px) and (-webkit-min-device-pixel-ratio: 2) and (400px <= width) {}\n@media (min-resolution: 2x) {}\na { colour: red; width: 1foo; height: 2x; -webkit-foo: 1; --x: 1foo; width: foo(1) bar(2) var(--a) calc(1px + 2px) }\na { background: image-set(url(\"a.png\") 1x); margin: 1PX 2% 1e3em }\na:foo, a:hover, a::foo, a::before, a:before, a:-moz-foo, a:nth-child(even), a:lang(en), a:not(:bar) {}\nfoo, div, b::slotted(x-y), svg > circle {}\n::-webkit-scrollbar-thumb:horizontal {}\na:horizontal {}\n@page :first { margin: 1cm }\n@font-face {\n  src: url(\"a\");\n  font-display: swap;\n}\n@keyframes k { from { color: red } 50% { color: blue } }\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 20,
+            "length": 3,
+            "line": 6
+          }
+        ]
+      },
+      "fix": null,
+      "id": "selector-pseudo-element-no-unknown",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [
+        {
+          "default": [],
+          "description": "Names left out: names, or `/regex/`.",
+          "name": "ignore",
+          "type": "list"
+        }
+      ],
+      "presets": [
+        "css/stylelint-recommended",
+        "css/stylelint-recommended",
+        "css/stylelint-recommended"
+      ],
+      "upstream": [
+        {
+          "id": "selector-pseudo-element-no-unknown",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
+    },
+    {
       "category": "style",
       "default_level": "off",
       "description": "A type selector with capitals.",
@@ -4994,6 +5685,56 @@
       "upstream": [
         {
           "id": "selector-type-case",
+          "partial": true,
+          "tool": "stylelint"
+        }
+      ]
+    },
+    {
+      "category": "correctness",
+      "default_level": "off",
+      "description": "A type selector that is not an HTML, SVG or MathML element (custom elements included). Keyframe selectors and the arguments of `:lang()`, `:nth-child()` and the like are left out.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "@foo {}\n@media (foo: 1) and (min-width: 1px) and (-webkit-min-device-pixel-ratio: 2) and (400px <= width) {}\n@media (min-resolution: 2x) {}\na { colour: red; width: 1foo; height: 2x; -webkit-foo: 1; --x: 1foo; width: foo(1) bar(2) var(--a) calc(1px + 2px) }\na { background: image-set(url(\"a.png\") 1x); margin: 1PX 2% 1e3em }\na:foo, a:hover, a::foo, a::before, a:before, a:-moz-foo, a:nth-child(even), a:lang(en), a:not(:bar) {}\nfoo, div, b::slotted(x-y), svg > circle {}\n::-webkit-scrollbar-thumb:horizontal {}\na:horizontal {}\n@page :first { margin: 1cm }\n@font-face {\n  src: url(\"a\");\n  font-display: swap;\n}\n@keyframes k { from { color: red } 50% { color: blue } }\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 1,
+            "length": 3,
+            "line": 7
+          },
+          {
+            "column": 22,
+            "length": 3,
+            "line": 7
+          }
+        ]
+      },
+      "fix": null,
+      "id": "selector-type-no-unknown",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [
+        {
+          "default": [],
+          "description": "Names left out: names, or `/regex/`.",
+          "name": "ignore",
+          "type": "list"
+        }
+      ],
+      "presets": [
+        "css/stylelint-recommended",
+        "css/stylelint-recommended",
+        "css/stylelint-recommended"
+      ],
+      "upstream": [
+        {
+          "id": "selector-type-no-unknown",
           "partial": false,
           "tool": "stylelint"
         }
@@ -5139,6 +5880,102 @@
       "upstream": [
         {
           "id": "unit-disallowed-list",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
+    },
+    {
+      "category": "correctness",
+      "default_level": "off",
+      "description": "A unit that is not a CSS unit, in values and `@media` preludes. `x` counts only in `image-set()`, `image-resolution` and `resolution` media features.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "@foo {}\n@media (foo: 1) and (min-width: 1px) and (-webkit-min-device-pixel-ratio: 2) and (400px <= width) {}\n@media (min-resolution: 2x) {}\na { colour: red; width: 1foo; height: 2x; -webkit-foo: 1; --x: 1foo; width: foo(1) bar(2) var(--a) calc(1px + 2px) }\na { background: image-set(url(\"a.png\") 1x); margin: 1PX 2% 1e3em }\na:foo, a:hover, a::foo, a::before, a:before, a:-moz-foo, a:nth-child(even), a:lang(en), a:not(:bar) {}\nfoo, div, b::slotted(x-y), svg > circle {}\n::-webkit-scrollbar-thumb:horizontal {}\na:horizontal {}\n@page :first { margin: 1cm }\n@font-face {\n  src: url(\"a\");\n  font-display: swap;\n}\n@keyframes k { from { color: red } 50% { color: blue } }\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 25,
+            "length": 4,
+            "line": 4
+          },
+          {
+            "column": 64,
+            "length": 4,
+            "line": 4
+          }
+        ]
+      },
+      "fix": null,
+      "id": "unit-no-unknown",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [
+        {
+          "default": [],
+          "description": "Names left out: names, or `/regex/`.",
+          "name": "ignore",
+          "type": "list"
+        }
+      ],
+      "presets": [],
+      "upstream": [
+        {
+          "id": "unit-no-unknown",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A vendor-prefixed keyword or function that autoprefixer knows the standard value of.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "@-webkit-keyframes k { from { color: red } }\n@media (-webkit-min-device-pixel-ratio: 2) {}\na { -webkit-transition: none; -webkit-foo: 1; display: -webkit-flex; background: -webkit-linear-gradient(red, blue) }\na::-moz-selection {}\na:-moz-placeholder, a::-webkit-scrollbar {}\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 56,
+            "length": 12,
+            "line": 3
+          },
+          {
+            "column": 82,
+            "length": 23,
+            "line": 3
+          }
+        ]
+      },
+      "fix": null,
+      "id": "value-no-vendor-prefix",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [
+        {
+          "default": [],
+          "description": "Names left out: names, or `/regex/`.",
+          "name": "ignore",
+          "type": "list"
+        }
+      ],
+      "presets": [
+        "css/stylelint-standard",
+        "css/stylelint-standard",
+        "css/stylelint-standard"
+      ],
+      "upstream": [
+        {
+          "id": "value-no-vendor-prefix",
           "partial": false,
           "tool": "stylelint"
         }

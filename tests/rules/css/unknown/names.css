@@ -1,0 +1,28 @@
+@foo {}
+^^^^ at-rule-no-unknown
+@media (foo: 1) and (min-width: 1px) and (-webkit-min-device-pixel-ratio: 2) and (400px <= width) {}
+//      ^^^ media-feature-name-no-unknown
+@media (min-resolution: 2x) {}
+a { colour: red; width: 1foo; height: 2x; -webkit-foo: 1; --x: 1foo; width: foo(1) bar(2) var(--a) calc(1px + 2px) }
+//  ^^^^^^ property-no-unknown
+//                      ^^^^ unit-no-unknown
+//                                                             ^^^^ unit-no-unknown
+//                                                                          ^^^ function-no-unknown
+//                                                                                 ^^^ function-no-unknown
+a { background: image-set(url("a.png") 1x); margin: 1PX 2% 1e3em }
+a:foo, a:hover, a::foo, a::before, a:before, a:-moz-foo, a:nth-child(even), a:lang(en), a:not(:bar) {}
+//^^^ selector-pseudo-class-no-unknown
+//                 ^^^ selector-pseudo-element-no-unknown
+//                                                                                             ^^^ selector-pseudo-class-no-unknown
+foo, div, b::slotted(x-y), svg > circle {}
+^^^ selector-type-no-unknown
+//                   ^^^ selector-type-no-unknown
+::-webkit-scrollbar-thumb:horizontal {}
+a:horizontal {}
+//^^^^^^^^^^ selector-pseudo-class-no-unknown
+@page :first { margin: 1cm }
+@font-face {
+  src: url("a");
+  font-display: swap;
+}
+@keyframes k { from { color: red } 50% { color: blue } }

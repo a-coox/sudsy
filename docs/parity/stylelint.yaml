@@ -12,9 +12,9 @@ entries:
   at-rule-descriptor-no-unknown: planned
   at-rule-disallowed-list: rule at-rule-disallowed-list
   at-rule-empty-line-before: planned | Needs the `except` and `ignore` secondary options (`first-nested`, `after-comment`, ...), which the rule options do not express yet.
-  at-rule-no-deprecated: planned
-  at-rule-no-unknown: planned
-  at-rule-no-vendor-prefix: planned | Needs autoprefixer's tables of prefixed names (a step 6 data table).
+  at-rule-no-deprecated: rule at-rule-no-deprecated
+  at-rule-no-unknown: rule at-rule-no-unknown | Less at-rules are not told apart (detached ruleset calls look like at-rules), so none is reported in Less.
+  at-rule-no-vendor-prefix: rule at-rule-no-vendor-prefix
   at-rule-property-required-list: planned | The option maps a property to its values or units, and rule options are not maps.
   block-no-empty: rule block-no-empty
   block-no-redundant-nested-style-rules: planned
@@ -39,7 +39,7 @@ entries:
   declaration-block-no-duplicate-properties: rule declaration-block-no-duplicate-properties
   declaration-block-no-redundant-longhand-properties: planned
   declaration-block-no-shorthand-property-overrides: rule declaration-block-no-shorthand-property-overrides
-  declaration-block-single-line-max-declarations: rule declaration-block-single-line-max-declarations
+  declaration-block-single-line-max-declarations: rule declaration-block-single-line-max-declarations | differs from stylelint on single-line @font-face blocks
   declaration-empty-line-before: planned | Needs the `except` and `ignore` secondary options (`first-nested`, `after-comment`, ...), which the rule options do not express yet.
   declaration-no-important: rule declaration-no-important
   declaration-property-max-values: planned | The option maps a property to its values or units, and rule options are not maps.
@@ -58,9 +58,9 @@ entries:
   function-disallowed-list: rule function-disallowed-list
   function-linear-gradient-no-nonstandard-direction: rule function-linear-gradient-no-nonstandard-direction
   function-name-case: rule function-name-case
-  function-no-unknown: planned
+  function-no-unknown: rule function-no-unknown | SCSS and Less built-in functions are not in the table, so none is reported there.
   function-url-no-scheme-relative: planned
-  function-url-quotes: rule function-url-quotes
+  function-url-quotes: rule function-url-quotes | differs from stylelint on url() inside image-set()
   function-url-scheme-allowed-list: planned
   function-url-scheme-disallowed-list: planned
   hue-degree-notation: planned | Needs the parse of color functions (arguments, separators, alpha), not built yet.
@@ -75,13 +75,13 @@ entries:
   max-nesting-depth: rule max-nesting-depth
   media-feature-name-allowed-list: rule media-feature-name-allowed-list
   media-feature-name-disallowed-list: rule media-feature-name-disallowed-list
-  media-feature-name-no-unknown: planned
-  media-feature-name-no-vendor-prefix: planned | Needs autoprefixer's tables of prefixed names (a step 6 data table).
+  media-feature-name-no-unknown: rule media-feature-name-no-unknown
+  media-feature-name-no-vendor-prefix: rule media-feature-name-no-vendor-prefix
   media-feature-name-unit-allowed-list: planned | The option maps a property to its values or units, and rule options are not maps.
   media-feature-name-value-allowed-list: planned | The option maps a property to its values or units, and rule options are not maps.
   media-feature-range-notation: planned
   media-query-no-invalid: planned
-  media-type-no-deprecated: planned
+  media-type-no-deprecated: rule media-type-no-deprecated
   named-grid-areas-no-invalid: rule named-grid-areas-no-invalid
   nesting-selector-no-missing-scoping-root: planned
   no-descending-specificity: rule no-descending-specificity
@@ -99,9 +99,9 @@ entries:
   property-allowed-list: rule property-allowed-list
   property-disallowed-list: rule property-disallowed-list
   property-layout-mappings: planned | The option maps a property to its values or units, and rule options are not maps.
-  property-no-deprecated: planned
-  property-no-unknown: planned
-  property-no-vendor-prefix: planned | Needs autoprefixer's tables of prefixed names (a step 6 data table).
+  property-no-deprecated: rule property-no-deprecated | `-webkit-box-orient` is not reported (stylelint reports it unless the value is `vertical`), and there is no fix.
+  property-no-unknown: rule property-no-unknown
+  property-no-vendor-prefix: rule property-no-vendor-prefix | `-webkit-background-size` with several values is reported (stylelint skips it).
   relative-selector-nesting-notation: planned
   rule-empty-line-before: planned | Needs the `except` and `ignore` secondary options (`first-nested`, `after-comment`, ...), which the rule options do not express yet.
   rule-nesting-at-rule-required-list: planned
@@ -118,7 +118,7 @@ entries:
   selector-id-pattern: rule selector-id-pattern
   selector-max-attribute: rule selector-max-attribute
   selector-max-class: rule selector-max-class
-  selector-max-combinators: rule selector-max-combinators
+  selector-max-combinators: rule selector-max-combinators | differs from stylelint on :nth-child(An+B of S) selector lists
   selector-max-compound-selectors: rule selector-max-compound-selectors
   selector-max-id: rule selector-max-id
   selector-max-pseudo-class: rule selector-max-pseudo-class
@@ -126,21 +126,21 @@ entries:
   selector-max-type: rule selector-max-type
   selector-max-universal: rule selector-max-universal
   selector-nested-pattern: planned
-  selector-no-deprecated: planned
+  selector-no-deprecated: rule selector-no-deprecated
   selector-no-invalid: planned
   selector-no-qualifying-type: rule selector-no-qualifying-type
   selector-no-unmatchable: planned
-  selector-no-vendor-prefix: planned | Needs autoprefixer's tables of prefixed names (a step 6 data table).
+  selector-no-vendor-prefix: rule selector-no-vendor-prefix
   selector-not-notation: planned
   selector-pseudo-class-allowed-list: rule selector-pseudo-class-allowed-list
   selector-pseudo-class-disallowed-list: rule selector-pseudo-class-disallowed-list
-  selector-pseudo-class-no-unknown: planned
+  selector-pseudo-class-no-unknown: rule selector-pseudo-class-no-unknown
   selector-pseudo-element-allowed-list: rule selector-pseudo-element-allowed-list
   selector-pseudo-element-colon-notation: rule selector-pseudo-element-colon-notation
   selector-pseudo-element-disallowed-list: rule selector-pseudo-element-disallowed-list
-  selector-pseudo-element-no-unknown: planned
-  selector-type-case: rule selector-type-case
-  selector-type-no-unknown: planned
+  selector-pseudo-element-no-unknown: rule selector-pseudo-element-no-unknown
+  selector-type-case: rule selector-type-case | differs from stylelint on camelCase SVG element names (clipPath)
+  selector-type-no-unknown: rule selector-type-no-unknown
   shorthand-property-no-redundant-values: rule shorthand-property-no-redundant-values
   string-no-newline: planned
   syntax-string-no-invalid: planned
@@ -148,10 +148,10 @@ entries:
   unit-allowed-list: rule unit-allowed-list
   unit-disallowed-list: rule unit-disallowed-list
   unit-layout-mappings: planned | The option maps a property to its values or units, and rule options are not maps.
-  unit-no-unknown: planned
+  unit-no-unknown: rule unit-no-unknown
   value-keyword-case: planned
   value-keyword-layout-mappings: planned | The option maps a property to its values or units, and rule options are not maps.
-  value-no-vendor-prefix: planned | Needs autoprefixer's tables of prefixed names (a step 6 data table).
+  value-no-vendor-prefix: rule value-no-vendor-prefix
 deferred:
-  - gap: "Needs the CSS value-syntax grammar (the property and at-rule syntaxes of mdn-data), which the table rules of step 6 do not provide."
+  - gap: "Needs the CSS value-syntax grammar (the property and at-rule syntaxes of mdn-data), which the name tables do not provide."
     ids: [at-rule-descriptor-value-no-unknown, at-rule-prelude-no-invalid, declaration-property-value-no-unknown, media-feature-name-value-no-unknown]

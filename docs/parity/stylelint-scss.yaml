@@ -27,7 +27,7 @@ entries:
   scss/at-mixin-pattern: planned
   scss/at-root-no-redundant: planned
   scss/at-rule-conditional-no-parentheses: planned
-  scss/at-rule-no-unknown: planned
+  scss/at-rule-no-unknown: rule at-rule-no-unknown | Less at-rules are not told apart (detached ruleset calls look like at-rules), so none is reported in Less.
   scss/at-use-no-redundant-alias: planned
   scss/at-use-no-unnamespaced: planned
   scss/block-no-redundant-nesting: planned
@@ -53,7 +53,7 @@ entries:
   scss/function-color-channel: planned
   scss/function-color-relative: planned
   scss/function-disallowed-list: planned
-  scss/function-no-unknown: planned
+  scss/function-no-unknown: rule function-no-unknown | SCSS and Less built-in functions are not in the table, so none is reported there.
   scss/function-quote-no-quoted-strings-inside: planned
   scss/function-unquote-no-unquoted-strings-inside: planned
   scss/load-no-partial-leading-underscore: planned
@@ -71,11 +71,11 @@ entries:
   scss/operator-no-unspaced: planned
   scss/partial-no-import: planned
   scss/percent-placeholder-pattern: planned
-  scss/property-no-unknown: planned
+  scss/property-no-unknown: rule property-no-unknown
   scss/selector-class-pattern: planned
   scss/selector-nest-combinators: planned
   scss/selector-no-redundant-nesting-selector: planned
   scss/selector-no-union-class-name: planned
 deferred:
-  - gap: "Needs the CSS value-syntax grammar (the property and at-rule syntaxes of mdn-data), which the table rules of step 6 do not provide."
+  - gap: "Needs the CSS value-syntax grammar (the property and at-rule syntaxes of mdn-data), which the name tables do not provide."
     ids: [scss/declaration-property-value-no-unknown]

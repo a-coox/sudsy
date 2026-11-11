@@ -113,9 +113,9 @@ pub fn split_dimension(text: &str) -> (&str, &str) {
     while end < b.len() {
         let c = b[end];
         let exp = (c == b'e' || c == b'E')
-            && b.get(end + 1)
-                .is_some_and(|n| n.is_ascii_digit() || *n == b'-' || *n == b'+')
-            && b.get(end + 2).is_some_and(|n| n.is_ascii_digit())
+            && (b.get(end + 1).is_some_and(u8::is_ascii_digit)
+                || b.get(end + 1).is_some_and(|n| *n == b'-' || *n == b'+')
+                    && b.get(end + 2).is_some_and(u8::is_ascii_digit))
             || (end > 0 && matches!(b[end - 1], b'e' | b'E') && (c == b'-' || c == b'+'));
         if c.is_ascii_digit() || c == b'.' || (end == 0 && (c == b'-' || c == b'+')) || exp {
             end += 1;

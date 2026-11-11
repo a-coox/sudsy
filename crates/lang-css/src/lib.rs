@@ -2,6 +2,7 @@
 //! providers over it. `scss` and `less` take `css` as their config base.
 
 core_syntax::include_generated!();
+mod data;
 mod format;
 mod lexer;
 mod parser;

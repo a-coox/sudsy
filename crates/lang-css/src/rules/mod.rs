@@ -5,8 +5,9 @@ mod font;
 mod max;
 mod model;
 mod names;
+mod table;
 mod values;
 
 use core_rules::Family;
 
-pub static FAMILIES: &[Family] = &[names::FAMILY, max::FAMILY, checks::FAMILY];
+pub static FAMILIES: &[Family] = &[names::FAMILY, max::FAMILY, checks::FAMILY, table::FAMILY];

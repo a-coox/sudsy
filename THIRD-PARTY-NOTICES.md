@@ -1,9 +1,10 @@
 # Third-party notices
 
 Sudsy's own code is MIT ([LICENSE](LICENSE)). These files in the repository come from other
-projects. Apart from the logo, none of them is part of the released binaries; they are test and benchmark inputs.
+projects. Apart from the logo and the CSS name tables, none of them is part of the released binaries; they are test and benchmark inputs.
 
 * `assets/logo/`: the Soap emoji of [Fluent UI Emoji](https://github.com/microsoft/fluentui-emoji) (commit `1ffb34c`), Copyright (c) Microsoft Corporation, MIT ([assets/logo/LICENSE](assets/logo/LICENSE)). Used as the logo of the extension, site and README.
+* `crates/lang-css/data/`: the names of CSS (properties, at-rules, units, functions, selectors, ...) embedded in the binary: `names.txt` is generated from [known-css-properties](https://github.com/known-css/known-css-properties) 0.37.0 (MIT, Copyright (c) 2017 Mavrix Technologies) and [mdn-data](https://github.com/mdn/data) 2.37.2 (CC0-1.0); `extras.txt` adds names from [stylelint](https://github.com/stylelint/stylelint) 17.16.0 and its dependencies css-functions-list, html-tags, svg-tags and mathml-tag-names, and from [autoprefixer](https://github.com/postcss/autoprefixer) 10.2.5 (all MIT, Copyright (c) their authors).
 
 ## MIT-licensed files
 
@@ -14,11 +15,11 @@ the copyright line of that project.
 | --- | --- | --- |
 | `bench/inputs/cs/*.cs` (System.Private.CoreLib sources) and `tests/fixtures/presets/csharp-dotnet-runtime/` (the "Example File" of `docs/coding-guidelines/coding-style.md`) | <https://github.com/dotnet/runtime> | Copyright (c) .NET Foundation and Contributors. All rights reserved. |
 | `bench/inputs/json/*.json` (from `test_parsing`) | <https://github.com/nst/JSONTestSuite> | Copyright (c) 2016 Nicolas Seriot |
-| `bench/inputs/yaml/*.yaml` (from the `data` branch) | <https://github.com/yaml/yaml-test-suite> | Copyright (c) 2016-2020 Ingy dÃ¶t Net |
+| `bench/inputs/yaml/*.yaml` (from the `data` branch) | <https://github.com/yaml/yaml-test-suite> | Copyright (c) 2016-2020 Ingy döt Net |
 | `bench/inputs/js/mui-*` (`Button.js`, `Autocomplete.js` of v6.1.0) | <https://github.com/mui/material-ui> | Copyright (c) 2014 Call-Em-All |
 | `bench/inputs/js/vue-renderer.ts` (`runtime-core/src/renderer.ts` of v3.5.13) | <https://github.com/vuejs/core> | Copyright (c) 2018-present, Yuxi (Evan) You and Vue contributors |
 | `bench/inputs/js/excalidraw-color-picker.tsx` (v0.18.0) | <https://github.com/excalidraw/excalidraw> | Copyright (c) 2020 Excalidraw |
-| `tests/fixtures/presets/json-prettier-compat/`, `yaml-prettier-compat/`, and `playbook` in `yaml-default/` (Prettier test inputs and snapshots) | <https://github.com/prettier/prettier> | Copyright Â© James Long and contributors |
+| `tests/fixtures/presets/json-prettier-compat/`, `yaml-prettier-compat/`, and `playbook` in `yaml-default/` (Prettier test inputs and snapshots) | <https://github.com/prettier/prettier> | Copyright © James Long and contributors |
 | `tests/fixtures/presets/csharp-microsoft/` (code blocks of "Common C# code conventions") | <https://github.com/dotnet/docs> (`LICENSE-CODE`) | Copyright (c) Microsoft Corporation |
 
 The conformance corpora under `tests/conformance/corpus/` are fetched by the scripts next to them

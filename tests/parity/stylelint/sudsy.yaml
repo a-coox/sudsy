@@ -68,3 +68,20 @@ css:
       custom-property-no-missing-var-function: warn
       named-grid-areas-no-invalid: warn
       selector-no-qualifying-type: warn
+      property-no-unknown: warn
+      at-rule-no-unknown: warn
+      unit-no-unknown: warn
+      function-no-unknown: warn
+      media-feature-name-no-unknown: warn
+      selector-pseudo-class-no-unknown: warn
+      selector-pseudo-element-no-unknown: warn
+      selector-type-no-unknown: warn
+      property-no-vendor-prefix: warn
+      value-no-vendor-prefix: warn
+      selector-no-vendor-prefix: warn
+      at-rule-no-vendor-prefix: warn
+      media-feature-name-no-vendor-prefix: warn
+      at-rule-no-deprecated: warn
+      property-no-deprecated: warn
+      selector-no-deprecated: warn
+      media-type-no-deprecated: warn

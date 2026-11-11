@@ -1,0 +1,14 @@
+@nest a {}
+^^^^^ at-rule-no-deprecated
+a { word-wrap: break-word; clip: rect(0 0 0 0); -webkit-box-flex: 1; grid-gap: 1px }
+//  ^^^^^^^^^ property-no-deprecated
+//                         ^^^^ property-no-deprecated
+//                                              ^^^^^^^^^^^^^^^^ property-no-deprecated
+//                                                                   ^^^^^^^^ property-no-deprecated
+@media tv, only handheld and (color), print {}
+//     ^^ media-type-no-deprecated
+//              ^^^^^^^^ media-type-no-deprecated
+center, a:matches(b), a::content, b {}
+^^^^^^ selector-no-deprecated
+//        ^^^^^^^^^^ selector-no-deprecated
+//                       ^^^^^^^ selector-no-deprecated

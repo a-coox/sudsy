@@ -2,6 +2,8 @@
 css:
   lint:
     rules:
+      at-rule-no-deprecated: error
+      at-rule-no-unknown: error
       block-no-empty: error
       color-no-invalid-hex: error
       comment-no-empty: error
@@ -18,6 +20,8 @@ css:
       function-linear-gradient-no-nonstandard-direction: error
       keyframe-block-no-duplicate-selectors: error
       keyframe-declaration-no-important: error
+      media-feature-name-no-unknown: error
+      media-type-no-deprecated: error
       named-grid-areas-no-invalid: error
       no-descending-specificity: error
       no-duplicate-at-import-rules: error
@@ -26,4 +30,13 @@ css:
       no-invalid-double-slash-comments: error
       no-invalid-position-at-import-rule: error
       no-invalid-position-declaration: error
+      property-no-deprecated: error
+      property-no-unknown: error
       selector-anb-no-unmatchable: error
+      selector-no-deprecated: error
+      selector-pseudo-class-no-unknown: error
+      selector-pseudo-element-no-unknown: error
+      selector-type-no-unknown:
+        level: error
+        options:
+          ignore: ["/-/"]

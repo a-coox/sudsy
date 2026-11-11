@@ -1,0 +1,4 @@
+at-rule-no-deprecated: warn
+property-no-deprecated: warn
+selector-no-deprecated: warn
+media-type-no-deprecated: warn

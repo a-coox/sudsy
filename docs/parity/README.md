@@ -37,9 +37,9 @@ One line per upstream rule or option under `entries:`, `<id>: <status>` or `<id>
 | shellcheck | 520 | 17 | 8 | 0 | 0 | 0 | 495 | 0 |
 | shfmt | 9 | 1 | 1 | 0 | 0 | 3 | 4 | 0 |
 | stylecop | 197 | 120 | 10 | 1 | 45 | 21 | 0 | 1 |
-| stylelint | 150 | 75 | 0 | 71 | 0 | 0 | 4 | 71 |
+| stylelint | 150 | 84 | 8 | 54 | 0 | 0 | 4 | 54 |
 | stylelint-less | 6 | 0 | 0 | 5 | 0 | 0 | 1 | 5 |
-| stylelint-scss | 71 | 0 | 0 | 70 | 0 | 0 | 1 | 70 |
+| stylelint-scss | 71 | 1 | 2 | 67 | 0 | 0 | 1 | 67 |
 | taplo | 23 | 11 | 7 | 0 | 0 | 0 | 5 | 0 |
 | terraform | 2 | 1 | 1 | 0 | 0 | 0 | 0 | 0 |
 | tflint | 20 | 8 | 4 | 0 | 0 | 0 | 8 | 0 |

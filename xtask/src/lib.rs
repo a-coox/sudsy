@@ -4,12 +4,14 @@
 //! (`xtask-full`) builds the languages and writes what derives from them (schema, docs, editor
 //! lists). `cargo xtask codegen --check` (and the `codegen_is_fresh` test) fails when either is stale.
 
+mod css_data;
 mod lang_crate;
 mod mapping;
 mod new_rule;
 mod options;
 mod registry;
 
+pub use css_data::generate as css_data;
 pub use new_rule::new_rule;
 
 use anyhow::{Context, Result, ensure};
