@@ -1,0 +1,81 @@
+tool: "stylelint-scss"
+version: "7.4.0"
+languages: ["scss"]
+sources:
+  - "https://github.com/stylelint-scss/stylelint-scss/tree/v7.4.0/src/rules"
+  - "https://github.com/stylelint-scss/stylelint-scss#list-of-rules"
+scope: "stylelint-scss rules, written `scss/<name>` upstream (the ids keep the prefix); the core rules it extends for SCSS are in stylelint.yaml"
+entries:
+  scss/at-each-key-value-single-line: planned
+  scss/at-else-closing-brace-newline-after: planned
+  scss/at-else-closing-brace-space-after: planned
+  scss/at-else-empty-line-before: planned
+  scss/at-else-if-parentheses-space-before: planned
+  scss/at-extend-no-missing-placeholder: planned
+  scss/at-function-named-arguments: planned
+  scss/at-function-parentheses-space-before: planned
+  scss/at-function-pattern: planned
+  scss/at-if-closing-brace-newline-after: planned
+  scss/at-if-closing-brace-space-after: planned
+  scss/at-if-no-null: planned
+  scss/at-import-partial-extension-allowed-list: planned
+  scss/at-import-partial-extension-disallowed-list: planned
+  scss/at-mixin-argumentless-call-parentheses: planned
+  scss/at-mixin-named-arguments: planned
+  scss/at-mixin-no-risky-nesting-selector: planned
+  scss/at-mixin-parentheses-space-before: planned
+  scss/at-mixin-pattern: planned
+  scss/at-root-no-redundant: planned
+  scss/at-rule-conditional-no-parentheses: planned
+  scss/at-rule-no-unknown: planned
+  scss/at-use-no-redundant-alias: planned
+  scss/at-use-no-unnamespaced: planned
+  scss/block-no-redundant-nesting: planned
+  scss/comment-no-empty: planned
+  scss/comment-no-loud: planned
+  scss/declaration-nested-properties: planned
+  scss/declaration-nested-properties-no-divided-groups: planned
+  scss/dimension-no-non-numeric-values: planned
+  scss/dollar-variable-colon-newline-after: planned
+  scss/dollar-variable-colon-space-after: planned
+  scss/dollar-variable-colon-space-before: planned
+  scss/dollar-variable-default: planned
+  scss/dollar-variable-empty-line-after: planned
+  scss/dollar-variable-empty-line-before: planned
+  scss/dollar-variable-first-in-block: planned
+  scss/dollar-variable-no-missing-interpolation: planned
+  scss/dollar-variable-no-namespaced-assignment: planned
+  scss/dollar-variable-pattern: planned
+  scss/double-slash-comment-empty-line-before: planned
+  scss/double-slash-comment-inline: planned
+  scss/double-slash-comment-whitespace-inside: planned
+  scss/function-calculation-no-interpolation: planned
+  scss/function-color-channel: planned
+  scss/function-color-relative: planned
+  scss/function-disallowed-list: planned
+  scss/function-no-unknown: planned
+  scss/function-quote-no-quoted-strings-inside: planned
+  scss/function-unquote-no-unquoted-strings-inside: planned
+  scss/load-no-partial-leading-underscore: planned
+  scss/load-partial-extension: planned
+  scss/map-keys-quotes: planned
+  scss/media-feature-value-dollar-variable: planned
+  scss/no-dollar-variables: planned
+  scss/no-duplicate-dollar-variables: planned
+  scss/no-duplicate-load-rules: planned
+  scss/no-duplicate-mixins: planned
+  scss/no-global-function-names: planned
+  scss/no-unused-private-members: planned
+  scss/operator-no-newline-after: planned
+  scss/operator-no-newline-before: planned
+  scss/operator-no-unspaced: planned
+  scss/partial-no-import: planned
+  scss/percent-placeholder-pattern: planned
+  scss/property-no-unknown: planned
+  scss/selector-class-pattern: planned
+  scss/selector-nest-combinators: planned
+  scss/selector-no-redundant-nesting-selector: planned
+  scss/selector-no-union-class-name: planned
+deferred:
+  - gap: "Needs the CSS value-syntax grammar (the property and at-rule syntaxes of mdn-data), which the table rules of step 6 do not provide."
+    ids: [scss/declaration-property-value-no-unknown]

@@ -127,7 +127,7 @@ def markdownlint(install, folder):
 
 
 def rule_fixtures(tool, sudsy, version, prefix, exe):
-    """Runs the tool (hadolint, shellcheck, checkmake) and `sudsy lint` on the rule fixtures of its language
+    """Runs the tool (hadolint, shellcheck, checkmake, stylelint) and `sudsy lint` on the rule fixtures of its language
     (tests/rules/<lang>/<folder>/*<suffix>, annotations removed) and compares `(rule, line)` of the
     catalog's rules: upstream codes the catalog does not map are left out.
     `tests/parity/<tool>/differences.yaml` lists known differences under the key
@@ -146,6 +146,10 @@ def rule_fixtures(tool, sudsy, version, prefix, exe):
         # flat config of the catalog's rules (written below); espree parses .js, the TypeScript syntax is typescript-eslint's later
         "eslint": ("js", ".js", ["node", f"{prefix}/node_modules/eslint/bin/eslint.js", "-c", "eslint.config.mjs", "-f", "json"],
                    lambda d: (d["ruleId"], d["line"]), lambda out: [m for r in json.loads(out) for m in r["messages"] if m["ruleId"]]),
+        # stylelint writes its JSON report to stderr; the plugins and the dialect parser come from the config written below
+        **{t: (lang, "." + lang, ["node", f"{prefix}/node_modules/stylelint/bin/stylelint.mjs", "--config", "stylelint.config.mjs", "-f", "json"],
+               lambda d: (d["rule"], d["line"]), lambda out: [w for r in json.loads(out) for w in r["warnings"]])
+           for t, lang in (("stylelint", "css"), ("stylelint-scss", "scss"), ("stylelint-less", "less"))},
         "checkmake": ("makefile", ".mk", [exe, "--format", '{"rule":"{{.Rule}}","line":{{.LineNumber}}}'],
                       lambda d: (d["rule"], d["line"]),
                       lambda out: [json.loads(l) for l in out.splitlines() if l.startswith("{")]),
@@ -157,6 +161,10 @@ def rule_fixtures(tool, sudsy, version, prefix, exe):
     work.mkdir(parents=True)
     if tool == "eslint":
         (work / "eslint.config.mjs").write_text(f"export default [{{ rules: {json.dumps({r: 'error' for r in mapping})} }}];\n", encoding="utf-8")
+    if tool.startswith("stylelint"):
+        plugin = {"stylelint-scss": 'plugins: ["stylelint-scss"], customSyntax: "postcss-scss", ', "stylelint-less": 'plugins: ["stylelint-less"], customSyntax: "postcss-less", '}.get(tool, "")
+        # shortcut: every mapped rule runs with `true`; a rule that needs primary options gets them here when it is mapped
+        (work / "stylelint.config.mjs").write_text(f"export default {{ {plugin}rules: {json.dumps({r: True for r in mapping})} }};\n", encoding="utf-8")
     for config in ("sudsy.yaml", "buf.yaml"):
         if (folder / config).exists():
             shutil.copy(folder / config, work / config)
@@ -183,7 +191,8 @@ def rule_fixtures(tool, sudsy, version, prefix, exe):
         fixture = where / name
         fixture.write_text(text, encoding="utf-8", newline="")
         rel = fixture.relative_to(work).as_posix()
-        out = subprocess.run(command + [rel], cwd=work, capture_output=True, text=True, check=False).stdout
+        run = subprocess.run(command + [rel], cwd=work, capture_output=True, text=True, check=False)
+        out = run.stdout or run.stderr  # stylelint reports on stderr
         # checkmake runs every rule on every file: a fixture is compared on the rule of its folder, and
         # checkmake reports a variable (and `.PHONY`, which it reads as one) a line late.
         late = {"timestampexpanded", "minphony"} if tool == "checkmake" else set()
@@ -373,7 +382,7 @@ def main():
         return stylecop(sudsy, version)
     if tool == "psscriptanalyzer":
         return psscriptanalyzer(sudsy, version, prefix)
-    if tool in ("hadolint", "shellcheck", "checkmake", "actionlint", "buf", "eslint"):
+    if tool in ("hadolint", "shellcheck", "checkmake", "actionlint", "buf", "eslint", "stylelint", "stylelint-scss", "stylelint-less"):
         exe = parity_format.tools()["format"][config["install"]] if isinstance(config["install"], str) else config
         return rule_fixtures(tool, sudsy, version, prefix, str(parity_format.executable(prefix, exe["install"].get("exe", ""))))
     mapping = rule_map(tool)

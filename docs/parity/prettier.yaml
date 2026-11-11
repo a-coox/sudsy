@@ -1,13 +1,13 @@
 tool: "prettier"
 version: "3.9.10 (npm latest; the options page does not print the version)"
-languages: ["yaml", "json", "markdown", "graphql", "js"]
+languages: ["yaml", "json", "markdown", "graphql", "js", "css"]
 sources:
   - "https://registry.npmjs.org/prettier/latest"
   - "https://prettier.io/docs/options"
   - "https://prettier.io/docs/rationale"
   - "https://raw.githubusercontent.com/prettier/prettier/main/src/language-yaml/options.js (YAML-specific options: bracketSpacing, singleQuote, proseWrap)"
   - "https://prettier.io/blog/2024/01/12/3.2.0"
-scope: "YAML, JSON/JSONC, Markdown, GraphQL and JavaScript/TypeScript (js); formatter has no lint rules"
+scope: "YAML, JSON/JSONC, Markdown, GraphQL, JavaScript/TypeScript (js) and CSS/SCSS/Less (css); formatter has no lint rules"
 entries:
   printWidth: option json.format.line_width
   tabWidth: option json.format.indent_size
@@ -58,3 +58,11 @@ entries:
   "js: // prettier-ignore": "planned | docs/design/wave-3b-js.md step 9"
   "js: embedded CSS/GraphQL/HTML/Markdown in templates": "deferred | formatted by those languages' own formatters later"
   "js: Flow syntax": "wontfix not supported by the parser; reported as a syntax error"
+  printWidth (css): "planned | css.format.line_width"
+  tabWidth (css): "planned | css.format.indent_size"
+  useTabs (css): "planned | css.format.indent_style"
+  endOfLine (css): "planned | css.format.end_of_line"
+  singleQuote (css): "planned | css.format.single_quote"
+  "css: formatting (css, scss, less)": "planned | docs/design/wave-3b-css.md steps 3-4; the parser and a verbatim formatter come first"
+  "css: /* prettier-ignore */": "planned | docs/design/wave-3b-css.md step 3"
+  "css: Sass indented syntax": "wontfix Prettier does not format it either"

@@ -31,12 +31,15 @@ One line per upstream rule or option under `entries:`, `<id>: <status>` or `<id>
 | graphql-eslint | 35 | 4 | 6 | 0 | 0 | 0 | 25 | 0 |
 | hadolint | 71 | 38 | 10 | 0 | 0 | 1 | 22 | 0 |
 | markdownlint | 53 | 25 | 16 | 0 | 0 | 0 | 12 | 0 |
-| prettier | 49 | 17 | 5 | 17 | 0 | 9 | 1 | 17 |
+| prettier | 57 | 17 | 5 | 24 | 0 | 10 | 1 | 24 |
 | psscriptanalyzer | 75 | 12 | 8 | 0 | 0 | 1 | 54 | 0 |
 | roslynator | 67 | 23 | 7 | 16 | 18 | 1 | 2 | 16 |
 | shellcheck | 520 | 17 | 8 | 0 | 0 | 0 | 495 | 0 |
 | shfmt | 9 | 1 | 1 | 0 | 0 | 3 | 4 | 0 |
 | stylecop | 197 | 120 | 10 | 1 | 45 | 21 | 0 | 1 |
+| stylelint | 150 | 0 | 0 | 146 | 0 | 0 | 4 | 146 |
+| stylelint-less | 6 | 0 | 0 | 5 | 0 | 0 | 1 | 5 |
+| stylelint-scss | 71 | 0 | 0 | 70 | 0 | 0 | 1 | 70 |
 | taplo | 23 | 11 | 7 | 0 | 0 | 0 | 5 | 0 |
 | terraform | 2 | 1 | 1 | 0 | 0 | 0 | 0 | 0 |
 | tflint | 20 | 8 | 4 | 0 | 0 | 0 | 8 | 0 |

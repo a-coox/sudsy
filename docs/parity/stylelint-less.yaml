@@ -1,0 +1,16 @@
+tool: "stylelint-less"
+version: "4.2.2"
+languages: ["less"]
+sources:
+  - "https://github.com/stylelint-less/stylelint-less/tree/v4.2.2/src/rules"
+  - "https://github.com/stylelint-less/stylelint-less#list-of-rules"
+scope: "stylelint-less rules, written `less/<name>` upstream (the ids keep the prefix)"
+entries:
+  less/color-hex-case: planned
+  less/color-no-hex: planned
+  less/color-no-invalid-hex: planned
+  less/container-name-pattern: planned
+  less/no-duplicate-variables: planned
+deferred:
+  - gap: "Needs the CSS value-syntax grammar (the property and at-rule syntaxes of mdn-data), which the table rules of step 6 do not provide."
+    ids: [less/declaration-property-value-no-unknown]

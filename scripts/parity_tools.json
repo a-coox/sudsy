@@ -28,6 +28,22 @@
         {"dir": "tests/conformance/corpus/js", "suffixes": [".js", ".jsx", ".mjs", ".cjs", ".ts", ".tsx", ".mts", ".cts"], "skip": "prettier/", "prefix": "corpus/", "ratchet": "real-world", "recursive": true}
       ]
     },
+    "prettier-css": {
+      "catalog": "prettier",
+      "install": {"npm": "prettier"},
+      "fetch": ["tests/conformance/fetch-css-corpus.sh"],
+      "command": ["node", "{prefix}/node_modules/prettier/bin/prettier.cjs", "--no-config", "--no-editorconfig", "{file}"],
+      "input": "arg",
+      "tool_may_reject": true,
+      "parallel": true,
+      "quiet": true,
+      "fixtures": [
+        {"dir": "tests/conformance/corpus/css", "suffixes": [".css"], "only": "prettier/tests/format/css/", "ratchet": "prettier-css", "recursive": true},
+        {"dir": "tests/conformance/corpus/css", "suffixes": [".scss"], "only": "prettier/tests/format/scss/", "ratchet": "prettier-scss", "recursive": true},
+        {"dir": "tests/conformance/corpus/css", "suffixes": [".less"], "only": "prettier/tests/format/less/", "ratchet": "prettier-less", "recursive": true},
+        {"dir": "tests/conformance/corpus/css", "suffixes": [".css", ".scss", ".less"], "skip": "prettier/", "prefix": "corpus/", "ratchet": "real-world", "recursive": true}
+      ]
+    },
     "biome": {
       "catalog": "biome",
       "install": {"npm": "@biomejs/biome"},
@@ -166,6 +182,9 @@
     "yamllint": {"catalog": "yamllint", "install": {"pip": "yamllint"}},
     "eslint": {"catalog": "eslint", "install": {"npm": "eslint"}, "fetch": ["tests/conformance/fetch-js-corpus.sh"]},
     "eslint-jsonc": {"catalog": "eslint-plugin-jsonc", "install": {"npm": "eslint-plugin-jsonc", "with": ["eslint@9"]}},
+    "stylelint": {"catalog": "stylelint", "install": {"npm": "stylelint"}},
+    "stylelint-scss": {"catalog": "stylelint-scss", "install": {"npm": "stylelint-scss", "with": ["stylelint@17.16.0", "postcss-scss@4.0.9"]}},
+    "stylelint-less": {"catalog": "stylelint-less", "install": {"npm": "stylelint-less", "with": ["stylelint@17.16.0", "postcss-less@7.0.1"]}},
     "markdownlint": {"catalog": "markdownlint", "install": {"npm": "markdownlint-cli2"}},
     "hadolint": {
       "catalog": "hadolint",
