@@ -134,6 +134,12 @@ pub(crate) fn function(
         signature.push(cx.format(tp)?);
         at += 1;
     }
+    let object_return = kids.iter().filter_map(node_of).any(|n| {
+        n.kind() == k::TS_TYPE_ANNOTATION
+            && n.children()
+                .next()
+                .is_some_and(|t| matches!(t.kind(), k::TS_TYPE_LITERAL | k::TS_MAPPED_TYPE))
+    });
     let hugged = flags & (Flags::EXPAND | Flags::TEST) != 0;
     // A function hugged as a call argument keeps its parameters on one line.
     let flatten = |params: Doc| -> Option<Doc> {
@@ -148,7 +154,11 @@ pub(crate) fn function(
     let params = match kids.get(at) {
         Some(SyntaxElement::Node(fp)) if fp.kind() == k::FORMAL_PARAMETERS => {
             at += 1;
-            match flatten(parameters(cx, &super::util::kids(cx, fp))?) {
+            match flatten(parameters_in(
+                cx,
+                &super::util::kids(cx, fp),
+                Some(object_return),
+            )?) {
                 Some(p) => p,
                 None => return Ok(None),
             }
@@ -159,7 +169,7 @@ pub(crate) fn function(
                 .iter()
                 .position(|e| super::util::is_tok(e, ")"))
                 .ok_or_else(|| shape_error("parameters"))?;
-            let params = parameters(cx, &kids[at..=at + close])?;
+            let params = parameters_in(cx, &kids[at..=at + close], Some(object_return))?;
             at += close + 1;
             match flatten(params) {
                 Some(p) => p,
@@ -185,21 +195,66 @@ pub(crate) fn function(
     Ok(Some(concat(parts)))
 }
 
+/// A lone parameter that hugs the parentheses: a destructuring pattern, or a name with an object
+/// type (`(options: { a: A }) => ..`).
+fn hugs_parentheses(param: &SyntaxNode) -> bool {
+    match (param.kind(), param.children().next()) {
+        (k::FORMAL_PARAMETER, Some(c))
+            if matches!(c.kind(), k::OBJECT_PATTERN | k::ARRAY_PATTERN) =>
+        {
+            true
+        }
+        (k::FORMAL_PARAMETER | k::TS_THIS_PARAMETER, _) => param.children().any(|c| {
+            c.kind() == k::TS_TYPE_ANNOTATION
+                && c.children()
+                    .next()
+                    .is_some_and(|t| matches!(t.kind(), k::TS_TYPE_LITERAL | k::TS_MAPPED_TYPE))
+        }),
+        _ => false,
+    }
+}
+
 /// `(a, b)`, one per line with a trailing comma when too long; a lone object pattern hugs the
 /// parentheses. `elems` runs from `(` to `)`.
 pub(crate) fn parameters(cx: &FormatCtx<'_>, elems: &[SyntaxElement]) -> R {
+    parameters_in(cx, elems, None)
+}
+
+/// [`parameters`] for a signature that groups the parameters with its return type, as Prettier
+/// does: `Some(object_return)` leaves them ungrouped, but for a lone parameter of a function
+/// that returns an object type.
+pub(crate) fn parameters_in(
+    cx: &FormatCtx<'_>,
+    elems: &[SyntaxElement],
+    ungrouped: Option<bool>,
+) -> R {
     let (Some(open), Some(close)) = (
         elems.first().and_then(token_of),
         elems.last().and_then(token_of),
     ) else {
         return Err(shape_error("parameters"));
     };
-    let items: Vec<&SyntaxNode> = elems[1..elems.len() - 1]
-        .iter()
-        .filter_map(node_of)
-        .collect();
-    let hugs = matches!(&items[..], [only] if only.kind() == k::FORMAL_PARAMETER
-        && only.children().next().is_some_and(|c| c.kind() == k::OBJECT_PATTERN));
+    // The comments of each comma stay after it.
+    let mut items: Vec<&SyntaxNode> = Vec::new();
+    let mut commas: Vec<Doc> = Vec::new();
+    for e in &elems[1..elems.len() - 1] {
+        match e {
+            SyntaxElement::Node(n) => {
+                items.push(n);
+                commas.push(Doc::Nil);
+            }
+            SyntaxElement::Token(t) if t.text() == "," => {
+                if let Some(c) = commas.last_mut() {
+                    *c = concat(vec![
+                        cx.leading_comments_doc(t),
+                        cx.trailing_comments_doc(t),
+                    ]);
+                }
+            }
+            SyntaxElement::Token(_) => {}
+        }
+    }
+    let hugs = matches!(&items[..], [only] if hugs_parentheses(only));
     let ends_in_rest = items
         .last()
         .is_some_and(|n| n.kind() == k::FORMAL_PARAMETER_REST);
@@ -210,20 +265,40 @@ pub(crate) fn parameters(cx: &FormatCtx<'_>, elems: &[SyntaxElement]) -> R {
     if docs.is_empty() || hugs {
         return Ok(concat(vec![cx.token(open), concat(docs), cx.token(close)]));
     }
-    Ok(group(concat(vec![
-        cx.token(open),
-        indent(concat(vec![
-            softline(),
-            doc::join(&concat(vec![lit(","), line()]), docs),
-        ])),
-        if ends_in_rest {
-            Doc::Nil
+    // Several parameters, one a parameter property (`private a: A`): one per line.
+    let property = items.len() > 1
+        && items.iter().any(|p| {
+            p.children_with_tokens().any(|e| {
+                matches!(&e, SyntaxElement::Token(t) if matches!(t.text(),
+                "public" | "private" | "protected" | "readonly" | "override"))
+            })
+        });
+    let grouped = ungrouped.is_none_or(|object_return| object_return && items.len() == 1);
+    let last = docs.len() - 1;
+    let mut list = Vec::new();
+    for (i, (d, c)) in docs.into_iter().zip(commas).enumerate() {
+        list.push(d);
+        if i < last {
+            list.extend([lit(","), c, line()]);
         } else {
-            if_break(lit(","), Doc::Nil)
+            if !ends_in_rest {
+                list.push(if_break(lit(","), Doc::Nil));
+            }
+            list.push(c);
+        }
+    }
+    let body = concat(vec![
+        if property {
+            doc::break_parent()
+        } else {
+            Doc::Nil
         },
+        cx.token(open),
+        indent(concat(vec![softline(), concat(list)])),
         softline(),
         cx.token(close),
-    ])))
+    ]);
+    Ok(if grouped { group(body) } else { body })
 }
 
 /// `import a, { b } from "x" with { type: "json" };`, `export { a } from "x";`, `export * ...`.

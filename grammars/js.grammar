@@ -36,6 +36,8 @@ token Arrow "=>" #punctuation
 token Question "?" #punctuation
 token QuestionDot "?." #punctuation
 token At "@" #punctuation
+// `|` inside a union type: its bars come and go with the layout, so the safety check ignores them (a bitwise `|` is an `Operator`).
+token Pipe "|" #punctuation #separator
 // Every other operator: `+`, `===`, `=`, `??=`, `/`, `!`, ...
 token Operator #punctuation
 // Reserved words and `true`, `false`, `null`; contextual words (`of`, `type`, `async`, ...) are identifiers.

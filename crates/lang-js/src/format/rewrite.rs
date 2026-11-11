@@ -3,6 +3,8 @@
 //! dropped here, and the tree is read again (`NodeFormatter::rewrite_source`).
 //! - Semicolons that mean nothing (`};`, `;;`, a `;` after a class method) are dropped, as
 //!   Prettier does.
+//! - Parentheses around a type that its place does not need, and a leading `&` or lone `|` of a
+//!   type (`format/ts/parens.rs`).
 //! - `new Foo` becomes `new Foo()` and an arrow's lone parameter gets its parentheses.
 
 use crate::generated::kind as k;
@@ -46,6 +48,11 @@ pub(crate) fn rewrite(tree: &SyntaxNode, text: &str, grammar: &Grammar) -> Optio
                 }) =>
             {
                 semicolons(&node).into_iter().for_each(&mut cut)
+            }
+            k::TS_PARENTHESIZED_TYPE | k::TS_UNION_TYPE | k::TS_INTERSECTION_TYPE => {
+                super::ts::redundant_type_tokens(&node, grammar)
+                    .into_iter()
+                    .for_each(&mut cut)
             }
             k::NEW_EXPRESSION
                 if !node

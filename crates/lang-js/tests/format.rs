@@ -117,3 +117,80 @@ fn prettier_ignore_keeps_a_statement() {
         "// prettier-ignore\nlet   a  =  'x'\nlet b = \"y\";\n"
     );
 }
+
+#[test]
+fn typescript_types_and_declarations() {
+    assert_eq!(
+        fmt(
+            r#"type A = "aaaaaaaaaaaaaaaaaaaaaaa" | "bbbbbbbbbbbbbbbbbbbbbbbbbbb" | "cccccccccccccccccccccc" | "dddddddddd";
+type B<T> = (T extends string ? "a" : T extends number ? "b" : "cccccccccccccccccccccccccccccccccccccccccccc");
+type C = { readonly [K in keyof T as `get${K}`]-?: T[K] } & { a: string, b?: number };
+interface D<T extends object = {}> extends E, F { a: string; readonly b?: number, [key: string]: any; m<U>(x: U): void; new (x: number): D<T> }
+enum G { A = 1, B, C = "c" }
+declare module "m" { export function f(a: (string | number)[], b: Array<(() => void)>): void; }
+namespace H.I { export const x = 1 }
+abstract class J<T> extends K<T> implements L, M { abstract m(): void; constructor(private a: string, readonly b = 1) { super() } }
+function f<T extends keyof U, U>(this: Window, a: T, ...rest: U[]): asserts a is T {}
+let v = x as unknown as B, w = <T>y!, z = a satisfies B;
+type N = [a: string, b?: number, ...rest: boolean[]];
+type O = (aaaaaaaaaaaaaaaaaaaaaaa: string, bbbbbbbbbbbbbbbbbbbbbbbbbbb: number, ccccccccccccccc: boolean) => void;
+"#
+        ),
+        r#"type A =
+  | "aaaaaaaaaaaaaaaaaaaaaaa"
+  | "bbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  | "cccccccccccccccccccccc"
+  | "dddddddddd";
+type B<T> = T extends string
+  ? "a"
+  : T extends number
+    ? "b"
+    : "cccccccccccccccccccccccccccccccccccccccccccc";
+type C = { readonly [K in keyof T as `get${K}`]-?: T[K] } & {
+  a: string;
+  b?: number;
+};
+interface D<T extends object = {}> extends E, F {
+  a: string;
+  readonly b?: number;
+  [key: string]: any;
+  m<U>(x: U): void;
+  new (x: number): D<T>;
+}
+enum G {
+  A = 1,
+  B,
+  C = "c",
+}
+declare module "m" {
+  export function f(a: (string | number)[], b: Array<() => void>): void;
+}
+namespace H.I {
+  export const x = 1;
+}
+abstract class J<T> extends K<T> implements L, M {
+  abstract m(): void;
+  constructor(
+    private a: string,
+    readonly b = 1,
+  ) {
+    super();
+  }
+}
+function f<T extends keyof U, U>(
+  this: Window,
+  a: T,
+  ...rest: U[]
+): asserts a is T {}
+let v = x as unknown as B,
+  w = <T>y!,
+  z = a satisfies B;
+type N = [a: string, b?: number, ...rest: boolean[]];
+type O = (
+  aaaaaaaaaaaaaaaaaaaaaaa: string,
+  bbbbbbbbbbbbbbbbbbbbbbbbbbb: number,
+  ccccccccccccccc: boolean,
+) => void;
+"#
+    );
+}

@@ -113,6 +113,7 @@ fn token_kind(kind: Kind) -> SyntaxKind {
         Kind::Question => k::QUESTION,
         Kind::QuestionDot => k::QUESTION_DOT,
         Kind::At => k::AT,
+        Kind::Pipe => k::PIPE,
         Kind::Ident => k::IDENTIFIER,
         Kind::Str => k::STRING,
         Kind::RegExp => k::REG_EXP,
@@ -239,6 +240,7 @@ impl<'a> Build<'a> {
         let mut nodes = nodes.iter().peekable();
         // The end of each open node, innermost last.
         let mut open: Vec<u32> = Vec::new();
+        let mut open_kinds: Vec<SyntaxKind> = Vec::new();
         let mut carry: Vec<Tok> = Vec::new();
         let mut gap: Vec<Tok> = Vec::new();
         let first = tokens.first().map_or(len, |t| t.start);
@@ -247,6 +249,7 @@ impl<'a> Build<'a> {
         while let Some(t) = real.next() {
             while open.last().is_some_and(|&end| end <= t.start) {
                 open.pop();
+                open_kinds.pop();
                 self.builder.finish_node();
             }
             while let Some(n) = nodes.next_if(|n| n.start <= t.start) {
@@ -257,10 +260,19 @@ impl<'a> Build<'a> {
                 let end = open.last().map_or(n.end, |&p| p.min(n.end));
                 self.builder.start_node(n.kind);
                 open.push(end);
+                open_kinds.push(n.kind);
             }
             for c in carry.drain(..) {
                 self.emit(c);
             }
+            // The bars of a union type are separators, a bitwise `|` an operator.
+            let t = match t.kind {
+                k::PIPE if open_kinds.last() != Some(&k::TS_UNION_TYPE) => Tok {
+                    kind: k::OPERATOR,
+                    ..t
+                },
+                _ => t,
+            };
             self.emit(t);
             if let Some(next) = real.peek() {
                 gap.clear();

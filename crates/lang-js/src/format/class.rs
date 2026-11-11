@@ -30,7 +30,22 @@ fn class(node: &SyntaxNode, cx: &FormatCtx<'_>) -> R {
     for e in &kids[..decorators] {
         parts.extend([elem(cx, e)?, hardline()]);
     }
-    parts.push(inline(cx, &kids[decorators..])?);
+    let rest = &kids[decorators..];
+    let body = rest
+        .last()
+        .and_then(node_of)
+        .filter(|b| b.kind() == k::CLASS_BODY);
+    let header = match body {
+        Some(b) => {
+            let printed = cx.format(b)?;
+            super::ts::class_header(cx, rest, &printed, b.children().next().is_none())?
+        }
+        None => None,
+    };
+    parts.push(match header {
+        Some(doc) => doc,
+        None => inline(cx, rest)?,
+    });
     Ok(concat(parts))
 }
 

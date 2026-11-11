@@ -17,6 +17,7 @@ mod rewrite;
 mod stmt;
 mod template;
 mod ternary;
+mod ts;
 mod unary;
 mod util;
 
@@ -45,6 +46,7 @@ const MODULES: &[Module] = &[
     arrow::format,
     unary::format,
     template::format,
+    ts::format,
     literal::format,
 ];
 

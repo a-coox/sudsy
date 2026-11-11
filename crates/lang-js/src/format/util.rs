@@ -94,7 +94,7 @@ fn gap(cx: &FormatCtx<'_>, a: &SyntaxElement, b: &SyntaxElement) -> Doc {
             | k::TS_TYPE_PARAMETER_INSTANTIATION
             | k::TS_TYPE_ANNOTATION => true,
             // A method's function follows its key: `m()`, `[k]()`, but `return function () {}`.
-            k::FUNCTION => matches!(a, SyntaxElement::Node(_)) || is_tok(a, "]"),
+            k::FUNCTION => matches!(a, SyntaxElement::Node(_)) || is_tok(a, "]") || is_tok(a, "?"),
             _ => false,
         },
     };
