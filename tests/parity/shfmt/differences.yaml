@@ -1,6 +1,6 @@
 differences:
   array-pipeline: gap  an array whose elements are a backslash-continued pipeline is kept as written
-  arith-spacing: gap  the operators inside `(( ))`, `$(( ))`, `for (( ))` and subscripts are kept as written (`i=0`, `a+1`, `i++ ))`); shfmt respaces them
+  arith-spacing: gap  `i++ ))` (a blank before `))` after `++`, which tree-sitter-bash lexes as one word) and the subscripts `${a[i+1]}` are kept as written; shfmt writes `i++))` and `${a[i + 1]}`
   expr-kept: choice  `${v//x}` is kept (the formatter never adds tokens); shfmt writes `${v//x/}`
   backticks: choice  backticks are kept (the formatter never changes tokens; the rule `no-backticks` fixes them); shfmt rewrites them to `$(...)`
   heredoc-tabs: choice  the tabs of a `<<-` heredoc body are kept (also inside `$(...)`); shfmt re-indents them
@@ -10,7 +10,7 @@ differences:
   case-in-if-indent: gap  the arms of a `case` used as an `if` condition are not indented a level further
   empty-file: choice  a file of one empty line becomes an empty file; shfmt keeps the line
 files:
-  corpus/bats-core/lib/bats-core/common.bash: arith-spacing, comment-column
+  corpus/bats-core/lib/bats-core/common.bash: comment-column
   corpus/bats-core/lib/bats-core/test_functions.bash: arith-spacing
   corpus/bats-core/lib/bats-core/tracing.bash: arith-spacing, continued-conditions, comment-column
   corpus/bats-core/test/fixtures/suite_setup_teardown/call_load/test_helper.bash: empty-file
@@ -19,10 +19,9 @@ files:
   corpus/install/uninstall.sh: heredoc-tabs
   corpus/install-scripts/src/dotnet-install.sh: arith-spacing, expr-kept
   corpus/nvm/install.sh: comment-column
-  corpus/nvm/nvm.sh: arith-spacing, expr-kept, comment-column, continued-conditions, case-last-arm
+  corpus/nvm/nvm.sh: expr-kept, comment-column, continued-conditions, case-last-arm
   corpus/pyenv/plugins/pyenv-binary/test/test_helper.bash: backticks, case-in-if-indent
   corpus/pyenv/plugins/pyenv-link/test/test_helper.bash: backticks, case-in-if-indent
-  corpus/pyenv/plugins/python-build/scripts/backport.sh: arith-spacing
   corpus/pyenv/pyenv.d/install/latest.bash: array-pipeline
   corpus/pyenv/test/test_helper.bash: backticks, case-in-if-indent
   corpus/rustup/rustup-init.sh: comment-column, case-last-arm

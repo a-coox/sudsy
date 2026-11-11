@@ -9,6 +9,7 @@ use core_format::shapes::dangling_comments;
 use core_format::{Doc, FormatCtx, FormatError, NodeFormatter, comments, doc};
 use core_syntax::{SyntaxElement, SyntaxNode, SyntaxToken, TextRange};
 
+mod arith;
 mod words;
 
 include!("schema.generated.rs");
@@ -440,8 +441,9 @@ fn heredoc(cx: &FormatCtx<'_>, node: &SyntaxNode) -> Result<Doc, FormatError> {
     Ok(doc::concat(parts))
 }
 
-/// `(( a ))` is `((a))`; the expression itself is kept as written. A blank before `))` goes only
-/// with `tail`: tree-sitter makes `++ ))` one token, whose text then must stay.
+/// `(( a ))` is `((a))` and the operators inside are spaced like shfmt does ([`arith`]). A blank
+/// before `))` goes only with `tail`: tree-sitter makes `++ ))` one token, whose text then must
+/// stay.
 fn unpadded(text: &str, tail: bool) -> String {
     let at = text.find("((").unwrap_or(0);
     match text[at..]
@@ -452,19 +454,25 @@ fn unpadded(text: &str, tail: bool) -> String {
             if !inner.contains('\n')
                 && (at == 0 || matches!(text[..at].trim_end(), "for" | "$")) =>
         {
-            let inner = inner.trim_start_matches([' ', '\t']);
+            let for_c = at > 0 && text[..at].trim_end() == "for";
+            let rest = inner.trim_end_matches([' ', '\t']);
+            let Some(spaced) = arith::respace(rest, for_c, &text[..at] == "$") else {
+                let inner = inner.trim_start_matches([' ', '\t']);
+                let inner = if tail {
+                    inner.trim_end_matches([' ', '\t'])
+                } else {
+                    inner
+                };
+                return format!("{}(({inner}))", &text[..at]);
+            };
             // An empty initializer keeps its blank: `for (( ; a; b))`.
-            let pad = if at > 0 && inner.starts_with(';') {
+            let pad = if for_c && spaced.starts_with(';') {
                 " "
             } else {
                 ""
             };
-            let inner = if tail {
-                inner.trim_end_matches([' ', '\t'])
-            } else {
-                inner
-            };
-            format!("{}(({pad}{inner}))", &text[..at])
+            let blanks = if tail { "" } else { &inner[rest.len()..] };
+            format!("{}(({pad}{spaced}{blanks}))", &text[..at])
         }
         _ => text.to_string(),
     }
