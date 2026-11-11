@@ -34,6 +34,12 @@ sha2 = "0.11"
 tempfile = "3"
 thiserror = "2"
 tree-sitter = "0.27"
+# oxc is pre-1.0 and breaks its AST about weekly: pinned exactly, bumped by hand only (dependabot ignores it).
+oxc_allocator = "=0.158.0"
+oxc_ast = "=0.158.0"
+oxc_ast_visit = "=0.158.0"
+oxc_parser = "=0.158.0"
+oxc_span = "=0.158.0"
 pulldown-cmark = { version = "0.13", default-features = false, features = ["html"] }
 # generated:grammars
 tree-sitter-containerfile = "0.9"
@@ -63,6 +69,7 @@ core-format = { path = "crates/core-format" }
 core-workspace = { path = "crates/core-workspace" }
 lang-csharp = { path = "crates/lang-csharp" }
 lang-json = { path = "crates/lang-json" }
+lang-js = { path = "crates/lang-js" }
 lang-yaml = { path = "crates/lang-yaml" }
 lang-github-actions = { path = "crates/lang-github-actions" }
 # generated:languages

@@ -1,0 +1,6 @@
+options:
+  - line_width: 80
+  - indent_size: 2
+  - indent_style
+  - final_newline: true
+  - end_of_line

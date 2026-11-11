@@ -17,6 +17,7 @@
   "activationEvents": [
     "onLanguage:json",
     "onLanguage:jsonc",
+    "onLanguage:js",
     "onLanguage:yaml",
     "onLanguage:dockerfile",
     "onLanguage:editorconfig",

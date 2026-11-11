@@ -15,6 +15,9 @@ the copyright line of that project.
 | `bench/inputs/cs/*.cs` (System.Private.CoreLib sources) and `tests/fixtures/presets/csharp-dotnet-runtime/` (the "Example File" of `docs/coding-guidelines/coding-style.md`) | <https://github.com/dotnet/runtime> | Copyright (c) .NET Foundation and Contributors. All rights reserved. |
 | `bench/inputs/json/*.json` (from `test_parsing`) | <https://github.com/nst/JSONTestSuite> | Copyright (c) 2016 Nicolas Seriot |
 | `bench/inputs/yaml/*.yaml` (from the `data` branch) | <https://github.com/yaml/yaml-test-suite> | Copyright (c) 2016-2020 Ingy döt Net |
+| `bench/inputs/js/mui-*` (`Button.js`, `Autocomplete.js` of v6.1.0) | <https://github.com/mui/material-ui> | Copyright (c) 2014 Call-Em-All |
+| `bench/inputs/js/vue-renderer.ts` (`runtime-core/src/renderer.ts` of v3.5.13) | <https://github.com/vuejs/core> | Copyright (c) 2018-present, Yuxi (Evan) You and Vue contributors |
+| `bench/inputs/js/excalidraw-color-picker.tsx` (v0.18.0) | <https://github.com/excalidraw/excalidraw> | Copyright (c) 2020 Excalidraw |
 | `tests/fixtures/presets/json-prettier-compat/`, `yaml-prettier-compat/`, and `playbook` in `yaml-default/` (Prettier test inputs and snapshots) | <https://github.com/prettier/prettier> | Copyright © James Long and contributors |
 | `tests/fixtures/presets/csharp-microsoft/` (code blocks of "Common C# code conventions") | <https://github.com/dotnet/docs> (`LICENSE-CODE`) | Copyright (c) Microsoft Corporation |
 

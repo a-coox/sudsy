@@ -27,11 +27,21 @@ fn measured(f: &mut dyn FnMut() -> usize) -> (usize, u64) {
 /// extension the folder would be named for.
 const WORKFLOWS: &str = "github-actions";
 
+/// Whether the files of the folder `lang` include the extension `ext`: its own, and for `js` the
+/// other extensions of the language.
+fn claims(lang: &str, ext: &std::ffi::OsStr) -> bool {
+    ext == lang
+        || lang == "js"
+            && ["mjs", "cjs", "jsx", "ts", "mts", "cts", "tsx"]
+                .iter()
+                .any(|e| ext == *e)
+}
+
 pub(crate) fn texts(lang: &str, dir: &Path) -> Result<Vec<(String, String)>> {
     let mut out = Vec::new();
     let mut names: Vec<_> = std::fs::read_dir(dir.join(lang))?
         .filter_map(|e| e.ok().map(|e| e.path()))
-        .filter(|p| lang == WORKFLOWS || p.extension().is_some_and(|e| e == lang))
+        .filter(|p| lang == WORKFLOWS || p.extension().is_some_and(|e| claims(lang, e)))
         .collect();
     names.sort();
     for p in names {

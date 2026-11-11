@@ -5,6 +5,8 @@ updates:
     directory: /
     schedule: { interval: monthly }
     groups: { cargo: { patterns: ["*"] } }
+    # oxc breaks its AST about weekly: bumped by hand (kind table + adapter + conformance run), never automatically.
+    ignore: [{ dependency-name: "oxc_*" }]
   - package-ecosystem: npm
     directory: /editors/vscode
     schedule: { interval: monthly }

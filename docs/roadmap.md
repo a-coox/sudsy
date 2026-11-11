@@ -3,6 +3,7 @@
 One line each; none is committed.
 
 ## Languages and analysis
+- JavaScript / TypeScript: the formatter prints files as written; layout, rules, the parity harness and scope analysis follow the steps of [design/wave-3b-js.md](design/wave-3b-js.md); Flow is unsupported.
 - INI: `.properties` (`:` and blank separators, `\` continuations, `!` comments); a `.gitconfig` dialect that allows repeated multi-value keys.
 - TOML: TOML 1.1 syntax (the tree-sitter grammar targets 1.0; needs an upstream fix or a fork).
 - XML: the inside of a DOCTYPE (the grammar cannot parse every DTD declaration) and DTD-dependent well-formedness (entities, attribute defaults); reflowing text (the formatter keeps mixed content as written); a `xmlWhitespaceSensitivity: ignore` mode; sorting `PackageReference` items.

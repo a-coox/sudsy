@@ -1,0 +1,249 @@
+// JavaScript and TypeScript (.js .mjs .cjs .jsx .ts .mts .cts .tsx), parsed by oxc_parser (crates/lang-js/src/adapter.rs).
+// Node kinds are oxc's AST node names (`oxc_ast::AstKind`), one node per AST node; tokens are oxc's lexer tokens, grouped.
+// Format: see crates/core-syntax/src/grammar/mod.rs.
+
+language js 17 "JavaScript/TypeScript"
+comments line "//" block "/*" "*/"
+suppress disable-next-line "sudsy-disable-next-line"
+suppress disable-line "sudsy-disable-line"
+suppress disable "sudsy-disable"
+suppress enable "sudsy-enable"
+suppress disable-file "sudsy-disable-file"
+suppress ignore "sudsy-ignore"
+suppress ignore-start "sudsy-ignore-start"
+suppress ignore-end "sudsy-ignore-end"
+suppress ignore "prettier-ignore"
+
+token Whitespace #trivia #whitespace
+token Newline #trivia #newline
+token LineComment #trivia #comment
+token BlockComment #trivia #comment
+
+token LParen "(" #punctuation
+token RParen ")" #punctuation
+token LBrace "{" #punctuation
+token RBrace "}" #punctuation
+token LBracket "[" #punctuation
+token RBracket "]" #punctuation
+token LAngle "<" #punctuation
+token RAngle ">" #punctuation
+token Comma "," #punctuation #separator
+token Semicolon ";" #punctuation #separator
+token Colon ":" #punctuation
+token Dot "." #punctuation
+token Dot3 "..." #punctuation
+token Arrow "=>" #punctuation
+token Question "?" #punctuation
+token QuestionDot "?." #punctuation
+token At "@" #punctuation
+// Every other operator: `+`, `===`, `=`, `??=`, `/`, `!`, ...
+token Operator #punctuation
+// Reserved words and `true`, `false`, `null`; contextual words (`of`, `type`, `async`, ...) are identifiers.
+token Keyword
+token Identifier
+// `#name`
+token PrivateName
+token String #literal #string
+token Number #literal
+token BigInt #literal
+token RegExp #literal
+// A piece of a template literal: the text with its backtick or `${` and `}` delimiters.
+token TemplateChunk #string
+token JsxTextRun
+
+// Zero-width end-of-file token; it carries the leading trivia of the file's tail.
+token Eof
+// Text the lexer could not classify.
+token Unknown #error
+
+node Program = Eof
+node IdentifierName
+node IdentifierReference
+node BindingIdentifier
+node LabelIdentifier
+node ThisExpression
+node ArrayExpression
+node Elision
+node ObjectExpression
+node ObjectProperty
+node TemplateLiteral
+node TaggedTemplateExpression
+node TemplateElement
+node ComputedMemberExpression
+node StaticMemberExpression
+node PrivateFieldExpression
+node CallExpression
+node NewExpression
+node ImportMeta
+node NewTarget
+node SpreadElement
+node UpdateExpression
+node UnaryExpression
+node BinaryExpression
+node PrivateInExpression
+node LogicalExpression
+node ConditionalExpression
+node AssignmentExpression
+node ArrayAssignmentTarget
+node ObjectAssignmentTarget
+node AssignmentTargetRest
+node AssignmentTargetWithDefault
+node AssignmentTargetPropertyIdentifier
+node AssignmentTargetPropertyProperty
+node SequenceExpression
+node Super
+node AwaitExpression
+node ChainExpression
+node ParenthesizedExpression
+node Directive
+node BlockStatement
+node VariableDeclaration
+node VariableDeclarator
+node EmptyStatement
+node ExpressionStatement
+node IfStatement
+node DoWhileStatement
+node WhileStatement
+node ForStatement
+node ForInStatement
+node ForOfStatement
+node ContinueStatement
+node BreakStatement
+node ReturnStatement
+node WithStatement
+node SwitchStatement
+node SwitchCase
+node LabeledStatement
+node ThrowStatement
+node TryStatement
+node CatchClause
+node CatchParameter
+node DebuggerStatement
+node AssignmentPattern
+node ObjectPattern
+node BindingProperty
+node ArrayPattern
+node BindingRestElement
+node Function
+node FormalParameters
+node FormalParameter
+node FormalParameterRest
+node FunctionBody
+node ArrowFunctionExpression
+node YieldExpression
+node Class
+node ClassBody
+node MethodDefinition
+node PropertyDefinition
+node PrivateIdentifier
+node StaticBlock
+node AccessorProperty
+node ImportExpression
+node ImportDeclaration
+node ImportSpecifier
+node ImportDefaultSpecifier
+node ImportNamespaceSpecifier
+node WithClause
+node ImportAttribute
+node ExportDeclaration
+node ExportNamedDeclaration
+node ExportFromDeclaration
+node ExportDefaultDeclaration
+node ExportAllDeclaration
+node ExportSpecifier
+node V8IntrinsicExpression
+node BooleanLiteral
+node NullLiteral
+node NumericLiteral
+node StringLiteral
+node BigIntLiteral
+node RegExpLiteral
+node JSXElement
+node JSXOpeningElement
+node JSXClosingElement
+node JSXFragment
+node JSXOpeningFragment
+node JSXClosingFragment
+node JSXNamespacedName
+node JSXMemberExpression
+node JSXExpressionContainer
+node JSXEmptyExpression
+node JSXAttribute
+node JSXSpreadAttribute
+node JSXIdentifier
+node JSXSpreadChild
+node JSXText
+node TSThisParameter
+node TSEnumDeclaration
+node TSEnumBody
+node TSEnumMember
+node TSTypeAnnotation
+node TSLiteralType
+node TSConditionalType
+node TSUnionType
+node TSIntersectionType
+node TSParenthesizedType
+node TSTypeOperator
+node TSArrayType
+node TSIndexedAccessType
+node TSTupleType
+node TSNamedTupleMember
+node TSOptionalType
+node TSRestType
+node TSAnyKeyword
+node TSStringKeyword
+node TSBooleanKeyword
+node TSNumberKeyword
+node TSNeverKeyword
+node TSIntrinsicKeyword
+node TSUnknownKeyword
+node TSNullKeyword
+node TSUndefinedKeyword
+node TSVoidKeyword
+node TSSymbolKeyword
+node TSThisType
+node TSObjectKeyword
+node TSBigIntKeyword
+node TSTypeReference
+node TSQualifiedName
+node TSTypeParameterInstantiation
+node TSTypeParameter
+node TSTypeParameterDeclaration
+node TSTypeAliasDeclaration
+node TSClassImplements
+node TSInterfaceDeclaration
+node TSInterfaceBody
+node TSPropertySignature
+node TSIndexSignature
+node TSCallSignatureDeclaration
+node TSMethodSignature
+node TSConstructSignatureDeclaration
+node TSIndexSignatureName
+node TSInterfaceHeritage
+node TSTypePredicate
+node TSExternalModuleDeclaration
+node TSNamespaceDeclaration
+node TSGlobalDeclaration
+node TSModuleBlock
+node TSTypeLiteral
+node TSInferType
+node TSTypeQuery
+node TSImportType
+node TSImportTypeQualifiedName
+node TSFunctionType
+node TSConstructorType
+node TSMappedType
+node TSTemplateLiteralType
+node TSAsExpression
+node TSSatisfiesExpression
+node TSTypeAssertion
+node TSImportEqualsDeclaration
+node TSExternalModuleReference
+node TSNonNullExpression
+node Decorator
+node TSExportAssignment
+node TSNamespaceExportDeclaration
+node TSInstantiationExpression
+node JSDocNullableType
+node JSDocNonNullableType
+node JSDocUnknownType

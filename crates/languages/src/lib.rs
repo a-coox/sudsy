@@ -21,8 +21,10 @@ use std::path::PathBuf;
 pub fn providers() -> Vec<Box<dyn LanguageProvider>> {
     let worker = lang_csharp::locate_worker()
         .unwrap_or_else(|_| PathBuf::from("csharp-worker/Sudsy.Worker.dll"));
+    // JSON stays first: the start-up path finds it by grammar name, which parses the grammars before it.
     vec![
         Box::new(lang_json::JsonProvider::new()),
+        Box::new(lang_js::JsProvider::new()),
         Box::new(lang_yaml::YamlProvider::new()),
         Box::new(lang_github_actions::GithubActionsProvider::new()),
         // generated:providers

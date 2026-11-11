@@ -12,6 +12,7 @@ core-patterns.workspace = true
 core-plugins.workspace = true
 core-rules.workspace = true
 lang-csharp.workspace = true
+lang-js.workspace = true
 lang-json.workspace = true
 lang-yaml.workspace = true
 lang-github-actions.workspace = true

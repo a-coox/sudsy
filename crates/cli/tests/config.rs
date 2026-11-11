@@ -149,13 +149,13 @@ fn a_section_for_a_language_sudsy_lacks_is_an_error_with_a_suggestion() {
     write(
         t.path(),
         "sudsy.yaml",
-        "jsn:\n  format:\n    collapse: never\n",
+        "jsoon:\n  format:\n    collapse: never\n",
     );
     let out = sudsy(t.path(), &["format"]);
     assert_eq!(out.status.code(), Some(2));
     let message = stderr(&out);
     assert!(
-        message.contains("unknown language section `jsn`"),
+        message.contains("unknown language section `jsoon`"),
         "{message}"
     );
     assert!(message.contains("did you mean `json`"), "{message}");
