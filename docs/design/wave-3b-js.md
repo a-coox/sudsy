@@ -1,6 +1,6 @@
 # Design: JavaScript / TypeScript / JSX / TSX (wave 3b)
 
-Decided plan (section 5), being built in the steps of section 4 (step 2, the parser, is built); each step moves what it builds into `docs/formatting/js.md`, and this note is deleted when step 14 lands. Numbers marked (measured) come from the spike below; line counts are estimates.
+Decided plan (section 5), being built in the steps of section 4 (steps 2 and 4, the parser and the statement formatter, are built); each step moves what it builds into `docs/formatting/js.md`, and this note is deleted when step 14 lands. Numbers marked (measured) come from the spike below; line counts are estimates.
 
 Goal and priority: JS/TS is the language most repositories need, so the goal is a formatter and linter people switch to: Prettier's output, ESLint's core findings, migration from their configs. Speed matters only as "faster than Prettier and ESLint", which the oxc parser already gives; no optimization steps are planned beyond the per-step bench.
 

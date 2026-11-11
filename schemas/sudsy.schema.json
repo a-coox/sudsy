@@ -3216,6 +3216,20 @@
               "maximum": 1000,
               "minimum": 20,
               "type": "integer"
+            },
+            "quote_style": {
+              "default": "double",
+              "description": "Quotes of strings (not JSX attributes). A string with more of the preferred quote than of the other keeps the other one, to need fewer escapes.",
+              "enum": [
+                "double",
+                "single"
+              ],
+              "type": "string"
+            },
+            "semi": {
+              "default": true,
+              "description": "End statements with `;`. When false a statement that starts with `(`, `[`, a backtick, `+`, `-`, `/` or `<` gets a `;` in front, as a class property does before a member that starts with `[`, `(` or `*`.",
+              "type": "boolean"
             }
           },
           "type": "object"
@@ -4757,6 +4771,20 @@
                     "maximum": 1000,
                     "minimum": 20,
                     "type": "integer"
+                  },
+                  "quote_style": {
+                    "default": "double",
+                    "description": "Quotes of strings (not JSX attributes). A string with more of the preferred quote than of the other keeps the other one, to need fewer escapes.",
+                    "enum": [
+                      "double",
+                      "single"
+                    ],
+                    "type": "string"
+                  },
+                  "semi": {
+                    "default": true,
+                    "description": "End statements with `;`. When false a statement that starts with `(`, `[`, a backtick, `+`, `-`, `/` or `<` gets a `;` in front, as a class property does before a member that starts with `[`, `(` or `*`.",
+                    "type": "boolean"
                   }
                 },
                 "type": "object"

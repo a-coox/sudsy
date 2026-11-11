@@ -43,10 +43,10 @@ token Keyword
 token Identifier
 // `#name`
 token PrivateName
-token String #literal #string
-token Number #literal
-token BigInt #literal
-token RegExp #literal
+token String #literal #string #restyle
+token Number #literal #restyle
+token BigInt #literal #restyle
+token RegExp #literal #restyle
 // A piece of a template literal: the text with its backtick or `${` and `}` delimiters.
 token TemplateChunk #string
 token JsxTextRun

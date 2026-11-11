@@ -173,7 +173,9 @@ impl<'a> Visit<'a> for Collector {
         let ours = *self.kinds[ty as usize].get_or_insert_with(|| {
             let name = format!("{ty:?}");
             // `Program` is the root and `Hashbang` a comment; a new oxc kind has no row yet.
-            let ours = grammar.kind_by_name(&name).filter(|k| !k.is_token());
+            let ours = grammar
+                .kind_by_name(&name)
+                .filter(|k| !k.is_token() && name != "Program");
             debug_assert!(
                 ours.is_some() || matches!(name.as_str(), "Program" | "Hashbang"),
                 "{name} has no node in grammars/js.grammar"

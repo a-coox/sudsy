@@ -11,7 +11,15 @@ oxc's AST has no punctuation nodes and no trivia, so `adapter.rs` builds our tre
 A node opens before the first token that starts in it and closes before the first token that starts after it, so a token belongs to the innermost node containing it, and every file prints back byte for byte. A zero-width `Eof` token ends the root and owns the comments at the end of the file. oxc recovers from syntax errors and reports a message and a span for each (code `syntax-error`); after a fatal error (`fatal_error`: the program is empty) the file is one `Unknown` token and the fatal error. The formatter refuses files with syntax errors. Not covered: incremental reparse, `oxc_semantic` (scopes; later), a nesting limit (oxc and the walk recurse).
 
 ## Formatting
-Not implemented yet: the formatter prints the file as written (comments and blank lines at the file's edges are normalized like in every language; `final_newline` and `end_of_line` apply). The options below are the shared ones; the language's own options arrive with the layout code.
+Prettier's output is the reference (defaults: width 80, two spaces, double quotes, semicolons, trailing commas where a list breaks). Built so far: statement sequences with the source's blank lines (at most one), blocks, `if`/`else`, `for`, `for in/of/await`, `while`, `do while`, `switch`, `try`/`catch`/`finally`, `return`/`throw`/`break`/`continue`, labels, variable declarations (several declarators go one per line when any has a value), functions and their parameter lists (broken one per line with a trailing comma when too long; a lone object pattern hugs the parentheses), classes (heritage on one line, members with their blank lines, decorators of a class on their own line, of a member where the source has them), imports and exports (specifier lists break one per line when too long, a lone specifier never breaks), directives, and string, number, bigint and regular expression literals. A string takes the preferred quote unless its text holds more of those than of the other quote; escapes stay except quote escapes; numbers are lowercased with no `+` or leading zeros in the exponent, no trailing fraction zeros (`1.0` stays, `1.50` becomes `1.5`) and a `0` before a leading dot; regular expression flags are sorted; a directive keeps its quotes when it holds a quote.
+
+Every node without layout code of its own is printed as written, with its literals restyled (`format/literal.rs`): expressions (calls, members, binary and arrow functions, objects, arrays, templates), TypeScript types and declarations, and JSX are the later steps' (each adds a module to `MODULES` in `format.rs`). Parameters, variable declarators and class members print their children on one line (`util::inline`), so an annotation or initializer is that node's own text. Comments are owned by tokens and print with them; a comment before `else` or after `{` stays where the token order puts it (relocations come with the comment step). An empty statement stays a `;` line (the safety check compares nodes). A file with decorators before `export` (oxc leaves those tokens outside every node) is printed as written. `// prettier-ignore` keeps the next statement as written.
+
+`semi: false` omits `;` and puts one in front of a statement that starts with `(`, `[`, a backtick, `+`, `-`, `/` or `<`, and after a class property when the next member starts with `[` or `*` (or is named `in` or `instanceof`), or when the property is a bare `static`, `get` or `set`.
+
+Safety check (debug builds, tests and the corpus profile; `safety.rs`): after the generic comparison of nodes and tokens, in which `;` and the text of literals are ignored, the literals of the input and the output are compared by value (a string by its content with quote escapes resolved, a number by its value, regular expression flags as a set).
+
+Known gaps: 7 corpus files are not idempotent yet (a second format pass changes them; multi-comment lines, for example `comments/trailing-jsdocs.js`); the comment step owns it.
 
 ## Options
 <!-- generated:options -->
@@ -22,6 +30,8 @@ Not implemented yet: the formatter prints the file as written (comments and blan
 | `indent_style` | `space`, `tab` | `space` | Indent with spaces or tabs. |
 | `final_newline` | bool | `true` | End the file with a newline. |
 | `end_of_line` | `auto`, `lf`, `crlf` | `auto` | Line break style of the output: `lf`, `crlf`, or `auto` to keep the file's first line break. |
+| `semi` | bool | `true` | End statements with `;`. When false a statement that starts with `(`, `[`, a backtick, `+`, `-`, `/` or `<` gets a `;` in front, as a class property does before a member that starts with `[`, `(` or `*`. |
+| `quote_style` | `double`, `single` | `double` | Quotes of strings (not JSX attributes). A string with more of the preferred quote than of the other keeps the other one, to need fewer escapes. |
 <!-- /generated -->
 
 ## Rules

@@ -6,6 +6,7 @@ core_syntax::include_generated!();
 mod adapter;
 mod format;
 mod rules;
+mod safety;
 
 pub use adapter::{parse, source_type};
 pub use format::{JsFormatter, option_schema};
