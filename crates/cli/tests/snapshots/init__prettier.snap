@@ -21,6 +21,7 @@ js:
     end_of_line: crlf
     indent_size: 4
     indent_style: tab
+    jsx_single_quote: true
     line_width: 100
     quote_props: consistent
     quote_style: single

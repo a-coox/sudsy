@@ -31,7 +31,7 @@ One line per upstream rule or option under `entries:`, `<id>: <status>` or `<id>
 | graphql-eslint | 35 | 4 | 6 | 0 | 0 | 0 | 25 | 0 |
 | hadolint | 71 | 38 | 10 | 0 | 0 | 1 | 22 | 0 |
 | markdownlint | 53 | 25 | 16 | 0 | 0 | 0 | 12 | 0 |
-| prettier | 57 | 18 | 5 | 23 | 0 | 10 | 1 | 23 |
+| prettier | 57 | 32 | 7 | 7 | 0 | 10 | 1 | 7 |
 | psscriptanalyzer | 75 | 12 | 8 | 0 | 0 | 1 | 54 | 0 |
 | roslynator | 67 | 23 | 7 | 16 | 18 | 1 | 2 | 16 |
 | shellcheck | 520 | 17 | 8 | 0 | 0 | 0 | 495 | 0 |

@@ -39,30 +39,30 @@ entries:
   "yaml: # prettier-ignore": "formatter"
   "markdown: formatting at proseWrap=preserve": "formatter"
   "graphql: formatting": "formatter | A file the tree-sitter grammar cannot parse is not formatted (`extend directive`); Unicode escapes in strings are kept, Prettier decodes them."
-  printWidth (js): "planned | js.format.line_width"
-  tabWidth (js): "planned | js.format.indent_size"
-  useTabs (js): "planned | js.format.indent_style"
-  endOfLine (js): "planned | js.format.end_of_line"
-  bracketSpacing (js): "planned | js.format.bracket_spacing"
+  printWidth (js): option js.format.line_width
+  tabWidth (js): option js.format.indent_size
+  useTabs (js): option js.format.indent_style
+  endOfLine (js): option js.format.end_of_line
+  bracketSpacing (js): option js.format.bracket_spacing
   objectWrap (js): "planned | js.format.collapse (the first-line break of an object is kept)"
-  semi: "planned | js.format.semi"
-  singleQuote (js): "planned | js.format.quote_style"
+  semi: option js.format.semi
+  singleQuote (js): option js.format.quote_style
   jsxSingleQuote: option js.format.jsx_single_quote
-  quoteProps (js): "planned | js.format.quote_props"
-  trailingComma (js): "planned | js.format.trailing_commas"
-  arrowParens: "planned | js.format.arrow_parens"
-  bracketSameLine: "planned | js.format.bracket_same_line"
+  quoteProps (js): "option js.format.quote_props | numeric property names are left as written"
+  trailingComma (js): "option js.format.trailing_commas | es5 and none are not applied to TypeScript lists"
+  arrowParens: option js.format.arrow_parens
+  bracketSameLine: option js.format.bracket_same_line
   singleAttributePerLine: "planned | js.format.single_attribute_per_line"
   experimentalTernaries, experimentalOperatorPosition: "wontfix not planned; Prettier marks them experimental"
   "js: formatting": "planned | docs/design/wave-3b-js.md steps 4-10; the parser and a verbatim formatter come first"
   "js: // prettier-ignore": "planned | docs/design/wave-3b-js.md step 9"
   "js: embedded CSS/GraphQL/HTML/Markdown in templates": "deferred | formatted by those languages' own formatters later"
   "js: Flow syntax": "wontfix not supported by the parser; reported as a syntax error"
-  printWidth (css): "planned | css.format.line_width"
-  tabWidth (css): "planned | css.format.indent_size"
-  useTabs (css): "planned | css.format.indent_style"
-  endOfLine (css): "planned | css.format.end_of_line"
-  singleQuote (css): "planned | css.format.single_quote"
+  printWidth (css): option css.format.line_width
+  tabWidth (css): option css.format.indent_size
+  useTabs (css): option css.format.indent_style
+  endOfLine (css): option css.format.end_of_line
+  singleQuote (css): option css.format.single_quote
   "css: formatting (css, scss, less)": "planned | docs/design/wave-3b-css.md steps 3-4; the parser and a verbatim formatter come first"
   "css: /* prettier-ignore */": "planned | docs/design/wave-3b-css.md step 3"
   "css: Sass indented syntax": "wontfix Prettier does not format it either"

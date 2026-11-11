@@ -60,21 +60,31 @@ pub fn migrate(config: &Value, out: &mut Out) -> Result<()> {
             ("singleQuote", Value::Bool(b)) => {
                 let style = if *b { "single" } else { "prefer_double" };
                 out.opt("singleQuote (yaml)", &["yaml"], "quote_style", style);
-                out.opt_free(JS, "quote_style", if *b { "single" } else { "double" });
-                out.opt_free(&["css"], "single_quote", *b);
+                let quote = if *b { "single" } else { "double" };
+                out.opt("singleQuote (js)", JS, "quote_style", quote);
+                out.opt("singleQuote (css)", &["css"], "single_quote", *b);
             }
-            ("semi", Value::Bool(b)) => out.opt_free(JS, "semi", *b),
+            ("semi", Value::Bool(b)) => out.opt("semi", JS, "semi", *b),
             ("quoteProps", Value::String(s)) if QUOTE_PROPS.contains(&s.as_str()) => {
-                out.opt_free(JS, "quote_props", s.replace('-', "_"));
+                out.opt("quoteProps (js)", JS, "quote_props", s.replace('-', "_"));
             }
             ("trailingComma", Value::String(s)) if matches!(s.as_str(), "all" | "es5" | "none") => {
-                out.opt_free(JS, "trailing_commas", s.clone());
+                out.opt("trailingComma (js)", JS, "trailing_commas", s.clone());
             }
             ("arrowParens", Value::String(s)) if matches!(s.as_str(), "always" | "avoid") => {
-                out.opt_free(JS, "arrow_parens", s.clone());
+                out.opt("arrowParens", JS, "arrow_parens", s.clone());
             }
-            ("bracketSameLine", Value::Bool(b)) => out.opt_free(JS, "bracket_same_line", *b),
-            ("quoteProps" | "trailingComma" | "semi" | "arrowParens" | "bracketSameLine", _) => {
+            ("bracketSameLine", Value::Bool(b)) => {
+                out.opt("bracketSameLine", JS, "bracket_same_line", *b);
+            }
+            ("jsxSingleQuote", Value::Bool(b)) => {
+                out.opt("jsxSingleQuote", JS, "jsx_single_quote", *b);
+            }
+            (
+                "quoteProps" | "trailingComma" | "semi" | "arrowParens" | "bracketSameLine"
+                | "jsxSingleQuote",
+                _,
+            ) => {
                 out.skip_why(key, "not a value Sudsy maps");
             }
             ("objectWrap", Value::String(s)) if s == "preserve" => {}
@@ -91,7 +101,6 @@ pub fn migrate(config: &Value, out: &mut Out) -> Result<()> {
             ("rangeStart" | "rangeEnd", _) => out.skip("rangeStart / rangeEnd"),
             (
                 "$schema"
-                | "jsxSingleQuote"
                 | "singleAttributePerLine"
                 | "htmlWhitespaceSensitivity"
                 | "vueIndentScriptAndStyle"

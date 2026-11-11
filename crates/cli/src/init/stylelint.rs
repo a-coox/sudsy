@@ -131,8 +131,21 @@ fn rule(name: &str, value: &Value, warn: bool, out: &mut Out) {
     }
 }
 
+/// The one string primary that a Sudsy rule without options implements.
+fn fixed(sudsy: &str) -> Option<&'static str> {
+    Some(match sudsy {
+        "function-name-case" | "selector-type-case" => "lower",
+        "function-url-quotes" | "selector-attribute-quotes" => "always",
+        "import-notation" => "string",
+        "selector-pseudo-element-colon-notation" => "double",
+        "keyframe-selector-notation" => "percentage",
+        "font-family-name-quotes" => "always-where-required",
+        _ => return None,
+    })
+}
+
 /// The options of a rule that Sudsy's rule of the same name has: a list, a pattern, a maximum,
-/// the hex style. Anything else the config sets is listed.
+/// the hex style, the one string a rule without options implements. Anything else the config sets is listed.
 fn options(
     name: &str,
     sudsy: &str,
@@ -154,6 +167,7 @@ fn options(
             set("pattern", regex.into());
         }
         Some(Value::String(s)) if sudsy == "color-hex-length" => set("style", s.as_str().into()),
+        Some(Value::String(s)) if fixed(sudsy) == Some(s.as_str()) => {}
         Some(Value::Bool(_)) | None => {}
         Some(_) => unmapped = true,
     }

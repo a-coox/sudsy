@@ -12,6 +12,7 @@
     "declaration-block-no-duplicate-properties": [true, { "ignore": ["consecutive-duplicates-with-different-values"] }],
     "unit-allowed-list": [["px"], { "ignore": ["custom-properties"] }],
     "function-name-case": "lower",
+    "selector-type-case": "upper",
     "at-rule-no-unknown": true,
     "scss/at-extend-no-missing-placeholder": true,
     "order/properties-order": ["width"]

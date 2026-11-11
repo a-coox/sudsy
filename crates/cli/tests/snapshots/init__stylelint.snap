@@ -32,6 +32,7 @@ css:
         level: warn
         options:
           max: 2
+      selector-type-case: warn
       unit-allowed-list:
         level: warn
         options:
@@ -42,9 +43,9 @@ migrated .stylelintrc.json
 extends: preset:css/stylelint-standard
 not migrated: stylelint-config-prettier (a shared config is not followed; its rules are not migrated)
 not migrated: ./local.json (a shared config is not followed; its rules are not migrated)
-not migrated: function-name-case options (Sudsy's rule has no option for them; set them by hand)
 not migrated: order/properties-order (not a stylelint rule Sudsy knows)
 not migrated: scss/at-extend-no-missing-placeholder (planned)
+not migrated: selector-type-case options (Sudsy's rule has no option for them; set them by hand)
 not migrated: unit-allowed-list options (Sudsy's rule has no option for them; set them by hand)
 not migrated: overrides (per-file overrides are not supported; set the rules by hand)
 not migrated: !dist/keep.css (negated ignore patterns are not supported)
