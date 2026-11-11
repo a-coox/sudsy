@@ -27,7 +27,8 @@ Current state only; history is in git. Update the doc for the area you change in
 | [formatting/graphql.md](formatting/graphql.md) | GraphQL parser (tree-sitter), formatter after Prettier, grammar gaps, rules, parity |
 | [formatting/markdown.md](formatting/markdown.md) | Markdown parser (two tree-sitter grammars), formatter, safety checks, rules, conformance |
 | [formatting/presets.md](formatting/presets.md) | Preset list and notes |
-| [design/wave-3b-js.md](design/wave-3b-js.md) | Proposal, not built: JavaScript / TypeScript / JSX / TSX parser, layout gaps, parity, staged plan, open decisions |
+| [design/wave-3b-js.md](design/wave-3b-js.md) | Plan being built: JavaScript / TypeScript / JSX / TSX parser, layout gaps, parity, steps, decisions |
+| [design/wave-3b-css.md](design/wave-3b-css.md) | Plan being built: CSS / SCSS / Less hand-written parser, formatting, stylelint parity, steps, decisions |
 | [parity/README.md](parity/README.md) | Parity catalog: what yamllint, Prettier, Biome, eslint-plugin-jsonc, StyleCop, CSharpier do and where Sudsy stands |
 | [rules/engine.md](rules/engine.md) | Rule trait, scopes, layers and depth, levels, fixes, suppressions |
 | [rules/builtin.md](rules/builtin.md) | Built-in rules |
