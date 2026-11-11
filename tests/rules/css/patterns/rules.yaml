@@ -1,0 +1,8 @@
+selector-class-pattern: { level: warn, options: { pattern: "^[a-z]+(-[a-z]+)*$" } }
+selector-id-pattern: { level: warn, options: { pattern: "^[a-z]+(-[a-z]+)*$" } }
+custom-property-pattern: { level: warn, options: { pattern: "^[a-z]+(-[a-z]+)*$" } }
+keyframes-name-pattern: { level: warn, options: { pattern: "^[a-z]+(-[a-z]+)*$" } }
+custom-media-pattern: { level: warn, options: { pattern: "^[a-z]+(-[a-z]+)*$" } }
+layer-name-pattern: { level: warn, options: { pattern: "^[a-z]+(-[a-z]+)*$" } }
+container-name-pattern: { level: warn, options: { pattern: "^[a-z]+(-[a-z]+)*$" } }
+selector-type-case: warn

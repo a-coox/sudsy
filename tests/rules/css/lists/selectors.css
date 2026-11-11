@@ -1,0 +1,7 @@
+ul.nav, a[x~=y], a[x=y], b > c {}
+^^ selector-no-qualifying-type
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ selector-disallowed-list
+//      ^ selector-no-qualifying-type
+//       ^^^^^^ selector-attribute-operator-disallowed-list
+//               ^ selector-no-qualifying-type
+//                         ^ selector-combinator-disallowed-list

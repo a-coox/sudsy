@@ -1,0 +1,12 @@
+a {
+  font-family: Arial, Helvetica;
+//                    ^^^^^^^^^ font-family-no-missing-generic-family-keyword
+  font-family: "Arial", serif;
+  font-family: Arial, inherit;
+  font-family: Arial, serif, "Arial";
+//                           ^^^^^^^ font-family-no-duplicate-names
+  font: 12px/1.5 Arial;
+//               ^^^^^ font-family-no-missing-generic-family-keyword
+  font: 12px Arial, sans-serif;
+}
+@font-face { font-family: Foo; }

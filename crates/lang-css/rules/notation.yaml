@@ -1,0 +1,87 @@
+id: length-zero-no-unit
+message: "a zero length needs no unit"
+description: "A zero length written with a unit (`0px`); other dimensions (`0s`, `0deg`) are left alone, and so is what is inside a function."
+example: "a { margin: 0px }   # reported"
+severity: off
+category: style
+rule: { kind: Value }
+token:
+  kind: [Dimension]
+  regex: '^[+-]?(?:0+\.?0*|\.0+)(?i:em|ex|ch|rem|lh|rlh|vw|vh|vi|vb|vmin|vmax|cm|mm|q|in|pt|pc|px|cap|ic|cqw|cqh|cqi|cqb|cqmin|cqmax|svw|svh|lvw|lvh|dvw|dvh)$'
+---
+id: function-url-quotes
+message: "quote the url"
+description: "An unquoted `url(...)`: quote its argument."
+example: "a { background: url(a.png) }   # reported"
+severity: off
+category: style
+rule: { any: [{ kind: Value }, { kind: Prelude }] }
+token: { kind: [Url] }
+---
+id: import-notation
+message: "write the @import with a string, not url()"
+description: "An `@import` of `url(...)`: write the string."
+example: "@import url(a.css);   # reported"
+severity: off
+category: style
+rule: { kind: AtRule, regex: '^@(?i:import)\s*(?i:url)\(' }
+---
+id: no-invalid-double-slash-comments
+message: "`//` does not start a comment in CSS"
+description: "A rule or declaration that starts with `//`: CSS has no line comments, so the text swallows the statement."
+example: "// note\na { color: red }   # reported"
+severity: off
+category: correctness
+rule:
+  any:
+    - { kind: Rule, regex: '^//' }
+    - { kind: Declaration, regex: '^//' }
+---
+id: selector-pseudo-element-colon-notation
+message: "write the pseudo-element with two colons"
+description: "`:before`, `:after`, `:first-line` and `:first-letter` with one colon."
+example: "a:before {}   # reported"
+severity: off
+category: style
+rule:
+  kind: Prelude
+  parent: { kind: Rule }
+  regex: '(?:^|[^:]):(?i:before|after|first-line|first-letter)\b'
+---
+id: selector-attribute-quotes
+message: "quote the attribute value"
+description: "An attribute selector whose value is not quoted (`[a=b]`)."
+example: "[a=b] {}   # reported"
+severity: off
+category: style
+rule:
+  kind: Group
+  regex: '^\[\s*[^\]=\s]+\s*[~|^$*]?=\s*[^"''\s\]]'
+  inside: { kind: Prelude, parent: { kind: Rule } }
+---
+id: comment-whitespace-inside
+message: "put a space inside the comment's delimiters"
+description: "A comment whose text touches `/*` or `*/`."
+example: "/*a*/   # reported"
+severity: off
+category: style
+rule: { kind: Stylesheet }
+token: { kind: [Comment], deep: true, regex: '^/\*+[^\s*/]|[^\s*/]\*+/$|^/\*\*/$' }
+---
+id: color-no-invalid-hex
+message: "the hex color `$0` is not valid"
+description: "A hex color that does not have 3, 4, 6 or 8 hex digits."
+example: "a { color: #ab }   # reported"
+severity: off
+category: correctness
+rule: { kind: Value }
+token: { kind: [Hash], deep: true, not-regex: '^#(?:[0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$' }
+---
+id: color-no-hex
+message: "do not use the hex color `$0`"
+description: "A hex color: write a named color or a function instead."
+example: "a { color: #fff }   # reported"
+severity: off
+category: style
+rule: { kind: Value }
+token: { kind: [Hash], deep: true, regex: '^#(?:[0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$' }

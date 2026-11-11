@@ -1,0 +1,15 @@
+@import "a.css";
+^^^^^^^ at-rule-allowed-list
+[x~=y] { color: red }
+^^^^^^^ selector-attribute-operator-allowed-list
+@media (min-width: 40em) {
+//      ^^^^^^^^^ media-feature-name-allowed-list
+  a:hover::before > b { color: red; float: left; width: calc(1px + 2em); height: 1rem }
+//  ^^^^^ selector-pseudo-class-allowed-list
+//         ^^^^^^ selector-pseudo-element-allowed-list
+//                ^ selector-combinator-allowed-list
+//                                  ^^^^^ property-allowed-list
+//                                                      ^^^^ function-allowed-list
+//                                                                       ^^^^^^ property-allowed-list
+//                                                                               ^^^^ unit-allowed-list
+}

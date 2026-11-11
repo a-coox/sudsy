@@ -1,0 +1,11 @@
+selector-max-class: { level: warn, options: { max: 2 } }
+selector-max-id: { level: warn, options: { max: 1 } }
+selector-max-attribute: { level: warn, options: { max: 1 } }
+selector-max-pseudo-class: { level: warn, options: { max: 1 } }
+selector-max-type: { level: warn, options: { max: 3 } }
+selector-max-universal: { level: warn, options: { max: 1 } }
+selector-max-combinators: { level: warn, options: { max: 2 } }
+selector-max-compound-selectors: { level: warn, options: { max: 3 } }
+max-nesting-depth: { level: warn, options: { max: 2 } }
+declaration-block-single-line-max-declarations: { level: warn, options: { max: 1 } }
+number-max-precision: { level: warn, options: { max: 4 } }

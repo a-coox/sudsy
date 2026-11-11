@@ -1,0 +1,20 @@
+id: declaration-no-important
+message: "do not use !important"
+description: A declaration that ends in `!important`.
+example: "a { color: red !important }   # reported"
+severity: off
+category: style
+rule: { kind: Value, regex: '!\s*(?i:important)$' }
+token: { kind: [Ident], regex: '^(?i:important)$' }
+---
+id: keyframe-declaration-no-important
+message: "!important has no effect in a keyframe declaration"
+description: "`!important` in a declaration of a `@keyframes` rule: the declaration is ignored."
+example: "@keyframes k { to { color: red !important } }   # reported"
+severity: off
+category: correctness
+rule:
+  kind: Value
+  regex: '!\s*(?i:important)$'
+  inside: { kind: AtRule, regex: '^@(?:-[a-zA-Z]+-)?(?i:keyframes)\b' }
+token: { kind: [Ident], regex: '^(?i:important)$' }

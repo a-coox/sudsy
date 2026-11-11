@@ -163,8 +163,9 @@ def rule_fixtures(tool, sudsy, version, prefix, exe):
         (work / "eslint.config.mjs").write_text(f"export default [{{ rules: {json.dumps({r: 'error' for r in mapping})} }}];\n", encoding="utf-8")
     if tool.startswith("stylelint"):
         plugin = {"stylelint-scss": 'plugins: ["stylelint-scss"], customSyntax: "postcss-scss", ', "stylelint-less": 'plugins: ["stylelint-less"], customSyntax: "postcss-less", '}.get(tool, "")
-        # shortcut: every mapped rule runs with `true`; a rule that needs primary options gets them here when it is mapped
-        (work / "stylelint.config.mjs").write_text(f"export default {{ {plugin}rules: {json.dumps({r: True for r in mapping})} }};\n", encoding="utf-8")
+        # every mapped rule runs with `true`, or with its options from `rules.json` (which `sudsy.yaml` mirrors)
+        options = json.loads((folder / "rules.json").read_text(encoding="utf-8")) if (folder / "rules.json").exists() else {}
+        (work / "stylelint.config.mjs").write_text(f"export default {{ {plugin}rules: {json.dumps({r: options.get(r, True) for r in mapping})} }};\n", encoding="utf-8")
     for config in ("sudsy.yaml", "buf.yaml"):
         if (folder / config).exists():
             shutil.copy(folder / config, work / config)

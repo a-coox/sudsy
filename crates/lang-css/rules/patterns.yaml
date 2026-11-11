@@ -1,0 +1,85 @@
+id: selector-class-pattern
+family: names
+params: { target: class, mode: pattern }
+message: "the class `.{name}` does not match the pattern"
+description: A class selector whose name does not match the `pattern` option (a regex). An empty pattern allows everything.
+example: ".fooBar {}   # reported with pattern: ^[a-z-]+$"
+severity: off
+category: style
+options:
+  - { name: pattern, type: regex, default: "", description: The regex a class name must match. }
+---
+id: selector-id-pattern
+family: names
+params: { target: id, mode: pattern }
+message: "the id `#{name}` does not match the pattern"
+description: An id selector whose name does not match the `pattern` option (a regex). An empty pattern allows everything.
+example: "#fooBar {}   # reported with pattern: ^[a-z-]+$"
+severity: off
+category: style
+options:
+  - { name: pattern, type: regex, default: "", description: The regex an id name must match. }
+---
+id: custom-property-pattern
+family: names
+params: { target: custom-property, mode: pattern }
+message: "the custom property `--{name}` does not match the pattern"
+description: "A custom property, as declared, used in `var()` or named by `@property`, whose name without the `--` does not match the `pattern` option (a regex). An empty pattern allows everything."
+example: "a { --fooBar: 1 }   # reported with pattern: ^[a-z-]+$"
+severity: off
+category: style
+options:
+  - { name: pattern, type: regex, default: "", description: "The regex a custom property name, without its `--`, must match." }
+---
+id: keyframes-name-pattern
+family: names
+params: { target: keyframes-name, mode: pattern }
+message: "the keyframes name `{name}` does not match the pattern"
+description: A `@keyframes` name that does not match the `pattern` option (a regex). An empty pattern allows everything.
+example: "@keyframes fooBar {}   # reported with pattern: ^[a-z-]+$"
+severity: off
+category: style
+options:
+  - { name: pattern, type: regex, default: "", description: The regex a keyframes name must match. }
+---
+id: custom-media-pattern
+family: names
+params: { target: custom-media, mode: pattern }
+message: "the custom media query `--{name}` does not match the pattern"
+description: A `@custom-media` name, without its `--`, that does not match the `pattern` option (a regex). An empty pattern allows everything.
+example: "@custom-media --fooBar (min-width: 1px);   # reported with pattern: ^[a-z-]+$"
+severity: off
+category: style
+options:
+  - { name: pattern, type: regex, default: "", description: "The regex a custom media name, without its `--`, must match." }
+---
+id: selector-type-case
+family: names
+params: { target: type, mode: lower }
+message: "write the type selector `{name}` in lowercase"
+description: A type selector with capitals.
+example: "A {}   # reported"
+severity: off
+category: style
+---
+id: layer-name-pattern
+family: names
+params: { target: layer, mode: pattern }
+message: "the layer name `{name}` does not match the pattern"
+description: A `@layer` name that does not match the `pattern` option (a regex). An empty pattern allows everything.
+example: "@layer fooBar;   # reported with pattern: ^[a-z-]+$"
+severity: off
+category: style
+options:
+  - { name: pattern, type: regex, default: "", description: The regex a layer name must match. }
+---
+id: container-name-pattern
+family: names
+params: { target: container, mode: pattern }
+message: "the container name `{name}` does not match the pattern"
+description: A `@container` name that does not match the `pattern` option (a regex). An empty pattern allows everything.
+example: "@container fooBar (min-width: 1px) {}   # reported with pattern: ^[a-z-]+$"
+severity: off
+category: style
+options:
+  - { name: pattern, type: regex, default: "", description: The regex a container name must match. }

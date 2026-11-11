@@ -1,0 +1,9 @@
+a { color: red !important; margin: 0 ! important; padding: 0 }
+//              ^^^^^^^^^ declaration-no-important
+//                                     ^^^^^^^^^ declaration-no-important
+@keyframes k {
+  from { color: red }
+  to { color: blue !important }
+//                  ^^^^^^^^^ declaration-no-important
+//                  ^^^^^^^^^ keyframe-declaration-no-important
+}

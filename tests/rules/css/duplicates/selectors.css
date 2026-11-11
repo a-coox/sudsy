@@ -1,0 +1,9 @@
+a { color: red }
+b, a { color: red }
+a, b { color: red }
+^^^^ no-duplicate-selectors
+a { color: blue }
+^ no-duplicate-selectors
+@media print { a { color: red } }
+@keyframes k { from { top: 0 } FROM { top: 1px } 0% { top: 2px } }
+//                             ^^^^ keyframe-block-no-duplicate-selectors

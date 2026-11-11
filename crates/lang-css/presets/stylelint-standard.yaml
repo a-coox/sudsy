@@ -1,0 +1,54 @@
+# stylelint-config-standard: stylelint-config-recommended and the rules of the standard set that
+# Sudsy has, with its options.
+extends: [preset:css/stylelint-recommended]
+css:
+  lint:
+    rules:
+      color-hex-length: error
+      comment-whitespace-inside: error
+      container-name-pattern:
+        level: error
+        options:
+          pattern: "^([a-z][a-z0-9]*)(-[a-z0-9]+)*$"
+      custom-media-pattern:
+        level: error
+        options:
+          pattern: "^([a-z][a-z0-9]*)(-[a-z0-9]+)*$"
+      custom-property-pattern:
+        level: error
+        options:
+          pattern: "^([a-z][a-z0-9]*)(-[a-z0-9]+)*$"
+      declaration-block-single-line-max-declarations:
+        level: error
+        options:
+          max: 1
+      font-family-name-quotes: error
+      function-name-case: error
+      function-url-quotes: error
+      import-notation: error
+      keyframe-selector-notation: error
+      keyframes-name-pattern:
+        level: error
+        options:
+          pattern: "^([a-z][a-z0-9]*)(-[a-z0-9]+)*$"
+      layer-name-pattern:
+        level: error
+        options:
+          pattern: "^([a-z][a-z0-9]*)(-[a-z0-9]+)*$"
+      length-zero-no-unit: error
+      number-max-precision:
+        level: error
+        options:
+          max: 4
+      selector-attribute-quotes: error
+      selector-class-pattern:
+        level: error
+        options:
+          pattern: "^([a-z][a-z0-9]*)(-[a-z0-9]+)*$"
+      selector-id-pattern:
+        level: error
+        options:
+          pattern: "^([a-z][a-z0-9]*)(-[a-z0-9]+)*$"
+      selector-pseudo-element-colon-notation: error
+      selector-type-case: error
+      shorthand-property-no-redundant-values: error

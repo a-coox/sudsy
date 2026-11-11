@@ -1,0 +1,7 @@
+declaration-block-no-duplicate-properties: warn
+declaration-block-no-duplicate-custom-properties: warn
+declaration-block-no-shorthand-property-overrides: warn
+no-duplicate-selectors: warn
+keyframe-block-no-duplicate-selectors: warn
+no-duplicate-at-import-rules: warn
+no-invalid-position-at-import-rule: warn

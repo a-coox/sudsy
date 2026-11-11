@@ -1,0 +1,19 @@
+@import "a.css";
+^^^^^^^ at-rule-disallowed-list
+@media (min-width: 40em) and (color) {
+//      ^^^^^^^^^ media-feature-name-disallowed-list
+//                 ^^^^ unit-disallowed-list
+  a { float: left; width: 1em }
+//    ^^^^^ property-disallowed-list
+//                        ^^^ unit-disallowed-list
+}
+a:hover::before > b[style] { color: red; width: calc(1px + 2px); --x: 1em }
+//^^^^^ selector-pseudo-class-disallowed-list
+//       ^^^^^^ selector-pseudo-element-disallowed-list
+//              ^ selector-combinator-disallowed-list
+//                ^ selector-no-qualifying-type
+//                 ^^^^^^^^ selector-attribute-name-disallowed-list
+//                                              ^^^^ function-disallowed-list
+//                                                                    ^^^ unit-disallowed-list
+.c { margin: 0 0 1px 2em; height: 50%; font-size: 12PX }
+//                   ^^^ unit-disallowed-list

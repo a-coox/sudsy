@@ -1,0 +1,10 @@
+@charset "utf-8";
+@import "a.css";
+@import url(a.css);
+^^^^^^^^^^^^^^^^^^^ no-duplicate-at-import-rules
+@import "a.css" screen;
+@layer base;
+@import "b.css";
+a { color: red }
+@import "c.css";
+^^^^^^^^^^^^^^^^ no-invalid-position-at-import-rule

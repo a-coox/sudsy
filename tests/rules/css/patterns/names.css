@@ -1,0 +1,19 @@
+.good-name, .badName, #bad_id, #good-id { --good-name: 1; --badName: 2 }
+//           ^^^^^^^ selector-class-pattern
+//                    ^^^^^^^ selector-id-pattern
+//                                                        ^^^^^^^^^ custom-property-pattern
+@keyframes badFrames { from { top: 0 } }
+//         ^^^^^^^^^ keyframes-name-pattern
+@keyframes good-frames { from { top: 0 } }
+@custom-media --badMedia (min-width: 1px);
+//            ^^^^^^^^^^ custom-media-pattern
+@custom-media --good-media (min-width: 1px);
+@layer badLayer, good-layer;
+//     ^^^^^^^^ layer-name-pattern
+@container badBox (min-width: 1px) { a { color: red } }
+//         ^^^^^^ container-name-pattern
+@container good-box (min-width: 1px) { a { color: red } }
+A, B.c:not(.dX) {}
+^ selector-type-case
+// ^ selector-type-case
+//          ^^ selector-class-pattern

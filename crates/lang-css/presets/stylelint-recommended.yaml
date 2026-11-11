@@ -1,0 +1,29 @@
+# The rules of stylelint-config-recommended that Sudsy has, at stylelint's severity (error).
+css:
+  lint:
+    rules:
+      block-no-empty: error
+      color-no-invalid-hex: error
+      comment-no-empty: error
+      custom-property-no-missing-var-function: error
+      declaration-block-no-duplicate-custom-properties: error
+      declaration-block-no-duplicate-properties:
+        level: error
+        options:
+          ignore_consecutive_different_values: true
+      declaration-block-no-shorthand-property-overrides: error
+      font-family-no-duplicate-names: error
+      font-family-no-missing-generic-family-keyword: error
+      function-calc-no-unspaced-operator: error
+      function-linear-gradient-no-nonstandard-direction: error
+      keyframe-block-no-duplicate-selectors: error
+      keyframe-declaration-no-important: error
+      named-grid-areas-no-invalid: error
+      no-descending-specificity: error
+      no-duplicate-at-import-rules: error
+      no-duplicate-selectors: error
+      no-empty-source: error
+      no-invalid-double-slash-comments: error
+      no-invalid-position-at-import-rule: error
+      no-invalid-position-declaration: error
+      selector-anb-no-unmatchable: error

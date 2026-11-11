@@ -1,0 +1,44 @@
+id: function-calc-no-unspaced-operator
+family: check
+params: { check: calc-operators }
+message: "put a space on each side of `{name}`"
+description: "`+` and `-` in `calc()` need whitespace on both sides, or the expression is invalid."
+example: "a { width: calc(1px+2px) }   # reported"
+severity: off
+category: correctness
+---
+id: function-linear-gradient-no-nonstandard-direction
+family: check
+params: { check: linear-gradient-direction }
+message: "`{name}` is not a standard direction: write `to {name}`"
+description: "A `linear-gradient()` that starts with a side (`top`) instead of `to top` or an angle."
+example: "a { background: linear-gradient(top, red, blue) }   # reported"
+severity: off
+category: correctness
+---
+id: font-family-no-missing-generic-family-keyword
+family: check
+params: { check: missing-generic-family }
+message: "add a generic family after `{name}`"
+description: A `font-family` (or `font`) list with no generic family (`serif`, `sans-serif`, ...) to fall back on. `@font-face` is left out.
+example: "a { font-family: Arial, Helvetica }   # reported"
+severity: off
+category: correctness
+---
+id: font-family-no-duplicate-names
+family: names
+params: { target: font-family, mode: unique }
+message: "the font family `{name}` is repeated"
+description: The same family twice in one `font-family` list.
+example: "a { font-family: Arial, serif, Arial }   # reported"
+severity: off
+category: suspicious
+---
+id: function-name-case
+family: names
+params: { target: function, mode: lower }
+message: "write the function `{name}` in lowercase"
+description: A function name with capitals (`translateX` and the like keep theirs).
+example: "a { color: RGB(0, 0, 0) }   # reported"
+severity: off
+category: style

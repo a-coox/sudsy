@@ -9,6 +9,7 @@ build = "../../build/lang-crate.rs"
 [dependencies]
 core-config.workspace = true
 core-format.workspace = true
+core-rules.workspace = true
 core-syntax.workspace = true
 provider-api.workspace = true
 

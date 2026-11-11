@@ -1,0 +1,219 @@
+id: property-allowed-list
+family: names
+params: { target: property, mode: allowed }
+message: "the property `{name}` is not allowed"
+description: A property that is not in the `list` option (names, or `/regex/`). Custom properties are left out; an empty list allows everything.
+example: "a { float: left }   # reported with list: [color]"
+severity: off
+category: style
+options:
+  - { name: list, type: list, default: [], description: "The allowed properties: names, or `/regex/`." }
+---
+id: property-disallowed-list
+family: names
+params: { target: property, mode: disallowed }
+message: "the property `{name}` is not allowed"
+description: A property that is in the `list` option (names, or `/regex/`). Custom properties are left out.
+example: "a { float: left }   # reported with list: [float]"
+severity: off
+category: style
+options:
+  - { name: list, type: list, default: [], description: "The disallowed properties: names, or `/regex/`." }
+---
+id: unit-allowed-list
+family: names
+params: { target: unit, mode: allowed }
+message: "the unit `{name}` is not allowed"
+description: A unit (`%` included) that is not in the `list` option, in values and at-rule preludes. An empty list allows everything.
+example: "a { width: 1em }   # reported with list: [px]"
+severity: off
+category: style
+options:
+  - { name: list, type: list, default: [], description: "The allowed units: names, or `/regex/`." }
+---
+id: unit-disallowed-list
+family: names
+params: { target: unit, mode: disallowed }
+message: "the unit `{name}` is not allowed"
+description: A unit (`%` included) that is in the `list` option, in values and at-rule preludes.
+example: "a { width: 1em }   # reported with list: [em]"
+severity: off
+category: style
+options:
+  - { name: list, type: list, default: [], description: "The disallowed units: names, or `/regex/`." }
+---
+id: function-allowed-list
+family: names
+params: { target: function, mode: allowed }
+message: "the function `{name}` is not allowed"
+description: A function that is not in the `list` option. An empty list allows everything.
+example: "a { width: calc(1px + 2px) }   # reported with list: [var]"
+severity: off
+category: style
+options:
+  - { name: list, type: list, default: [], description: "The allowed functions: names, or `/regex/`." }
+---
+id: function-disallowed-list
+family: names
+params: { target: function, mode: disallowed }
+message: "the function `{name}` is not allowed"
+description: A function that is in the `list` option.
+example: "a { width: calc(1px + 2px) }   # reported with list: [calc]"
+severity: off
+category: style
+options:
+  - { name: list, type: list, default: [], description: "The disallowed functions: names, or `/regex/`." }
+---
+id: at-rule-allowed-list
+family: names
+params: { target: at-rule, mode: allowed }
+message: "the at-rule `@{name}` is not allowed"
+description: An at-rule (vendor prefix left out) that is not in the `list` option. An empty list allows everything.
+example: "@import 'a.css';   # reported with list: [media]"
+severity: off
+category: style
+options:
+  - { name: list, type: list, default: [], description: "The allowed at-rules, without `@`: names, or `/regex/`." }
+---
+id: at-rule-disallowed-list
+family: names
+params: { target: at-rule, mode: disallowed }
+message: "the at-rule `@{name}` is not allowed"
+description: An at-rule (vendor prefix left out) that is in the `list` option.
+example: "@import 'a.css';   # reported with list: [import]"
+severity: off
+category: style
+options:
+  - { name: list, type: list, default: [], description: "The disallowed at-rules, without `@`: names, or `/regex/`." }
+---
+id: media-feature-name-allowed-list
+family: names
+params: { target: media-feature, mode: allowed }
+message: "the media feature `{name}` is not allowed"
+description: A media feature that is not in the `list` option. An empty list allows everything.
+example: "@media (min-width: 1px) {}   # reported with list: [width]"
+severity: off
+category: style
+options:
+  - { name: list, type: list, default: [], description: "The allowed media features: names, or `/regex/`." }
+---
+id: media-feature-name-disallowed-list
+family: names
+params: { target: media-feature, mode: disallowed }
+message: "the media feature `{name}` is not allowed"
+description: A media feature that is in the `list` option.
+example: "@media (min-width: 1px) {}   # reported with list: [min-width]"
+severity: off
+category: style
+options:
+  - { name: list, type: list, default: [], description: "The disallowed media features: names, or `/regex/`." }
+---
+id: selector-pseudo-class-allowed-list
+family: names
+params: { target: pseudo-class, mode: allowed }
+message: "the pseudo-class `:{name}` is not allowed"
+description: A pseudo-class that is not in the `list` option. An empty list allows everything.
+example: "a:hover {}   # reported with list: [focus]"
+severity: off
+category: style
+options:
+  - { name: list, type: list, default: [], description: "The allowed pseudo-classes, without `:`: names, or `/regex/`." }
+---
+id: selector-pseudo-class-disallowed-list
+family: names
+params: { target: pseudo-class, mode: disallowed }
+message: "the pseudo-class `:{name}` is not allowed"
+description: A pseudo-class that is in the `list` option.
+example: "a:hover {}   # reported with list: [hover]"
+severity: off
+category: style
+options:
+  - { name: list, type: list, default: [], description: "The disallowed pseudo-classes, without `:`: names, or `/regex/`." }
+---
+id: selector-pseudo-element-allowed-list
+family: names
+params: { target: pseudo-element, mode: allowed }
+message: "the pseudo-element `::{name}` is not allowed"
+description: A pseudo-element that is not in the `list` option. An empty list allows everything.
+example: "a::before {}   # reported with list: [after]"
+severity: off
+category: style
+options:
+  - { name: list, type: list, default: [], description: "The allowed pseudo-elements, without colons: names, or `/regex/`." }
+---
+id: selector-pseudo-element-disallowed-list
+family: names
+params: { target: pseudo-element, mode: disallowed }
+message: "the pseudo-element `::{name}` is not allowed"
+description: A pseudo-element that is in the `list` option.
+example: "a::before {}   # reported with list: [before]"
+severity: off
+category: style
+options:
+  - { name: list, type: list, default: [], description: "The disallowed pseudo-elements, without colons: names, or `/regex/`." }
+---
+id: selector-combinator-allowed-list
+family: names
+params: { target: combinator, mode: allowed }
+message: "the combinator `{name}` is not allowed"
+description: A combinator (`>`, `+`, `~`, or a space for descendant) that is not in the `list` option. An empty list allows everything.
+example: "a > b {}   # reported with list: [\" \"]"
+severity: off
+category: style
+options:
+  - { name: list, type: list, default: [], description: "The allowed combinators." }
+---
+id: selector-combinator-disallowed-list
+family: names
+params: { target: combinator, mode: disallowed }
+message: "the combinator `{name}` is not allowed"
+description: A combinator (`>`, `+`, `~`, or a space for descendant) that is in the `list` option.
+example: "a > b {}   # reported with list: [\">\"]"
+severity: off
+category: style
+options:
+  - { name: list, type: list, default: [], description: "The disallowed combinators." }
+---
+id: selector-attribute-name-disallowed-list
+family: names
+params: { target: attribute, mode: disallowed }
+message: "the attribute `{name}` is not allowed in a selector"
+description: An attribute selector whose name is in the `list` option.
+example: "a[style] {}   # reported with list: [style]"
+severity: off
+category: style
+options:
+  - { name: list, type: list, default: [], description: "The disallowed attribute names: names, or `/regex/`." }
+---
+id: selector-disallowed-list
+family: names
+params: { target: selector, mode: disallowed }
+message: "the selector `{name}` is not allowed"
+description: "The selector list of a rule (whitespace collapsed) that is in the `list` option (selectors, or `/regex/`)."
+example: "a b {}   # reported with list: [a b]"
+severity: off
+category: style
+options:
+  - { name: list, type: list, default: [], description: "The disallowed selectors: text, or `/regex/`." }
+---
+id: selector-attribute-operator-allowed-list
+family: names
+params: { target: attribute-operator, mode: allowed }
+message: "the attribute operator `{name}` is not allowed"
+description: An attribute selector operator that is not in the `list` option. An empty list allows everything.
+example: "[a~=b] {}   # reported with list: [=]"
+severity: off
+category: style
+options:
+  - { name: list, type: list, default: [], description: "The allowed operators (`=`, `~=`, `|=`, `^=`, `$=`, `*=`)." }
+---
+id: selector-attribute-operator-disallowed-list
+family: names
+params: { target: attribute-operator, mode: disallowed }
+message: "the attribute operator `{name}` is not allowed"
+description: An attribute selector operator that is in the `list` option.
+example: "[a~=b] {}   # reported with list: [~=]"
+severity: off
+category: style
+options:
+  - { name: list, type: list, default: [], description: "The disallowed operators (`=`, `~=`, `|=`, `^=`, `$=`, `*=`)." }

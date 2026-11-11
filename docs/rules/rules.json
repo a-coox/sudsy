@@ -611,6 +611,2729 @@
       ]
     },
     {
+      "category": "style",
+      "default_level": "off",
+      "description": "An at-rule (vendor prefix left out) that is not in the `list` option. An empty list allows everything.",
+      "example": {
+        "config": "property-allowed-list: { level: warn, options: { list: [color, \"/^wid/\"] } }\nunit-allowed-list: { level: warn, options: { list: [px, em] } }\nfunction-allowed-list: { level: warn, options: { list: [var] } }\nat-rule-allowed-list: { level: warn, options: { list: [media] } }\nmedia-feature-name-allowed-list: { level: warn, options: { list: [max-width] } }\nselector-pseudo-class-allowed-list: { level: warn, options: { list: [focus] } }\nselector-pseudo-element-allowed-list: { level: warn, options: { list: [after] } }\nselector-combinator-allowed-list: { level: warn, options: { list: [\" \"] } }\nselector-attribute-operator-allowed-list: { level: warn, options: { list: [\"=\"] } }\n",
+        "fixed": null,
+        "input": "@import \"a.css\";\n[x~=y] { color: red }\n@media (min-width: 40em) {\n  a:hover::before > b { color: red; float: left; width: calc(1px + 2em); height: 1rem }\n}\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 1,
+            "length": 7,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "at-rule-allowed-list",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [
+        {
+          "default": [],
+          "description": "The allowed at-rules, without `@`: names, or `/regex/`.",
+          "name": "list",
+          "type": "list"
+        }
+      ],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "An at-rule (vendor prefix left out) that is in the `list` option.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "@import \"a.css\";\n@media (min-width: 40em) and (color) {\n  a { float: left; width: 1em }\n}\na:hover::before > b[style] { color: red; width: calc(1px + 2px); --x: 1em }\n.c { margin: 0 0 1px 2em; height: 50%; font-size: 12PX }\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 1,
+            "length": 7,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "at-rule-disallowed-list",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [
+        {
+          "default": [],
+          "description": "The disallowed at-rules, without `@`: names, or `/regex/`.",
+          "name": "list",
+          "type": "list"
+        }
+      ],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "A rule or at-rule block with nothing in it, comments included.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "a {}\nb { }\nc { /* kept */ }\n@media print {}\nd { color: red }\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 3,
+            "length": 2,
+            "line": 1
+          },
+          {
+            "column": 3,
+            "length": 3,
+            "line": 2
+          },
+          {
+            "column": 14,
+            "length": 2,
+            "line": 4
+          }
+        ]
+      },
+      "fix": null,
+      "id": "block-no-empty",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [],
+      "presets": [
+        "css/stylelint-recommended",
+        "css/stylelint-recommended",
+        "css/stylelint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A hex color that can be written with three or four digits (`#aabbcc` is `#abc`); with the `style` option set to `long`, one that is written short.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "@import url(\"a.css\");\n@import \"b.css\";\na {\n  margin: 0px 0.0em 0;\n  transition: 0s;\n  width: calc(0px + 1px);\n  --x: 0px;\n  background: url(a.png), url(\"b.png\");\n  color: #aabbcc;\n  color: #abc;\n  border-color: #ab #abcde #abcdef;\n  padding: 1px 1px;\n  padding: 1px 2px 1px 2px;\n  padding: 1px 2px 3px 2px;\n  font-family: \"Arial\", 'Lucida Grande', \"Font 2\", sans-serif;\n}\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 10,
+            "length": 7,
+            "line": 9
+          }
+        ]
+      },
+      "fix": null,
+      "id": "color-hex-length",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [
+        {
+          "choices": [
+            "short",
+            "long"
+          ],
+          "default": "short",
+          "description": "`short` reports colors that can be shortened, `long` those that are short.",
+          "name": "style",
+          "type": "string"
+        }
+      ],
+      "presets": [
+        "css/stylelint-standard",
+        "css/stylelint-standard",
+        "css/stylelint-standard"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A hex color: write a named color or a function instead.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "@import url(\"a.css\");\n@import \"b.css\";\na {\n  margin: 0px 0.0em 0;\n  transition: 0s;\n  width: calc(0px + 1px);\n  --x: 0px;\n  background: url(a.png), url(\"b.png\");\n  color: #aabbcc;\n  color: #abc;\n  border-color: #ab #abcde #abcdef;\n  padding: 1px 1px;\n  padding: 1px 2px 1px 2px;\n  padding: 1px 2px 3px 2px;\n  font-family: \"Arial\", 'Lucida Grande', \"Font 2\", sans-serif;\n}\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 10,
+            "length": 7,
+            "line": 9
+          },
+          {
+            "column": 10,
+            "length": 4,
+            "line": 10
+          },
+          {
+            "column": 28,
+            "length": 7,
+            "line": 11
+          }
+        ]
+      },
+      "fix": null,
+      "id": "color-no-hex",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "correctness",
+      "default_level": "off",
+      "description": "A hex color that does not have 3, 4, 6 or 8 hex digits.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "@import url(\"a.css\");\n@import \"b.css\";\na {\n  margin: 0px 0.0em 0;\n  transition: 0s;\n  width: calc(0px + 1px);\n  --x: 0px;\n  background: url(a.png), url(\"b.png\");\n  color: #aabbcc;\n  color: #abc;\n  border-color: #ab #abcde #abcdef;\n  padding: 1px 1px;\n  padding: 1px 2px 1px 2px;\n  padding: 1px 2px 3px 2px;\n  font-family: \"Arial\", 'Lucida Grande', \"Font 2\", sans-serif;\n}\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 17,
+            "length": 3,
+            "line": 11
+          },
+          {
+            "column": 21,
+            "length": 6,
+            "line": 11
+          }
+        ]
+      },
+      "fix": null,
+      "id": "color-no-invalid-hex",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [],
+      "presets": [
+        "css/stylelint-recommended",
+        "css/stylelint-recommended",
+        "css/stylelint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "A comment with nothing in it.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "/**/\n/* */\n/* text */\na { /* */ color: red }\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 1,
+            "length": 4,
+            "line": 1
+          },
+          {
+            "column": 1,
+            "length": 5,
+            "line": 2
+          },
+          {
+            "column": 5,
+            "length": 5,
+            "line": 4
+          }
+        ]
+      },
+      "fix": null,
+      "id": "comment-no-empty",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [],
+      "presets": [
+        "css/stylelint-recommended",
+        "css/stylelint-recommended",
+        "css/stylelint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A comment whose text touches `/*` or `*/`.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "a:before, a::after, a:hover {}\n[a=b], [a=\"b\"], [a], [a~=b i] {}\na:nth-child(0), a:nth-child(2n+1), a:nth-last-child(-n) {}\n/*a*/ /* a */ /** a **/ /**/\n@keyframes k { from { top: 0 } to { top: 1px } }\n@keyframes j { from { top: 0 } 50% { top: 1px } to { top: 2px } }\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 1,
+            "length": 5,
+            "line": 4
+          },
+          {
+            "column": 25,
+            "length": 4,
+            "line": 4
+          }
+        ]
+      },
+      "fix": null,
+      "id": "comment-whitespace-inside",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [],
+      "presets": [
+        "css/stylelint-standard",
+        "css/stylelint-standard",
+        "css/stylelint-standard"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A `@container` name that does not match the `pattern` option (a regex). An empty pattern allows everything.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": ".good-name, .badName, #bad_id, #good-id { --good-name: 1; --badName: 2 }\n@keyframes badFrames { from { top: 0 } }\n@keyframes good-frames { from { top: 0 } }\n@custom-media --badMedia (min-width: 1px);\n@custom-media --good-media (min-width: 1px);\n@layer badLayer, good-layer;\n@container badBox (min-width: 1px) { a { color: red } }\n@container good-box (min-width: 1px) { a { color: red } }\nA, B.c:not(.dX) {}\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 12,
+            "length": 6,
+            "line": 7
+          }
+        ]
+      },
+      "fix": null,
+      "id": "container-name-pattern",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [
+        {
+          "default": "",
+          "description": "The regex a container name must match.",
+          "name": "pattern",
+          "type": "string"
+        }
+      ],
+      "presets": [
+        "css/stylelint-standard",
+        "css/stylelint-standard",
+        "css/stylelint-standard"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A `@custom-media` name, without its `--`, that does not match the `pattern` option (a regex). An empty pattern allows everything.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": ".good-name, .badName, #bad_id, #good-id { --good-name: 1; --badName: 2 }\n@keyframes badFrames { from { top: 0 } }\n@keyframes good-frames { from { top: 0 } }\n@custom-media --badMedia (min-width: 1px);\n@custom-media --good-media (min-width: 1px);\n@layer badLayer, good-layer;\n@container badBox (min-width: 1px) { a { color: red } }\n@container good-box (min-width: 1px) { a { color: red } }\nA, B.c:not(.dX) {}\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 15,
+            "length": 10,
+            "line": 4
+          }
+        ]
+      },
+      "fix": null,
+      "id": "custom-media-pattern",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [
+        {
+          "default": "",
+          "description": "The regex a custom media name, without its `--`, must match.",
+          "name": "pattern",
+          "type": "string"
+        }
+      ],
+      "presets": [
+        "css/stylelint-standard",
+        "css/stylelint-standard",
+        "css/stylelint-standard"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "correctness",
+      "default_level": "off",
+      "description": "A custom property that the file declares, used in a value without `var()`. Properties that take names (`transition`, `will-change`, ...) are left out.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": ":root { --x: 1; --y: 2 }\na { width: calc(--x * 2); transition: --y 1s; margin: var(--x); height: --z }\nb { grid-template-areas: \"a b\" \"a\" }\nc { grid-template-areas: \"a a\" \"b a\" }\nd { grid-template-areas: \"a b\" \"c d\" }\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 17,
+            "length": 3,
+            "line": 2
+          }
+        ]
+      },
+      "fix": null,
+      "id": "custom-property-no-missing-var-function",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [],
+      "presets": [
+        "css/stylelint-recommended",
+        "css/stylelint-recommended",
+        "css/stylelint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A custom property, as declared, used in `var()` or named by `@property`, whose name without the `--` does not match the `pattern` option (a regex). An empty pattern allows everything.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": ".good-name, .badName, #bad_id, #good-id { --good-name: 1; --badName: 2 }\n@keyframes badFrames { from { top: 0 } }\n@keyframes good-frames { from { top: 0 } }\n@custom-media --badMedia (min-width: 1px);\n@custom-media --good-media (min-width: 1px);\n@layer badLayer, good-layer;\n@container badBox (min-width: 1px) { a { color: red } }\n@container good-box (min-width: 1px) { a { color: red } }\nA, B.c:not(.dX) {}\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 59,
+            "length": 9,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "custom-property-pattern",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [
+        {
+          "default": "",
+          "description": "The regex a custom property name, without its `--`, must match.",
+          "name": "pattern",
+          "type": "string"
+        }
+      ],
+      "presets": [
+        "css/stylelint-standard",
+        "css/stylelint-standard",
+        "css/stylelint-standard"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "A custom property declared twice in one block (names are case sensitive); the repeat is reported.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "a {\n  color: red;\n  color: blue;\n  --x: 1;\n  --x: 2;\n  --X: 3;\n  margin-top: 1px;\n  margin: 0;\n  src: a;\n  src: b;\n}\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 3,
+            "length": 3,
+            "line": 5
+          }
+        ]
+      },
+      "fix": null,
+      "id": "declaration-block-no-duplicate-custom-properties",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [],
+      "presets": [
+        "css/stylelint-recommended",
+        "css/stylelint-recommended",
+        "css/stylelint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "A property declared twice in one block; the earlier declaration is reported (the later one when only the earlier is `!important`). `src` and custom properties are left out.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "a {\n  color: red;\n  color: blue;\n  --x: 1;\n  --x: 2;\n  --X: 3;\n  margin-top: 1px;\n  margin: 0;\n  src: a;\n  src: b;\n}\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 3,
+            "length": 5,
+            "line": 2
+          }
+        ]
+      },
+      "fix": null,
+      "id": "declaration-block-no-duplicate-properties",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [
+        {
+          "default": false,
+          "description": "Leave a repeat right after the same property with another value alone (`display: -webkit-box; display: flex`).",
+          "name": "ignore_consecutive_different_values",
+          "type": "bool"
+        }
+      ],
+      "presets": [
+        "css/stylelint-recommended",
+        "css/stylelint-recommended",
+        "css/stylelint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "A shorthand property declared after one of its longhands in the same block.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "a {\n  color: red;\n  color: blue;\n  --x: 1;\n  --x: 2;\n  --X: 3;\n  margin-top: 1px;\n  margin: 0;\n  src: a;\n  src: b;\n}\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 3,
+            "length": 6,
+            "line": 8
+          }
+        ]
+      },
+      "fix": null,
+      "id": "declaration-block-no-shorthand-property-overrides",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [],
+      "presets": [
+        "css/stylelint-recommended",
+        "css/stylelint-recommended",
+        "css/stylelint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A block written on one line with more declarations than the `max` option.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": ".a.b.c, #x #y, a b c d, [p][q], * *, a:hover:focus { color: red }\n.d { .e { .f { .g { color: red } } } }\n.h { color: red; margin: 0 }\n.i {\n  color: red; margin: 0;\n}\n.j { width: 1.23456px; height: 10.5%; opacity: 0.12345 }\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 4,
+            "length": 25,
+            "line": 3
+          },
+          {
+            "column": 4,
+            "length": 53,
+            "line": 7
+          }
+        ]
+      },
+      "fix": null,
+      "id": "declaration-block-single-line-max-declarations",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [
+        {
+          "default": 1,
+          "description": "The most declarations a single-line block may have.",
+          "name": "max",
+          "type": "int"
+        }
+      ],
+      "presets": [
+        "css/stylelint-standard",
+        "css/stylelint-standard",
+        "css/stylelint-standard"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A declaration that ends in `!important`.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "a { color: red !important; margin: 0 ! important; padding: 0 }\n@keyframes k {\n  from { color: red }\n  to { color: blue !important }\n}\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 17,
+            "length": 9,
+            "line": 1
+          },
+          {
+            "column": 40,
+            "length": 9,
+            "line": 1
+          },
+          {
+            "column": 21,
+            "length": 9,
+            "line": 4
+          }
+        ]
+      },
+      "fix": null,
+      "id": "declaration-no-important",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A quoted font family name that is also valid without quotes (`always-where-required`).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "@import url(\"a.css\");\n@import \"b.css\";\na {\n  margin: 0px 0.0em 0;\n  transition: 0s;\n  width: calc(0px + 1px);\n  --x: 0px;\n  background: url(a.png), url(\"b.png\");\n  color: #aabbcc;\n  color: #abc;\n  border-color: #ab #abcde #abcdef;\n  padding: 1px 1px;\n  padding: 1px 2px 1px 2px;\n  padding: 1px 2px 3px 2px;\n  font-family: \"Arial\", 'Lucida Grande', \"Font 2\", sans-serif;\n}\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 16,
+            "length": 7,
+            "line": 15
+          },
+          {
+            "column": 25,
+            "length": 15,
+            "line": 15
+          }
+        ]
+      },
+      "fix": null,
+      "id": "font-family-name-quotes",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [],
+      "presets": [
+        "css/stylelint-standard",
+        "css/stylelint-standard",
+        "css/stylelint-standard"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "The same family twice in one `font-family` list.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "a {\n  font-family: Arial, Helvetica;\n  font-family: \"Arial\", serif;\n  font-family: Arial, inherit;\n  font-family: Arial, serif, \"Arial\";\n  font: 12px/1.5 Arial;\n  font: 12px Arial, sans-serif;\n}\n@font-face { font-family: Foo; }\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 30,
+            "length": 7,
+            "line": 5
+          }
+        ]
+      },
+      "fix": null,
+      "id": "font-family-no-duplicate-names",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [],
+      "presets": [
+        "css/stylelint-recommended",
+        "css/stylelint-recommended",
+        "css/stylelint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "correctness",
+      "default_level": "off",
+      "description": "A `font-family` (or `font`) list with no generic family (`serif`, `sans-serif`, ...) to fall back on. `@font-face` is left out.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "a {\n  font-family: Arial, Helvetica;\n  font-family: \"Arial\", serif;\n  font-family: Arial, inherit;\n  font-family: Arial, serif, \"Arial\";\n  font: 12px/1.5 Arial;\n  font: 12px Arial, sans-serif;\n}\n@font-face { font-family: Foo; }\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 23,
+            "length": 9,
+            "line": 2
+          },
+          {
+            "column": 18,
+            "length": 5,
+            "line": 6
+          }
+        ]
+      },
+      "fix": null,
+      "id": "font-family-no-missing-generic-family-keyword",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [],
+      "presets": [
+        "css/stylelint-recommended",
+        "css/stylelint-recommended",
+        "css/stylelint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A function that is not in the `list` option. An empty list allows everything.",
+      "example": {
+        "config": "property-allowed-list: { level: warn, options: { list: [color, \"/^wid/\"] } }\nunit-allowed-list: { level: warn, options: { list: [px, em] } }\nfunction-allowed-list: { level: warn, options: { list: [var] } }\nat-rule-allowed-list: { level: warn, options: { list: [media] } }\nmedia-feature-name-allowed-list: { level: warn, options: { list: [max-width] } }\nselector-pseudo-class-allowed-list: { level: warn, options: { list: [focus] } }\nselector-pseudo-element-allowed-list: { level: warn, options: { list: [after] } }\nselector-combinator-allowed-list: { level: warn, options: { list: [\" \"] } }\nselector-attribute-operator-allowed-list: { level: warn, options: { list: [\"=\"] } }\n",
+        "fixed": null,
+        "input": "@import \"a.css\";\n[x~=y] { color: red }\n@media (min-width: 40em) {\n  a:hover::before > b { color: red; float: left; width: calc(1px + 2em); height: 1rem }\n}\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 57,
+            "length": 4,
+            "line": 4
+          }
+        ]
+      },
+      "fix": null,
+      "id": "function-allowed-list",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [
+        {
+          "default": [],
+          "description": "The allowed functions: names, or `/regex/`.",
+          "name": "list",
+          "type": "list"
+        }
+      ],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "correctness",
+      "default_level": "off",
+      "description": "`+` and `-` in `calc()` need whitespace on both sides, or the expression is invalid.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "a {\n  width: calc(1px+2px);\n  width: calc(1px +2px);\n  width: calc(1px+ 2px);\n  width: calc(1px + 2px);\n  width: calc(1px*2);\n  width: calc(-1px + 2px);\n  width: calc((1px+2px) * 3);\n  width: calc(var(--a)+1px);\n  width: CALC(1px + 2px);\n  background: linear-gradient(top, red, blue);\n  background: linear-gradient(to top, red, blue);\n  background: linear-gradient(45deg, red, blue);\n  background: -webkit-linear-gradient(top, red, blue);\n  transform: translateX(1px) ROTATE(1deg);\n}\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 18,
+            "length": 1,
+            "line": 2
+          },
+          {
+            "column": 19,
+            "length": 4,
+            "line": 3
+          },
+          {
+            "column": 18,
+            "length": 1,
+            "line": 4
+          },
+          {
+            "column": 19,
+            "length": 1,
+            "line": 8
+          },
+          {
+            "column": 23,
+            "length": 4,
+            "line": 9
+          }
+        ]
+      },
+      "fix": null,
+      "id": "function-calc-no-unspaced-operator",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [],
+      "presets": [
+        "css/stylelint-recommended",
+        "css/stylelint-recommended",
+        "css/stylelint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A function that is in the `list` option.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "@import \"a.css\";\n@media (min-width: 40em) and (color) {\n  a { float: left; width: 1em }\n}\na:hover::before > b[style] { color: red; width: calc(1px + 2px); --x: 1em }\n.c { margin: 0 0 1px 2em; height: 50%; font-size: 12PX }\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 49,
+            "length": 4,
+            "line": 5
+          }
+        ]
+      },
+      "fix": null,
+      "id": "function-disallowed-list",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [
+        {
+          "default": [],
+          "description": "The disallowed functions: names, or `/regex/`.",
+          "name": "list",
+          "type": "list"
+        }
+      ],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "correctness",
+      "default_level": "off",
+      "description": "A `linear-gradient()` that starts with a side (`top`) instead of `to top` or an angle.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "a {\n  width: calc(1px+2px);\n  width: calc(1px +2px);\n  width: calc(1px+ 2px);\n  width: calc(1px + 2px);\n  width: calc(1px*2);\n  width: calc(-1px + 2px);\n  width: calc((1px+2px) * 3);\n  width: calc(var(--a)+1px);\n  width: CALC(1px + 2px);\n  background: linear-gradient(top, red, blue);\n  background: linear-gradient(to top, red, blue);\n  background: linear-gradient(45deg, red, blue);\n  background: -webkit-linear-gradient(top, red, blue);\n  transform: translateX(1px) ROTATE(1deg);\n}\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 31,
+            "length": 3,
+            "line": 11
+          }
+        ]
+      },
+      "fix": null,
+      "id": "function-linear-gradient-no-nonstandard-direction",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [],
+      "presets": [
+        "css/stylelint-recommended",
+        "css/stylelint-recommended",
+        "css/stylelint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A function name with capitals (`translateX` and the like keep theirs).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "a {\n  width: calc(1px+2px);\n  width: calc(1px +2px);\n  width: calc(1px+ 2px);\n  width: calc(1px + 2px);\n  width: calc(1px*2);\n  width: calc(-1px + 2px);\n  width: calc((1px+2px) * 3);\n  width: calc(var(--a)+1px);\n  width: CALC(1px + 2px);\n  background: linear-gradient(top, red, blue);\n  background: linear-gradient(to top, red, blue);\n  background: linear-gradient(45deg, red, blue);\n  background: -webkit-linear-gradient(top, red, blue);\n  transform: translateX(1px) ROTATE(1deg);\n}\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 10,
+            "length": 4,
+            "line": 10
+          },
+          {
+            "column": 30,
+            "length": 6,
+            "line": 15
+          }
+        ]
+      },
+      "fix": null,
+      "id": "function-name-case",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [],
+      "presets": [
+        "css/stylelint-standard",
+        "css/stylelint-standard",
+        "css/stylelint-standard"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "An unquoted `url(...)`: quote its argument.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "@import url(\"a.css\");\n@import \"b.css\";\na {\n  margin: 0px 0.0em 0;\n  transition: 0s;\n  width: calc(0px + 1px);\n  --x: 0px;\n  background: url(a.png), url(\"b.png\");\n  color: #aabbcc;\n  color: #abc;\n  border-color: #ab #abcde #abcdef;\n  padding: 1px 1px;\n  padding: 1px 2px 1px 2px;\n  padding: 1px 2px 3px 2px;\n  font-family: \"Arial\", 'Lucida Grande', \"Font 2\", sans-serif;\n}\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 15,
+            "length": 10,
+            "line": 8
+          }
+        ]
+      },
+      "fix": null,
+      "id": "function-url-quotes",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [],
+      "presets": [
+        "css/stylelint-standard",
+        "css/stylelint-standard",
+        "css/stylelint-standard"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "An `@import` of `url(...)`: write the string.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "@import url(\"a.css\");\n@import \"b.css\";\na {\n  margin: 0px 0.0em 0;\n  transition: 0s;\n  width: calc(0px + 1px);\n  --x: 0px;\n  background: url(a.png), url(\"b.png\");\n  color: #aabbcc;\n  color: #abc;\n  border-color: #ab #abcde #abcdef;\n  padding: 1px 1px;\n  padding: 1px 2px 1px 2px;\n  padding: 1px 2px 3px 2px;\n  font-family: \"Arial\", 'Lucida Grande', \"Font 2\", sans-serif;\n}\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 1,
+            "length": 21,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "import-notation",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [],
+      "presets": [
+        "css/stylelint-standard",
+        "css/stylelint-standard",
+        "css/stylelint-standard"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "The same selector twice in one `@keyframes` rule (compared in lowercase).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "a { color: red }\nb, a { color: red }\na, b { color: red }\na { color: blue }\n@media print { a { color: red } }\n@keyframes k { from { top: 0 } FROM { top: 1px } 0% { top: 2px } }\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 32,
+            "length": 4,
+            "line": 6
+          }
+        ]
+      },
+      "fix": null,
+      "id": "keyframe-block-no-duplicate-selectors",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [],
+      "presets": [
+        "css/stylelint-recommended",
+        "css/stylelint-recommended",
+        "css/stylelint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "correctness",
+      "default_level": "off",
+      "description": "`!important` in a declaration of a `@keyframes` rule: the declaration is ignored.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "a { color: red !important; margin: 0 ! important; padding: 0 }\n@keyframes k {\n  from { color: red }\n  to { color: blue !important }\n}\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 21,
+            "length": 9,
+            "line": 4
+          }
+        ]
+      },
+      "fix": null,
+      "id": "keyframe-declaration-no-important",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [],
+      "presets": [
+        "css/stylelint-recommended",
+        "css/stylelint-recommended",
+        "css/stylelint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "`from` and `to` in a `@keyframes` that also uses percentages (a block with nothing but keywords is left alone).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "a:before, a::after, a:hover {}\n[a=b], [a=\"b\"], [a], [a~=b i] {}\na:nth-child(0), a:nth-child(2n+1), a:nth-last-child(-n) {}\n/*a*/ /* a */ /** a **/ /**/\n@keyframes k { from { top: 0 } to { top: 1px } }\n@keyframes j { from { top: 0 } 50% { top: 1px } to { top: 2px } }\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 16,
+            "length": 4,
+            "line": 6
+          },
+          {
+            "column": 49,
+            "length": 2,
+            "line": 6
+          }
+        ]
+      },
+      "fix": null,
+      "id": "keyframe-selector-notation",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [],
+      "presets": [
+        "css/stylelint-standard",
+        "css/stylelint-standard",
+        "css/stylelint-standard"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A `@keyframes` name that does not match the `pattern` option (a regex). An empty pattern allows everything.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": ".good-name, .badName, #bad_id, #good-id { --good-name: 1; --badName: 2 }\n@keyframes badFrames { from { top: 0 } }\n@keyframes good-frames { from { top: 0 } }\n@custom-media --badMedia (min-width: 1px);\n@custom-media --good-media (min-width: 1px);\n@layer badLayer, good-layer;\n@container badBox (min-width: 1px) { a { color: red } }\n@container good-box (min-width: 1px) { a { color: red } }\nA, B.c:not(.dX) {}\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 12,
+            "length": 9,
+            "line": 2
+          }
+        ]
+      },
+      "fix": null,
+      "id": "keyframes-name-pattern",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [
+        {
+          "default": "",
+          "description": "The regex a keyframes name must match.",
+          "name": "pattern",
+          "type": "string"
+        }
+      ],
+      "presets": [
+        "css/stylelint-standard",
+        "css/stylelint-standard",
+        "css/stylelint-standard"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A `@layer` name that does not match the `pattern` option (a regex). An empty pattern allows everything.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": ".good-name, .badName, #bad_id, #good-id { --good-name: 1; --badName: 2 }\n@keyframes badFrames { from { top: 0 } }\n@keyframes good-frames { from { top: 0 } }\n@custom-media --badMedia (min-width: 1px);\n@custom-media --good-media (min-width: 1px);\n@layer badLayer, good-layer;\n@container badBox (min-width: 1px) { a { color: red } }\n@container good-box (min-width: 1px) { a { color: red } }\nA, B.c:not(.dX) {}\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 8,
+            "length": 8,
+            "line": 6
+          }
+        ]
+      },
+      "fix": null,
+      "id": "layer-name-pattern",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [
+        {
+          "default": "",
+          "description": "The regex a layer name must match.",
+          "name": "pattern",
+          "type": "string"
+        }
+      ],
+      "presets": [
+        "css/stylelint-standard",
+        "css/stylelint-standard",
+        "css/stylelint-standard"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A zero length written with a unit (`0px`); other dimensions (`0s`, `0deg`) are left alone, and so is what is inside a function.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "@import url(\"a.css\");\n@import \"b.css\";\na {\n  margin: 0px 0.0em 0;\n  transition: 0s;\n  width: calc(0px + 1px);\n  --x: 0px;\n  background: url(a.png), url(\"b.png\");\n  color: #aabbcc;\n  color: #abc;\n  border-color: #ab #abcde #abcdef;\n  padding: 1px 1px;\n  padding: 1px 2px 1px 2px;\n  padding: 1px 2px 3px 2px;\n  font-family: \"Arial\", 'Lucida Grande', \"Font 2\", sans-serif;\n}\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 11,
+            "length": 3,
+            "line": 4
+          },
+          {
+            "column": 15,
+            "length": 5,
+            "line": 4
+          },
+          {
+            "column": 8,
+            "length": 3,
+            "line": 7
+          }
+        ]
+      },
+      "fix": null,
+      "id": "length-zero-no-unit",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [],
+      "presets": [
+        "css/stylelint-standard",
+        "css/stylelint-standard",
+        "css/stylelint-standard"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A rule or at-rule nested in more rules or at-rules than the `max` option.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": ".a.b.c, #x #y, a b c d, [p][q], * *, a:hover:focus { color: red }\n.d { .e { .f { .g { color: red } } } }\n.h { color: red; margin: 0 }\n.i {\n  color: red; margin: 0;\n}\n.j { width: 1.23456px; height: 10.5%; opacity: 0.12345 }\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 16,
+            "length": 17,
+            "line": 2
+          }
+        ]
+      },
+      "fix": null,
+      "id": "max-nesting-depth",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [
+        {
+          "default": 3,
+          "description": "How deep rules may nest.",
+          "name": "max",
+          "type": "int"
+        }
+      ],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A media feature that is not in the `list` option. An empty list allows everything.",
+      "example": {
+        "config": "property-allowed-list: { level: warn, options: { list: [color, \"/^wid/\"] } }\nunit-allowed-list: { level: warn, options: { list: [px, em] } }\nfunction-allowed-list: { level: warn, options: { list: [var] } }\nat-rule-allowed-list: { level: warn, options: { list: [media] } }\nmedia-feature-name-allowed-list: { level: warn, options: { list: [max-width] } }\nselector-pseudo-class-allowed-list: { level: warn, options: { list: [focus] } }\nselector-pseudo-element-allowed-list: { level: warn, options: { list: [after] } }\nselector-combinator-allowed-list: { level: warn, options: { list: [\" \"] } }\nselector-attribute-operator-allowed-list: { level: warn, options: { list: [\"=\"] } }\n",
+        "fixed": null,
+        "input": "@import \"a.css\";\n[x~=y] { color: red }\n@media (min-width: 40em) {\n  a:hover::before > b { color: red; float: left; width: calc(1px + 2em); height: 1rem }\n}\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 9,
+            "length": 9,
+            "line": 3
+          }
+        ]
+      },
+      "fix": null,
+      "id": "media-feature-name-allowed-list",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [
+        {
+          "default": [],
+          "description": "The allowed media features: names, or `/regex/`.",
+          "name": "list",
+          "type": "list"
+        }
+      ],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A media feature that is in the `list` option.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "@import \"a.css\";\n@media (min-width: 40em) and (color) {\n  a { float: left; width: 1em }\n}\na:hover::before > b[style] { color: red; width: calc(1px + 2px); --x: 1em }\n.c { margin: 0 0 1px 2em; height: 50%; font-size: 12PX }\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 9,
+            "length": 9,
+            "line": 2
+          }
+        ]
+      },
+      "fix": null,
+      "id": "media-feature-name-disallowed-list",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [
+        {
+          "default": [],
+          "description": "The disallowed media features: names, or `/regex/`.",
+          "name": "list",
+          "type": "list"
+        }
+      ],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "correctness",
+      "default_level": "off",
+      "description": "A `grid-template-areas` whose rows differ in length, are empty, or hold an area that is not a rectangle.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": ":root { --x: 1; --y: 2 }\na { width: calc(--x * 2); transition: --y 1s; margin: var(--x); height: --z }\nb { grid-template-areas: \"a b\" \"a\" }\nc { grid-template-areas: \"a a\" \"b a\" }\nd { grid-template-areas: \"a b\" \"c d\" }\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 32,
+            "length": 3,
+            "line": 3
+          },
+          {
+            "column": 26,
+            "length": 5,
+            "line": 4
+          }
+        ]
+      },
+      "fix": null,
+      "id": "named-grid-areas-no-invalid",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [],
+      "presets": [
+        "css/stylelint-recommended",
+        "css/stylelint-recommended",
+        "css/stylelint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "A rule whose selector ends in the same compound (without its pseudo-classes) as an earlier rule in the same at-rule and has a lower specificity: the earlier one wins where the later was meant to. Nested rules are not compared.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "a:hover { color: red }\na { color: blue }\n.b a { color: red }\na { color: green }\n@media print { a { color: red } }\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 1,
+            "length": 1,
+            "line": 2
+          },
+          {
+            "column": 1,
+            "length": 1,
+            "line": 4
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-descending-specificity",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [],
+      "presets": [
+        "css/stylelint-recommended",
+        "css/stylelint-recommended",
+        "css/stylelint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "The same `@import` (url and media list) twice in one file.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "@charset \"utf-8\";\n@import \"a.css\";\n@import url(a.css);\n@import \"a.css\" screen;\n@layer base;\n@import \"b.css\";\na { color: red }\n@import \"c.css\";\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 1,
+            "length": 19,
+            "line": 3
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-duplicate-at-import-rules",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [],
+      "presets": [
+        "css/stylelint-recommended",
+        "css/stylelint-recommended",
+        "css/stylelint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "The same selector list (in any order) on two rules in one block or file.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "a { color: red }\nb, a { color: red }\na, b { color: red }\na { color: blue }\n@media print { a { color: red } }\n@keyframes k { from { top: 0 } FROM { top: 1px } 0% { top: 2px } }\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 1,
+            "length": 4,
+            "line": 3
+          },
+          {
+            "column": 1,
+            "length": 1,
+            "line": 4
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-duplicate-selectors",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [],
+      "presets": [
+        "css/stylelint-recommended",
+        "css/stylelint-recommended",
+        "css/stylelint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "A file with nothing but whitespace (a file with only comments is not empty).",
+      "fix": null,
+      "id": "no-empty-source",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [],
+      "presets": [
+        "css/stylelint-recommended",
+        "css/stylelint-recommended",
+        "css/stylelint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "correctness",
+      "default_level": "off",
+      "description": "A rule or declaration that starts with `//`: CSS has no line comments, so the text swallows the statement.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "a { color: red }\n// note\nb { color: blue }\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 1,
+            "length": 1,
+            "line": 2
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-invalid-double-slash-comments",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [],
+      "presets": [
+        "css/stylelint-recommended",
+        "css/stylelint-recommended",
+        "css/stylelint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "correctness",
+      "default_level": "off",
+      "description": "An `@import` after a rule that is not `@charset`, `@layer` or another `@import`: the browser ignores it.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "@charset \"utf-8\";\n@import \"a.css\";\n@import url(a.css);\n@import \"a.css\" screen;\n@layer base;\n@import \"b.css\";\na { color: red }\n@import \"c.css\";\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 1,
+            "length": 16,
+            "line": 8
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-invalid-position-at-import-rule",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [],
+      "presets": [
+        "css/stylelint-recommended",
+        "css/stylelint-recommended",
+        "css/stylelint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "correctness",
+      "default_level": "off",
+      "description": "A declaration at the top of a file, or in an at-rule such as `@media` that is not inside a rule.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "color: red;\n@media print { color: red; a { color: red } }\na { color: red; @media print { color: blue } b { color: green } }\n@font-face { src: url(a) }\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 1,
+            "length": 11,
+            "line": 1
+          },
+          {
+            "column": 16,
+            "length": 11,
+            "line": 2
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-invalid-position-declaration",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [],
+      "presets": [
+        "css/stylelint-recommended",
+        "css/stylelint-recommended",
+        "css/stylelint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A number with more decimal places than the `max` option.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": ".a.b.c, #x #y, a b c d, [p][q], * *, a:hover:focus { color: red }\n.d { .e { .f { .g { color: red } } } }\n.h { color: red; margin: 0 }\n.i {\n  color: red; margin: 0;\n}\n.j { width: 1.23456px; height: 10.5%; opacity: 0.12345 }\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 13,
+            "length": 9,
+            "line": 7
+          },
+          {
+            "column": 48,
+            "length": 7,
+            "line": 7
+          }
+        ]
+      },
+      "fix": null,
+      "id": "number-max-precision",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [
+        {
+          "default": 4,
+          "description": "The most decimal places a number may have.",
+          "name": "max",
+          "type": "int"
+        }
+      ],
+      "presets": [
+        "css/stylelint-standard",
+        "css/stylelint-standard",
+        "css/stylelint-standard"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A property that is not in the `list` option (names, or `/regex/`). Custom properties are left out; an empty list allows everything.",
+      "example": {
+        "config": "property-allowed-list: { level: warn, options: { list: [color, \"/^wid/\"] } }\nunit-allowed-list: { level: warn, options: { list: [px, em] } }\nfunction-allowed-list: { level: warn, options: { list: [var] } }\nat-rule-allowed-list: { level: warn, options: { list: [media] } }\nmedia-feature-name-allowed-list: { level: warn, options: { list: [max-width] } }\nselector-pseudo-class-allowed-list: { level: warn, options: { list: [focus] } }\nselector-pseudo-element-allowed-list: { level: warn, options: { list: [after] } }\nselector-combinator-allowed-list: { level: warn, options: { list: [\" \"] } }\nselector-attribute-operator-allowed-list: { level: warn, options: { list: [\"=\"] } }\n",
+        "fixed": null,
+        "input": "@import \"a.css\";\n[x~=y] { color: red }\n@media (min-width: 40em) {\n  a:hover::before > b { color: red; float: left; width: calc(1px + 2em); height: 1rem }\n}\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 37,
+            "length": 5,
+            "line": 4
+          },
+          {
+            "column": 74,
+            "length": 6,
+            "line": 4
+          }
+        ]
+      },
+      "fix": null,
+      "id": "property-allowed-list",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [
+        {
+          "default": [],
+          "description": "The allowed properties: names, or `/regex/`.",
+          "name": "list",
+          "type": "list"
+        }
+      ],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A property that is in the `list` option (names, or `/regex/`). Custom properties are left out.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "@import \"a.css\";\n@media (min-width: 40em) and (color) {\n  a { float: left; width: 1em }\n}\na:hover::before > b[style] { color: red; width: calc(1px + 2px); --x: 1em }\n.c { margin: 0 0 1px 2em; height: 50%; font-size: 12PX }\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 7,
+            "length": 5,
+            "line": 3
+          }
+        ]
+      },
+      "fix": null,
+      "id": "property-disallowed-list",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [
+        {
+          "default": [],
+          "description": "The disallowed properties: names, or `/regex/`.",
+          "name": "list",
+          "type": "list"
+        }
+      ],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "correctness",
+      "default_level": "off",
+      "description": "An `:nth-child()` and the like whose `An+B` can never match (`0`, `0n`, `-n`, `-2n-1`).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "a:before, a::after, a:hover {}\n[a=b], [a=\"b\"], [a], [a~=b i] {}\na:nth-child(0), a:nth-child(2n+1), a:nth-last-child(-n) {}\n/*a*/ /* a */ /** a **/ /**/\n@keyframes k { from { top: 0 } to { top: 1px } }\n@keyframes j { from { top: 0 } 50% { top: 1px } to { top: 2px } }\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 3,
+            "length": 12,
+            "line": 3
+          },
+          {
+            "column": 38,
+            "length": 19,
+            "line": 3
+          }
+        ]
+      },
+      "fix": null,
+      "id": "selector-anb-no-unmatchable",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [],
+      "presets": [
+        "css/stylelint-recommended",
+        "css/stylelint-recommended",
+        "css/stylelint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "An attribute selector whose name is in the `list` option.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "@import \"a.css\";\n@media (min-width: 40em) and (color) {\n  a { float: left; width: 1em }\n}\na:hover::before > b[style] { color: red; width: calc(1px + 2px); --x: 1em }\n.c { margin: 0 0 1px 2em; height: 50%; font-size: 12PX }\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 20,
+            "length": 8,
+            "line": 5
+          }
+        ]
+      },
+      "fix": null,
+      "id": "selector-attribute-name-disallowed-list",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [
+        {
+          "default": [],
+          "description": "The disallowed attribute names: names, or `/regex/`.",
+          "name": "list",
+          "type": "list"
+        }
+      ],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "An attribute selector operator that is not in the `list` option. An empty list allows everything.",
+      "example": {
+        "config": "property-allowed-list: { level: warn, options: { list: [color, \"/^wid/\"] } }\nunit-allowed-list: { level: warn, options: { list: [px, em] } }\nfunction-allowed-list: { level: warn, options: { list: [var] } }\nat-rule-allowed-list: { level: warn, options: { list: [media] } }\nmedia-feature-name-allowed-list: { level: warn, options: { list: [max-width] } }\nselector-pseudo-class-allowed-list: { level: warn, options: { list: [focus] } }\nselector-pseudo-element-allowed-list: { level: warn, options: { list: [after] } }\nselector-combinator-allowed-list: { level: warn, options: { list: [\" \"] } }\nselector-attribute-operator-allowed-list: { level: warn, options: { list: [\"=\"] } }\n",
+        "fixed": null,
+        "input": "@import \"a.css\";\n[x~=y] { color: red }\n@media (min-width: 40em) {\n  a:hover::before > b { color: red; float: left; width: calc(1px + 2em); height: 1rem }\n}\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 1,
+            "length": 7,
+            "line": 2
+          }
+        ]
+      },
+      "fix": null,
+      "id": "selector-attribute-operator-allowed-list",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [
+        {
+          "default": [],
+          "description": "The allowed operators (`=`, `~=`, `|=`, `^=`, `$=`, `*=`).",
+          "name": "list",
+          "type": "list"
+        }
+      ],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "An attribute selector operator that is in the `list` option.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "ul.nav, a[x~=y], a[x=y], b > c {}\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 10,
+            "length": 6,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "selector-attribute-operator-disallowed-list",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [
+        {
+          "default": [],
+          "description": "The disallowed operators (`=`, `~=`, `|=`, `^=`, `$=`, `*=`).",
+          "name": "list",
+          "type": "list"
+        }
+      ],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "An attribute selector whose value is not quoted (`[a=b]`).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "a:before, a::after, a:hover {}\n[a=b], [a=\"b\"], [a], [a~=b i] {}\na:nth-child(0), a:nth-child(2n+1), a:nth-last-child(-n) {}\n/*a*/ /* a */ /** a **/ /**/\n@keyframes k { from { top: 0 } to { top: 1px } }\n@keyframes j { from { top: 0 } 50% { top: 1px } to { top: 2px } }\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 1,
+            "length": 5,
+            "line": 2
+          },
+          {
+            "column": 22,
+            "length": 8,
+            "line": 2
+          }
+        ]
+      },
+      "fix": null,
+      "id": "selector-attribute-quotes",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [],
+      "presets": [
+        "css/stylelint-standard",
+        "css/stylelint-standard",
+        "css/stylelint-standard"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A class selector whose name does not match the `pattern` option (a regex). An empty pattern allows everything.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": ".good-name, .badName, #bad_id, #good-id { --good-name: 1; --badName: 2 }\n@keyframes badFrames { from { top: 0 } }\n@keyframes good-frames { from { top: 0 } }\n@custom-media --badMedia (min-width: 1px);\n@custom-media --good-media (min-width: 1px);\n@layer badLayer, good-layer;\n@container badBox (min-width: 1px) { a { color: red } }\n@container good-box (min-width: 1px) { a { color: red } }\nA, B.c:not(.dX) {}\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 14,
+            "length": 7,
+            "line": 1
+          },
+          {
+            "column": 13,
+            "length": 2,
+            "line": 9
+          }
+        ]
+      },
+      "fix": null,
+      "id": "selector-class-pattern",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [
+        {
+          "default": "",
+          "description": "The regex a class name must match.",
+          "name": "pattern",
+          "type": "string"
+        }
+      ],
+      "presets": [
+        "css/stylelint-standard",
+        "css/stylelint-standard",
+        "css/stylelint-standard"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A combinator (`>`, `+`, `~`, or a space for descendant) that is not in the `list` option. An empty list allows everything.",
+      "example": {
+        "config": "property-allowed-list: { level: warn, options: { list: [color, \"/^wid/\"] } }\nunit-allowed-list: { level: warn, options: { list: [px, em] } }\nfunction-allowed-list: { level: warn, options: { list: [var] } }\nat-rule-allowed-list: { level: warn, options: { list: [media] } }\nmedia-feature-name-allowed-list: { level: warn, options: { list: [max-width] } }\nselector-pseudo-class-allowed-list: { level: warn, options: { list: [focus] } }\nselector-pseudo-element-allowed-list: { level: warn, options: { list: [after] } }\nselector-combinator-allowed-list: { level: warn, options: { list: [\" \"] } }\nselector-attribute-operator-allowed-list: { level: warn, options: { list: [\"=\"] } }\n",
+        "fixed": null,
+        "input": "@import \"a.css\";\n[x~=y] { color: red }\n@media (min-width: 40em) {\n  a:hover::before > b { color: red; float: left; width: calc(1px + 2em); height: 1rem }\n}\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 19,
+            "length": 1,
+            "line": 4
+          }
+        ]
+      },
+      "fix": null,
+      "id": "selector-combinator-allowed-list",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [
+        {
+          "default": [],
+          "description": "The allowed combinators.",
+          "name": "list",
+          "type": "list"
+        }
+      ],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A combinator (`>`, `+`, `~`, or a space for descendant) that is in the `list` option.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "@import \"a.css\";\n@media (min-width: 40em) and (color) {\n  a { float: left; width: 1em }\n}\na:hover::before > b[style] { color: red; width: calc(1px + 2px); --x: 1em }\n.c { margin: 0 0 1px 2em; height: 50%; font-size: 12PX }\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 17,
+            "length": 1,
+            "line": 5
+          }
+        ]
+      },
+      "fix": null,
+      "id": "selector-combinator-disallowed-list",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [
+        {
+          "default": [],
+          "description": "The disallowed combinators.",
+          "name": "list",
+          "type": "list"
+        }
+      ],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "The selector list of a rule (whitespace collapsed) that is in the `list` option (selectors, or `/regex/`).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "ul.nav, a[x~=y], a[x=y], b > c {}\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 1,
+            "length": 30,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "selector-disallowed-list",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [
+        {
+          "default": [],
+          "description": "The disallowed selectors: text, or `/regex/`.",
+          "name": "list",
+          "type": "list"
+        }
+      ],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "An id selector whose name does not match the `pattern` option (a regex). An empty pattern allows everything.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": ".good-name, .badName, #bad_id, #good-id { --good-name: 1; --badName: 2 }\n@keyframes badFrames { from { top: 0 } }\n@keyframes good-frames { from { top: 0 } }\n@custom-media --badMedia (min-width: 1px);\n@custom-media --good-media (min-width: 1px);\n@layer badLayer, good-layer;\n@container badBox (min-width: 1px) { a { color: red } }\n@container good-box (min-width: 1px) { a { color: red } }\nA, B.c:not(.dX) {}\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 23,
+            "length": 7,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "selector-id-pattern",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [
+        {
+          "default": "",
+          "description": "The regex an id name must match.",
+          "name": "pattern",
+          "type": "string"
+        }
+      ],
+      "presets": [
+        "css/stylelint-standard",
+        "css/stylelint-standard",
+        "css/stylelint-standard"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A selector with more attribute selectors than the `max` option.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": ".a.b.c, #x #y, a b c d, [p][q], * *, a:hover:focus { color: red }\n.d { .e { .f { .g { color: red } } } }\n.h { color: red; margin: 0 }\n.i {\n  color: red; margin: 0;\n}\n.j { width: 1.23456px; height: 10.5%; opacity: 0.12345 }\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 25,
+            "length": 6,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "selector-max-attribute",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [
+        {
+          "default": 0,
+          "description": "The most attribute selectors a selector may have.",
+          "name": "max",
+          "type": "int"
+        }
+      ],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A selector with more class selectors than the `max` option (the ones inside `:not()` and the like count).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": ".a.b.c, #x #y, a b c d, [p][q], * *, a:hover:focus { color: red }\n.d { .e { .f { .g { color: red } } } }\n.h { color: red; margin: 0 }\n.i {\n  color: red; margin: 0;\n}\n.j { width: 1.23456px; height: 10.5%; opacity: 0.12345 }\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 2,
+            "length": 5,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "selector-max-class",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [
+        {
+          "default": 0,
+          "description": "The most classes a selector may have.",
+          "name": "max",
+          "type": "int"
+        }
+      ],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A selector with more combinators (a space between compounds counts) than the `max` option.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": ".a.b.c, #x #y, a b c d, [p][q], * *, a:hover:focus { color: red }\n.d { .e { .f { .g { color: red } } } }\n.h { color: red; margin: 0 }\n.i {\n  color: red; margin: 0;\n}\n.j { width: 1.23456px; height: 10.5%; opacity: 0.12345 }\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 16,
+            "length": 7,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "selector-max-combinators",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [
+        {
+          "default": 2,
+          "description": "The most combinators a selector may have.",
+          "name": "max",
+          "type": "int"
+        }
+      ],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A selector with more compound selectors than the `max` option.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": ".a.b.c, #x #y, a b c d, [p][q], * *, a:hover:focus { color: red }\n.d { .e { .f { .g { color: red } } } }\n.h { color: red; margin: 0 }\n.i {\n  color: red; margin: 0;\n}\n.j { width: 1.23456px; height: 10.5%; opacity: 0.12345 }\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 16,
+            "length": 7,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "selector-max-compound-selectors",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [
+        {
+          "default": 3,
+          "description": "The most compound selectors a selector may have.",
+          "name": "max",
+          "type": "int"
+        }
+      ],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A selector with more id selectors than the `max` option.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": ".a.b.c, #x #y, a b c d, [p][q], * *, a:hover:focus { color: red }\n.d { .e { .f { .g { color: red } } } }\n.h { color: red; margin: 0 }\n.i {\n  color: red; margin: 0;\n}\n.j { width: 1.23456px; height: 10.5%; opacity: 0.12345 }\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 9,
+            "length": 5,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "selector-max-id",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [
+        {
+          "default": 0,
+          "description": "The most ids a selector may have.",
+          "name": "max",
+          "type": "int"
+        }
+      ],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A selector with more pseudo-classes than the `max` option.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": ".a.b.c, #x #y, a b c d, [p][q], * *, a:hover:focus { color: red }\n.d { .e { .f { .g { color: red } } } }\n.h { color: red; margin: 0 }\n.i {\n  color: red; margin: 0;\n}\n.j { width: 1.23456px; height: 10.5%; opacity: 0.12345 }\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 38,
+            "length": 13,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "selector-max-pseudo-class",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [
+        {
+          "default": 0,
+          "description": "The most pseudo-classes a selector may have.",
+          "name": "max",
+          "type": "int"
+        }
+      ],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A selector with more type selectors than the `max` option.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": ".a.b.c, #x #y, a b c d, [p][q], * *, a:hover:focus { color: red }\n.d { .e { .f { .g { color: red } } } }\n.h { color: red; margin: 0 }\n.i {\n  color: red; margin: 0;\n}\n.j { width: 1.23456px; height: 10.5%; opacity: 0.12345 }\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 16,
+            "length": 7,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "selector-max-type",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [
+        {
+          "default": 0,
+          "description": "The most type selectors a selector may have.",
+          "name": "max",
+          "type": "int"
+        }
+      ],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A selector with more `*` than the `max` option.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": ".a.b.c, #x #y, a b c d, [p][q], * *, a:hover:focus { color: red }\n.d { .e { .f { .g { color: red } } } }\n.h { color: red; margin: 0 }\n.i {\n  color: red; margin: 0;\n}\n.j { width: 1.23456px; height: 10.5%; opacity: 0.12345 }\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 33,
+            "length": 3,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "selector-max-universal",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [
+        {
+          "default": 0,
+          "description": "The most universal selectors a selector may have.",
+          "name": "max",
+          "type": "int"
+        }
+      ],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A type selector in the same compound as a class, id or attribute selector (`ul.nav`).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "@import \"a.css\";\n@media (min-width: 40em) and (color) {\n  a { float: left; width: 1em }\n}\na:hover::before > b[style] { color: red; width: calc(1px + 2px); --x: 1em }\n.c { margin: 0 0 1px 2em; height: 50%; font-size: 12PX }\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 19,
+            "length": 1,
+            "line": 5
+          }
+        ]
+      },
+      "fix": null,
+      "id": "selector-no-qualifying-type",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A pseudo-class that is not in the `list` option. An empty list allows everything.",
+      "example": {
+        "config": "property-allowed-list: { level: warn, options: { list: [color, \"/^wid/\"] } }\nunit-allowed-list: { level: warn, options: { list: [px, em] } }\nfunction-allowed-list: { level: warn, options: { list: [var] } }\nat-rule-allowed-list: { level: warn, options: { list: [media] } }\nmedia-feature-name-allowed-list: { level: warn, options: { list: [max-width] } }\nselector-pseudo-class-allowed-list: { level: warn, options: { list: [focus] } }\nselector-pseudo-element-allowed-list: { level: warn, options: { list: [after] } }\nselector-combinator-allowed-list: { level: warn, options: { list: [\" \"] } }\nselector-attribute-operator-allowed-list: { level: warn, options: { list: [\"=\"] } }\n",
+        "fixed": null,
+        "input": "@import \"a.css\";\n[x~=y] { color: red }\n@media (min-width: 40em) {\n  a:hover::before > b { color: red; float: left; width: calc(1px + 2em); height: 1rem }\n}\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 5,
+            "length": 5,
+            "line": 4
+          }
+        ]
+      },
+      "fix": null,
+      "id": "selector-pseudo-class-allowed-list",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [
+        {
+          "default": [],
+          "description": "The allowed pseudo-classes, without `:`: names, or `/regex/`.",
+          "name": "list",
+          "type": "list"
+        }
+      ],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A pseudo-class that is in the `list` option.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "@import \"a.css\";\n@media (min-width: 40em) and (color) {\n  a { float: left; width: 1em }\n}\na:hover::before > b[style] { color: red; width: calc(1px + 2px); --x: 1em }\n.c { margin: 0 0 1px 2em; height: 50%; font-size: 12PX }\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 3,
+            "length": 5,
+            "line": 5
+          }
+        ]
+      },
+      "fix": null,
+      "id": "selector-pseudo-class-disallowed-list",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [
+        {
+          "default": [],
+          "description": "The disallowed pseudo-classes, without `:`: names, or `/regex/`.",
+          "name": "list",
+          "type": "list"
+        }
+      ],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A pseudo-element that is not in the `list` option. An empty list allows everything.",
+      "example": {
+        "config": "property-allowed-list: { level: warn, options: { list: [color, \"/^wid/\"] } }\nunit-allowed-list: { level: warn, options: { list: [px, em] } }\nfunction-allowed-list: { level: warn, options: { list: [var] } }\nat-rule-allowed-list: { level: warn, options: { list: [media] } }\nmedia-feature-name-allowed-list: { level: warn, options: { list: [max-width] } }\nselector-pseudo-class-allowed-list: { level: warn, options: { list: [focus] } }\nselector-pseudo-element-allowed-list: { level: warn, options: { list: [after] } }\nselector-combinator-allowed-list: { level: warn, options: { list: [\" \"] } }\nselector-attribute-operator-allowed-list: { level: warn, options: { list: [\"=\"] } }\n",
+        "fixed": null,
+        "input": "@import \"a.css\";\n[x~=y] { color: red }\n@media (min-width: 40em) {\n  a:hover::before > b { color: red; float: left; width: calc(1px + 2em); height: 1rem }\n}\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 12,
+            "length": 6,
+            "line": 4
+          }
+        ]
+      },
+      "fix": null,
+      "id": "selector-pseudo-element-allowed-list",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [
+        {
+          "default": [],
+          "description": "The allowed pseudo-elements, without colons: names, or `/regex/`.",
+          "name": "list",
+          "type": "list"
+        }
+      ],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "`:before`, `:after`, `:first-line` and `:first-letter` with one colon.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "a:before, a::after, a:hover {}\n[a=b], [a=\"b\"], [a], [a~=b i] {}\na:nth-child(0), a:nth-child(2n+1), a:nth-last-child(-n) {}\n/*a*/ /* a */ /** a **/ /**/\n@keyframes k { from { top: 0 } to { top: 1px } }\n@keyframes j { from { top: 0 } 50% { top: 1px } to { top: 2px } }\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 1,
+            "length": 27,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "selector-pseudo-element-colon-notation",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [],
+      "presets": [
+        "css/stylelint-standard",
+        "css/stylelint-standard",
+        "css/stylelint-standard"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A pseudo-element that is in the `list` option.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "@import \"a.css\";\n@media (min-width: 40em) and (color) {\n  a { float: left; width: 1em }\n}\na:hover::before > b[style] { color: red; width: calc(1px + 2px); --x: 1em }\n.c { margin: 0 0 1px 2em; height: 50%; font-size: 12PX }\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 10,
+            "length": 6,
+            "line": 5
+          }
+        ]
+      },
+      "fix": null,
+      "id": "selector-pseudo-element-disallowed-list",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [
+        {
+          "default": [],
+          "description": "The disallowed pseudo-elements, without colons: names, or `/regex/`.",
+          "name": "list",
+          "type": "list"
+        }
+      ],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A type selector with capitals.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": ".good-name, .badName, #bad_id, #good-id { --good-name: 1; --badName: 2 }\n@keyframes badFrames { from { top: 0 } }\n@keyframes good-frames { from { top: 0 } }\n@custom-media --badMedia (min-width: 1px);\n@custom-media --good-media (min-width: 1px);\n@layer badLayer, good-layer;\n@container badBox (min-width: 1px) { a { color: red } }\n@container good-box (min-width: 1px) { a { color: red } }\nA, B.c:not(.dX) {}\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 1,
+            "length": 1,
+            "line": 9
+          },
+          {
+            "column": 4,
+            "length": 1,
+            "line": 9
+          }
+        ]
+      },
+      "fix": null,
+      "id": "selector-type-case",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [],
+      "presets": [
+        "css/stylelint-standard",
+        "css/stylelint-standard",
+        "css/stylelint-standard"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A `margin`, `padding`, `border-color`, `border-style`, `border-width` or `border-radius` with two, three or four values that repeat (`1px 1px` is `1px`).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "@import url(\"a.css\");\n@import \"b.css\";\na {\n  margin: 0px 0.0em 0;\n  transition: 0s;\n  width: calc(0px + 1px);\n  --x: 0px;\n  background: url(a.png), url(\"b.png\");\n  color: #aabbcc;\n  color: #abc;\n  border-color: #ab #abcde #abcdef;\n  padding: 1px 1px;\n  padding: 1px 2px 1px 2px;\n  padding: 1px 2px 3px 2px;\n  font-family: \"Arial\", 'Lucida Grande', \"Font 2\", sans-serif;\n}\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 12,
+            "length": 3,
+            "line": 12
+          },
+          {
+            "column": 12,
+            "length": 3,
+            "line": 13
+          },
+          {
+            "column": 12,
+            "length": 3,
+            "line": 14
+          }
+        ]
+      },
+      "fix": null,
+      "id": "shorthand-property-no-redundant-values",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [],
+      "presets": [
+        "css/stylelint-standard",
+        "css/stylelint-standard",
+        "css/stylelint-standard"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A unit (`%` included) that is not in the `list` option, in values and at-rule preludes. An empty list allows everything.",
+      "example": {
+        "config": "property-allowed-list: { level: warn, options: { list: [color, \"/^wid/\"] } }\nunit-allowed-list: { level: warn, options: { list: [px, em] } }\nfunction-allowed-list: { level: warn, options: { list: [var] } }\nat-rule-allowed-list: { level: warn, options: { list: [media] } }\nmedia-feature-name-allowed-list: { level: warn, options: { list: [max-width] } }\nselector-pseudo-class-allowed-list: { level: warn, options: { list: [focus] } }\nselector-pseudo-element-allowed-list: { level: warn, options: { list: [after] } }\nselector-combinator-allowed-list: { level: warn, options: { list: [\" \"] } }\nselector-attribute-operator-allowed-list: { level: warn, options: { list: [\"=\"] } }\n",
+        "fixed": null,
+        "input": "@import \"a.css\";\n[x~=y] { color: red }\n@media (min-width: 40em) {\n  a:hover::before > b { color: red; float: left; width: calc(1px + 2em); height: 1rem }\n}\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 82,
+            "length": 4,
+            "line": 4
+          }
+        ]
+      },
+      "fix": null,
+      "id": "unit-allowed-list",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [
+        {
+          "default": [],
+          "description": "The allowed units: names, or `/regex/`.",
+          "name": "list",
+          "type": "list"
+        }
+      ],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A unit (`%` included) that is in the `list` option, in values and at-rule preludes.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "@import \"a.css\";\n@media (min-width: 40em) and (color) {\n  a { float: left; width: 1em }\n}\na:hover::before > b[style] { color: red; width: calc(1px + 2px); --x: 1em }\n.c { margin: 0 0 1px 2em; height: 50%; font-size: 12PX }\n",
+        "language": "css",
+        "spans": [
+          {
+            "column": 20,
+            "length": 4,
+            "line": 2
+          },
+          {
+            "column": 27,
+            "length": 3,
+            "line": 3
+          },
+          {
+            "column": 71,
+            "length": 3,
+            "line": 5
+          },
+          {
+            "column": 22,
+            "length": 3,
+            "line": 6
+          }
+        ]
+      },
+      "fix": null,
+      "id": "unit-disallowed-list",
+      "languages": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "options": [
+        {
+          "default": [],
+          "description": "The disallowed units: names, or `/regex/`.",
+          "name": "list",
+          "type": "list"
+        }
+      ],
+      "presets": [],
+      "upstream": []
+    },
+    {
       "category": "suspicious",
       "default_level": "off",
       "description": "A plain `yes`, `no`, `on`, `off`, `True`, `TRUE`, `False` or `FALSE` (in the usual casings): a boolean to YAML 1.1 parsers and a string to YAML 1.2 parsers. Lowercase `true` and `false` are fine.",

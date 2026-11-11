@@ -1,0 +1,72 @@
+{
+  "function-name-case": "lower",
+  "property-allowed-list": null,
+  "property-disallowed-list": [
+    "float"
+  ],
+  "unit-allowed-list": null,
+  "unit-disallowed-list": [
+    "em"
+  ],
+  "function-allowed-list": null,
+  "function-disallowed-list": [
+    "calc"
+  ],
+  "at-rule-allowed-list": null,
+  "at-rule-disallowed-list": [
+    "import"
+  ],
+  "media-feature-name-allowed-list": null,
+  "media-feature-name-disallowed-list": [
+    "min-width"
+  ],
+  "selector-pseudo-class-allowed-list": null,
+  "selector-pseudo-class-disallowed-list": [
+    "hover"
+  ],
+  "selector-pseudo-element-allowed-list": null,
+  "selector-pseudo-element-disallowed-list": [
+    "before"
+  ],
+  "selector-combinator-allowed-list": null,
+  "selector-combinator-disallowed-list": [
+    ">"
+  ],
+  "selector-attribute-name-disallowed-list": [
+    "style"
+  ],
+  "selector-disallowed-list": [
+    "/b > c$/"
+  ],
+  "selector-attribute-operator-allowed-list": null,
+  "selector-attribute-operator-disallowed-list": [
+    "~="
+  ],
+  "selector-max-class": 2,
+  "selector-max-id": 1,
+  "selector-max-attribute": 1,
+  "selector-max-pseudo-class": 1,
+  "selector-max-type": 3,
+  "selector-max-universal": 1,
+  "selector-max-combinators": 2,
+  "selector-max-compound-selectors": 3,
+  "max-nesting-depth": 2,
+  "declaration-block-single-line-max-declarations": 1,
+  "number-max-precision": 4,
+  "function-url-quotes": "always",
+  "import-notation": "string",
+  "selector-pseudo-element-colon-notation": "double",
+  "selector-attribute-quotes": "always",
+  "comment-whitespace-inside": "always",
+  "selector-class-pattern": "^[a-z]+(-[a-z]+)*$",
+  "selector-id-pattern": "^[a-z]+(-[a-z]+)*$",
+  "custom-property-pattern": "^[a-z]+(-[a-z]+)*$",
+  "keyframes-name-pattern": "^[a-z]+(-[a-z]+)*$",
+  "custom-media-pattern": "^[a-z]+(-[a-z]+)*$",
+  "selector-type-case": "lower",
+  "layer-name-pattern": "^[a-z]+(-[a-z]+)*$",
+  "container-name-pattern": "^[a-z]+(-[a-z]+)*$",
+  "color-hex-length": "short",
+  "keyframe-selector-notation": "percentage-unless-within-keyword-only-block",
+  "font-family-name-quotes": "always-where-required"
+}

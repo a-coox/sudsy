@@ -1,0 +1,4 @@
+a { color: red }
+// note
+^ no-invalid-double-slash-comments
+b { color: blue }

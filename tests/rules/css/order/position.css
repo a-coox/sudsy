@@ -1,0 +1,6 @@
+color: red;
+^^^^^^^^^^^ no-invalid-position-declaration
+@media print { color: red; a { color: red } }
+//             ^^^^^^^^^^^ no-invalid-position-declaration
+a { color: red; @media print { color: blue } b { color: green } }
+@font-face { src: url(a) }

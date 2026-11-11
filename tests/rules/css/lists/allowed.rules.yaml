@@ -1,0 +1,9 @@
+property-allowed-list: { level: warn, options: { list: [color, "/^wid/"] } }
+unit-allowed-list: { level: warn, options: { list: [px, em] } }
+function-allowed-list: { level: warn, options: { list: [var] } }
+at-rule-allowed-list: { level: warn, options: { list: [media] } }
+media-feature-name-allowed-list: { level: warn, options: { list: [max-width] } }
+selector-pseudo-class-allowed-list: { level: warn, options: { list: [focus] } }
+selector-pseudo-element-allowed-list: { level: warn, options: { list: [after] } }
+selector-combinator-allowed-list: { level: warn, options: { list: [" "] } }
+selector-attribute-operator-allowed-list: { level: warn, options: { list: ["="] } }

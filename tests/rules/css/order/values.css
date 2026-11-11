@@ -1,0 +1,8 @@
+:root { --x: 1; --y: 2 }
+a { width: calc(--x * 2); transition: --y 1s; margin: var(--x); height: --z }
+//              ^^^ custom-property-no-missing-var-function
+b { grid-template-areas: "a b" "a" }
+//                             ^^^ named-grid-areas-no-invalid
+c { grid-template-areas: "a a" "b a" }
+//                       ^^^^^ named-grid-areas-no-invalid
+d { grid-template-areas: "a b" "c d" }

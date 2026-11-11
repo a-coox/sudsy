@@ -1,0 +1,7 @@
+a:hover { color: red }
+a { color: blue }
+^ no-descending-specificity
+.b a { color: red }
+a { color: green }
+^ no-descending-specificity
+@media print { a { color: red } }

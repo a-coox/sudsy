@@ -1,0 +1,20 @@
+.a.b.c, #x #y, a b c d, [p][q], * *, a:hover:focus { color: red }
+ ^^^^^ selector-max-class
+//      ^^^^^ selector-max-id
+//             ^^^^^^^ selector-max-combinators
+//             ^^^^^^^ selector-max-compound-selectors
+//             ^^^^^^^ selector-max-type
+//                      ^^^^^^ selector-max-attribute
+//                              ^^^ selector-max-universal
+//                                   ^^^^^^^^^^^^^ selector-max-pseudo-class
+.d { .e { .f { .g { color: red } } } }
+//             ^^^^^^^^^^^^^^^^^ max-nesting-depth
+.h { color: red; margin: 0 }
+// ^^^^^^^^^^^^^^^^^^^^^^^^^ declaration-block-single-line-max-declarations
+.i {
+  color: red; margin: 0;
+}
+.j { width: 1.23456px; height: 10.5%; opacity: 0.12345 }
+// ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ declaration-block-single-line-max-declarations
+//          ^^^^^^^^^ number-max-precision
+//                                             ^^^^^^^ number-max-precision

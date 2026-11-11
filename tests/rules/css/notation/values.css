@@ -1,0 +1,32 @@
+@import url("a.css");
+^^^^^^^^^^^^^^^^^^^^^ import-notation
+@import "b.css";
+a {
+  margin: 0px 0.0em 0;
+//        ^^^ length-zero-no-unit
+//            ^^^^^ length-zero-no-unit
+  transition: 0s;
+  width: calc(0px + 1px);
+  --x: 0px;
+//     ^^^ length-zero-no-unit
+  background: url(a.png), url("b.png");
+//            ^^^^^^^^^^ function-url-quotes
+  color: #aabbcc;
+//       ^^^^^^^ color-hex-length
+//       ^^^^^^^ color-no-hex
+  color: #abc;
+//       ^^^^ color-no-hex
+  border-color: #ab #abcde #abcdef;
+//              ^^^ color-no-invalid-hex
+//                  ^^^^^^ color-no-invalid-hex
+//                         ^^^^^^^ color-no-hex
+  padding: 1px 1px;
+//         ^^^ shorthand-property-no-redundant-values
+  padding: 1px 2px 1px 2px;
+//         ^^^ shorthand-property-no-redundant-values
+  padding: 1px 2px 3px 2px;
+//         ^^^ shorthand-property-no-redundant-values
+  font-family: "Arial", 'Lucida Grande', "Font 2", sans-serif;
+//             ^^^^^^^ font-family-name-quotes
+//                      ^^^^^^^^^^^^^^^ font-family-name-quotes
+}

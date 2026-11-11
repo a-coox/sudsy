@@ -22,6 +22,8 @@ Why plain config and unversioned: no hidden values or code paths per tool, and a
 | `hcl/tflint-recommended` | The rules of tflint-ruleset-terraform's recommended preset that Sudsy has, at `warn` (the formatter has no style options). |
 | `xml/default` | The defaults. |
 | `xml/csharpier-compat` | CSharpier 1.x XML defaults: width 100, two spaces, line endings kept. |
+| `css/stylelint-recommended` | The rules of stylelint-config-recommended that Sudsy has, at `error` (stylelint's severity), the lint rules for `.css`, `.scss` and `.less`; `declaration-block-no-duplicate-properties` with `ignore_consecutive_different_values`. The formatter has no preset options. Checked against stylelint by `scripts/parity.sh stylelint`. |
+| `css/stylelint-standard` | The recommended preset and the rules of stylelint-config-standard that Sudsy has (notation, naming patterns with stylelint's kebab-case regex, `number-max-precision: 4`, `length-zero-no-unit`, ...) at `error`. The empty-line, vendor-prefix, color-function and keyword-case rules of the standard set are not built yet. |
 | `yaml/yamllint` | yamllint's default config: lint levels (line length 80 at error, `no-undefined-alias` at error, `ambiguous-booleans`, `document-start` and `comment-space` at warn; yamllint's other rules are off by default and so stay off) and output that satisfies it: `comment_spacing: 2`, `max_blank_lines: 2`, `sequence_indent: indented`, width 80. `bracket_spacing: false` (`{a: 1}`) and `end_of_line: lf`. |
 | `yaml/prettier-compat` | Width 80, LF, `quote_style: prefer_double`, `blank_lines_after_key: remove`. |
 

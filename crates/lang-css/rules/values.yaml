@@ -1,0 +1,91 @@
+id: color-hex-length
+family: check
+params: { check: hex-length }
+message: "write the hex color `{name}` with the other number of digits"
+description: "A hex color that can be written with three or four digits (`#aabbcc` is `#abc`); with the `style` option set to `long`, one that is written short."
+example: "a { color: #aabbcc }   # reported"
+severity: off
+category: style
+options:
+  - { name: style, type: string, default: short, choices: [short, long], description: "`short` reports colors that can be shortened, `long` those that are short." }
+---
+id: keyframe-selector-notation
+family: check
+params: { check: keyframe-selector-notation }
+message: "write `{name}` as a percentage"
+description: "`from` and `to` in a `@keyframes` that also uses percentages (a block with nothing but keywords is left alone)."
+example: "@keyframes k { from {} 50% {} to {} }   # from and to reported"
+severity: off
+category: style
+---
+id: shorthand-property-no-redundant-values
+family: check
+params: { check: redundant-values }
+message: "`{name}` has values that the shorter form implies"
+description: "A `margin`, `padding`, `border-color`, `border-style`, `border-width` or `border-radius` with two, three or four values that repeat (`1px 1px` is `1px`)."
+example: "a { margin: 1px 2px 1px 2px }   # reported"
+severity: off
+category: style
+---
+id: font-family-name-quotes
+family: check
+params: { check: font-family-quotes }
+message: "the quotes around `{name}` are not needed"
+description: A quoted font family name that is also valid without quotes (`always-where-required`).
+example: "a { font-family: \"Arial\", sans-serif }   # reported"
+severity: off
+category: style
+---
+id: selector-anb-no-unmatchable
+family: check
+params: { check: nth-unmatchable }
+message: "`:nth-*({name})` matches nothing"
+description: "An `:nth-child()` and the like whose `An+B` can never match (`0`, `0n`, `-n`, `-2n-1`)."
+example: "a:nth-child(0n+0) {}   # reported"
+severity: off
+category: correctness
+---
+id: no-descending-specificity
+family: check
+params: { check: descending-specificity }
+message: "`{name}` comes after a rule with the same target and a higher specificity"
+description: "A rule whose selector ends in the same compound (without its pseudo-classes) as an earlier rule in the same at-rule and has a lower specificity: the earlier one wins where the later was meant to. Nested rules are not compared."
+example: "a:hover {}\na {}   # reported"
+severity: off
+category: suspicious
+---
+id: no-invalid-position-declaration
+family: check
+params: { check: declaration-position }
+message: "a declaration is not valid here"
+description: A declaration at the top of a file, or in an at-rule such as `@media` that is not inside a rule.
+example: "color: red;   # reported"
+severity: off
+category: correctness
+---
+id: custom-property-no-missing-var-function
+family: check
+params: { check: missing-var-function }
+message: "write `var({name})`"
+description: A custom property that the file declares, used in a value without `var()`. Properties that take names (`transition`, `will-change`, ...) are left out.
+example: "a { --x: 1; width: calc(--x * 2) }   # reported"
+severity: off
+category: correctness
+---
+id: named-grid-areas-no-invalid
+family: check
+params: { check: grid-areas }
+message: "the grid areas are not valid"
+description: A `grid-template-areas` whose rows differ in length, are empty, or hold an area that is not a rectangle.
+example: "a { grid-template-areas: \"a b\" \"a\" }   # reported"
+severity: off
+category: correctness
+---
+id: selector-no-qualifying-type
+family: check
+params: { check: qualifying-type }
+message: "do not qualify the selector with the type `{name}`"
+description: A type selector in the same compound as a class, id or attribute selector (`ul.nav`).
+example: "ul.nav {}   # reported"
+severity: off
+category: style

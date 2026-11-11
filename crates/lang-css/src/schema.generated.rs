@@ -14,5 +14,7 @@ pub fn option_schema() -> core_config::OptionSchema {
         core_config::OptionDef::boolean("single_quote", false, "Write strings with single quotes. A string that holds more of the chosen quote than of the other keeps the other."),
     ])
     .with_presets(vec![
+        core_config::Preset::new("css/stylelint-recommended", include_str!("../presets/stylelint-recommended.yaml")),
+        core_config::Preset::new("css/stylelint-standard", include_str!("../presets/stylelint-standard.yaml")),
     ])
 }

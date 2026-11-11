@@ -1,0 +1,24 @@
+a {
+  width: calc(1px+2px);
+//               ^ function-calc-no-unspaced-operator
+  width: calc(1px +2px);
+//                ^^^^ function-calc-no-unspaced-operator
+  width: calc(1px+ 2px);
+//               ^ function-calc-no-unspaced-operator
+  width: calc(1px + 2px);
+  width: calc(1px*2);
+  width: calc(-1px + 2px);
+  width: calc((1px+2px) * 3);
+//                ^ function-calc-no-unspaced-operator
+  width: calc(var(--a)+1px);
+//                    ^^^^ function-calc-no-unspaced-operator
+  width: CALC(1px + 2px);
+//       ^^^^ function-name-case
+  background: linear-gradient(top, red, blue);
+//                            ^^^ function-linear-gradient-no-nonstandard-direction
+  background: linear-gradient(to top, red, blue);
+  background: linear-gradient(45deg, red, blue);
+  background: -webkit-linear-gradient(top, red, blue);
+  transform: translateX(1px) ROTATE(1deg);
+//                           ^^^^^^ function-name-case
+}

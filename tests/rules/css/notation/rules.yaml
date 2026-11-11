@@ -1,0 +1,14 @@
+length-zero-no-unit: warn
+function-url-quotes: warn
+import-notation: warn
+color-hex-length: warn
+color-no-invalid-hex: warn
+shorthand-property-no-redundant-values: warn
+font-family-name-quotes: warn
+selector-pseudo-element-colon-notation: warn
+selector-attribute-quotes: warn
+selector-anb-no-unmatchable: warn
+comment-whitespace-inside: warn
+keyframe-selector-notation: warn
+no-invalid-double-slash-comments: warn
+color-no-hex: warn

@@ -1,0 +1,4 @@
+no-descending-specificity: warn
+no-invalid-position-declaration: warn
+custom-property-no-missing-var-function: warn
+named-grid-areas-no-invalid: warn

@@ -1,2 +1,70 @@
-# The Sudsy side of the comparison: the rules that the catalog maps (the preset comes with them).
-{}
+# The Sudsy side of the comparison: the rules that the catalog maps, with the options of rules.json.
+css:
+  lint:
+    rules:
+      declaration-block-no-duplicate-properties: warn
+      declaration-block-no-duplicate-custom-properties: warn
+      no-duplicate-selectors: warn
+      keyframe-block-no-duplicate-selectors: warn
+      no-duplicate-at-import-rules: warn
+      no-invalid-position-at-import-rule: warn
+      declaration-block-no-shorthand-property-overrides: warn
+      function-calc-no-unspaced-operator: warn
+      function-linear-gradient-no-nonstandard-direction: warn
+      font-family-no-missing-generic-family-keyword: warn
+      font-family-no-duplicate-names: warn
+      function-name-case: warn
+      declaration-no-important: warn
+      keyframe-declaration-no-important: warn
+      property-disallowed-list: { level: warn, options: {"list": ["float"]} }
+      unit-disallowed-list: { level: warn, options: {"list": ["em"]} }
+      function-disallowed-list: { level: warn, options: {"list": ["calc"]} }
+      at-rule-disallowed-list: { level: warn, options: {"list": ["import"]} }
+      media-feature-name-disallowed-list: { level: warn, options: {"list": ["min-width"]} }
+      selector-pseudo-class-disallowed-list: { level: warn, options: {"list": ["hover"]} }
+      selector-pseudo-element-disallowed-list: { level: warn, options: {"list": ["before"]} }
+      selector-combinator-disallowed-list: { level: warn, options: {"list": [">"]} }
+      selector-attribute-name-disallowed-list: { level: warn, options: {"list": ["style"]} }
+      selector-disallowed-list: { level: warn, options: {"list": ["/b > c$/"]} }
+      selector-attribute-operator-disallowed-list: { level: warn, options: {"list": ["~="]} }
+      selector-max-class: { level: warn, options: {"max": 2} }
+      selector-max-id: { level: warn, options: {"max": 1} }
+      selector-max-attribute: { level: warn, options: {"max": 1} }
+      selector-max-pseudo-class: { level: warn, options: {"max": 1} }
+      selector-max-type: { level: warn, options: {"max": 3} }
+      selector-max-universal: { level: warn, options: {"max": 1} }
+      selector-max-combinators: { level: warn, options: {"max": 2} }
+      selector-max-compound-selectors: { level: warn, options: {"max": 3} }
+      max-nesting-depth: { level: warn, options: {"max": 2} }
+      declaration-block-single-line-max-declarations: { level: warn, options: {"max": 1} }
+      number-max-precision: { level: warn, options: {"max": 4} }
+      block-no-empty: warn
+      comment-no-empty: warn
+      no-empty-source: warn
+      length-zero-no-unit: warn
+      function-url-quotes: warn
+      import-notation: warn
+      no-invalid-double-slash-comments: warn
+      selector-pseudo-element-colon-notation: warn
+      selector-attribute-quotes: warn
+      comment-whitespace-inside: warn
+      color-no-invalid-hex: warn
+      color-no-hex: warn
+      selector-class-pattern: { level: warn, options: {"pattern": "^[a-z]+(-[a-z]+)*$"} }
+      selector-id-pattern: { level: warn, options: {"pattern": "^[a-z]+(-[a-z]+)*$"} }
+      custom-property-pattern: { level: warn, options: {"pattern": "^[a-z]+(-[a-z]+)*$"} }
+      keyframes-name-pattern: { level: warn, options: {"pattern": "^[a-z]+(-[a-z]+)*$"} }
+      custom-media-pattern: { level: warn, options: {"pattern": "^[a-z]+(-[a-z]+)*$"} }
+      selector-type-case: warn
+      layer-name-pattern: { level: warn, options: {"pattern": "^[a-z]+(-[a-z]+)*$"} }
+      container-name-pattern: { level: warn, options: {"pattern": "^[a-z]+(-[a-z]+)*$"} }
+      color-hex-length: { level: warn, options: {"style": "short"} }
+      keyframe-selector-notation: warn
+      shorthand-property-no-redundant-values: warn
+      font-family-name-quotes: warn
+      selector-anb-no-unmatchable: warn
+      no-descending-specificity: warn
+      no-invalid-position-declaration: warn
+      custom-property-no-missing-var-function: warn
+      named-grid-areas-no-invalid: warn
+      selector-no-qualifying-type: warn

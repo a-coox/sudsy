@@ -6,152 +6,152 @@ sources:
   - "https://stylelint.io/user-guide/rules/"
 scope: "Stylelint core rules (its stylistic rules were removed in 16, so formatting is Prettier's job: see prettier.yaml); the plugins' rules are stylelint-scss.yaml and stylelint-less.yaml"
 entries:
-  alpha-value-notation: planned
+  alpha-value-notation: planned | Needs the parse of color functions (arguments, separators, alpha), not built yet.
   annotation-no-unknown: planned
-  at-rule-allowed-list: planned
+  at-rule-allowed-list: rule at-rule-allowed-list
   at-rule-descriptor-no-unknown: planned
-  at-rule-disallowed-list: planned
-  at-rule-empty-line-before: planned
+  at-rule-disallowed-list: rule at-rule-disallowed-list
+  at-rule-empty-line-before: planned | Needs the `except` and `ignore` secondary options (`first-nested`, `after-comment`, ...), which the rule options do not express yet.
   at-rule-no-deprecated: planned
   at-rule-no-unknown: planned
-  at-rule-no-vendor-prefix: planned
-  at-rule-property-required-list: planned
-  block-no-empty: planned
+  at-rule-no-vendor-prefix: planned | Needs autoprefixer's tables of prefixed names (a step 6 data table).
+  at-rule-property-required-list: planned | The option maps a property to its values or units, and rule options are not maps.
+  block-no-empty: rule block-no-empty
   block-no-redundant-nested-style-rules: planned
-  color-function-alias-notation: planned
-  color-function-notation: planned
+  color-function-alias-notation: planned | Needs the parse of color functions (arguments, separators, alpha), not built yet.
+  color-function-notation: planned | Needs the parse of color functions (arguments, separators, alpha), not built yet.
   color-hex-alpha: planned
-  color-hex-length: planned
+  color-hex-length: rule color-hex-length
   color-named: planned
-  color-no-hex: planned
-  color-no-invalid-hex: planned
-  comment-empty-line-before: planned
-  comment-no-empty: planned
+  color-no-hex: rule color-no-hex
+  color-no-invalid-hex: rule color-no-invalid-hex
+  comment-empty-line-before: planned | Needs the `except` and `ignore` secondary options (`first-nested`, `after-comment`, ...), which the rule options do not express yet.
+  comment-no-empty: rule comment-no-empty
   comment-pattern: planned
-  comment-whitespace-inside: planned
+  comment-whitespace-inside: rule comment-whitespace-inside
   comment-word-disallowed-list: planned
-  container-name-pattern: planned
-  custom-media-pattern: planned
-  custom-property-empty-line-before: planned
-  custom-property-no-missing-var-function: planned
-  custom-property-pattern: planned
-  declaration-block-no-duplicate-custom-properties: planned
-  declaration-block-no-duplicate-properties: planned
+  container-name-pattern: rule container-name-pattern
+  custom-media-pattern: rule custom-media-pattern
+  custom-property-empty-line-before: planned | Needs the `except` and `ignore` secondary options (`first-nested`, `after-comment`, ...), which the rule options do not express yet.
+  custom-property-no-missing-var-function: rule custom-property-no-missing-var-function
+  custom-property-pattern: rule custom-property-pattern
+  declaration-block-no-duplicate-custom-properties: rule declaration-block-no-duplicate-custom-properties
+  declaration-block-no-duplicate-properties: rule declaration-block-no-duplicate-properties
   declaration-block-no-redundant-longhand-properties: planned
-  declaration-block-no-shorthand-property-overrides: planned
-  declaration-block-single-line-max-declarations: planned
-  declaration-empty-line-before: planned
-  declaration-no-important: planned
-  declaration-property-max-values: planned
-  declaration-property-unit-allowed-list: planned
-  declaration-property-unit-disallowed-list: planned
-  declaration-property-value-allowed-list: planned
-  declaration-property-value-disallowed-list: planned
+  declaration-block-no-shorthand-property-overrides: rule declaration-block-no-shorthand-property-overrides
+  declaration-block-single-line-max-declarations: rule declaration-block-single-line-max-declarations
+  declaration-empty-line-before: planned | Needs the `except` and `ignore` secondary options (`first-nested`, `after-comment`, ...), which the rule options do not express yet.
+  declaration-no-important: rule declaration-no-important
+  declaration-property-max-values: planned | The option maps a property to its values or units, and rule options are not maps.
+  declaration-property-unit-allowed-list: planned | The option maps a property to its values or units, and rule options are not maps.
+  declaration-property-unit-disallowed-list: planned | The option maps a property to its values or units, and rule options are not maps.
+  declaration-property-value-allowed-list: planned | The option maps a property to its values or units, and rule options are not maps.
+  declaration-property-value-disallowed-list: planned | The option maps a property to its values or units, and rule options are not maps.
   declaration-property-value-keyword-no-deprecated: planned
   display-notation: planned
-  font-family-name-quotes: planned
-  font-family-no-duplicate-names: planned
-  font-family-no-missing-generic-family-keyword: planned
+  font-family-name-quotes: rule font-family-name-quotes
+  font-family-no-duplicate-names: rule font-family-no-duplicate-names
+  font-family-no-missing-generic-family-keyword: rule font-family-no-missing-generic-family-keyword
   font-weight-notation: planned
-  function-allowed-list: planned
-  function-calc-no-unspaced-operator: planned
-  function-disallowed-list: planned
-  function-linear-gradient-no-nonstandard-direction: planned
-  function-name-case: planned
+  function-allowed-list: rule function-allowed-list
+  function-calc-no-unspaced-operator: rule function-calc-no-unspaced-operator
+  function-disallowed-list: rule function-disallowed-list
+  function-linear-gradient-no-nonstandard-direction: rule function-linear-gradient-no-nonstandard-direction
+  function-name-case: rule function-name-case
   function-no-unknown: planned
   function-url-no-scheme-relative: planned
-  function-url-quotes: planned
+  function-url-quotes: rule function-url-quotes
   function-url-scheme-allowed-list: planned
   function-url-scheme-disallowed-list: planned
-  hue-degree-notation: planned
-  import-notation: planned
-  keyframe-block-no-duplicate-selectors: planned
-  keyframe-declaration-no-important: planned
-  keyframe-selector-notation: planned
-  keyframes-name-pattern: planned
-  layer-name-pattern: planned
-  length-zero-no-unit: planned
-  lightness-notation: planned
-  max-nesting-depth: planned
-  media-feature-name-allowed-list: planned
-  media-feature-name-disallowed-list: planned
+  hue-degree-notation: planned | Needs the parse of color functions (arguments, separators, alpha), not built yet.
+  import-notation: rule import-notation
+  keyframe-block-no-duplicate-selectors: rule keyframe-block-no-duplicate-selectors
+  keyframe-declaration-no-important: rule keyframe-declaration-no-important
+  keyframe-selector-notation: rule keyframe-selector-notation
+  keyframes-name-pattern: rule keyframes-name-pattern
+  layer-name-pattern: rule layer-name-pattern
+  length-zero-no-unit: rule length-zero-no-unit
+  lightness-notation: planned | Needs the parse of color functions (arguments, separators, alpha), not built yet.
+  max-nesting-depth: rule max-nesting-depth
+  media-feature-name-allowed-list: rule media-feature-name-allowed-list
+  media-feature-name-disallowed-list: rule media-feature-name-disallowed-list
   media-feature-name-no-unknown: planned
-  media-feature-name-no-vendor-prefix: planned
-  media-feature-name-unit-allowed-list: planned
-  media-feature-name-value-allowed-list: planned
+  media-feature-name-no-vendor-prefix: planned | Needs autoprefixer's tables of prefixed names (a step 6 data table).
+  media-feature-name-unit-allowed-list: planned | The option maps a property to its values or units, and rule options are not maps.
+  media-feature-name-value-allowed-list: planned | The option maps a property to its values or units, and rule options are not maps.
   media-feature-range-notation: planned
   media-query-no-invalid: planned
   media-type-no-deprecated: planned
-  named-grid-areas-no-invalid: planned
+  named-grid-areas-no-invalid: rule named-grid-areas-no-invalid
   nesting-selector-no-missing-scoping-root: planned
-  no-descending-specificity: planned
-  no-duplicate-at-import-rules: planned
-  no-duplicate-selectors: planned
-  no-empty-source: planned
-  no-invalid-double-slash-comments: planned
-  no-invalid-position-at-import-rule: planned
-  no-invalid-position-declaration: planned
+  no-descending-specificity: rule no-descending-specificity
+  no-duplicate-at-import-rules: rule no-duplicate-at-import-rules
+  no-duplicate-selectors: rule no-duplicate-selectors
+  no-empty-source: rule no-empty-source
+  no-invalid-double-slash-comments: rule no-invalid-double-slash-comments
+  no-invalid-position-at-import-rule: rule no-invalid-position-at-import-rule
+  no-invalid-position-declaration: rule no-invalid-position-declaration
   no-irregular-whitespace: planned
   no-unknown-animations: planned
   no-unknown-custom-media: planned
   no-unknown-custom-properties: planned
-  number-max-precision: planned
-  property-allowed-list: planned
-  property-disallowed-list: planned
-  property-layout-mappings: planned
+  number-max-precision: rule number-max-precision
+  property-allowed-list: rule property-allowed-list
+  property-disallowed-list: rule property-disallowed-list
+  property-layout-mappings: planned | The option maps a property to its values or units, and rule options are not maps.
   property-no-deprecated: planned
   property-no-unknown: planned
-  property-no-vendor-prefix: planned
+  property-no-vendor-prefix: planned | Needs autoprefixer's tables of prefixed names (a step 6 data table).
   relative-selector-nesting-notation: planned
-  rule-empty-line-before: planned
+  rule-empty-line-before: planned | Needs the `except` and `ignore` secondary options (`first-nested`, `after-comment`, ...), which the rule options do not express yet.
   rule-nesting-at-rule-required-list: planned
-  rule-selector-property-disallowed-list: planned
-  selector-anb-no-unmatchable: planned
-  selector-attribute-name-disallowed-list: planned
-  selector-attribute-operator-allowed-list: planned
-  selector-attribute-operator-disallowed-list: planned
-  selector-attribute-quotes: planned
-  selector-class-pattern: planned
-  selector-combinator-allowed-list: planned
-  selector-combinator-disallowed-list: planned
-  selector-disallowed-list: planned
-  selector-id-pattern: planned
-  selector-max-attribute: planned
-  selector-max-class: planned
-  selector-max-combinators: planned
-  selector-max-compound-selectors: planned
-  selector-max-id: planned
-  selector-max-pseudo-class: planned
+  rule-selector-property-disallowed-list: planned | The option maps a property to its values or units, and rule options are not maps.
+  selector-anb-no-unmatchable: rule selector-anb-no-unmatchable
+  selector-attribute-name-disallowed-list: rule selector-attribute-name-disallowed-list
+  selector-attribute-operator-allowed-list: rule selector-attribute-operator-allowed-list
+  selector-attribute-operator-disallowed-list: rule selector-attribute-operator-disallowed-list
+  selector-attribute-quotes: rule selector-attribute-quotes
+  selector-class-pattern: rule selector-class-pattern
+  selector-combinator-allowed-list: rule selector-combinator-allowed-list
+  selector-combinator-disallowed-list: rule selector-combinator-disallowed-list
+  selector-disallowed-list: rule selector-disallowed-list
+  selector-id-pattern: rule selector-id-pattern
+  selector-max-attribute: rule selector-max-attribute
+  selector-max-class: rule selector-max-class
+  selector-max-combinators: rule selector-max-combinators
+  selector-max-compound-selectors: rule selector-max-compound-selectors
+  selector-max-id: rule selector-max-id
+  selector-max-pseudo-class: rule selector-max-pseudo-class
   selector-max-specificity: planned
-  selector-max-type: planned
-  selector-max-universal: planned
+  selector-max-type: rule selector-max-type
+  selector-max-universal: rule selector-max-universal
   selector-nested-pattern: planned
   selector-no-deprecated: planned
   selector-no-invalid: planned
-  selector-no-qualifying-type: planned
+  selector-no-qualifying-type: rule selector-no-qualifying-type
   selector-no-unmatchable: planned
-  selector-no-vendor-prefix: planned
+  selector-no-vendor-prefix: planned | Needs autoprefixer's tables of prefixed names (a step 6 data table).
   selector-not-notation: planned
-  selector-pseudo-class-allowed-list: planned
-  selector-pseudo-class-disallowed-list: planned
+  selector-pseudo-class-allowed-list: rule selector-pseudo-class-allowed-list
+  selector-pseudo-class-disallowed-list: rule selector-pseudo-class-disallowed-list
   selector-pseudo-class-no-unknown: planned
-  selector-pseudo-element-allowed-list: planned
-  selector-pseudo-element-colon-notation: planned
-  selector-pseudo-element-disallowed-list: planned
+  selector-pseudo-element-allowed-list: rule selector-pseudo-element-allowed-list
+  selector-pseudo-element-colon-notation: rule selector-pseudo-element-colon-notation
+  selector-pseudo-element-disallowed-list: rule selector-pseudo-element-disallowed-list
   selector-pseudo-element-no-unknown: planned
-  selector-type-case: planned
+  selector-type-case: rule selector-type-case
   selector-type-no-unknown: planned
-  shorthand-property-no-redundant-values: planned
+  shorthand-property-no-redundant-values: rule shorthand-property-no-redundant-values
   string-no-newline: planned
   syntax-string-no-invalid: planned
   time-min-milliseconds: planned
-  unit-allowed-list: planned
-  unit-disallowed-list: planned
-  unit-layout-mappings: planned
+  unit-allowed-list: rule unit-allowed-list
+  unit-disallowed-list: rule unit-disallowed-list
+  unit-layout-mappings: planned | The option maps a property to its values or units, and rule options are not maps.
   unit-no-unknown: planned
   value-keyword-case: planned
-  value-keyword-layout-mappings: planned
-  value-no-vendor-prefix: planned
+  value-keyword-layout-mappings: planned | The option maps a property to its values or units, and rule options are not maps.
+  value-no-vendor-prefix: planned | Needs autoprefixer's tables of prefixed names (a step 6 data table).
 deferred:
   - gap: "Needs the CSS value-syntax grammar (the property and at-rule syntaxes of mdn-data), which the table rules of step 6 do not provide."
     ids: [at-rule-descriptor-value-no-unknown, at-rule-prelude-no-invalid, declaration-property-value-no-unknown, media-feature-name-value-no-unknown]

@@ -1,0 +1,8 @@
+a {}
+//^^ block-no-empty
+b { }
+//^^^ block-no-empty
+c { /* kept */ }
+@media print {}
+//           ^^ block-no-empty
+d { color: red }

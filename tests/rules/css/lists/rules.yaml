@@ -1,0 +1,12 @@
+property-disallowed-list: { level: warn, options: { list: [float] } }
+unit-disallowed-list: { level: warn, options: { list: [em] } }
+function-disallowed-list: { level: warn, options: { list: [calc] } }
+at-rule-disallowed-list: { level: warn, options: { list: [import] } }
+media-feature-name-disallowed-list: { level: warn, options: { list: [min-width] } }
+selector-pseudo-class-disallowed-list: { level: warn, options: { list: [hover] } }
+selector-pseudo-element-disallowed-list: { level: warn, options: { list: [before] } }
+selector-combinator-disallowed-list: { level: warn, options: { list: [">"] } }
+selector-attribute-name-disallowed-list: { level: warn, options: { list: [style] } }
+selector-disallowed-list: { level: warn, options: { list: ["/b > c$/"] } }
+selector-attribute-operator-disallowed-list: { level: warn, options: { list: ["~="] } }
+selector-no-qualifying-type: warn

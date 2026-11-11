@@ -1,0 +1,64 @@
+id: declaration-block-no-duplicate-properties
+family: check
+params: { check: duplicate-properties }
+message: "the property `{name}` is declared again"
+description: A property declared twice in one block; the earlier declaration is reported (the later one when only the earlier is `!important`). `src` and custom properties are left out.
+example: "a { color: red; color: blue }   # the first color is reported"
+severity: off
+category: suspicious
+options:
+  - { name: ignore_consecutive_different_values, type: bool, default: false, description: "Leave a repeat right after the same property with another value alone (`display: -webkit-box; display: flex`)." }
+---
+id: declaration-block-no-duplicate-custom-properties
+family: check
+params: { check: duplicate-custom-properties }
+message: "the custom property `{name}` is declared again"
+description: A custom property declared twice in one block (names are case sensitive); the repeat is reported.
+example: "a { --x: 1; --x: 2 }   # the second --x is reported"
+severity: off
+category: suspicious
+---
+id: no-duplicate-selectors
+family: check
+params: { check: duplicate-selectors }
+message: "the selector `{name}` is already used"
+description: The same selector list (in any order) on two rules in one block or file.
+example: "a {}\nb, a {}\na, b {}   # reported"
+severity: off
+category: suspicious
+---
+id: keyframe-block-no-duplicate-selectors
+family: check
+params: { check: duplicate-keyframe-selectors }
+message: "the keyframe selector `{name}` is already used"
+description: The same selector twice in one `@keyframes` rule (compared in lowercase).
+example: "@keyframes k { from {} FROM {} }   # reported"
+severity: off
+category: suspicious
+---
+id: no-duplicate-at-import-rules
+family: check
+params: { check: duplicate-imports }
+message: "the @import of `{name}` is repeated"
+description: The same `@import` (url and media list) twice in one file.
+example: "@import 'a.css';\n@import url(a.css);   # reported"
+severity: off
+category: suspicious
+---
+id: no-invalid-position-at-import-rule
+family: check
+params: { check: import-position }
+message: "@import must come before every other rule except @charset and @layer"
+description: "An `@import` after a rule that is not `@charset`, `@layer` or another `@import`: the browser ignores it."
+example: "a {}\n@import 'a.css';   # reported"
+severity: off
+category: correctness
+---
+id: declaration-block-no-shorthand-property-overrides
+family: check
+params: { check: shorthand-overrides }
+message: "the shorthand overrides `{name}`, declared before it"
+description: A shorthand property declared after one of its longhands in the same block.
+example: "a { margin-top: 1px; margin: 0 }   # reported"
+severity: off
+category: suspicious

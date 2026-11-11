@@ -1,0 +1,120 @@
+id: selector-max-class
+family: max
+params: { count: class }
+message: "the selector has {count} classes (at most {max})"
+description: A selector with more class selectors than the `max` option (the ones inside `:not()` and the like count).
+example: ".a.b {}   # reported with max: 1"
+severity: off
+category: style
+options:
+  - { name: max, type: int, default: 0, description: The most classes a selector may have. }
+---
+id: selector-max-id
+family: max
+params: { count: id }
+message: "the selector has {count} ids (at most {max})"
+description: A selector with more id selectors than the `max` option.
+example: "#a #b {}   # reported with max: 1"
+severity: off
+category: style
+options:
+  - { name: max, type: int, default: 0, description: The most ids a selector may have. }
+---
+id: selector-max-attribute
+family: max
+params: { count: attribute }
+message: "the selector has {count} attribute selectors (at most {max})"
+description: A selector with more attribute selectors than the `max` option.
+example: "[a][b] {}   # reported with max: 1"
+severity: off
+category: style
+options:
+  - { name: max, type: int, default: 0, description: The most attribute selectors a selector may have. }
+---
+id: selector-max-pseudo-class
+family: max
+params: { count: pseudo-class }
+message: "the selector has {count} pseudo-classes (at most {max})"
+description: A selector with more pseudo-classes than the `max` option.
+example: "a:hover:focus {}   # reported with max: 1"
+severity: off
+category: style
+options:
+  - { name: max, type: int, default: 0, description: The most pseudo-classes a selector may have. }
+---
+id: selector-max-type
+family: max
+params: { count: type }
+message: "the selector has {count} type selectors (at most {max})"
+description: A selector with more type selectors than the `max` option.
+example: "a b {}   # reported with max: 1"
+severity: off
+category: style
+options:
+  - { name: max, type: int, default: 0, description: The most type selectors a selector may have. }
+---
+id: selector-max-universal
+family: max
+params: { count: universal }
+message: "the selector has {count} universal selectors (at most {max})"
+description: A selector with more `*` than the `max` option.
+example: "* * {}   # reported with max: 1"
+severity: off
+category: style
+options:
+  - { name: max, type: int, default: 0, description: The most universal selectors a selector may have. }
+---
+id: selector-max-combinators
+family: max
+params: { count: combinators }
+message: "the selector has {count} combinators (at most {max})"
+description: A selector with more combinators (a space between compounds counts) than the `max` option.
+example: "a b c {}   # reported with max: 1"
+severity: off
+category: style
+options:
+  - { name: max, type: int, default: 2, description: The most combinators a selector may have. }
+---
+id: selector-max-compound-selectors
+family: max
+params: { count: compounds }
+message: "the selector has {count} compound selectors (at most {max})"
+description: A selector with more compound selectors than the `max` option.
+example: "a b c {}   # reported with max: 2"
+severity: off
+category: style
+options:
+  - { name: max, type: int, default: 3, description: The most compound selectors a selector may have. }
+---
+id: max-nesting-depth
+family: max
+params: { count: nesting-depth }
+message: "the nesting is {count} deep (at most {max})"
+description: A rule or at-rule nested in more rules or at-rules than the `max` option.
+example: "a { b { c {} } }   # reported with max: 1"
+severity: off
+category: style
+options:
+  - { name: max, type: int, default: 3, description: How deep rules may nest. }
+---
+id: declaration-block-single-line-max-declarations
+family: max
+params: { count: declarations }
+message: "the single-line block has {count} declarations (at most {max})"
+description: A block written on one line with more declarations than the `max` option.
+example: "a { b: c; d: e }   # reported with max: 1"
+severity: off
+category: style
+options:
+  - { name: max, type: int, default: 1, description: The most declarations a single-line block may have. }
+---
+id: number-max-precision
+family: max
+params: { count: decimals }
+message: "the number has {count} decimals (at most {max})"
+description: A number with more decimal places than the `max` option.
+example: "a { width: 1.23456px }   # reported with max: 4"
+severity: off
+category: style
+options:
+  - { name: max, type: int, default: 4, description: The most decimal places a number may have. }

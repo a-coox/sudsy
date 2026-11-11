@@ -99,17 +99,136 @@
               "$ref": "#/definitions/rule",
               "description": "An async method returning Task or ValueTask has a name that does not end in `Async`. Overrides, explicit interface implementations and `Main` are left alone (their names are not the method's to choose). Renaming needs the binding layer, so there is no fix."
             },
+            "at-rule-allowed-list": {
+              "description": "An at-rule (vendor prefix left out) that is not in the `list` option. An empty list allows everything.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "list": {
+                          "default": [],
+                          "description": "The allowed at-rules, without `@`: names, or `/regex/`.",
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            "at-rule-disallowed-list": {
+              "description": "An at-rule (vendor prefix left out) that is in the `list` option.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "list": {
+                          "default": [],
+                          "description": "The disallowed at-rules, without `@`: names, or `/regex/`.",
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
             "backslash-separator": {
               "$ref": "#/definitions/rule",
               "description": "`build\\out` is the pattern `buildout`: the backslash escapes `o`. Windows-style separators never match what was meant. Reported for a backslash before a letter, digit, `_` or `-` (`\\.` and `\\#` are ordinary escapes). No fix."
+            },
+            "block-no-empty": {
+              "$ref": "#/definitions/rule",
+              "description": "A rule or at-rule block with nothing in it, comments included."
             },
             "cd-without-exit": {
               "$ref": "#/definitions/rule",
               "description": "`cd`, `pushd` or `popd` whose failure is not handled (`cd dir || exit`). Not reported with `set -e`, for `cd ..` or `cd /`, or for `popd -n`."
             },
+            "color-hex-length": {
+              "description": "A hex color that can be written with three or four digits (`#aabbcc` is `#abc`); with the `style` option set to `long`, one that is written short.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "style": {
+                          "default": "short",
+                          "description": "`short` reports colors that can be shortened, `long` those that are short.",
+                          "enum": [
+                            "short",
+                            "long"
+                          ],
+                          "type": "string"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            "color-no-hex": {
+              "$ref": "#/definitions/rule",
+              "description": "A hex color: write a named color or a function instead."
+            },
+            "color-no-invalid-hex": {
+              "$ref": "#/definitions/rule",
+              "description": "A hex color that does not have 3, 4, 6 or 8 hex digits."
+            },
             "commands-show-output": {
               "$ref": "#/definitions/rule",
               "description": "A fenced code block in which every line starts with `$ ` shows commands without their output, which makes copying them awkward (markdownlint MD014)."
+            },
+            "comment-no-empty": {
+              "$ref": "#/definitions/rule",
+              "description": "A comment with nothing in it."
             },
             "comment-space": {
               "$ref": "#/definitions/rule",
@@ -119,6 +238,10 @@
               "$ref": "#/definitions/rule",
               "description": "A `//` comment where `#` is the convention (tflint terraform_comment_syntax). The fix writes `#`."
             },
+            "comment-whitespace-inside": {
+              "$ref": "#/definitions/rule",
+              "description": "A comment whose text touches `/*` or `*/`."
+            },
             "constant-on-right": {
               "$ref": "#/definitions/rule",
               "description": "A comparison with the constant on the left: `null == x` is `x == null`, `1 < x` is `x > 1`. Without the type layer a constant is a literal, `nameof`, `int.MaxValue`-style member or an expression of those; a named constant on the left is not recognised."
@@ -126,6 +249,37 @@
             "constructor-summary-standard-text": {
               "$ref": "#/definitions/rule",
               "description": "The summary of a constructor starts with \"Initializes a new instance of the <see cref=\"T\"/> class\" (struct), \"Initializes static members of the ...\" for a static constructor, and a private constructor may say \"Prevents a default instance of the ... from being created\". The `<see>` is compared with the name of the type. The fix puts the standard sentence before the text."
+            },
+            "container-name-pattern": {
+              "description": "A `@container` name that does not match the `pattern` option (a regex). An empty pattern allows everything.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "pattern": {
+                          "default": "",
+                          "description": "The regex a container name must match.",
+                          "type": "string"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
             },
             "copy-from-own-stage": {
               "$ref": "#/definitions/rule",
@@ -143,6 +297,72 @@
               "$ref": "#/definitions/rule",
               "description": "A COPY with more than one source whose last argument does not end with `/`."
             },
+            "custom-media-pattern": {
+              "description": "A `@custom-media` name, without its `--`, that does not match the `pattern` option (a regex). An empty pattern allows everything.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "pattern": {
+                          "default": "",
+                          "description": "The regex a custom media name, without its `--`, must match.",
+                          "type": "string"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            "custom-property-no-missing-var-function": {
+              "$ref": "#/definitions/rule",
+              "description": "A custom property that the file declares, used in a value without `var()`. Properties that take names (`transition`, `will-change`, ...) are left out."
+            },
+            "custom-property-pattern": {
+              "description": "A custom property, as declared, used in `var()` or named by `@property`, whose name without the `--` does not match the `pattern` option (a regex). An empty pattern allows everything.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "pattern": {
+                          "default": "",
+                          "description": "The regex a custom property name, without its `--`, must match.",
+                          "type": "string"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
             "cyclic-needs": {
               "$ref": "#/definitions/rule",
               "description": "The `needs` of the jobs form a cycle, so no job of it can start."
@@ -154,6 +374,80 @@
             "debug-fail-message": {
               "$ref": "#/definitions/rule",
               "description": "`Debug.Fail` with a constant blank message. With the type layer the call is checked against `System.Diagnostics.Debug`; without it any call written `Debug.Fail` is. No fix."
+            },
+            "declaration-block-no-duplicate-custom-properties": {
+              "$ref": "#/definitions/rule",
+              "description": "A custom property declared twice in one block (names are case sensitive); the repeat is reported."
+            },
+            "declaration-block-no-duplicate-properties": {
+              "description": "A property declared twice in one block; the earlier declaration is reported (the later one when only the earlier is `!important`). `src` and custom properties are left out.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "ignore_consecutive_different_values": {
+                          "default": false,
+                          "description": "Leave a repeat right after the same property with another value alone (`display: -webkit-box; display: flex`).",
+                          "type": "boolean"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            "declaration-block-no-shorthand-property-overrides": {
+              "$ref": "#/definitions/rule",
+              "description": "A shorthand property declared after one of its longhands in the same block."
+            },
+            "declaration-block-single-line-max-declarations": {
+              "description": "A block written on one line with more declarations than the `max` option.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "max": {
+                          "default": 1,
+                          "description": "The most declarations a single-line block may have.",
+                          "type": "integer"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            "declaration-no-important": {
+              "$ref": "#/definitions/rule",
+              "description": "A declaration that ends in `!important`."
             },
             "declare-and-assign-separately": {
               "$ref": "#/definitions/rule",
@@ -416,9 +710,105 @@
                 }
               ]
             },
+            "font-family-name-quotes": {
+              "$ref": "#/definitions/rule",
+              "description": "A quoted font family name that is also valid without quotes (`always-where-required`)."
+            },
+            "font-family-no-duplicate-names": {
+              "$ref": "#/definitions/rule",
+              "description": "The same family twice in one `font-family` list."
+            },
+            "font-family-no-missing-generic-family-keyword": {
+              "$ref": "#/definitions/rule",
+              "description": "A `font-family` (or `font`) list with no generic family (`serif`, `sans-serif`, ...) to fall back on. `@font-face` is left out."
+            },
             "from-first": {
               "$ref": "#/definitions/rule",
               "description": "An instruction other than ARG before the first FROM."
+            },
+            "function-allowed-list": {
+              "description": "A function that is not in the `list` option. An empty list allows everything.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "list": {
+                          "default": [],
+                          "description": "The allowed functions: names, or `/regex/`.",
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            "function-calc-no-unspaced-operator": {
+              "$ref": "#/definitions/rule",
+              "description": "`+` and `-` in `calc()` need whitespace on both sides, or the expression is invalid."
+            },
+            "function-disallowed-list": {
+              "description": "A function that is in the `list` option.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "list": {
+                          "default": [],
+                          "description": "The disallowed functions: names, or `/regex/`.",
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            "function-linear-gradient-no-nonstandard-direction": {
+              "$ref": "#/definitions/rule",
+              "description": "A `linear-gradient()` that starts with a side (`top`) instead of `to top` or an angle."
+            },
+            "function-name-case": {
+              "$ref": "#/definitions/rule",
+              "description": "A function name with capitals (`translateX` and the like keep theirs)."
+            },
+            "function-url-quotes": {
+              "$ref": "#/definitions/rule",
+              "description": "An unquoted `url(...)`: quote its argument."
             },
             "gem-pin-versions": {
               "$ref": "#/definitions/rule",
@@ -439,6 +829,10 @@
             "import-no-public": {
               "$ref": "#/definitions/rule",
               "description": "`import public` (buf lint IMPORT_NO_PUBLIC)."
+            },
+            "import-notation": {
+              "$ref": "#/definitions/rule",
+              "description": "An `@import` of `url(...)`: write the string."
             },
             "inheritdoc-on-inheriting-member": {
               "$ref": "#/definitions/rule",
@@ -575,9 +969,87 @@
                 }
               ]
             },
+            "keyframe-block-no-duplicate-selectors": {
+              "$ref": "#/definitions/rule",
+              "description": "The same selector twice in one `@keyframes` rule (compared in lowercase)."
+            },
+            "keyframe-declaration-no-important": {
+              "$ref": "#/definitions/rule",
+              "description": "`!important` in a declaration of a `@keyframes` rule: the declaration is ignored."
+            },
+            "keyframe-selector-notation": {
+              "$ref": "#/definitions/rule",
+              "description": "`from` and `to` in a `@keyframes` that also uses percentages (a block with nothing but keywords is left alone)."
+            },
+            "keyframes-name-pattern": {
+              "description": "A `@keyframes` name that does not match the `pattern` option (a regex). An empty pattern allows everything.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "pattern": {
+                          "default": "",
+                          "description": "The regex a keyframes name must match.",
+                          "type": "string"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
             "last-user-not-root": {
               "$ref": "#/definitions/rule",
               "description": "A stage whose last USER is root (`root`, `0`, `root:group`, `0:group`)."
+            },
+            "layer-name-pattern": {
+              "description": "A `@layer` name that does not match the `pattern` option (a regex). An empty pattern allows everything.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "pattern": {
+                          "default": "",
+                          "description": "The regex a layer name must match.",
+                          "type": "string"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            "length-zero-no-unit": {
+              "$ref": "#/definitions/rule",
+              "description": "A zero length written with a unit (`0px`); other dimensions (`0s`, `0deg`) are left alone, and so is what is inside a function."
             },
             "max-body-length": {
               "description": "A rule whose recipe has more lines than allowed (checkmake `maxbodylength`). Every physical line counts, a continued command and a tab-indented comment included.",
@@ -639,6 +1111,105 @@
                           "default": 120,
                           "description": "Longest allowed line, in characters.",
                           "type": "integer"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            "max-nesting-depth": {
+              "description": "A rule or at-rule nested in more rules or at-rules than the `max` option.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "max": {
+                          "default": 3,
+                          "description": "How deep rules may nest.",
+                          "type": "integer"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            "media-feature-name-allowed-list": {
+              "description": "A media feature that is not in the `list` option. An empty list allows everything.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "list": {
+                          "default": [],
+                          "description": "The allowed media features: names, or `/regex/`.",
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            "media-feature-name-disallowed-list": {
+              "description": "A media feature that is in the `list` option.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "list": {
+                          "default": [],
+                          "description": "The disallowed media features: names, or `/regex/`.",
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
                         }
                       },
                       "type": "object"
@@ -743,6 +1314,10 @@
             "missing-permissions": {
               "$ref": "#/definitions/rule",
               "description": "A job without `permissions`, in a workflow without top-level `permissions`: it gets the repository's default token permissions, often write access."
+            },
+            "named-grid-areas-no-invalid": {
+              "$ref": "#/definitions/rule",
+              "description": "A `grid-template-areas` whose rows differ in length, are empty, or hold an area that is not a rectangle."
             },
             "naming-convention": {
               "description": "A name does not follow the style set for what it names: operations, fragments, variables, fields, arguments, types, enum values and directives. `PascalCase` and `camelCase` allow letters and digits only, `snake_case` and `UPPER_CASE` forbid the other case; leading underscores are ignored. No fix: renaming changes the schema or the queries that use it. Equivalent: graphql-eslint naming-convention (styles only, no prefix or suffix lists).",
@@ -918,6 +1493,10 @@
               "$ref": "#/definitions/rule",
               "description": "`new S()` of a value type with an implicit parameterless constructor and no initializer: write `default(S)` (`Guid.Empty`, `CancellationToken.None`, `IntPtr.Zero`, the enum member with value 0 where they exist). No fix for a target-typed `new()`."
             },
+            "no-descending-specificity": {
+              "$ref": "#/definitions/rule",
+              "description": "A rule whose selector ends in the same compound (without its pseudo-classes) as an earlier rule in the same at-rule and has a lower specificity: the earlier one wins where the later was meant to. Nested rules are not compared."
+            },
             "no-doc-placeholder": {
               "$ref": "#/definitions/rule",
               "description": "A `<placeholder>` element in a documentation comment. No fix."
@@ -929,6 +1508,10 @@
             "no-duplicate-anchors": {
               "$ref": "#/definitions/rule",
               "description": "An anchor name is defined again in the same document; an alias refers to the latest definition above it, which is easy to misread."
+            },
+            "no-duplicate-at-import-rules": {
+              "$ref": "#/definitions/rule",
+              "description": "The same `@import` (url and media list) twice in one file."
             },
             "no-duplicate-doc-text": {
               "$ref": "#/definitions/rule",
@@ -985,6 +1568,10 @@
               "$ref": "#/definitions/rule",
               "description": "Two sections of one file have the same name (EditorConfig: glob). Readers merge them or keep only one, so the settings of the other may be lost; merge them."
             },
+            "no-duplicate-selectors": {
+              "$ref": "#/definitions/rule",
+              "description": "The same selector list (in any order) on two rules in one block or file."
+            },
             "no-egrep": {
               "$ref": "#/definitions/rule",
               "description": "A call of `egrep` or `fgrep`."
@@ -1016,6 +1603,10 @@
             "no-empty-links": {
               "$ref": "#/definitions/rule",
               "description": "A link whose destination is empty or only `#` (markdownlint MD042)."
+            },
+            "no-empty-source": {
+              "$ref": "#/definitions/rule",
+              "description": "A file with nothing but whitespace (a file with only comments is not empty)."
             },
             "no-empty-statement": {
               "$ref": "#/definitions/rule",
@@ -1143,6 +1734,18 @@
             "no-interactive-commands": {
               "$ref": "#/definitions/rule",
               "description": "A RUN that calls ssh, vim, shutdown, service, ps, free, top, kill or mount."
+            },
+            "no-invalid-double-slash-comments": {
+              "$ref": "#/definitions/rule",
+              "description": "A rule or declaration that starts with `//`: CSS has no line comments, so the text swallows the statement."
+            },
+            "no-invalid-position-at-import-rule": {
+              "$ref": "#/definitions/rule",
+              "description": "An `@import` after a rule that is not `@charset`, `@layer` or another `@import`: the browser ignores it."
+            },
+            "no-invalid-position-declaration": {
+              "$ref": "#/definitions/rule",
+              "description": "A declaration at the top of a file, or in an at-rule such as `@media` that is not inside a rule."
             },
             "no-invoke-expression": {
               "$ref": "#/definitions/rule",
@@ -1308,6 +1911,37 @@
               "$ref": "#/definitions/rule",
               "description": "`int?` instead of `Nullable<int>` or `System.Nullable<int>`. Name-based: a type of your own called `Nullable` is reported too. Not reported in `using` aliases, `nameof`, `typeof(Nullable<>)` and before a member access (`Nullable<int>.Equals`)."
             },
+            "number-max-precision": {
+              "description": "A number with more decimal places than the `max` option.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "max": {
+                          "default": 4,
+                          "description": "The most decimal places a number may have.",
+                          "type": "integer"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
             "numeric-user-id": {
               "$ref": "#/definitions/rule",
               "description": "A USER that is a name rather than a numeric id (a variable is accepted)."
@@ -1343,6 +1977,74 @@
             "printf-variable-format": {
               "$ref": "#/definitions/rule",
               "description": "A `printf` whose format string contains an expansion and no `%`."
+            },
+            "property-allowed-list": {
+              "description": "A property that is not in the `list` option (names, or `/regex/`). Custom properties are left out; an empty list allows everything.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "list": {
+                          "default": [],
+                          "description": "The allowed properties: names, or `/regex/`.",
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            "property-disallowed-list": {
+              "description": "A property that is in the `list` option (names, or `/regex/`). Custom properties are left out.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "list": {
+                          "default": [],
+                          "description": "The disallowed properties: names, or `/regex/`.",
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
             },
             "property-summary-matches-accessors": {
               "$ref": "#/definitions/rule",
@@ -1520,6 +2222,676 @@
                 }
               ]
             },
+            "selector-anb-no-unmatchable": {
+              "$ref": "#/definitions/rule",
+              "description": "An `:nth-child()` and the like whose `An+B` can never match (`0`, `0n`, `-n`, `-2n-1`)."
+            },
+            "selector-attribute-name-disallowed-list": {
+              "description": "An attribute selector whose name is in the `list` option.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "list": {
+                          "default": [],
+                          "description": "The disallowed attribute names: names, or `/regex/`.",
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            "selector-attribute-operator-allowed-list": {
+              "description": "An attribute selector operator that is not in the `list` option. An empty list allows everything.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "list": {
+                          "default": [],
+                          "description": "The allowed operators (`=`, `~=`, `|=`, `^=`, `$=`, `*=`).",
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            "selector-attribute-operator-disallowed-list": {
+              "description": "An attribute selector operator that is in the `list` option.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "list": {
+                          "default": [],
+                          "description": "The disallowed operators (`=`, `~=`, `|=`, `^=`, `$=`, `*=`).",
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            "selector-attribute-quotes": {
+              "$ref": "#/definitions/rule",
+              "description": "An attribute selector whose value is not quoted (`[a=b]`)."
+            },
+            "selector-class-pattern": {
+              "description": "A class selector whose name does not match the `pattern` option (a regex). An empty pattern allows everything.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "pattern": {
+                          "default": "",
+                          "description": "The regex a class name must match.",
+                          "type": "string"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            "selector-combinator-allowed-list": {
+              "description": "A combinator (`>`, `+`, `~`, or a space for descendant) that is not in the `list` option. An empty list allows everything.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "list": {
+                          "default": [],
+                          "description": "The allowed combinators.",
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            "selector-combinator-disallowed-list": {
+              "description": "A combinator (`>`, `+`, `~`, or a space for descendant) that is in the `list` option.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "list": {
+                          "default": [],
+                          "description": "The disallowed combinators.",
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            "selector-disallowed-list": {
+              "description": "The selector list of a rule (whitespace collapsed) that is in the `list` option (selectors, or `/regex/`).",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "list": {
+                          "default": [],
+                          "description": "The disallowed selectors: text, or `/regex/`.",
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            "selector-id-pattern": {
+              "description": "An id selector whose name does not match the `pattern` option (a regex). An empty pattern allows everything.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "pattern": {
+                          "default": "",
+                          "description": "The regex an id name must match.",
+                          "type": "string"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            "selector-max-attribute": {
+              "description": "A selector with more attribute selectors than the `max` option.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "max": {
+                          "default": 0,
+                          "description": "The most attribute selectors a selector may have.",
+                          "type": "integer"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            "selector-max-class": {
+              "description": "A selector with more class selectors than the `max` option (the ones inside `:not()` and the like count).",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "max": {
+                          "default": 0,
+                          "description": "The most classes a selector may have.",
+                          "type": "integer"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            "selector-max-combinators": {
+              "description": "A selector with more combinators (a space between compounds counts) than the `max` option.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "max": {
+                          "default": 2,
+                          "description": "The most combinators a selector may have.",
+                          "type": "integer"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            "selector-max-compound-selectors": {
+              "description": "A selector with more compound selectors than the `max` option.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "max": {
+                          "default": 3,
+                          "description": "The most compound selectors a selector may have.",
+                          "type": "integer"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            "selector-max-id": {
+              "description": "A selector with more id selectors than the `max` option.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "max": {
+                          "default": 0,
+                          "description": "The most ids a selector may have.",
+                          "type": "integer"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            "selector-max-pseudo-class": {
+              "description": "A selector with more pseudo-classes than the `max` option.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "max": {
+                          "default": 0,
+                          "description": "The most pseudo-classes a selector may have.",
+                          "type": "integer"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            "selector-max-type": {
+              "description": "A selector with more type selectors than the `max` option.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "max": {
+                          "default": 0,
+                          "description": "The most type selectors a selector may have.",
+                          "type": "integer"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            "selector-max-universal": {
+              "description": "A selector with more `*` than the `max` option.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "max": {
+                          "default": 0,
+                          "description": "The most universal selectors a selector may have.",
+                          "type": "integer"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            "selector-no-qualifying-type": {
+              "$ref": "#/definitions/rule",
+              "description": "A type selector in the same compound as a class, id or attribute selector (`ul.nav`)."
+            },
+            "selector-pseudo-class-allowed-list": {
+              "description": "A pseudo-class that is not in the `list` option. An empty list allows everything.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "list": {
+                          "default": [],
+                          "description": "The allowed pseudo-classes, without `:`: names, or `/regex/`.",
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            "selector-pseudo-class-disallowed-list": {
+              "description": "A pseudo-class that is in the `list` option.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "list": {
+                          "default": [],
+                          "description": "The disallowed pseudo-classes, without `:`: names, or `/regex/`.",
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            "selector-pseudo-element-allowed-list": {
+              "description": "A pseudo-element that is not in the `list` option. An empty list allows everything.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "list": {
+                          "default": [],
+                          "description": "The allowed pseudo-elements, without colons: names, or `/regex/`.",
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            "selector-pseudo-element-colon-notation": {
+              "$ref": "#/definitions/rule",
+              "description": "`:before`, `:after`, `:first-line` and `:first-letter` with one colon."
+            },
+            "selector-pseudo-element-disallowed-list": {
+              "description": "A pseudo-element that is in the `list` option.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "list": {
+                          "default": [],
+                          "description": "The disallowed pseudo-elements, without colons: names, or `/regex/`.",
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            "selector-type-case": {
+              "$ref": "#/definitions/rule",
+              "description": "A type selector with capitals."
+            },
             "separate-attributes": {
               "$ref": "#/definitions/rule",
               "description": "One attribute per attribute list: `[A, B]` becomes `[A]` and `[B]`. Lists on parameters and type parameters are left alone. The fix is not offered when the list has a comment in it."
@@ -1535,6 +2907,10 @@
             "service-suffix": {
               "$ref": "#/definitions/rule",
               "description": "A service whose name does not end in `Service` (buf lint SERVICE_SUFFIX with its default suffix)."
+            },
+            "shorthand-property-no-redundant-values": {
+              "$ref": "#/definitions/rule",
+              "description": "A `margin`, `padding`, `border-color`, `border-style`, `border-width` or `border-radius` with two, three or four values that repeat (`1px 1px` is `1px`)."
             },
             "single-class-per-file": {
               "$ref": "#/definitions/rule",
@@ -1781,6 +3157,74 @@
                         "ignore": {
                           "default": [],
                           "description": "Targets that may be defined more than once.",
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            "unit-allowed-list": {
+              "description": "A unit (`%` included) that is not in the `list` option, in values and at-rule preludes. An empty list allows everything.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "list": {
+                          "default": [],
+                          "description": "The allowed units: names, or `/regex/`.",
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            "unit-disallowed-list": {
+              "description": "A unit (`%` included) that is in the `list` option, in values and at-rule preludes.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "list": {
+                          "default": [],
+                          "description": "The disallowed units: names, or `/regex/`.",
                           "items": {
                             "type": "string"
                           },
@@ -2702,6 +4146,12 @@
           "preset:csharp/google",
           "preset:csharp/microsoft",
           "preset:csharp/stylecop",
+          "preset:css/stylelint-recommended",
+          "preset:css/stylelint-recommended",
+          "preset:css/stylelint-recommended",
+          "preset:css/stylelint-standard",
+          "preset:css/stylelint-standard",
+          "preset:css/stylelint-standard",
           "preset:dockerfile/hadolint",
           "preset:editorconfig/default",
           "preset:gitignore/default",

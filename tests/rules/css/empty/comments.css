@@ -1,0 +1,7 @@
+/**/
+^^^^ comment-no-empty
+/* */
+^^^^^ comment-no-empty
+/* text */
+a { /* */ color: red }
+//  ^^^^^ comment-no-empty

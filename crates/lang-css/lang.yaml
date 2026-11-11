@@ -8,3 +8,4 @@ options:
   - single_quote:
       default: false
       doc: "Write strings with single quotes. A string that holds more of the chosen quote than of the other keeps the other."
+presets: [stylelint-recommended, stylelint-standard]
