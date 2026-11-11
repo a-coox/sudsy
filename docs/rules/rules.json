@@ -3449,7 +3449,7 @@
       "upstream": [
         {
           "id": "font-family-name-quotes",
-          "partial": false,
+          "partial": true,
           "tool": "stylelint"
         }
       ]

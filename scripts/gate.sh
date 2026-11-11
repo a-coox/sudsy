@@ -63,7 +63,12 @@ if [ ${#ws[@]} -gt 0 ]; then
   for c in "${shared[@]}"; do
     case " ${ws[*]} " in *" --workspace "*|*" $c "*) gate "cargo test -p $c" cargo test -p "$c" --tests --no-fail-fast ;; esac
   done
-  gate "cargo test --doc" cargo test "${ws[@]}" --doc
+  # Doctests need a library target: -p of a binary-only crate fails.
+  doc=()
+  for a in "${ws[@]}"; do
+    case "$a" in -p) ;; --workspace) doc+=("$a") ;; *) [ -f "crates/$a/src/lib.rs" ] && doc+=(-p "$a") ;; esac
+  done
+  [ ${#doc[@]} -gt 0 ] && gate "cargo test --doc" cargo test "${doc[@]}" --doc
 fi
 if has sample-plugin; then
   # The sample plugin is a workspace of its own: format check and its native rule tests. With a

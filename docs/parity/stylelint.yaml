@@ -49,7 +49,7 @@ entries:
   declaration-property-value-disallowed-list: planned | The option maps a property to its values or units, and rule options are not maps.
   declaration-property-value-keyword-no-deprecated: planned
   display-notation: planned
-  font-family-name-quotes: rule font-family-name-quotes
+  font-family-name-quotes: rule font-family-name-quotes | does not report a name that is missing a quote it needs (`always-where-required`)
   font-family-no-duplicate-names: rule font-family-no-duplicate-names
   font-family-no-missing-generic-family-keyword: rule font-family-no-missing-generic-family-keyword
   font-weight-notation: planned
