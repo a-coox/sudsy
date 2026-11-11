@@ -5,6 +5,9 @@
 //! trailing comma, and a missing separator elsewhere changes the item structure or fails the
 //! re-parse, so nothing is lost by not comparing them.
 //!
+//! A node tagged `#transparent` (JavaScript's parenthesized expression) is not compared, nor are
+//! its own tokens (the parentheses): a formatter may add or remove it.
+//!
 //! Tokens tagged `#restyle` (YAML's scalars) may change their kind and text, for example from
 //! single to double quotes or by re-indenting continuation lines; they only have to stay where
 //! they are. The provider's [`NodeFormatter::extra_check`] must verify their meaning.
@@ -36,7 +39,7 @@ enum Class {
 struct Events<'a> {
     g: &'a Grammar,
     /// Open nodes: their kind and the children still to visit.
-    stack: Vec<(SyntaxKind, rowan::Children<'a>)>,
+    stack: Vec<(SyntaxKind, rowan::Children<'a>, bool)>,
     /// Byte offset after the tokens seen so far.
     pos: usize,
     root: Option<&'a rowan::GreenNodeData>,
@@ -54,7 +57,8 @@ impl<'a> Events<'a> {
 
     fn enter(&mut self, node: &'a rowan::GreenNodeData) -> (usize, Event<'a>) {
         let kind = SyntaxKind(node.kind().0);
-        self.stack.push((kind, node.children()));
+        let transparent = self.g.has_tag(kind, "transparent");
+        self.stack.push((kind, node.children(), transparent));
         (self.pos, Event::Enter(kind))
     }
 
@@ -78,11 +82,15 @@ impl<'a> Iterator for Events<'a> {
             return Some(self.enter(root));
         }
         loop {
-            let (kind, children) = self.stack.last_mut()?;
+            let (kind, children, transparent) = self.stack.last_mut()?;
+            let transparent = *transparent;
             match children.next() {
                 None => {
                     let kind = *kind;
                     self.stack.pop();
+                    if transparent {
+                        continue;
+                    }
                     return Some((self.pos, Event::Leave(kind)));
                 }
                 Some(rowan::NodeOrToken::Node(n)) => {
@@ -91,12 +99,19 @@ impl<'a> Iterator for Events<'a> {
                         self.pos += usize::from(n.text_len());
                         continue;
                     }
-                    return Some(self.enter(n));
+                    let entered = self.enter(n);
+                    if self.stack.last().is_some_and(|f| f.2) {
+                        continue;
+                    }
+                    return Some(entered);
                 }
                 Some(rowan::NodeOrToken::Token(t)) => {
                     let kind = SyntaxKind(t.kind().0);
                     let at = self.pos;
                     self.pos += t.text().len();
+                    if transparent {
+                        continue;
+                    }
                     match self.class(kind) {
                         Class::Ignored => {}
                         Class::Restyle => return Some((at, Event::Restyled)),

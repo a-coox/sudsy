@@ -82,7 +82,7 @@ fn the_semi_and_quote_options() {
             semi_off,
             "const a = 1;\n[1].map(f);\n(g)();\nclass A { x = 1; [k] = 2; y; *m() {} }\nfor (;;) {}\n"
         ),
-        "const a = 1\n;[1].map(f)\n;(g)()\nclass A {\n  x = 1;\n  [k] = 2\n  y;\n  *m() {}\n}\nfor (;;) {}\n"
+        "const a = 1\n;[1].map(f)\ng()\nclass A {\n  x = 1;\n  [k] = 2\n  y;\n  *m() {}\n}\nfor (;;) {}\n"
     );
     let single = vec![("quote_style", OptionValue::String("single".into()))];
     assert_eq!(

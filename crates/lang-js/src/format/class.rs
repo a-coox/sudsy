@@ -37,7 +37,7 @@ fn class(node: &SyntaxNode, cx: &FormatCtx<'_>) -> R {
 /// `static readonly x?: T = value;`.
 fn property(node: &SyntaxNode, cx: &FormatCtx<'_>) -> R {
     let kids = kids(cx, node);
-    let mut parts = vec![inline(cx, &kids)?];
+    let mut parts = vec![super::assign::property_value(cx, node, &kids)?];
     if !style(cx).semi && needs_semicolon(node, cx) {
         parts.push(lit(";"));
     } else {

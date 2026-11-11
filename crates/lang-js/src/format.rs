@@ -3,11 +3,21 @@
 //! printed as written, with its strings and numbers restyled (`literal::verbatim`). A later step
 //! adds its own module and one line in `MODULES`.
 
+mod arrow;
+mod assign;
+mod ast;
+mod binary;
+mod call;
+mod chain;
 mod class;
 mod decl;
-mod empty;
 mod literal;
+mod parens;
+mod rewrite;
 mod stmt;
+mod template;
+mod ternary;
+mod unary;
 mod util;
 
 use core_config::shared;
@@ -22,7 +32,21 @@ pub struct JsFormatter;
 
 type Module = fn(&SyntaxNode, &FormatCtx<'_>) -> Result<Option<Doc>, FormatError>;
 
-const MODULES: &[Module] = &[stmt::format, decl::format, class::format, literal::format];
+const MODULES: &[Module] = &[
+    stmt::format,
+    decl::format,
+    class::format,
+    parens::format,
+    binary::format,
+    call::format,
+    chain::format,
+    assign::format,
+    ternary::format,
+    arrow::format,
+    unary::format,
+    template::format,
+    literal::format,
+];
 
 impl NodeFormatter for JsFormatter {
     fn format_node(
@@ -32,10 +56,10 @@ impl NodeFormatter for JsFormatter {
     ) -> Result<Option<Doc>, FormatError> {
         for module in MODULES {
             if let Some(doc) = module(node, cx)? {
-                return Ok(Some(doc));
+                return Ok(Some(parens::wrap(node, cx, doc)));
             }
         }
-        Ok(Some(literal::verbatim(cx, node)))
+        Ok(Some(parens::wrap(node, cx, literal::verbatim(cx, node))))
     }
 
     fn rewrite_source(
@@ -45,7 +69,7 @@ impl NodeFormatter for JsFormatter {
         grammar: &core_syntax::Grammar,
         _options: &core_config::ResolvedOptions,
     ) -> Option<String> {
-        empty::without_stray_semicolons(tree, text, grammar)
+        rewrite::rewrite(tree, text, grammar)
     }
 
     fn extra_check(&self, before: &SyntaxNode, after: &SyntaxNode) -> Result<(), String> {

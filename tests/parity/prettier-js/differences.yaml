@@ -3,5 +3,5 @@ differences:
 files:
   real-world: project-options
 ratchet:
-  prettier-tests: 516
-  real-world: 667
+  prettier-tests: 652
+  real-world: 742

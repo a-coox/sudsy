@@ -94,7 +94,7 @@ node SequenceExpression
 node Super
 node AwaitExpression
 node ChainExpression
-node ParenthesizedExpression
+node ParenthesizedExpression #transparent
 node Directive
 node BlockStatement
 node VariableDeclaration

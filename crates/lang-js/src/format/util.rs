@@ -207,3 +207,64 @@ pub(crate) fn braces(
         close,
     ]))
 }
+
+/// A statement without its own `;` holds a trailing comment on its last token; it is printed
+/// after the `;` the output adds (`reattach_asi`), not inside the expression, whose groups it
+/// would break.
+pub(crate) fn detach_asi(cx: &FormatCtx<'_>, node: &SyntaxNode) -> Option<SyntaxToken> {
+    let has_semi = node
+        .children_with_tokens()
+        .any(|e| e.as_token().is_some_and(|t| t.kind() == k::SEMICOLON));
+    if has_semi {
+        return None;
+    }
+    let last = cx.last_token(node)?;
+    cx.detach_trailing(&last);
+    Some(last)
+}
+
+pub(crate) fn reattach_asi(cx: &FormatCtx<'_>, token: Option<SyntaxToken>) -> Doc {
+    token.map_or(Doc::Nil, |t| cx.reattach_trailing(&t))
+}
+
+/// Does printing `d` contain a forced line break (a hard line, a broken group)?
+pub(crate) fn will_break(d: &Doc) -> bool {
+    match d {
+        Doc::HardLine | Doc::BreakParent | Doc::LineStart(_) | Doc::NewlineIfNeeded => true,
+        Doc::Outdent(..) => true,
+        Doc::Shared(s) => s.forced,
+        Doc::Concat(parts) | Doc::Fill(parts) => parts.iter().any(will_break),
+        Doc::Group(g) => g.broken || will_break(&g.contents),
+        Doc::Indent(x)
+        | Doc::Align(_, x)
+        | Doc::Label(_, x)
+        | Doc::IndentIfBreak(_, x)
+        | Doc::LineSuffix(x) => will_break(x),
+        Doc::IfBreak { broken, flat, .. } => will_break(broken) || will_break(flat),
+        _ => false,
+    }
+}
+
+/// `d` on one line: lines become spaces or nothing, groups never break (hard lines stay).
+pub(crate) fn remove_lines(d: &Doc) -> Doc {
+    match d {
+        Doc::Line => lit(" "),
+        Doc::SoftLine => Doc::Nil,
+        Doc::IfBreak { flat, .. } => remove_lines(flat),
+        Doc::Concat(p) => Doc::Concat(p.iter().map(remove_lines).collect()),
+        Doc::Fill(p) => Doc::Fill(p.iter().map(remove_lines).collect()),
+        Doc::Group(g) => Doc::Group(Box::new(doc::Group {
+            contents: remove_lines(&g.contents),
+            states: Vec::new(),
+            broken: false,
+            id: g.id,
+        })),
+        Doc::Indent(x) => Doc::Indent(Box::new(remove_lines(x))),
+        Doc::Align(n, x) => Doc::Align(*n, Box::new(remove_lines(x))),
+        Doc::Label(t, x) => Doc::Label(t, Box::new(remove_lines(x))),
+        Doc::LineSuffix(x) => Doc::LineSuffix(Box::new(remove_lines(x))),
+        Doc::IndentIfBreak(id, x) => Doc::IndentIfBreak(*id, Box::new(remove_lines(x))),
+        Doc::Shared(s) => remove_lines(&s.doc),
+        other => other.clone(),
+    }
+}

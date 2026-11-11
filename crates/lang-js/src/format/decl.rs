@@ -1,7 +1,9 @@
 //! Variable declarations, functions and parameters, imports and exports.
 
+use super::arrow::Flags;
 use super::util::{
-    R, braces, elem, inline, inline_split, kids, node_of, semi, shape_error, token_of,
+    R, braces, elem, inline, inline_split, kids, node_of, remove_lines, semi, shape_error,
+    token_of, will_break,
 };
 use crate::generated::kind as k;
 use core_format::doc::{self, Doc, concat, group, if_break, indent, line, lit, softline};
@@ -11,10 +13,10 @@ use core_syntax::{SyntaxElement, SyntaxNode};
 pub(crate) fn format(node: &SyntaxNode, cx: &FormatCtx<'_>) -> Result<Option<Doc>, FormatError> {
     let doc = match node.kind() {
         k::VARIABLE_DECLARATION => variable_declaration(node, cx)?,
-        k::VARIABLE_DECLARATOR | k::FORMAL_PARAMETER | k::EXPORT_DECLARATION => {
-            inline(cx, &kids(cx, node))?
+        k::FORMAL_PARAMETER | k::EXPORT_DECLARATION => inline(cx, &kids(cx, node))?,
+        k::FUNCTION => {
+            super::arrow::print_fn(cx, node, 0)?.ok_or_else(|| shape_error("function"))?
         }
-        k::FUNCTION => function(node, cx)?,
         k::IMPORT_DECLARATION | k::EXPORT_NAMED_DECLARATION | k::EXPORT_FROM_DECLARATION => {
             module_declaration(node, cx)?
         }
@@ -43,6 +45,11 @@ fn variable_declaration(node: &SyntaxNode, cx: &FormatCtx<'_>) -> R {
     }) && !kids
         .iter()
         .any(|e| token_of(e).is_some_and(|t| t.kind() == k::SEMICOLON));
+    let asi = if in_for_head {
+        None
+    } else {
+        super::util::detach_asi(cx, node)
+    };
     let mut has_value = false;
     let mut declarators = Vec::new();
     let mut comma = None;
@@ -79,13 +86,21 @@ fn variable_declaration(node: &SyntaxNode, cx: &FormatCtx<'_>) -> R {
     Ok(if in_for_head {
         declaration
     } else {
-        concat(vec![declaration, semi(cx, node)])
+        concat(vec![
+            declaration,
+            semi(cx, node),
+            super::util::reattach_asi(cx, asi),
+        ])
     })
 }
 
 /// `async function* name<T>(params): Type { body }`; a method's function has only the part
 /// from its type parameters on, an overload ends in `;`.
-fn function(node: &SyntaxNode, cx: &FormatCtx<'_>) -> R {
+pub(crate) fn function(
+    node: &SyntaxNode,
+    cx: &FormatCtx<'_>,
+    flags: u32,
+) -> Result<Option<Doc>, FormatError> {
     let kids = kids(cx, node);
     let prefix_end = kids
         .iter()
@@ -119,10 +134,24 @@ fn function(node: &SyntaxNode, cx: &FormatCtx<'_>) -> R {
         signature.push(cx.format(tp)?);
         at += 1;
     }
+    let hugged = flags & (Flags::EXPAND | Flags::TEST) != 0;
+    // A function hugged as a call argument keeps its parameters on one line.
+    let flatten = |params: Doc| -> Option<Doc> {
+        if !hugged {
+            return Some(params);
+        }
+        if flags & Flags::EXPAND != 0 && will_break(&params) {
+            return None;
+        }
+        Some(remove_lines(&params))
+    };
     let params = match kids.get(at) {
         Some(SyntaxElement::Node(fp)) if fp.kind() == k::FORMAL_PARAMETERS => {
             at += 1;
-            parameters(cx, &super::util::kids(cx, fp))?
+            match flatten(parameters(cx, &super::util::kids(cx, fp))?) {
+                Some(p) => p,
+                None => return Ok(None),
+            }
         }
         // oxc leaves the parameters of a function with a `this` parameter without their node.
         Some(e) if super::util::is_tok(e, "(") => {
@@ -132,7 +161,10 @@ fn function(node: &SyntaxNode, cx: &FormatCtx<'_>) -> R {
                 .ok_or_else(|| shape_error("parameters"))?;
             let params = parameters(cx, &kids[at..=at + close])?;
             at += close + 1;
-            params
+            match flatten(params) {
+                Some(p) => p,
+                None => return Ok(None),
+            }
         }
         _ => return Err(shape_error("function without parameters")),
     };
@@ -150,12 +182,12 @@ fn function(node: &SyntaxNode, cx: &FormatCtx<'_>) -> R {
         Some(body) => parts.extend([lit(" "), body]),
         None => parts.push(semi(cx, node)),
     }
-    Ok(concat(parts))
+    Ok(Some(concat(parts)))
 }
 
 /// `(a, b)`, one per line with a trailing comma when too long; a lone object pattern hugs the
 /// parentheses. `elems` runs from `(` to `)`.
-fn parameters(cx: &FormatCtx<'_>, elems: &[SyntaxElement]) -> R {
+pub(crate) fn parameters(cx: &FormatCtx<'_>, elems: &[SyntaxElement]) -> R {
     let (Some(open), Some(close)) = (
         elems.first().and_then(token_of),
         elems.last().and_then(token_of),

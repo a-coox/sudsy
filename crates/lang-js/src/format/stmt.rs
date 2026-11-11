@@ -26,11 +26,9 @@ pub(crate) fn format(node: &SyntaxNode, cx: &FormatCtx<'_>) -> Result<Option<Doc
         k::SWITCH_STATEMENT => switch(node, cx)?,
         k::SWITCH_CASE => switch_case(node, cx)?,
         k::TRY_STATEMENT | k::CATCH_CLAUSE => inline(cx, &kids(cx, node))?,
-        k::RETURN_STATEMENT
-        | k::THROW_STATEMENT
-        | k::BREAK_STATEMENT
-        | k::CONTINUE_STATEMENT
-        | k::DEBUGGER_STATEMENT => concat(vec![inline(cx, &kids(cx, node))?, semi(cx, node)]),
+        k::BREAK_STATEMENT | k::CONTINUE_STATEMENT | k::DEBUGGER_STATEMENT => {
+            concat(vec![inline(cx, &kids(cx, node))?, semi(cx, node)])
+        }
         k::LABELED_STATEMENT => labeled(node, cx)?,
         _ => return Ok(None),
     };
@@ -80,17 +78,15 @@ fn expression_statement(node: &SyntaxNode, cx: &FormatCtx<'_>) -> R {
     let mut parts = Vec::new();
     // Without `;` at the end of the previous statement, a line starting like this would continue it.
     if !style(cx).semi
-        && cx.first_token(expr).is_some_and(|t| {
-            matches!(
-                t.text().get(..1),
-                Some("(" | "[" | "`" | "+" | "-" | "/" | "<")
-            )
-        })
+        && super::parens::first_char(cx, expr)
+            .is_some_and(|c| matches!(c, '(' | '[' | '`' | '+' | '-' | '/' | '<'))
     {
         parts.push(lit(";"));
     }
+    let asi = super::util::detach_asi(cx, node);
     parts.push(cx.format(expr)?);
     parts.push(semi(cx, node));
+    parts.push(super::util::reattach_asi(cx, asi));
     Ok(concat(parts))
 }
 
