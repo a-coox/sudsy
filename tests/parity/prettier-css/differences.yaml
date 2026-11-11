@@ -11,7 +11,7 @@ files:
   prettier-less: less-mixin-calls, comments, value-math
   real-world: scss-layout, less-mixin-calls, project-options
 ratchet:
-  prettier-css: 104
-  prettier-scss: 48
-  prettier-less: 23
-  real-world: 486
+  prettier-css: 106
+  prettier-scss: 59
+  prettier-less: 26
+  real-world: 488

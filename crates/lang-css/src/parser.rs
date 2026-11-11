@@ -261,11 +261,12 @@ impl<'a> Parser<'a> {
         loop {
             self.builder.start_node(k::AT_RULE);
             let name = &self.tokens[self.real[self.pos]];
-            // shortcut: allocates a String per at-rule (about +0.6% of css parse allocations);
-            // compare with `eq_ignore_ascii_case` instead.
-            let name = self.src[name.start..name.end].to_ascii_lowercase();
+            let name = &self.src[name.start..name.end];
+            let call = ["@include", "@mixin", "@function"]
+                .iter()
+                .any(|n| name.eq_ignore_ascii_case(n));
             self.bump();
-            if matches!(name.as_str(), "@include" | "@mixin" | "@function") {
+            if call {
                 self.call_at = Some(self.pos);
             }
             self.list(k::PRELUDE, scan.end);

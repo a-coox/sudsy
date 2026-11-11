@@ -16,7 +16,7 @@ use core_format::context::comment_doc;
 use core_format::doc::{self, Doc};
 use core_format::shapes::{dangling_comments, document, statement_sequence};
 use core_format::{FormatCtx, FormatError, NodeFormatter};
-use core_syntax::{SyntaxKind, SyntaxNode, SyntaxToken};
+use core_syntax::{SyntaxKind, SyntaxNode, SyntaxToken, TextRange};
 use value::{Item, St, items, items_with_edges, unhandled_comments};
 
 include!("../schema.generated.rs");
@@ -228,7 +228,7 @@ impl Pr<'_, '_> {
     /// comment inside or `print` gives up.
     fn node_with(&self, node: &SyntaxNode, print: impl FnOnce(&[Item]) -> Option<Doc>) -> Doc {
         let cx = self.cx;
-        let body = if unhandled_comments(node, Some(node)) {
+        let body = if unhandled_comments(node, Some(node.text_range())) {
             None
         } else {
             print(&items(node))
@@ -259,12 +259,19 @@ impl Pr<'_, '_> {
             let one_line = !value::raw_text(&prelude).contains('\n');
             parts.push(self.node_with(&prelude, |i| {
                 let plain = || {
-                    let comment = i.iter().any(|t| t.tok(k::COMMENT).is_some());
+                    let comment = i
+                        .iter()
+                        .any(|t| t.tok(k::COMMENT).or(t.tok(k::LINE_COMMENT)).is_some());
                     (one_line && !comment).then(|| doc::text(self.plain(i)))
                 };
                 self.selectors(i, keyframes, false).or_else(plain)
             }));
-            parts.push(doc::lit(" "));
+            // Comments before the `{` go on their own lines.
+            let lead = self
+                .cx
+                .first_token(&block)
+                .is_some_and(|o| !comments::leading_comments(self.cx.grammar, &o).is_empty());
+            parts.push(if lead { doc::hardline() } else { doc::lit(" ") });
         }
         parts.push(self.block(&block)?);
         Ok(doc::concat(parts))
@@ -288,6 +295,18 @@ impl Pr<'_, '_> {
         let variable = pitems.first().is_some_and(|i| {
             i.tok(k::COLON).is_some() && (!css || i.start() == kw.text_range().end())
         }) && (self.dialect == Dialect::Less || block.is_none());
+        // Comments around the colon of a detached ruleset are kept as written.
+        if variable
+            && block.is_some()
+            && (prelude.as_ref().is_some_and(has_comments)
+                || node
+                    .children_with_tokens()
+                    .filter_map(|e| e.into_token())
+                    .skip_while(|t| t.kind() != k::AT_KEYWORD)
+                    .any(|t| matches!(t.kind(), k::COMMENT | k::LINE_COMMENT)))
+        {
+            return Ok(doc::concat(vec![cx.verbatim_node(node), doc::lit(";")]));
+        }
         let call = !css
             && matches!(pitems.first(), Some(Item::Grp(g)) if g.open.text_range().start() == kw.text_range().end());
         let mut parts = vec![
@@ -323,6 +342,9 @@ impl Pr<'_, '_> {
                     self.node_with(p, |i| Some(self.list(i, st)))
                 } else {
                     self.node_with(p, |i| {
+                        if i.iter().any(|t| t.tok(k::LINE_COMMENT).is_some()) {
+                            return None;
+                        }
                         Some(doc::text(if name == "@charset" {
                             value::raw_text(p)
                         } else {
@@ -413,7 +435,37 @@ impl Pr<'_, '_> {
             }
         };
         let value = child(node, k::VALUE);
-        if unhandled_comments(node, value.as_ref()) {
+        // What stands between the property and the value (`:` and comments) is printed as written.
+        let mut colon = None;
+        let mut vstart = TextRange::empty(0.into()).start();
+        let mut inside = value.as_ref().map(|v| v.text_range());
+        if let (Some(v), Some(end)) = (&value, pitems.last().map(|i| i.end())) {
+            let first = v
+                .descendants_with_tokens()
+                .filter_map(|e| e.into_token())
+                .find(|t| !value::is_trivia(t.kind()));
+            let from = first.as_ref().map_or(end, |t| t.text_range().start());
+            let range = TextRange::new(end, from.max(end));
+            let between = first
+                .iter()
+                .flat_map(|f| std::iter::successors(f.prev_token(), |t| t.prev_token()))
+                .take_while(|t| t.text_range().start() >= end);
+            let (mut block, mut line) = (false, false);
+            for t in between {
+                block |= t.kind() == k::COMMENT;
+                line |= t.kind() == k::LINE_COMMENT;
+            }
+            if block && !line {
+                let raw = node
+                    .text()
+                    .slice(range - node.text_range().start())
+                    .to_string();
+                colon = Some(raw.trim().to_string());
+                vstart = from;
+                inside = inside.map(|r| r.cover(range));
+            }
+        }
+        if unhandled_comments(node, inside) {
             return cx.verbatim_node(node);
         }
         // `--x: { color: red }`: a block of declarations.
@@ -424,7 +476,8 @@ impl Pr<'_, '_> {
             return doc::concat(vec![
                 self.lead(&first),
                 doc::text(name.clone()),
-                doc::lit(": "),
+                colon.map_or(doc::lit(":"), doc::text),
+                doc::lit(" "),
                 block,
                 doc::lit(";"),
                 semicolon(node).map_or(Doc::Nil, |semi| self.trail(&semi)),
@@ -447,7 +500,10 @@ impl Pr<'_, '_> {
                 semicolon(node).map_or(Doc::Nil, |semi| self.trail(&semi)),
             ]);
         }
-        let vitems = value.map(|v| items_with_edges(&v)).unwrap_or_default();
+        let mut vitems: Vec<Item> = value.map(|v| items_with_edges(&v)).unwrap_or_default();
+        if colon.is_some() {
+            vitems.retain(|i| i.start() >= vstart);
+        }
         if matches!(vitems.first(), Some(Item::Grp(g)) if g.open.kind() == k::L_BRACE)
             || matches!(vitems.as_slice(), [Item::Tok(a), Item::Tok(b), ..]
                 if a.text().eq_ignore_ascii_case("progid") && b.kind() == k::COLON)
@@ -463,7 +519,7 @@ impl Pr<'_, '_> {
         doc::concat(vec![
             self.lead(&first),
             doc::text(name.clone()),
-            doc::lit(":"),
+            colon.map_or(doc::lit(":"), doc::text),
             self.declaration_value(&vitems, st, ";"),
             semicolon(node).map_or(Doc::Nil, |semi| self.trail(&semi)),
         ])
@@ -513,11 +569,22 @@ impl Pr<'_, '_> {
     fn statement(&self, node: &SyntaxNode) -> Doc {
         let cx = self.cx;
         let value = child(node, k::VALUE);
-        let Some(value) = value.filter(|v| !unhandled_comments(node, Some(v))) else {
+        // A `{ }` argument (a detached ruleset or an `each()` body) is kept as written.
+        let braces = value.as_ref().is_some_and(|v| {
+            v.descendants().any(|n| {
+                n.kind() == k::GROUP && cx.first_token(&n).is_some_and(|t| t.kind() == k::L_BRACE)
+            })
+        });
+        let Some(value) =
+            value.filter(|v| !braces && !unhandled_comments(node, Some(v.text_range())))
+        else {
             return cx.verbatim_node(node);
         };
         doc::concat(vec![
-            self.node_with(&value, |i| Some(doc::text(self.plain(i)))),
+            self.node_with(&value, |i| {
+                (!i.iter().any(|t| t.tok(k::LINE_COMMENT).is_some()))
+                    .then(|| doc::text(self.plain(i)))
+            }),
             doc::lit(";"),
             semicolon(node).map_or(Doc::Nil, |semi| self.trail(&semi)),
         ])

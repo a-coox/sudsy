@@ -276,7 +276,7 @@ impl Lexer<'_> {
     }
 
     /// `url(` and an unquoted body: one token. Anything else (a quoted string, a function call,
-    /// an interpolation) is a function call of the ordinary tokens.
+    /// an interpolation, a `$variable`) is a function call of the ordinary tokens.
     fn url(&mut self) -> SyntaxKind {
         let mut i = 1;
         while self.pos + i < self.src.len()
@@ -286,6 +286,7 @@ impl Lexer<'_> {
         }
         let end = (self.pos + i).min(self.src.len());
         if self.src.get(end) == Some(&b')')
+            && self.at(1) != b'$'
             && !self.text[self.pos + 1..end]
                 .trim()
                 .contains(char::is_whitespace)

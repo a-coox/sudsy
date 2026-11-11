@@ -189,21 +189,19 @@ pub(crate) fn raw_text(node: &SyntaxNode) -> String {
 
 /// Comments between the first and the last significant token of `node` that [`items`] does not
 /// carry: a line comment, or a block comment outside `inside` (the value of a declaration).
-pub(crate) fn unhandled_comments(node: &SyntaxNode, inside: Option<&SyntaxNode>) -> bool {
+pub(crate) fn unhandled_comments(node: &SyntaxNode, inside: Option<TextRange>) -> bool {
     let toks: Vec<SyntaxToken> = node
         .descendants_with_tokens()
         .filter_map(|e| e.into_token())
         .collect();
     let first = toks.iter().position(|t| !is_trivia(t.kind()));
     let last = toks.iter().rposition(|t| !is_trivia(t.kind()));
-    let range = inside.map(|n| n.text_range());
     let (Some(f), Some(l)) = (first, last) else {
         return false;
     };
-    toks[f..l].iter().any(|t| match t.kind() {
-        k::LINE_COMMENT => true,
-        k::COMMENT => !range.is_some_and(|r| r.contains_range(t.text_range())),
-        _ => false,
+    toks[f..l].iter().any(|t| {
+        matches!(t.kind(), k::COMMENT | k::LINE_COMMENT)
+            && !inside.is_some_and(|r| r.contains_range(t.text_range()))
     })
 }
 
@@ -287,6 +285,8 @@ impl St {
 fn glued(prev: &Item, next: &Item) -> bool {
     next.is_comparison()
         || next.is_delim("*")
+        || next.is_delim("+")
+        || next.is_delim("-")
         || next.is_word(&["and", "or", "not"])
         || prev.is_word(&["in", "from", "through", "end"])
 }
@@ -444,6 +444,23 @@ impl Pr<'_, '_> {
                 .any(|i| ["+", "-", "*", "/", "%"].iter().any(|d| i.is_delim(d))),
             ..st
         };
+        // A line comment, or a block comment with a line break after it, first in an entry is on
+        // a line of its own.
+        if let [first, rest @ ..] = items
+            && !rest.is_empty()
+            && (first.tok(k::LINE_COMMENT).is_some()
+                || first.tok(k::COMMENT).is_some_and(|c| {
+                    std::iter::successors(c.next_token(), |t| t.next_token())
+                        .take_while(|t| matches!(t.kind(), k::WHITESPACE | k::NEWLINE))
+                        .any(|t| t.text().contains('\n') || t.kind() == k::NEWLINE)
+                }))
+        {
+            return doc::concat(vec![
+                self.item(first, st),
+                doc::hardline(),
+                self.segment(rest, st),
+            ]);
+        }
         let mut parts: Vec<Doc> = Vec::new();
         let mut cur: Vec<Doc> = Vec::new();
         let colon = |i: &Item| st.group && i.tok(k::COLON).is_some();
@@ -506,6 +523,15 @@ impl Pr<'_, '_> {
                     .is_some_and(|t| t.text() == "with")
         };
         let has_config = (0..items.len()).any(config);
+        // A sign at the start or after an operator belongs to the number or parenthesis after it.
+        let sign = |j: usize| {
+            (items[j].is_delim("+") || items[j].is_delim("-"))
+                && (j == 0
+                    || ["+", "-", "*", "/", "%"]
+                        .iter()
+                        .any(|d| items[j - 1].is_delim(d)))
+                && matches!(items.get(j + 1), Some(Item::Grp(g)) if g.open.kind() == k::L_PAREN)
+        };
         let grid = st.grid && !st.group;
         let mut broke = false;
         let mut colon_at: Option<(usize, doc::GroupId)> = None;
@@ -521,7 +547,14 @@ impl Pr<'_, '_> {
                 // Less lookups: `@map[key]`.
                 let lookup = self.dialect == Dialect::Less
                     && matches!(it, Item::Grp(g) if g.open.kind() == k::L_BRACKET);
-                let space = if colon(it) || colon(prev) || lookup || it.tok(k::SEMICOLON).is_some()
+                let after_comment = prev.tok(k::LINE_COMMENT).is_some();
+                let space = if after_comment {
+                    true
+                } else if sign(i - 1)
+                    || colon(it)
+                    || colon(prev)
+                    || lookup
+                    || it.tok(k::SEMICOLON).is_some()
                 {
                     false
                 } else {
@@ -535,7 +568,9 @@ impl Pr<'_, '_> {
                 };
                 if space {
                     parts.push(doc::concat(std::mem::take(&mut cur)));
-                    parts.push(if grid {
+                    parts.push(if after_comment {
+                        doc::hardline()
+                    } else if grid {
                         let range = TextRange::new(prev.end(), it.start());
                         let parent = it.token().parent();
                         if parent.is_some_and(|p| self.cx.has_line_break(&p, range)) {
@@ -597,12 +632,6 @@ impl Pr<'_, '_> {
             Item::Tok(t) => self.value_token(t),
             Item::Func(name, g) => {
                 let lower = name.text().to_ascii_lowercase();
-                // `url()` holds a quoted string or text kept as written.
-                if lower == "url"
-                    && !matches!(g.items.as_slice(), [Item::Tok(t)] if t.kind() == k::STRING)
-                {
-                    return doc::text(format!("{}{}", name.text(), self.plain_group(g)));
-                }
                 let st = St {
                     calc: st.calc || lower.ends_with("calc"),
                     flat: st.flat || lower == "url",
@@ -637,10 +666,31 @@ impl Pr<'_, '_> {
                     && (st.dollar || if st.map { !st.ops } else { st.fun })
                     || st.config;
                 // A trailing comma is dropped; a breaking map gets one back.
-                let body = match g.items.split_last() {
+                // Comments at the end stay after the comma that breaking adds.
+                let at = g
+                    .items
+                    .iter()
+                    .rposition(|i| i.tok(k::LINE_COMMENT).is_none())
+                    .map_or(0, |p| p + 1);
+                let (head, comments) = g.items.split_at(at);
+                let body = match head.split_last() {
                     Some((last, rest)) if last.tok(k::COMMA).is_some() => rest,
-                    _ => &g.items[..],
+                    _ => head,
                 };
+                let comments = doc::concat(
+                    comments
+                        .iter()
+                        .flat_map(|c| {
+                            [
+                                doc::line_suffix(doc::concat(vec![
+                                    doc::lit(" "),
+                                    self.item(c, st),
+                                ])),
+                                doc::break_parent(),
+                            ]
+                        })
+                        .collect(),
+                );
                 let inner = self.list(
                     body,
                     St {
@@ -656,7 +706,7 @@ impl Pr<'_, '_> {
                 );
                 let (open, close) = (doc::text(g.open.text()), doc::text(g.close.text()));
                 if flat {
-                    doc::concat(vec![open, inner, close])
+                    doc::concat(vec![open, inner, comments, close])
                 } else {
                     let comma = if force && !st.config {
                         doc::if_break(doc::lit(","), Doc::Nil)
@@ -667,6 +717,7 @@ impl Pr<'_, '_> {
                         open,
                         doc::indent(doc::concat(vec![doc::softline(), inner])),
                         comma,
+                        comments,
                         doc::softline(),
                         close,
                         if force { doc::break_parent() } else { Doc::Nil },
@@ -687,9 +738,36 @@ impl Pr<'_, '_> {
                 ),
                 doc::text(g.close.text()),
             ]),
-            // Braces: as written.
-            _ => verbatim_text(&raw_text(&g.node)),
+            // Braces: as written, but for the blanks inside them and after a colon.
+            _ => {
+                let raw = raw_text(&g.node);
+                if raw.contains('\n') {
+                    verbatim_text(&raw)
+                } else {
+                    doc::text(self.braces(g))
+                }
+            }
         }
+    }
+
+    fn braces(&self, g: &Grp) -> String {
+        let mut out = String::from(g.open.text());
+        let mut prev: Option<&Item> = None;
+        for it in &g.items {
+            let colon = it.tok(k::COLON).is_some();
+            if let Some(p) = prev
+                && (p.tok(k::COLON).is_some() || p.end() != it.start() && !colon)
+            {
+                out.push(' ');
+            }
+            match it {
+                Item::Grp(g) if g.open.kind() == k::L_BRACE => out.push_str(&self.braces(g)),
+                _ => out.push_str(&self.plain(std::slice::from_ref(it))),
+            }
+            prev = Some(it);
+        }
+        out.push_str(g.close.text());
+        out
     }
 
     pub fn value_token(&self, t: &SyntaxToken) -> Doc {
@@ -702,6 +780,7 @@ impl Pr<'_, '_> {
             k::STRING => text::string(s, self.single),
             k::URL => text::url(s),
             k::IDENT => text::keyword(s),
+            k::LINE_COMMENT => return doc::concat(vec![doc::text(s), doc::break_parent()]),
             _ => s.to_string(),
         })
     }
