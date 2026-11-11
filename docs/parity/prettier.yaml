@@ -47,7 +47,7 @@ entries:
   objectWrap (js): "planned | js.format.collapse (the first-line break of an object is kept)"
   semi: "planned | js.format.semi"
   singleQuote (js): "planned | js.format.quote_style"
-  jsxSingleQuote: "planned | js.format.jsx_quote_style"
+  jsxSingleQuote: option js.format.jsx_single_quote
   quoteProps (js): "planned | js.format.quote_props"
   trailingComma (js): "planned | js.format.trailing_commas"
   arrowParens: "planned | js.format.arrow_parens"

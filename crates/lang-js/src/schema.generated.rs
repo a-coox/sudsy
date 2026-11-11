@@ -11,6 +11,8 @@ pub const TRAILING_COMMAS: &str = "trailing_commas";
 pub const ARROW_PARENS: &str = "arrow_parens";
 #[allow(dead_code)]
 pub const BRACKET_SAME_LINE: &str = "bracket_same_line";
+#[allow(dead_code)]
+pub const JSX_SINGLE_QUOTE: &str = "jsx_single_quote";
 
 #[rustfmt::skip]
 pub fn option_schema() -> core_config::OptionSchema {
@@ -27,6 +29,7 @@ pub fn option_schema() -> core_config::OptionSchema {
         core_config::shared::bracket_spacing(true),
         core_config::OptionDef::choice("arrow_parens", &["always", "avoid"], "always", "Parentheses around the lone parameter of an arrow function: `always` writes `(x) => x`, `avoid` writes `x => x` when the parameter is a plain name (no type, default, rest or destructuring)."),
         core_config::OptionDef::boolean("bracket_same_line", false, "JSX: put the `>` of a multi-line element on the line of its last attribute instead of on a line of its own."),
+        core_config::OptionDef::boolean("jsx_single_quote", false, "Single quotes for JSX attribute strings (a string with more of the preferred quote than of the other keeps the other one)."),
     ])
     .with_presets(vec![
     ])

@@ -174,7 +174,8 @@ node JSXAttribute
 node JSXSpreadAttribute
 node JSXIdentifier
 node JSXSpreadChild
-node JSXText
+// Text of an element, and its `{" "}` children: the formatter moves whitespace between the two.
+node JSXText #transparent
 node TSThisParameter
 node TSEnumDeclaration
 node TSEnumBody

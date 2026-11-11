@@ -27,3 +27,6 @@ options:
   - bracket_same_line:
       default: false
       doc: "JSX: put the `>` of a multi-line element on the line of its last attribute instead of on a line of its own."
+  - jsx_single_quote:
+      default: false
+      doc: "Single quotes for JSX attribute strings (a string with more of the preferred quote than of the other keeps the other one)."

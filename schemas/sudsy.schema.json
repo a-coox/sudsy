@@ -4691,6 +4691,11 @@
               ],
               "type": "string"
             },
+            "jsx_single_quote": {
+              "default": false,
+              "description": "Single quotes for JSX attribute strings (a string with more of the preferred quote than of the other keeps the other one).",
+              "type": "boolean"
+            },
             "line_width": {
               "default": 80,
               "description": "Preferred maximum line width in columns.",
@@ -6308,6 +6313,11 @@
                       "tab"
                     ],
                     "type": "string"
+                  },
+                  "jsx_single_quote": {
+                    "default": false,
+                    "description": "Single quotes for JSX attribute strings (a string with more of the preferred quote than of the other keeps the other one).",
+                    "type": "boolean"
                   },
                   "line_width": {
                     "default": 80,

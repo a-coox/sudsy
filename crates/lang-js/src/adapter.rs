@@ -14,6 +14,7 @@ use core_syntax::trivia::is_line_break;
 use core_syntax::{Grammar, SyntaxKind, SyntaxNode, TreeBuilder, grammars};
 use oxc_allocator::Allocator;
 use oxc_ast::AstKind;
+use oxc_ast::ast::{JSXChild, JSXExpression};
 use oxc_ast_visit::Visit;
 use oxc_parser::config::TokensParserConfig;
 use oxc_parser::{Kind, ParseOptions, Parser};
@@ -154,6 +155,8 @@ struct Collector {
     nodes: Vec<Node>,
     /// Whether each open AST node made a node.
     made: Vec<bool>,
+    /// Starts of the `{" "}` children of elements and of their strings (see `enter_node`).
+    jsx_space: std::collections::HashSet<u32>,
 }
 
 impl Collector {
@@ -163,6 +166,18 @@ impl Collector {
             kinds: vec![None; usize::from(oxc_ast::ast_kind::AST_TYPE_MAX) + 1],
             nodes: Vec::new(),
             made: Vec::new(),
+            jsx_space: std::collections::HashSet::new(),
+        }
+    }
+
+    fn note_jsx_space(&mut self, children: &[JSXChild<'_>]) {
+        for child in children {
+            if let JSXChild::ExpressionContainer(c) = child
+                && let JSXExpression::StringLiteral(s) = &c.expression
+                && s.value == " "
+            {
+                self.jsx_space.extend([c.span.start, s.span.start]);
+            }
         }
     }
 }
@@ -184,6 +199,21 @@ impl<'a> Visit<'a> for Collector {
             ours
         });
         let span = kind.span();
+        // A `{" "}` child of an element is JSX whitespace, which the formatter moves between
+        // text and `{" "}` like text: it is a `JSXText` node (transparent to the safety check)
+        // with no node for its string.
+        match kind {
+            AstKind::JSXElement(e) => self.note_jsx_space(&e.children),
+            AstKind::JSXFragment(f) => self.note_jsx_space(&f.children),
+            _ => {}
+        }
+        let ours = match kind {
+            AstKind::JSXExpressionContainer(_) if self.jsx_space.contains(&span.start) => {
+                Some(k::JSX_TEXT)
+            }
+            AstKind::StringLiteral(_) if self.jsx_space.contains(&span.start) => None,
+            _ => ours,
+        };
         let make = ours.filter(|_| span.end > span.start);
         if let Some(kind) = make {
             self.nodes.push(Node {

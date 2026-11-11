@@ -4,7 +4,9 @@
 use super::ast::{is_binaryish, operator, parent, token_comments, un};
 use super::util::shape_error;
 use crate::generated::kind as k;
-use core_format::doc::{Doc, concat, group, indent, line, lit, softline};
+use core_format::doc::{
+    Doc, concat, group, group_with_id, indent, indent_if_break, line, lit, new_group_id, softline,
+};
 use core_format::{FormatCtx, FormatError};
 use core_syntax::SyntaxNode;
 
@@ -87,7 +89,7 @@ pub(crate) fn format(node: &SyntaxNode, cx: &FormatCtx<'_>) -> Result<Option<Doc
         Some(k::DO_WHILE_STATEMENT) => last_of_parent,
         _ => false,
     };
-    let parts = parts(node, cx, inside_parens)?;
+    let mut parts = parts(node, cx, inside_parens)?;
     if inside_parens {
         return Ok(Some(concat(parts)));
     }
@@ -139,11 +141,22 @@ pub(crate) fn format(node: &SyntaxNode, cx: &FormatCtx<'_>) -> Result<Option<Doc
     if parts.is_empty() {
         return Ok(Some(Doc::Nil));
     }
+    // A JSX right side is not part of the chain's group: it breaks on its own.
+    let jsx = node
+        .last_child()
+        .is_some_and(|r| super::ast::is_jsx(un(&r).kind()))
+        .then(|| parts.pop())
+        .flatten();
     let mut it = parts.into_iter();
     let head = it.next().unwrap_or(Doc::Nil);
+    let chain = concat(vec![head, indent(concat(it.collect()))]);
+    let Some(jsx) = jsx else {
+        return Ok(Some(group(chain)));
+    };
+    let id = new_group_id();
     Ok(Some(group(concat(vec![
-        head,
-        indent(concat(it.collect())),
+        group_with_id(id, chain),
+        indent_if_break(id, jsx),
     ]))))
 }
 

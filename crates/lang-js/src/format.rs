@@ -11,6 +11,7 @@ mod call;
 mod chain;
 mod class;
 mod decl;
+mod jsx;
 mod literal;
 mod object;
 mod parens;
@@ -46,6 +47,7 @@ const MODULES: &[Module] = &[
     ternary::format,
     arrow::format,
     unary::format,
+    jsx::format,
     template::format,
     ts::format,
     object::format,
