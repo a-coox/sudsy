@@ -1,6 +1,7 @@
+use core_config::OptionValue;
 use core_syntax::{SyntaxNode, print, trivia};
 use lang_css::{CssProvider, Dialect};
-use provider_api::format_testing::{assert_file_names, assert_formats, check_corpus};
+use provider_api::format_testing::{Formatting, assert_file_names, assert_formats, check_corpus};
 use provider_api::{LanguageProvider, SourceFile};
 
 const CSS: &str = "@charset \"utf-8\";\n@import url(foo.css) screen;\n:root { --x: ; --y: {a:b}; --z: 1px }\n\
@@ -19,6 +20,94 @@ const LESS: &str = "@color: #4D926F; @detached: { background: red; };\n// line\n
 .a when (@mode = huge) { .bordered(4px; dashed); @r: { x: y }; @detached(); }\n\
 .b:extend(.a all) { width: ~\"calc(100% - @{w})\"; @{prop}-suffix: 1; color: @@name }\n\
 @import (reference) \"foo\";\n.@{name} { a: b }\n";
+
+const CSS_OUT: &str = r#"@charset "utf-8";
+@import url(foo.css) screen;
+:root {
+  --x: ;
+  --y: {a:b};
+  --z: 1px;
+}
+a:hover,
+a > b[href^="x"] {
+  color: red !important;
+  margin: -0.5em 0 +1e3px;
+  background: url(a.png);
+}
+@media (min-width: 40em) and (max-width: 60em) {
+  .a {
+    b: c;
+  }
+}
+@font-face {
+  src: url("a.woff2") format("woff2");
+  unicode-range: U+0025-00FF, u+4??;
+}
+/* c */
+.b::before {
+  content: '"';
+  width: calc(1px + (2px * 3));
+}
+"#;
+
+const SCSS_OUT: &str = r#"@use "sass:math";
+$map: (a: 1, b: (c: 2)) !default;
+// line
+@mixin m($a, $b: 2) {
+  width: math.div($a, $b);
+  &:hover {
+    color: red;
+  }
+}
+.a-#{$x} {
+  @include m(1, 2);
+  font: {
+    family: x;
+    size: 1px;
+  }
+  @extend %p;
+}
+@if $a == 1 {
+  a: b;
+}
+@else if $a {
+  c: d;
+}
+@else {
+  e: f;
+}
+@each $k, $v in $map {
+  .#{$k} {
+    v: $v;
+  }
+}
+"#;
+
+const LESS_OUT: &str = r#"@color: #4d926f;
+@detached: {
+  background: red;
+}
+// line
+.bordered(@width: 2px; @style: solid) {
+  border: @width @style;
+}
+.a when (@mode = huge) {
+  .bordered(4px; dashed);
+  @r: {
+    x: y;
+  }
+  @detached();
+}
+.b:extend(.a all) {
+  width: ~"calc(100% - @{w})";
+  @{prop}-suffix: 1;
+  color: @@name;
+}
+@import (reference) "foo";
+.@{name} {
+  a: b;
+}
+"#;
 
 fn parse(dialect: Dialect, text: &str) -> (SyntaxNode, usize, CssProvider) {
     let p = CssProvider::new(dialect);
@@ -127,14 +216,19 @@ fn deep_nesting_is_an_error() {
     assert!(parse(Dialect::Css, &format!("a {{ {deep} }}")).1 > 0);
 }
 
+/// Prettier's output for the samples, but where noted: SCSS maps and `@else` after `}` (and a
+/// brace value of a custom property) are not laid out yet.
 #[test]
-fn formats_as_written() {
-    for (dialect, file, text) in [
-        (Dialect::Css, "a.css", CSS),
-        (Dialect::Scss, "a.scss", SCSS),
-        (Dialect::Less, "a.less", LESS),
+fn formats_like_prettier() {
+    for (dialect, file, text, expected) in [
+        (Dialect::Css, "a.css", CSS, CSS_OUT),
+        (Dialect::Scss, "a.scss", SCSS, SCSS_OUT),
+        (Dialect::Less, "a.less", LESS, LESS_OUT),
     ] {
-        assert_eq!(assert_formats(CssProvider::new(dialect), file, text), text);
+        assert_eq!(
+            assert_formats(CssProvider::new(dialect), file, text),
+            expected
+        );
     }
 }
 
@@ -180,4 +274,82 @@ fn conformance() {
         }
         assert!(count > 0, "{ext}");
     }
+}
+
+fn format_with(file: &'static str, input: &str, options: &[(&'static str, OptionValue)]) -> String {
+    let dialect = if file.ends_with("scss") {
+        Dialect::Scss
+    } else {
+        Dialect::Css
+    };
+    let mut subject = Formatting::new(CssProvider::new(dialect), file);
+    subject.options = options.to_vec();
+    core_format::testing::assert_formats(&subject, input)
+}
+
+#[test]
+fn rules_values_comments_and_ignore() {
+    for (input, expected) in [
+        (
+            "a{color:red;;}\n\n\n\nb{}\n",
+            "a {\n  color: red;\n}\n\nb {\n}\n",
+        ),
+        (
+            "/* prettier-ignore */\na   {b:c}\nd{e:f}\n",
+            "/* prettier-ignore */\na   {b:c}\nd {\n  e: f;\n}\n",
+        ),
+        (
+            "a {\n  /* sudsy-ignore */\n  b:   c;\n  d:   e;\n}\n",
+            "a {\n  /* sudsy-ignore */\n  b:   c;\n  d: e;\n}\n",
+        ),
+        (
+            "a { /* c */ b: c; /* t */\n\n\n  /* d */\n\n  e: f\n}\n",
+            "a {\n  /* c */\n  b: c; /* t */\n\n  /* d */\n\n  e: f;\n}\n",
+        ),
+        (
+            "a::before,a:HOVER>b+c~d  e{margin:-.5em auto 0 0.0px;width:calc(1px+2px*3)}\n",
+            "a::before,\na:hover > b + c ~ d e {\n  margin: -0.5em auto 0 0px;\n  width: calc(1px+2px * 3);\n}\n",
+        ),
+        (
+            "a[ href = x ]:nth-child(2N+1):not(.b,.c){COLOR:#FFF!IMPORTANT}\n",
+            "a[href=\"x\"]:nth-child(2n + 1):not(.b, .c) {\n  color: #fff !important;\n}\n",
+        ),
+        (
+            "@media (min-width:100px) and (max-width:200px){a{b:c}}\n@import url('a.css') screen;\n",
+            "@media (min-width: 100px) and (max-width: 200px) {\n  a {\n    b: c;\n  }\n}\n@import url(\"a.css\") screen;\n",
+        ),
+        (
+            "a{transition:opacity .3s ease,transform .3s ease;font-family:a,b;--x:1px  2px}\n",
+            "a {\n  transition:\n    opacity 0.3s ease,\n    transform 0.3s ease;\n  font-family: a, b;\n  --x: 1px 2px;\n}\n",
+        ),
+        (
+            "a{b:c;/* x */;/* y */\n;d:e}\n/* z */;\n",
+            "a {\n  b: c; /* x */\n  ; /* y */\n  d: e;\n}\n/* z */\n;\n",
+        ),
+        (
+            "a{grid-template-areas:\"a b\"\n\"c d\";background:url(a.png)no-repeat}\n",
+            "a {\n  grid-template-areas:\n    \"a b\"\n    \"c d\";\n  background: url(a.png) no-repeat;\n}\n",
+        ),
+    ] {
+        assert_eq!(format_with("a.css", input, &[]), expected, "{input}");
+    }
+}
+
+#[test]
+fn options() {
+    let single = [("single_quote", OptionValue::Bool(true))];
+    assert_eq!(
+        format_with("a.css", "a{b:\"x\";c:'y';d:\"it's\"}[a=\"b\"]{}\n", &single),
+        "a {\n  b: 'x';\n  c: 'y';\n  d: \"it's\";\n}\n[a='b'] {\n}\n"
+    );
+    let none = [("max_blank_lines", OptionValue::Int(0))];
+    assert_eq!(
+        format_with("a.css", "a{}\n\n\nb{}\n", &none),
+        "a {\n}\nb {\n}\n"
+    );
+    let tabs = [("indent_style", OptionValue::String("tab".into()))];
+    assert_eq!(
+        format_with("a.scss", "a{b:c}\n", &tabs),
+        "a {\n\tb: c;\n}\n"
+    );
 }

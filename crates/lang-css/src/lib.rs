@@ -48,7 +48,7 @@ impl CssProvider {
             dialect,
             matchers: vec![FileMatcher::extension(dialect.name())],
             schema: option_schema(),
-            formatter: CssFormatter,
+            formatter: CssFormatter::new(dialect),
         }
     }
 }

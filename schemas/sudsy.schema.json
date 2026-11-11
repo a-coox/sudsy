@@ -2511,6 +2511,18 @@
               "maximum": 1000,
               "minimum": 20,
               "type": "integer"
+            },
+            "max_blank_lines": {
+              "default": 1,
+              "description": "Largest number of blank lines kept between statements and comments.",
+              "maximum": 10,
+              "minimum": 0,
+              "type": "integer"
+            },
+            "single_quote": {
+              "default": false,
+              "description": "Write strings with single quotes. A string that holds more of the chosen quote than of the other keeps the other.",
+              "type": "boolean"
             }
           },
           "type": "object"
@@ -3453,6 +3465,18 @@
               "maximum": 1000,
               "minimum": 20,
               "type": "integer"
+            },
+            "max_blank_lines": {
+              "default": 1,
+              "description": "Largest number of blank lines kept between statements and comments.",
+              "maximum": 10,
+              "minimum": 0,
+              "type": "integer"
+            },
+            "single_quote": {
+              "default": false,
+              "description": "Write strings with single quotes. A string that holds more of the chosen quote than of the other keeps the other.",
+              "type": "boolean"
             }
           },
           "type": "object"
@@ -4106,6 +4130,18 @@
                     "maximum": 1000,
                     "minimum": 20,
                     "type": "integer"
+                  },
+                  "max_blank_lines": {
+                    "default": 1,
+                    "description": "Largest number of blank lines kept between statements and comments.",
+                    "maximum": 10,
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "single_quote": {
+                    "default": false,
+                    "description": "Write strings with single quotes. A string that holds more of the chosen quote than of the other keeps the other.",
+                    "type": "boolean"
                   }
                 },
                 "type": "object"
@@ -4973,6 +5009,18 @@
                     "maximum": 1000,
                     "minimum": 20,
                     "type": "integer"
+                  },
+                  "max_blank_lines": {
+                    "default": 1,
+                    "description": "Largest number of blank lines kept between statements and comments.",
+                    "maximum": 10,
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "single_quote": {
+                    "default": false,
+                    "description": "Write strings with single quotes. A string that holds more of the chosen quote than of the other keeps the other.",
+                    "type": "boolean"
                   }
                 },
                 "type": "object"
@@ -5342,6 +5390,18 @@
                     "maximum": 1000,
                     "minimum": 20,
                     "type": "integer"
+                  },
+                  "max_blank_lines": {
+                    "default": 1,
+                    "description": "Largest number of blank lines kept between statements and comments.",
+                    "maximum": 10,
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "single_quote": {
+                    "default": false,
+                    "description": "Write strings with single quotes. A string that holds more of the chosen quote than of the other keeps the other.",
+                    "type": "boolean"
                   }
                 },
                 "type": "object"
@@ -5992,6 +6052,18 @@
               "maximum": 1000,
               "minimum": 20,
               "type": "integer"
+            },
+            "max_blank_lines": {
+              "default": 1,
+              "description": "Largest number of blank lines kept between statements and comments.",
+              "maximum": 10,
+              "minimum": 0,
+              "type": "integer"
+            },
+            "single_quote": {
+              "default": false,
+              "description": "Write strings with single quotes. A string that holds more of the chosen quote than of the other keeps the other.",
+              "type": "boolean"
             }
           },
           "type": "object"

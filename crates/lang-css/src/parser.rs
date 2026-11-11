@@ -180,10 +180,25 @@ impl<'a> Parser<'a> {
         loop {
             match self.cur() {
                 k::R_BRACE | k::EOF => return,
+                k::SEMICOLON if self.has_comment() => {
+                    self.builder.start_node(k::EMPTY);
+                    self.bump();
+                    self.builder.finish_node();
+                }
                 k::SEMICOLON => self.bump(),
                 _ => self.statement(),
             }
         }
+    }
+
+    /// Does the current token own a comment?
+    fn has_comment(&self) -> bool {
+        let (lead, trail) = (
+            self.leading[self.pos].clone(),
+            self.trailing[self.pos].clone(),
+        );
+        lead.chain(trail)
+            .any(|i| matches!(self.tokens[i].kind, k::COMMENT | k::LINE_COMMENT))
     }
 
     fn statement(&mut self) {

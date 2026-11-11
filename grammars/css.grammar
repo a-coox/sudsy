@@ -10,6 +10,7 @@ suppress disable "sudsy-disable"
 suppress enable "sudsy-enable"
 suppress disable-file "sudsy-disable-file"
 suppress ignore "sudsy-ignore"
+suppress ignore "prettier-ignore"
 suppress ignore-start "sudsy-ignore-start"
 suppress ignore-end "sudsy-ignore-end"
 
@@ -19,15 +20,17 @@ token Comment #trivia #comment
 // `//` comments: SCSS and Less only.
 token LineComment #trivia #comment
 
-token Ident #operand
-token AtKeyword #operand
-token Hash #operand
-token String #operand #literal #string
-token Number #operand #literal
-token Percentage #operand #literal
-token Dimension #operand #literal
+// #restyle: the formatter rewrites the text of these tokens (case, number form, quotes); the
+// safety check compares them through the formatter's own normalization.
+token Ident #operand #restyle
+token AtKeyword #operand #restyle
+token Hash #operand #restyle
+token String #operand #literal #string #restyle
+token Number #operand #literal #restyle
+token Percentage #operand #literal #restyle
+token Dimension #operand #literal #restyle
 // `url(` + unquoted body + `)`.
-token Url #operand #literal
+token Url #operand #literal #restyle
 token UnicodeRange #operand #literal
 // `$name` (SCSS).
 token Variable #operand
@@ -36,7 +39,7 @@ token Delim #operand
 token InterpOpen #punctuation
 
 token Colon ":" #punctuation
-token Semicolon ";" #punctuation
+token Semicolon ";" #punctuation #separator
 token Comma "," #punctuation
 token LBrace "{" #punctuation
 token RBrace "}" #punctuation
@@ -54,6 +57,8 @@ node Rule #item = prelude:Prelude? block:Block
 node AtRule #item = AtKeyword prelude:Prelude? block:Block? Semicolon?
 node Declaration #item = property:Property Colon value:Value? Semicolon?
 // A statement with no colon and no block: a Less mixin call, a stray value.
+// A stray `;` that has a comment on it (a bare one is only a token).
+node Empty #item = Semicolon
 node Statement #item = value:Value Semicolon?
 node Block = LBrace items:#item* RBrace
 // Prelude, Property and Value hold tokens, Functions and Groups in source order.

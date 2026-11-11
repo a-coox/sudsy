@@ -101,6 +101,15 @@ impl Lexer<'_> {
         digit_or_dot(i) || matches!(self.at(i), b'+' | b'-') && digit_or_dot(i + 1)
     }
 
+    /// Does a number, dimension or identifier end right here? A sign after it is an operator
+    /// (`n+3` is the same three tokens as `n + 3`), not the sign of a number.
+    fn after_operand(&self) -> bool {
+        self.tokens.last().is_some_and(|t| {
+            t.end == self.pos
+                && matches!(t.kind, k::IDENT | k::NUMBER | k::DIMENSION | k::PERCENTAGE)
+        })
+    }
+
     /// After a backslash: up to six hex digits and one blank, or any one character.
     fn escape(&mut self) {
         self.pos += 1;
@@ -194,7 +203,9 @@ impl Lexer<'_> {
                 self.name();
                 k::VARIABLE
             }
-            _ if self.number_at(0) => self.number(),
+            _ if self.number_at(0) && !(matches!(c, b'+' | b'-') && self.after_operand()) => {
+                self.number()
+            }
             b'u' | b'U'
                 if self.at(1) == b'+' && (self.at(2).is_ascii_hexdigit() || self.at(2) == b'?') =>
             {

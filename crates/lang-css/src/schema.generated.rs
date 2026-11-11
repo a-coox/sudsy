@@ -1,4 +1,6 @@
 // Generated from lang.yaml by `cargo xtask codegen`.
+#[allow(dead_code)]
+pub const SINGLE_QUOTE: &str = "single_quote";
 
 #[rustfmt::skip]
 pub fn option_schema() -> core_config::OptionSchema {
@@ -8,6 +10,8 @@ pub fn option_schema() -> core_config::OptionSchema {
         shared::indent_style(),
         core_config::shared::final_newline(true),
         shared::end_of_line(),
+        core_config::shared::max_blank_lines(1, "Largest number of blank lines kept between statements and comments."),
+        core_config::OptionDef::boolean("single_quote", false, "Write strings with single quotes. A string that holds more of the chosen quote than of the other keeps the other."),
     ])
     .with_presets(vec![
     ])

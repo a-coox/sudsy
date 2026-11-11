@@ -13,7 +13,7 @@ Current state only; history is in git. Update the doc for the area you change in
 | [formatting/engine.md](formatting/engine.md) | Layout doc, printer, shapes, directives, comments, safety check |
 | [formatting/csharp.md](formatting/csharp.md) | C# formatter and options |
 | [formatting/json.md](formatting/json.md) | JSON/JSONC parser, formatter, options |
-| [formatting/css.md](formatting/css.md) | CSS / SCSS / Less hand-written parser, verbatim formatter, options, conformance |
+| [formatting/css.md](formatting/css.md) | CSS / SCSS / Less hand-written parser, Prettier-style formatter, options, conformance |
 | [formatting/yaml.md](formatting/yaml.md) | YAML parser, data model, formatter, options |
 | [formatting/github-actions.md](formatting/github-actions.md) | GitHub Actions workflows and `action.yml`: selection by path, embedded `run:` scripts, rules after actionlint |
 | [formatting/js.md](formatting/js.md) | JavaScript, TypeScript, JSX and TSX: oxc parser and its adapter, formatter (statements, declarations, literals), conformance |

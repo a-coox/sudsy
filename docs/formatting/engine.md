@@ -27,9 +27,10 @@ Options declared by more than one language, generated from the option schemas; p
 | `indent_size` | int 1-16 | json `2`, js `2`, css `2`, scss `2`, less `2`, yaml `2`, github-actions `2`, dockerfile `4`, graphql `2`, hcl `2`, makefile `2`, markdown `2`, powershell `4`, protobuf `2`, shell `4`, toml `2`, xml `2`, csharp `4` |
 | `indent_style` | `space`, `tab` | json `space`, js `space`, css `space`, scss `space`, less `space`, dockerfile `space`, graphql `space`, makefile `space`, powershell `space`, protobuf `space`, shell `tab`, toml `space`, xml `space`, csharp `space` |
 | `line_width` | int 20-1000 | json `80`, js `80`, css `80`, scss `80`, less `80`, yaml `80`, github-actions `80`, graphql `80`, toml `80`, xml `100`, csharp `120` |
-| `max_blank_lines` | int 0-10 | yaml `1`, github-actions `1`, dockerfile `1`, editorconfig `1`, gitignore `1`, ini `1`, makefile `2`, powershell `10`, shell `1`, toml `1`, xml `1` |
+| `max_blank_lines` | int 0-10 | css `1`, scss `1`, less `1`, yaml `1`, github-actions `1`, dockerfile `1`, editorconfig `1`, gitignore `1`, ini `1`, makefile `2`, powershell `10`, shell `1`, toml `1`, xml `1` |
 | `quote_style` | js: `double`, `single`; yaml: `preserve`, `single`, `double`, `prefer_double`; github-actions: `preserve`, `single`, `double`, `prefer_double` | js `double`, yaml `preserve`, github-actions `preserve` |
 | `sequence_indent` | `preserve`, `indented`, `flush` | yaml `preserve`, github-actions `preserve` |
+| `single_quote` | bool | css `false`, scss `false`, less `false` |
 | `trailing_commas` | json: `never`, `multiline`; toml: `never`, `multiline`; csharp: `preserve`, `never`, `multiline` | json `never`, toml `multiline`, csharp `preserve` |
 <!-- /generated -->
 

@@ -4,3 +4,7 @@ options:
   - indent_style
   - final_newline: true
   - end_of_line
+  - max_blank_lines: [1, "Largest number of blank lines kept between statements and comments."]
+  - single_quote:
+      default: false
+      doc: "Write strings with single quotes. A string that holds more of the chosen quote than of the other keeps the other."
