@@ -46,14 +46,14 @@ touch_changed() {
 }
 
 # cargo never deletes outputs: every dependency graph (each Cargo.lock change) and build kind leaves
-# a full set behind. At most once an hour, before any build, the slot is cut to SUDSY_SLOT_MAX
+# a full set behind. At most every 6 hours (each pass reads every output: 30-130 s), before any build, the slot is cut to SUDSY_SLOT_MAX
 # (default 120GB) and its WSL bench builds to SUDSY_SLOT_WSL_MAX (30GB) by cargo-sweep, which
 # removes the outputs builds read least recently (the access time of cargo's fingerprint files,
 # read for every unit a build uses), so what current builds reuse stays. Incremental caches, which
 # it does not track, go when nothing compiled their crate for 3 days.
 sweep_slot() {
   [ -n "${CARGO_TARGET_DIR:-}" ] && [ -d "$CARGO_TARGET_DIR" ] || return 0
-  [ -n "$(find "$CARGO_TARGET_DIR/.swept" -mmin -60 2>/dev/null)" ] && return 0
+  [ -n "$(find "$CARGO_TARGET_DIR/.swept" -mmin -360 2>/dev/null)" ] && return 0
   command -v cargo-sweep >/dev/null || { echo "cargo-sweep missing: cargo install cargo-sweep --locked (also in WSL)" >&2; return 1; }
   local t=$SECONDS log=$CARGO_TARGET_DIR/sweep.log
   local i; : >"$log"

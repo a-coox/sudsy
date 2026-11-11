@@ -39,6 +39,13 @@ else
   for w in workers/*/check.sh; do steps="$steps worker:$(basename "$(dirname "$w")")"; done
 fi
 has() { case " $steps " in *" $1 "*) return 0 ;; esac; return 1; }
+# The extension's install needs nothing cargo builds: it runs beside the Rust steps. Installed means
+# npm's own end-of-install record is newer than the lockfile (an interrupted or outdated install is not).
+npm_pid= vs=editors/vscode
+if [ $rust_only -eq 0 ] && has vscode && ! [ $vs/node_modules/.package-lock.json -nt $vs/package-lock.json ]; then
+  mkdir -p .cargo/tmp; npm --prefix $vs ci --no-audit --no-fund >.cargo/tmp/npm-ci.log 2>&1 & npm_pid=$!
+  trap 'kill $npm_pid 2>/dev/null' EXIT
+fi
 
 gate "cargo fmt" cargo fmt --all -- --check
 # Cheap checks first: stale generated files fail before clippy and the tests build.
@@ -70,7 +77,11 @@ if [ $rust_only -eq 0 ]; then
     case "$s" in worker:*) gate "worker ${s#worker:}" bash "workers/${s#worker:}/check.sh" ;; esac
   done
   if has vscode; then
-    [ -d editors/vscode/node_modules ] || gate "npm ci" npm --prefix editors/vscode ci
+    if [ -n "$npm_pid" ]; then
+      echo "== npm ci (started with the gate)"; t=$SECONDS
+      wait $npm_pid || { cat .cargo/tmp/npm-ci.log; echo "GATE FAILED: npm ci" >&2; exit 1; }
+      echo "   (npm ci: $((SECONDS - t))s waited)"
+    fi
     gate "vscode typecheck" npm --prefix editors/vscode run typecheck
     gate "vscode lint" npm --prefix editors/vscode run lint
     gate "vscode test" npm --prefix editors/vscode run test
