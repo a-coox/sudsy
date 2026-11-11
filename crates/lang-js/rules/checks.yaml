@@ -1,0 +1,179 @@
+id: no-dupe-keys
+family: check
+params: { check: dupe-keys }
+message: "Duplicate key '{name}'."
+description: A key that appears twice in one object literal (a getter and a setter may share one).
+example: "var o = { a: 1, a: 2 };   # the second a is reported"
+severity: off
+category: suspicious
+---
+id: no-dupe-class-members
+family: check
+params: { check: dupe-class-members }
+message: "Duplicate name '{name}'."
+description: A class member declared twice (a getter and a setter may share one, a static and an instance member may not clash).
+example: "class A { b() {} b() {} }   # the second b is reported"
+severity: off
+category: suspicious
+---
+id: no-duplicate-case
+family: check
+params: { check: duplicate-case }
+message: "Duplicate case label."
+description: Two `case` clauses of one `switch` with the same test.
+example: "switch (a) { case 1: break; case 1: break; }   # the second case is reported"
+severity: off
+category: suspicious
+---
+id: no-dupe-else-if
+family: check
+params: { check: dupe-else-if }
+message: "This branch can never execute. Its condition is a duplicate or covered by previous conditions in the if-else-if chain."
+description: An `else if` condition that an earlier condition of the chain already covers.
+example: "if (a) {} else if (a) {}   # the second a is reported"
+severity: off
+category: suspicious
+---
+id: no-empty
+family: check
+params: { check: empty }
+message: "Empty {name} statement."
+description: A block with no statement and no comment, or a `switch` with no case.
+example: "if (a) {}   # reported"
+severity: off
+category: suspicious
+---
+id: no-useless-catch
+family: check
+params: { check: useless-catch }
+message: "Unnecessary {name}."
+description: "A `catch` that only rethrows its error."
+example: "try { a() } catch (e) { throw e }   # reported"
+severity: off
+category: suspicious
+---
+id: no-self-assign
+family: check
+params: { check: self-assign }
+message: "'{name}' is assigned to itself."
+description: "`a = a`, `a.b = a.b`, `[a, b] = [a, b]`."
+example: "a = a;   # reported"
+severity: off
+category: suspicious
+---
+id: no-cond-assign
+family: check
+params: { check: cond-assign }
+message: "Expected a conditional expression and instead saw an assignment."
+description: An assignment as the condition of `if`, `while`, `do`, `for` or `?:` that is not in parentheses of its own.
+example: "if (a = b) {}   # reported"
+severity: off
+category: suspicious
+---
+id: use-isnan
+family: check
+params: { check: use-isnan }
+message: "{name}"
+description: "A comparison with `NaN`, or `NaN` as the discriminant or a case test of a `switch`; use `Number.isNaN`."
+example: "if (a === NaN) {}   # reported"
+severity: off
+category: suspicious
+---
+id: valid-typeof
+family: check
+params: { check: valid-typeof }
+message: "Invalid typeof comparison value."
+description: "`typeof x` compared with a string that is not a type name, or with `undefined`."
+example: "typeof a === 'strnig'   # reported"
+severity: off
+category: suspicious
+---
+id: no-extra-boolean-cast
+family: check
+params: { check: extra-boolean-cast }
+message: "{name}"
+description: "`!!x` or `Boolean(x)` where the value is used as a boolean anyway (a condition, `!`, `Boolean(...)`)."
+example: "if (!!a) {}   # reported"
+severity: off
+category: suspicious
+---
+id: no-unsafe-finally
+family: check
+params: { check: unsafe-finally }
+message: "Unsafe usage of {name}."
+description: "`return`, `throw`, and a `break` or `continue` that leaves the block, in a `finally` block: they override the `try`'s own outcome."
+example: "try { a() } finally { return 1 }   # reported"
+severity: off
+category: suspicious
+---
+id: no-unreachable
+family: check
+params: { check: unreachable }
+message: "Unreachable code."
+description: A statement after `return`, `throw`, `break`, `continue`, an `if`/`else` or `try` that always jumps, or a loop that never ends. Function declarations and `var` without a value are not reported.
+example: "function f() { return; a(); }   # a() is reported"
+severity: off
+category: suspicious
+---
+id: getter-return
+family: check
+params: { check: getter-return }
+message: "Expected to return a value in {name}."
+description: A getter that does not return a value on every path, or has a `return;`.
+example: "var o = { get a() {} };   # reported"
+severity: off
+category: suspicious
+---
+id: require-yield
+family: check
+params: { check: require-yield }
+message: "This generator function does not have 'yield'."
+description: A generator function with a body and no `yield`.
+example: "function* f() { a(); }   # reported"
+severity: off
+category: suspicious
+---
+id: no-useless-escape
+family: check
+params: { check: useless-escape }
+message: 'Unnecessary escape character: \{name}.'
+description: A backslash in a string, template or regex that escapes nothing special (`"\d"`, `/\-/`).
+example: "var s = '\\d';   # reported"
+severity: off
+category: suspicious
+---
+id: no-regex-spaces
+family: check
+params: { check: regex-spaces }
+message: "Spaces are hard to count. Use {{name}}."
+description: Two or more spaces in a regex literal or in the string of `new RegExp(...)`, outside a character class.
+example: "var r = /a  b/;   # reported"
+severity: off
+category: suspicious
+---
+id: no-empty-character-class
+family: check
+params: { check: empty-character-class }
+message: "Empty class."
+description: "`[]` in a regex literal, which matches nothing."
+example: "var r = /a[]/;   # reported"
+severity: off
+category: suspicious
+---
+id: no-irregular-whitespace
+family: check
+params: { check: irregular-whitespace }
+message: "Irregular whitespace not allowed."
+description: A no-break space, zero-width space or other unusual whitespace character outside a string.
+example: "var a =·1;   # reported when · is U+00A0"
+severity: off
+category: suspicious
+---
+id: no-loss-of-precision
+family: check
+params: { check: loss-of-precision }
+message: "This number literal will lose precision at runtime."
+description: A number literal that the double it becomes cannot represent exactly.
+example: "var n = 9007199254740993;   # reported"
+severity: off
+category: suspicious

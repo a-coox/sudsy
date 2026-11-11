@@ -1,0 +1,36 @@
+# The rules of ESLint's recommended config that Sudsy has, at ESLint's severity (error).
+js:
+  lint:
+    rules:
+      getter-return: error
+      no-async-promise-executor: error
+      no-case-declarations: error
+      no-compare-neg-zero: error
+      no-cond-assign: error
+      no-debugger: error
+      no-delete-var: error
+      no-dupe-class-members: error
+      no-dupe-else-if: error
+      no-dupe-keys: error
+      no-duplicate-case: error
+      no-empty: error
+      no-empty-character-class: error
+      no-empty-pattern: error
+      no-extra-boolean-cast: error
+      no-irregular-whitespace: error
+      no-loss-of-precision: error
+      no-octal: error
+      no-prototype-builtins: error
+      no-regex-spaces: error
+      no-self-assign: error
+      no-shadow-restricted-names: error
+      no-sparse-arrays: error
+      no-unreachable: error
+      no-unsafe-finally: error
+      no-unsafe-negation: error
+      no-useless-catch: error
+      no-useless-escape: error
+      no-with: error
+      require-yield: error
+      use-isnan: error
+      valid-typeof: error

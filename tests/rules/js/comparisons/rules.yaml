@@ -1,0 +1,7 @@
+use-isnan: warn
+valid-typeof: warn
+no-unsafe-negation: warn
+no-compare-neg-zero: warn
+no-self-assign: warn
+no-cond-assign: warn
+no-extra-boolean-cast: warn

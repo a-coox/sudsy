@@ -80,15 +80,15 @@ entries:
   newline-per-chained-call: formatter
   no-alert: planned
   no-array-constructor: planned
-  no-async-promise-executor: planned
+  no-async-promise-executor: rule no-async-promise-executor
   no-await-in-loop: planned
   no-bitwise: planned
   no-buffer-constructor: wontfix deprecated upstream
   no-caller: planned
-  no-case-declarations: planned
+  no-case-declarations: rule no-case-declarations
   no-catch-shadow: wontfix deprecated upstream
-  no-compare-neg-zero: planned
-  no-cond-assign: planned
+  no-compare-neg-zero: rule no-compare-neg-zero
+  no-cond-assign: rule no-cond-assign | only the default `except-parens` mode
   no-confusing-arrow: wontfix deprecated formatting rule with no formatter equivalent
   no-console: planned
   no-constant-binary-expression: planned
@@ -96,24 +96,24 @@ entries:
   no-constructor-return: planned
   no-continue: planned
   no-control-regex: planned
-  no-debugger: planned
-  no-delete-var: planned
+  no-debugger: rule no-debugger
+  no-delete-var: rule no-delete-var
   no-div-regex: planned
   no-dupe-args: planned
-  no-dupe-class-members: planned
-  no-dupe-else-if: planned
-  no-dupe-keys: planned
-  no-duplicate-case: planned
+  no-dupe-class-members: rule no-dupe-class-members
+  no-dupe-else-if: rule no-dupe-else-if
+  no-dupe-keys: rule no-dupe-keys
+  no-duplicate-case: rule no-duplicate-case
   no-duplicate-imports: planned
   no-else-return: planned
-  no-empty: planned
-  no-empty-character-class: planned
+  no-empty: rule no-empty | the `allowEmptyCatch` option is not supported
+  no-empty-character-class: rule no-empty-character-class
   no-empty-function: planned
-  no-empty-pattern: planned
+  no-empty-pattern: rule no-empty-pattern
   no-empty-static-block: planned
   no-eq-null: planned
   no-ex-assign: planned
-  no-extra-boolean-cast: planned
+  no-extra-boolean-cast: rule no-extra-boolean-cast | the `enforceForLogicalOperands` option is not supported
   no-extra-label: planned
   no-extra-parens: formatter
   no-extra-semi: formatter
@@ -122,11 +122,11 @@ entries:
   no-inline-comments: planned
   no-inner-declarations: planned
   no-invalid-regexp: planned
-  no-irregular-whitespace: planned
+  no-irregular-whitespace: rule no-irregular-whitespace
   no-iterator: planned
   no-label-var: planned
   no-lonely-if: planned
-  no-loss-of-precision: planned
+  no-loss-of-precision: rule no-loss-of-precision
   no-magic-numbers: planned
   no-misleading-character-class: planned
   no-mixed-operators: wontfix deprecated formatting rule with no formatter equivalent
@@ -147,7 +147,7 @@ entries:
   no-new-symbol: wontfix deprecated upstream
   no-nonoctal-decimal-escape: planned
   no-object-constructor: planned
-  no-octal: planned
+  no-octal: rule no-octal
   no-octal-escape: planned
   no-param-reassign: planned
   no-path-concat: wontfix deprecated upstream
@@ -156,8 +156,8 @@ entries:
   no-process-exit: wontfix deprecated upstream
   no-promise-executor-return: planned
   no-proto: planned
-  no-prototype-builtins: planned
-  no-regex-spaces: planned
+  no-prototype-builtins: rule no-prototype-builtins
+  no-regex-spaces: rule no-regex-spaces
   no-restricted-exports: planned
   no-restricted-imports: planned
   no-restricted-modules: wontfix deprecated upstream
@@ -166,13 +166,13 @@ entries:
   no-return-assign: planned
   no-return-await: wontfix deprecated upstream
   no-script-url: planned
-  no-self-assign: planned
+  no-self-assign: rule no-self-assign | the `props` option is always on; only identifiers and static member chains are compared
   no-self-compare: planned
   no-sequences: planned
   no-setter-return: planned
-  no-shadow-restricted-names: planned
+  no-shadow-restricted-names: rule no-shadow-restricted-names | without scope analysis `var undefined;` is accepted whatever is assigned to it later
   no-spaced-func: formatter
-  no-sparse-arrays: planned
+  no-sparse-arrays: rule no-sparse-arrays
   no-sync: wontfix deprecated upstream
   no-tabs: formatter
   no-template-curly-in-string: planned
@@ -184,23 +184,23 @@ entries:
   no-underscore-dangle: planned
   no-unexpected-multiline: planned
   no-unneeded-ternary: planned
-  no-unsafe-finally: planned
-  no-unsafe-negation: planned
+  no-unsafe-finally: rule no-unsafe-finally
+  no-unsafe-negation: rule no-unsafe-negation | the `enforceForOrderingRelations` option is not supported
   no-unsafe-optional-chaining: planned
   no-unused-expressions: planned
   no-useless-backreference: planned
   no-useless-call: planned
-  no-useless-catch: planned
+  no-useless-catch: rule no-useless-catch
   no-useless-computed-key: planned
   no-useless-concat: planned
   no-useless-constructor: planned
-  no-useless-escape: planned
+  no-useless-escape: rule no-useless-escape | regex `v` flag classes are read like `u` classes
   no-useless-rename: planned
   no-var: planned
   no-void: planned
   no-warning-comments: planned
   no-whitespace-before-property: formatter
-  no-with: planned
+  no-with: rule no-with
   nonblock-statement-body-position: formatter
   object-curly-newline: formatter
   object-curly-spacing: formatter
@@ -231,7 +231,7 @@ entries:
   radix: planned
   require-await: planned
   require-unicode-regexp: planned
-  require-yield: planned
+  require-yield: rule require-yield
   rest-spread-spacing: formatter
   semi: formatter
   semi-spacing: formatter
@@ -251,8 +251,8 @@ entries:
   template-curly-spacing: formatter
   template-tag-spacing: formatter
   unicode-bom: planned
-  use-isnan: planned
-  valid-typeof: planned
+  use-isnan: rule use-isnan | the `enforceForIndexOf` option is not supported; a local `NaN` is not told from the global
+  valid-typeof: rule valid-typeof | the `requireStringLiterals` option is not supported
   vars-on-top: planned
   wrap-iife: formatter
   wrap-regex: formatter
@@ -261,10 +261,10 @@ entries:
   array-callback-return: planned
   consistent-return: planned
   constructor-super: planned
-  getter-return: planned
+  getter-return: rule getter-return | the getters of Object.defineProperty and Reflect.defineProperty descriptors are not checked; paths are judged from jumps, if/else, try, switch and endless loops, not a flow graph
   no-fallthrough: planned
   no-this-before-super: planned
-  no-unreachable: planned
+  no-unreachable: rule no-unreachable | paths are judged from jumps, if/else, try, switch and endless loops, not a flow graph
   no-unreachable-loop: planned
   no-useless-return: planned
 deferred:

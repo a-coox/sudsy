@@ -48,7 +48,7 @@ impl JsProvider {
                 rules::RULES,
                 grammars::JS.language,
                 provider_api::pattern_files!(),
-                &[],
+                rules::FAMILIES,
                 FnSnippets::new(grammars::JS, |text| parse(text, source_type(""))),
             ),
         }

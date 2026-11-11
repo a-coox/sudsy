@@ -1,0 +1,5 @@
+no-empty: warn
+no-useless-catch: warn
+no-empty-pattern: warn
+no-sparse-arrays: warn
+no-empty-character-class: warn

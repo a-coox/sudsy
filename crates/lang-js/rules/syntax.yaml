@@ -1,0 +1,133 @@
+id: no-debugger
+message: "Unexpected 'debugger' statement."
+description: A `debugger` statement.
+example: "debugger;   # reported"
+severity: off
+category: suspicious
+rule: { kind: DebuggerStatement }
+---
+id: no-with
+message: "Unexpected use of 'with' statement."
+description: A `with` statement.
+example: "with (a) { b }   # reported"
+severity: off
+category: suspicious
+rule: { kind: WithStatement }
+---
+id: no-delete-var
+message: "Variables should not be deleted."
+description: "`delete` applied to a variable name."
+example: "delete x;   # reported"
+severity: off
+category: suspicious
+rule:
+  kind: UnaryExpression
+  regex: '^delete\b'
+  child:
+    any:
+      - { kind: IdentifierReference }
+      - { kind: ParenthesizedExpression, regex: '^\(\s*[\w$]+\s*\)$' }
+---
+id: no-octal
+message: "Octal literals should not be used."
+description: A number that starts with `0` and another digit (`017`, `08`).
+example: "var n = 017;   # reported"
+severity: off
+category: suspicious
+rule: { kind: NumericLiteral, regex: '^0[0-9]' }
+---
+id: no-empty-pattern
+message: "Unexpected empty pattern."
+description: A destructuring pattern with nothing in it (`{}`, `[]`).
+example: "var {} = x;   # reported"
+severity: off
+category: suspicious
+rule:
+  any:
+    - { kind: ObjectPattern, regex: '^\{\s*\}' }
+    - { kind: ObjectAssignmentTarget, regex: '^\{\s*\}' }
+    - { kind: ArrayPattern, regex: '^\[\s*\]' }
+    - { kind: ArrayAssignmentTarget, regex: '^\[\s*\]' }
+---
+id: no-sparse-arrays
+message: "Unexpected comma in middle of array."
+description: A hole in an array literal (`[1, , 2]`), reported at its comma.
+example: "var a = [1, , 2];   # the second comma is reported"
+severity: off
+category: suspicious
+rule: { kind: Elision, parent: { kind: ArrayExpression } }
+---
+id: no-case-declarations
+message: "Unexpected lexical declaration in case block."
+description: "`let`, `const`, a function or a class declared directly in a `case` clause, where it is visible to the other cases."
+example: "switch (a) { case 1: let b = 1; }   # reported"
+severity: off
+category: suspicious
+rule:
+  any:
+    - { kind: VariableDeclaration, regex: '^(let|const|using|await\s+using)\b', parent: { kind: SwitchCase } }
+    - { kind: Function, parent: { kind: SwitchCase } }
+    - { kind: Class, parent: { kind: SwitchCase } }
+---
+id: no-async-promise-executor
+message: "Promise executor functions should not be async."
+description: "`new Promise(async ...)`: an error thrown in the executor is lost."
+example: "new Promise(async (resolve) => resolve());   # reported"
+severity: off
+category: suspicious
+rule:
+  any:
+    - { pattern: 'new Promise($F)' }
+    - { pattern: 'new Promise($F, $$$REST)' }
+constraints:
+  F: { regex: '^async\b' }
+report-on: $F
+---
+id: no-unsafe-negation
+message: "Unexpected negating the left operand of an `in` or `instanceof` operator."
+description: "`!a in b` and `!a instanceof B` negate `a`, not the test."
+example: "if (!a in b) {}   # reported"
+severity: off
+category: suspicious
+rule:
+  any:
+    - { pattern: '!$A in $B' }
+    - { pattern: '!$A instanceof $B' }
+---
+id: no-compare-neg-zero
+message: "Do not compare against -0."
+description: "`x === -0` is true for `0` too; use `Object.is(x, -0)`."
+example: "if (x === -0) {}   # reported"
+severity: off
+category: suspicious
+rule:
+  kind: BinaryExpression
+  child: { pattern: '-0' }
+  regex: '^(-0\s*([<>]=?|[!=]==?)|(?s:.*)([<>]=?|[!=]==?)\s*-0$)'
+---
+id: no-prototype-builtins
+message: "Do not access Object.prototype method directly from an object."
+description: "`obj.hasOwnProperty(k)`, `isPrototypeOf` and `propertyIsEnumerable` called on an object that may not inherit them; use `Object.prototype.hasOwnProperty.call(obj, k)`."
+example: "a.hasOwnProperty('b');   # reported"
+severity: off
+category: suspicious
+rule:
+  any:
+    - { pattern: '$O.$M($$$A)' }
+    - { pattern: '$O?.$M($$$A)' }
+    - { pattern: '$O[$M]($$$A)' }
+constraints:
+  M: { regex: '^["'']?(hasOwnProperty|isPrototypeOf|propertyIsEnumerable)["'']?$' }
+report-on: $M
+---
+id: no-shadow-restricted-names
+message: "Shadowing of a restricted global name."
+description: "A variable, function, parameter or class named `NaN`, `Infinity`, `undefined`, `eval` or `arguments` (`var undefined;` without a value is left alone)."
+example: "var NaN;   # reported"
+severity: off
+category: suspicious
+rule:
+  kind: BindingIdentifier
+  any:
+    - { regex: '^(NaN|Infinity|eval|arguments)$' }
+    - { regex: '^undefined$', not: { parent: { kind: VariableDeclarator, regex: '^undefined$' } } }

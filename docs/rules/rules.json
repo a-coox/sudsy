@@ -611,6 +611,1367 @@
       ]
     },
     {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "A getter that does not return a value on every path, or has a `return;`.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "function f() { try { a(); } finally { return 1; } }\nfunction g() { try { a(); } finally { throw e; } }\nfunction h() { for (;;) { try { a(); } finally { break; } } }\nfunction i() { try { a(); } finally { for (;;) { break; } } }\nfunction j() { try { a(); } finally { function k() { return 1; } } }\nfunction l() { l: try { a(); } finally { break l; } }\nfunction m() { try { a(); } finally { m: { break m; } } }\nvar o = { get a() {}, get b() { return; }, get c() { return 1; }, get d() { if (x) return 1; }, get e() { throw 1; } };\nclass K { get a() {} static get b() { return 1 } get c() { while (true) {} } }\nfunction* p() {}\nfunction* q() { r(); }\nfunction* s() { yield 1; }\nvar t = { *u() { v(); } };\nclass L { *w() { x(); } async *y() { z(); } }\n",
+        "language": "js",
+        "spans": [
+          {
+            "column": 11,
+            "length": 5,
+            "line": 8
+          },
+          {
+            "column": 33,
+            "length": 7,
+            "line": 8
+          },
+          {
+            "column": 67,
+            "length": 5,
+            "line": 8
+          },
+          {
+            "column": 11,
+            "length": 5,
+            "line": 9
+          }
+        ]
+      },
+      "fix": null,
+      "id": "getter-return",
+      "languages": [
+        "js"
+      ],
+      "options": [],
+      "presets": [
+        "js/eslint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "`new Promise(async ...)`: an error thrown in the executor is lost.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "debugger;\nwith (a) { b; }\nvar x; delete x; delete x.y; delete (x);\nswitch (a) { case 1: let b = 1; const c = 2; function d() {} class E {} var f = 1; break; default: { let g; } }\nnew Promise(async (resolve) => resolve()); new Promise(async function () {}); new Promise((resolve) => resolve()); new Promise();\na.hasOwnProperty(\"b\"); a?.isPrototypeOf(b); a[\"propertyIsEnumerable\"](\"c\"); Object.prototype.hasOwnProperty.call(a, \"b\"); a.hasOwnProperty;\nvar NaN, undefined, eval; function arguments() {} try {} catch (Infinity) {}\n",
+        "language": "js",
+        "spans": [
+          {
+            "column": 13,
+            "length": 28,
+            "line": 5
+          },
+          {
+            "column": 56,
+            "length": 20,
+            "line": 5
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-async-promise-executor",
+      "languages": [
+        "js"
+      ],
+      "options": [],
+      "presets": [
+        "js/eslint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "`let`, `const`, a function or a class declared directly in a `case` clause, where it is visible to the other cases.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "debugger;\nwith (a) { b; }\nvar x; delete x; delete x.y; delete (x);\nswitch (a) { case 1: let b = 1; const c = 2; function d() {} class E {} var f = 1; break; default: { let g; } }\nnew Promise(async (resolve) => resolve()); new Promise(async function () {}); new Promise((resolve) => resolve()); new Promise();\na.hasOwnProperty(\"b\"); a?.isPrototypeOf(b); a[\"propertyIsEnumerable\"](\"c\"); Object.prototype.hasOwnProperty.call(a, \"b\"); a.hasOwnProperty;\nvar NaN, undefined, eval; function arguments() {} try {} catch (Infinity) {}\n",
+        "language": "js",
+        "spans": [
+          {
+            "column": 22,
+            "length": 10,
+            "line": 4
+          },
+          {
+            "column": 33,
+            "length": 12,
+            "line": 4
+          },
+          {
+            "column": 46,
+            "length": 15,
+            "line": 4
+          },
+          {
+            "column": 62,
+            "length": 10,
+            "line": 4
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-case-declarations",
+      "languages": [
+        "js"
+      ],
+      "options": [],
+      "presets": [
+        "js/eslint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "`x === -0` is true for `0` too; use `Object.is(x, -0)`.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "if (a === NaN || NaN != a || a < Number.NaN || a === NaN2) {}\nswitch (NaN) { case NaN: break; case 1: }\ntypeof a === \"strnig\"; typeof a == \"object\"; \"number\" !== typeof a; typeof a === undefined; typeof a === typeof b;\nif (!a in b) {} if (!a instanceof B) {} if ((!a) in b) {} if (!(a in b)) {}\nif (x === -0) {} if (-0 < x) {} if (x === +0) {} if (x + -0 === y) {}\n",
+        "language": "js",
+        "spans": [
+          {
+            "column": 5,
+            "length": 8,
+            "line": 5
+          },
+          {
+            "column": 22,
+            "length": 6,
+            "line": 5
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-compare-neg-zero",
+      "languages": [
+        "js"
+      ],
+      "options": [],
+      "presets": [
+        "js/eslint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "An assignment as the condition of `if`, `while`, `do`, `for` or `?:` that is not in parentheses of its own.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "a = a; a.b = a.b; a[\"b\"] = a.b; a[b] = a[b]; this.c = this.c; a = b; a.b = a.c; a &&= a; a += a;\n[a, b] = [a, b]; [a, ...b] = [a, ...b]; [a, b] = [b, a]; ({ a } = { a }); ({ a: b } = { a: b });\nif (a = b) {} if ((a = b)) {} while (a = b) {} do {} while (a = b); for (; a = b; ) {} for (; (a = b); ) {}\nvar x = (a = b) ? 1 : 2, y = a = b ? 1 : 2;\nif (!!a) {} while (!!a) {} do {} while (!!a); for (; !!a; ) {} var z = !!a ? 1 : 2, w = !!a;\nif (Boolean(a)) {} if (!Boolean(a)) {} Boolean(!!a); !!!a; if ((!!a)) {} if (a && !!b) {} var u = Boolean(a);\n",
+        "language": "js",
+        "spans": [
+          {
+            "column": 5,
+            "length": 5,
+            "line": 3
+          },
+          {
+            "column": 38,
+            "length": 5,
+            "line": 3
+          },
+          {
+            "column": 61,
+            "length": 5,
+            "line": 3
+          },
+          {
+            "column": 76,
+            "length": 5,
+            "line": 3
+          },
+          {
+            "column": 10,
+            "length": 5,
+            "line": 4
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-cond-assign",
+      "languages": [
+        "js"
+      ],
+      "options": [],
+      "presets": [
+        "js/eslint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "A `debugger` statement.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "debugger;\nwith (a) { b; }\nvar x; delete x; delete x.y; delete (x);\nswitch (a) { case 1: let b = 1; const c = 2; function d() {} class E {} var f = 1; break; default: { let g; } }\nnew Promise(async (resolve) => resolve()); new Promise(async function () {}); new Promise((resolve) => resolve()); new Promise();\na.hasOwnProperty(\"b\"); a?.isPrototypeOf(b); a[\"propertyIsEnumerable\"](\"c\"); Object.prototype.hasOwnProperty.call(a, \"b\"); a.hasOwnProperty;\nvar NaN, undefined, eval; function arguments() {} try {} catch (Infinity) {}\n",
+        "language": "js",
+        "spans": [
+          {
+            "column": 1,
+            "length": 9,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-debugger",
+      "languages": [
+        "js"
+      ],
+      "options": [],
+      "presets": [
+        "js/eslint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "`delete` applied to a variable name.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "debugger;\nwith (a) { b; }\nvar x; delete x; delete x.y; delete (x);\nswitch (a) { case 1: let b = 1; const c = 2; function d() {} class E {} var f = 1; break; default: { let g; } }\nnew Promise(async (resolve) => resolve()); new Promise(async function () {}); new Promise((resolve) => resolve()); new Promise();\na.hasOwnProperty(\"b\"); a?.isPrototypeOf(b); a[\"propertyIsEnumerable\"](\"c\"); Object.prototype.hasOwnProperty.call(a, \"b\"); a.hasOwnProperty;\nvar NaN, undefined, eval; function arguments() {} try {} catch (Infinity) {}\n",
+        "language": "js",
+        "spans": [
+          {
+            "column": 8,
+            "length": 8,
+            "line": 3
+          },
+          {
+            "column": 30,
+            "length": 10,
+            "line": 3
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-delete-var",
+      "languages": [
+        "js"
+      ],
+      "options": [],
+      "presets": [
+        "js/eslint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "A class member declared twice (a getter and a setter may share one, a static and an instance member may not clash).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "var o = { a: 1, a: 2, \"b\": 1, b: 2, 1: 1, 1.0: 2, [c]: 1, [c]: 2, [\"d\"]: 1, d: 2 };\nvar p = { get g() { return 1; }, set g(v) {}, h: 1, get h() { return 1; }, ...s, ...s };\nvar q = { a, a, m() {}, m() {} };\nclass A { a() {} a() {} static b() {} b() {} get c() { return 1; } set c(v) {} d = 1; d = 2; [\"e\"]() {} e() {} }\n",
+        "language": "js",
+        "spans": [
+          {
+            "column": 18,
+            "length": 6,
+            "line": 4
+          },
+          {
+            "column": 87,
+            "length": 6,
+            "line": 4
+          },
+          {
+            "column": 105,
+            "length": 6,
+            "line": 4
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-dupe-class-members",
+      "languages": [
+        "js"
+      ],
+      "options": [],
+      "presets": [
+        "js/eslint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "An `else if` condition that an earlier condition of the chain already covers.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "switch (a) { case 1: break; case 1: break; case \"x\": break; case 'x': break; case b + 1: break; case b+1: break; default: }\nif (a) {} else if (b) {} else if (a) {}\nif (a || b) {} else if (a) {} else if (b && c) {}\nif (a && b) {} else if (a) {} else if (b && a) {}\nif (a) { if (a) {} } else if (c) {} else { if (c) {} }\n",
+        "language": "js",
+        "spans": [
+          {
+            "column": 35,
+            "length": 1,
+            "line": 2
+          },
+          {
+            "column": 25,
+            "length": 1,
+            "line": 3
+          },
+          {
+            "column": 40,
+            "length": 6,
+            "line": 3
+          },
+          {
+            "column": 40,
+            "length": 6,
+            "line": 4
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-dupe-else-if",
+      "languages": [
+        "js"
+      ],
+      "options": [],
+      "presets": [
+        "js/eslint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "A key that appears twice in one object literal (a getter and a setter may share one).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "var o = { a: 1, a: 2, \"b\": 1, b: 2, 1: 1, 1.0: 2, [c]: 1, [c]: 2, [\"d\"]: 1, d: 2 };\nvar p = { get g() { return 1; }, set g(v) {}, h: 1, get h() { return 1; }, ...s, ...s };\nvar q = { a, a, m() {}, m() {} };\nclass A { a() {} a() {} static b() {} b() {} get c() { return 1; } set c(v) {} d = 1; d = 2; [\"e\"]() {} e() {} }\n",
+        "language": "js",
+        "spans": [
+          {
+            "column": 17,
+            "length": 1,
+            "line": 1
+          },
+          {
+            "column": 31,
+            "length": 1,
+            "line": 1
+          },
+          {
+            "column": 43,
+            "length": 3,
+            "line": 1
+          },
+          {
+            "column": 77,
+            "length": 1,
+            "line": 1
+          },
+          {
+            "column": 57,
+            "length": 1,
+            "line": 2
+          },
+          {
+            "column": 14,
+            "length": 1,
+            "line": 3
+          },
+          {
+            "column": 25,
+            "length": 1,
+            "line": 3
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-dupe-keys",
+      "languages": [
+        "js"
+      ],
+      "options": [],
+      "presets": [
+        "js/eslint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "Two `case` clauses of one `switch` with the same test.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "switch (a) { case 1: break; case 1: break; case \"x\": break; case 'x': break; case b + 1: break; case b+1: break; default: }\nif (a) {} else if (b) {} else if (a) {}\nif (a || b) {} else if (a) {} else if (b && c) {}\nif (a && b) {} else if (a) {} else if (b && a) {}\nif (a) { if (a) {} } else if (c) {} else { if (c) {} }\n",
+        "language": "js",
+        "spans": [
+          {
+            "column": 29,
+            "length": 14,
+            "line": 1
+          },
+          {
+            "column": 97,
+            "length": 16,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-duplicate-case",
+      "languages": [
+        "js"
+      ],
+      "options": [],
+      "presets": [
+        "js/eslint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "A block with no statement and no comment, or a `switch` with no case.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "if (a) {} else { /* kept */ }\ntry { f(); } catch (e) {} finally {}\ntry { f(); } catch (e) { throw e; }\ntry { f(); } catch (e) { throw e; } finally { g(); }\ntry { f(); } catch (e) { throw g; }\nswitch (a) {}\nfunction f() {}\nvar g = () => {};\nfor (;;) {}\nclass K { static {} }\nvar {} = o, [] = p, [,] = q, { a: {} } = r;\n({} = o);\nvar x = [1, , 2, ,], y = [[], [,]];\nvar r = /a[]/, s = /[]]/, t = /[^]/, u = /\\[]/, v = /[\\]]/, w = new RegExp(\"[]\");\n",
+        "language": "js",
+        "spans": [
+          {
+            "column": 8,
+            "length": 2,
+            "line": 1
+          },
+          {
+            "column": 24,
+            "length": 2,
+            "line": 2
+          },
+          {
+            "column": 35,
+            "length": 2,
+            "line": 2
+          },
+          {
+            "column": 12,
+            "length": 1,
+            "line": 6
+          },
+          {
+            "column": 10,
+            "length": 2,
+            "line": 9
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-empty",
+      "languages": [
+        "js"
+      ],
+      "options": [],
+      "presets": [
+        "js/eslint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "`[]` in a regex literal, which matches nothing.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "if (a) {} else { /* kept */ }\ntry { f(); } catch (e) {} finally {}\ntry { f(); } catch (e) { throw e; }\ntry { f(); } catch (e) { throw e; } finally { g(); }\ntry { f(); } catch (e) { throw g; }\nswitch (a) {}\nfunction f() {}\nvar g = () => {};\nfor (;;) {}\nclass K { static {} }\nvar {} = o, [] = p, [,] = q, { a: {} } = r;\n({} = o);\nvar x = [1, , 2, ,], y = [[], [,]];\nvar r = /a[]/, s = /[]]/, t = /[^]/, u = /\\[]/, v = /[\\]]/, w = new RegExp(\"[]\");\n",
+        "language": "js",
+        "spans": [
+          {
+            "column": 9,
+            "length": 5,
+            "line": 14
+          },
+          {
+            "column": 20,
+            "length": 5,
+            "line": 14
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-empty-character-class",
+      "languages": [
+        "js"
+      ],
+      "options": [],
+      "presets": [
+        "js/eslint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "A destructuring pattern with nothing in it (`{}`, `[]`).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "if (a) {} else { /* kept */ }\ntry { f(); } catch (e) {} finally {}\ntry { f(); } catch (e) { throw e; }\ntry { f(); } catch (e) { throw e; } finally { g(); }\ntry { f(); } catch (e) { throw g; }\nswitch (a) {}\nfunction f() {}\nvar g = () => {};\nfor (;;) {}\nclass K { static {} }\nvar {} = o, [] = p, [,] = q, { a: {} } = r;\n({} = o);\nvar x = [1, , 2, ,], y = [[], [,]];\nvar r = /a[]/, s = /[]]/, t = /[^]/, u = /\\[]/, v = /[\\]]/, w = new RegExp(\"[]\");\n",
+        "language": "js",
+        "spans": [
+          {
+            "column": 5,
+            "length": 2,
+            "line": 11
+          },
+          {
+            "column": 13,
+            "length": 2,
+            "line": 11
+          },
+          {
+            "column": 35,
+            "length": 2,
+            "line": 11
+          },
+          {
+            "column": 2,
+            "length": 2,
+            "line": 12
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-empty-pattern",
+      "languages": [
+        "js"
+      ],
+      "options": [],
+      "presets": [
+        "js/eslint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "`!!x` or `Boolean(x)` where the value is used as a boolean anyway (a condition, `!`, `Boolean(...)`).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "a = a; a.b = a.b; a[\"b\"] = a.b; a[b] = a[b]; this.c = this.c; a = b; a.b = a.c; a &&= a; a += a;\n[a, b] = [a, b]; [a, ...b] = [a, ...b]; [a, b] = [b, a]; ({ a } = { a }); ({ a: b } = { a: b });\nif (a = b) {} if ((a = b)) {} while (a = b) {} do {} while (a = b); for (; a = b; ) {} for (; (a = b); ) {}\nvar x = (a = b) ? 1 : 2, y = a = b ? 1 : 2;\nif (!!a) {} while (!!a) {} do {} while (!!a); for (; !!a; ) {} var z = !!a ? 1 : 2, w = !!a;\nif (Boolean(a)) {} if (!Boolean(a)) {} Boolean(!!a); !!!a; if ((!!a)) {} if (a && !!b) {} var u = Boolean(a);\n",
+        "language": "js",
+        "spans": [
+          {
+            "column": 5,
+            "length": 3,
+            "line": 5
+          },
+          {
+            "column": 20,
+            "length": 3,
+            "line": 5
+          },
+          {
+            "column": 41,
+            "length": 3,
+            "line": 5
+          },
+          {
+            "column": 54,
+            "length": 3,
+            "line": 5
+          },
+          {
+            "column": 72,
+            "length": 3,
+            "line": 5
+          },
+          {
+            "column": 5,
+            "length": 10,
+            "line": 6
+          },
+          {
+            "column": 25,
+            "length": 10,
+            "line": 6
+          },
+          {
+            "column": 48,
+            "length": 3,
+            "line": 6
+          },
+          {
+            "column": 55,
+            "length": 3,
+            "line": 6
+          },
+          {
+            "column": 65,
+            "length": 3,
+            "line": 6
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-extra-boolean-cast",
+      "languages": [
+        "js"
+      ],
+      "options": [],
+      "presets": [
+        "js/eslint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "A no-break space, zero-width space or other unusual whitespace character outside a string.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "var a = 1;\nvar b = \" \";\n// a comment with a space\nvar c = ` `;\nvar d = / /;\nvar e =  f;\nvar g = \"\\u00a0\";\n",
+        "language": "js",
+        "spans": [
+          {
+            "column": 8,
+            "length": 1,
+            "line": 1
+          },
+          {
+            "column": 18,
+            "length": 1,
+            "line": 3
+          },
+          {
+            "column": 10,
+            "length": 1,
+            "line": 4
+          },
+          {
+            "column": 10,
+            "length": 1,
+            "line": 5
+          },
+          {
+            "column": 8,
+            "length": 2,
+            "line": 6
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-irregular-whitespace",
+      "languages": [
+        "js"
+      ],
+      "options": [],
+      "presets": [
+        "js/eslint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "A number literal that the double it becomes cannot represent exactly.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "var a = /a  b/, b = /a {2}b/, c = /[  ]/, d = /a  +/, e = /a   +/, f = new RegExp(\"a  b\"), g = RegExp(\"a b\"), h = /a\\  b/;\nvar i = 017, j = 08, k = 0, l = 0.5, m = 0o17;\nvar p = 9007199254740993, q = 0.1, r = 5123000000000000000000000000001, s = 0x20000000000001, t = 0x1fffffffffffff;\nvar u = 12345678901234567890, v = 0.30000000000000004, w = 1_000, x = 0.1000000000000000055511151231257827, y = 1e3;\n",
+        "language": "js",
+        "spans": [
+          {
+            "column": 9,
+            "length": 16,
+            "line": 3
+          },
+          {
+            "column": 40,
+            "length": 31,
+            "line": 3
+          },
+          {
+            "column": 77,
+            "length": 16,
+            "line": 3
+          },
+          {
+            "column": 9,
+            "length": 20,
+            "line": 4
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-loss-of-precision",
+      "languages": [
+        "js"
+      ],
+      "options": [],
+      "presets": [
+        "js/eslint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "A number that starts with `0` and another digit (`017`, `08`).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "var a = /a  b/, b = /a {2}b/, c = /[  ]/, d = /a  +/, e = /a   +/, f = new RegExp(\"a  b\"), g = RegExp(\"a b\"), h = /a\\  b/;\nvar i = 017, j = 08, k = 0, l = 0.5, m = 0o17;\nvar p = 9007199254740993, q = 0.1, r = 5123000000000000000000000000001, s = 0x20000000000001, t = 0x1fffffffffffff;\nvar u = 12345678901234567890, v = 0.30000000000000004, w = 1_000, x = 0.1000000000000000055511151231257827, y = 1e3;\n",
+        "language": "js",
+        "spans": [
+          {
+            "column": 9,
+            "length": 3,
+            "line": 2
+          },
+          {
+            "column": 18,
+            "length": 2,
+            "line": 2
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-octal",
+      "languages": [
+        "js"
+      ],
+      "options": [],
+      "presets": [
+        "js/eslint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "`obj.hasOwnProperty(k)`, `isPrototypeOf` and `propertyIsEnumerable` called on an object that may not inherit them; use `Object.prototype.hasOwnProperty.call(obj, k)`.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "debugger;\nwith (a) { b; }\nvar x; delete x; delete x.y; delete (x);\nswitch (a) { case 1: let b = 1; const c = 2; function d() {} class E {} var f = 1; break; default: { let g; } }\nnew Promise(async (resolve) => resolve()); new Promise(async function () {}); new Promise((resolve) => resolve()); new Promise();\na.hasOwnProperty(\"b\"); a?.isPrototypeOf(b); a[\"propertyIsEnumerable\"](\"c\"); Object.prototype.hasOwnProperty.call(a, \"b\"); a.hasOwnProperty;\nvar NaN, undefined, eval; function arguments() {} try {} catch (Infinity) {}\n",
+        "language": "js",
+        "spans": [
+          {
+            "column": 3,
+            "length": 14,
+            "line": 6
+          },
+          {
+            "column": 27,
+            "length": 13,
+            "line": 6
+          },
+          {
+            "column": 47,
+            "length": 22,
+            "line": 6
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-prototype-builtins",
+      "languages": [
+        "js"
+      ],
+      "options": [],
+      "presets": [
+        "js/eslint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "Two or more spaces in a regex literal or in the string of `new RegExp(...)`, outside a character class.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "var a = /a  b/, b = /a {2}b/, c = /[  ]/, d = /a  +/, e = /a   +/, f = new RegExp(\"a  b\"), g = RegExp(\"a b\"), h = /a\\  b/;\nvar i = 017, j = 08, k = 0, l = 0.5, m = 0o17;\nvar p = 9007199254740993, q = 0.1, r = 5123000000000000000000000000001, s = 0x20000000000001, t = 0x1fffffffffffff;\nvar u = 12345678901234567890, v = 0.30000000000000004, w = 1_000, x = 0.1000000000000000055511151231257827, y = 1e3;\n",
+        "language": "js",
+        "spans": [
+          {
+            "column": 9,
+            "length": 6,
+            "line": 1
+          },
+          {
+            "column": 59,
+            "length": 7,
+            "line": 1
+          },
+          {
+            "column": 72,
+            "length": 18,
+            "line": 1
+          },
+          {
+            "column": 115,
+            "length": 7,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-regex-spaces",
+      "languages": [
+        "js"
+      ],
+      "options": [],
+      "presets": [
+        "js/eslint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "`a = a`, `a.b = a.b`, `[a, b] = [a, b]`.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "a = a; a.b = a.b; a[\"b\"] = a.b; a[b] = a[b]; this.c = this.c; a = b; a.b = a.c; a &&= a; a += a;\n[a, b] = [a, b]; [a, ...b] = [a, ...b]; [a, b] = [b, a]; ({ a } = { a }); ({ a: b } = { a: b });\nif (a = b) {} if ((a = b)) {} while (a = b) {} do {} while (a = b); for (; a = b; ) {} for (; (a = b); ) {}\nvar x = (a = b) ? 1 : 2, y = a = b ? 1 : 2;\nif (!!a) {} while (!!a) {} do {} while (!!a); for (; !!a; ) {} var z = !!a ? 1 : 2, w = !!a;\nif (Boolean(a)) {} if (!Boolean(a)) {} Boolean(!!a); !!!a; if ((!!a)) {} if (a && !!b) {} var u = Boolean(a);\n",
+        "language": "js",
+        "spans": [
+          {
+            "column": 5,
+            "length": 1,
+            "line": 1
+          },
+          {
+            "column": 14,
+            "length": 3,
+            "line": 1
+          },
+          {
+            "column": 28,
+            "length": 3,
+            "line": 1
+          },
+          {
+            "column": 40,
+            "length": 4,
+            "line": 1
+          },
+          {
+            "column": 55,
+            "length": 6,
+            "line": 1
+          },
+          {
+            "column": 87,
+            "length": 1,
+            "line": 1
+          },
+          {
+            "column": 11,
+            "length": 1,
+            "line": 2
+          },
+          {
+            "column": 14,
+            "length": 1,
+            "line": 2
+          },
+          {
+            "column": 31,
+            "length": 1,
+            "line": 2
+          },
+          {
+            "column": 37,
+            "length": 1,
+            "line": 2
+          },
+          {
+            "column": 69,
+            "length": 1,
+            "line": 2
+          },
+          {
+            "column": 92,
+            "length": 1,
+            "line": 2
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-self-assign",
+      "languages": [
+        "js"
+      ],
+      "options": [],
+      "presets": [
+        "js/eslint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "A variable, function, parameter or class named `NaN`, `Infinity`, `undefined`, `eval` or `arguments` (`var undefined;` without a value is left alone).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "debugger;\nwith (a) { b; }\nvar x; delete x; delete x.y; delete (x);\nswitch (a) { case 1: let b = 1; const c = 2; function d() {} class E {} var f = 1; break; default: { let g; } }\nnew Promise(async (resolve) => resolve()); new Promise(async function () {}); new Promise((resolve) => resolve()); new Promise();\na.hasOwnProperty(\"b\"); a?.isPrototypeOf(b); a[\"propertyIsEnumerable\"](\"c\"); Object.prototype.hasOwnProperty.call(a, \"b\"); a.hasOwnProperty;\nvar NaN, undefined, eval; function arguments() {} try {} catch (Infinity) {}\n",
+        "language": "js",
+        "spans": [
+          {
+            "column": 5,
+            "length": 3,
+            "line": 7
+          },
+          {
+            "column": 21,
+            "length": 4,
+            "line": 7
+          },
+          {
+            "column": 36,
+            "length": 9,
+            "line": 7
+          },
+          {
+            "column": 65,
+            "length": 8,
+            "line": 7
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-shadow-restricted-names",
+      "languages": [
+        "js"
+      ],
+      "options": [],
+      "presets": [
+        "js/eslint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "A hole in an array literal (`[1, , 2]`), reported at its comma.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "if (a) {} else { /* kept */ }\ntry { f(); } catch (e) {} finally {}\ntry { f(); } catch (e) { throw e; }\ntry { f(); } catch (e) { throw e; } finally { g(); }\ntry { f(); } catch (e) { throw g; }\nswitch (a) {}\nfunction f() {}\nvar g = () => {};\nfor (;;) {}\nclass K { static {} }\nvar {} = o, [] = p, [,] = q, { a: {} } = r;\n({} = o);\nvar x = [1, , 2, ,], y = [[], [,]];\nvar r = /a[]/, s = /[]]/, t = /[^]/, u = /\\[]/, v = /[\\]]/, w = new RegExp(\"[]\");\n",
+        "language": "js",
+        "spans": [
+          {
+            "column": 13,
+            "length": 1,
+            "line": 13
+          },
+          {
+            "column": 18,
+            "length": 1,
+            "line": 13
+          },
+          {
+            "column": 32,
+            "length": 1,
+            "line": 13
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-sparse-arrays",
+      "languages": [
+        "js"
+      ],
+      "options": [],
+      "presets": [
+        "js/eslint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "A statement after `return`, `throw`, `break`, `continue`, an `if`/`else` or `try` that always jumps, or a loop that never ends. Function declarations and `var` without a value are not reported.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "function a() { return 1; b(); var v; c(); function h() {} }\nfunction b() { throw e; ; d(); }\nfunction c(x) { if (x) { return; } else { return; } e(); }\nfunction d() { while (true) {} f(); }\nfunction e(x) { for (;;) { if (x) break; } g(); }\nfunction f(x) { switch (x) { case 1: return; default: return; } h(); }\nfunction g(x) { switch (x) { case 1: return; } h(); }\nfunction h(x) { try { return 1; } finally { i(); } j(); }\nfunction i(x) { l: { break l; } k(); }\nfunction j() { for (;;) { continue; k(); } }\nfunction k(x) { try { return 1; } catch (e) { } m(); }\nfunction l(x) { do { break; } while (x); n(); }\nfunction m() { return; let z = 1; const y = 2; class Z {} }\n",
+        "language": "js",
+        "spans": [
+          {
+            "column": 26,
+            "length": 4,
+            "line": 1
+          },
+          {
+            "column": 38,
+            "length": 4,
+            "line": 1
+          },
+          {
+            "column": 27,
+            "length": 4,
+            "line": 2
+          },
+          {
+            "column": 53,
+            "length": 4,
+            "line": 3
+          },
+          {
+            "column": 32,
+            "length": 4,
+            "line": 4
+          },
+          {
+            "column": 65,
+            "length": 4,
+            "line": 6
+          },
+          {
+            "column": 52,
+            "length": 4,
+            "line": 8
+          },
+          {
+            "column": 37,
+            "length": 4,
+            "line": 10
+          },
+          {
+            "column": 45,
+            "length": 3,
+            "line": 11
+          },
+          {
+            "column": 24,
+            "length": 10,
+            "line": 13
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-unreachable",
+      "languages": [
+        "js"
+      ],
+      "options": [],
+      "presets": [
+        "js/eslint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "`return`, `throw`, and a `break` or `continue` that leaves the block, in a `finally` block: they override the `try`'s own outcome.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "function f() { try { a(); } finally { return 1; } }\nfunction g() { try { a(); } finally { throw e; } }\nfunction h() { for (;;) { try { a(); } finally { break; } } }\nfunction i() { try { a(); } finally { for (;;) { break; } } }\nfunction j() { try { a(); } finally { function k() { return 1; } } }\nfunction l() { l: try { a(); } finally { break l; } }\nfunction m() { try { a(); } finally { m: { break m; } } }\nvar o = { get a() {}, get b() { return; }, get c() { return 1; }, get d() { if (x) return 1; }, get e() { throw 1; } };\nclass K { get a() {} static get b() { return 1 } get c() { while (true) {} } }\nfunction* p() {}\nfunction* q() { r(); }\nfunction* s() { yield 1; }\nvar t = { *u() { v(); } };\nclass L { *w() { x(); } async *y() { z(); } }\n",
+        "language": "js",
+        "spans": [
+          {
+            "column": 39,
+            "length": 9,
+            "line": 1
+          },
+          {
+            "column": 39,
+            "length": 8,
+            "line": 2
+          },
+          {
+            "column": 50,
+            "length": 6,
+            "line": 3
+          },
+          {
+            "column": 42,
+            "length": 8,
+            "line": 6
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-unsafe-finally",
+      "languages": [
+        "js"
+      ],
+      "options": [],
+      "presets": [
+        "js/eslint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "`!a in b` and `!a instanceof B` negate `a`, not the test.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "if (a === NaN || NaN != a || a < Number.NaN || a === NaN2) {}\nswitch (NaN) { case NaN: break; case 1: }\ntypeof a === \"strnig\"; typeof a == \"object\"; \"number\" !== typeof a; typeof a === undefined; typeof a === typeof b;\nif (!a in b) {} if (!a instanceof B) {} if ((!a) in b) {} if (!(a in b)) {}\nif (x === -0) {} if (-0 < x) {} if (x === +0) {} if (x + -0 === y) {}\n",
+        "language": "js",
+        "spans": [
+          {
+            "column": 5,
+            "length": 7,
+            "line": 4
+          },
+          {
+            "column": 21,
+            "length": 15,
+            "line": 4
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-unsafe-negation",
+      "languages": [
+        "js"
+      ],
+      "options": [],
+      "presets": [
+        "js/eslint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "A `catch` that only rethrows its error.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "if (a) {} else { /* kept */ }\ntry { f(); } catch (e) {} finally {}\ntry { f(); } catch (e) { throw e; }\ntry { f(); } catch (e) { throw e; } finally { g(); }\ntry { f(); } catch (e) { throw g; }\nswitch (a) {}\nfunction f() {}\nvar g = () => {};\nfor (;;) {}\nclass K { static {} }\nvar {} = o, [] = p, [,] = q, { a: {} } = r;\n({} = o);\nvar x = [1, , 2, ,], y = [[], [,]];\nvar r = /a[]/, s = /[]]/, t = /[^]/, u = /\\[]/, v = /[\\]]/, w = new RegExp(\"[]\");\n",
+        "language": "js",
+        "spans": [
+          {
+            "column": 1,
+            "length": 35,
+            "line": 3
+          },
+          {
+            "column": 14,
+            "length": 22,
+            "line": 4
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-useless-catch",
+      "languages": [
+        "js"
+      ],
+      "options": [],
+      "presets": [
+        "js/eslint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "A backslash in a string, template or regex that escapes nothing special (`\"\\d\"`, `/\\-/`).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "var a = /a  b/, b = /a {2}b/, c = /[  ]/, d = /a  +/, e = /a   +/, f = new RegExp(\"a  b\"), g = RegExp(\"a b\"), h = /a\\  b/;\nvar i = 017, j = 08, k = 0, l = 0.5, m = 0o17;\nvar p = 9007199254740993, q = 0.1, r = 5123000000000000000000000000001, s = 0x20000000000001, t = 0x1fffffffffffff;\nvar u = 12345678901234567890, v = 0.30000000000000004, w = 1_000, x = 0.1000000000000000055511151231257827, y = 1e3;\n",
+        "language": "js",
+        "spans": [
+          {
+            "column": 117,
+            "length": 2,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-useless-escape",
+      "languages": [
+        "js"
+      ],
+      "options": [],
+      "presets": [
+        "js/eslint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "A `with` statement.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "debugger;\nwith (a) { b; }\nvar x; delete x; delete x.y; delete (x);\nswitch (a) { case 1: let b = 1; const c = 2; function d() {} class E {} var f = 1; break; default: { let g; } }\nnew Promise(async (resolve) => resolve()); new Promise(async function () {}); new Promise((resolve) => resolve()); new Promise();\na.hasOwnProperty(\"b\"); a?.isPrototypeOf(b); a[\"propertyIsEnumerable\"](\"c\"); Object.prototype.hasOwnProperty.call(a, \"b\"); a.hasOwnProperty;\nvar NaN, undefined, eval; function arguments() {} try {} catch (Infinity) {}\n",
+        "language": "js",
+        "spans": [
+          {
+            "column": 1,
+            "length": 15,
+            "line": 2
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-with",
+      "languages": [
+        "js"
+      ],
+      "options": [],
+      "presets": [
+        "js/eslint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "A generator function with a body and no `yield`.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "function f() { try { a(); } finally { return 1; } }\nfunction g() { try { a(); } finally { throw e; } }\nfunction h() { for (;;) { try { a(); } finally { break; } } }\nfunction i() { try { a(); } finally { for (;;) { break; } } }\nfunction j() { try { a(); } finally { function k() { return 1; } } }\nfunction l() { l: try { a(); } finally { break l; } }\nfunction m() { try { a(); } finally { m: { break m; } } }\nvar o = { get a() {}, get b() { return; }, get c() { return 1; }, get d() { if (x) return 1; }, get e() { throw 1; } };\nclass K { get a() {} static get b() { return 1 } get c() { while (true) {} } }\nfunction* p() {}\nfunction* q() { r(); }\nfunction* s() { yield 1; }\nvar t = { *u() { v(); } };\nclass L { *w() { x(); } async *y() { z(); } }\n",
+        "language": "js",
+        "spans": [
+          {
+            "column": 1,
+            "length": 22,
+            "line": 11
+          },
+          {
+            "column": 13,
+            "length": 11,
+            "line": 13
+          },
+          {
+            "column": 13,
+            "length": 11,
+            "line": 14
+          },
+          {
+            "column": 33,
+            "length": 11,
+            "line": 14
+          }
+        ]
+      },
+      "fix": null,
+      "id": "require-yield",
+      "languages": [
+        "js"
+      ],
+      "options": [],
+      "presets": [
+        "js/eslint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "A comparison with `NaN`, or `NaN` as the discriminant or a case test of a `switch`; use `Number.isNaN`.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "if (a === NaN || NaN != a || a < Number.NaN || a === NaN2) {}\nswitch (NaN) { case NaN: break; case 1: }\ntypeof a === \"strnig\"; typeof a == \"object\"; \"number\" !== typeof a; typeof a === undefined; typeof a === typeof b;\nif (!a in b) {} if (!a instanceof B) {} if ((!a) in b) {} if (!(a in b)) {}\nif (x === -0) {} if (-0 < x) {} if (x === +0) {} if (x + -0 === y) {}\n",
+        "language": "js",
+        "spans": [
+          {
+            "column": 5,
+            "length": 9,
+            "line": 1
+          },
+          {
+            "column": 18,
+            "length": 8,
+            "line": 1
+          },
+          {
+            "column": 30,
+            "length": 14,
+            "line": 1
+          },
+          {
+            "column": 1,
+            "length": 41,
+            "line": 2
+          },
+          {
+            "column": 16,
+            "length": 16,
+            "line": 2
+          }
+        ]
+      },
+      "fix": null,
+      "id": "use-isnan",
+      "languages": [
+        "js"
+      ],
+      "options": [],
+      "presets": [
+        "js/eslint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "`typeof x` compared with a string that is not a type name, or with `undefined`.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "if (a === NaN || NaN != a || a < Number.NaN || a === NaN2) {}\nswitch (NaN) { case NaN: break; case 1: }\ntypeof a === \"strnig\"; typeof a == \"object\"; \"number\" !== typeof a; typeof a === undefined; typeof a === typeof b;\nif (!a in b) {} if (!a instanceof B) {} if ((!a) in b) {} if (!(a in b)) {}\nif (x === -0) {} if (-0 < x) {} if (x === +0) {} if (x + -0 === y) {}\n",
+        "language": "js",
+        "spans": [
+          {
+            "column": 14,
+            "length": 8,
+            "line": 3
+          },
+          {
+            "column": 82,
+            "length": 9,
+            "line": 3
+          }
+        ]
+      },
+      "fix": null,
+      "id": "valid-typeof",
+      "languages": [
+        "js"
+      ],
+      "options": [],
+      "presets": [
+        "js/eslint-recommended"
+      ],
+      "upstream": []
+    },
+    {
       "category": "style",
       "default_level": "off",
       "description": "An at-rule (vendor prefix left out) that is not in the `list` option. An empty list allows everything.",

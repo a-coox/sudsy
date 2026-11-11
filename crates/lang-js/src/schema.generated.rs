@@ -32,5 +32,6 @@ pub fn option_schema() -> core_config::OptionSchema {
         core_config::OptionDef::boolean("jsx_single_quote", false, "Single quotes for JSX attribute strings (a string with more of the preferred quote than of the other keeps the other one)."),
     ])
     .with_presets(vec![
+        core_config::Preset::new("js/eslint-recommended", include_str!("../presets/eslint-recommended.yaml")),
     ])
 }

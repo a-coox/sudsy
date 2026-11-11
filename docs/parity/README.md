@@ -26,7 +26,7 @@ One line per upstream rule or option under `entries:`, `<id>: <status>` or `<id>
 | checkmake | 5 | 4 | 1 | 0 | 0 | 0 | 0 | 0 |
 | csharpier | 16 | 11 | 5 | 0 | 0 | 0 | 0 | 0 |
 | dotnet-format-editorconfig | 56 | 50 | 3 | 0 | 1 | 2 | 0 | 0 |
-| eslint | 292 | 61 | 0 | 168 | 0 | 32 | 31 | 168 |
+| eslint | 292 | 82 | 11 | 136 | 0 | 32 | 31 | 136 |
 | eslint-plugin-jsonc | 44 | 36 | 6 | 0 | 0 | 2 | 0 | 0 |
 | graphql-eslint | 35 | 4 | 6 | 0 | 0 | 0 | 25 | 0 |
 | hadolint | 71 | 38 | 10 | 0 | 0 | 1 | 22 | 0 |

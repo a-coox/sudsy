@@ -30,3 +30,4 @@ options:
   - jsx_single_quote:
       default: false
       doc: "Single quotes for JSX attribute strings (a string with more of the preferred quote than of the other keeps the other one)."
+presets: [eslint-recommended]

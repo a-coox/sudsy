@@ -189,6 +189,8 @@ def rule_fixtures(tool, sudsy, version, prefix, exe):
         text = "".join(
             l for l in source.read_text(encoding="utf-8").splitlines(keepends=True) if not re.match(r"\s*(?:#|//)?\s*\^", l)
         )
+        if tool == "eslint":  # both tools read a `.js` as a module by default: a file with `import`/`export` is one, the others are scripts
+            name = str(Path(name).with_suffix(".mjs" if re.search(r"^(?:import|export)\b", text, re.M) else ".cjs"))
         fixture = where / name
         fixture.write_text(text, encoding="utf-8", newline="")
         rel = fixture.relative_to(work).as_posix()
@@ -197,18 +199,20 @@ def rule_fixtures(tool, sudsy, version, prefix, exe):
         # checkmake runs every rule on every file: a fixture is compared on the rule of its folder, and
         # checkmake reports a variable (and `.PHONY`, which it reads as one) a line late.
         late = {"timestampexpanded", "minphony"} if tool == "checkmake" else set()
-        upstream = {(mapping[c], l - (c in late), 0) for c, l in map(parse, load(out)) if c in mapping}
-        ours = {(r, l, 0) for r, l, _ in sudsy_lint(sudsy, fixture, work, set(mapping.values()))}
+        # ESLint reports a column; the other tools' columns are not compared
+        found = [(parse(d), d) for d in load(out)]
+        upstream = {(mapping[c], l - (c in late), d["column"] if tool == "eslint" else 0) for (c, l), d in found if c in mapping}
+        ours = {(r, l, c if tool == "eslint" else 0) for r, l, c in sudsy_lint(sudsy, fixture, work, set(mapping.values()))}
         if tool == "checkmake":
             upstream, ours = ({row for row in side if row[0] == source.parent.name} for side in (upstream, ours))
         fixture.unlink()  # buf compiles the whole folder: fixtures that share a package must not meet
         total += len(upstream)
         problems = []
         for side, rows in ((tool, upstream - ours), ("sudsy", ours - upstream)):
-            for rule, line, _ in sorted(rows):
+            for rule, line, column in sorted(rows):
                 key = f"{label} {side}:{rule} {line}"
                 if not diffs.known(key):
-                    problems.append(f"  only {side}: {rule} {line}")
+                    problems.append(f"  only {side}: {rule} {line}" + (f":{column}" if column else ""))
         print(f"{label}: {len(upstream)} {tool}, {len(ours)} sudsy: {'MISMATCH' if problems else 'ok'}")
         print("\n".join(problems))
         mismatches += len(problems)

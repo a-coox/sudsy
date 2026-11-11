@@ -176,7 +176,11 @@ pub fn decode(text: &str) -> Option<Meta> {
         None => (false, text.strip_prefix(SINGLE)?),
     };
     let name = rest.strip_suffix(END)?;
-    (!name.is_empty()).then(|| Meta {
+    // Not the joined tokens of `$A.$B`, which also start and end like one placeholder.
+    let one = name
+        .bytes()
+        .all(|b| b == b'_' || b.is_ascii_uppercase() || b.is_ascii_digit());
+    (!name.is_empty() && one).then(|| Meta {
         multi,
         name: name.to_string(),
         transform: None,

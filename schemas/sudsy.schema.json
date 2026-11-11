@@ -814,6 +814,10 @@
               "$ref": "#/definitions/rule",
               "description": "A gem install gem without a version."
             },
+            "getter-return": {
+              "$ref": "#/definitions/rule",
+              "description": "A getter that does not return a value on every path, or has a `return;`."
+            },
             "go-pin-versions": {
               "$ref": "#/definitions/rule",
               "description": "A go install or get package without a version (or at latest)."
@@ -1457,6 +1461,10 @@
               "$ref": "#/definitions/rule",
               "description": "A RUN that calls apt."
             },
+            "no-async-promise-executor": {
+              "$ref": "#/definitions/rule",
+              "description": "`new Promise(async ...)`: an error thrown in the executor is lost."
+            },
             "no-automatic-variable-assignment": {
               "$ref": "#/definitions/rule",
               "description": "An assignment to, a parameter named like, or a `foreach` variable named like an automatic variable (`$Error`, `$Event`, `$input`, `$PSItem`, `$_`, `$PWD`, `$Host`, `$this`, `$true`, ...). `$null = ...` is fine."
@@ -1469,6 +1477,10 @@
               "$ref": "#/definitions/rule",
               "description": "A URL that is neither a link nor an autolink (markdownlint MD034), found when it follows a space or starts the paragraph. Reported on the paragraph."
             },
+            "no-case-declarations": {
+              "$ref": "#/definitions/rule",
+              "description": "`let`, `const`, a function or a class declared directly in a `case` clause, where it is visible to the other cases."
+            },
             "no-cmdlet-aliases": {
               "$ref": "#/definitions/rule",
               "description": "A command written with one of the default aliases of Windows PowerShell and PowerShell 7 (`gci`, `ls`, `%`, `?`, `iex`, ...). The table is the one of a Windows host; PSScriptAnalyzer reads the aliases of the host it runs on."
@@ -1477,9 +1489,21 @@
               "$ref": "#/definitions/rule",
               "description": "A comment between the head of an `if`, `else`, `while`, `do`, `for`, `foreach`, `lock`, `try`, `catch`, `finally`, `switch`, `checked` or `unchecked` and its `{`. Put it inside the block or above the statement."
             },
+            "no-compare-neg-zero": {
+              "$ref": "#/definitions/rule",
+              "description": "`x === -0` is true for `0` too; use `Object.is(x, -0)`."
+            },
+            "no-cond-assign": {
+              "$ref": "#/definitions/rule",
+              "description": "An assignment as the condition of `if`, `while`, `do`, `for` or `?:` that is not in parentheses of its own."
+            },
             "no-copy-whole-stage": {
               "$ref": "#/definitions/rule",
               "description": "A `COPY --from` with `/` as a source and as the target."
+            },
+            "no-debugger": {
+              "$ref": "#/definitions/rule",
+              "description": "A `debugger` statement."
             },
             "no-default-summary": {
               "$ref": "#/definitions/rule",
@@ -1493,6 +1517,10 @@
               "$ref": "#/definitions/rule",
               "description": "`new S()` of a value type with an implicit parameterless constructor and no initializer: write `default(S)` (`Guid.Empty`, `CancellationToken.None`, `IntPtr.Zero`, the enum member with value 0 where they exist). No fix for a target-typed `new()`."
             },
+            "no-delete-var": {
+              "$ref": "#/definitions/rule",
+              "description": "`delete` applied to a variable name."
+            },
             "no-descending-specificity": {
               "$ref": "#/definitions/rule",
               "description": "A rule whose selector ends in the same compound (without its pseudo-classes) as an earlier rule in the same at-rule and has a lower specificity: the earlier one wins where the later was meant to. Nested rules are not compared."
@@ -1505,6 +1533,18 @@
               "$ref": "#/definitions/rule",
               "description": "A `///` comment that holds only text, no XML element: a plain comment written with documentation slashes. The fix writes `//`, unless the comment documents a declaration (it would remove documentation)."
             },
+            "no-dupe-class-members": {
+              "$ref": "#/definitions/rule",
+              "description": "A class member declared twice (a getter and a setter may share one, a static and an instance member may not clash)."
+            },
+            "no-dupe-else-if": {
+              "$ref": "#/definitions/rule",
+              "description": "An `else if` condition that an earlier condition of the chain already covers."
+            },
+            "no-dupe-keys": {
+              "$ref": "#/definitions/rule",
+              "description": "A key that appears twice in one object literal (a getter and a setter may share one)."
+            },
             "no-duplicate-anchors": {
               "$ref": "#/definitions/rule",
               "description": "An anchor name is defined again in the same document; an alias refers to the latest definition above it, which is easy to misread."
@@ -1512,6 +1552,10 @@
             "no-duplicate-at-import-rules": {
               "$ref": "#/definitions/rule",
               "description": "The same `@import` (url and media list) twice in one file."
+            },
+            "no-duplicate-case": {
+              "$ref": "#/definitions/rule",
+              "description": "Two `case` clauses of one `switch` with the same test."
             },
             "no-duplicate-doc-text": {
               "$ref": "#/definitions/rule",
@@ -1580,6 +1624,10 @@
               "$ref": "#/definitions/rule",
               "description": "A one-line paragraph that is only emphasized text without closing punctuation (markdownlint MD036); use a heading."
             },
+            "no-empty": {
+              "$ref": "#/definitions/rule",
+              "description": "A block with no statement and no comment, or a `switch` with no case."
+            },
             "no-empty-attribute-parens": {
               "$ref": "#/definitions/rule",
               "description": "An attribute with empty parentheses: `[Foo()]` is `[Foo]`. Parentheses with a comment in them are left alone."
@@ -1587,6 +1635,10 @@
             "no-empty-catch": {
               "$ref": "#/definitions/rule",
               "description": "A catch block with no statements and no comment swallows the exception silently."
+            },
+            "no-empty-character-class": {
+              "$ref": "#/definitions/rule",
+              "description": "`[]` in a regex literal, which matches nothing."
             },
             "no-empty-comment": {
               "$ref": "#/definitions/rule",
@@ -1603,6 +1655,10 @@
             "no-empty-links": {
               "$ref": "#/definitions/rule",
               "description": "A link whose destination is empty or only `#` (markdownlint MD042)."
+            },
+            "no-empty-pattern": {
+              "$ref": "#/definitions/rule",
+              "description": "A destructuring pattern with nothing in it (`{}`, `[]`)."
             },
             "no-empty-source": {
               "$ref": "#/definitions/rule",
@@ -1652,6 +1708,10 @@
                   "type": "object"
                 }
               ]
+            },
+            "no-extra-boolean-cast": {
+              "$ref": "#/definitions/rule",
+              "description": "`!!x` or `Boolean(x)` where the value is used as a boolean anyway (a condition, `!`, `Boolean(...)`)."
             },
             "no-floating-package-version": {
               "$ref": "#/definitions/rule",
@@ -1751,9 +1811,17 @@
               "$ref": "#/definitions/rule",
               "description": "A call of `Invoke-Expression` or its alias `iex`."
             },
+            "no-irregular-whitespace": {
+              "$ref": "#/definitions/rule",
+              "description": "A no-break space, zero-width space or other unusual whitespace character outside a string."
+            },
             "no-latest-tag": {
               "$ref": "#/definitions/rule",
               "description": "A FROM image tagged `latest` (without a digest)."
+            },
+            "no-loss-of-precision": {
+              "$ref": "#/definitions/rule",
+              "description": "A number literal that the double it becomes cannot represent exactly."
             },
             "no-ls-grep": {
               "$ref": "#/definitions/rule",
@@ -1774,6 +1842,10 @@
             "no-nested-onbuild": {
               "$ref": "#/definitions/rule",
               "description": "An ONBUILD whose instruction is ONBUILD, FROM or MAINTAINER."
+            },
+            "no-octal": {
+              "$ref": "#/definitions/rule",
+              "description": "A number that starts with `0` and another digit (`017`, `08`)."
             },
             "no-octal-values": {
               "description": "A plain `0755` (octal to YAML 1.1 parsers, decimal 755 to YAML 1.2) or `0o755` (octal to YAML 1.2, a string to YAML 1.1). Quoted and tagged scalars are not checked. No fix: the intended value is not known.",
@@ -1819,6 +1891,10 @@
               "$ref": "#/definitions/rule",
               "description": "A call of `ConvertTo-SecureString` with `-AsPlainText`."
             },
+            "no-prototype-builtins": {
+              "$ref": "#/definitions/rule",
+              "description": "`obj.hasOwnProperty(k)`, `isPrototypeOf` and `propertyIsEnumerable` called on an object that may not inherit them; use `Object.prototype.hasOwnProperty.call(obj, k)`."
+            },
             "no-ps-grep": {
               "$ref": "#/definitions/rule",
               "description": "A pipeline from `ps` into `grep`."
@@ -1826,6 +1902,10 @@
             "no-redundant-target-platform": {
               "$ref": "#/definitions/rule",
               "description": "A FROM with `--platform=$TARGETPLATFORM`, which is what it does without the option."
+            },
+            "no-regex-spaces": {
+              "$ref": "#/definitions/rule",
+              "description": "Two or more spaces in a regex literal or in the string of `new RegExp(...)`, outside a character class."
             },
             "no-region-in-body": {
               "$ref": "#/definitions/rule",
@@ -1851,6 +1931,14 @@
               "$ref": "#/definitions/rule",
               "description": "An ARG or ENV whose name contains `api_key`, `client_key`, `password`, `private`, `secret`, `token` or `username`, or is a well-known credential variable. Build secrets belong in `--mount=type=secret`."
             },
+            "no-self-assign": {
+              "$ref": "#/definitions/rule",
+              "description": "`a = a`, `a.b = a.b`, `[a, b] = [a, b]`."
+            },
+            "no-shadow-restricted-names": {
+              "$ref": "#/definitions/rule",
+              "description": "A variable, function, parameter or class named `NaN`, `Infinity`, `undefined`, `eval` or `arguments` (`var undefined;` without a value is left alone)."
+            },
             "no-shell-symlink": {
               "$ref": "#/definitions/rule",
               "description": "A RUN that links /bin/sh."
@@ -1862,6 +1950,10 @@
             "no-space-in-links": {
               "$ref": "#/definitions/rule",
               "description": "Link text that starts or ends with a space (markdownlint MD039)."
+            },
+            "no-sparse-arrays": {
+              "$ref": "#/definitions/rule",
+              "description": "A hole in an array literal (`[1, , 2]`), reported at its comma."
             },
             "no-sudo": {
               "$ref": "#/definitions/rule",
@@ -1883,13 +1975,37 @@
               "$ref": "#/definitions/rule",
               "description": "`base.M()` or `base[i]` where the type does not override the member, so `this` binds to the same one. The fix writes `this`."
             },
+            "no-unreachable": {
+              "$ref": "#/definitions/rule",
+              "description": "A statement after `return`, `throw`, `break`, `continue`, an `if`/`else` or `try` that always jumps, or a loop that never ends. Function declarations and `var` without a value are not reported."
+            },
+            "no-unsafe-finally": {
+              "$ref": "#/definitions/rule",
+              "description": "`return`, `throw`, and a `break` or `continue` that leaves the block, in a `finally` block: they override the `try`'s own outcome."
+            },
+            "no-unsafe-negation": {
+              "$ref": "#/definitions/rule",
+              "description": "`!a in b` and `!a instanceof B` negate `a`, not the test."
+            },
             "no-unused-anchors": {
               "$ref": "#/definitions/rule",
               "description": "An anchor that no alias refers to. The fix removes the anchor, which changes nothing about the data."
             },
+            "no-useless-catch": {
+              "$ref": "#/definitions/rule",
+              "description": "A `catch` that only rethrows its error."
+            },
+            "no-useless-escape": {
+              "$ref": "#/definitions/rule",
+              "description": "A backslash in a string, template or regex that escapes nothing special (`\"\\d\"`, `/\\-/`)."
+            },
             "no-which": {
               "$ref": "#/definitions/rule",
               "description": "A call of `which`."
+            },
+            "no-with": {
+              "$ref": "#/definitions/rule",
+              "description": "A `with` statement."
             },
             "no-wmi-cmdlets": {
               "$ref": "#/definitions/rule",
@@ -2158,6 +2274,10 @@
             "remove-unused-usings": {
               "$ref": "#/definitions/rule",
               "description": "A `using` directive that nothing in the file needs (the compiler's hidden CS8019, IDE0005 in the SDK analyzers). Not reported in a file that has compiler errors or `#if` regions, because unresolved or inactive code could be the one using it."
+            },
+            "require-yield": {
+              "$ref": "#/definitions/rule",
+              "description": "A generator function with a body and no `yield`."
             },
             "required-providers": {
               "$ref": "#/definitions/rule",
@@ -3331,6 +3451,10 @@
               "$ref": "#/definitions/rule",
               "description": "A local variable or catch variable that is never used (the compiler's CS0168), or is only assigned constants and never read (CS0219). Variables captured by lambdas or local functions count as used. Off by default: the compiler already warns (CS0168, CS0219)."
             },
+            "use-isnan": {
+              "$ref": "#/definitions/rule",
+              "description": "A comparison with `NaN`, or `NaN` as the discriminant or a case test of a `switch`; use `Number.isNaN`."
+            },
             "use-lambda": {
               "$ref": "#/definitions/rule",
               "description": "A lambda instead of an anonymous method. The fix is offered when the anonymous method has a parameter list and no comment before its body; `delegate { }` without one converts to delegate types with any parameters, so it has no fix."
@@ -3417,6 +3541,10 @@
                   "type": "object"
                 }
               ]
+            },
+            "valid-typeof": {
+              "$ref": "#/definitions/rule",
+              "description": "`typeof x` compared with a string that is not a type name, or with `undefined`."
             },
             "wget-progress": {
               "$ref": "#/definitions/rule",
@@ -4157,6 +4285,7 @@
           "preset:gitignore/default",
           "preset:hcl/tflint-recommended",
           "preset:ini/default",
+          "preset:js/eslint-recommended",
           "preset:json/biome",
           "preset:json/default",
           "preset:json/prettier-compat",
