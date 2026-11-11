@@ -611,6 +611,152 @@
       ]
     },
     {
+      "category": "style",
+      "default_level": "off",
+      "description": "Overloads of one function or method (or call and construct signatures) with other members between them.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "namespace N.M {}\ndeclare module \"x\" {}\ndeclare global {}\ndeclare namespace Q {}\nconst a = require(\"a\"), b = a.require(\"b\");\nimport c = require(\"c\");\nconst self = this, { x } = this;\ny = this;\nclass K { new(): K; new(): number; new() {} }\ninterface I { new (): I; new (): number; constructor(): void }\nfunction f(): void;\nfunction g(): void {}\nfunction f(x: number): void;\nfunction f(x?: number) {}\nclass O { m(): void; n(): void; m(x: number): void; static m(): void; static m(x: number): void; }\ninterface P { (): void; a(): void; (x: number): void }\n",
+        "language": "js",
+        "spans": [
+          {
+            "column": 1,
+            "length": 28,
+            "line": 13
+          },
+          {
+            "column": 33,
+            "length": 19,
+            "line": 15
+          },
+          {
+            "column": 36,
+            "length": 17,
+            "line": 16
+          }
+        ]
+      },
+      "fix": null,
+      "id": "adjacent-overload-signatures",
+      "languages": [
+        "js"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "`Array<T>`, `ReadonlyArray<T>` and `Readonly<T[]>`; write `T[]` and `readonly T[]`.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "let a: any = 1;\ntype A = {};\ntype B = {} & { a: 1 };\ninterface C {}\ninterface D extends A {}\ninterface E extends A, B {}\ninterface F { a: 1 }\ntype L = { a: 1 };\ntype M = A | B;\nlet g: Array<number>, h: ReadonlyArray<string>, i: Readonly<string[]>, j: Array<number, string>, k: number[];\n",
+        "language": "js",
+        "spans": [
+          {
+            "column": 8,
+            "length": 13,
+            "line": 10
+          },
+          {
+            "column": 26,
+            "length": 21,
+            "line": 10
+          },
+          {
+            "column": 52,
+            "length": 18,
+            "line": 10
+          }
+        ]
+      },
+      "fix": null,
+      "id": "array-type",
+      "languages": [
+        "js"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "`@ts-ignore`, `@ts-nocheck` before the first statement, and `@ts-expect-error` without a description of at least three characters in a comment (`@ts-check` is allowed).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "let a = 1;\n// @ts-ignore\na = \"\";\n// @ts-expect-error\na = \"\";\n// @ts-expect-error: not a number\na = \"\";\n/* @ts-ignore */\n/**\n * @ts-expect-error\n */\n// @ts-check\n// @ts-nocheck\n/// @ts-ignore\n",
+        "language": "js",
+        "spans": [
+          {
+            "column": 1,
+            "length": 13,
+            "line": 2
+          },
+          {
+            "column": 1,
+            "length": 19,
+            "line": 4
+          },
+          {
+            "column": 1,
+            "length": 16,
+            "line": 8
+          },
+          {
+            "column": 1,
+            "length": 14,
+            "line": 14
+          }
+        ]
+      },
+      "fix": null,
+      "id": "ban-ts-comment",
+      "languages": [
+        "js"
+      ],
+      "options": [],
+      "presets": [
+        "js/typescript-eslint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A type alias of an object type literal; write an `interface`.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "let a: any = 1;\ntype A = {};\ntype B = {} & { a: 1 };\ninterface C {}\ninterface D extends A {}\ninterface E extends A, B {}\ninterface F { a: 1 }\ntype L = { a: 1 };\ntype M = A | B;\nlet g: Array<number>, h: ReadonlyArray<string>, i: Readonly<string[]>, j: Array<number, string>, k: number[];\n",
+        "language": "js",
+        "spans": [
+          {
+            "column": 6,
+            "length": 1,
+            "line": 2
+          },
+          {
+            "column": 6,
+            "length": 1,
+            "line": 8
+          }
+        ]
+      },
+      "fix": null,
+      "id": "consistent-type-definitions",
+      "languages": [
+        "js"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
       "category": "suspicious",
       "default_level": "off",
       "description": "A getter that does not return a value on every path, or has a `return;`.",
@@ -1127,6 +1273,44 @@
     {
       "category": "suspicious",
       "default_level": "off",
+      "description": "The type `{}` (not in an intersection) and an interface with no members and at most one `extends`.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "let a: any = 1;\ntype A = {};\ntype B = {} & { a: 1 };\ninterface C {}\ninterface D extends A {}\ninterface E extends A, B {}\ninterface F { a: 1 }\ntype L = { a: 1 };\ntype M = A | B;\nlet g: Array<number>, h: ReadonlyArray<string>, i: Readonly<string[]>, j: Array<number, string>, k: number[];\n",
+        "language": "js",
+        "spans": [
+          {
+            "column": 10,
+            "length": 2,
+            "line": 2
+          },
+          {
+            "column": 11,
+            "length": 1,
+            "line": 4
+          },
+          {
+            "column": 11,
+            "length": 1,
+            "line": 5
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-empty-object-type",
+      "languages": [
+        "js"
+      ],
+      "options": [],
+      "presets": [
+        "js/typescript-eslint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
       "description": "A destructuring pattern with nothing in it (`{}`, `[]`).",
       "example": {
         "config": null,
@@ -1164,6 +1348,34 @@
       "options": [],
       "presets": [
         "js/eslint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "The `any` type.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "let a: any = 1;\ntype A = {};\ntype B = {} & { a: 1 };\ninterface C {}\ninterface D extends A {}\ninterface E extends A, B {}\ninterface F { a: 1 }\ntype L = { a: 1 };\ntype M = A | B;\nlet g: Array<number>, h: ReadonlyArray<string>, i: Readonly<string[]>, j: Array<number, string>, k: number[];\n",
+        "language": "js",
+        "spans": [
+          {
+            "column": 8,
+            "length": 3,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-explicit-any",
+      "languages": [
+        "js"
+      ],
+      "options": [],
+      "presets": [
+        "js/typescript-eslint-recommended"
       ],
       "upstream": []
     },
@@ -1238,6 +1450,70 @@
       "presets": [
         "js/eslint-recommended"
       ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "`a!!`, and `a!` right before `?.` (`a!?.b`, `a!?.()`).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "a!.b;\na!!;\na!?.b;\na!?.();\na?.b!.c;\na![0];\n`${a!.b}x`;\n",
+        "language": "js",
+        "spans": [
+          {
+            "column": 1,
+            "length": 2,
+            "line": 2
+          },
+          {
+            "column": 1,
+            "length": 2,
+            "line": 3
+          },
+          {
+            "column": 1,
+            "length": 2,
+            "line": 4
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-extra-non-null-assertion",
+      "languages": [
+        "js"
+      ],
+      "options": [],
+      "presets": [
+        "js/typescript-eslint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A type annotation of a variable, parameter or property that its initial value already gives (`const a: number = 5`; not `readonly` or optional properties).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "let a: \"a\" = \"a\", b: \"a\" = 'a', c: 1 = 1, d: string = \"a\";\nclass C { p: \"a\" = \"a\"; q = 1 as 1; r = <\"a\">\"a\"; s = \"a\" as \"b\"; }\n",
+        "language": "js",
+        "spans": [
+          {
+            "column": 43,
+            "length": 15,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-inferrable-types",
+      "languages": [
+        "js"
+      ],
+      "options": [],
+      "presets": [],
       "upstream": []
     },
     {
@@ -1329,6 +1605,138 @@
       "presets": [
         "js/eslint-recommended"
       ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "A class method `new(): C` that returns the class, an interface `new (): I` that returns the interface, and an interface method `constructor()`.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "namespace N.M {}\ndeclare module \"x\" {}\ndeclare global {}\ndeclare namespace Q {}\nconst a = require(\"a\"), b = a.require(\"b\");\nimport c = require(\"c\");\nconst self = this, { x } = this;\ny = this;\nclass K { new(): K; new(): number; new() {} }\ninterface I { new (): I; new (): number; constructor(): void }\nfunction f(): void;\nfunction g(): void {}\nfunction f(x: number): void;\nfunction f(x?: number) {}\nclass O { m(): void; n(): void; m(x: number): void; static m(): void; static m(x: number): void; }\ninterface P { (): void; a(): void; (x: number): void }\n",
+        "language": "js",
+        "spans": [
+          {
+            "column": 11,
+            "length": 9,
+            "line": 9
+          },
+          {
+            "column": 15,
+            "length": 10,
+            "line": 10
+          },
+          {
+            "column": 42,
+            "length": 19,
+            "line": 10
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-misused-new",
+      "languages": [
+        "js"
+      ],
+      "options": [],
+      "presets": [
+        "js/typescript-eslint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A `namespace` or `module Name` declaration (not `declare module \"x\"` or `declare global`), except in a `.d.ts` file.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "namespace N.M {}\ndeclare module \"x\" {}\ndeclare global {}\ndeclare namespace Q {}\nconst a = require(\"a\"), b = a.require(\"b\");\nimport c = require(\"c\");\nconst self = this, { x } = this;\ny = this;\nclass K { new(): K; new(): number; new() {} }\ninterface I { new (): I; new (): number; constructor(): void }\nfunction f(): void;\nfunction g(): void {}\nfunction f(x: number): void;\nfunction f(x?: number) {}\nclass O { m(): void; n(): void; m(x: number): void; static m(): void; static m(x: number): void; }\ninterface P { (): void; a(): void; (x: number): void }\n",
+        "language": "js",
+        "spans": [
+          {
+            "column": 1,
+            "length": 16,
+            "line": 1
+          },
+          {
+            "column": 1,
+            "length": 22,
+            "line": 4
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-namespace",
+      "languages": [
+        "js"
+      ],
+      "options": [],
+      "presets": [
+        "js/typescript-eslint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "A non-null assertion `a!`.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "a!.b;\na!!;\na!?.b;\na!?.();\na?.b!.c;\na![0];\n`${a!.b}x`;\n",
+        "language": "js",
+        "spans": [
+          {
+            "column": 1,
+            "length": 2,
+            "line": 1
+          },
+          {
+            "column": 1,
+            "length": 2,
+            "line": 2
+          },
+          {
+            "column": 1,
+            "length": 3,
+            "line": 2
+          },
+          {
+            "column": 1,
+            "length": 2,
+            "line": 3
+          },
+          {
+            "column": 1,
+            "length": 2,
+            "line": 4
+          },
+          {
+            "column": 1,
+            "length": 5,
+            "line": 5
+          },
+          {
+            "column": 1,
+            "length": 2,
+            "line": 6
+          },
+          {
+            "column": 4,
+            "length": 2,
+            "line": 7
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-non-null-assertion",
+      "languages": [
+        "js"
+      ],
+      "options": [],
+      "presets": [],
       "upstream": []
     },
     {
@@ -1442,6 +1850,39 @@
       "options": [],
       "presets": [
         "js/eslint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "`require(...)` and `import x = require(...)`; a `require` declared in the file is still reported.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "namespace N.M {}\ndeclare module \"x\" {}\ndeclare global {}\ndeclare namespace Q {}\nconst a = require(\"a\"), b = a.require(\"b\");\nimport c = require(\"c\");\nconst self = this, { x } = this;\ny = this;\nclass K { new(): K; new(): number; new() {} }\ninterface I { new (): I; new (): number; constructor(): void }\nfunction f(): void;\nfunction g(): void {}\nfunction f(x: number): void;\nfunction f(x?: number) {}\nclass O { m(): void; n(): void; m(x: number): void; static m(): void; static m(x: number): void; }\ninterface P { (): void; a(): void; (x: number): void }\n",
+        "language": "js",
+        "spans": [
+          {
+            "column": 11,
+            "length": 12,
+            "line": 5
+          },
+          {
+            "column": 12,
+            "length": 12,
+            "line": 6
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-require-imports",
+      "languages": [
+        "js"
+      ],
+      "options": [],
+      "presets": [
+        "js/typescript-eslint-recommended"
       ],
       "upstream": []
     },
@@ -1606,6 +2047,39 @@
       "options": [],
       "presets": [
         "js/eslint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "`const self = this` and `self = this` (destructuring `this` is allowed).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "namespace N.M {}\ndeclare module \"x\" {}\ndeclare global {}\ndeclare namespace Q {}\nconst a = require(\"a\"), b = a.require(\"b\");\nimport c = require(\"c\");\nconst self = this, { x } = this;\ny = this;\nclass K { new(): K; new(): number; new() {} }\ninterface I { new (): I; new (): number; constructor(): void }\nfunction f(): void;\nfunction g(): void {}\nfunction f(x: number): void;\nfunction f(x?: number) {}\nclass O { m(): void; n(): void; m(x: number): void; static m(): void; static m(x: number): void; }\ninterface P { (): void; a(): void; (x: number): void }\n",
+        "language": "js",
+        "spans": [
+          {
+            "column": 7,
+            "length": 4,
+            "line": 7
+          },
+          {
+            "column": 1,
+            "length": 1,
+            "line": 8
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-this-alias",
+      "languages": [
+        "js"
+      ],
+      "options": [],
+      "presets": [
+        "js/typescript-eslint-recommended"
       ],
       "upstream": []
     },
@@ -1848,6 +2322,54 @@
       "upstream": []
     },
     {
+      "category": "style",
+      "default_level": "off",
+      "description": "A literal type that repeats the literal it is given to (`let a: 'a' = 'a'`, `'a' as 'a'`, `<'a'>'a'`); write `as const`.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "let a: \"a\" = \"a\", b: \"a\" = 'a', c: 1 = 1, d: string = \"a\";\nclass C { p: \"a\" = \"a\"; q = 1 as 1; r = <\"a\">\"a\"; s = \"a\" as \"b\"; }\n",
+        "language": "js",
+        "spans": [
+          {
+            "column": 8,
+            "length": 3,
+            "line": 1
+          },
+          {
+            "column": 36,
+            "length": 1,
+            "line": 1
+          },
+          {
+            "column": 14,
+            "length": 3,
+            "line": 2
+          },
+          {
+            "column": 34,
+            "length": 1,
+            "line": 2
+          },
+          {
+            "column": 42,
+            "length": 3,
+            "line": 2
+          }
+        ]
+      },
+      "fix": null,
+      "id": "prefer-as-const",
+      "languages": [
+        "js"
+      ],
+      "options": [],
+      "presets": [
+        "js/typescript-eslint-recommended"
+      ],
+      "upstream": []
+    },
+    {
       "category": "suspicious",
       "default_level": "off",
       "description": "A generator function with a body and no `yield`.",
@@ -1887,6 +2409,39 @@
       "options": [],
       "presets": [
         "js/eslint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "A `/// <reference path=\"x\" />` before the first statement, and a `/// <reference types=\"x\" />` for a module the file imports.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "/// <reference path=\"a.d.ts\" />\n/// <reference types=\"b\" />\n/// <reference types=\"c\" />\n/// <reference lib=\"es2020\" />\nimport \"b\";\n",
+        "language": "js",
+        "spans": [
+          {
+            "column": 1,
+            "length": 31,
+            "line": 1
+          },
+          {
+            "column": 1,
+            "length": 27,
+            "line": 2
+          }
+        ]
+      },
+      "fix": null,
+      "id": "triple-slash-reference",
+      "languages": [
+        "js"
+      ],
+      "options": [],
+      "presets": [
+        "js/typescript-eslint-recommended"
       ],
       "upstream": []
     },

@@ -1,0 +1,2 @@
+ban-ts-comment: warn
+triple-slash-reference: warn

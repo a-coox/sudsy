@@ -177,3 +177,75 @@ description: A number literal that the double it becomes cannot represent exactl
 example: "var n = 9007199254740993;   # reported"
 severity: off
 category: suspicious
+---
+id: ban-ts-comment
+family: check
+params: { check: ban-ts-comment }
+message: "Do not use a @ts- directive that alters compilation errors."
+description: "`@ts-ignore`, `@ts-nocheck` before the first statement, and `@ts-expect-error` without a description of at least three characters in a comment (`@ts-check` is allowed)."
+example: "// @ts-ignore   # reported"
+severity: off
+category: suspicious
+---
+id: no-extra-non-null-assertion
+family: check
+params: { check: extra-non-null }
+message: "Forbidden extra non-null assertion."
+description: "`a!!`, and `a!` right before `?.` (`a!?.b`, `a!?.()`)."
+example: "a!!.b;   # reported"
+severity: off
+category: suspicious
+---
+id: no-misused-new
+family: check
+params: { check: misused-new }
+message: "Misused `new`."
+description: "A class method `new(): C` that returns the class, an interface `new (): I` that returns the interface, and an interface method `constructor()`."
+example: "interface I { new (): I }   # reported"
+severity: off
+category: suspicious
+---
+id: prefer-as-const
+family: check
+params: { check: prefer-as-const }
+message: "Expected a `const` assertion instead of a literal type."
+description: "A literal type that repeats the literal it is given to (`let a: 'a' = 'a'`, `'a' as 'a'`, `<'a'>'a'`); write `as const`."
+example: "let a: 'a' = 'a';   # reported"
+severity: off
+category: style
+---
+id: no-inferrable-types
+family: check
+params: { check: inferrable-types }
+message: "Type {name} trivially inferred from a {name} literal, remove type annotation."
+description: "A type annotation of a variable, parameter or property that its initial value already gives (`const a: number = 5`; not `readonly` or optional properties)."
+example: "const a: number = 5;   # reported"
+severity: off
+category: style
+---
+id: array-type
+family: check
+params: { check: array-type }
+message: "Array type using '{name}<T>' is forbidden. Use the `T[]` form instead."
+description: "`Array<T>`, `ReadonlyArray<T>` and `Readonly<T[]>`; write `T[]` and `readonly T[]`."
+example: "let a: Array<number>;   # reported"
+severity: off
+category: style
+---
+id: triple-slash-reference
+family: check
+params: { check: triple-slash-reference }
+message: "Do not use a triple slash reference for {name}, use `import` style instead."
+description: "A `/// <reference path=\"x\" />` before the first statement, and a `/// <reference types=\"x\" />` for a module the file imports."
+example: "/// <reference path=\"a\" />   # reported"
+severity: off
+category: style
+---
+id: adjacent-overload-signatures
+family: check
+params: { check: adjacent-overloads }
+message: "All {name} signatures should be adjacent."
+description: "Overloads of one function or method (or call and construct signatures) with other members between them."
+example: "interface I { a(): void; b(): void; a(x: number): void }   # the last a is reported"
+severity: off
+category: style

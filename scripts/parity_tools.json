@@ -181,7 +181,8 @@
   "lint": {
     "yamllint": {"catalog": "yamllint", "install": {"pip": "yamllint"}},
     "eslint": {"catalog": "eslint", "install": {"npm": "eslint"}, "fetch": ["tests/conformance/fetch-js-corpus.sh"]},
-    "eslint-jsonc": {"catalog": "eslint-plugin-jsonc", "install": {"npm": "eslint-plugin-jsonc", "with": ["eslint@9"]}},
+    "typescript-eslint": {"catalog": "typescript-eslint", "install": {"npm": "typescript-eslint", "with": ["eslint@9.39.5"]}, "fetch": ["tests/conformance/fetch-js-corpus.sh"]},
+    "eslint-jsonc":{"catalog": "eslint-plugin-jsonc", "install": {"npm": "eslint-plugin-jsonc", "with": ["eslint@9"]}},
     "stylelint": {"catalog": "stylelint", "install": {"npm": "stylelint"}},
     "stylelint-scss": {"catalog": "stylelint-scss", "install": {"npm": "stylelint-scss", "with": ["stylelint@17.16.0", "postcss-scss@4.0.9"]}},
     "stylelint-less": {"catalog": "stylelint-less", "install": {"npm": "stylelint-less", "with": ["stylelint@17.16.0", "postcss-less@7.0.1"]}},

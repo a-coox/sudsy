@@ -23,6 +23,10 @@
               "$ref": "#/definitions/rule",
               "description": "`get` goes before `set` or `init`, and `add` before `remove`. The fix swaps the two accessors (not offered when a comment stands between or in them)."
             },
+            "adjacent-overload-signatures": {
+              "$ref": "#/definitions/rule",
+              "description": "Overloads of one function or method (or call and construct signatures) with other members between them."
+            },
             "ambiguous-booleans": {
               "description": "A plain `yes`, `no`, `on`, `off`, `True`, `TRUE`, `False` or `FALSE` (in the usual casings): a boolean to YAML 1.1 parsers and a string to YAML 1.2 parsers. Lowercase `true` and `false` are fine.",
               "oneOf": [
@@ -94,6 +98,10 @@
             "apt-get-yes": {
               "$ref": "#/definitions/rule",
               "description": "apt-get install without -y."
+            },
+            "array-type": {
+              "$ref": "#/definitions/rule",
+              "description": "`Array<T>`, `ReadonlyArray<T>` and `Readonly<T[]>`; write `T[]` and `readonly T[]`."
             },
             "async-suffix": {
               "$ref": "#/definitions/rule",
@@ -273,6 +281,10 @@
               "$ref": "#/definitions/rule",
               "description": "`build\\out` is the pattern `buildout`: the backslash escapes `o`. Windows-style separators never match what was meant. Reported for a backslash before a letter, digit, `_` or `-` (`\\.` and `\\#` are ordinary escapes). No fix."
             },
+            "ban-ts-comment": {
+              "$ref": "#/definitions/rule",
+              "description": "`@ts-ignore`, `@ts-nocheck` before the first statement, and `@ts-expect-error` without a description of at least three characters in a comment (`@ts-check` is allowed)."
+            },
             "block-no-empty": {
               "$ref": "#/definitions/rule",
               "description": "A rule or at-rule block with nothing in it, comments included."
@@ -343,6 +355,10 @@
             "comment-whitespace-inside": {
               "$ref": "#/definitions/rule",
               "description": "A comment whose text touches `/*` or `*/`."
+            },
+            "consistent-type-definitions": {
+              "$ref": "#/definitions/rule",
+              "description": "A type alias of an object type literal; write an `interface`."
             },
             "constant-on-right": {
               "$ref": "#/definitions/rule",
@@ -1894,6 +1910,10 @@
               "$ref": "#/definitions/rule",
               "description": "A link whose destination is empty or only `#` (markdownlint MD042)."
             },
+            "no-empty-object-type": {
+              "$ref": "#/definitions/rule",
+              "description": "The type `{}` (not in an intersection) and an interface with no members and at most one `extends`."
+            },
             "no-empty-pattern": {
               "$ref": "#/definitions/rule",
               "description": "A destructuring pattern with nothing in it (`{}`, `[]`)."
@@ -1947,9 +1967,17 @@
                 }
               ]
             },
+            "no-explicit-any": {
+              "$ref": "#/definitions/rule",
+              "description": "The `any` type."
+            },
             "no-extra-boolean-cast": {
               "$ref": "#/definitions/rule",
               "description": "`!!x` or `Boolean(x)` where the value is used as a boolean anyway (a condition, `!`, `Boolean(...)`)."
+            },
+            "no-extra-non-null-assertion": {
+              "$ref": "#/definitions/rule",
+              "description": "`a!!`, and `a!` right before `?.` (`a!?.b`, `a!?.()`)."
             },
             "no-floating-package-version": {
               "$ref": "#/definitions/rule",
@@ -2025,6 +2053,10 @@
               "$ref": "#/definitions/rule",
               "description": "A variable in the `global:` scope, other than the special variables PSScriptAnalyzer exempts (`$global:LASTEXITCODE`, `$global:ErrorActionPreference`, `$global:PSDefaultParameterValues`, ...)."
             },
+            "no-inferrable-types": {
+              "$ref": "#/definitions/rule",
+              "description": "A type annotation of a variable, parameter or property that its initial value already gives (`const a: number = 5`; not `readonly` or optional properties)."
+            },
             "no-inline-html": {
               "$ref": "#/definitions/rule",
               "description": "Raw HTML in a document (markdownlint MD033). Comments are not reported. Reported once per HTML block, not per tag."
@@ -2077,9 +2109,21 @@
               "$ref": "#/definitions/rule",
               "description": "A paragraph that starts with one to six `#` and no space reads as a heading to people but is plain text to Markdown (markdownlint MD018)."
             },
+            "no-misused-new": {
+              "$ref": "#/definitions/rule",
+              "description": "A class method `new(): C` that returns the class, an interface `new (): I` that returns the interface, and an interface method `constructor()`."
+            },
+            "no-namespace": {
+              "$ref": "#/definitions/rule",
+              "description": "A `namespace` or `module Name` declaration (not `declare module \"x\"` or `declare global`), except in a `.d.ts` file."
+            },
             "no-nested-onbuild": {
               "$ref": "#/definitions/rule",
               "description": "An ONBUILD whose instruction is ONBUILD, FROM or MAINTAINER."
+            },
+            "no-non-null-assertion": {
+              "$ref": "#/definitions/rule",
+              "description": "A non-null assertion `a!`."
             },
             "no-octal": {
               "$ref": "#/definitions/rule",
@@ -2153,6 +2197,10 @@
               "$ref": "#/definitions/rule",
               "description": "`#region` hides code behind a label. Reported on every `#region` outside a block (a region inside a block is `no-region-in-body`'s), in disabled `#if` branches too; no fix, because removing a pair is a judgment call."
             },
+            "no-require-imports": {
+              "$ref": "#/definitions/rule",
+              "description": "`require(...)` and `import x = require(...)`; a `require` declared in the file is still reported."
+            },
             "no-reserved-stage-name": {
               "$ref": "#/definitions/rule",
               "description": "A stage named `scratch` or `context`."
@@ -2196,6 +2244,10 @@
             "no-sudo": {
               "$ref": "#/definitions/rule",
               "description": "A RUN that calls sudo."
+            },
+            "no-this-alias": {
+              "$ref": "#/definitions/rule",
+              "description": "`const self = this` and `self = this` (destructuring `this` is allowed)."
             },
             "no-trailing-punctuation": {
               "$ref": "#/definitions/rule",
@@ -2327,6 +2379,10 @@
             "possible-null-dereference": {
               "$ref": "#/definitions/rule",
               "description": "A member or element access on an expression the compiler's nullable analysis says may be null. Only code under `#nullable enable` is checked. Off by default: the compiler reports the same thing as CS8602."
+            },
+            "prefer-as-const": {
+              "$ref": "#/definitions/rule",
+              "description": "A literal type that repeats the literal it is given to (`let a: 'a' = 'a'`, `'a' as 'a'`, `<'a'>'a'`); write `as const`."
             },
             "printf-variable-format": {
               "$ref": "#/definitions/rule",
@@ -3753,6 +3809,10 @@
               "$ref": "#/definitions/rule",
               "description": "A `trap` whose double-quoted command contains an expansion."
             },
+            "triple-slash-reference": {
+              "$ref": "#/definitions/rule",
+              "description": "A `/// <reference path=\"x\" />` before the first statement, and a `/// <reference types=\"x\" />` for a module the file imports."
+            },
             "tuple-element-names-in-signatures": {
               "$ref": "#/definitions/rule",
               "description": "A tuple type in the signature of a method, constructor, property, indexer, conversion operator or delegate whose elements have no names. Overrides and implementations of interface members are left alone (their names are not the member's to choose). No fix."
@@ -4864,6 +4924,7 @@
           "preset:hcl/tflint-recommended",
           "preset:ini/default",
           "preset:js/eslint-recommended",
+          "preset:js/typescript-eslint-recommended",
           "preset:json/biome",
           "preset:json/default",
           "preset:json/prettier-compat",

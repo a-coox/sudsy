@@ -1,0 +1,77 @@
+id: no-explicit-any
+message: "Unexpected any. Specify a different type."
+description: The `any` type.
+example: "let a: any;   # reported"
+severity: off
+category: suspicious
+rule: { kind: TSAnyKeyword }
+---
+id: no-non-null-assertion
+message: "Forbidden non-null assertion."
+description: "A non-null assertion `a!`."
+example: "a!.b;   # reported"
+severity: off
+category: suspicious
+rule: { kind: TSNonNullExpression }
+---
+id: no-empty-object-type
+message: "The `{}` (\"empty object\") type allows any non-nullish value, and an empty interface is equivalent to its supertype or to `{}`."
+description: "The type `{}` (not in an intersection) and an interface with no members and at most one `extends`."
+example: "type T = {};   # reported"
+severity: off
+category: suspicious
+rule:
+  any:
+    - kind: TSTypeLiteral
+      regex: '^\{(?:\s|/\*(?s:.*?)\*/|//[^\n]*)*\}'
+      not: { parent: { kind: TSIntersectionType } }
+    - kind: BindingIdentifier
+      parent:
+        kind: TSInterfaceDeclaration
+        child: { kind: TSInterfaceBody, regex: '^\{(?:\s|/\*(?s:.*?)\*/|//[^\n]*)*\}' }
+        not-has: { kind: TSInterfaceHeritage, nth: 2 }
+---
+id: no-namespace
+message: "ES2015 module syntax is preferred over namespaces."
+description: "A `namespace` or `module Name` declaration (not `declare module \"x\"` or `declare global`), except in a `.d.ts` file."
+example: "namespace N {}   # reported"
+severity: off
+category: style
+rule:
+  kind: TSNamespaceDeclaration
+  not:
+    any:
+      - { parent: { kind: TSNamespaceDeclaration } }
+      - { path: '(?i)\.d\.(?:[cm]?ts|.*\.ts)$' }
+---
+id: no-require-imports
+message: "A `require()` style import is forbidden."
+description: "`require(...)` and `import x = require(...)`; a `require` declared in the file is still reported."
+example: "const a = require('a');   # reported"
+severity: off
+category: style
+rule:
+  any:
+    - { pattern: 'require($$$A)' }
+    - { kind: TSExternalModuleReference }
+---
+id: no-this-alias
+message: "Unexpected aliasing of 'this' to local variable."
+description: "`const self = this` and `self = this` (destructuring `this` is allowed)."
+example: "const self = this;   # reported"
+severity: off
+category: style
+rule:
+  any:
+    - { kind: BindingIdentifier, parent: { kind: VariableDeclarator, child: { kind: ThisExpression } } }
+    - { kind: IdentifierReference, parent: { kind: AssignmentExpression, child: { kind: ThisExpression } } }
+---
+id: consistent-type-definitions
+message: "Use an `interface` instead of a `type`."
+description: "A type alias of an object type literal; write an `interface`."
+example: "type T = { a: 1 };   # reported"
+severity: off
+category: style
+rule:
+  kind: BindingIdentifier
+  parent: { kind: TSTypeAliasDeclaration, child: { kind: TSTypeLiteral } }

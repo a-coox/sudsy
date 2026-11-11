@@ -12,9 +12,9 @@
 use crate::generated::kind as k;
 use core_syntax::trivia::is_line_break;
 use core_syntax::{Grammar, SyntaxKind, SyntaxNode, TreeBuilder, grammars};
-use oxc_allocator::Allocator;
+use oxc_allocator::{Allocator, Vec as ArenaVec};
 use oxc_ast::AstKind;
-use oxc_ast::ast::{JSXChild, JSXExpression};
+use oxc_ast::ast::{JSXChild, JSXExpression, TemplateElement};
 use oxc_ast_visit::Visit;
 use oxc_parser::config::TokensParserConfig;
 use oxc_parser::{Kind, ParseOptions, Parser};
@@ -183,6 +183,10 @@ impl Collector {
 }
 
 impl<'a> Visit<'a> for Collector {
+    /// The quasis of a template lie inside its chunk tokens and never become nodes; visited
+    /// before the expressions they would hold back the nodes of those (which are in source order).
+    fn visit_template_elements(&mut self, _: &ArenaVec<'a, TemplateElement<'a>>) {}
+
     fn enter_node(&mut self, kind: AstKind<'a>) {
         let ty = kind.ty();
         let grammar = self.grammar;

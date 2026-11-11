@@ -1,0 +1,14 @@
+# The rules of typescript-eslint's recommended config that Sudsy has, at its severity (error).
+js:
+  lint:
+    rules:
+      ban-ts-comment: error
+      no-empty-object-type: error
+      no-explicit-any: error
+      no-extra-non-null-assertion: error
+      no-misused-new: error
+      no-namespace: error
+      no-require-imports: error
+      no-this-alias: error
+      prefer-as-const: error
+      triple-slash-reference: error

@@ -1,0 +1,6 @@
+no-explicit-any: warn
+no-empty-object-type: warn
+consistent-type-definitions: warn
+array-type: warn
+no-non-null-assertion: warn
+no-extra-non-null-assertion: warn

@@ -6,6 +6,7 @@ mod dupes;
 mod escapes;
 mod flow;
 mod misc;
+mod ts;
 
 use crate::generated::kind as k;
 use core_rules::tree::significant_range;
@@ -121,6 +122,55 @@ const CHECKS: &[Entry] = &[
         "loss-of-precision",
         &[k::NUMERIC_LITERAL],
         escapes::loss_of_precision,
+    ),
+    ("ban-ts-comment", &[k::PROGRAM], ts::ban_ts_comment),
+    (
+        "extra-non-null",
+        &[k::TS_NON_NULL_EXPRESSION],
+        ts::extra_non_null,
+    ),
+    (
+        "misused-new",
+        &[
+            k::METHOD_DEFINITION,
+            k::TS_CONSTRUCT_SIGNATURE_DECLARATION,
+            k::TS_METHOD_SIGNATURE,
+        ],
+        ts::misused_new,
+    ),
+    (
+        "prefer-as-const",
+        &[k::TS_LITERAL_TYPE],
+        ts::prefer_as_const,
+    ),
+    (
+        "inferrable-types",
+        &[
+            k::VARIABLE_DECLARATOR,
+            k::FORMAL_PARAMETER,
+            k::PROPERTY_DEFINITION,
+            k::ACCESSOR_PROPERTY,
+        ],
+        ts::inferrable_types,
+    ),
+    ("array-type", &[k::TS_TYPE_REFERENCE], ts::array_type),
+    (
+        "triple-slash-reference",
+        &[k::PROGRAM],
+        ts::triple_slash_reference,
+    ),
+    (
+        "adjacent-overloads",
+        &[
+            k::CLASS_BODY,
+            k::PROGRAM,
+            k::TS_MODULE_BLOCK,
+            k::TS_INTERFACE_BODY,
+            k::FUNCTION_BODY,
+            k::BLOCK_STATEMENT,
+            k::TS_TYPE_LITERAL,
+        ],
+        ts::adjacent_overloads,
     ),
 ];
 

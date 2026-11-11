@@ -143,9 +143,11 @@ def rule_fixtures(tool, sudsy, version, prefix, exe):
         # shellcheck and pyflakes are the shell and python checks of the scripts, which Sudsy's Shell language does
         "actionlint": ("github-actions", ".yml", [exe, "-no-color", "-format", "{{json .}}", "-shellcheck=", "-pyflakes="],
                        lambda d: (actionlint_check(d), d["line"]), lambda out: json.loads(out) or []),
-        # flat config of the catalog's rules (written below); espree parses .js, the TypeScript syntax is typescript-eslint's later
-        "eslint": ("js", ".js", ["node", f"{prefix}/node_modules/eslint/bin/eslint.js", "-c", "eslint.config.mjs", "-f", "json"],
-                   lambda d: (d["ruleId"], d["line"]), lambda out: [m for r in json.loads(out) for m in r["messages"] if m["ruleId"]]),
+        # flat config of the catalog's rules (written below); espree parses .js, typescript-eslint's parser .ts and .tsx
+        # (without type information: only the rules that need none are in the catalog's `rule:` entries)
+        **{t: ("js", suffixes, ["node", f"{prefix}/node_modules/eslint/bin/eslint.js", "-c", "eslint.config.mjs", "-f", "json", "--no-warn-ignored"],
+               lambda d: (d["ruleId"], d["line"]), lambda out: [m for r in json.loads(out) for m in r["messages"] if m["ruleId"]])
+           for t, suffixes in (("eslint", (".js",)), ("typescript-eslint", (".ts", ".tsx")))},
         # stylelint writes its JSON report to stderr; the plugins and the dialect parser come from the config written below
         **{t: (lang, "." + lang, ["node", f"{prefix}/node_modules/stylelint/bin/stylelint.mjs", "--config", "stylelint.config.mjs", "-f", "json"],
                lambda d: (d["rule"], d["line"]), lambda out: [w for r in json.loads(out) for w in r["warnings"]])
@@ -154,13 +156,22 @@ def rule_fixtures(tool, sudsy, version, prefix, exe):
                       lambda d: (d["rule"], d["line"]),
                       lambda out: [json.loads(l) for l in out.splitlines() if l.startswith("{")]),
     }[tool]
+    suffixes = (suffix,) if isinstance(suffix, str) else suffix
     mapping = rule_map(tool)
+    if tool == "typescript-eslint":  # the plugin's rules are `@typescript-eslint/<name>`, the catalog's ids the names
+        mapping = {f"@typescript-eslint/{r}": v for r, v in mapping.items()}
     folder = ROOT / "tests/parity" / tool
     work = prefix / "work"
     shutil.rmtree(work, ignore_errors=True)
     work.mkdir(parents=True)
+    rules = json.dumps({r: "error" for r in mapping})
     if tool == "eslint":
-        (work / "eslint.config.mjs").write_text(f"export default [{{ rules: {json.dumps({r: 'error' for r in mapping})} }}];\n", encoding="utf-8")
+        (work / "eslint.config.mjs").write_text(f"export default [{{ linterOptions: {{ noInlineConfig: true }}, rules: {rules} }}];\n", encoding="utf-8")
+    if tool == "typescript-eslint":
+        (work / "eslint.config.mjs").write_text(
+            'import tseslint from "typescript-eslint";\n'
+            f'export default [{{ linterOptions: {{ noInlineConfig: true }}, files: ["**/*.ts", "**/*.tsx"], languageOptions: {{ parser: tseslint.parser }}, plugins: {{ "@typescript-eslint": tseslint.plugin }}, rules: {rules} }}];\n',
+            encoding="utf-8")
     if tool.startswith("stylelint"):
         plugin = {"stylelint-scss": 'plugins: ["stylelint-scss"], customSyntax: "postcss-scss", ', "stylelint-less": 'plugins: ["stylelint-less"], customSyntax: "postcss-less", '}.get(tool, "")
         # every mapped rule runs with `true`, or with its options from `rules.json` (which `sudsy.yaml` mirrors)
@@ -171,41 +182,62 @@ def rule_fixtures(tool, sudsy, version, prefix, exe):
             shutil.copy(folder / config, work / config)
     diffs = parity_format.Differences(folder, lint=True)
     mismatches, total = 0, 0
-    sources = [(f"{s.parent.name}/{s.stem}", f"{s.parent.name}-{s.stem}{suffix}", s) for s in sorted((ROOT / "tests/rules" / lang).glob(f"*/*{suffix}"))
+    sources = [(f"{s.parent.name}/{s.stem}", f"{s.parent.name}-{s.stem}{s.suffix}", s) for suffix in suffixes for s in sorted((ROOT / "tests/rules" / lang).glob(f"*/*{suffix}"))
                if not s.with_suffix(".rules.yaml").exists()]  # a case that sets rule options: both tools run with their defaults here
     if tool == "actionlint":  # the corpus too (tests/conformance/fetch-github-actions-corpus.sh), a file per name
         corpus = ROOT / "tests/conformance/corpus/github-actions"
         sources += [(f"corpus/{p.relative_to(corpus).as_posix()}", "-".join(p.relative_to(corpus).parts), p) for p in sorted(corpus.rglob("*.y*ml")) if p.is_file()]
-    if tool == "eslint":  # the real-world corpus (tests/conformance/fetch-js-corpus.sh); Prettier's own tests include proposal syntax espree rejects
+    if tool in ("eslint", "typescript-eslint"):  # the real-world corpus (tests/conformance/fetch-js-corpus.sh); Prettier's own tests include proposal syntax the parsers reject
         corpus = ROOT / "tests/conformance/corpus/js"
-        sources += [(f"corpus/{p.relative_to(corpus).as_posix()}", "-".join(p.relative_to(corpus).parts), p) for p in sorted(corpus.rglob("*.js")) if p.is_file() and p.relative_to(corpus).parts[0] != "prettier"]
+        sources += [(f"corpus/{p.relative_to(corpus).as_posix()}", "-".join(p.relative_to(corpus).parts), p) for suffix in suffixes for p in sorted(corpus.rglob(f"*{suffix}")) if p.is_file() and p.relative_to(corpus).parts[0] != "prettier"]
     if not mapping:  # nothing to compare yet
         print(f"{len(sources)} {tool} fixtures, no catalog rule is mapped to a Sudsy rule yet ({tool} {version})")
         return 0
     # A workflow is claimed by its folder.
     where = work / ".github" / "workflows" if tool == "actionlint" else work
     where.mkdir(parents=True, exist_ok=True)
-    for label, name, source in sources:
+    def read(name, source):
+        """The fixture's name and text, annotations removed."""
         text = "".join(
             l for l in source.read_text(encoding="utf-8").splitlines(keepends=True) if not re.match(r"\s*(?:#|//)?\s*\^", l)
         )
         if tool == "eslint":  # both tools read a `.js` as a module by default: a file with `import`/`export` is one, the others are scripts
             name = str(Path(name).with_suffix(".mjs" if re.search(r"^(?:import|export)\b", text, re.M) else ".cjs"))
+        return name, text
+
+    batch, unparsed = None, set()
+    if tool in ("eslint", "typescript-eslint"):  # one ESLint run on every file: its start-up costs more than the files
+        for label, name, source in sources:
+            name, text = read(name, source)
+            (where / name).write_text(text, encoding="utf-8", newline="")
+        run = subprocess.run(command + ["."], cwd=work, capture_output=True, text=True, encoding="utf-8", check=False)
+        try:
+            results = json.loads(run.stdout)
+        except json.JSONDecodeError:
+            sys.exit(f"eslint produced no report:\n{run.stdout}\n{run.stderr}")
+        batch = {Path(r["filePath"]).name: r["messages"] for r in results}
+        unparsed = {n for n, ms in batch.items() if any(m.get("fatal") for m in ms)}
+        print(f"{len(unparsed)} of {len(batch)} files the parser rejects are left out: {' '.join(sorted(unparsed)[:5])}")
+    for label, name, source in sources:
+        name, text = read(name, source)
         fixture = where / name
-        fixture.write_text(text, encoding="utf-8", newline="")
-        rel = fixture.relative_to(work).as_posix()
-        run = subprocess.run(command + [rel], cwd=work, capture_output=True, text=True, check=False)
-        out = run.stdout or run.stderr  # stylelint reports on stderr
+        if batch is None:
+            fixture.write_text(text, encoding="utf-8", newline="")
+            run = subprocess.run(command + [fixture.relative_to(work).as_posix()], cwd=work, capture_output=True, text=True, check=False)
+            out = run.stdout or run.stderr  # stylelint reports on stderr
+        elif name in unparsed:
+            continue
         # checkmake runs every rule on every file: a fixture is compared on the rule of its folder, and
         # checkmake reports a variable (and `.PHONY`, which it reads as one) a line late.
         late = {"timestampexpanded", "minphony"} if tool == "checkmake" else set()
         # ESLint reports a column; the other tools' columns are not compared
-        found = [(parse(d), d) for d in load(out)]
-        upstream = {(mapping[c], l - (c in late), d["column"] if tool == "eslint" else 0) for (c, l), d in found if c in mapping}
-        ours = {(r, l, c if tool == "eslint" else 0) for r, l, c in sudsy_lint(sudsy, fixture, work, set(mapping.values()))}
+        found = [(parse(d), d) for d in (load(out) if batch is None else [m for m in batch.get(name, []) if m["ruleId"]])]
+        upstream = {(mapping[c], l - (c in late), d["column"] if batch is not None else 0) for (c, l), d in found if c in mapping}
+        ours = {(r, l, c if batch is not None else 0) for r, l, c in sudsy_lint(sudsy, fixture, work, set(mapping.values()))}
         if tool == "checkmake":
             upstream, ours = ({row for row in side if row[0] == source.parent.name} for side in (upstream, ours))
-        fixture.unlink()  # buf compiles the whole folder: fixtures that share a package must not meet
+        if batch is None:
+            fixture.unlink()  # buf compiles the whole folder: fixtures that share a package must not meet
         total += len(upstream)
         problems = []
         for side, rows in ((tool, upstream - ours), ("sudsy", ours - upstream)):
@@ -387,7 +419,7 @@ def main():
         return stylecop(sudsy, version)
     if tool == "psscriptanalyzer":
         return psscriptanalyzer(sudsy, version, prefix)
-    if tool in ("hadolint", "shellcheck", "checkmake", "actionlint", "buf", "eslint", "stylelint", "stylelint-scss", "stylelint-less"):
+    if tool in ("hadolint", "shellcheck", "checkmake", "actionlint", "buf", "eslint", "typescript-eslint", "stylelint", "stylelint-scss", "stylelint-less"):
         exe = parity_format.tools()["format"][config["install"]] if isinstance(config["install"], str) else config
         return rule_fixtures(tool, sudsy, version, prefix, str(parity_format.executable(prefix, exe["install"].get("exe", ""))))
     mapping = rule_map(tool)

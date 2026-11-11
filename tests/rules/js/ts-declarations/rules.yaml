@@ -1,0 +1,5 @@
+no-namespace: warn
+no-require-imports: warn
+no-misused-new: warn
+no-this-alias: warn
+adjacent-overload-signatures: warn

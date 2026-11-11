@@ -1,0 +1,10 @@
+# The Sudsy side of the comparison: the js rules that the catalog maps, which the preset and these lines enable.
+extends: [preset:js/typescript-eslint-recommended]
+js:
+  lint:
+    rules:
+      adjacent-overload-signatures: error
+      array-type: error
+      consistent-type-definitions: error
+      no-inferrable-types: error
+      no-non-null-assertion: error

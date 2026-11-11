@@ -43,6 +43,7 @@ One line per upstream rule or option under `entries:`, `<id>: <status>` or `<id>
 | taplo | 23 | 11 | 7 | 0 | 0 | 0 | 5 | 0 |
 | terraform | 2 | 1 | 1 | 0 | 0 | 0 | 0 | 0 |
 | tflint | 20 | 8 | 4 | 0 | 0 | 0 | 8 | 0 |
+| typescript-eslint | 136 | 5 | 10 | 40 | 0 | 9 | 72 | 40 |
 | yamllint | 65 | 62 | 3 | 0 | 0 | 0 | 0 | 0 |
 <!-- /generated -->
 

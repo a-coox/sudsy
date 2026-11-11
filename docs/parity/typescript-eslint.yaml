@@ -1,0 +1,77 @@
+tool: "typescript-eslint"
+version: "8.72.2"
+languages: ["js"]
+sources:
+  - "https://github.com/typescript-eslint/typescript-eslint/tree/v8.72.2/packages/eslint-plugin/src/rules"
+  - "https://typescript-eslint.io/rules/"
+scope: "all rules of @typescript-eslint/eslint-plugin, written without the prefix; the rules that read type information are deferred until the TypeScript worker exists, the ones that read declared names until the scope layer"
+entries:
+  adjacent-overload-signatures: rule adjacent-overload-signatures
+  array-type: rule array-type | only the default `array` style (`default` and `readonly` options); a local type named `Array` is still reported
+  ban-ts-comment: rule ban-ts-comment | the options (`minimumDescriptionLength`, per-directive settings, `descriptionFormat`) keep their defaults
+  ban-tslint-comment: planned
+  class-literal-property-style: planned
+  class-methods-use-this: planned
+  consistent-generic-constructors: planned
+  consistent-indexed-object-style: planned
+  consistent-type-assertions: planned
+  consistent-type-definitions: rule consistent-type-definitions | only the default `interface` style
+  default-param-last: planned
+  explicit-function-return-type: planned
+  explicit-member-accessibility: planned
+  explicit-module-boundary-types: planned
+  init-declarations: planned
+  max-params: planned
+  member-ordering: planned
+  method-signature-style: planned
+  no-array-constructor: planned
+  no-confusing-non-null-assertion: planned
+  no-dupe-class-members: planned
+  no-duplicate-enum-values: planned
+  no-dynamic-delete: planned
+  no-empty-function: planned
+  no-empty-interface: wontfix deprecated upstream
+  no-empty-object-type: rule no-empty-object-type | the options (`allowInterfaces`, `allowObjectTypes`, `allowWithName`) keep their defaults
+  no-explicit-any: rule no-explicit-any | the options (`ignoreRestArgs`, `fixToUnknown`) keep their defaults
+  no-extra-non-null-assertion: rule no-extra-non-null-assertion
+  no-extraneous-class: planned
+  no-import-type-side-effects: planned
+  no-inferrable-types: rule no-inferrable-types | the options (`ignoreParameters`, `ignoreProperties`) keep their defaults
+  no-invalid-void-type: planned
+  no-loop-func: wontfix deprecated upstream
+  no-loss-of-precision: wontfix deprecated upstream
+  no-magic-numbers: planned
+  no-misused-new: rule no-misused-new
+  no-namespace: rule no-namespace | the option `allowDeclarations` keeps its default
+  no-non-null-asserted-nullish-coalescing: planned
+  no-non-null-asserted-optional-chain: planned
+  no-non-null-assertion: rule no-non-null-assertion
+  no-require-imports: rule no-require-imports | the options (`allow`, `allowAsImport`) keep their defaults; a `require` declared in the file is still reported (needs the scope layer)
+  no-restricted-imports: wontfix deprecated upstream
+  no-restricted-types: planned
+  no-this-alias: rule no-this-alias | the options (`allowDestructuring`, `allowedNames`) keep their defaults
+  no-type-alias: wontfix deprecated upstream
+  no-unnecessary-type-constraint: planned
+  no-unsafe-function-type: planned
+  no-unused-expressions: planned
+  no-useless-constructor: planned
+  no-useless-empty-export: planned
+  no-var-requires: wontfix deprecated upstream
+  no-wrapper-object-types: planned
+  parameter-properties: planned
+  prefer-as-const: rule prefer-as-const
+  prefer-enum-initializers: planned
+  prefer-for-of: planned
+  prefer-function-type: planned
+  prefer-literal-enum-member: planned
+  prefer-namespace-keyword: planned
+  prefer-ts-expect-error: wontfix deprecated upstream
+  sort-type-constituents: wontfix deprecated upstream
+  triple-slash-reference: rule triple-slash-reference | the options (`lib`, `path`, `types`) keep their defaults
+  typedef: wontfix deprecated upstream
+  unified-signatures: planned
+deferred:
+  - gap: "needs type information from the TypeScript worker (`recommended-type-checked` and the stylistic type-checked rules)"
+    ids: [await-thenable, consistent-return, consistent-type-exports, dot-notation, naming-convention, no-array-delete, no-base-to-string, no-confusing-void-expression, no-deprecated, no-duplicate-type-constituents, no-floating-promises, no-for-in-array, no-generated-empty-object-type, no-implied-eval, no-meaningless-void-operator, no-misused-promises, no-misused-spread, no-mixed-enums, no-redundant-type-constituents, no-unnecessary-boolean-literal-compare, no-unnecessary-condition, no-unnecessary-qualifier, no-unnecessary-template-expression, no-unnecessary-type-arguments, no-unnecessary-type-assertion, no-unnecessary-type-conversion, no-unnecessary-type-parameters, no-unsafe-argument, no-unsafe-assignment, no-unsafe-call, no-unsafe-enum-assignment, no-unsafe-enum-comparison, no-unsafe-member-access, no-unsafe-return, no-unsafe-type-assertion, no-unsafe-unary-minus, no-useless-default-assignment, non-nullable-type-assertion-style, only-throw-error, prefer-destructuring, prefer-find, prefer-includes, prefer-nullish-coalescing, prefer-optional-chain, prefer-promise-reject-errors, prefer-readonly, prefer-readonly-parameter-types, prefer-reduce-type-parameter, prefer-regexp-exec, prefer-return-this-type, prefer-string-starts-ends-with, promise-function-async, related-getter-setter-pairs, require-array-sort-compare, require-await, restrict-plus-operands, restrict-template-expressions, return-await, strict-boolean-expressions, strict-void-return, switch-exhaustiveness-check, unbound-method, use-unknown-in-catch-callback-variable]
+  - gap: "needs scope analysis (oxc_semantic), docs/design/wave-3b-js.md step 15"
+    ids: [consistent-type-imports, no-invalid-this, no-redeclare, no-shadow, no-unnecessary-parameter-property-assignment, no-unsafe-declaration-merging, no-unused-private-class-members, no-unused-vars, no-use-before-define]

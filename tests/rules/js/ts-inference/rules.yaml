@@ -1,0 +1,2 @@
+prefer-as-const: warn
+no-inferrable-types: warn
