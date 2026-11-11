@@ -92,10 +92,13 @@ impl Analysis {
             std::thread::spawn(move || {
                 for Job { id, cancel, work } in queue {
                     let result = match cancel.error() {
-                        Some(e) => Err(e),
+                        Some(e) => {
+                            drop(work);
+                            Err(e)
+                        }
                         None => match Cancelled::catch(AssertUnwindSafe(|| work(&cancel))) {
-                            // A config reload cancelled the queries under it.
-                            Err(_) => Err(superseded()),
+                            // A config reload cancelled the queries under it; a client cancel still wins.
+                            Err(_) => Err(cancel.error().unwrap_or_else(superseded)),
                             Ok(value) => cancel.error().map_or(Ok(value), Err),
                         },
                     };
