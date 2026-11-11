@@ -56,6 +56,9 @@ pub struct ListStyle {
     /// The closing delimiter follows the last item on its line when the list breaks (unless
     /// comments stand in front of it).
     pub hug_close: bool,
+    /// The separator when the list breaks, if not `separator` (TypeScript members: `;` on one
+    /// line, none or `;` per the `semi` option on several).
+    pub broken_separator: Option<&'static str>,
 }
 
 impl Default for ListStyle {
@@ -71,6 +74,7 @@ impl Default for ListStyle {
             expand_empty: false,
             force_blank: None,
             hug_close: false,
+            broken_separator: None,
         }
     }
 }
@@ -110,19 +114,31 @@ fn list_of(
     style: &ListStyle,
 ) -> Result<Doc, FormatError> {
     let g = cx.grammar;
-    // The separator goes right after the last item and its trailing comments after the separator:
+    // The separator goes right after an item and its trailing comments after the separator:
     // `b, // c` and `b, /* c */` whether or not the source had a comma.
-    let tail = c
-        .slots
-        .last()
-        .filter(|_| style.trailing_comma != TrailingComma::Never)
-        .and_then(|s| cx.last_token(&s.node))
-        .filter(|t| comments::has_trailing_comment(g, t));
-    if let Some(t) = &tail {
-        cx.detach_trailing(t);
+    let count = c.slots.len();
+    // Sparse (no allocation for a list without such comments): the slot and its last token.
+    let mut tails: Vec<(usize, SyntaxToken)> = Vec::new();
+    for (i, s) in c.slots.iter().enumerate() {
+        let keeps = if i + 1 < count {
+            s.sep.is_none()
+        } else {
+            style.trailing_comma != TrailingComma::Never
+        };
+        if let Some(t) = keeps
+            .then(|| cx.last_token(&s.node))
+            .flatten()
+            .filter(|t| comments::has_trailing_comment(g, t))
+        {
+            cx.detach_trailing(&t);
+            tails.push((i, t));
+        }
     }
     let mut items = render_slots(cx, &c.slots)?;
-    let mut tail_comments = tail.as_ref().map_or(Doc::Nil, |t| cx.reattach_trailing(t));
+    let mut tail_comments: Vec<(usize, Doc)> = tails
+        .iter()
+        .map(|(i, t)| (*i, cx.reattach_trailing(t)))
+        .collect();
     let dangling = comments::leading_comments(g, &c.close);
     let open_comments = !comments::trailing_comments(g, &c.open).is_empty();
     // Comments before the opening and after the closing delimiter belong outside the group: a
@@ -165,7 +181,11 @@ fn list_of(
         (doc::line(), doc::softline())
     };
     let pad = if style.padding { line.clone() } else { soft };
-    let sep = doc::lit(style.separator);
+    let broken = style.broken_separator.unwrap_or(style.separator);
+    let sep = match style.broken_separator {
+        Some(b) => doc::if_break(doc::lit(b), doc::lit(style.separator)),
+        None => doc::lit(style.separator),
+    };
     let last = items.len().saturating_sub(1);
     let mut inner = Vec::new();
     if !items.is_empty() || c.prefix.is_some() {
@@ -187,13 +207,22 @@ fn list_of(
             ));
         }
         inner.push(std::mem::replace(&mut items[i].doc, Doc::Nil));
+        let own_sep = !style.separator.is_empty()
+            && items[i].verbatim
+            && cx
+                .last_token(&items[i].last)
+                .is_some_and(|t| t.text() == style.separator);
         inner.push(match (i == last, style.trailing_comma) {
+            _ if own_sep => Doc::Nil,
             (false, _) => sep.clone(),
             (true, TrailingComma::Never) => Doc::Nil,
-            (true, TrailingComma::WhenBroken) => doc::if_break(sep.clone(), Doc::Nil),
+            (true, TrailingComma::WhenBroken) => doc::if_break(doc::lit(broken), Doc::Nil),
         });
-        if i == last && !tail_comments.is_nil() {
-            inner.push(std::mem::replace(&mut tail_comments, Doc::Nil));
+        if let Some((_, d)) = tail_comments
+            .iter_mut()
+            .find(|(j, d)| *j == i && !d.is_nil())
+        {
+            inner.push(std::mem::replace(d, Doc::Nil));
         }
         inner.push(separator_comments(cx, &items[i]));
     }

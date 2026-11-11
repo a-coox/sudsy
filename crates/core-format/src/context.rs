@@ -99,6 +99,9 @@ pub struct FormatCtx<'a> {
     /// Tokens whose trailing comments a shape prints itself, with the comments once the token
     /// was printed.
     detached: Mutex<Vec<(TextSize, Option<Vec<Comment>>)>>,
+    /// Like `detached` for the whole run: the comments are read, not taken, so a document that
+    /// was cached while they were held back stays right when it is used again.
+    held: Mutex<Vec<(TextSize, Option<Vec<Comment>>)>>,
     /// A provider's per-run data derived from the options (see [`FormatCtx::cached`]).
     cache: std::sync::OnceLock<Box<dyn std::any::Any + Send + Sync>>,
     /// Documents of nodes formatted for a layout, by node and flags (see [`FormatCtx::layout`]).
@@ -120,6 +123,7 @@ impl<'a> FormatCtx<'a> {
             comment_style: formatter.comment_style(options),
             line_breaks: Mutex::new(None),
             detached: Mutex::new(Vec::new()),
+            held: Mutex::new(Vec::new()),
             cache: std::sync::OnceLock::new(),
             layouts: Mutex::new(HashMap::new()),
         }
@@ -328,6 +332,12 @@ impl<'a> FormatCtx<'a> {
         let cs = comments::trailing_comments(self.grammar, tok);
         if !cs.is_empty() {
             let at = tok.text_range().start();
+            let mut held = self.held.lock().expect("held lock");
+            if let Some(h) = held.iter_mut().find(|h| h.0 == at) {
+                h.1 = Some(cs);
+                return Vec::new();
+            }
+            drop(held);
             let mut detached = self.detached.lock().expect("detached lock");
             if let Some(d) = detached.iter_mut().find(|d| d.0 == at) {
                 d.1 = Some(cs);
@@ -342,6 +352,29 @@ impl<'a> FormatCtx<'a> {
     pub fn detach_trailing(&self, tok: &SyntaxToken) {
         let mut detached = self.detached.lock().expect("detached lock");
         detached.push((tok.text_range().start(), None));
+    }
+
+    /// [`FormatCtx::detach_trailing`] for the rest of the run, ended by nothing: read the comments
+    /// with [`FormatCtx::held_trailing`] as often as needed.
+    pub fn hold_trailing(&self, tok: &SyntaxToken) {
+        let at = tok.text_range().start();
+        let mut held = self.held.lock().expect("held lock");
+        if !held.iter().any(|h| h.0 == at) {
+            held.push((at, None));
+        }
+    }
+
+    /// The comments [`FormatCtx::hold_trailing`] held back, as the printed trailing comments of the
+    /// token; nothing when the token was not printed through the context.
+    pub fn held_trailing(&self, tok: &SyntaxToken) -> Doc {
+        let at = tok.text_range().start();
+        let held = self.held.lock().expect("held lock");
+        held.iter()
+            .find(|h| h.0 == at)
+            .and_then(|h| h.1.as_ref())
+            .map_or(Doc::Nil, |cs| {
+                trailing_comments_doc(&self.comment_style, cs)
+            })
     }
 
     /// Ends [`FormatCtx::detach_trailing`]: the comments of a token that was printed without them

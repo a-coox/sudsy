@@ -52,7 +52,7 @@ pub(super) fn format(node: &SyntaxNode, cx: &FormatCtx<'_>) -> Result<Option<Doc
                 concat(vec![head, semi(cx, node)])
             }
         }
-        k::TS_MODULE_BLOCK => shapes::block(cx, node, &BlockStyle::default())?,
+        k::TS_MODULE_BLOCK => shapes::block_open_inside(cx, node, &BlockStyle::default())?,
         k::TS_IMPORT_EQUALS_DECLARATION
         | k::TS_EXPORT_ASSIGNMENT
         | k::TS_NAMESPACE_EXPORT_DECLARATION => {
@@ -91,6 +91,11 @@ fn signature(node: &SyntaxNode, cx: &FormatCtx<'_>) -> R {
 fn members(node: &SyntaxNode, cx: &FormatCtx<'_>, layout: ListLayout) -> R {
     let style = ListStyle {
         separator: ";",
+        broken_separator: Some(if super::super::util::style(cx).semi {
+            ";"
+        } else {
+            ""
+        }),
         padding: true,
         trailing_comma: TrailingComma::WhenBroken,
         layout,

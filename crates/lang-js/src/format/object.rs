@@ -60,7 +60,10 @@ fn items(
             SyntaxElement::Node(n) if n.kind() == k::ELISION => {
                 items.push(Item {
                     node: None,
-                    comma: None,
+                    comma: n
+                        .children_with_tokens()
+                        .filter_map(|c| c.into_token())
+                        .find(|t| !cx.grammar.is_trivia(t.kind())),
                 });
                 open_item = false;
             }
@@ -95,7 +98,11 @@ fn printed(cx: &FormatCtx<'_>, items: &[Item]) -> Result<Vec<(Doc, bool)>, Forma
             None => Doc::Nil,
         };
         if let Some(c) = &item.comma {
-            d = concat(vec![d, cx.trailing_comments_doc(c)]);
+            d = concat(vec![
+                d,
+                cx.leading_comments_doc(c),
+                cx.trailing_comments_doc(c),
+            ]);
         }
         let blank = items
             .get(i + 1)

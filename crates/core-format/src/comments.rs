@@ -486,6 +486,31 @@ pub fn node_leading(g: &Grammar, node: &SyntaxNode) -> NodeLeading {
     }
 }
 
+/// Is there a comment among the trivia at the end of `node`, after its last significant token?
+/// Walks the green tree backwards without creating tokens, so it can ask this of every node.
+pub fn comment_at_end(g: &Grammar, node: &SyntaxNode) -> bool {
+    fn down(g: &Grammar, node: &rowan::GreenNodeData) -> ControlFlow<bool> {
+        for child in node.children().rev() {
+            let (kind, flow) = match child {
+                rowan::NodeOrToken::Token(t) => (SyntaxKind(t.kind().0), None),
+                rowan::NodeOrToken::Node(n) if !is_trivia(g, SyntaxKind(n.kind().0)) => {
+                    (SyntaxKind(n.kind().0), Some(down(g, n)))
+                }
+                rowan::NodeOrToken::Node(n) => (SyntaxKind(n.kind().0), None),
+            };
+            if let Some(flow) = flow {
+                flow?;
+            } else if !is_trivia(g, kind) {
+                return ControlFlow::Break(false);
+            } else if is_comment_like(g, kind) {
+                return ControlFlow::Break(true);
+            }
+        }
+        ControlFlow::Continue(())
+    }
+    matches!(down(g, &node.green()), ControlFlow::Break(true))
+}
+
 /// Calls `visit` with the tokens of `node` in document order until it returns `Break`.
 fn walk_node<B>(
     g: &Grammar,

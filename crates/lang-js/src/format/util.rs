@@ -230,6 +230,22 @@ pub(crate) fn braces(
     ]))
 }
 
+/// `()` that may hold block comments: they sit against the parentheses, `(/* c */)`.
+pub(crate) fn empty_pair(cx: &FormatCtx<'_>, open: &SyntaxToken, close: &SyntaxToken) -> Doc {
+    let inside = core_format::comments::trailing_comments(cx.grammar, open);
+    if inside.is_empty()
+        || inside
+            .iter()
+            .any(|c| c.kind != core_format::comments::CommentKind::Block)
+    {
+        return concat(vec![cx.token(open), cx.token(close)]);
+    }
+    let mut parts = vec![cx.leading_comments_doc(open), cx.token_text(open)];
+    parts.extend(inside.iter().map(core_format::context::comment_doc));
+    parts.push(cx.token(close));
+    concat(parts)
+}
+
 /// A statement without its own `;` holds a trailing comment on its last token; it is printed
 /// after the `;` the output adds (`reattach_asi`), not inside the expression, whose groups it
 /// would break.

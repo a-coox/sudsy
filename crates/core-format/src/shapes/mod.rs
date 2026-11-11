@@ -8,7 +8,8 @@ mod key_value;
 mod list;
 
 pub use block::{
-    BlockStyle, block, block_between, document, statement_sequence, statement_sequence_with,
+    BlockStyle, block, block_between, block_open_inside, document, statement_sequence,
+    statement_sequence_with,
 };
 pub use chain::{
     MemberChain, binary_chain, ends_in_line_comment, gap_after_operator, member_chain,
@@ -132,6 +133,8 @@ pub(crate) struct Rendered {
     /// Blank lines the source has before the item (see [`comments::blank_lines_before`]).
     blank_before: usize,
     doc: Doc,
+    /// Kept as written by an ignore comment: it ends with its own separator when the source had one.
+    verbatim: bool,
     /// Separator after the last item of the run.
     sep: Option<SyntaxToken>,
 }
@@ -185,6 +188,7 @@ pub(crate) fn render_slots(
                 last: slots[j].node.clone(),
                 blank_before,
                 doc: cx.verbatim_range(&tok, &last),
+                verbatim: true,
                 sep: slots[j].sep.clone(),
             });
             i = j + 1;
@@ -194,6 +198,7 @@ pub(crate) fn render_slots(
                 last: slots[i].node.clone(),
                 blank_before,
                 doc: cx.format(&slots[i].node)?,
+                verbatim: mark == Some(IgnoreMark::Ignore),
                 sep: slots[i].sep.clone(),
             });
             i += 1;

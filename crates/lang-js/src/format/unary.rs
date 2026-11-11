@@ -133,7 +133,7 @@ fn return_or_throw(node: &SyntaxNode, cx: &FormatCtx<'_>) -> R {
     let arg_u = un(arg);
     let asi = super::util::detach_asi(cx, node);
     let printed = cx.format(arg)?;
-    let body = if has_leading_own_line_comment(cx, arg) {
+    let body = if has_leading_own_line_comment(cx, &arg_u) {
         concat(vec![
             lit(" ("),
             indent(concat(vec![hardline(), printed])),
