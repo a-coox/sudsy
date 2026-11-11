@@ -51,7 +51,7 @@ fn every_tool_fixture_migrates_to_a_loadable_config() {
         );
         tools += 1;
     }
-    assert_eq!(tools, 6);
+    assert_eq!(tools, 7);
 }
 
 #[test]
@@ -85,6 +85,19 @@ fn a_javascript_eslint_config_is_refused_with_an_explanation() {
         text(&out.stderr)
     );
     assert!(!t.path().join("sudsy.yaml").exists());
+}
+
+#[test]
+fn a_javascript_stylelint_config_is_refused_with_an_explanation() {
+    let t = tempfile::tempdir().unwrap();
+    fs::write(t.path().join("stylelint.config.js"), "export default {};\n").unwrap();
+    let out = sudsy(t.path(), &["init", "--from", "stylelint"]);
+    assert_eq!(out.status.code(), Some(2));
+    assert!(
+        text(&out.stderr).contains("stylelint.config.js is JavaScript"),
+        "{}",
+        text(&out.stderr)
+    );
 }
 
 #[test]

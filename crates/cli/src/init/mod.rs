@@ -9,6 +9,7 @@ mod out;
 mod prettier;
 mod sources;
 mod stylecop;
+mod stylelint;
 mod yamllint;
 
 use anyhow::{Context, Result, bail};
@@ -24,6 +25,7 @@ enum Tool {
     Biome,
     EslintJsonc,
     Stylecop,
+    Stylelint,
     Csharpier,
 }
 
@@ -183,6 +185,31 @@ fn migrate(tool: Tool) -> Result<(Out, String)> {
                 out.note(format!("{} is JavaScript and was not read", js.display()));
             }
             eslint::migrate(&config, &mut out).with_context(|| source.clone())?;
+            Ok((out, source))
+        }
+        Tool::Stylelint => {
+            let mut out = Out::new("stylelint");
+            let (config, source) = match sources::find(&stylelint::FILES) {
+                Some(path) => (sources::parse(&path)?, path.display().to_string()),
+                None => match sources::package_json_key("stylelint")? {
+                    Some(v) => (v, "package.json".to_string()),
+                    None => match sources::find(&stylelint::JS_CONFIGS) {
+                        Some(p) => bail!(
+                            "{} is JavaScript and cannot be read without running it; only JSON/YAML configs (.stylelintrc, .stylelintrc.json/.yaml/.yml, package.json \"stylelint\") are supported. Write the rules by hand: docs/parity/stylelint.yaml maps each rule",
+                            p.display()
+                        ),
+                        None => bail!("{}", found("stylelint", &stylelint::FILES)),
+                    },
+                },
+            };
+            if let Some(js) = sources::find(&stylelint::JS_CONFIGS) {
+                out.note(format!("{} is JavaScript and was not read", js.display()));
+            }
+            stylelint::migrate(&config, &mut out).with_context(|| source.clone())?;
+            if Path::new(stylelint::IGNORE_FILE).is_file() {
+                let text = sources::read(Path::new(stylelint::IGNORE_FILE))?;
+                stylelint::ignore_file(&text, &mut out);
+            }
             Ok((out, source))
         }
         Tool::Stylecop => {

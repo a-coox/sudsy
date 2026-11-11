@@ -68,6 +68,24 @@ impl Out {
         self.put(&[lang, "lint", "rules", rule, "options", name], value);
     }
 
+    /// The catalog entry of an upstream setting; an unknown one is listed as not migrated.
+    pub fn entry(&mut self, id: &str, unknown: &str) -> Option<&'static catalog::Entry> {
+        let entry = catalog::find(self.tool, id);
+        if entry.is_none() {
+            self.skip_why(id, unknown);
+        }
+        entry
+    }
+
+    /// Adds a glob to the top-level `exclude`.
+    pub fn exclude(&mut self, pattern: &str) {
+        let list = self
+            .cfg
+            .entry("exclude")
+            .or_insert_with(|| Value::Array(vec![]));
+        list.as_array_mut().expect("array").push(pattern.into());
+    }
+
     /// Lists a setting that cannot be migrated, with the catalog's reason.
     pub fn skip(&mut self, id: &str) {
         let why = catalog::reason(self.tool, id);

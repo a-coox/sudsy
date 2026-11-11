@@ -12,3 +12,6 @@ overrides:
   - files: "*.md"
     options:
       tabWidth: 2
+quoteProps: consistent
+arrowParens: avoid
+bracketSameLine: true

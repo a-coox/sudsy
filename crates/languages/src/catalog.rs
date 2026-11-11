@@ -117,6 +117,9 @@ pub fn all() -> &'static [Catalog] {
         "roslynator",
         "shfmt",
         "stylecop",
+        "stylelint",
+        "stylelint-less",
+        "stylelint-scss",
         "taplo",
         "yamllint"
     )
@@ -132,8 +135,16 @@ pub fn entries(tool: &str) -> &'static [Entry] {
 
 /// The entry for an upstream setting. Some entries name several settings (`a / b`, `a, b`).
 pub fn find(tool: &str, id: &str) -> Option<&'static Entry> {
-    entries(tool)
+    // A tool's plugin catalogs (`stylelint-scss` for `stylelint`) are searched with its own.
+    all()
         .iter()
+        .filter(|c| {
+            c.tool == tool
+                || c.tool
+                    .strip_prefix(tool)
+                    .is_some_and(|r| r.starts_with('-'))
+        })
+        .flat_map(|c| &c.entries)
         .find(|e| e.id == id || e.id.split([',', '/']).any(|part| part.trim() == id))
 }
 

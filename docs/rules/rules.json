@@ -643,7 +643,13 @@
         }
       ],
       "presets": [],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "at-rule-allowed-list",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "style",
@@ -678,7 +684,13 @@
         }
       ],
       "presets": [],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "at-rule-disallowed-list",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "suspicious",
@@ -720,7 +732,13 @@
         "css/stylelint-recommended",
         "css/stylelint-recommended"
       ],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "block-no-empty",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "style",
@@ -763,7 +781,13 @@
         "css/stylelint-standard",
         "css/stylelint-standard"
       ],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "color-hex-length",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "style",
@@ -801,7 +825,13 @@
       ],
       "options": [],
       "presets": [],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "color-no-hex",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "correctness",
@@ -838,7 +868,13 @@
         "css/stylelint-recommended",
         "css/stylelint-recommended"
       ],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "color-no-invalid-hex",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "suspicious",
@@ -880,7 +916,13 @@
         "css/stylelint-recommended",
         "css/stylelint-recommended"
       ],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "comment-no-empty",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "style",
@@ -917,7 +959,13 @@
         "css/stylelint-standard",
         "css/stylelint-standard"
       ],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "comment-whitespace-inside",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "style",
@@ -956,7 +1004,13 @@
         "css/stylelint-standard",
         "css/stylelint-standard"
       ],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "container-name-pattern",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "style",
@@ -995,7 +1049,13 @@
         "css/stylelint-standard",
         "css/stylelint-standard"
       ],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "custom-media-pattern",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "correctness",
@@ -1027,7 +1087,13 @@
         "css/stylelint-recommended",
         "css/stylelint-recommended"
       ],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "custom-property-no-missing-var-function",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "style",
@@ -1066,7 +1132,13 @@
         "css/stylelint-standard",
         "css/stylelint-standard"
       ],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "custom-property-pattern",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "suspicious",
@@ -1098,7 +1170,13 @@
         "css/stylelint-recommended",
         "css/stylelint-recommended"
       ],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "declaration-block-no-duplicate-custom-properties",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "suspicious",
@@ -1137,7 +1215,13 @@
         "css/stylelint-recommended",
         "css/stylelint-recommended"
       ],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "declaration-block-no-duplicate-properties",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "suspicious",
@@ -1169,7 +1253,13 @@
         "css/stylelint-recommended",
         "css/stylelint-recommended"
       ],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "declaration-block-no-shorthand-property-overrides",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "style",
@@ -1213,7 +1303,13 @@
         "css/stylelint-standard",
         "css/stylelint-standard"
       ],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "declaration-block-single-line-max-declarations",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "style",
@@ -1251,7 +1347,13 @@
       ],
       "options": [],
       "presets": [],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "declaration-no-important",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "style",
@@ -1288,7 +1390,13 @@
         "css/stylelint-standard",
         "css/stylelint-standard"
       ],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "font-family-name-quotes",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "suspicious",
@@ -1320,7 +1428,13 @@
         "css/stylelint-recommended",
         "css/stylelint-recommended"
       ],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "font-family-no-duplicate-names",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "correctness",
@@ -1357,7 +1471,13 @@
         "css/stylelint-recommended",
         "css/stylelint-recommended"
       ],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "font-family-no-missing-generic-family-keyword",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "style",
@@ -1392,7 +1512,13 @@
         }
       ],
       "presets": [],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "function-allowed-list",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "correctness",
@@ -1444,7 +1570,13 @@
         "css/stylelint-recommended",
         "css/stylelint-recommended"
       ],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "function-calc-no-unspaced-operator",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "style",
@@ -1479,7 +1611,13 @@
         }
       ],
       "presets": [],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "function-disallowed-list",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "correctness",
@@ -1511,7 +1649,13 @@
         "css/stylelint-recommended",
         "css/stylelint-recommended"
       ],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "function-linear-gradient-no-nonstandard-direction",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "style",
@@ -1548,7 +1692,13 @@
         "css/stylelint-standard",
         "css/stylelint-standard"
       ],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "function-name-case",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "style",
@@ -1580,7 +1730,13 @@
         "css/stylelint-standard",
         "css/stylelint-standard"
       ],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "function-url-quotes",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "style",
@@ -1612,7 +1768,13 @@
         "css/stylelint-standard",
         "css/stylelint-standard"
       ],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "import-notation",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "suspicious",
@@ -1644,7 +1806,13 @@
         "css/stylelint-recommended",
         "css/stylelint-recommended"
       ],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "keyframe-block-no-duplicate-selectors",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "correctness",
@@ -1676,7 +1844,13 @@
         "css/stylelint-recommended",
         "css/stylelint-recommended"
       ],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "keyframe-declaration-no-important",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "style",
@@ -1713,7 +1887,13 @@
         "css/stylelint-standard",
         "css/stylelint-standard"
       ],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "keyframe-selector-notation",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "style",
@@ -1752,7 +1932,13 @@
         "css/stylelint-standard",
         "css/stylelint-standard"
       ],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "keyframes-name-pattern",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "style",
@@ -1791,7 +1977,13 @@
         "css/stylelint-standard",
         "css/stylelint-standard"
       ],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "layer-name-pattern",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "style",
@@ -1833,7 +2025,13 @@
         "css/stylelint-standard",
         "css/stylelint-standard"
       ],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "length-zero-no-unit",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "style",
@@ -1868,7 +2066,13 @@
         }
       ],
       "presets": [],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "max-nesting-depth",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "style",
@@ -1903,7 +2107,13 @@
         }
       ],
       "presets": [],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "media-feature-name-allowed-list",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "style",
@@ -1938,7 +2148,13 @@
         }
       ],
       "presets": [],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "media-feature-name-disallowed-list",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "correctness",
@@ -1975,7 +2191,13 @@
         "css/stylelint-recommended",
         "css/stylelint-recommended"
       ],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "named-grid-areas-no-invalid",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "suspicious",
@@ -2012,7 +2234,13 @@
         "css/stylelint-recommended",
         "css/stylelint-recommended"
       ],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "no-descending-specificity",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "suspicious",
@@ -2044,7 +2272,13 @@
         "css/stylelint-recommended",
         "css/stylelint-recommended"
       ],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "no-duplicate-at-import-rules",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "suspicious",
@@ -2081,7 +2315,13 @@
         "css/stylelint-recommended",
         "css/stylelint-recommended"
       ],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "no-duplicate-selectors",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "suspicious",
@@ -2100,7 +2340,13 @@
         "css/stylelint-recommended",
         "css/stylelint-recommended"
       ],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "no-empty-source",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "correctness",
@@ -2132,7 +2378,13 @@
         "css/stylelint-recommended",
         "css/stylelint-recommended"
       ],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "no-invalid-double-slash-comments",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "correctness",
@@ -2164,7 +2416,13 @@
         "css/stylelint-recommended",
         "css/stylelint-recommended"
       ],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "no-invalid-position-at-import-rule",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "correctness",
@@ -2201,7 +2459,13 @@
         "css/stylelint-recommended",
         "css/stylelint-recommended"
       ],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "no-invalid-position-declaration",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "style",
@@ -2245,7 +2509,13 @@
         "css/stylelint-standard",
         "css/stylelint-standard"
       ],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "number-max-precision",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "style",
@@ -2285,7 +2555,13 @@
         }
       ],
       "presets": [],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "property-allowed-list",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "style",
@@ -2320,7 +2596,13 @@
         }
       ],
       "presets": [],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "property-disallowed-list",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "correctness",
@@ -2357,7 +2639,13 @@
         "css/stylelint-recommended",
         "css/stylelint-recommended"
       ],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "selector-anb-no-unmatchable",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "style",
@@ -2392,7 +2680,13 @@
         }
       ],
       "presets": [],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "selector-attribute-name-disallowed-list",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "style",
@@ -2427,7 +2721,13 @@
         }
       ],
       "presets": [],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "selector-attribute-operator-allowed-list",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "style",
@@ -2462,7 +2762,13 @@
         }
       ],
       "presets": [],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "selector-attribute-operator-disallowed-list",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "style",
@@ -2499,7 +2805,13 @@
         "css/stylelint-standard",
         "css/stylelint-standard"
       ],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "selector-attribute-quotes",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "style",
@@ -2543,7 +2855,13 @@
         "css/stylelint-standard",
         "css/stylelint-standard"
       ],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "selector-class-pattern",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "style",
@@ -2578,7 +2896,13 @@
         }
       ],
       "presets": [],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "selector-combinator-allowed-list",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "style",
@@ -2613,7 +2937,13 @@
         }
       ],
       "presets": [],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "selector-combinator-disallowed-list",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "style",
@@ -2648,7 +2978,13 @@
         }
       ],
       "presets": [],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "selector-disallowed-list",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "style",
@@ -2687,7 +3023,13 @@
         "css/stylelint-standard",
         "css/stylelint-standard"
       ],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "selector-id-pattern",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "style",
@@ -2722,7 +3064,13 @@
         }
       ],
       "presets": [],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "selector-max-attribute",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "style",
@@ -2757,7 +3105,13 @@
         }
       ],
       "presets": [],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "selector-max-class",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "style",
@@ -2792,7 +3146,13 @@
         }
       ],
       "presets": [],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "selector-max-combinators",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "style",
@@ -2827,7 +3187,13 @@
         }
       ],
       "presets": [],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "selector-max-compound-selectors",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "style",
@@ -2862,7 +3228,13 @@
         }
       ],
       "presets": [],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "selector-max-id",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "style",
@@ -2897,7 +3269,13 @@
         }
       ],
       "presets": [],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "selector-max-pseudo-class",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "style",
@@ -2932,7 +3310,13 @@
         }
       ],
       "presets": [],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "selector-max-type",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "style",
@@ -2967,7 +3351,13 @@
         }
       ],
       "presets": [],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "selector-max-universal",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "style",
@@ -2995,7 +3385,13 @@
       ],
       "options": [],
       "presets": [],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "selector-no-qualifying-type",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "style",
@@ -3030,7 +3426,13 @@
         }
       ],
       "presets": [],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "selector-pseudo-class-allowed-list",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "style",
@@ -3065,7 +3467,13 @@
         }
       ],
       "presets": [],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "selector-pseudo-class-disallowed-list",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "style",
@@ -3100,7 +3508,13 @@
         }
       ],
       "presets": [],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "selector-pseudo-element-allowed-list",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "style",
@@ -3132,7 +3546,13 @@
         "css/stylelint-standard",
         "css/stylelint-standard"
       ],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "selector-pseudo-element-colon-notation",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "style",
@@ -3167,7 +3587,13 @@
         }
       ],
       "presets": [],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "selector-pseudo-element-disallowed-list",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "style",
@@ -3204,7 +3630,13 @@
         "css/stylelint-standard",
         "css/stylelint-standard"
       ],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "selector-type-case",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "style",
@@ -3246,7 +3678,13 @@
         "css/stylelint-standard",
         "css/stylelint-standard"
       ],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "shorthand-property-no-redundant-values",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "style",
@@ -3281,7 +3719,13 @@
         }
       ],
       "presets": [],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "unit-allowed-list",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "style",
@@ -3331,7 +3775,13 @@
         }
       ],
       "presets": [],
-      "upstream": []
+      "upstream": [
+        {
+          "id": "unit-disallowed-list",
+          "partial": false,
+          "tool": "stylelint"
+        }
+      ]
     },
     {
       "category": "suspicious",
