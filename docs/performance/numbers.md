@@ -7,6 +7,7 @@ Machine unless noted: AMD Ryzen 5 3600 (6 cores / 12 threads), 32 GB, Windows 11
 |---|---|
 | JSON 11.1 MB phases: parse / layout / print / re-parse / compare | 304 / 1136 / 259 / 408 / 122 ms; whole 5.9 MB/s at 4x |
 | JSON one line 1.1 MB | 386 ms (2.9 MB/s) |
+| CSS / SCSS / Less parse (`lang-css`, hand-written lexer and parser building the tree; corpus of `tests/conformance/fetch-css-corpus.sh`, release, 5 passes over the files in memory) | css 1987 KB 14.8 MB/s, scss 653 KB 17.8 MB/s, less 1254 KB 15.8 MB/s. Instruction counts: `perf-bench fixed css parse` (`bench.sh`, inputs `bench/inputs/css`, 116 KB) |
 | YAML 5.0 MB phases: parse / layout / print / re-parse / compare / data model | 522 / 1655 / 202 / 499 / 194 / 732 ms; whole 1.6 MB/s at 4x |
 | TOML (tree-sitter) 5.5 MB generated (`perf-bench toml`) phases: parse / layout / print / re-parse / compare | 2337 / 558 / 142 / 2348 / 69 ms; whole 1.0 MB/s at 4x (parse 2.3 MB/s; 4.1 MB/s on 512 real `Cargo.toml` files in an earlier spike). Tree-sitter is two thirds of the parse, the adapter one third (spike). |
 | XML (tree-sitter, `lang-xml`) 9.0 MB generated project file (`perf-bench xml`) phases: parse / layout / print / re-parse / compare / attribute check | 4429 / 1704 / 215 / 4796 / 130 / 530 ms; whole 1.4 MB/s at 1x-16x (linear; parse 2.0 MB/s). Slicing the text between tags from the file root instead of the element made the format phase quadratic (rowan walks every token of the file per slice). |

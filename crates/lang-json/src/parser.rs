@@ -6,8 +6,7 @@
 
 use crate::generated::kind as k;
 use crate::lexer::{LexError, Token, lex};
-use core_syntax::trivia::is_line_break;
-use core_syntax::{SyntaxKind, SyntaxNode, TreeBuilder};
+use core_syntax::{SyntaxKind, SyntaxNode, TreeBuilder, trivia};
 use provider_api::ParseError;
 use std::ops::Range;
 
@@ -79,35 +78,15 @@ fn is_trivia(kind: SyntaxKind) -> bool {
 
 impl<'a> Parser<'a> {
     fn new(src: &'a str, tokens: Vec<Token>, dialect: Dialect) -> Self {
-        let real: Vec<usize> = (0..tokens.len())
-            .filter(|&i| !is_trivia(tokens[i].kind))
-            .collect();
-        let mut leading = Vec::with_capacity(real.len());
-        let mut trailing = Vec::with_capacity(real.len());
-        let mut prev_end = 0; // index after the previous real token
-        for &r in &real {
-            // Trivia tokens prev_end..r: the rest of the previous token's line is trailing.
-            let run = prev_end..r;
-            let cut = if prev_end == 0 {
-                run.start
-            } else {
-                let ends_line = |i: usize| {
-                    src[tokens[i].start..tokens[i].end]
-                        .chars()
-                        .next_back()
-                        .is_some_and(is_line_break)
-                };
-                run.clone()
-                    .find(|&i| ends_line(i))
-                    .map_or(run.end, |i| i + 1)
-            };
-            if let Some(last) = trailing.last_mut() {
-                *last = run.start..cut;
-            }
-            leading.push(cut..r);
-            trailing.push(r + 1..r + 1);
-            prev_end = r + 1;
-        }
+        let trivia::Attached {
+            real,
+            leading,
+            trailing,
+        } = trivia::attach(
+            tokens.len(),
+            |i| is_trivia(tokens[i].kind),
+            |i| &src[tokens[i].start..tokens[i].end],
+        );
         Parser {
             src,
             tokens,

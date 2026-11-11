@@ -70,6 +70,7 @@ core-workspace = { path = "crates/core-workspace" }
 lang-csharp = { path = "crates/lang-csharp" }
 lang-json = { path = "crates/lang-json" }
 lang-js = { path = "crates/lang-js" }
+lang-css = { path = "crates/lang-css" }
 lang-yaml = { path = "crates/lang-yaml" }
 lang-github-actions = { path = "crates/lang-github-actions" }
 # generated:languages

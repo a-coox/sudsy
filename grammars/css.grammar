@@ -1,0 +1,66 @@
+// CSS, SCSS and Less: one tree for the three dialects. A statement is a Rule, AtRule, Declaration
+// or Statement; preludes, properties and values are component-value lists of tokens and Groups.
+// Format: see crates/core-syntax/src/grammar/mod.rs.
+
+language css 18 "CSS"
+comments line "//" block "/*" "*/"
+suppress disable-next-line "sudsy-disable-next-line"
+suppress disable-line "sudsy-disable-line"
+suppress disable "sudsy-disable"
+suppress enable "sudsy-enable"
+suppress disable-file "sudsy-disable-file"
+suppress ignore "sudsy-ignore"
+suppress ignore-start "sudsy-ignore-start"
+suppress ignore-end "sudsy-ignore-end"
+
+token Whitespace #trivia #whitespace
+token Newline #trivia #newline
+token Comment #trivia #comment
+// `//` comments: SCSS and Less only.
+token LineComment #trivia #comment
+
+token Ident #operand
+token AtKeyword #operand
+token Hash #operand
+token String #operand #literal #string
+token Number #operand #literal
+token Percentage #operand #literal
+token Dimension #operand #literal
+// `url(` + unquoted body + `)`.
+token Url #operand #literal
+token UnicodeRange #operand #literal
+// `$name` (SCSS).
+token Variable #operand
+token Delim #operand
+// `#{` (SCSS) or `@{` (Less): closed by an RBrace.
+token InterpOpen #punctuation
+
+token Colon ":" #punctuation
+token Semicolon ";" #punctuation
+token Comma "," #punctuation
+token LBrace "{" #punctuation
+token RBrace "}" #punctuation
+token LParen "(" #punctuation
+token RParen ")" #punctuation
+token LBracket "[" #punctuation
+token RBracket "]" #punctuation
+
+token Eof
+// Unterminated string, url or comment.
+token Unknown #error
+
+node Stylesheet = items:#item* Eof
+node Rule #item = prelude:Prelude? block:Block
+node AtRule #item = AtKeyword prelude:Prelude? block:Block? Semicolon?
+node Declaration #item = property:Property Colon value:Value? Semicolon?
+// A statement with no colon and no block: a Less mixin call, a stray value.
+node Statement #item = value:Value Semicolon?
+node Block = LBrace items:#item* RBrace
+// Prelude, Property and Value hold tokens, Functions and Groups in source order.
+node Prelude = #operand* Function* Group*
+node Property = #operand* Function* Group*
+node Value = #operand* Function* Group*
+// A name directly followed by its parenthesized arguments.
+node Function = name:Ident args:Group
+// Any bracketed run: `( )`, `[ ]`, `#{ }`, or `{ }` inside one of them.
+node Group = open:#punctuation #operand* Function* Group* close:#punctuation

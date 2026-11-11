@@ -24,10 +24,15 @@ pub fn generate(providers: &[Box<dyn LanguageProvider>]) -> Result<Vec<(PathBuf,
             crate::rules::json(&rule_docs),
         ),
     ];
-    for (language, schema) in &schemas {
+    for p in providers {
+        let rel = format!("docs/formatting/{}.md", p.language());
+        // A dialect without a doc of its own (scss, less) is documented with its config base.
+        if p.config_base().is_some() && !xtask::repo_root().join(&rel).exists() {
+            continue;
+        }
         out.push(splice(
-            &format!("docs/formatting/{language}.md"),
-            &[("options", options_table(schema))],
+            &rel,
+            &[("options", options_table(p.option_schema()))],
         )?);
     }
     out.push(splice(
@@ -44,11 +49,19 @@ pub fn generate(providers: &[Box<dyn LanguageProvider>]) -> Result<Vec<(PathBuf,
     shown.dedup();
     let (last, rest) = shown.split_last().expect("a language");
     let names = format!("{} and {last}", rest.join(", "));
-    let crates = titles
+    // A crate with several languages (lang-css) is listed once.
+    let mut crates: Vec<String> = providers
         .iter()
-        .map(|t| format!("`lang-{}`", t.1))
-        .collect::<Vec<_>>()
-        .join(", ");
+        .map(|p| (p.grammar().title.as_str(), p.language(), p.crate_name()))
+        .collect::<std::collections::BTreeSet<_>>()
+        .into_iter()
+        .map(|(_, language, krate)| match krate {
+            "" => format!("`lang-{language}`"),
+            _ => format!("`{krate}`"),
+        })
+        .collect();
+    crates.dedup();
+    let crates = crates.join(", ");
     for rel in [
         "README.md",
         "editors/vscode/README.md",

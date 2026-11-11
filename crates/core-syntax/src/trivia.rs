@@ -20,6 +20,51 @@
 use crate::kind::SyntaxKind;
 use crate::tree::{SyntaxElement, SyntaxNode};
 use rowan::WalkEvent;
+use std::ops::Range;
+
+/// The owner of each trivia token of a flat token list (hand-written parsers): `real` holds the
+/// indices of the non-trivia tokens, `leading[i]` and `trailing[i]` the index ranges of the trivia
+/// tokens that `real[i]` owns, by the attachment rule above.
+pub struct Attached {
+    pub real: Vec<usize>,
+    pub leading: Vec<Range<usize>>,
+    pub trailing: Vec<Range<usize>>,
+}
+
+/// Applies the attachment rule to `n` tokens; `text(i)` is the text of token `i`.
+pub fn attach<'a>(
+    n: usize,
+    is_trivia: impl Fn(usize) -> bool,
+    text: impl Fn(usize) -> &'a str,
+) -> Attached {
+    let real: Vec<usize> = (0..n).filter(|&i| !is_trivia(i)).collect();
+    let mut leading = Vec::with_capacity(real.len());
+    let mut trailing: Vec<Range<usize>> = Vec::with_capacity(real.len());
+    let mut prev_end = 0; // index after the previous real token
+    for &r in &real {
+        // Trivia tokens prev_end..r: the rest of the previous token's line is trailing.
+        let run = prev_end..r;
+        let cut = if prev_end == 0 {
+            run.start
+        } else {
+            let ends_line = |i: usize| text(i).chars().next_back().is_some_and(is_line_break);
+            run.clone()
+                .find(|&i| ends_line(i))
+                .map_or(run.end, |i| i + 1)
+        };
+        if let Some(last) = trailing.last_mut() {
+            *last = run.start..cut;
+        }
+        leading.push(cut..r);
+        trailing.push(r + 1..r + 1);
+        prev_end = r + 1;
+    }
+    Attached {
+        real,
+        leading,
+        trailing,
+    }
+}
 
 pub fn is_line_break(c: char) -> bool {
     matches!(c, '\n' | '\r' | '\u{85}' | '\u{2028}' | '\u{2029}')

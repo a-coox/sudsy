@@ -25,6 +25,9 @@ pub fn providers() -> Vec<Box<dyn LanguageProvider>> {
     vec![
         Box::new(lang_json::JsonProvider::new()),
         Box::new(lang_js::JsProvider::new()),
+        Box::new(lang_css::CssProvider::new(lang_css::Dialect::Css)),
+        Box::new(lang_css::CssProvider::new(lang_css::Dialect::Scss)),
+        Box::new(lang_css::CssProvider::new(lang_css::Dialect::Less)),
         Box::new(lang_yaml::YamlProvider::new()),
         Box::new(lang_github_actions::GithubActionsProvider::new()),
         // generated:providers

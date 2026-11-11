@@ -1453,6 +1453,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "lang-css"
+version = "0.1.0"
+dependencies = [
+ "core-config",
+ "core-format",
+ "core-syntax",
+ "provider-api",
+]
+
+[[package]]
 name = "lang-dockerfile"
 version = "0.1.0"
 dependencies = [
@@ -1732,6 +1742,7 @@ dependencies = [
  "core-rules",
  "core-workspace",
  "lang-csharp",
+ "lang-css",
  "lang-dockerfile",
  "lang-editorconfig",
  "lang-github-actions",
