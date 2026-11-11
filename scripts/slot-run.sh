@@ -11,7 +11,7 @@ claim_slot() {
   for d in /proc/[0-9]*; do
     p=${d#/proc/}
     case "$mine" in *" $p "*) continue ;; esac
-    tr '\0' '\n' <"$d/environ" 2>/dev/null | grep -qxF "SUDSY_SLOT_RUN=$CARGO_TARGET_DIR" && old="$old $p"
+    tr '\0' '\n' 2>/dev/null <"$d/environ" | grep -qxF "SUDSY_SLOT_RUN=$CARGO_TARGET_DIR" && old="$old $p"
   done
   if [ -n "$old" ]; then
     echo "stopping what an earlier run left in this slot (pids$old)"
@@ -22,6 +22,25 @@ claim_slot() {
     scripts/bench.sh --stop >/dev/null
   fi
   export SUDSY_SLOT_RUN=$CARGO_TARGET_DIR
+}
+
+# A slot's builds serve every worktree that uses it, and cargo judges a source file by its mtime
+# against the outputs, not by its content: a file this worktree holds unchanged since before another
+# worktree's last build in the slot passes as built, though that build compiled the other's version.
+# So when the slot changes worktrees, the files that differ from what it last built (the other's
+# HEAD and its uncommitted files) get the current time. A slot with no record: every tracked file.
+# The record is <slot>/.built-from: "<worktree> <HEAD>", then the worktree's uncommitted files.
+touch_changed() {
+  [ -n "${CARGO_TARGET_DIR:-}" ] || return 0
+  mkdir -p "$CARGO_TARGET_DIR"
+  local rec=$CARGO_TARGET_DIR/.built-from wt= head=
+  dirty() { git ls-files -mo --exclude-standard -- . ':!.cargo/tmp'; }
+  [ -f "$rec" ] && read -r wt head <"$rec"
+  if [ "$wt" != "$PWD" ]; then
+    { if [ -n "$head" ] && git cat-file -e "$head" 2>/dev/null; then git diff --name-only "$head"; else git ls-files; fi
+      [ ! -f "$rec" ] || tail -n +2 "$rec"; dirty; } | sort -u | xargs -r -d '\n' touch -c 2>/dev/null || true
+  fi
+  { echo "$PWD $(git rev-parse HEAD)"; dirty; } >"$rec"
 }
 
 # cargo never deletes outputs: every dependency graph (each Cargo.lock change) and build kind leaves

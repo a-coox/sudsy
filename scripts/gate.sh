@@ -24,7 +24,7 @@ gate() {
   echo "   ($name: $((SECONDS - t))s)"
 }
 
-. scripts/slot-run.sh; claim_slot; sweep_slot || exit 1
+. scripts/slot-run.sh; claim_slot; touch_changed; sweep_slot || exit 1
 
 # What runs: crates for clippy and tests (ws) and the other steps.
 if [ ${#pkg[@]} -gt 0 ]; then
@@ -48,7 +48,14 @@ if [ ${#ws[@]} -gt 0 ]; then
   # nextest runs the tests of all binaries in parallel (cargo test runs one binary after another);
   # it skips doctests, which cargo test --doc runs.
   command -v cargo-nextest >/dev/null || { echo "GATE FAILED: cargo-nextest missing (cargo install cargo-nextest --locked)" >&2; exit 1; }
-  gate "cargo nextest" cargo nextest run "${ws[@]}" --no-fail-fast --no-tests=pass
+  # Crates whose tests share one C# worker per process: nextest's process per test starts a worker
+  # for each, which takes 3x as long (docs/performance/numbers.md), so cargo test runs them.
+  shared=(lang-csharp)
+  gate "cargo nextest" cargo nextest run "${ws[@]}" --no-fail-fast --no-tests=pass \
+    -E "not ($(printf 'package(%s) | ' "${shared[@]}" | sed 's/ | $//'))"
+  for c in "${shared[@]}"; do
+    case " ${ws[*]} " in *" --workspace "*|*" $c "*) gate "cargo test -p $c" cargo test -p "$c" --tests --no-fail-fast ;; esac
+  done
   gate "cargo test --doc" cargo test "${ws[@]}" --doc
 fi
 if has sample-plugin; then

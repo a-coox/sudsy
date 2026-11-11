@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Standard benchmark: run after every feature change.
-#   scripts/bench.sh [--base REV] [--all] [--time] [--rounds N] [--no-instr] [--no-record]
+#   scripts/bench.sh [--base REV] [--all | --lang FOLDER...] [--time] [--rounds N] [--no-instr] [--no-record]
 #   scripts/bench.sh --stop: end this slot's running bench, its WSL processes included
 # Tier 1 (default, deterministic): per language and phase (parse, format, format-query, lint, patterns, plugins) on
 #   fixed inputs (bench/inputs + generated), the candidate (working tree) against the baseline
@@ -14,7 +14,8 @@
 # Tier 2 (--time): interleaved A/B wall time of the CLI, with the C# worker; exit 1 only when the
 #   95% confidence interval of the candidate/baseline ratio lies above 1.03.
 # Languages: the `bench` rows of `cargo xtask affected` (the bench/inputs folders whose language the
-#   change touches; --all: every folder a provider claims). Nothing affected: nothing measured, exit 0.
+#   change touches; --all: every folder a provider claims; --lang FOLDER, repeatable: those folders
+#   (or startup) instead of the selection). Nothing affected: nothing measured, exit 0.
 # Each measured run is killed after BENCH_TIMEOUT seconds (default 900; inside WSL for the
 # instruction runs) and the run fails.
 # Run from Git Bash on Windows (WSL needs scripts/bench-setup-wsl.sh once) or natively on Linux.
@@ -23,10 +24,11 @@ cd "$(dirname "$0")/.."
 root=$PWD
 # WSL cache key: the slot (CARGO_TARGET_DIR name) when set, else the checkout name.
 slot=$(basename "${CARGO_TARGET_DIR:-$root}")
-base_rev= all=() time=0 rounds=11 instr=1 record=1 stop=0
+base_rev= all=() only= time=0 rounds=11 instr=1 record=1 stop=0
 while [ $# -gt 0 ]; do
   case "$1" in
     --base) base_rev=$2; shift ;; --all) all=(--all) ;; --time) time=1 ;; --rounds) rounds=$2; shift ;;
+    --lang) only="$only $2" all=(--all); shift ;;
     --no-instr) instr=0 ;; --no-record) record=0 ;; --stop) stop=1 ;;
     *) sed -n '2,15p' "$0" >&2; exit 2 ;;
   esac; shift
@@ -56,6 +58,7 @@ if [ $stop = 1 ]; then
 fi
 echo $$ >"$work/pid"
 trap 'rm -f "$work/pid"' EXIT
+. scripts/slot-run.sh; touch_changed
 
 # --- revisions --------------------------------------------------------------------------------
 head=$(git rev-parse HEAD)
@@ -71,6 +74,10 @@ echo "candidate: ${head:0:9}$([ $dirty = 1 ] && echo '+working tree')   baseline
 # --- what to measure: rows "<folder> <crates|*>" ----------------------------------------------------
 sel=$(cargo xtask affected --base "$base" "${all[@]}")
 rows=$(sed -n 's/^bench //p' <<<"$sel")
+if [ -n "$only" ]; then
+  for f in $only; do grep -q "^$f " <<<"$rows" || { echo "--lang $f: no such bench/inputs folder (or startup)" >&2; exit 2; }; done
+  rows=$(awk -v keep="$only" 'BEGIN { n = split(keep, k, " "); for (i = 1; i <= n; i++) m[k[i]] } $1 in m' <<<"$rows")
+fi
 [ -n "$rows" ] || { echo "nothing affected: no language to bench"; echo "BENCH OK (${SECONDS}s)"; exit 0; }
 
 src_base=$work/base-src out=$work/out inputs=$root/bench/inputs
@@ -87,7 +94,7 @@ base_src() {
 
 # --- tier 1 ---------------------------------------------------------------------------------------
 measure() { # measure SIDE SRC MODE LANGS ; native
-  scripts/bench-measure.sh --src "$2" --target "$work/$1" --inputs "$inputs" --mode "$3" --langs "$4" --out "$out/$1.$3"
+  scripts/bench-measure.sh --src "$2" --target "$work/$1" --inputs "$inputs" --mode "$3" --langs "$4" --out "$out/$1.$3.native"
 }
 if [ $instr = 1 ]; then
   if [ $windows = 1 ]; then
@@ -141,16 +148,27 @@ for side in cand base; do
     [ -n "$missing" ] || break
     base_src; s=$src_base l=$missing
   fi
-  echo "== $side: allocations (native): $l"; measure $side "$s" allocs "$l"
+  # The instruction pass also counts allocations; the native pass counts those of what it left out
+  # (worker languages when it has no dotnet, as WSL), or of everything with --no-instr.
+  native=$l
   if [ $instr = 1 ]; then
-    echo "== $side: instructions"
+    echo "== $side: instructions and allocations"
     if [ $windows = 1 ]; then
       wslrun "$(wsl_path "$root")/scripts/bench-measure.sh --src $(wsl_path "$s") --target \$HOME/.cache/sudsy-bench/$slot/$side --inputs $(wsl_path "$inputs") --mode instr --langs $l --out \$HOME/.cache/sudsy-bench/$slot/$side.instr"
-      wslrun "cat \$HOME/.cache/sudsy-bench/$slot/$side.instr" >"$out/$side.instr"
+      wslrun "cat \$HOME/.cache/sudsy-bench/$slot/$side.instr" >"$out/$side.both"
+      native=$(wslrun "cat \$HOME/.cache/sudsy-bench/$slot/$side.instr.left" | paste -sd, -)
     else
       scripts/bench-measure.sh --src "$s" --target "$work/$side" --inputs "$inputs" --mode instr --langs "$l" \
-        --out "$out/$side.instr"
+        --out "$out/$side.both"
+      native=$(paste -sd, - <"$out/$side.both.left")
     fi
+    grep -v '\.allocs ' "$out/$side.both" >"$out/$side.instr" || true
+    grep '\.allocs ' "$out/$side.both" >"$out/$side.allocs" || true
+  else : >"$out/$side.allocs"
+  fi
+  if [ -n "$native" ]; then
+    echo "== $side: allocations (native): $native"; measure $side "$s" allocs "$native"
+    cat "$out/$side.allocs.native" >>"$out/$side.allocs"
   fi
   if [ $side = base ]; then # one entry per language, renamed into place so a reader never sees half a file
     for folder in $(tr ',' ' ' <<<"$missing"); do
@@ -183,7 +201,7 @@ awk -v B="$out/base.all" -v C="$out/cand.all" -v BUD=bench/budgets.txt 'BEGIN {
     if (m ~ /^startup\.(providers|format|lint)\.(instr|allocs)$/ && b["startup.providers.work"] > 0) b[m] = b[m] * c["startup.providers.work"] / b["startup.providers.work"]
     d = (b[m] == 0) ? 0 : 100 * (c[m] - b[m]) / b[m]
     if (m ~ /\.work$/) { if (c[m] != b[m]) printf "%-26s %14d %14d  output size changed\n", m, b[m], c[m]; continue }
-    flag = ""; if (m ~ /lint-(all|docs)/ || m ~ /^startup\.providers\./) flag = "  (informational)"; else if (d >= 1 && (m ~ /\.instr$/ || c[m] - b[m] >= 10)) { flag = "  REGRESSION"; bad++ } else if (d <= -1) flag = "  improved"
+    flag = ""; if (m ~ /lint-(all|docs)/ || m ~ /^startup\.providers\./ || m ~ /\.alloc-instr$/) flag = "  (informational)"; else if (d >= 1 && (m ~ /\.instr$/ || c[m] - b[m] >= 10)) { flag = "  REGRESSION"; bad++ } else if (d <= -1) flag = "  improved"
     if ((m in bud) && c[m] > bud[m]) { flag = flag "  OVER BUDGET " bud[m]; bad++ }
     printf "%-26s %14d %14d %+7.2f%%%s\n", m, b[m], c[m], d, flag
   }

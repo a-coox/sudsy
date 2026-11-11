@@ -139,6 +139,9 @@ Method: `scripts/devloop-times.sh` in slot3 (warm slot; a comment appended to `c
 | `scripts/finish.sh`, baselines cached | 95 (bench 83) | gate 158, bench 259 (candidate only) |
 | Test binaries rebuilt (`cargo test --workspace --no-run`) | 23-24 with `rust-lld`, `opt-level = 1` and line tables; 28-31 with link.exe; 43-44 at `opt-level = 0`; 92 with full debug info |
 | Test run | `cargo nextest run` 84 + doctests 5-9, `cargo test` 117 (one binary after another). The tests are CPU-bound (886 CPU-seconds on 12 threads); `opt-level = 1` does not shorten them (the slow ones start the CLI, the C# worker or the sample wasm plugin) |
+| `lang-csharp` tests (161; slot4, other agents running) | `cargo nextest run` 1176 (a process, so a C# worker start, per test), `cargo test` 376 (one process and worker per binary): the gate runs them with `cargo test` |
+| Agents' `finish.sh` before the single-pass bench (2026-11-10, 2 seats busy, about 30 crates) | 28 min mean for a pass, 48 max; gate 880 s mean (nextest 775-970, of which build 5 min); bench up to 2109 s, of which the Windows allocation pass (release build + measure, both sides) 1261 |
+| Single bench pass (`json`, `sh`, both sides built: WSL callgrind with allocation counts, no Windows pass) | candidate build 230 + measure 49, baseline build 136 + measure 52; total 801 with the waits |
 | Callgrind, one side | 50-52 for 40 phases (`lint-all` counted in allocations only); with it, 50 phases: 62-65 as a pool of 12 jobs longest first, 124 with 6 jobs, 148-155 in batches of 6; one run peaks near 120 MB |
 | WSL build of perf-bench after an edit | 29 from `/mnt/c`, 30 from a copy on the Linux file system (rsync included): no gain |
 | Bench noise, same code on both sides | no metric moved 1%; run to run at most 0.05% |

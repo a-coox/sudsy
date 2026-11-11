@@ -30,14 +30,19 @@ fn note() {
     }
 }
 
+// Not inlined: scripts/bench-measure.sh reads their inclusive instruction counts under callgrind to
+// report the allocator's share apart from the code that calls it.
 unsafe impl GlobalAlloc for Counting {
+    #[inline(never)]
     unsafe fn alloc(&self, l: Layout) -> *mut u8 {
         note();
         unsafe { System.alloc(l) }
     }
+    #[inline(never)]
     unsafe fn dealloc(&self, p: *mut u8, l: Layout) {
         unsafe { System.dealloc(p, l) }
     }
+    #[inline(never)]
     unsafe fn realloc(&self, p: *mut u8, l: Layout, n: usize) -> *mut u8 {
         note();
         unsafe { System.realloc(p, l, n) }
