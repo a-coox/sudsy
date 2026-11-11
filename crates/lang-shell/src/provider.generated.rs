@@ -17,6 +17,7 @@ pub const MAPPING: Mapping = Mapping {
     wrap: &[
     ],
     kinds: &[
+        ("arithmetic_expansion", "Arith"),
         ("variable_assignment", "Assign"),
         ("c_style_for_statement", "CFor"),
         ("case_statement", "Case"),
@@ -65,6 +66,7 @@ pub const MAPPING: Mapping = Mapping {
         ("herestring_redirect", "Redirect"),
         ("redirected_statement", "Redirected"),
         ("command_substitution", "Subst"),
+        ("process_substitution", "Subst"),
         ("test_command", "Test"),
         ("while_statement", "While"),
         ("number", "Word"),
@@ -73,8 +75,6 @@ pub const MAPPING: Mapping = Mapping {
         ("translated_string", "Word"),
         ("expansion", "Word"),
         ("simple_expansion", "Word"),
-        ("process_substitution", "Word"),
-        ("arithmetic_expansion", "Word"),
         ("brace_expression", "Word"),
         ("extglob_pattern", "Word"),
         ("regex", "Word"),
@@ -107,5 +107,5 @@ pub const COMPOSITE: Composite = Composite {
     injected: &[],
     refine: &[],
     continuation: true,
-    tolerant: &["variable_assignment", "test_command", "string", "concatenation", "command_substitution"],
+    tolerant: &["variable_assignment", "test_command", "string", "concatenation", "command_substitution", "process_substitution"],
 };

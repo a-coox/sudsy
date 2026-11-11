@@ -5875,18 +5875,18 @@
       "example": {
         "config": null,
         "fixed": null,
-        "input": "rm $(cat list)\nrm \"$(cat list)\"\nrm a$(b) `c`\nrm '$(literal)' \"$(ok)\"\necho $((1 + 2))\nrm $file ${dir}/x \"$file\" '$file' $1 $?\nrm --opt=$value \"x $y\"\ncp $@ dir\ncp \"$@\" dir \"${arr[@]}\" ${arr[@]}\ncp $* dir ${arr[*]}\nnow=`date`\necho `date` \"`date`\" 'a`b`'\n[ -n `foo` ]\n[ $x -eq 0 ]\n[[ $x = $y ]] && [[ -n $(foo) ]]\nexport out=$(make)\nlocal out=\"$(make)\" x=1\ndeclare plain=1\nfor f in $files; do :; done\n",
+        "input": "rm $(cat list)\nrm \"$(cat list)\"\nrm a$(b) `c`\nrm '$(literal)' \"$(ok)\"\necho $((1 + 2))\ndiff <(sort a) <(sort b); echo <(date)\nrm $file ${dir}/x \"$file\" '$file' $1 $?\nrm --opt=$value \"x $y\"\ncp $@ dir\ncp \"$@\" dir \"${arr[@]}\" ${arr[@]}\ncp $* dir ${arr[*]}\nnow=`date`\necho `date` \"`date`\" 'a`b`'\n[ -n `foo` ]\n[ $x -eq 0 ]\n[[ $x = $y ]] && [[ -n $(foo) ]]\nexport out=$(make)\nlocal out=\"$(make)\" x=1\ndeclare plain=1\nfor f in $files; do :; done\n",
         "language": "shell",
         "spans": [
           {
             "column": 1,
             "length": 18,
-            "line": 16
+            "line": 17
           },
           {
             "column": 1,
             "length": 23,
-            "line": 17
+            "line": 18
           }
         ]
       },
@@ -6030,7 +6030,7 @@
       "example": {
         "config": null,
         "fixed": null,
-        "input": "rm $(cat list)\nrm \"$(cat list)\"\nrm a$(b) `c`\nrm '$(literal)' \"$(ok)\"\necho $((1 + 2))\nrm $file ${dir}/x \"$file\" '$file' $1 $?\nrm --opt=$value \"x $y\"\ncp $@ dir\ncp \"$@\" dir \"${arr[@]}\" ${arr[@]}\ncp $* dir ${arr[*]}\nnow=`date`\necho `date` \"`date`\" 'a`b`'\n[ -n `foo` ]\n[ $x -eq 0 ]\n[[ $x = $y ]] && [[ -n $(foo) ]]\nexport out=$(make)\nlocal out=\"$(make)\" x=1\ndeclare plain=1\nfor f in $files; do :; done\n",
+        "input": "rm $(cat list)\nrm \"$(cat list)\"\nrm a$(b) `c`\nrm '$(literal)' \"$(ok)\"\necho $((1 + 2))\ndiff <(sort a) <(sort b); echo <(date)\nrm $file ${dir}/x \"$file\" '$file' $1 $?\nrm --opt=$value \"x $y\"\ncp $@ dir\ncp \"$@\" dir \"${arr[@]}\" ${arr[@]}\ncp $* dir ${arr[*]}\nnow=`date`\necho `date` \"`date`\" 'a`b`'\n[ -n `foo` ]\n[ $x -eq 0 ]\n[[ $x = $y ]] && [[ -n $(foo) ]]\nexport out=$(make)\nlocal out=\"$(make)\" x=1\ndeclare plain=1\nfor f in $files; do :; done\n",
         "language": "shell",
         "spans": [
           {
@@ -6041,22 +6041,22 @@
           {
             "column": 5,
             "length": 6,
-            "line": 11
+            "line": 12
           },
           {
             "column": 6,
             "length": 6,
-            "line": 12
+            "line": 13
           },
           {
             "column": 14,
             "length": 6,
-            "line": 12
+            "line": 13
           },
           {
             "column": 6,
             "length": 5,
-            "line": 13
+            "line": 14
           }
         ]
       },
@@ -6238,18 +6238,18 @@
       "example": {
         "config": null,
         "fixed": null,
-        "input": "rm $(cat list)\nrm \"$(cat list)\"\nrm a$(b) `c`\nrm '$(literal)' \"$(ok)\"\necho $((1 + 2))\nrm $file ${dir}/x \"$file\" '$file' $1 $?\nrm --opt=$value \"x $y\"\ncp $@ dir\ncp \"$@\" dir \"${arr[@]}\" ${arr[@]}\ncp $* dir ${arr[*]}\nnow=`date`\necho `date` \"`date`\" 'a`b`'\n[ -n `foo` ]\n[ $x -eq 0 ]\n[[ $x = $y ]] && [[ -n $(foo) ]]\nexport out=$(make)\nlocal out=\"$(make)\" x=1\ndeclare plain=1\nfor f in $files; do :; done\n",
+        "input": "rm $(cat list)\nrm \"$(cat list)\"\nrm a$(b) `c`\nrm '$(literal)' \"$(ok)\"\necho $((1 + 2))\ndiff <(sort a) <(sort b); echo <(date)\nrm $file ${dir}/x \"$file\" '$file' $1 $?\nrm --opt=$value \"x $y\"\ncp $@ dir\ncp \"$@\" dir \"${arr[@]}\" ${arr[@]}\ncp $* dir ${arr[*]}\nnow=`date`\necho `date` \"`date`\" 'a`b`'\n[ -n `foo` ]\n[ $x -eq 0 ]\n[[ $x = $y ]] && [[ -n $(foo) ]]\nexport out=$(make)\nlocal out=\"$(make)\" x=1\ndeclare plain=1\nfor f in $files; do :; done\n",
         "language": "shell",
         "spans": [
           {
             "column": 4,
             "length": 2,
-            "line": 8
+            "line": 9
           },
           {
             "column": 25,
             "length": 9,
-            "line": 9
+            "line": 10
           }
         ]
       },
@@ -6304,18 +6304,18 @@
       "example": {
         "config": null,
         "fixed": null,
-        "input": "rm $(cat list)\nrm \"$(cat list)\"\nrm a$(b) `c`\nrm '$(literal)' \"$(ok)\"\necho $((1 + 2))\nrm $file ${dir}/x \"$file\" '$file' $1 $?\nrm --opt=$value \"x $y\"\ncp $@ dir\ncp \"$@\" dir \"${arr[@]}\" ${arr[@]}\ncp $* dir ${arr[*]}\nnow=`date`\necho `date` \"`date`\" 'a`b`'\n[ -n `foo` ]\n[ $x -eq 0 ]\n[[ $x = $y ]] && [[ -n $(foo) ]]\nexport out=$(make)\nlocal out=\"$(make)\" x=1\ndeclare plain=1\nfor f in $files; do :; done\n",
+        "input": "rm $(cat list)\nrm \"$(cat list)\"\nrm a$(b) `c`\nrm '$(literal)' \"$(ok)\"\necho $((1 + 2))\ndiff <(sort a) <(sort b); echo <(date)\nrm $file ${dir}/x \"$file\" '$file' $1 $?\nrm --opt=$value \"x $y\"\ncp $@ dir\ncp \"$@\" dir \"${arr[@]}\" ${arr[@]}\ncp $* dir ${arr[*]}\nnow=`date`\necho `date` \"`date`\" 'a`b`'\n[ -n `foo` ]\n[ $x -eq 0 ]\n[[ $x = $y ]] && [[ -n $(foo) ]]\nexport out=$(make)\nlocal out=\"$(make)\" x=1\ndeclare plain=1\nfor f in $files; do :; done\n",
         "language": "shell",
         "spans": [
           {
             "column": 4,
             "length": 2,
-            "line": 10
+            "line": 11
           },
           {
             "column": 11,
             "length": 9,
-            "line": 10
+            "line": 11
           }
         ]
       },
@@ -6337,43 +6337,43 @@
       "example": {
         "config": null,
         "fixed": null,
-        "input": "rm $(cat list)\nrm \"$(cat list)\"\nrm a$(b) `c`\nrm '$(literal)' \"$(ok)\"\necho $((1 + 2))\nrm $file ${dir}/x \"$file\" '$file' $1 $?\nrm --opt=$value \"x $y\"\ncp $@ dir\ncp \"$@\" dir \"${arr[@]}\" ${arr[@]}\ncp $* dir ${arr[*]}\nnow=`date`\necho `date` \"`date`\" 'a`b`'\n[ -n `foo` ]\n[ $x -eq 0 ]\n[[ $x = $y ]] && [[ -n $(foo) ]]\nexport out=$(make)\nlocal out=\"$(make)\" x=1\ndeclare plain=1\nfor f in $files; do :; done\n",
+        "input": "rm $(cat list)\nrm \"$(cat list)\"\nrm a$(b) `c`\nrm '$(literal)' \"$(ok)\"\necho $((1 + 2))\ndiff <(sort a) <(sort b); echo <(date)\nrm $file ${dir}/x \"$file\" '$file' $1 $?\nrm --opt=$value \"x $y\"\ncp $@ dir\ncp \"$@\" dir \"${arr[@]}\" ${arr[@]}\ncp $* dir ${arr[*]}\nnow=`date`\necho `date` \"`date`\" 'a`b`'\n[ -n `foo` ]\n[ $x -eq 0 ]\n[[ $x = $y ]] && [[ -n $(foo) ]]\nexport out=$(make)\nlocal out=\"$(make)\" x=1\ndeclare plain=1\nfor f in $files; do :; done\n",
         "language": "shell",
         "spans": [
           {
             "column": 4,
             "length": 5,
-            "line": 6
+            "line": 7
           },
           {
             "column": 10,
             "length": 8,
-            "line": 6
+            "line": 7
           },
           {
             "column": 35,
             "length": 2,
-            "line": 6
-          },
-          {
-            "column": 4,
-            "length": 12,
             "line": 7
           },
           {
             "column": 4,
+            "length": 12,
+            "line": 8
+          },
+          {
+            "column": 4,
             "length": 2,
-            "line": 10
+            "line": 11
           },
           {
             "column": 11,
             "length": 9,
-            "line": 10
+            "line": 11
           },
           {
             "column": 3,
             "length": 2,
-            "line": 14
+            "line": 15
           }
         ]
       },

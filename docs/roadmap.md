@@ -9,7 +9,7 @@ One line each; none is committed.
 - XML: the inside of a DOCTYPE (the grammar cannot parse every DTD declaration) and DTD-dependent well-formedness (entities, attribute defaults); reflowing text (the formatter keeps mixed content as written); a `xmlWhitespaceSensitivity: ignore` mode; sorting `PackageReference` items.
 - Gitignore syntax: `.dockerignore`-specific rules (root-only `*.log`).
 - Dockerfile: rules (hadolint parity); shell code inside `RUN` as a Shell language injected through the composite adapter (the formatter keeps it as written); (low priority) vendor tree-sitter-containerfile's `scanner.c` with a fix for consecutive `[`-led continuation lines, which make 24 corpus files unparseable ([formatting/dockerfile.md](formatting/dockerfile.md)).
-- Shell: rules (shellcheck subset); reformatting the inside of `$(...)`, `(( ))` and arrays like shfmt ([formatting/shell.md](formatting/shell.md)).
+- Shell: rules (shellcheck subset); respacing the operators inside `(( ))` and `$(( ))` like shfmt ([formatting/shell.md](formatting/shell.md)).
 - PowerShell: rules (PSScriptAnalyzer subset) ([formatting/powershell.md](formatting/powershell.md)).
 - Makefile: shell code in `$(shell ...)` and `define` bodies; rules beyond checkmake's five.
 - GitHub Actions: the actionlint checks not built ([parity/actionlint.yaml](parity/actionlint.yaml): types of expressions, events, globs, matrix, permission scopes, action metadata); a matcher for `.github/workflows` as a path, not a folder name ([formatting/github-actions.md](formatting/github-actions.md)).

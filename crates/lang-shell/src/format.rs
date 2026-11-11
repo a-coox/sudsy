@@ -9,17 +9,19 @@ use core_format::shapes::dangling_comments;
 use core_format::{Doc, FormatCtx, FormatError, NodeFormatter, comments, doc};
 use core_syntax::{SyntaxElement, SyntaxNode, SyntaxToken, TextRange};
 
+mod words;
+
 include!("schema.generated.rs");
 
 pub struct ShellFormatter;
 
 impl NodeFormatter for ShellFormatter {
-    /// Redirect operators lose the blanks after them, nothing else changes.
+    /// The blanks inside `$(( ))` may change, nothing else but trivia.
     fn extra_check(&self, before: &SyntaxNode, after: &SyntaxNode) -> Result<(), String> {
         if restyled(before) == restyled(after) {
             Ok(())
         } else {
-            Err("a redirection or array changed".into())
+            Err("an arithmetic expansion changed".into())
         }
     }
 
@@ -54,31 +56,22 @@ impl NodeFormatter for ShellFormatter {
             k::CASE_ITEM => case_item(cx, node)?,
             k::FUNCTION => function(cx, node)?,
             k::HEREDOC_REDIRECT => heredoc(cx, node)?,
-            k::ASSIGN => assign(cx, node),
-            k::TEST | k::STRING | k::CONCAT | k::SUBST => cx.verbatim_node(node),
+            k::REDIRECT => words::redirect(cx, node)?,
+            k::ASSIGN | k::TEST | k::STRING | k::CONCAT | k::SUBST | k::ARRAY => {
+                words::words(cx, node)?
+            }
             _ => return Ok(None),
         }))
     }
 }
 
-/// The redirections without blanks and the arrays without padding, as the formatter writes them.
+/// The arithmetic expansions without blanks, as the formatter writes them.
 fn restyled(tree: &SyntaxNode) -> Vec<String> {
     (tree.descendants_with_tokens())
         .filter_map(|e| e.into_token())
-        .filter_map(|t| match t.kind() {
-            k::REDIRECT => Some(t.text().split_whitespace().collect()),
-            k::ARRAY => Some(unpadded(t.text())),
-            _ => None,
-        })
+        .filter(|t| t.kind() == k::ARITH)
+        .map(|t| t.text().split_whitespace().collect())
         .collect()
-}
-
-/// `( b c )` is `(b c)`.
-fn unpadded(array: &str) -> String {
-    match array.strip_prefix('(').and_then(|a| a.strip_suffix(')')) {
-        Some(inner) => format!("({})", inner.trim_matches([' ', '\t'])),
-        None => array.to_string(),
-    }
 }
 
 /// A significant child; `cont` when a line continuation (`\` and a line break) precedes it.
@@ -121,74 +114,15 @@ impl E {
     }
     fn doc(&self, cx: &FormatCtx<'_>) -> Result<Doc, FormatError> {
         match &self.el {
-            SyntaxElement::Token(t) if t.kind() == k::REDIRECT => Ok(doc::concat(vec![
+            SyntaxElement::Token(t) if t.kind() == k::ARITH => Ok(doc::concat(vec![
                 cx.leading_comments_doc(t),
-                core_format::context::verbatim_text(&redirect_text(t.text())),
+                core_format::context::verbatim_text(&unpadded(t.text(), true)),
                 cx.trailing_comments_doc(t),
             ])),
             SyntaxElement::Token(t) => Ok(cx.token(t)),
             SyntaxElement::Node(n) => cx.format(n),
         }
     }
-}
-
-/// An assignment as written, except that `a=( b )` is `a=(b)`.
-fn assign(cx: &FormatCtx<'_>, node: &SyntaxNode) -> Doc {
-    let (Some(first), Some(last)) = (cx.first_token(node), cx.last_token(node)) else {
-        return Doc::Nil;
-    };
-    // The node's trailing trivia are not part of the assignment.
-    let start = node.text_range().start();
-    let range = TextRange::new(
-        first.text_range().start() - start,
-        last.text_range().end() - start,
-    );
-    let text = node.text().slice(range).to_string();
-    if text.contains('\n') {
-        return cx.verbatim_node(node);
-    }
-    doc::concat(vec![
-        cx.leading_comments_doc(&first),
-        doc::text(assign_text(&text)),
-        cx.trailing_comments_doc(&last),
-    ])
-}
-
-/// `a=( b c )` is `a=(b c)`.
-fn assign_text(s: &str) -> String {
-    let Some(open) = s.find("=(") else {
-        return s.to_string();
-    };
-    let name = s[..open].trim_end_matches('+');
-    let inner = s[open + 2..]
-        .strip_suffix(')')
-        .map(|i| i.trim_matches([' ', '\t']));
-    match inner {
-        Some(inner)
-            if !inner.ends_with('\\')
-                && name.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'_') =>
-        {
-            format!("{}=({inner})", &s[..open])
-        }
-        _ => s.to_string(),
-    }
-}
-
-/// `2> file` is `2>file`: no blanks between the operator and its word, except where the word
-/// would run into the operator (`< <(cmd)`, `> -x`).
-fn redirect_text(s: &str) -> String {
-    let Some(at) = s.find(['<', '>', '&']) else {
-        return s.to_string();
-    };
-    let op_end = at
-        + s[at..]
-            .find(|c| !"<>&|-".contains(c))
-            .unwrap_or(s.len() - at);
-    let rest = s[op_end..].trim_start_matches([' ', '\t']);
-    if rest.len() == s.len() - op_end || rest.starts_with(['<', '>', '-', '(']) {
-        return s.to_string();
-    }
-    format!("{}{rest}", &s[..op_end])
 }
 
 /// The significant children; `cont` when a line continuation precedes the child.
@@ -258,11 +192,15 @@ fn deeper_comments(cx: &FormatCtx<'_>, t: &SyntaxToken) -> usize {
 /// A keyword that ends a body (`fi`, `}`, `;;`, `else`): with the comments in front of it that
 /// do not belong to the body (see [`dangling`]) and its trailing comments.
 fn kw(cx: &FormatCtx<'_>, t: &SyntaxToken) -> Doc {
+    doc::concat(vec![kw_lead(cx, t), cx.trailing_comments_doc(t)])
+}
+
+/// [`kw`] without the trailing comments.
+fn kw_lead(cx: &FormatCtx<'_>, t: &SyntaxToken) -> Doc {
     let cs = comments::leading_comments(cx.grammar, t);
     doc::concat(vec![
         core_format::context::leading_comments_doc(&cs[deeper_comments(cx, t)..]),
         cx.token_text(t),
-        cx.trailing_comments_doc(t),
     ])
 }
 
@@ -300,13 +238,9 @@ fn is_block(cx: &FormatCtx<'_>, node: &SyntaxNode) -> bool {
     lines || multi_statement_body(cx, &n)
 }
 
-/// Does a compound command at or below `node` have a body of several statements? One inside a
-/// substitution does not count: its text is kept as written.
+/// Does a compound command at or below `node` have a body of several statements?
 fn multi_statement_body(cx: &FormatCtx<'_>, node: &SyntaxNode) -> bool {
-    statements_in_body(cx, node) > 1
-        || (node.children())
-            .filter(|c| c.kind() != k::SUBST)
-            .any(|c| multi_statement_body(cx, &c))
+    statements_in_body(cx, node) > 1 || node.children().any(|c| multi_statement_body(cx, &c))
 }
 
 /// The statements in the body of a compound command or case item (0 for other nodes).
@@ -506,6 +440,56 @@ fn heredoc(cx: &FormatCtx<'_>, node: &SyntaxNode) -> Result<Doc, FormatError> {
     Ok(doc::concat(parts))
 }
 
+/// `(( a ))` is `((a))`; the expression itself is kept as written. A blank before `))` goes only
+/// with `tail`: tree-sitter makes `++ ))` one token, whose text then must stay.
+fn unpadded(text: &str, tail: bool) -> String {
+    let at = text.find("((").unwrap_or(0);
+    match text[at..]
+        .strip_prefix("((")
+        .and_then(|t| t.strip_suffix("))"))
+    {
+        Some(inner)
+            if !inner.contains('\n')
+                && (at == 0 || matches!(text[..at].trim_end(), "for" | "$")) =>
+        {
+            let inner = inner.trim_start_matches([' ', '\t']);
+            // An empty initializer keeps its blank: `for (( ; a; b))`.
+            let pad = if at > 0 && inner.starts_with(';') {
+                " "
+            } else {
+                ""
+            };
+            let inner = if tail {
+                inner.trim_end_matches([' ', '\t'])
+            } else {
+                inner
+            };
+            format!("{}(({pad}{inner}))", &text[..at])
+        }
+        _ => text.to_string(),
+    }
+}
+
+/// The source from `first` to `last` (`((...))`, or `for ((...))` without the `for`), unpadded.
+fn arithmetic_range(cx: &FormatCtx<'_>, first: &SyntaxToken, last: &SyntaxToken) -> Doc {
+    let span = TextRange::new(first.text_range().start(), last.text_range().end());
+    let raw = first
+        .parent_ancestors()
+        .find(|a| a.text_range().contains_range(span))
+        .map(|n| {
+            let start = n.text_range().start();
+            n.text()
+                .slice(TextRange::new(span.start() - start, span.end() - start))
+                .to_string()
+        })
+        .unwrap_or_default();
+    doc::concat(vec![
+        cx.leading_comments_doc(first),
+        core_format::context::verbatim_text(&unpadded(&raw, last.text() == "))")),
+        cx.trailing_comments_doc(last),
+    ])
+}
+
 /// A compound command: head, opener, body, clauses, closer.
 fn compound(cx: &FormatCtx<'_>, node: &SyntaxNode) -> Result<Doc, FormatError> {
     let es = elems(cx, node);
@@ -516,6 +500,12 @@ fn compound(cx: &FormatCtx<'_>, node: &SyntaxNode) -> Result<Doc, FormatError> {
         .iter()
         .enumerate()
         .any(|(i, e)| e.cont && (kind != k::FOR || i + 1 == es.len()));
+    if arithmetic && !continued {
+        return Ok(match (cx.first_token(node), cx.last_token(node)) {
+            (Some(a), Some(b)) => arithmetic_range(cx, &a, &b),
+            _ => Doc::Nil,
+        });
+    }
     if arithmetic || continued {
         return Ok(cx.verbatim_node(node));
     }
@@ -588,8 +578,19 @@ fn compound(cx: &FormatCtx<'_>, node: &SyntaxNode) -> Result<Doc, FormatError> {
             parts.push(kw(cx, c));
         }
     } else {
+        // shfmt keeps the blanks between `(` and a statement that starts with `(` (`( (a) )`).
+        let first = body.iter().find_map(|e| e.first(cx));
+        let first_lparen = first.as_ref().is_some_and(|t| {
+            t.text() == "("
+                || t.text() == "!" && next_significant(cx, t).is_some_and(|n| n.text() == "(")
+        });
+        let last_rparen = body
+            .iter()
+            .rev()
+            .find_map(|e| e.last(cx))
+            .is_some_and(|t| t.text() == ")");
         if !body.is_empty() {
-            if !subshell {
+            if !subshell || first_lparen {
                 parts.push(doc::lit(" "));
             }
             parts.push(inline_list(cx, body, !subshell)?);
@@ -599,7 +600,7 @@ fn compound(cx: &FormatCtx<'_>, node: &SyntaxNode) -> Result<Doc, FormatError> {
             parts.push(c.doc(cx)?);
         }
         if let Some(c) = closer.and_then(E::tok) {
-            if !subshell {
+            if !subshell || first_lparen && last_rparen {
                 parts.push(doc::lit(" "));
             }
             parts.push(kw(cx, c));
@@ -663,7 +664,7 @@ fn head_doc(
     if kind == k::C_FOR {
         let (a, b) = (first.first(cx), words.last().and_then(|e| e.last(cx)));
         return Ok(match (a, b) {
-            (Some(a), Some(b)) => cx.verbatim_range(&a, &b),
+            (Some(a), Some(b)) => arithmetic_range(cx, &a, &b),
             _ => Doc::Nil,
         });
     }

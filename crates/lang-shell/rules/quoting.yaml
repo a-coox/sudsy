@@ -8,6 +8,7 @@ severity: warn
 category: suspicious
 rule:
   kind: Subst
+  regex: '^[$`]'
   parent:
     any:
       - { kind: Command }
@@ -62,4 +63,4 @@ category: suspicious
 rule:
   kind: Command
   regex: '^(export|local|declare|readonly|typeset)\s'
-  child: { kind: Assign, has: { kind: Subst } }
+  child: { kind: Assign, has: { kind: Subst, regex: '^[$`]' } }

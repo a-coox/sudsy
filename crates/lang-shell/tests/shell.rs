@@ -74,7 +74,17 @@ fn heredocs_and_multiline_words_are_kept() {
     let src = "cat <<EOF | grep x\n  body   \nEOF\nif a; then\n  cat <<-E >out\n\tbody\n\tE\nfi\nx=\"a  \n  b\" y=$(foo\n  bar)\necho 'a\n b'\n";
     assert_eq!(
         fmt(src),
-        "cat <<EOF | grep x\n  body   \nEOF\nif a; then\n\tcat <<-E >out\n\tbody\n\tE\nfi\nx=\"a  \n  b\" y=$(foo\n  bar)\necho 'a\n b'\n"
+        "cat <<EOF | grep x\n  body   \nEOF\nif a; then\n\tcat <<-E >out\n\tbody\n\tE\nfi\nx=\"a  \n  b\" y=$(\n\tfoo\n\tbar\n)\necho 'a\n b'\n"
+    );
+}
+
+/// `$(...)` and arrays are laid out like statements, inside strings too; backticks are kept.
+#[test]
+fn substitutions_and_arrays() {
+    let src = "f() {\n  x=\"a $(\n    b; c ) $( d )\" y=`e  f`\n  z=( p q\n      r\n  )\n  w=$(a |\n    b)\n  v=$(\n\n    a)\n  u=$(a # c\n  )\n}\n";
+    assert_eq!(
+        fmt(src),
+        "f() {\n\tx=\"a $(\n\t\tb\n\t\tc\n\t) $(d)\" y=`e  f`\n\tz=(p q\n\t\tr\n\t)\n\tw=$(a |\n\t\tb)\n\tv=$(\n\n\t\ta\n\t)\n\tu=$(\n\t\ta # c\n\t)\n}\n"
     );
 }
 

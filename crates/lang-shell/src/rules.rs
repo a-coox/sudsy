@@ -87,7 +87,9 @@ rule! {
 /// Is `arg` a substitution, or a string that holds nothing else?
 fn only_substitution(arg: &SyntaxElement) -> bool {
     match arg {
-        SyntaxElement::Node(n) if n.kind() == k::SUBST => true,
+        SyntaxElement::Node(n) if n.kind() == k::SUBST => {
+            !n.text().to_string().starts_with(['<', '>'])
+        }
         SyntaxElement::Node(n) if n.kind() == k::STRING => {
             n.children().count() == 1
                 && (n.children_with_tokens())

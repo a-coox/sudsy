@@ -7,6 +7,7 @@ rm a$(b) `c`
 #        ^^^ quote-command-substitution
 rm '$(literal)' "$(ok)"
 echo $((1 + 2))
+diff <(sort a) <(sort b); echo <(date)
 rm $file ${dir}/x "$file" '$file' $1 $?
 #  ^^^^^ quote-variable
 #        ^^^^^^^^ quote-variable

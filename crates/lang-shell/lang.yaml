@@ -6,7 +6,7 @@ formatter: ShellFormatter
 composite:
   text: Word
   continuation: true
-  tolerant: [variable_assignment, test_command, string, concatenation, command_substitution]
+  tolerant: [variable_assignment, test_command, string, concatenation, command_substitution, process_substitution]
 deps: [regex]
 options:
   - indent_size: 4
@@ -35,9 +35,10 @@ mapping:
   Assign: variable_assignment
   Test: test_command
   Concat: concatenation
-  Subst: command_substitution
+  Subst: command_substitution process_substitution
   Redirect: file_redirect herestring_redirect
+  Arith: arithmetic_expansion
   HeredocOp: '<< <<-'
-  Word: number raw_string ansi_c_string translated_string expansion simple_expansion process_substitution arithmetic_expansion brace_expression extglob_pattern regex special_variable_name variable_name file_descriptor test_operator heredoc_start subscript
+  Word: number raw_string ansi_c_string translated_string expansion simple_expansion brace_expression extglob_pattern regex special_variable_name variable_name file_descriptor test_operator heredoc_start subscript
   Keyword: 'if then elif else fi while until for in do done case esac function select ! { } ( )'
   Op: '& && || | |& ;; ;& ;;&'

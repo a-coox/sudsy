@@ -22,10 +22,8 @@ token Semi ";" #separator
 token Op
 // A word or a piece of one: quoting and expansions stay inside as written. A lone `\` is a line continuation.
 token Word #literal
-// `( b c )` of an array assignment; the formatter trims the padding.
-token Array #restyle
-// A redirection (`> file`, `2>&1`, `<<< word`); blanks after the operator may go.
-token Redirect #restyle
+// `$(( expr ))`: the blanks inside the brackets may go.
+token Arith #restyle
 // `<<` or `<<-`, the delimiter word follows.
 token HeredocOp
 token HeredocBody
@@ -42,6 +40,8 @@ node Pipeline #el = parts:#el*
 node List #el = parts:#el*
 // A statement with redirects (`done < file`, `cmd 2>&1`).
 node Redirected #el = parts:#el*
+// A redirection (`> file`, `2>&1`, `<<< word`): descriptor, operator, target.
+node Redirect #el = parts:#el*
 node Negated #el = parts:#el*
 node Subshell #el = parts:#el*
 // `{ ...; }`, or `(( ... ))`.
@@ -62,6 +62,8 @@ node HeredocRedirect #el = parts:#el*
 node Assign #el = parts:#el*
 // `[ ... ]` and `[[ ... ]]`, printed as written.
 node Test #el = parts:#el*
+// `( b c )` of an array assignment: the elements are children.
+node Array #el = parts:#el*
 // A double-quoted string: text pieces and substitutions.
 node String #el = parts:#el*
 // Adjacent parts of one word (`a$(b)"c"`).
