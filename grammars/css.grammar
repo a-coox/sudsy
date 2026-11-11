@@ -40,7 +40,8 @@ token InterpOpen #punctuation
 
 token Colon ":" #punctuation
 token Semicolon ";" #punctuation #separator
-token Comma "," #punctuation
+// #separator: a SCSS map that breaks gets a trailing comma.
+token Comma "," #punctuation #separator
 token LBrace "{" #punctuation
 token RBrace "}" #punctuation
 token LParen "(" #punctuation
@@ -54,7 +55,8 @@ token Unknown #error
 
 node Stylesheet = items:#item* Eof
 node Rule #item = prelude:Prelude? block:Block
-node AtRule #item = AtKeyword prelude:Prelude? block:Block? Semicolon?
+// `@else` after the block of an `@if` or `@else` is nested in it.
+node AtRule #item = AtKeyword prelude:Prelude? block:Block? else:AtRule? Semicolon?
 node Declaration #item = property:Property Colon value:Value? Semicolon?
 // A statement with no colon and no block: a Less mixin call, a stray value.
 // A stray `;` that has a comment on it (a bare one is only a token).

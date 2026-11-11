@@ -72,6 +72,9 @@ struct Parser<'a> {
     trailing: Vec<Range<usize>>,
     pos: usize,
     depth: usize,
+    /// The first token of the parameters of `@include`, `@mixin` and `@function`: a name there is a
+    /// call even when blank space separates it from its `(`.
+    call_at: Option<usize>,
     /// The closers that the scan waits for, innermost last.
     closers: Vec<SyntaxKind>,
     builder: TreeBuilder,
@@ -104,6 +107,7 @@ impl<'a> Parser<'a> {
             trailing,
             pos: 0,
             depth: 0,
+            call_at: None,
             closers: Vec::new(),
             builder: TreeBuilder::new(),
             errors: Vec::new(),
@@ -202,6 +206,7 @@ impl<'a> Parser<'a> {
     }
 
     fn statement(&mut self) {
+        let start = self.pos;
         let scan = self.scan();
         match scan.kind {
             End::Unclosed => {
@@ -219,12 +224,7 @@ impl<'a> Parser<'a> {
                 let stray = self.kind_at(scan.end) != k::R_BRACE;
                 self.error_until(scan.end + usize::from(stray));
             }
-            _ if self.cur() == k::AT_KEYWORD => {
-                self.builder.start_node(k::AT_RULE);
-                self.bump();
-                self.list(k::PRELUDE, scan.end);
-                self.finish_statement(scan.kind);
-            }
+            _ if self.cur() == k::AT_KEYWORD => self.at_rule(scan),
             End::Brace => {
                 self.builder.start_node(k::RULE);
                 self.list(k::PRELUDE, scan.end);
@@ -235,7 +235,13 @@ impl<'a> Parser<'a> {
                     self.builder.start_node(k::DECLARATION);
                     self.list(k::PROPERTY, colon);
                     self.bump(); // :
-                    self.list(k::VALUE, scan.end);
+                    if self.braced_value(start, scan.end) {
+                        self.builder.start_node(k::VALUE);
+                        self.block();
+                        self.builder.finish_node();
+                    } else {
+                        self.list(k::VALUE, scan.end);
+                    }
                     self.finish_statement(scan.kind);
                 }
                 None => {
@@ -246,6 +252,81 @@ impl<'a> Parser<'a> {
             },
         }
         self.closers.clear();
+    }
+
+    /// An at-rule; a `@else` right after its block (`@if` chains) is nested in it, so that the chain
+    /// is one node. Each link counts as a level of nesting.
+    fn at_rule(&mut self, mut scan: Scan) {
+        let mut links = 0;
+        loop {
+            self.builder.start_node(k::AT_RULE);
+            let name = &self.tokens[self.real[self.pos]];
+            // shortcut: allocates a String per at-rule (about +0.6% of css parse allocations);
+            // compare with `eq_ignore_ascii_case` instead.
+            let name = self.src[name.start..name.end].to_ascii_lowercase();
+            self.bump();
+            if matches!(name.as_str(), "@include" | "@mixin" | "@function") {
+                self.call_at = Some(self.pos);
+            }
+            self.list(k::PRELUDE, scan.end);
+            self.call_at = None;
+            match scan.kind {
+                End::Brace => self.block(),
+                End::Semi => self.bump(),
+                _ => {}
+            }
+            if scan.kind != End::Brace || !self.else_follows() || self.depth + links >= MAX_DEPTH {
+                break;
+            }
+            self.closers.clear();
+            scan = self.scan();
+            if !matches!(scan.kind, End::Brace | End::Semi | End::Close) {
+                break;
+            }
+            links += 1;
+        }
+        for _ in 0..=links {
+            self.builder.finish_node();
+        }
+    }
+
+    /// Is the current token an `@else` with no comment between it and the `}` before it?
+    fn else_follows(&self) -> bool {
+        let comment = |r: &Range<usize>| {
+            r.clone()
+                .any(|i| matches!(self.tokens[i].kind, k::COMMENT | k::LINE_COMMENT))
+        };
+        let t = &self.tokens[self.real[self.pos]];
+        t.kind == k::AT_KEYWORD
+            && self.src[t.start..t.end].eq_ignore_ascii_case("@else")
+            && !comment(&self.leading[self.pos])
+            && !comment(&self.trailing[self.pos - 1])
+    }
+
+    /// Is the value of the custom property that starts at real token `start` one `{ }` block,
+    /// as in `--x: { color: red }` (it is a block of declarations)?
+    fn braced_value(&self, start: usize, end: usize) -> bool {
+        let t = self.tokens[self.real[start]];
+        if t.kind != k::IDENT
+            || !self.src[t.start..t.end].starts_with("--")
+            || self.cur() != k::L_BRACE
+        {
+            return false;
+        }
+        let mut depth = 0;
+        for i in self.pos..end {
+            match self.kind_at(i) {
+                k::L_BRACE | k::INTERP_OPEN => depth += 1,
+                k::R_BRACE => {
+                    depth -= 1;
+                    if depth == 0 {
+                        return i + 1 == end;
+                    }
+                }
+                _ => {}
+            }
+        }
+        false
     }
 
     /// The end of a statement whose node is open: its block or `;`.
@@ -297,7 +378,10 @@ impl<'a> Parser<'a> {
     fn component(&mut self) {
         match self.cur() {
             k::L_PAREN | k::L_BRACKET | k::L_BRACE | k::INTERP_OPEN => self.group(),
-            k::IDENT if self.kind_at(self.pos + 1) == k::L_PAREN && self.adjacent() => {
+            k::IDENT
+                if self.kind_at(self.pos + 1) == k::L_PAREN
+                    && (self.adjacent() || self.call_at == Some(self.pos)) =>
+            {
                 self.builder.start_node(k::FUNCTION);
                 self.bump();
                 self.group();

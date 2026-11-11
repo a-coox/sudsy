@@ -25,7 +25,9 @@ const CSS_OUT: &str = r#"@charset "utf-8";
 @import url(foo.css) screen;
 :root {
   --x: ;
-  --y: {a:b};
+  --y: {
+    a: b;
+  };
   --z: 1px;
 }
 a:hover,
@@ -51,7 +53,12 @@ a > b[href^="x"] {
 "#;
 
 const SCSS_OUT: &str = r#"@use "sass:math";
-$map: (a: 1, b: (c: 2)) !default;
+$map: (
+  a: 1,
+  b: (
+    c: 2,
+  ),
+) !default;
 // line
 @mixin m($a, $b: 2) {
   width: math.div($a, $b);
@@ -69,11 +76,9 @@ $map: (a: 1, b: (c: 2)) !default;
 }
 @if $a == 1 {
   a: b;
-}
-@else if $a {
+} @else if $a {
   c: d;
-}
-@else {
+} @else {
   e: f;
 }
 @each $k, $v in $map {
@@ -86,7 +91,7 @@ $map: (a: 1, b: (c: 2)) !default;
 const LESS_OUT: &str = r#"@color: #4d926f;
 @detached: {
   background: red;
-}
+};
 // line
 .bordered(@width: 2px; @style: solid) {
   border: @width @style;
@@ -95,7 +100,7 @@ const LESS_OUT: &str = r#"@color: #4d926f;
   .bordered(4px; dashed);
   @r: {
     x: y;
-  }
+  };
   @detached();
 }
 .b:extend(.a all) {
@@ -216,8 +221,7 @@ fn deep_nesting_is_an_error() {
     assert!(parse(Dialect::Css, &format!("a {{ {deep} }}")).1 > 0);
 }
 
-/// Prettier's output for the samples, but where noted: SCSS maps and `@else` after `}` (and a
-/// brace value of a custom property) are not laid out yet.
+/// Prettier's output for the samples.
 #[test]
 fn formats_like_prettier() {
     for (dialect, file, text, expected) in [

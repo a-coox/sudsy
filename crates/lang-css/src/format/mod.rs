@@ -49,6 +49,13 @@ const GRID: &[&str] = &[
     "grid-template-rows",
 ];
 
+/// SCSS at-rules whose parameters are values; those in the second list take arguments.
+const SCSS_AT_RULES: &[&str] = &[
+    "if", "else", "each", "for", "while", "return", "debug", "warn", "error", "use", "forward",
+    "extend", "at-root",
+];
+const SCSS_CALLS: &[&str] = &["include", "mixin", "function", "use", "forward"];
+
 const CSS_AT_RULES: &[&str] = &[
     "charset",
     "import",
@@ -100,7 +107,9 @@ impl NodeFormatter for CssFormatter {
         let tokens = |n: &SyntaxNode| -> Vec<SyntaxToken> {
             n.descendants_with_tokens()
                 .filter_map(|e| e.into_token())
-                .filter(|t| !value::is_trivia(t.kind()) && t.kind() != k::SEMICOLON)
+                .filter(|t| {
+                    !value::is_trivia(t.kind()) && !matches!(t.kind(), k::SEMICOLON | k::COMMA)
+                })
                 .collect()
         };
         let comments = |n: &SyntaxNode| -> Vec<String> {
@@ -271,11 +280,16 @@ impl Pr<'_, '_> {
         let name = kw.text().to_ascii_lowercase();
         // `@var: value` (Less) and `@detached()` keep their name as written.
         let block = child(node, k::BLOCK);
-        let css = CSS_AT_RULES.contains(&&name[1..]);
-        let variable = !css
-            && pitems.first().is_some_and(|i| i.tok(k::COLON).is_some())
-            && (self.dialect == Dialect::Less || block.is_none());
-        let call = matches!(pitems.first(), Some(Item::Grp(g)) if g.open.text_range().start() == kw.text_range().end());
+        let sass = self.dialect == Dialect::Scss;
+        let ctrl = sass && matches!(name.as_str(), "@if" | "@else" | "@each" | "@for" | "@while");
+        let args = sass && SCSS_CALLS.contains(&&name[1..]);
+        let css = CSS_AT_RULES.contains(&&name[1..])
+            || sass && (args || SCSS_AT_RULES.contains(&&name[1..]));
+        let variable = pitems.first().is_some_and(|i| {
+            i.tok(k::COLON).is_some() && (!css || i.start() == kw.text_range().end())
+        }) && (self.dialect == Dialect::Less || block.is_none());
+        let call = !css
+            && matches!(pitems.first(), Some(Item::Grp(g)) if g.open.text_range().start() == kw.text_range().end());
         let mut parts = vec![
             self.lead(&kw),
             if variable || call {
@@ -302,18 +316,46 @@ impl Pr<'_, '_> {
                 parts.push(if css && name != "@charset" && !call {
                     let st = St {
                         media: matches!(name.as_str(), "@media" | "@custom-media"),
+                        args: args || ctrl,
+                        ctrl,
                         ..St::params()
                     };
                     self.node_with(p, |i| Some(self.list(i, st)))
                 } else {
-                    self.node_with(p, |i| Some(doc::text(self.plain(i))))
+                    self.node_with(p, |i| {
+                        Some(doc::text(if name == "@charset" {
+                            value::raw_text(p)
+                        } else {
+                            self.plain(i)
+                        }))
+                    })
                 });
             }
         }
         match block {
             Some(block) => {
-                parts.push(doc::lit(" "));
+                // A control directive's `{` goes on its own line when its parameters break.
+                if ctrl && prelude.is_some() {
+                    let params = parts.split_off(parts.len() - 1);
+                    // `@while (...) {`: a parenthesis holds the breaks.
+                    let paren =
+                        matches!(pitems.as_slice(), [Item::Grp(g)] if g.open.kind() == k::L_PAREN);
+                    let end = if paren { doc::lit(" ") } else { doc::line() };
+                    parts.push(doc::group(doc::concat(
+                        params.into_iter().chain([end]).collect(),
+                    )));
+                } else {
+                    parts.push(doc::lit(" "));
+                }
                 parts.push(self.block(&block)?);
+                // A Less detached ruleset (`@name: { }`) ends with `;`.
+                if variable {
+                    parts.push(doc::lit(";"));
+                }
+                if let Some(next) = child(node, k::AT_RULE) {
+                    parts.push(doc::lit(" "));
+                    parts.push(cx.format(&next)?);
+                }
             }
             None => {
                 parts.push(doc::lit(";"));
@@ -361,11 +403,49 @@ impl Pr<'_, '_> {
             {
                 self.plain(&pitems)
             }
-            _ => return cx.verbatim_node(node),
+            _ => {
+                let text = cx.verbatim_node(node);
+                return if semicolon(node).is_some() {
+                    text
+                } else {
+                    doc::concat(vec![text, doc::lit(";")])
+                };
+            }
         };
         let value = child(node, k::VALUE);
         if unhandled_comments(node, value.as_ref()) {
             return cx.verbatim_node(node);
+        }
+        // `--x: { color: red }`: a block of declarations.
+        if let Some(block) = value.as_ref().and_then(|v| child(v, k::BLOCK)) {
+            let Ok(block) = self.block(&block) else {
+                return cx.verbatim_node(node);
+            };
+            return doc::concat(vec![
+                self.lead(&first),
+                doc::text(name.clone()),
+                doc::lit(": "),
+                block,
+                doc::lit(";"),
+                semicolon(node).map_or(Doc::Nil, |semi| self.trail(&semi)),
+            ]);
+        }
+        // A custom property of blanks only keeps them.
+        if value.is_none() && name.starts_with("--") {
+            let blanks: String = node
+                .children_with_tokens()
+                .filter_map(|e| e.into_token())
+                .skip_while(|t| t.kind() != k::COLON)
+                .skip(1)
+                .take_while(|t| t.kind() != k::SEMICOLON)
+                .filter(|t| t.kind() == k::WHITESPACE)
+                .map(|t| t.text().to_string())
+                .collect();
+            return doc::concat(vec![
+                self.lead(&first),
+                doc::text(format!("{name}:{blanks};")),
+                semicolon(node).map_or(Doc::Nil, |semi| self.trail(&semi)),
+            ]);
         }
         let vitems = value.map(|v| items_with_edges(&v)).unwrap_or_default();
         if matches!(vitems.first(), Some(Item::Grp(g)) if g.open.kind() == k::L_BRACE)
@@ -377,6 +457,7 @@ impl Pr<'_, '_> {
         let st = St {
             flat: name == "composes",
             grid: GRID.contains(&name.as_str()),
+            dollar: name.starts_with('$'),
             ..St::value(!name.starts_with("--"))
         };
         doc::concat(vec![

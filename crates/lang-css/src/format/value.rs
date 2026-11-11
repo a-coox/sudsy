@@ -2,6 +2,7 @@
 //! values and at-rule parameters.
 
 use super::{Pr, text};
+use crate::Dialect;
 use crate::generated::kind as k;
 use core_format::context::verbatim_text;
 use core_format::doc::{self, Doc};
@@ -147,6 +148,16 @@ impl Item {
         }
     }
 
+    pub fn is_word(&self, words: &[&str]) -> bool {
+        self.tok(k::IDENT)
+            .is_some_and(|t| words.contains(&t.text()))
+    }
+
+    /// The first character of `==`, `!=`, `<`, `>`, `<=` or `>=`.
+    pub fn is_comparison(&self) -> bool {
+        ["=", "!", "<", ">"].iter().any(|d| self.is_delim(d))
+    }
+
     pub fn is_delim(&self, text: &str) -> bool {
         self.tok(k::DELIM).is_some_and(|t| t.text() == text)
     }
@@ -218,6 +229,23 @@ pub(crate) struct St {
     pub media: bool,
     /// A top-level comma list that does not fit starts on a new line (not after a Less variable).
     pub soft_start: bool,
+    /// At-rule parameters whose parentheses are arguments that break one per line (`@include`).
+    pub args: bool,
+    /// The value of a `$variable`: its SCSS maps always break.
+    pub dollar: bool,
+    /// The parent group is a map or the named arguments of a call (`key: value` entries); `ops`:
+    /// the entry being printed has an arithmetic operator.
+    pub map: bool,
+    pub ops: bool,
+    /// The parent group is the arguments of a function.
+    pub fun: bool,
+    /// The group about to print holds the arguments of a function.
+    pub call: bool,
+    /// The parameters of an SCSS control directive: a comparison operator stays with the word
+    /// before it.
+    pub ctrl: bool,
+    /// The group about to print is the configuration of `@use ... with (...)`.
+    pub config: bool,
 }
 
 impl St {
@@ -233,6 +261,14 @@ impl St {
             grid: false,
             media: false,
             soft_start: true,
+            args: false,
+            dollar: false,
+            map: false,
+            ops: false,
+            fun: false,
+            call: false,
+            ctrl: false,
+            config: false,
         }
     }
 
@@ -244,6 +280,37 @@ impl St {
             ..St::value(false)
         }
     }
+}
+
+/// In an SCSS control directive: a space that never breaks, before a comparison or `and`, `or`,
+/// `not` and after `in`, `from`, `through`, `end`.
+fn glued(prev: &Item, next: &Item) -> bool {
+    next.is_comparison()
+        || next.is_delim("*")
+        || next.is_word(&["and", "or", "not"])
+        || prev.is_word(&["in", "from", "through", "end"])
+}
+
+/// Does a blank line follow the comma, which stands on the line of the item before it?
+fn blank_after(tok: &SyntaxToken) -> bool {
+    let mut before = tok.prev_token();
+    while let Some(t) = before.clone().filter(|t| t.kind() == k::WHITESPACE) {
+        before = t.prev_token();
+    }
+    if before.is_some_and(|t| t.kind() == k::NEWLINE) {
+        return false;
+    }
+    let mut breaks = 0;
+    let mut next = tok.next_token();
+    while let Some(t) = next {
+        match t.kind() {
+            k::NEWLINE => breaks += 1,
+            k::WHITESPACE => {}
+            _ => break,
+        }
+        next = t.next_token();
+    }
+    breaks > 1
 }
 
 /// Is the comma separated item more than one word? (`a b`, `1px/2px`; as Prettier's value parser
@@ -313,6 +380,8 @@ impl Pr<'_, '_> {
 
     pub fn list(&self, items: &[Item], st: St) -> Doc {
         let (segs, trailing) = split_commas(items);
+        // A top-level trailing comma has no use.
+        let trailing = trailing && !(st.top && !st.params);
         let inner = St { top: false, ..st };
         let mut docs: Vec<Doc> = segs.iter().map(|s| self.segment(s, inner)).collect();
         if trailing {
@@ -329,7 +398,13 @@ impl Pr<'_, '_> {
         for (i, d) in docs.into_iter().enumerate() {
             if i + 1 < n {
                 parts.push(doc::concat(vec![d, doc::lit(",")]));
-                parts.push(if st.flat {
+                // A blank line after a comma inside parentheses stays.
+                let comma = segs[..=i].iter().map(|s| s.len() + 1).sum::<usize>() - 1;
+                let blank =
+                    st.group && matches!(items.get(comma), Some(Item::Tok(c)) if blank_after(c));
+                parts.push(if blank && !st.flat {
+                    doc::concat(vec![doc::line(), doc::hardline()])
+                } else if st.flat {
                     doc::lit(" ")
                 } else if hard {
                     doc::hardline()
@@ -347,6 +422,8 @@ impl Pr<'_, '_> {
             doc::concat(parts)
         } else if hard {
             broken(doc::hardline(), parts)
+        } else if st.ctrl {
+            doc::group(broken(Doc::Nil, vec![doc::fill(parts)]))
         } else if st.params {
             doc::group(broken(Doc::Nil, parts))
         } else {
@@ -361,25 +438,77 @@ impl Pr<'_, '_> {
 
     /// Items between two commas: words separated where the source has space.
     fn segment(&self, items: &[Item], st: St) -> Doc {
+        let st = St {
+            ops: items
+                .iter()
+                .any(|i| ["+", "-", "*", "/", "%"].iter().any(|d| i.is_delim(d))),
+            ..st
+        };
         let mut parts: Vec<Doc> = Vec::new();
         let mut cur: Vec<Doc> = Vec::new();
         let colon = |i: &Item| st.group && i.tok(k::COLON).is_some();
         let gap = |a: usize, b: usize| items[a].end() != items[b].start();
         // `*` always has spaces around it, `/` only in `calc()` and when it has some already.
         // (`a*b`, `--x-*` and `*=` are words.)
+        let interp =
+            |i: Option<&Item>| matches!(i, Some(Item::Grp(g)) if g.open.kind() == k::INTERP_OPEN);
         let star = |j: usize| {
             items[j].is_delim("*")
-                && !(j > 0 && !gap(j - 1, j) && items[j - 1].tok(k::IDENT).is_some())
+                && !interp(items.get(j.wrapping_sub(1)))
+                && !interp(items.get(j + 1))
+                && !(j > 0
+                    && !gap(j - 1, j)
+                    && (items[j - 1].tok(k::IDENT).is_some()
+                        || self.dialect == Dialect::Less
+                            && items[j - 1].tok(k::AT_KEYWORD).is_some()))
                 && !(j + 1 < items.len() && !gap(j, j + 1) && items[j + 1].is_delim("="))
         };
-        let muldiv = |j: usize| {
-            star(j)
-                || st.calc
-                    && items[j].is_delim("/")
-                    && (j > 0 && gap(j - 1, j) || j + 1 < items.len() && gap(j, j + 1))
+        // SCSS and Less `/`: spaced when the source spaces it before, after a function or
+        // parenthesis, or between a number and a word; `$a/2` is a word and `$a/ 2` keeps its
+        // space after.
+        let slash = |j: usize| {
+            let (Some(left), Some(right)) = (items.get(j.wrapping_sub(1)), items.get(j + 1)) else {
+                return false;
+            };
+            let word =
+                |i: &Item| matches!(i, Item::Tok(t) if matches!(t.kind(), k::IDENT | k::VARIABLE));
+            let named = |i: &Item| word(i) || i.tok(k::AT_KEYWORD).is_some();
+            let call = |i: &Item| {
+                matches!(i, Item::Func(..))
+                    || matches!(i, Item::Grp(g) if g.open.kind() == k::L_PAREN)
+            };
+            let number = |i: &Item| matches!(i, Item::Tok(t) if matches!(t.kind(), k::NUMBER | k::DIMENSION | k::PERCENTAGE));
+            let plus = self.dialect != Dialect::Css
+                && items[j].is_delim("+")
+                && [left, right].iter().any(|i| {
+                    call(i) || i.tok(k::VARIABLE).is_some() || i.tok(k::AT_KEYWORD).is_some()
+                });
+            plus || self.dialect != Dialect::Css
+                && items[j].is_delim("/")
+                && !interp(Some(left))
+                && !interp(Some(right))
+                && (named(left) || named(right) || call(left) || call(right))
+                && (gap(j - 1, j)
+                    || !gap(j, j + 1)
+                        && (call(left)
+                            || left.tok(k::AT_KEYWORD).is_some()
+                            || number(left) && (named(right) || matches!(right, Item::Func(..))))
+                    || gap(j, j + 1) && !word(left))
         };
+        let muldiv = |j: usize| star(j) || slash(j) || st.calc && items[j].is_delim("/");
+        // `with (...)`: the parenthesis stays on the line and breaks.
+        let config = |j: usize| {
+            self.dialect == Dialect::Scss
+                && matches!(&items[j], Item::Grp(g) if g.open.kind() == k::L_PAREN)
+                && j > 0
+                && items[j - 1]
+                    .tok(k::IDENT)
+                    .is_some_and(|t| t.text() == "with")
+        };
+        let has_config = (0..items.len()).any(config);
         let grid = st.grid && !st.group;
         let mut broke = false;
+        let mut colon_at: Option<(usize, doc::GroupId)> = None;
         for (i, it) in items.iter().enumerate() {
             if i > 0 {
                 let prev = &items[i - 1];
@@ -389,14 +518,20 @@ impl Pr<'_, '_> {
                     || matches!(prev, Item::Grp(g) if g.open.kind() == k::L_PAREN);
                 let word = matches!(it, Item::Tok(t) if matches!(t.kind(),
                     k::IDENT | k::STRING | k::NUMBER | k::DIMENSION | k::PERCENTAGE | k::HASH));
-                let space = if colon(it) {
+                // Less lookups: `@map[key]`.
+                let lookup = self.dialect == Dialect::Less
+                    && matches!(it, Item::Grp(g) if g.open.kind() == k::L_BRACKET);
+                let space = if colon(it) || colon(prev) || lookup || it.tok(k::SEMICOLON).is_some()
+                {
                     false
                 } else {
-                    colon(prev)
+                    st.ctrl && it.is_comparison() && matches!(prev, Item::Grp(_))
                         || muldiv(i)
                         || muldiv(i - 1)
                         || prev.end() != it.start()
                         || after_paren && word
+                        || prev.tok(k::STRING).is_some()
+                            && (it.tok(k::STRING).is_some() || matches!(it, Item::Func(..)))
                 };
                 if space {
                     parts.push(doc::concat(std::mem::take(&mut cur)));
@@ -409,7 +544,7 @@ impl Pr<'_, '_> {
                         } else {
                             doc::lit(" ")
                         }
-                    } else if st.flat || st.media {
+                    } else if st.flat || st.media || st.ctrl && glued(prev, it) || has_config {
                         doc::lit(" ")
                     } else {
                         doc::line()
@@ -422,15 +557,37 @@ impl Pr<'_, '_> {
                 && matches!(it, Item::Tok(t) if t.kind() == k::IDENT && !t.text().starts_with("--"))
                 && items.get(i + 1).is_some_and(|n| n.tok(k::COLON).is_some());
             cur.push(match it {
+                // The line after a colon breaks only when what follows does not fit after it.
+                _ if colon(it) && (st.flat || st.media) => doc::lit(": "),
+                _ if colon(it) => {
+                    let id = doc::new_group_id();
+                    colon_at.get_or_insert((cur.len(), id));
+                    doc::group_with_id(id, doc::concat(vec![doc::lit(":"), doc::line()]))
+                }
                 Item::Tok(t) if lower => doc::text(t.text().to_ascii_lowercase()),
+                Item::Grp(_)
+                    if items
+                        .get(i.wrapping_sub(1))
+                        .is_some_and(|p| matches!(p, Item::Tok(t) if t.text() == "with")) =>
+                {
+                    self.item(it, St { config: true, ..st })
+                }
                 _ => self.item(it, st),
             });
+        }
+        // A `key: value` entry whose value does not fit goes on the next line, indented.
+        if let (true, Some((at, id))) = (parts.is_empty(), colon_at) {
+            let tail = cur.split_off(at + 1);
+            cur.push(doc::indent_if_break(id, doc::concat(tail)));
         }
         parts.push(doc::concat(cur));
         match parts.len() {
             1 => parts.remove(0),
             _ if st.flat || st.media => doc::concat(parts),
+            _ if has_config => doc::concat(parts),
             _ if broke => doc::indent(doc::concat(vec![doc::hardline(), doc::fill(parts)])),
+            // Control directives break at every space or at none.
+            _ if st.ctrl => doc::group(doc::indent(doc::concat(parts))),
             _ => doc::group(doc::indent(doc::fill(parts))),
         }
     }
@@ -451,7 +608,10 @@ impl Pr<'_, '_> {
                     flat: st.flat || lower == "url",
                     ..st
                 };
-                doc::concat(vec![self.value_token(name), self.group(g, st)])
+                doc::concat(vec![
+                    self.value_token(name),
+                    self.group(g, St { call: true, ..st }),
+                ])
             }
             Item::Grp(g) => self.group(g, st),
         }
@@ -463,13 +623,34 @@ impl Pr<'_, '_> {
                 if g.items.is_empty() {
                     return doc::text(format!("{}{}", g.open.text(), g.close.text()));
                 }
-                let flat = st.flat || st.params || g.open.kind() == k::L_BRACKET;
+                let flat =
+                    st.flat || st.params && !st.args && !st.config || g.open.kind() == k::L_BRACKET;
+                // A SCSS map (`(key: value, ...)`) of a variable, a function argument or another
+                // map breaks one entry per line, with a trailing comma.
+                let entries = self.dialect == Dialect::Scss
+                    && split_commas(&g.items).0[0]
+                        .get(1)
+                        .is_some_and(|i| i.tok(k::COLON).is_some());
+                let is_map = entries && !st.call;
+                let single = matches!(g.items.as_slice(), [_]);
+                let force = (is_map || st.map && !single && !st.call)
+                    && (st.dollar || if st.map { !st.ops } else { st.fun })
+                    || st.config;
+                // A trailing comma is dropped; a breaking map gets one back.
+                let body = match g.items.split_last() {
+                    Some((last, rest)) if last.tok(k::COMMA).is_some() => rest,
+                    _ => &g.items[..],
+                };
                 let inner = self.list(
-                    &g.items,
+                    body,
                     St {
                         flat,
                         top: false,
                         group: true,
+                        map: entries,
+                        fun: st.call,
+                        call: false,
+                        config: false,
                         ..st
                     },
                 );
@@ -477,11 +658,18 @@ impl Pr<'_, '_> {
                 if flat {
                     doc::concat(vec![open, inner, close])
                 } else {
+                    let comma = if force && !st.config {
+                        doc::if_break(doc::lit(","), Doc::Nil)
+                    } else {
+                        Doc::Nil
+                    };
                     doc::group(doc::concat(vec![
                         open,
                         doc::indent(doc::concat(vec![doc::softline(), inner])),
+                        comma,
                         doc::softline(),
                         close,
+                        if force { doc::break_parent() } else { Doc::Nil },
                     ]))
                 }
             }
@@ -491,6 +679,7 @@ impl Pr<'_, '_> {
                 self.list(
                     &g.items,
                     St {
+                        flat: true,
                         top: false,
                         group: true,
                         ..st
