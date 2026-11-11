@@ -40,5 +40,6 @@ wait $bench
 status=$?
 echo "== bench"
 cat "$log"
+[ -s "$log" ] || echo "bench.sh exited $status without output"
 [ $status = 0 ] && echo "FINISH OK" || echo "FINISH FAILED: bench"
 exit $status

@@ -35,12 +35,14 @@ touch_changed() {
   mkdir -p "$CARGO_TARGET_DIR"
   local rec=$CARGO_TARGET_DIR/.built-from wt= head=
   dirty() { git ls-files -mo --exclude-standard -- . ':!.cargo/tmp'; }
-  [ -f "$rec" ] && read -r wt head <"$rec"
+  # finish's gate and bench run this at the same time: the record is replaced whole (mv), and a
+  # missing or empty one must not end the run (`read` fails at end of file, and set -e exits).
+  [ ! -f "$rec" ] || read -r wt head <"$rec" || true
   if [ "$wt" != "$PWD" ]; then
     { if [ -n "$head" ] && git cat-file -e "$head" 2>/dev/null; then git diff --name-only "$head"; else git ls-files; fi
       [ ! -f "$rec" ] || tail -n +2 "$rec"; dirty; } | sort -u | xargs -r -d '\n' touch -c 2>/dev/null || true
   fi
-  { echo "$PWD $(git rev-parse HEAD)"; dirty; } >"$rec"
+  { echo "$PWD $(git rev-parse HEAD)"; dirty; } >"$rec.$BASHPID" && mv -f "$rec.$BASHPID" "$rec"
 }
 
 # cargo never deletes outputs: every dependency graph (each Cargo.lock change) and build kind leaves
