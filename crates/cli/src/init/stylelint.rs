@@ -138,7 +138,7 @@ fn fixed(sudsy: &str) -> Option<&'static str> {
         "function-url-quotes" | "selector-attribute-quotes" => "always",
         "import-notation" => "string",
         "selector-pseudo-element-colon-notation" => "double",
-        "keyframe-selector-notation" => "percentage",
+        "keyframe-selector-notation" => "percentage-unless-within-keyword-only-block",
         "font-family-name-quotes" => "always-where-required",
         _ => return None,
     })
