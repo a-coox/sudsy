@@ -17,7 +17,7 @@ Options declared by more than one language, generated from the option schemas; p
 |---|---|---|
 | `array_bracket_spacing` | bool | json `false`, yaml `false`, github-actions `false`, toml `false` |
 | `blank_lines_after_key` | `preserve`, `remove` | yaml `preserve`, github-actions `preserve` |
-| `bracket_spacing` | bool | json `true`, yaml `true`, github-actions `true`, graphql `true`, toml `true` |
+| `bracket_spacing` | bool | json `true`, js `true`, yaml `true`, github-actions `true`, graphql `true`, toml `true` |
 | `collapse` | json: `preserve`, `always`, `never`, `opening_break`; toml: `preserve`, `always`, `never` | json `preserve`, toml `preserve` |
 | `comment_spacing` | int 1-10 | yaml `1`, github-actions `1` |
 | `document_end` | `preserve`, `always`, `never` | yaml `preserve`, github-actions `preserve` |
@@ -31,7 +31,7 @@ Options declared by more than one language, generated from the option schemas; p
 | `quote_style` | js: `double`, `single`; yaml: `preserve`, `single`, `double`, `prefer_double`; github-actions: `preserve`, `single`, `double`, `prefer_double` | js `double`, yaml `preserve`, github-actions `preserve` |
 | `sequence_indent` | `preserve`, `indented`, `flush` | yaml `preserve`, github-actions `preserve` |
 | `single_quote` | bool | css `false`, scss `false`, less `false` |
-| `trailing_commas` | json: `never`, `multiline`; toml: `never`, `multiline`; csharp: `preserve`, `never`, `multiline` | json `never`, toml `multiline`, csharp `preserve` |
+| `trailing_commas` | json: `never`, `multiline`; js: `all`, `es5`, `none`; toml: `never`, `multiline`; csharp: `preserve`, `never`, `multiline` | json `never`, js `all`, toml `multiline`, csharp `preserve` |
 <!-- /generated -->
 
 ## Shapes (`core-format::shapes`)

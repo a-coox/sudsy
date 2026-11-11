@@ -6,7 +6,7 @@ use super::util::{
     token_of, will_break,
 };
 use crate::generated::kind as k;
-use core_format::doc::{self, Doc, concat, group, if_break, indent, line, lit, softline};
+use core_format::doc::{self, Doc, concat, group, indent, line, lit, softline};
 use core_format::{FormatCtx, FormatError, comments};
 use core_syntax::{SyntaxElement, SyntaxNode};
 
@@ -202,7 +202,7 @@ fn hugs_parentheses(param: &SyntaxNode) -> bool {
         (k::FORMAL_PARAMETER, Some(c))
             if matches!(c.kind(), k::OBJECT_PATTERN | k::ARRAY_PATTERN) =>
         {
-            true
+            super::object::hugs_only_param(param)
         }
         (k::FORMAL_PARAMETER | k::TS_THIS_PARAMETER, _) => param.children().any(|c| {
             c.kind() == k::TS_TYPE_ANNOTATION
@@ -282,7 +282,7 @@ pub(crate) fn parameters_in(
             list.extend([lit(","), c, line()]);
         } else {
             if !ends_in_rest {
-                list.push(if_break(lit(","), Doc::Nil));
+                list.push(super::util::trailing_comma(cx, true));
             }
             list.push(c);
         }

@@ -4,7 +4,9 @@
 use super::ast::{is_jsx, is_member, outer, parent, un};
 use super::util::{R, shape_error};
 use crate::generated::kind as k;
-use core_format::doc::{Doc, align, concat, group, if_break, indent, line, lit, softline};
+use core_format::doc::{
+    Doc, align, concat, group, hardline, if_break, indent, line, lit, softline,
+};
 use core_format::{FormatCtx, FormatError};
 use core_syntax::SyntaxNode;
 
@@ -164,7 +166,8 @@ fn ternary(node: &SyntaxNode, cx: &FormatCtx<'_>) -> R {
             cx.token(q),
             lit(" "),
             paren(true),
-            align(2, cons_doc),
+            // A line comment after `?` ends the line: the branch starts on the next one.
+            align(2, concat(vec![comment_break(cx, q), cons_doc])),
             paren(false),
             line(),
             cx.token(colon),
@@ -219,4 +222,11 @@ fn ternary(node: &SyntaxNode, cx: &FormatCtx<'_>) -> R {
     } else {
         result
     })
+}
+
+fn comment_break(cx: &FormatCtx<'_>, tok: &core_syntax::SyntaxToken) -> Doc {
+    let line_comment = core_format::comments::trailing_comments(cx.grammar, tok)
+        .iter()
+        .any(|c| c.kind == core_format::comments::CommentKind::Line);
+    if line_comment { hardline() } else { Doc::Nil }
 }

@@ -4641,6 +4641,25 @@
         "format": {
           "additionalProperties": false,
           "properties": {
+            "arrow_parens": {
+              "default": "always",
+              "description": "Parentheses around the lone parameter of an arrow function: `always` writes `(x) => x`, `avoid` writes `x => x` when the parameter is a plain name (no type, default, rest or destructuring).",
+              "enum": [
+                "always",
+                "avoid"
+              ],
+              "type": "string"
+            },
+            "bracket_same_line": {
+              "default": false,
+              "description": "JSX: put the `>` of a multi-line element on the line of its last attribute instead of on a line of its own.",
+              "type": "boolean"
+            },
+            "bracket_spacing": {
+              "default": true,
+              "description": "Spaces inside the braces of a one-line mapping or object: `{ a: 1 }` or `{a: 1}`.",
+              "type": "boolean"
+            },
             "end_of_line": {
               "default": "auto",
               "description": "Line break style of the output: `lf`, `crlf`, or `auto` to keep the file's first              line break.",
@@ -4679,6 +4698,16 @@
               "minimum": 20,
               "type": "integer"
             },
+            "quote_props": {
+              "default": "as_needed",
+              "description": "Quotes around property names of objects and destructuring patterns: `as_needed` removes quotes that are not required (`\"a\": 1` becomes `a: 1`), `consistent` quotes every name of an object when one of its names requires quotes and removes them otherwise, `preserve` keeps what the source has. Numeric names are left as written.",
+              "enum": [
+                "as_needed",
+                "consistent",
+                "preserve"
+              ],
+              "type": "string"
+            },
             "quote_style": {
               "default": "double",
               "description": "Quotes of strings (not JSX attributes). A string with more of the preferred quote than of the other keeps the other one, to need fewer escapes.",
@@ -4692,6 +4721,16 @@
               "default": true,
               "description": "End statements with `;`. When false a statement that starts with `(`, `[`, a backtick, `+`, `-`, `/` or `<` gets a `;` in front, as a class property does before a member that starts with `[`, `(` or `*`.",
               "type": "boolean"
+            },
+            "trailing_commas": {
+              "default": "all",
+              "description": "Trailing comma of a list that breaks over several lines: `all` after every list including function parameters and call arguments, `es5` after objects, arrays, destructuring and import/export lists only, `none` never.",
+              "enum": [
+                "all",
+                "es5",
+                "none"
+              ],
+              "type": "string"
             }
           },
           "type": "object"
@@ -6220,6 +6259,25 @@
               "format": {
                 "additionalProperties": false,
                 "properties": {
+                  "arrow_parens": {
+                    "default": "always",
+                    "description": "Parentheses around the lone parameter of an arrow function: `always` writes `(x) => x`, `avoid` writes `x => x` when the parameter is a plain name (no type, default, rest or destructuring).",
+                    "enum": [
+                      "always",
+                      "avoid"
+                    ],
+                    "type": "string"
+                  },
+                  "bracket_same_line": {
+                    "default": false,
+                    "description": "JSX: put the `>` of a multi-line element on the line of its last attribute instead of on a line of its own.",
+                    "type": "boolean"
+                  },
+                  "bracket_spacing": {
+                    "default": true,
+                    "description": "Spaces inside the braces of a one-line mapping or object: `{ a: 1 }` or `{a: 1}`.",
+                    "type": "boolean"
+                  },
                   "end_of_line": {
                     "default": "auto",
                     "description": "Line break style of the output: `lf`, `crlf`, or `auto` to keep the file's first              line break.",
@@ -6258,6 +6316,16 @@
                     "minimum": 20,
                     "type": "integer"
                   },
+                  "quote_props": {
+                    "default": "as_needed",
+                    "description": "Quotes around property names of objects and destructuring patterns: `as_needed` removes quotes that are not required (`\"a\": 1` becomes `a: 1`), `consistent` quotes every name of an object when one of its names requires quotes and removes them otherwise, `preserve` keeps what the source has. Numeric names are left as written.",
+                    "enum": [
+                      "as_needed",
+                      "consistent",
+                      "preserve"
+                    ],
+                    "type": "string"
+                  },
                   "quote_style": {
                     "default": "double",
                     "description": "Quotes of strings (not JSX attributes). A string with more of the preferred quote than of the other keeps the other one, to need fewer escapes.",
@@ -6271,6 +6339,16 @@
                     "default": true,
                     "description": "End statements with `;`. When false a statement that starts with `(`, `[`, a backtick, `+`, `-`, `/` or `<` gets a `;` in front, as a class property does before a member that starts with `[`, `(` or `*`.",
                     "type": "boolean"
+                  },
+                  "trailing_commas": {
+                    "default": "all",
+                    "description": "Trailing comma of a list that breaks over several lines: `all` after every list including function parameters and call arguments, `es5` after objects, arrays, destructuring and import/export lists only, `none` never.",
+                    "enum": [
+                      "all",
+                      "es5",
+                      "none"
+                    ],
+                    "type": "string"
                   }
                 },
                 "type": "object"

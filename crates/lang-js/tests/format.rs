@@ -194,3 +194,31 @@ type O = (
 "#
     );
 }
+
+#[test]
+fn objects_arrays_and_patterns() {
+    // Expected output checked with Prettier 3 under its defaults.
+    assert_eq!(
+        fmt(
+            "const {a,b:c=1,...r}=o;\nconst [x,,y=2]=arr;\nconst o1={a,'b':1,[c]:2,'d-e':3,...e,m(){}};\nconst o2={\n  a:1};\nconst {a:{b}}=obj;\nconst nums=[1,2,3];\nconst objs=[{a:1,b:2},{a:3,b:4}];\nfoo({a:1,b:2},function(){});\n"
+        ),
+        "const { a, b: c = 1, ...r } = o;\nconst [x, , y = 2] = arr;\nconst o1 = { a, b: 1, [c]: 2, \"d-e\": 3, ...e, m() {} };\nconst o2 = {\n  a: 1,\n};\nconst {\n  a: { b },\n} = obj;\nconst nums = [1, 2, 3];\nconst objs = [\n  { a: 1, b: 2 },\n  { a: 3, b: 4 },\n];\nfoo({ a: 1, b: 2 }, function () {});\n"
+    );
+}
+
+#[test]
+fn object_options() {
+    let options = vec![
+        ("quote_props", OptionValue::String("consistent".into())),
+        ("trailing_commas", OptionValue::String("none".into())),
+        ("bracket_spacing", OptionValue::Bool(false)),
+        ("arrow_parens", OptionValue::String("avoid".into())),
+    ];
+    assert_eq!(
+        fmt_with(
+            options,
+            "a={x:1,'y-z':2};\nb={'x':1,y:2};\nf=(x)=>x;\ng=async(x)=>x;\nh=({x})=>x;\nk=[aaaaaaaaaaaaaaaaaaaaaaaaaaaa,bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb,cccccccccccccccccccccccc];\n"
+        ),
+        "a = {\"x\": 1, \"y-z\": 2};\nb = {x: 1, y: 2};\nf = x => x;\ng = async x => x;\nh = ({x}) => x;\nk = [\n  aaaaaaaaaaaaaaaaaaaaaaaaaaaa,\n  bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb,\n  cccccccccccccccccccccccc\n];\n"
+    );
+}

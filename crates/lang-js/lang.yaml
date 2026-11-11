@@ -11,3 +11,19 @@ options:
       values: ["double", "single"]
       default: "double"
       doc: "Quotes of strings (not JSX attributes). A string with more of the preferred quote than of the other keeps the other one, to need fewer escapes."
+  - quote_props:
+      values: ["as_needed", "consistent", "preserve"]
+      default: "as_needed"
+      doc: "Quotes around property names of objects and destructuring patterns: `as_needed` removes quotes that are not required (`\"a\": 1` becomes `a: 1`), `consistent` quotes every name of an object when one of its names requires quotes and removes them otherwise, `preserve` keeps what the source has. Numeric names are left as written."
+  - trailing_commas:
+      values: ["all", "es5", "none"]
+      default: "all"
+      doc: "Trailing comma of a list that breaks over several lines: `all` after every list including function parameters and call arguments, `es5` after objects, arrays, destructuring and import/export lists only, `none` never."
+  - bracket_spacing: true
+  - arrow_parens:
+      values: ["always", "avoid"]
+      default: "always"
+      doc: "Parentheses around the lone parameter of an arrow function: `always` writes `(x) => x`, `avoid` writes `x => x` when the parameter is a plain name (no type, default, rest or destructuring)."
+  - bracket_same_line:
+      default: false
+      doc: "JSX: put the `>` of a multi-line element on the line of its last attribute instead of on a line of its own."

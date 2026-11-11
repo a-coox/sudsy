@@ -12,6 +12,7 @@ mod chain;
 mod class;
 mod decl;
 mod literal;
+mod object;
 mod parens;
 mod rewrite;
 mod stmt;
@@ -47,6 +48,7 @@ const MODULES: &[Module] = &[
     unary::format,
     template::format,
     ts::format,
+    object::format,
     literal::format,
 ];
 
@@ -69,9 +71,9 @@ impl NodeFormatter for JsFormatter {
         tree: &SyntaxNode,
         text: &str,
         grammar: &core_syntax::Grammar,
-        _options: &core_config::ResolvedOptions,
+        options: &core_config::ResolvedOptions,
     ) -> Option<String> {
-        rewrite::rewrite(tree, text, grammar)
+        rewrite::rewrite(tree, text, grammar, options)
     }
 
     fn extra_check(&self, before: &SyntaxNode, after: &SyntaxNode) -> Result<(), String> {

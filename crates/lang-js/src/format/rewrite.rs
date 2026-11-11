@@ -8,6 +8,7 @@
 //! - `new Foo` becomes `new Foo()` and an arrow's lone parameter gets its parentheses.
 
 use crate::generated::kind as k;
+use core_config::{OptionValue, ResolvedOptions};
 use core_format::comments;
 use core_syntax::{Grammar, SyntaxNode, SyntaxToken};
 
@@ -15,7 +16,14 @@ use core_syntax::{Grammar, SyntaxNode, SyntaxToken};
 type Edit = (usize, Option<&'static str>);
 
 /// The text with the edits applied; `None` when there is none.
-pub(crate) fn rewrite(tree: &SyntaxNode, text: &str, grammar: &Grammar) -> Option<String> {
+pub(crate) fn rewrite(
+    tree: &SyntaxNode,
+    text: &str,
+    grammar: &Grammar,
+    options: &ResolvedOptions,
+) -> Option<String> {
+    let avoid_parens =
+        matches!(options.get("arrow_parens"), Some(OptionValue::String(s)) if s == "avoid");
     let mut edits: Vec<Edit> = Vec::new();
     let mut cut = |tok: SyntaxToken| {
         if comments::leading_comments(grammar, &tok).is_empty()
@@ -64,9 +72,37 @@ pub(crate) fn rewrite(tree: &SyntaxNode, text: &str, grammar: &Grammar) -> Optio
                 }
             }
             k::FORMAL_PARAMETERS
-                if node
-                    .parent()
-                    .is_some_and(|p| p.kind() == k::ARROW_FUNCTION_EXPRESSION)
+                if avoid_parens
+                    && node.parent().is_some_and(|p| {
+                        p.kind() == k::ARROW_FUNCTION_EXPRESSION
+                            && !p.children().any(|c| {
+                                matches!(
+                                    c.kind(),
+                                    k::TS_TYPE_ANNOTATION | k::TS_TYPE_PARAMETER_DECLARATION
+                                )
+                            })
+                    })
+                    && plain_lone_param(&node, grammar) =>
+            {
+                for t in node.children_with_tokens().filter_map(|e| e.into_token()) {
+                    let at = usize::from(t.text_range().start());
+                    // `async(x)` must not become `asyncx`.
+                    if t.kind() == k::L_PAREN
+                        && text[..at]
+                            .chars()
+                            .next_back()
+                            .is_some_and(char::is_alphanumeric)
+                    {
+                        inserts.push((at, Some(" ")));
+                    }
+                    cut(t);
+                }
+            }
+            k::FORMAL_PARAMETERS
+                if !avoid_parens
+                    && node
+                        .parent()
+                        .is_some_and(|p| p.kind() == k::ARROW_FUNCTION_EXPRESSION)
                     && !node
                         .children_with_tokens()
                         .any(|e| e.as_token().is_some_and(|t| t.kind() == k::L_PAREN)) =>
@@ -82,6 +118,7 @@ pub(crate) fn rewrite(tree: &SyntaxNode, text: &str, grammar: &Grammar) -> Optio
         }
     }
     edits.extend(inserts);
+    edits.extend(super::object::key_edits(tree, text, grammar, options));
     if edits.is_empty() {
         return None;
     }
@@ -100,7 +137,34 @@ pub(crate) fn rewrite(tree: &SyntaxNode, text: &str, grammar: &Grammar) -> Optio
     Some(out)
 }
 
-fn first_token(grammar: &Grammar, node: &SyntaxNode) -> Option<SyntaxToken> {
+/// `(x)`: parentheses around one plain name, with nothing else (no type, default, comment or
+/// comma) between them.
+fn plain_lone_param(params: &SyntaxNode, grammar: &Grammar) -> bool {
+    let mut parts = params
+        .children_with_tokens()
+        .filter(|e| !grammar.is_trivia(e.kind()));
+    let tok = |e: Option<core_syntax::SyntaxElement>, kind| {
+        e.and_then(|e| e.into_token()).is_some_and(|t| {
+            t.kind() == kind
+                && comments::leading_comments(grammar, &t).is_empty()
+                && comments::trailing_comments(grammar, &t).is_empty()
+        })
+    };
+    tok(parts.next(), k::L_PAREN)
+        && parts.next().and_then(|e| e.into_node()).is_some_and(|p| {
+            p.kind() == k::FORMAL_PARAMETER
+                && p.children_with_tokens()
+                    .filter(|e| !grammar.is_trivia(e.kind()))
+                    .count()
+                    == 1
+                && p.first_child()
+                    .is_some_and(|c| c.kind() == k::BINDING_IDENTIFIER)
+        })
+        && tok(parts.next(), k::R_PAREN)
+        && parts.next().is_none()
+}
+
+pub(super) fn first_token(grammar: &Grammar, node: &SyntaxNode) -> Option<SyntaxToken> {
     node.descendants_with_tokens()
         .filter_map(|e| e.into_token())
         .find(|t| !grammar.is_trivia(t.kind()))

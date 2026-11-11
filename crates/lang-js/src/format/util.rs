@@ -3,7 +3,7 @@
 
 use crate::generated::kind as k;
 use core_config::OptionValue;
-use core_format::doc::{self, Doc, concat, group, hardline, if_break, indent, line, lit};
+use core_format::doc::{self, Doc, concat, group, hardline, if_break, indent, line, lit, softline};
 use core_format::{FormatCtx, FormatError};
 use core_syntax::{SyntaxElement, SyntaxNode, SyntaxToken, TextRange};
 
@@ -13,6 +13,9 @@ pub(crate) type R = Result<Doc, FormatError>;
 pub(crate) struct Style {
     pub semi: bool,
     pub single_quote: bool,
+    /// `trailing_commas`: 0 none, 1 es5, 2 all.
+    pub commas: u8,
+    pub bracket_spacing: bool,
 }
 
 pub(crate) fn style<'a>(cx: &'a FormatCtx<'_>) -> &'a Style {
@@ -20,7 +23,23 @@ pub(crate) fn style<'a>(cx: &'a FormatCtx<'_>) -> &'a Style {
         semi: cx.options.bool("semi"),
         single_quote: matches!(cx.options.get("quote_style"),
             Some(OptionValue::String(s)) if s == "single"),
+        commas: match cx.options.get("trailing_commas") {
+            Some(OptionValue::String(s)) if s == "none" => 0,
+            Some(OptionValue::String(s)) if s == "es5" => 1,
+            _ => 2,
+        },
+        bracket_spacing: cx.options.bool("bracket_spacing"),
     })
+}
+
+/// The comma a broken list ends with: `all_only` for lists that take it only at `all`
+/// (parameters, arguments), otherwise from `es5` on (objects, arrays, import lists).
+pub(crate) fn trailing_comma(cx: &FormatCtx<'_>, all_only: bool) -> Doc {
+    if style(cx).commas >= if all_only { 2 } else { 1 } {
+        if_break(lit(","), Doc::Nil)
+    } else {
+        Doc::Nil
+    }
 }
 
 /// The children of a node that are not trivia.
@@ -195,15 +214,18 @@ pub(crate) fn braces(
         return concat(vec![open, close]);
     }
     let comma = concat(vec![lit(","), line()]);
+    let spaced = style(cx).bracket_spacing;
     if !can_break {
         let all = doc::join(&lit(", "), items);
-        return concat(vec![open, lit(" "), all, lit(" "), close]);
+        let pad = if spaced { lit(" ") } else { Doc::Nil };
+        return concat(vec![open, pad.clone(), all, pad, close]);
     }
+    let edge = if spaced { line() } else { softline() };
     group(concat(vec![
         open,
-        indent(concat(vec![line(), doc::join(&comma, items)])),
-        if_break(lit(","), Doc::Nil),
-        line(),
+        indent(concat(vec![edge.clone(), doc::join(&comma, items)])),
+        trailing_comma(cx, false),
+        edge,
         close,
     ]))
 }

@@ -8,8 +8,8 @@ use super::util::{R, kids, shape_error, token_of, will_break};
 use crate::generated::kind as k;
 use core_config::OptionValue;
 use core_format::doc::{
-    self, Doc, break_parent, concat, conditional_group, group, group_broken, hardline, if_break,
-    indent, line, lit, shared, softline,
+    self, Doc, break_parent, concat, conditional_group, group, group_broken, hardline, indent,
+    line, lit, shared, softline,
 };
 use core_format::{FormatCtx, FormatError, comments};
 use core_syntax::{SyntaxElement, SyntaxNode};
@@ -192,7 +192,7 @@ fn arguments_inner(cx: &FormatCtx<'_>, node: &SyntaxNode, c: &Call, dynamic_impo
     let trailing = match args.last().and_then(|a| a.1.as_ref()) {
         Some(t) if super::ast::token_comments(cx, t) => cx.token(t),
         _ if dynamic_import => Doc::Nil,
-        _ => if_break(lit(","), Doc::Nil),
+        _ => super::util::trailing_comma(cx, true),
     };
     let all_broken_out = |printed: &[Doc]| {
         group_broken(concat(vec![
@@ -387,7 +387,7 @@ fn should_group_last(cx: &FormatCtx<'_>, a: &[SyntaxNode]) -> bool {
 }
 
 /// An array of two or more numbers, which prints as a fill.
-fn is_concise_array(n: &SyntaxNode) -> bool {
+pub(crate) fn is_concise_array(n: &SyntaxNode) -> bool {
     if n.kind() != k::ARRAY_EXPRESSION {
         return false;
     }

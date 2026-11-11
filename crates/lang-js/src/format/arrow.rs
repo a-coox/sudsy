@@ -84,7 +84,12 @@ fn signature(cx: &FormatCtx<'_>, node: &SyntaxNode, flags: u32) -> R {
             }
             e if node_of(e).is_some_and(|n| n.kind() == k::FORMAL_PARAMETERS) => {
                 let fp = node_of(e).ok_or_else(|| shape_error("arrow"))?;
-                let mut params = super::decl::parameters(cx, &kids(cx, fp))?;
+                let elems = kids(cx, fp);
+                // `arrow_parens: avoid` leaves a lone name without parentheses.
+                let mut params = match elems.first() {
+                    Some(e) if token_of(e).is_none() => super::util::elem(cx, e)?,
+                    _ => super::decl::parameters(cx, &elems)?,
+                };
                 if flags & (Flags::EXPAND | Flags::TEST) != 0 {
                     if flags & Flags::EXPAND != 0 && will_break(&params) {
                         return Err(shape_error(BAILOUT));
@@ -162,7 +167,7 @@ fn arrow(node: &SyntaxNode, cx: &FormatCtx<'_>, flags: u32) -> R {
         .is_some_and(|p| p.kind() == k::JSX_EXPRESSION_CONTAINER);
     let soft_line = (expand_last || jsx_container) && !comments;
     let trailing_comma = if expand_last {
-        if_break(lit(","), Doc::Nil)
+        super::util::trailing_comma(cx, true)
     } else {
         Doc::Nil
     };
