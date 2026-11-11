@@ -276,21 +276,32 @@ impl Lexer<'_> {
     }
 
     /// `url(` and an unquoted body: one token. Anything else (a quoted string, a function call,
-    /// an interpolation, a `$variable`) is a function call of the ordinary tokens.
+    /// a body that starts with an interpolation or a `$variable`) is a function call of the
+    /// ordinary tokens. In SCSS an interpolation inside the body belongs to the token.
     fn url(&mut self) -> SyntaxKind {
+        let interp = self.dialect == Dialect::Scss && !matches!(self.at(1), b'$' | b'#');
         let mut i = 1;
-        while self.pos + i < self.src.len()
-            && !matches!(self.at(i), b')' | b'"' | b'\'' | b'(' | b'{')
-        {
-            i += if self.at(i) == b'\\' { 2 } else { 1 };
+        while self.pos + i < self.src.len() {
+            match self.at(i) {
+                b')' | b'"' | b'\'' | b'(' => break,
+                b'{' if interp && self.at(i - 1) == b'#' => {
+                    while self.pos + i < self.src.len() && self.at(i) != b'}' {
+                        i += 1;
+                    }
+                }
+                b'{' => break,
+                b'\\' => i += 1,
+                _ => {}
+            }
+            i += 1;
         }
         let end = (self.pos + i).min(self.src.len());
-        if self.src.get(end) == Some(&b')')
-            && self.at(1) != b'$'
-            && !self.text[self.pos + 1..end]
-                .trim()
-                .contains(char::is_whitespace)
-        {
+        let mut depth = 0;
+        let spaced = self.text[self.pos + 1..end].trim().chars().any(|c| {
+            depth += i32::from(c == '{') - i32::from(c == '}');
+            depth == 0 && c.is_whitespace()
+        });
+        if self.src.get(end) == Some(&b')') && self.at(1) != b'$' && !spaced {
             self.pos = end + 1;
             return k::URL;
         }

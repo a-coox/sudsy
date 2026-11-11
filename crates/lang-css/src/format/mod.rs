@@ -262,7 +262,11 @@ impl Pr<'_, '_> {
                     let comment = i
                         .iter()
                         .any(|t| t.tok(k::COMMENT).or(t.tok(k::LINE_COMMENT)).is_some());
-                    (one_line && !comment).then(|| doc::text(self.plain(i)))
+                    // An interpolation is read as written, but for its blanks.
+                    let interp = i
+                        .iter()
+                        .any(|t| matches!(t, Item::Grp(g) if g.open.kind() == k::INTERP_OPEN));
+                    ((one_line || interp) && !comment).then(|| doc::text(self.plain(i)))
                 };
                 self.selectors(i, keyframes, false).or_else(plain)
             }));
@@ -466,7 +470,7 @@ impl Pr<'_, '_> {
             }
         }
         if unhandled_comments(node, inside) {
-            return cx.verbatim_node(node);
+            return self.kept_indented(node);
         }
         // `--x: { color: red }`: a block of declarations.
         if let Some(block) = value.as_ref().and_then(|v| child(v, k::BLOCK)) {
@@ -516,13 +520,64 @@ impl Pr<'_, '_> {
             dollar: name.starts_with('$'),
             ..St::value(!name.starts_with("--"))
         };
-        doc::concat(vec![
+        // Without a `;`, a comment after the value stands after the `;` that is added.
+        let semi = semicolon(node);
+        let keep = match semi {
+            Some(_) => vitems.len(),
+            None => vitems
+                .iter()
+                .rposition(|i| i.tok(k::COMMENT).is_none() && i.tok(k::LINE_COMMENT).is_none())
+                .map_or(vitems.len(), |p| p + 1),
+        };
+        let mut parts = vec![
             self.lead(&first),
             doc::text(name.clone()),
             colon.map_or(doc::lit(":"), doc::text),
-            self.declaration_value(&vitems, st, ";"),
-            semicolon(node).map_or(Doc::Nil, |semi| self.trail(&semi)),
-        ])
+            self.declaration_value(&vitems[..keep], st, ";"),
+            semi.map_or(Doc::Nil, |semi| self.trail(&semi)),
+        ];
+        for c in &vitems[keep..] {
+            parts.push(doc::lit(" "));
+            parts.push(self.value_token(c.token()));
+        }
+        doc::concat(parts)
+    }
+
+    /// A declaration kept as written; the lines after a line comment are indented one level.
+    fn kept_indented(&self, node: &SyntaxNode) -> Doc {
+        let cx = self.cx;
+        let tokens = || {
+            node.descendants_with_tokens()
+                .filter_map(|e| e.into_token())
+        };
+        let raw = value::raw_text(node);
+        let (Some(first), Some(last)) = (cx.first_token(node), cx.last_token(node)) else {
+            return Doc::Nil;
+        };
+        if !tokens().any(|t| t.kind() == k::LINE_COMMENT)
+            || tokens().any(|t| t.kind() == k::COMMENT && t.text().contains('\n'))
+        {
+            return cx.verbatim_node(node);
+        }
+        let mut lines = raw.lines();
+        // The blanks before a first-line comment are one space.
+        let head = lines.next().unwrap_or_default();
+        let head = match head.find("//") {
+            Some(at) => format!(
+                "{} {}",
+                head[..at].split_whitespace().collect::<Vec<_>>().join(" "),
+                head[at..].trim_end()
+            ),
+            None => head.trim_end().to_string(),
+        };
+        let mut parts = vec![self.lead(&first), doc::text(head)];
+        let rest = lines
+            .filter(|l| !l.trim().is_empty())
+            .map(|l| doc::concat(vec![doc::hardline(), doc::text(l.trim())]))
+            .collect();
+        parts.push(doc::indent(doc::concat(rest)));
+        parts.push(cx.trailing_comments_doc(&last));
+        doc::concat(parts)
     }
 
     /// Is the declaration in an `:import` or `:export` rule (CSS modules)?
@@ -583,7 +638,7 @@ impl Pr<'_, '_> {
         doc::concat(vec![
             self.node_with(&value, |i| {
                 (!i.iter().any(|t| t.tok(k::LINE_COMMENT).is_some()))
-                    .then(|| doc::text(self.plain(i)))
+                    .then(|| doc::text(self.plain_numbers(i, true)))
             }),
             doc::lit(";"),
             semicolon(node).map_or(Doc::Nil, |semi| self.trail(&semi)),

@@ -244,6 +244,10 @@ pub(crate) struct St {
     pub ctrl: bool,
     /// The group about to print is the configuration of `@use ... with (...)`.
     pub config: bool,
+    /// Inside `url()`: `*` and `:` stay tight.
+    pub url: bool,
+    /// The group about to print is the key of a map entry: it breaks only when it does not fit.
+    pub key: bool,
 }
 
 impl St {
@@ -267,6 +271,8 @@ impl St {
             call: false,
             ctrl: false,
             config: false,
+            url: false,
+            key: false,
         }
     }
 
@@ -347,6 +353,11 @@ pub(crate) fn breaks_list(items: &[Item], st: St) -> bool {
 impl Pr<'_, '_> {
     /// The items as written, with runs of blanks as one space and strings in the preferred quote.
     pub fn plain(&self, items: &[Item]) -> String {
+        self.plain_numbers(items, false)
+    }
+
+    /// [`plain`](Self::plain), with `numbers` in their canonical spelling.
+    pub fn plain_numbers(&self, items: &[Item], numbers: bool) -> String {
         let mut out = String::new();
         let mut end = None;
         for it in items {
@@ -358,22 +369,49 @@ impl Pr<'_, '_> {
                 Item::Tok(t) if t.kind() == k::STRING => {
                     out.push_str(&text::string(t.text(), self.single))
                 }
+                Item::Tok(t) if numbers && t.kind() == k::NUMBER => {
+                    out.push_str(&text::number(t.text()))
+                }
+                Item::Tok(t) if numbers && t.kind() == k::PERCENTAGE => {
+                    out.push_str(&text::percentage(t.text()))
+                }
+                Item::Tok(t) if numbers && t.kind() == k::DIMENSION => {
+                    out.push_str(&text::dimension(t.text()))
+                }
                 Item::Tok(t) => out.push_str(t.text()),
                 Item::Func(name, g) => {
                     out.push_str(name.text());
-                    out.push_str(&self.plain_group(g));
+                    out.push_str(&self.plain_group(g, numbers));
                 }
-                Item::Grp(g) => out.push_str(&self.plain_group(g)),
+                Item::Grp(g) => out.push_str(&self.plain_group(g, numbers)),
             }
         }
         out
     }
 
-    fn plain_group(&self, g: &Grp) -> String {
+    fn plain_group(&self, g: &Grp, numbers: bool) -> String {
+        // The blanks inside an interpolation are one space.
+        let pad = |gap: bool| {
+            if gap && g.open.kind() == k::INTERP_OPEN {
+                " "
+            } else {
+                ""
+            }
+        };
+        let first = g
+            .items
+            .first()
+            .is_some_and(|i| i.start() != g.open.text_range().end());
+        let last = g
+            .items
+            .last()
+            .is_some_and(|i| i.end() != g.close.text_range().start());
         format!(
-            "{}{}{}",
+            "{}{}{}{}{}",
             g.open.text(),
-            self.plain(&g.items),
+            pad(first),
+            self.plain_numbers(&g.items, numbers),
+            pad(last),
             g.close.text()
         )
     }
@@ -444,16 +482,11 @@ impl Pr<'_, '_> {
                 .any(|i| ["+", "-", "*", "/", "%"].iter().any(|d| i.is_delim(d))),
             ..st
         };
-        // A line comment, or a block comment with a line break after it, first in an entry is on
-        // a line of its own.
+        // A line comment first in an entry is on a line of its own; block comments break from
+        // the rest only when they do not fit, and a map after them is indented.
         if let [first, rest @ ..] = items
             && !rest.is_empty()
-            && (first.tok(k::LINE_COMMENT).is_some()
-                || first.tok(k::COMMENT).is_some_and(|c| {
-                    std::iter::successors(c.next_token(), |t| t.next_token())
-                        .take_while(|t| matches!(t.kind(), k::WHITESPACE | k::NEWLINE))
-                        .any(|t| t.text().contains('\n') || t.kind() == k::NEWLINE)
-                }))
+            && first.tok(k::LINE_COMMENT).is_some()
         {
             return doc::concat(vec![
                 self.item(first, st),
@@ -461,9 +494,22 @@ impl Pr<'_, '_> {
                 self.segment(rest, st),
             ]);
         }
+        let lead = items
+            .iter()
+            .take_while(|i| i.tok(k::COMMENT).is_some())
+            .count();
+        if lead > 0 && lead < items.len() {
+            let mut v = Vec::with_capacity(lead * 2 + 1);
+            for c in &items[..lead] {
+                v.push(self.item(c, st));
+                v.push(doc::line());
+            }
+            v.push(doc::indent(self.segment(&items[lead..], st)));
+            return doc::group(doc::concat(v));
+        }
         let mut parts: Vec<Doc> = Vec::new();
         let mut cur: Vec<Doc> = Vec::new();
-        let colon = |i: &Item| st.group && i.tok(k::COLON).is_some();
+        let colon = |i: &Item| st.group && !st.url && i.tok(k::COLON).is_some();
         let gap = |a: usize, b: usize| items[a].end() != items[b].start();
         // `*` always has spaces around it, `/` only in `calc()` and when it has some already.
         // (`a*b`, `--x-*` and `*=` are words.)
@@ -471,6 +517,7 @@ impl Pr<'_, '_> {
             |i: Option<&Item>| matches!(i, Some(Item::Grp(g)) if g.open.kind() == k::INTERP_OPEN);
         let star = |j: usize| {
             items[j].is_delim("*")
+                && !st.url
                 && !interp(items.get(j.wrapping_sub(1)))
                 && !interp(items.get(j + 1))
                 && !(j > 0
@@ -498,7 +545,9 @@ impl Pr<'_, '_> {
             let plus = self.dialect != Dialect::Css
                 && items[j].is_delim("+")
                 && [left, right].iter().any(|i| {
-                    call(i) || i.tok(k::VARIABLE).is_some() || i.tok(k::AT_KEYWORD).is_some()
+                    matches!(i, Item::Func(..))
+                        || i.tok(k::VARIABLE).is_some()
+                        || i.tok(k::AT_KEYWORD).is_some()
                 });
             plus || self.dialect != Dialect::Css
                 && items[j].is_delim("/")
@@ -532,6 +581,14 @@ impl Pr<'_, '_> {
                         .any(|d| items[j - 1].is_delim(d)))
                 && matches!(items.get(j + 1), Some(Item::Grp(g)) if g.open.kind() == k::L_PAREN)
         };
+        // `...` (arguments) is glued to what comes before.
+        let dots = |j: usize| {
+            items[j].is_delim(".")
+                && (items
+                    .get(j + 1)
+                    .is_some_and(|n| n.is_delim(".") && !gap(j, j + 1))
+                    || j > 0 && items[j - 1].is_delim("."))
+        };
         let grid = st.grid && !st.group;
         let mut broke = false;
         let mut colon_at: Option<(usize, doc::GroupId)> = None;
@@ -551,6 +608,7 @@ impl Pr<'_, '_> {
                 let space = if after_comment {
                     true
                 } else if sign(i - 1)
+                    || dots(i)
                     || colon(it)
                     || colon(prev)
                     || lookup
@@ -568,7 +626,15 @@ impl Pr<'_, '_> {
                 };
                 if space {
                     parts.push(doc::concat(std::mem::take(&mut cur)));
-                    parts.push(if after_comment {
+                    // A line comment in at-rule parameters stays on the line it was on.
+                    let own_line = st.params
+                        && !st.group
+                        && it.tok(k::LINE_COMMENT).is_some()
+                        && it.token().parent().is_some_and(|p| {
+                            self.cx
+                                .has_line_break(&p, TextRange::new(prev.end(), it.start()))
+                        });
+                    parts.push(if after_comment || own_line {
                         doc::hardline()
                     } else if grid {
                         let range = TextRange::new(prev.end(), it.start());
@@ -600,6 +666,10 @@ impl Pr<'_, '_> {
                     doc::group_with_id(id, doc::concat(vec![doc::lit(":"), doc::line()]))
                 }
                 Item::Tok(t) if lower => doc::text(t.text().to_ascii_lowercase()),
+                // A map that is a key stays as written.
+                Item::Grp(_) if items.get(i + 1).is_some_and(colon) => {
+                    self.item(it, St { key: true, ..st })
+                }
                 Item::Grp(_)
                     if items
                         .get(i.wrapping_sub(1))
@@ -613,7 +683,17 @@ impl Pr<'_, '_> {
         // A `key: value` entry whose value does not fit goes on the next line, indented.
         if let (true, Some((at, id))) = (parts.is_empty(), colon_at) {
             let tail = cur.split_off(at + 1);
-            cur.push(doc::indent_if_break(id, doc::concat(tail)));
+            cur[at] = doc::group_with_id(
+                id,
+                doc::concat(vec![doc::lit(":"), doc::indent(doc::line())]),
+            );
+            let value = doc::indent_if_break(id, doc::concat(tail));
+            // A group as key makes the entry three words, which Prettier indents.
+            cur.push(if at > 0 && matches!(items[at - 1], Item::Grp(_)) {
+                doc::indent(value)
+            } else {
+                value
+            });
         }
         parts.push(doc::concat(cur));
         match parts.len() {
@@ -632,9 +712,22 @@ impl Pr<'_, '_> {
             Item::Tok(t) => self.value_token(t),
             Item::Func(name, g) => {
                 let lower = name.text().to_ascii_lowercase();
+                // A `url()` that holds a call breaks like any function.
+                let url = lower == "url" && !g.items.iter().any(|i| matches!(i, Item::Func(..)));
+                if lower == "url"
+                    && let [inner @ Item::Func(..)] = g.items.as_slice()
+                {
+                    return doc::concat(vec![
+                        self.value_token(name),
+                        doc::text(g.open.text()),
+                        self.item(inner, st),
+                        doc::text(g.close.text()),
+                    ]);
+                }
                 let st = St {
                     calc: st.calc || lower.ends_with("calc"),
-                    flat: st.flat || lower == "url",
+                    flat: st.flat || url,
+                    url: st.url || url,
                     ..st
                 };
                 doc::concat(vec![
@@ -672,20 +765,25 @@ impl Pr<'_, '_> {
                     .iter()
                     .rposition(|i| i.tok(k::LINE_COMMENT).is_none())
                     .map_or(0, |p| p + 1);
-                let (head, comments) = g.items.split_at(at);
+                let (head, tail) = g.items.split_at(at);
                 let body = match head.split_last() {
                     Some((last, rest)) if last.tok(k::COMMA).is_some() => rest,
                     _ => head,
                 };
+                // In the arguments of `@include`, a comment after a comma has a line of its own.
+                let own = !flat && st.args && body.len() != head.len();
                 let comments = doc::concat(
-                    comments
-                        .iter()
+                    tail.iter()
                         .flat_map(|c| {
                             [
-                                doc::line_suffix(doc::concat(vec![
-                                    doc::lit(" "),
-                                    self.item(c, st),
-                                ])),
+                                if own {
+                                    doc::concat(vec![doc::hardline(), self.item(c, st)])
+                                } else {
+                                    doc::line_suffix(doc::concat(vec![
+                                        doc::lit(" "),
+                                        self.item(c, st),
+                                    ]))
+                                },
                                 doc::break_parent(),
                             ]
                         })
@@ -701,26 +799,50 @@ impl Pr<'_, '_> {
                         fun: st.call,
                         call: false,
                         config: false,
+                        key: false,
                         ..st
                     },
                 );
                 let (open, close) = (doc::text(g.open.text()), doc::text(g.close.text()));
+                // Only comments: they stand on their own lines.
+                if head.is_empty() && !flat {
+                    let lines: Vec<Doc> = g.items.iter().map(|c| self.item(c, st)).collect();
+                    return doc::concat(vec![
+                        open,
+                        doc::indent(doc::concat(vec![
+                            doc::hardline(),
+                            doc::join(&doc::hardline(), lines),
+                        ])),
+                        doc::hardline(),
+                        close,
+                    ]);
+                }
                 if flat {
                     doc::concat(vec![open, inner, comments, close])
                 } else {
-                    let comma = if force && !st.config {
+                    let comma = if own && !tail.is_empty() {
+                        doc::lit(",")
+                    } else if force && !st.config {
                         doc::if_break(doc::lit(","), Doc::Nil)
                     } else {
                         Doc::Nil
                     };
+                    let (inside, after) = if own && !tail.is_empty() {
+                        (vec![comma, comments], Doc::Nil)
+                    } else {
+                        (Vec::new(), doc::concat(vec![comma, comments]))
+                    };
                     doc::group(doc::concat(vec![
                         open,
-                        doc::indent(doc::concat(vec![doc::softline(), inner])),
-                        comma,
-                        comments,
+                        doc::indent(doc::concat([vec![doc::softline(), inner], inside].concat())),
+                        after,
                         doc::softline(),
                         close,
-                        if force { doc::break_parent() } else { Doc::Nil },
+                        if force && !st.key {
+                            doc::break_parent()
+                        } else {
+                            Doc::Nil
+                        },
                     ]))
                 }
             }

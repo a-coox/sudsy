@@ -9,10 +9,7 @@ use core_format::doc::{self, Doc};
 impl Pr<'_, '_> {
     /// A comma separated selector list: one selector per line, or as many as fit when `flat`.
     pub fn selectors(&self, items: &[Item], keyframes: bool, flat: bool) -> Option<Doc> {
-        let (segs, trailing) = split_commas(items);
-        if trailing {
-            return None;
-        }
+        let (segs, _) = split_commas(items);
         let mut parts = Vec::new();
         for (i, seg) in segs.iter().enumerate() {
             if i > 0 {
