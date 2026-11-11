@@ -41,6 +41,8 @@ fi
 has() { case " $steps " in *" $1 "*) return 0 ;; esac; return 1; }
 
 gate "cargo fmt" cargo fmt --all -- --check
+# Cheap checks first: stale generated files fail before clippy and the tests build.
+has codegen && gate "cargo xtask codegen --check" cargo xtask codegen --check
 if [ ${#ws[@]} -gt 0 ]; then
   gate "cargo clippy" cargo clippy "${ws[@]}" --all-targets -- -D warnings
   # nextest runs the tests of all binaries in parallel (cargo test runs one binary after another);
@@ -49,7 +51,6 @@ if [ ${#ws[@]} -gt 0 ]; then
   gate "cargo nextest" cargo nextest run "${ws[@]}" --no-fail-fast --no-tests=pass
   gate "cargo test --doc" cargo test "${ws[@]}" --doc
 fi
-has codegen && gate "cargo xtask codegen --check" cargo xtask codegen --check
 if has sample-plugin; then
   # The sample plugin is a workspace of its own: format check and its native rule tests. With a
   # shared CARGO_TARGET_DIR it gets its own subdirectory (two workspaces in one deps dir confuse rustc).
