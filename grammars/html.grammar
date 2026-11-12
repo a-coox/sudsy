@@ -1,0 +1,54 @@
+// HTML, parsed by tree-sitter (tree-sitter-html, forked in grammars/tree-sitter-html) and mapped by the mapping of crates/lang-html/lang.yaml.
+// An element is its start tag (`StartTag`, or `EmptyTag` for `<a/>`), its content and its end tag; void
+// elements and elements closed by an implied end tag have no `EndTag`. Text, entities, CDATA sections and
+// the text of `<script>`, `<style>`, `<textarea>` and `<title>` are one `Chunk` each (a token inside).
+// Format: see crates/core-syntax/src/grammar/mod.rs.
+
+language html 19 "HTML"
+comments block "<!--" "-->"
+suppress disable-next-line "sudsy-disable-next-line"
+suppress disable-line "sudsy-disable-line"
+suppress disable "sudsy-disable"
+suppress enable "sudsy-enable"
+suppress disable-file "sudsy-disable-file"
+suppress ignore "sudsy-ignore"
+suppress ignore "prettier-ignore"
+
+token Whitespace #trivia #whitespace
+token Newline #trivia #newline
+token Comment #trivia #comment
+
+token LtBang "<!" #punctuation
+token Lt "<" #punctuation
+token LtSlash "</" #punctuation
+token Gt ">" #punctuation
+token SlashGt "/>" #punctuation
+token Equals "=" #punctuation
+
+// `doctype` as written (any case) and what follows it up to `>`.
+token DoctypeKw
+token DoctypeBody
+token TagName
+token AttrName
+// Quoted (quotes included) or not.
+token AttrValue
+
+token Text #chunk
+token Entity #chunk
+token CData #chunk
+// The content of `script`, `style`, `textarea` and `title`: not parsed as markup.
+token RawText #chunk
+
+token Eof
+token Unknown #error
+
+node Document = items:#content* Eof
+node Doctype #content = LtBang DoctypeKw DoctypeBody Gt
+node Chunk #content = value:#chunk
+node Element #content = start:#start-tag content:#content* end:EndTag?
+node StartTag #start-tag #mapping = Lt TagName entries:Attribute* Gt
+node EmptyTag #start-tag #mapping = Lt TagName entries:Attribute* SlashGt
+node EndTag = LtSlash TagName Gt
+// An end tag that closes no open element.
+node StrayEndTag #content = LtSlash TagName Gt
+node Attribute #key-value = key:AttrName Equals? value:AttrValue?

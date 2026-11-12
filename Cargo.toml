@@ -49,6 +49,7 @@ konomanoasa-tree-sitter-editorconfig = "0.9"
 konomanoasa-tree-sitter-gitignore = "0.7"
 tree-sitter-graphql = { path = "grammars/tree-sitter-graphql" }
 tree-sitter-hcl = "1.1"
+tree-sitter-html = { path = "grammars/tree-sitter-html" }
 tree-sitter-ini = { path = "grammars/tree-sitter-ini" }
 tree-sitter-make = { path = "grammars/tree-sitter-make" }
 tree-sitter-md = { version = "0.5", default-features = false }
@@ -81,6 +82,7 @@ lang-editorconfig = { path = "crates/lang-editorconfig", default-features = fals
 lang-gitignore = { path = "crates/lang-gitignore", default-features = false }
 lang-graphql = { path = "crates/lang-graphql", default-features = false }
 lang-hcl = { path = "crates/lang-hcl", default-features = false }
+lang-html = { path = "crates/lang-html", default-features = false }
 lang-ini = { path = "crates/lang-ini", default-features = false }
 lang-makefile = { path = "crates/lang-makefile", default-features = false }
 lang-markdown = { path = "crates/lang-markdown", default-features = false }

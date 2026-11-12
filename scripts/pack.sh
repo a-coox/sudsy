@@ -11,7 +11,7 @@ out=${1:?usage: pack.sh <out dir> [language...]}
 shift
 languages=("$@")
 # generated:languages
-all=(dockerfile editorconfig gitignore graphql hcl ini makefile markdown powershell protobuf shell toml xml)
+all=(dockerfile editorconfig gitignore graphql hcl html ini makefile markdown powershell protobuf shell toml xml)
 # /generated
 [ ${#languages[@]} -gt 0 ] || languages=("${all[@]}")
 version=$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -1)

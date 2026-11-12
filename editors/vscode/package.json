@@ -25,6 +25,7 @@
     "onLanguage:gitignore",
     "onLanguage:graphql",
     "onLanguage:hcl",
+    "onLanguage:html",
     "onLanguage:ini",
     "onLanguage:makefile",
     "onLanguage:markdown",

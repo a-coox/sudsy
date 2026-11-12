@@ -16,6 +16,7 @@ konomanoasa-tree-sitter-editorconfig = { workspace = true, optional = true }
 konomanoasa-tree-sitter-gitignore = { workspace = true, optional = true }
 tree-sitter-graphql = { workspace = true, optional = true }
 tree-sitter-hcl = { workspace = true, optional = true }
+tree-sitter-html = { workspace = true, optional = true }
 tree-sitter-ini = { workspace = true, optional = true }
 tree-sitter-make = { workspace = true, optional = true }
 tree-sitter-md = { workspace = true, optional = true }
@@ -33,6 +34,7 @@ editorconfig = ["dep:konomanoasa-tree-sitter-editorconfig"]
 gitignore = ["dep:konomanoasa-tree-sitter-gitignore"]
 graphql = ["dep:tree-sitter-graphql"]
 hcl = ["dep:tree-sitter-hcl"]
+html = ["dep:tree-sitter-html"]
 ini = ["dep:tree-sitter-ini"]
 makefile = ["dep:tree-sitter-make"]
 markdown = ["dep:tree-sitter-md"]

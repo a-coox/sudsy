@@ -36,6 +36,7 @@ pub fn providers() -> Vec<Box<dyn LanguageProvider>> {
         Box::new(lang_gitignore::provider()),
         Box::new(lang_graphql::provider()),
         Box::new(lang_hcl::provider()),
+        Box::new(lang_html::provider()),
         Box::new(lang_ini::provider()),
         Box::new(lang_makefile::provider()),
         Box::new(lang_markdown::provider()),

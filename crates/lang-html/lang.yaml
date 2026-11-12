@@ -1,0 +1,21 @@
+grammar-crate: tree-sitter-html
+grammar-path: grammars/tree-sitter-html
+extensions: [html, htm]
+formatter: HtmlFormatter
+options:
+  - final_newline: true
+  - end_of_line
+mapping:
+  wrap: {Text: Chunk, Entity: Chunk, CData: Chunk, RawText: Chunk}
+  same: 'document start_tag comment attribute text entity end_tag'
+  Element: element script_element style_element rcdata_element
+  EmptyTag: self_closing_tag
+  StrayEndTag: erroneous_end_tag
+  Doctype: doctype
+  DoctypeKw: '"doctype"'
+  DoctypeBody: doctype_body
+  TagName: 'tag_name erroneous_end_tag_name'
+  AttrName: attribute_name
+  AttrValue: 'attribute_value quoted_attribute_value'
+  CData: cdata
+  RawText: raw_text

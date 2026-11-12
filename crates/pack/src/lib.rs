@@ -24,6 +24,7 @@ exports! {
     "gitignore", sudsy_language, konomanoasa_tree_sitter_gitignore::LANGUAGE;
     "graphql", sudsy_language, tree_sitter_graphql::LANGUAGE;
     "hcl", sudsy_language, tree_sitter_hcl::LANGUAGE;
+    "html", sudsy_language, tree_sitter_html::LANGUAGE;
     "ini", sudsy_language, tree_sitter_ini::LANGUAGE;
     "makefile", sudsy_language, tree_sitter_make::LANGUAGE;
     "markdown", sudsy_language, tree_sitter_md::LANGUAGE;
