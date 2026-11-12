@@ -1,6 +1,6 @@
 # Sudsy for VS Code
 
-Formats and lints <!-- generated:languages -->C#, CSS, Dockerfile, EditorConfig, Gitignore, GraphQL, HCL, HTML, INI, JSON, JavaScript/TypeScript, Makefile, Markdown, PowerShell, Protobuf, Shell, TOML, XML and YAML<!-- /generated --> with Sudsy: diagnostics, quick fixes, fix all
+Formats and lints <!-- generated:languages -->C#, CSS, Dockerfile, EditorConfig, Gitignore, GraphQL, HCL, HTML, INI, JSON, JavaScript/TypeScript, Makefile, Markdown, PowerShell, Protobuf, Python, Shell, TOML, XML and YAML<!-- /generated --> with Sudsy: diagnostics, quick fixes, fix all
 and format on save, from the `sudsy.yaml` of your repository.
 
 To format on save, choose Sudsy as the formatter of each language in your settings:

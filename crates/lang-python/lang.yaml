@@ -1,0 +1,21 @@
+options:
+  - line_width: 88
+  - indent_size: 4
+  - indent_style
+  - final_newline: true
+  - end_of_line
+  - quote_style:
+      values: ["double", "single", "preserve"]
+      default: "double"
+      doc: "Quotes of strings (and of f-string and t-string literals): `double` or `single` rewrite a string to that quote unless the other one needs fewer escapes, `preserve` keeps what the source has."
+  - magic_trailing_comma:
+      values: ["respect", "ignore"]
+      default: "respect"
+      doc: "`respect` keeps a collection, call or parameter list that has a trailing comma expanded one item per line; `ignore` joins it when it fits and removes the comma."
+  - docstring_code:
+      default: false
+      doc: "Format the code of doctest examples (`>>>`) in docstrings."
+  - target_version:
+      values: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14", "3.15"]
+      default: "3.14"
+      doc: "The Python version whose syntax the file must follow: newer syntax is a syntax error (`lazy import` needs 3.15)."

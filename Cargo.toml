@@ -42,6 +42,10 @@ oxc_ast_visit = "=0.158.0"
 oxc_parser = "=0.158.0"
 oxc_semantic = "=0.158.0"
 oxc_span = "=0.158.0"
+# ruff's parser crates are 0.0.x and break weekly: pinned exactly to the version Pyrefly pins, bumped by hand only (dependabot ignores them).
+ruff_python_ast = "=0.0.14"
+ruff_python_parser = "=0.0.14"
+ruff_text_size = "=0.0.14"
 pulldown-cmark = { version = "0.13", default-features = false, features = ["html"] }
 # generated:grammars
 tree-sitter-containerfile = "0.9"
@@ -76,6 +80,7 @@ core-workspace = { path = "crates/core-workspace" }
 lang-csharp = { path = "crates/lang-csharp" }
 lang-json = { path = "crates/lang-json" }
 lang-js = { path = "crates/lang-js" }
+lang-python = { path = "crates/lang-python" }
 lang-css = { path = "crates/lang-css" }
 lang-yaml = { path = "crates/lang-yaml" }
 lang-github-actions = { path = "crates/lang-github-actions" }
