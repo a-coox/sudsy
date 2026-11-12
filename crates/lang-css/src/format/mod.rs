@@ -4,6 +4,7 @@
 //! written. SCSS and Less constructs (control flow, mixins, maps, guards) are kept as written, and
 //! their rules and declarations go through the common printer.
 
+mod check;
 mod selector;
 mod text;
 mod value;
@@ -107,7 +108,7 @@ impl NodeFormatter for CssFormatter {
     fn value<'a>(&self, item: &'a SyntaxElement) -> Cow<'a, str> {
         match item {
             SyntaxElement::Token(t) => normalized(t),
-            SyntaxElement::Node(n) => n.text().to_string().into(),
+            SyntaxElement::Node(n) => check::value(n).into(),
         }
     }
 }
@@ -497,6 +498,7 @@ impl Pr<'_, '_> {
             flat: name == "composes",
             grid: GRID.contains(&name.as_str()),
             dollar: name.starts_with('$'),
+            font: name.contains("font"),
             ..St::value(!name.starts_with("--"))
         };
         // Without a `;`, a comment after the value stands after the `;` that is added.

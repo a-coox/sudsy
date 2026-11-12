@@ -248,6 +248,10 @@ pub(crate) struct St {
     pub url: bool,
     /// The group about to print is the key of a map entry: it breaks only when it does not fit.
     pub key: bool,
+    /// The value of a `font` property: `/` after a call stays as written.
+    pub font: bool,
+    /// The arguments of a color adjuster (`blackness(+ 20%)`): a leading sign keeps its space.
+    pub adjuster: bool,
 }
 
 impl St {
@@ -273,6 +277,8 @@ impl St {
             config: false,
             url: false,
             key: false,
+            font: false,
+            adjuster: false,
         }
     }
 
@@ -284,6 +290,38 @@ impl St {
             ..St::value(false)
         }
     }
+}
+
+const COLOR_ADJUSTERS: &[&str] = &[
+    "red",
+    "green",
+    "blue",
+    "alpha",
+    "a",
+    "rgb",
+    "hue",
+    "h",
+    "saturation",
+    "s",
+    "lightness",
+    "l",
+    "whiteness",
+    "w",
+    "blackness",
+    "b",
+    "tint",
+    "shade",
+    "blend",
+    "blenda",
+    "contrast",
+    "hsl",
+    "hsla",
+    "hwb",
+    "hwba",
+];
+
+fn number_kind(kind: SyntaxKind) -> bool {
+    matches!(kind, k::NUMBER | k::DIMENSION | k::PERCENTAGE)
 }
 
 /// In an SCSS control directive: a space that never breaks, before a comparison or `and`, `or`,
@@ -513,6 +551,7 @@ impl Pr<'_, '_> {
         let gap = |a: usize, b: usize| items[a].end() != items[b].start();
         // `*` always has spaces around it, `/` only in `calc()` and when it has some already.
         // (`a*b`, `--x-*` and `*=` are words.)
+        let number = |i: &Item| matches!(i, Item::Tok(t) if number_kind(t.kind()));
         let interp =
             |i: Option<&Item>| matches!(i, Some(Item::Grp(g)) if g.open.kind() == k::INTERP_OPEN);
         let star = |j: usize| {
@@ -541,19 +580,24 @@ impl Pr<'_, '_> {
                 matches!(i, Item::Func(..))
                     || matches!(i, Item::Grp(g) if g.open.kind() == k::L_PAREN)
             };
-            let number = |i: &Item| matches!(i, Item::Tok(t) if matches!(t.kind(), k::NUMBER | k::DIMENSION | k::PERCENTAGE));
-            let plus = self.dialect != Dialect::Css
-                && items[j].is_delim("+")
+            let plus = items[j].is_delim("+")
                 && [left, right].iter().any(|i| {
                     matches!(i, Item::Func(..))
-                        || i.tok(k::VARIABLE).is_some()
-                        || i.tok(k::AT_KEYWORD).is_some()
-                });
-            plus || self.dialect != Dialect::Css
-                && items[j].is_delim("/")
+                        || self.dialect != Dialect::Css
+                            && (i.tok(k::VARIABLE).is_some() || i.tok(k::AT_KEYWORD).is_some())
+                })
+                // Less: `@a+ 2` stays.
+                && !(self.dialect == Dialect::Less
+                    && left.tok(k::AT_KEYWORD).is_some()
+                    && !matches!(right, Item::Func(..))
+                    && !gap(j - 1, j));
+            plus || items[j].is_delim("/")
                 && !interp(Some(left))
                 && !interp(Some(right))
-                && (named(left) || named(right) || call(left) || call(right))
+                && (!st.font || self.dialect != Dialect::Css)
+                && (call(left)
+                    || call(right)
+                    || self.dialect != Dialect::Css && (named(left) || named(right)))
                 && (gap(j - 1, j)
                     || !gap(j, j + 1)
                         && (call(left)
@@ -574,12 +618,49 @@ impl Pr<'_, '_> {
         let has_config = (0..items.len()).any(config);
         // A sign at the start or after an operator belongs to the number or parenthesis after it.
         let sign = |j: usize| {
-            (items[j].is_delim("+") || items[j].is_delim("-"))
+            !(st.adjuster && j == 0 && items.len() > 1 && gap(0, 1))
+                && (items[j].is_delim("+") || items[j].is_delim("-"))
                 && (j == 0
                     || ["+", "-", "*", "/", "%"]
                         .iter()
                         .any(|d| items[j - 1].is_delim(d)))
-                && matches!(items.get(j + 1), Some(Item::Grp(g)) if g.open.kind() == k::L_PAREN)
+                && match items.get(j + 1) {
+                    Some(Item::Grp(g)) => g.open.kind() == k::L_PAREN,
+                    Some(next) => number(next),
+                    None => false,
+                }
+        };
+        // `round(1) +2` is `round(1) + 2`: a sign after a call or a variable is an operator.
+        let split_plus = |j: usize| {
+            j > 0
+                && matches!(&items[j], Item::Tok(t) if number_kind(t.kind()) && t.text().starts_with('+'))
+                && match &items[j - 1] {
+                    Item::Func(..) => true,
+                    Item::Grp(g) => g.open.kind() == k::L_PAREN,
+                    Item::Tok(t) => match (self.dialect, t.kind()) {
+                        (Dialect::Scss, k::VARIABLE) => true,
+                        (Dialect::Less, k::AT_KEYWORD) => gap(j - 1, j),
+                        _ => false,
+                    },
+                }
+        };
+        // `#{$a}/2px` is `#{$a}/ 2px` and `2px/#{$a}` is `2px /#{$a}`.
+        let tight_interp_slash = |j: usize| {
+            j >= 1
+                && j + 1 < items.len()
+                && items[j].is_delim("/")
+                && !gap(j - 1, j)
+                && !gap(j, j + 1)
+                && interp(items.get(j - 1)) != interp(items.get(j + 1))
+        };
+        // A binary `+` or `-` standing alone before a parenthesis gets a space after it.
+        let spaced_sign = |j: usize| {
+            self.dialect == Dialect::Css
+                && j >= 2
+                && (items[j - 1].is_delim("+") || items[j - 1].is_delim("-"))
+                && !sign(j - 1)
+                && gap(j - 2, j - 1)
+                && matches!(&items[j], Item::Grp(g) if g.open.kind() == k::L_PAREN)
         };
         // `...` (arguments) is glued to what comes before.
         let dots = |j: usize| {
@@ -605,8 +686,12 @@ impl Pr<'_, '_> {
                 let lookup = self.dialect == Dialect::Less
                     && matches!(it, Item::Grp(g) if g.open.kind() == k::L_BRACKET);
                 let after_comment = prev.tok(k::LINE_COMMENT).is_some();
-                let space = if after_comment {
+                let space = if after_comment || split_plus(i) || spaced_sign(i) {
                     true
+                } else if tight_interp_slash(i) {
+                    interp(items.get(i + 1))
+                } else if tight_interp_slash(i - 1) {
+                    interp(items.get(i.wrapping_sub(2)))
                 } else if sign(i - 1)
                     || dots(i)
                     || colon(it)
@@ -666,6 +751,14 @@ impl Pr<'_, '_> {
                     doc::group_with_id(id, doc::concat(vec![doc::lit(":"), doc::line()]))
                 }
                 Item::Tok(t) if lower => doc::text(t.text().to_ascii_lowercase()),
+                Item::Tok(t) if split_plus(i) => {
+                    let n = match t.kind() {
+                        k::NUMBER => text::number(t.text()),
+                        k::PERCENTAGE => text::percentage(t.text()),
+                        _ => text::dimension(t.text()),
+                    };
+                    doc::text(format!("+ {}", n.trim_start_matches('+')))
+                }
                 // A map that is a key stays as written.
                 Item::Grp(_) if items.get(i + 1).is_some_and(colon) => {
                     self.item(it, St { key: true, ..st })
@@ -725,6 +818,7 @@ impl Pr<'_, '_> {
                     ]);
                 }
                 let st = St {
+                    adjuster: COLOR_ADJUSTERS.contains(&lower.as_str()),
                     calc: st.calc || lower.ends_with("calc"),
                     flat: st.flat || url,
                     url: st.url || url,
@@ -804,6 +898,9 @@ impl Pr<'_, '_> {
                     },
                 );
                 let (open, close) = (doc::text(g.open.text()), doc::text(g.close.text()));
+                // Block comments after the last comma are the last entry: no comma follows them.
+                let comments_last = head.last().is_some_and(|i| i.tok(k::COMMENT).is_some())
+                    && head.iter().any(|i| i.tok(k::COMMA).is_some());
                 // Only comments: they stand on their own lines.
                 if head.is_empty() && !flat {
                     let lines: Vec<Doc> = g.items.iter().map(|c| self.item(c, st)).collect();
@@ -822,7 +919,7 @@ impl Pr<'_, '_> {
                 } else {
                     let comma = if own && !tail.is_empty() {
                         doc::lit(",")
-                    } else if force && !st.config {
+                    } else if force && !st.config && !comments_last {
                         doc::if_break(doc::lit(","), Doc::Nil)
                     } else {
                         Doc::Nil

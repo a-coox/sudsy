@@ -20,7 +20,7 @@ token Comment #trivia #comment
 // `//` comments: SCSS and Less only.
 token LineComment #trivia #comment
 
-// #restyle: the formatter rewrites the text of these tokens (case, number form, quotes); the
+// #restyle: the formatter rewrites the text of these tokens (case, number form, quotes) and of a Value (signs); the
 // safety check compares them through the formatter's own normalization.
 token Ident #operand #restyle
 token AtKeyword #operand #restyle
@@ -66,7 +66,7 @@ node Block = LBrace items:#item* RBrace
 // Prelude, Property and Value hold tokens, Functions and Groups in source order.
 node Prelude = #operand* Function* Group*
 node Property = #operand* Function* Group*
-node Value = #operand* Function* Group*
+node Value #restyle = #operand* Function* Group*
 // A name directly followed by its parenthesized arguments.
 node Function = name:Ident args:Group
 // Any bracketed run: `( )`, `[ ]`, `#{ }`, or `{ }` inside one of them.

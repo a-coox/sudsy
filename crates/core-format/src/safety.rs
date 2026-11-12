@@ -79,6 +79,30 @@ impl<'a> Events<'a> {
         }
     }
 
+    /// The comments inside a node that is not walked (a `#restyle` node).
+    fn collect_comments(&mut self, node: &'a rowan::GreenNodeData) {
+        for c in node.children() {
+            match c {
+                rowan::NodeOrToken::Token(t) => {
+                    let kind = SyntaxKind(t.kind().0);
+                    if self.g.is_trivia(kind) && self.g.has_tag(kind, "comment") {
+                        self.comments.push(t.text().into());
+                    }
+                }
+                rowan::NodeOrToken::Node(n) => {
+                    let kind = SyntaxKind(n.kind().0);
+                    if self.g.is_trivia(kind) && self.g.has_tag(kind, "comment") {
+                        let mut text = String::new();
+                        green_text(n, &mut text);
+                        self.comments.push(text.into());
+                    } else {
+                        self.collect_comments(n);
+                    }
+                }
+            }
+        }
+    }
+
     fn enter(&mut self, node: &'a rowan::GreenNodeData) -> (usize, Event<'a>) {
         let kind = SyntaxKind(node.kind().0);
         let transparent = self.g.has_tag(kind, "transparent");
@@ -138,6 +162,7 @@ impl<'a> Iterator for Events<'a> {
                     if self.g.has_tag(kind, "restyle") {
                         let at = self.pos;
                         self.pos += usize::from(n.text_len());
+                        self.collect_comments(n);
                         return Some((at, Event::Restyled));
                     }
                     let entered = self.enter(n);

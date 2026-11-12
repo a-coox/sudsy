@@ -2,7 +2,7 @@ differences:
   scss-layout: gap  SCSS maps with a group as key or a comment inside, `@include` with comment arguments, `with (...)` configurations in a nested block, selectors with `#{ }` blanks, `if()` with `;` arguments and `.css` fixtures that hold such SCSS syntax on purpose
   less-mixin-calls: gap  Less mixin calls and `each()` with `{ }` arguments, mixin guards with lookups, long `:extend()` lists and inline JavaScript are kept as written
   comments: gap  a comment inside a selector, between property and value or in at-rule parameters keeps the statement as written, where Prettier moves the comment
-  value-math: gap  `+` and `-` joined to a number (`$a +2`), unary signs before parentheses, math inside `url()`, `+` after a comma in a function and numbers like `1.` are not normalized
+  value-math: gap  math inside `url()`, `1.` and `50...` are not normalized, `[a=#{$b}]` is not quoted (the safety check compares selectors token by token)
   front-matter: gap  front matter blocks, `@custom-selector` and `@nest` are not understood
   project-options: gap  real-world projects run under Prettier's defaults (`--no-config`), not their own Prettier options; the corpus fetches no config files and Sudsy's CSS options are not mapped yet
 files:
@@ -11,7 +11,7 @@ files:
   prettier-less: less-mixin-calls, comments, value-math
   real-world: scss-layout, less-mixin-calls, project-options
 ratchet:
-  prettier-css: 106
-  prettier-scss: 70
-  prettier-less: 30
-  real-world: 492
+  prettier-css: 107
+  prettier-scss: 72
+  prettier-less: 31
+  real-world: 493

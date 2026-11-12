@@ -236,6 +236,20 @@ fn formats_like_prettier() {
     }
 }
 
+/// Signs are joined and split, which changes the token count: the check compares values.
+#[test]
+fn signs_join_and_split() {
+    let out = assert_formats(
+        CssProvider::new(Dialect::Css),
+        "a.css",
+        "a { b: func(+ 20px, + 20px) round(1.5) +2 1px -2px; c: 1px - 2px }\n",
+    );
+    assert_eq!(
+        out,
+        "a {\n  b: func(+20px, +20px) round(1.5) + 2 1px -2px;\n  c: 1px - 2px;\n}\n"
+    );
+}
+
 #[test]
 fn file_names() {
     assert_file_names(
