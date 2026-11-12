@@ -91,29 +91,13 @@ jobs:
           save-if: ${{ github.ref == 'refs/heads/main' }}
       - run: cargo test --workspace
 
-  # Dependabot PRs only: tier 1 of scripts/bench.sh (deterministic instruction and allocation counts
-  # of every language) against the PR base; fails on a regression.
+  # Dependabot PRs only: tier 1 of scripts/bench.sh of every language against the PR base.
   bench:
     if: github.event_name == 'pull_request' && github.actor == 'dependabot[bot]'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        with:
-          fetch-depth: 0
-      - uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec # stable
-        with:
-          targets: wasm32-wasip2
-      - uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6
-        with:
-          dotnet-version: 10.0.x
-      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2
-        with:
-          save-if: ${{ github.ref == 'refs/heads/main' }}
-      - run: sudo apt-get update && sudo apt-get install -y valgrind
-      - name: Benchmark against the base
-        env:
-          BASE: ${{ github.event.pull_request.base.sha }}
-        run: bash scripts/bench.sh --base "$BASE" --all --no-record
+    uses: ./.github/workflows/bench.yml
+    with:
+      base: ${{ github.event.pull_request.base.sha }}
+      args: --all --no-record
 
   dotnet:
     needs: changes

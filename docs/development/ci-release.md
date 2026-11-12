@@ -10,11 +10,13 @@ Runs on pushes to main, pull requests, dispatch and from the release workflow. A
 | `dco` | pull requests only: every commit signed off by its author (`scripts/check-dco.sh`) |
 | `rust` | Linux: fmt check, clippy `-D warnings`, `cargo test --workspace`, `cargo xtask codegen --check`, sample plugin fmt + tests (installs `wasm32-wasip2`) |
 | `windows` | `cargo test --workspace` only (it builds and runs the worker, so there is no Windows dotnet job) |
-| `bench` | Dependabot pull requests only: `scripts/bench.sh --all` tier 1 against the PR base (installs valgrind) |
+| `bench` | Dependabot pull requests only: calls `bench.yml` with `--all --no-record` against the PR base |
 | `dotnet` | Linux: `dotnet build` / `dotnet test workers/csharp` |
 | `vscode` | `npm ci`, typecheck, lint, test, build (Linux) |
 | `package` | release `sudsy`, published worker, staged server, `.vsix` artifact for `linux-x64`, `win32-x64` and `darwin-arm64` (3-day retention), after a smoke test that the staged binary formats C# without `SUDSY_CSHARP_WORKER` |
 | `ci` | `CI ok`: the required check |
+
+`.github/workflows/bench.yml`: tier 1 of `scripts/bench.sh` of one commit against a baseline (inputs `ref`, `base`, `args`, `token`, `head`, `dirty`; `workflow_dispatch` and `workflow_call`). `scripts/finish.sh` dispatches it with `--ref main` for a snapshot commit it force-pushes to `bench/<slot>` (these branches match no trigger of `ci.yml`, so the full CI does not run; each is deleted when its finish ends) and finds the run by its title `bench <token>`; `ci.yml` calls it for Dependabot PRs. The job (timeout 60 min) builds both sides on ubuntu-latest with valgrind; the rust-cache also holds `target/bench/{cand,base}` and is saved by every run that is not a pull request (the key follows `Cargo.lock`). The artifact `bench-result` holds `bench-output.txt` and `bench-line.jsonl`. GitHub dispatches only workflows whose file is on the default branch.
 
 `.github/workflows/site.yml` builds the documentation site and deploys it to Pages from main, see [site.md](site.md).
 

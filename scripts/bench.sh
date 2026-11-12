@@ -17,6 +17,7 @@
 # Languages: the `bench` rows of `cargo xtask affected` (the bench/inputs folders whose language the
 #   change touches; --all: every folder a provider claims; --lang FOLDER, repeatable: those folders
 #   (or startup) instead of the selection). Nothing affected: nothing measured, exit 0.
+# BENCH_HEAD, BENCH_DIRTY (0|1): the commit and dirty flag the history line records (set by bench.yml).
 # Each measured run is killed after BENCH_TIMEOUT seconds (default 900; inside WSL for the
 # instruction runs) and the run fails.
 # Run from Git Bash on Windows (WSL needs scripts/bench-setup-wsl.sh once) or natively on Linux.
@@ -214,6 +215,8 @@ if [ "$record" = 1 ]; then
   host=$(hostname)-$(uname -s | cut -c1-5)
   counts=$(awk '{ printf "%s\"%s\":%s", (NR>1?",":""), $1, $2 }' "$out/cand.all")
   mkdir -p bench
+  # BENCH_HEAD / BENCH_DIRTY: the commit a CI snapshot (finish.sh) was taken from, and whether it held changes.
+  [ -z "${BENCH_HEAD:-}" ] || { head=$BENCH_HEAD; dirty=${BENCH_DIRTY:-0}; }
   printf '{"kind":"counts","commit":"%s","base":"%s","dirty":%s,"date":"%s","host":"%s","rustc":"%s","regressed":%s,"counts":{%s}}\n' \
     "$head" "$base" "$([ $dirty = 1 ] && echo true || echo false)" "$(date -u +%FT%TZ)" "$host" \
     "$(rustc -V | cut -d' ' -f2)" "$([ $status = 1 ] && echo true || echo false)" "$counts" >>bench/history.jsonl
