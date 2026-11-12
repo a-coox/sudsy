@@ -461,11 +461,31 @@ fn schema(cx: &FormatCtx<'_>, node: &SyntaxNode) -> Result<Doc, FormatError> {
 fn type_def(cx: &FormatCtx<'_>, node: &SyntaxNode) -> Result<Doc, FormatError> {
     let (mut head, mut interfaces, mut implements, mut body, mut seps) =
         (Vec::new(), Vec::new(), None, Vec::new(), Vec::new());
+    let mut lead_ends_line = false;
     for e in elements(cx, node) {
         match &e {
             SyntaxElement::Node(n) if matches!(n.kind(), k::DESCRIPTION | k::DIRECTIVE) => {}
-            SyntaxElement::Node(n) => body.push(doc::concat(vec![doc::lit(" "), cx.format(n)?])),
-            SyntaxElement::Token(t) if t.kind() == k::AMP => seps.push(dropped(cx, t)),
+            SyntaxElement::Node(n) => {
+                // A comment on its own line before the `{` brings its own line break.
+                let own_line = cx.first_token(n).is_some_and(|t| {
+                    comments::leading_comments(cx.grammar, &t)
+                        .first()
+                        .is_some_and(|c| {
+                            c.kind != comments::CommentKind::Block || c.breaks_after > 0
+                        })
+                });
+                let space = if own_line || lead_ends_line {
+                    Doc::Nil
+                } else {
+                    doc::lit(" ")
+                };
+                body.push(doc::concat(vec![space, cx.format(n)?]));
+            }
+            SyntaxElement::Token(t) if t.kind() == k::AMP => {
+                // Comments before a `&` end on a line of their own, where the `{` then starts.
+                lead_ends_line |= !comments::leading_comments(cx.grammar, t).is_empty();
+                seps.push(dropped(cx, t));
+            }
             SyntaxElement::Token(t) if t.text() == "implements" => implements = Some(cx.token(t)),
             SyntaxElement::Token(t) if implements.is_some() => interfaces.push(cx.token(t)),
             SyntaxElement::Token(t) => head.push(cx.token(t)),
