@@ -1,0 +1,15 @@
+id: meta-refresh
+message: a refresh with a delay takes control away from the user; redirect on the server or with a 0 delay
+description: >-
+  `<meta http-equiv="refresh" content="5">` reloads or redirects after a delay, which disorients
+  screen reader users and cannot be paused. A delay of 0 is allowed.
+example: '<meta http-equiv="refresh" content="5">   <meta http-equiv="refresh" content="0; url=/new">'
+severity: off
+category: correctness
+rule:
+  kind: StartTag
+  regex: '(?i)^<meta\b'
+  all:
+    - has: { kind: Attribute, regex: '(?is)^http-equiv\s*=\s*["'']?\s*refresh\b' }
+    - has: { kind: Attribute, regex: '(?is)^content\s*=\s*["'']?\s*[1-9]' }
+report-on: first-token

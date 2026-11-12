@@ -1,0 +1,12 @@
+id: no-self-closing
+message: "`<$NAME>` must not be self-closed; write the end tag"
+description: >-
+  `<div />` is a start tag in HTML: the browser ignores the slash and the element stays open.
+  Void elements (see `void-style`), `<svg>` and `<math>` are left alone.
+example: '<div />   <div></div>'
+severity: off
+category: correctness
+rule:
+  kind: StartTag
+  regex: '^<(?<NAME>[^\s/>]+).*/>$'
+  not: { regex: '(?i)^<(area|base|br|col|embed|hr|img|input|link|meta|param|source|track|wbr|svg|math)\b' }

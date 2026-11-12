@@ -5,6 +5,7 @@ projects. Apart from the logo and the CSS name tables, none of them is part of t
 
 * `assets/logo/`: the Soap emoji of [Fluent UI Emoji](https://github.com/microsoft/fluentui-emoji) (commit `1ffb34c`), Copyright (c) Microsoft Corporation, MIT ([assets/logo/LICENSE](assets/logo/LICENSE)). Used as the logo of the extension, site and README.
 * `crates/lang-css/data/`: the names of CSS (properties, at-rules, units, functions, selectors, ...) embedded in the binary: `names.txt` is generated from [known-css-properties](https://github.com/known-css/known-css-properties) 0.37.0 (MIT, Copyright (c) 2017 Mavrix Technologies) and [mdn-data](https://github.com/mdn/data) 2.37.2 (CC0-1.0); `extras.txt` adds names from [stylelint](https://github.com/stylelint/stylelint) 17.16.0 and its dependencies css-functions-list, html-tags, svg-tags and mathml-tag-names, and from [autoprefixer](https://github.com/postcss/autoprefixer) 10.2.5 (all MIT, Copyright (c) their authors).
+* `crates/lang-html/data/elements.txt`: the element metadata of HTML (names, void and deprecated elements, attribute flags and values) embedded in the binary, generated from [html-validate](https://github.com/html-validate/html-validate) 11.21.0 (MIT, Copyright (c) 2017 David Sveningsson) by `data/generate.mjs`.
 
 ## MIT-licensed files
 

@@ -1,0 +1,12 @@
+id: valid-id
+message: an `id` begins with a letter and holds letters, digits, `-` and `_`
+description: >-
+  An `id` that is empty, has whitespace, begins with a digit or has other characters is
+  valid HTML5 but breaks CSS selectors and some scripts.
+example: '<p id="1a">   <p id="a1">'
+severity: off
+category: suspicious
+rule:
+  kind: Attribute
+  regex: '(?is)^id\s*='
+  not: { regex: '(?is)^id\s*=\s*["'']?[A-Za-z][A-Za-z0-9_-]*["'']?$' }

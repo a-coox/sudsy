@@ -1,0 +1,9 @@
+id: no-unknown-elements
+family: meta
+params: { check: unknown-element }
+message: "<{name}> is not an HTML element"
+description: >-
+  An element name that HTML does not define, custom elements (`<my-element>`) included. Everything inside `<svg>` and `<math>` is left alone.
+example: '<blink2>   <my-element>'
+severity: off
+category: suspicious

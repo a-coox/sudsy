@@ -1,0 +1,9 @@
+element-case: warn
+attr-case: warn
+attr-delimiter: warn
+attr-quotes: warn
+attr-spacing: warn
+void-style: warn
+no-self-closing: warn
+no-inline-style: warn
+script-element: warn

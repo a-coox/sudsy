@@ -1,0 +1,9 @@
+id: void-style
+message: omit the slash of a void element
+description: A void element (`<br>`, `<img>`, ...) has no end tag and needs no `/`; write `<br>`, not `<br/>`.
+example: '<br />   <br>'
+severity: off
+category: style
+rule:
+  kind: StartTag
+  regex: '(?i)^<(area|base|br|col|embed|hr|img|input|link|meta|param|source|track|wbr)\b.*/>$'

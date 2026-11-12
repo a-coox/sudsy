@@ -1,0 +1,16 @@
+id: empty-heading
+message: the heading has no text
+description: >-
+  Screen readers need text in a heading; whitespace is not text. An image with an `alt` or an `<svg>`
+  inside counts as content.
+example: '<h1></h1>   <h1>Title</h1>'
+severity: off
+category: correctness
+rule:
+  kind: Element
+  regex: '(?i)^<h[1-6]\b'
+  not-has:
+    any:
+      - kind: Chunk
+      - { kind: Element, regex: '(?i)^<(img|svg)\b' }
+report-on: first-token

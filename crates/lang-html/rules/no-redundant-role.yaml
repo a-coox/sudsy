@@ -1,0 +1,30 @@
+id: no-redundant-role
+message: the element already has this role
+description: >-
+  An element with a native role (`<nav>` is `navigation`, `<button>` is `button`) does not need a
+  `role` that says the same.
+example: '<nav role="navigation">   <nav>'
+severity: off
+category: style
+rule:
+  kind: Attribute
+  any:
+    - { regex: '(?is)^role\s*=\s*["'']?\s*article\b', parent: { regex: '(?i)^<article\b' } }
+    - { regex: '(?is)^role\s*=\s*["'']?\s*complementary\b', parent: { regex: '(?i)^<aside\b' } }
+    - { regex: '(?is)^role\s*=\s*["'']?\s*contentinfo\b', parent: { regex: '(?i)^<footer\b' } }
+    - { regex: '(?is)^role\s*=\s*["'']?\s*form\b', parent: { regex: '(?i)^<form\b' } }
+    - { regex: '(?is)^role\s*=\s*["'']?\s*banner\b', parent: { regex: '(?i)^<header\b' } }
+    - { regex: '(?is)^role\s*=\s*["'']?\s*separator\b', parent: { regex: '(?i)^<hr\b' } }
+    - { regex: '(?is)^role\s*=\s*["'']?\s*main\b', parent: { regex: '(?i)^<main\b' } }
+    - { regex: '(?is)^role\s*=\s*["'']?\s*navigation\b', parent: { regex: '(?i)^<nav\b' } }
+    - { regex: '(?is)^role\s*=\s*["'']?\s*list\b', parent: { regex: '(?i)^<(ol|ul)\b' } }
+    - { regex: '(?is)^role\s*=\s*["'']?\s*table\b', parent: { regex: '(?i)^<table\b' } }
+    - { regex: '(?is)^role\s*=\s*["'']?\s*row\b', parent: { regex: '(?i)^<tr\b' } }
+    - { regex: '(?is)^role\s*=\s*["'']?\s*cell\b', parent: { regex: '(?i)^<td\b' } }
+    - { regex: '(?is)^role\s*=\s*["'']?\s*textbox\b', parent: { regex: '(?i)^<textarea\b' } }
+    - { regex: '(?is)^role\s*=\s*["'']?\s*heading\b', parent: { regex: '(?i)^<h[1-6]\b' } }
+    - { regex: '(?is)^role\s*=\s*["'']?\s*button\b', parent: { regex: '(?i)^<button\b' } }
+    - { regex: '(?is)^role\s*=\s*["'']?\s*dialog\b', parent: { regex: '(?i)^<dialog\b' } }
+    - { regex: '(?is)^role\s*=\s*["'']?\s*progressbar\b', parent: { regex: '(?i)^<progress\b' } }
+    - { regex: '(?is)^role\s*=\s*["'']?\s*option\b', parent: { regex: '(?i)^<option\b' } }
+    - { regex: '(?is)^role\s*=\s*["'']?\s*link\b', parent: { regex: '(?i)^<a\b', has: { kind: Attribute, regex: '(?i)^href\b' } } }

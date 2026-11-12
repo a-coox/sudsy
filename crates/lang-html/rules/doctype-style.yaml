@@ -1,0 +1,9 @@
+id: doctype-style
+message: write DOCTYPE in uppercase
+description: The doctype keyword is case-insensitive; uppercase is the convention.
+example: '<!doctype html>   <!DOCTYPE html>'
+severity: off
+category: style
+rule:
+  kind: Doctype
+token: { kind: [DoctypeKw], regex: '[a-z]' }

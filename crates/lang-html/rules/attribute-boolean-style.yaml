@@ -1,0 +1,9 @@
+id: attribute-boolean-style
+family: meta
+params: { check: boolean-style }
+message: "write the boolean attribute `{attr}` without a value"
+description: >-
+  A boolean attribute is true when present: `disabled`, not `disabled="disabled"`.
+example: '<input disabled="disabled">   <input disabled>'
+severity: off
+category: style

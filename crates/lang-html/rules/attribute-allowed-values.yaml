@@ -1,0 +1,9 @@
+id: attribute-allowed-values
+family: meta
+params: { check: allowed-values }
+message: "the value `{value}` is not allowed for `{attr}` on <{name}>"
+description: >-
+  An attribute that is limited to a list of values (`type` of `<button>`, `method` of `<form>`, ...) has another one.
+example: '<button type="send">   <button type="submit">'
+severity: off
+category: correctness

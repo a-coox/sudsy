@@ -1,0 +1,11 @@
+id: attr-quotes
+message: quote attribute values with double quotes, unless the value holds one
+description: >-
+  An attribute value is quoted with `"`; it is quoted with `'` only when it holds a `"`.
+  Unquoted values are reported too.
+example: "<p id=a title='b'>   <p id=\"a\" title=\"b\">"
+severity: off
+category: style
+rule:
+  kind: Attribute
+  regex: '^[^\s=]+\s*=\s*(?:[^"''\s]|''[^"]*''$)'

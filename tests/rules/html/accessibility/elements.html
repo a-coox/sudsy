@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title> </title>
+^ empty-title
+</head>
+<body aria-hidden="true">
+^ aria-hidden-body
+<h1></h1>
+^ empty-heading
+<h2><img src="a.png" alt="x"></h2>
+<h3>text</h3>
+<div role="widget"></div>
+//   ^^^^^^^^^^^^^ no-abstract-role
+<div role="button"></div>
+<button>Go</button>
+^ no-implicit-button-type
+<button type="button">Go</button>
+<input name="a">
+^ no-implicit-input-type
+<input type="text" name="b">
+<input type="submit" value="Go">
+//     ^^^^^^^^^^^^^ prefer-button
+<video autoplay></video>
+//     ^^^^^^^^ no-autoplay
+<video controls></video>
+</body>
+</html>

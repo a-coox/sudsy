@@ -1,0 +1,10 @@
+id: empty-title
+message: the <title> has no text
+description: The `<title>` names the page in the browser tab, search results and screen readers; whitespace is not text.
+example: '<title></title>   <title>Home</title>'
+severity: off
+category: correctness
+rule:
+  kind: Element
+  regex: '(?is)^<title\b[^>]*>\s*</title'
+report-on: first-token

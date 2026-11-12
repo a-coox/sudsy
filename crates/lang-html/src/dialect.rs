@@ -64,10 +64,10 @@ macro_rules! spec {
             file_names: &[],
             schema: option_schema(),
             formatter: $formatter,
-            hooks: &core_rules::DEFAULT_HOOKS,
+            hooks: &crate::hooks::HtmlHooks,
             rules: crate::rules::RULES,
             pattern_files: provider_api::pattern_files!(),
-            families: &[],
+            families: crate::rules::FAMILIES,
             validate: None,
         }
     };

@@ -1,0 +1,8 @@
+empty-title: warn
+empty-heading: warn
+aria-hidden-body: warn
+no-abstract-role: warn
+no-implicit-button-type: warn
+no-implicit-input-type: warn
+prefer-button: warn
+no-autoplay: warn

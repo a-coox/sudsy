@@ -1,0 +1,11 @@
+id: prefer-tbody
+message: put the rows of a <table> in a <tbody>
+description: A `<tr>` directly in `<table>` is moved into an implied `<tbody>` by the browser; write it.
+example: '<table><tr><td>a</td></tr></table>   <table><tbody><tr><td>a</td></tr></tbody></table>'
+severity: off
+category: style
+rule:
+  kind: Element
+  regex: '(?i)^<table\b'
+  child: { kind: Element, regex: '(?i)^<tr\b' }
+report-on: first-token

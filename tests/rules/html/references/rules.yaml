@@ -1,0 +1,3 @@
+valid-id: warn
+no-missing-references: warn
+no-redundant-for: warn

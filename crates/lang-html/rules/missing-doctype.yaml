@@ -1,0 +1,10 @@
+id: missing-doctype
+message: the document has no doctype
+description: A document without a doctype is rendered in quirks mode.
+example: '<html>...</html>   <!DOCTYPE html><html>...</html>'
+severity: off
+category: correctness
+rule:
+  kind: Document
+  not-has: { kind: Doctype }
+report-on: start

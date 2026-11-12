@@ -153,7 +153,7 @@ def rule_fixtures(tool, sudsy, version, prefix, exe):
                lambda d: (d["rule"], d["line"]), lambda out: [w for r in json.loads(out) for w in r["warnings"]])
            for t, lang in (("stylelint", "css"), ("stylelint-scss", "scss"), ("stylelint-less", "less"))},
         # one report per file: a list of messages with the rule id and line; the config is written below
-        "html-validate": ("html", ".html", ["node", f"{prefix}/node_modules/html-validate/bin/html-validate.js", "-c", "htmlvalidate.json", "-f", "json"],
+        "html-validate": ("html", ".html", ["node", f"{prefix}/node_modules/html-validate/bin/html-validate.mjs", "-c", "htmlvalidate.json", "-f", "json"],
                           lambda d: (d["ruleId"], d["line"]), lambda out: [m for r in json.loads(out) for m in r["messages"]]),
         "checkmake": ("makefile", ".mk", [exe, "--format", '{"rule":"{{.Rule}}","line":{{.LineNumber}}}'],
                       lambda d: (d["rule"], d["line"]),

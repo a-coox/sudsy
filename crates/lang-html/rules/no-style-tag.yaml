@@ -1,0 +1,15 @@
+id: no-style-tag
+message: use an external stylesheet with <link> instead of a <style> element
+description: >-
+  A `<style>` element inlines styling that an external stylesheet shares between pages. A
+  `<style>` inside a `<template>` is allowed.
+example: '<style>p { color: red }</style>   <link rel="stylesheet" href="a.css">'
+severity: off
+category: style
+rule:
+  kind: StartTag
+  regex: '(?i)^<style\b'
+  not-inside:
+    kind: Element
+    regex: '(?i)^<template\b'
+report-on: first-token

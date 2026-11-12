@@ -261,6 +261,50 @@ Twenty-four rules read the `///` and `/** */` comment of a declaration (StyleCop
 | `required-version` | hcl | style | off | none | A `terraform` block with no `required_version` argument (tflint terraform_required_version, in the file that has the block: the rule does not know the other files of the module). |
 | `typed-variables` | hcl | style | off | none | A `variable` block with no `type` argument (tflint terraform_typed_variables). |
 | `unused-declarations` | hcl | suspicious | off | none | A variable, local value or data source that nothing in the same file refers to (tflint terraform_unused_declarations, within one file: a module that uses its variables in other files needs the rule off or those files in one). |
+| `aria-hidden-body` | html, vue | correctness | off | none | `aria-hidden="true"` on `<body>` removes the whole page from the accessibility tree. |
+| `attr-case` | html, vue | style | off | none | Attribute names are case-insensitive in HTML; lowercase is the convention. Everything inside `<svg>` and `<math>` keeps its case. |
+| `attr-delimiter` | html, vue | style | off | none | An attribute name and its value are joined by `=` without whitespace. |
+| `attr-quotes` | html, vue | style | off | none | An attribute value is quoted with `"`; it is quoted with `'` only when it holds a `"`. Unquoted values are reported too. |
+| `attr-spacing` | html, vue | style | off | none | A quoted attribute value is followed by whitespace before the next attribute. |
+| `attribute-allowed-values` | html, vue | correctness | off | none | An attribute that is limited to a list of values (`type` of `<button>`, `method` of `<form>`, ...) has another one. |
+| `attribute-boolean-style` | html, vue | style | off | none | A boolean attribute is true when present: `disabled`, not `disabled="disabled"`. |
+| `attribute-empty-style` | html, vue | style | off | none | An attribute whose empty value means the same as no value (`hidden`, `crossorigin`) is written without `=""`. |
+| `deprecated` | html, vue | correctness | off | none | An element that HTML5 no longer has (`<center>`, `<font>`, `<marquee>`, ...). |
+| `doctype-html` | html, vue | correctness | off | none | A doctype other than `html` puts the browser in quirks or limited-quirks mode. |
+| `doctype-style` | html, vue | style | off | none | The doctype keyword is case-insensitive; uppercase is the convention. |
+| `element-case` | html, vue | style | off | none | Element names are case-insensitive in HTML; lowercase is the convention. Everything inside `<svg>` and `<math>` keeps its case. Reported on the name of a start or end tag. |
+| `element-name` | html, vue | correctness | off | none | A custom element name is lowercase letters, digits, `-`, `.` and `_`, and has a `-`, so that it never clashes with an element HTML adds later. Everything inside `<svg>` and `<math>` is left alone. |
+| `element-required-attributes` | html, vue | correctness | off | none | An attribute the element must have (`lang` on `<html>`, `src` on `<img>`, `title` on `<iframe>`, ...). |
+| `empty-heading` | html, vue | correctness | off | none | Screen readers need text in a heading; whitespace is not text. An image with an `alt` or an `<svg>` inside counts as content. |
+| `empty-title` | html, vue | correctness | off | none | The `<title>` names the page in the browser tab, search results and screen readers; whitespace is not text. |
+| `heading-level` | html, vue | correctness | off | none | Headings do not follow the document outline: the first heading is not an `<h1>`, a level is skipped going down the outline (`<h1>` then `<h3>`), or the page has a second `<h1>`. |
+| `long-title` | html, vue | style | off | none | Search engines cut a title off after about 70 characters. |
+| `meta-refresh` | html, vue | correctness | off | none | `<meta http-equiv="refresh" content="5">` reloads or redirects after a delay, which disorients screen reader users and cannot be paused. A delay of 0 is allowed. |
+| `missing-doctype` | html, vue | correctness | off | none | A document without a doctype is rendered in quirks mode. |
+| `no-abstract-role` | html, vue | correctness | off | none | Abstract roles (`widget`, `landmark`, `command`, ...) are for the ARIA taxonomy, not for authors. |
+| `no-autoplay` | html, vue | suspicious | off | none | Autoplaying audio and video annoys users and fails accessibility guidelines; `muted` media is allowed. |
+| `no-conditional-comment` | html, vue | suspicious | off | none | An Internet Explorer conditional comment (`<!--[if IE]>`). Only IE 9 and older read them; other browsers see a comment. |
+| `no-deprecated-attr` | html, vue | correctness | off | none | An attribute that HTML5 no longer has on that element (`align`, `bgcolor`, `border`, ...). |
+| `no-duplicate-class` | html, vue | suspicious | off | none | A class name written twice in one `class` attribute. |
+| `no-duplicate-id` | html, vue | correctness | off | none | An `id` that an earlier element of the document already has. Ids must be unique: scripts, links and labels find the first element only. Empty ids are left alone. |
+| `no-implicit-button-type` | html, vue | suspicious | off | none | A `<button>` without a `type` is a submit button, which is rarely meant outside a form. |
+| `no-implicit-close` | html, vue | style | off | none | An element whose end tag is left out is closed by the next sibling or its parent's end tag (`<li>`, `<p>`, ...). Writing the end tag says where it ends. Void and self-closed elements have none. |
+| `no-implicit-input-type` | html, vue | style | off | none | An `<input>` without a `type` is a text field by default; writing the type says so. |
+| `no-inline-style` | html, vue | style | off | none | A `style` attribute is a sign of unstructured CSS. `display` alone is allowed, because scripts toggle it. |
+| `no-missing-references` | html, vue | correctness | off | none | An attribute that refers to an `id` (`for`, `aria-labelledby`, `list`, `headers`, `form`, ...) names an id that no element of the document has. |
+| `no-multiple-main` | html, vue | correctness | off | none | A second `<main>` element that is not `hidden`: a page has one main landmark. |
+| `no-redundant-for` | html, vue | style | off | none | A `<label>` has a `for` that names a control inside it, which the label already labels. |
+| `no-redundant-role` | html, vue | style | off | none | An element with a native role (`<nav>` is `navigation`, `<button>` is `button`) does not need a `role` that says the same. |
+| `no-self-closing` | html, vue | correctness | off | none | `<div />` is a start tag in HTML: the browser ignores the slash and the element stays open. Void elements (see `void-style`), `<svg>` and `<math>` are left alone. |
+| `no-style-tag` | html, vue | style | off | none | A `<style>` element inlines styling that an external stylesheet shares between pages. A `<style>` inside a `<template>` is allowed. |
+| `no-unknown-elements` | html, vue | suspicious | off | none | An element name that HTML does not define, custom elements (`<my-element>`) included. Everything inside `<svg>` and `<math>` is left alone. |
+| `no-void-end-tag` | html, vue | correctness | off | none | A void element (`<br>`, `<img>`, ...) has no content and no end tag; the browser ignores `</br>`. |
+| `prefer-button` | html, vue | style | off | none | A `<button>` can hold markup and is styled with CSS like any element; `<input type="button">` cannot. |
+| `prefer-tbody` | html, vue | style | off | none | A `<tr>` directly in `<table>` is moved into an implied `<tbody>` by the browser; write it. |
+| `presentation-role-style` | html, vue | style | off | none | `none` and `presentation` are synonyms; `none` is the one ARIA 1.2 prefers. |
+| `require-sri` | html, vue | suspicious | off | none | A `<script src>` or `<link rel="stylesheet" href>` without `integrity` runs or applies a file that changed on its server (a CDN) without the page noticing. |
+| `valid-id` | html, vue | suspicious | off | none | An `id` that is empty, has whitespace, begins with a digit or has other characters is valid HTML5 but breaks CSS selectors and some scripts. |
+| `void-style` | html, vue | style | off | none | A void element (`<br>`, `<img>`, ...) has no end tag and needs no `/`; write `<br>`, not `<br/>`. |
 | `empty-section` | ini | suspicious | warn | none | A `[section]` header with nothing under it, usually left behind by a removed setting. Comments do not count as settings. |
 | `max-body-length` | makefile | cleanup | off | none | A rule whose recipe has more lines than allowed (checkmake `maxbodylength`). Every physical line counts, a continued command and a tab-indented comment included. Options: `max` (default `5`): The most lines a recipe may have. |
 | `min-phony` | makefile | suspicious | off | none | A target that must exist and be declared `.PHONY` (checkmake `minphony`). Reported on the `.PHONY` line, or the last rule's when there is none. Options: `required` (default `["all", "clean", "test"]`): The targets every Makefile must declare `.PHONY`. |
