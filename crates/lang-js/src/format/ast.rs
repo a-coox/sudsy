@@ -71,7 +71,7 @@ pub(crate) fn is_literal(kind: SyntaxKind) -> bool {
 pub(crate) fn operator(cx: &FormatCtx<'_>, n: &SyntaxNode) -> Option<SyntaxToken> {
     n.children_with_tokens()
         .filter_map(|e| e.into_token())
-        .find(|t| !cx.grammar.is_trivia(t.kind()))
+        .find(|t| !cx.grammar.is_trivia(t.kind()) && !matches!(t.kind(), k::L_PAREN | k::R_PAREN))
 }
 
 pub(crate) fn operator_text(cx: &FormatCtx<'_>, n: &SyntaxNode) -> String {

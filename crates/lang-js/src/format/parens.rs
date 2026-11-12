@@ -77,6 +77,8 @@ pub(crate) fn wrap(node: &SyntaxNode, cx: &FormatCtx<'_>, doc: Doc) -> Doc {
             | k::TAGGED_TEMPLATE_EXPRESSION
             | k::JSX_ELEMENT
             | k::JSX_FRAGMENT
+            | k::TS_AS_EXPRESSION
+            | k::TS_SATISFIES_EXPRESSION
     );
     let held = node
         .parent()
@@ -294,7 +296,7 @@ pub(crate) fn needs_parens(cx: &FormatCtx<'_>, node: &SyntaxNode) -> Need {
                     if kind == k::TS_TYPE_ASSERTION {
                         return Need::Keep;
                     }
-                    if !is_binaryish(kind) {
+                    if is_cast(kind) || !is_binaryish(kind) {
                         return Need::Yes;
                     }
                     let pop = operator_text(cx, &p);

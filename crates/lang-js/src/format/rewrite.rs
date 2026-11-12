@@ -82,6 +82,22 @@ pub(crate) fn rewrite(
         {
             inserts.push((usize::from(open.text_range().end()), Some("\n")));
         }
+        // `a && (b && c)` is `a && b && c`: parentheses around a right operand of the same
+        // logical operator go (the tree then has the shape of the output).
+        if node.kind() == k::PARENTHESIZED_EXPRESSION
+            && let Some(parent) = node.parent().filter(|p| p.kind() == k::LOGICAL_EXPRESSION)
+            && parent.last_child().as_ref() == Some(&node)
+            && let Some(inner) = node
+                .first_child()
+                .filter(|c| c.kind() == k::LOGICAL_EXPRESSION)
+            && logical_operator(&parent) == logical_operator(&inner)
+            && logical_operator(&inner).is_some()
+        {
+            node.children_with_tokens()
+                .filter_map(|e| e.into_token())
+                .filter(|t| matches!(t.kind(), k::L_PAREN | k::R_PAREN))
+                .for_each(&mut cut);
+        }
         match node.kind() {
             k::CLASS_BODY => semicolons(&node).into_iter().for_each(&mut cut),
             k::EMPTY_STATEMENT
@@ -257,4 +273,12 @@ fn last_token(grammar: &Grammar, node: &SyntaxNode) -> Option<SyntaxToken> {
         cur = t.prev_token().filter(|p| p.text_range().start() >= start);
     }
     None
+}
+
+/// The operator token of a logical expression.
+fn logical_operator(node: &SyntaxNode) -> Option<String> {
+    node.children_with_tokens()
+        .filter_map(|e| e.into_token())
+        .find(|t| t.kind() == k::OPERATOR)
+        .map(|t| t.text().to_string())
 }

@@ -62,14 +62,24 @@ fn assignment(node: &SyntaxNode, cx: &FormatCtx<'_>) -> R {
     else {
         return Err(shape_error("assignment"));
     };
-    assign_like(
-        cx,
-        node,
-        cx.format(&left)?,
-        concat(vec![lit(" "), cx.token(&op)]),
-        Some(&right),
-        false,
-    )
+    // `(x as T) = y`: the parentheses of the target are tokens of the assignment; the comments
+    // in front of them go in front of it.
+    let target_paren = node
+        .children_with_tokens()
+        .filter_map(|e| e.into_token())
+        .find(|t| t.kind() == k::L_PAREN);
+    let lead = target_paren.map_or(Doc::Nil, |t| cx.leading_comments_doc(&t));
+    Ok(concat(vec![
+        lead,
+        assign_like(
+            cx,
+            node,
+            cx.format(&left)?,
+            concat(vec![lit(" "), cx.token(&op)]),
+            Some(&right),
+            false,
+        )?,
+    ]))
 }
 
 #[derive(PartialEq, Eq, Clone, Copy)]

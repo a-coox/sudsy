@@ -149,6 +149,10 @@ pub struct FormatCtx<'a> {
     /// Like `detached` for the whole run: the comments are read, not taken, so a document that
     /// was cached while they were held back stays right when it is used again.
     held: Mutex<Vec<(TextSize, Option<Vec<Comment>>)>>,
+    /// Tokens whose leading comments a shape prints itself (see [`FormatCtx::hold_leading`]).
+    held_leading: Mutex<Vec<TextSize>>,
+    /// Is any token in `held_leading`? Asked for every token, so without the lock.
+    any_held_leading: std::sync::atomic::AtomicBool,
     /// A provider's per-run data derived from the options (see [`FormatCtx::cached`]).
     cache: std::sync::OnceLock<Box<dyn std::any::Any + Send + Sync>>,
     /// Documents of nodes formatted for a layout, by node and flags (see [`FormatCtx::layout`]).
@@ -172,6 +176,8 @@ impl<'a> FormatCtx<'a> {
             line_breaks: Mutex::new(None),
             detached: Mutex::new(Vec::new()),
             held: Mutex::new(Vec::new()),
+            held_leading: Mutex::new(Vec::new()),
+            any_held_leading: std::sync::atomic::AtomicBool::new(false),
             cache: std::sync::OnceLock::new(),
             layouts: Mutex::new(HashMap::new()),
             embedder: None,
@@ -385,8 +391,39 @@ impl<'a> FormatCtx<'a> {
         leading_comments_doc(&self.leading(tok))
     }
 
+    /// Holds back the leading comments of `tok` for the rest of the run, so that a shape can
+    /// print them in front of a layout that the comments' line breaks must not break: print them
+    /// with [`FormatCtx::held_leading`].
+    pub fn hold_leading(&self, tok: &SyntaxToken) {
+        let at = tok.text_range().start();
+        let mut held = self.held_leading.lock().expect("held leading lock");
+        if !held.contains(&at) {
+            held.push(at);
+        }
+        self.any_held_leading
+            .store(true, std::sync::atomic::Ordering::Relaxed);
+    }
+
+    /// The comments [`FormatCtx::hold_leading`] held back, as printed leading comments.
+    pub fn held_leading(&self, tok: &SyntaxToken) -> Doc {
+        leading_comments_doc(&self.leading_of(tok))
+    }
+
     /// The comments in front of `tok`, as the comment style wants them attached to it.
     fn leading(&self, tok: &SyntaxToken) -> Vec<Comment> {
+        if self
+            .any_held_leading
+            .load(std::sync::atomic::Ordering::Relaxed)
+        {
+            let held = self.held_leading.lock().expect("held leading lock");
+            if held.contains(&tok.text_range().start()) {
+                return Vec::new();
+            }
+        }
+        self.leading_of(tok)
+    }
+
+    fn leading_of(&self, tok: &SyntaxToken) -> Vec<Comment> {
         let mut cs = comments::leading_comments(self.grammar, tok);
         if self.comment_style.attach_comments
             && let Some(last) = cs.last_mut()

@@ -337,3 +337,14 @@ if (!(
 "
     );
 }
+
+#[test]
+fn casts_this_parameters_logical_operands_and_pattern_types() {
+    // Each expectation was checked with Prettier 3 under its defaults.
+    assert_eq!(
+        fmt(
+            "(a as B) += 1;\nx = a as B === c;\ny = (a && b) && (c && d);\ntype F = (this: T, n: number) => R;\ninterface I { m<T>(this: A, b: B): void }\nfunction g({ cert, key }: { cert: CryptoFile; key: CryptoFile; kkkkkkkkkkkkkkkkkkkkkkk: string }) {}\n"
+        ),
+        "(a as B) += 1;\nx = (a as B) === c;\ny = a && b && c && d;\ntype F = (this: T, n: number) => R;\ninterface I {\n  m<T>(this: A, b: B): void;\n}\nfunction g({\n  cert,\n  key,\n}: {\n  cert: CryptoFile;\n  key: CryptoFile;\n  kkkkkkkkkkkkkkkkkkkkkkk: string;\n}) {}\n"
+    );
+}

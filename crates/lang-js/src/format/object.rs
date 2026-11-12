@@ -198,9 +198,10 @@ fn object(node: &SyntaxNode, cx: &FormatCtx<'_>) -> R {
     let shared = is_pattern
         && match (&p, pk) {
             (Some(p), Some(k::FORMAL_PARAMETER)) => {
-                !p.children_with_tokens().any(|e| is_tok(&e, "="))
-                    && hugs_only_param(p)
-                    && p.parent().is_some_and(|fp| fp.children().count() == 1)
+                pattern_with_type_literal(p)
+                    || (!p.children_with_tokens().any(|e| is_tok(&e, "="))
+                        && hugs_only_param(p)
+                        && p.parent().is_some_and(|fp| fp.children().count() == 1))
             }
             (_, Some(k::VARIABLE_DECLARATOR | k::ASSIGNMENT_EXPRESSION)) => !must_break,
             _ => false,
@@ -213,6 +214,20 @@ fn object(node: &SyntaxNode, cx: &FormatCtx<'_>) -> R {
             (false, false) => group(body),
         },
     ]))
+}
+
+/// A parameter `{ a, b }: { a: A; b: B }`: the pattern and the type literal break together,
+/// as one group of the parameter.
+pub(crate) fn pattern_with_type_literal(param: &SyntaxNode) -> bool {
+    param.kind() == k::FORMAL_PARAMETER
+        && param
+            .first_child()
+            .is_some_and(|c| c.kind() == k::OBJECT_PATTERN)
+        && param
+            .children()
+            .find(|c| c.kind() == k::TS_TYPE_ANNOTATION)
+            .and_then(|a| a.first_child())
+            .is_some_and(|t| t.kind() == k::TS_TYPE_LITERAL)
 }
 
 /// A lone parameter that is a pattern, kept on the line of the parentheses (Prettier's
@@ -229,8 +244,15 @@ pub(crate) fn hugs_only_param(param: &SyntaxNode) -> bool {
         .first()
         .is_some_and(|n| matches!(n.kind(), k::OBJECT_PATTERN | k::ARRAY_PATTERN));
     pattern
-        && match (has_eq, &nodes[1..]) {
-            (false, rest) => rest.iter().all(|n| n.kind() == k::TS_TYPE_ANNOTATION),
+        && match (
+            has_eq,
+            nodes[1..]
+                .iter()
+                .filter(|n| n.kind() != k::TS_TYPE_ANNOTATION)
+                .collect::<Vec<_>>()
+                .as_slice(),
+        ) {
+            (false, rest) => rest.is_empty(),
             (true, [init]) => match init.kind() {
                 k::IDENTIFIER_REFERENCE => true,
                 k::OBJECT_EXPRESSION | k::ARRAY_EXPRESSION => init.children().next().is_none(),

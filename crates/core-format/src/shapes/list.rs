@@ -56,6 +56,9 @@ pub struct ListStyle {
     /// The closing delimiter follows the last item on its line when the list breaks (unless
     /// comments stand in front of it).
     pub hug_close: bool,
+    /// No group of its own unless the source breaks the list: it breaks with the group around it
+    /// (a type literal in a hugged parameter breaks with the parameter's pattern).
+    pub shared: bool,
     /// The separator when the list breaks, if not `separator` (TypeScript members: `;` on one
     /// line, none or `;` per the `semi` option on several).
     pub broken_separator: Option<&'static str>,
@@ -74,6 +77,7 @@ impl Default for ListStyle {
             expand_empty: false,
             force_blank: None,
             hug_close: false,
+            shared: false,
             broken_separator: None,
         }
     }
@@ -263,6 +267,8 @@ fn list_of(
     };
     let list = if broken {
         doc::group_broken(body)
+    } else if style.shared {
+        body
     } else {
         doc::group(body)
     };

@@ -68,6 +68,37 @@ pub(super) fn format(node: &SyntaxNode, cx: &FormatCtx<'_>) -> Result<Option<Doc
 /// (a comment in front of it must not break the parameters).
 fn signature(node: &SyntaxNode, cx: &FormatCtx<'_>) -> R {
     let ks = kids(cx, node);
+    // With a `this` parameter the parentheses and parameters are children of the signature.
+    if let (Some(open), Some(close)) = (
+        ks.iter().position(|e| is_tok(e, "(")),
+        ks.iter().rposition(|e| is_tok(e, ")")),
+    ) && open < close
+    {
+        let tp = ks[..open].iter().position(
+            |e| matches!(e, SyntaxElement::Node(n) if n.kind() == k::TS_TYPE_PARAMETER_DECLARATION),
+        );
+        let name_end = tp.unwrap_or(open);
+        let gap = if name_end > 0 && is_tok(&ks[name_end - 1], "new") {
+            lit(" ")
+        } else {
+            Doc::Nil
+        };
+        let mut sig = Vec::new();
+        if let Some(tp) = tp {
+            sig.push(elem(cx, &ks[tp])?);
+        }
+        sig.push(super::super::decl::parameters_in(
+            cx,
+            &ks[open..=close],
+            Some(false),
+        )?);
+        sig.push(words(cx, &ks[close + 1..], true)?);
+        return Ok(concat(vec![
+            words(cx, &ks[..name_end], true)?,
+            gap,
+            group(concat(sig)),
+        ]));
+    }
     let at = ks
         .iter()
         .position(|e| {
@@ -99,6 +130,12 @@ fn members(node: &SyntaxNode, cx: &FormatCtx<'_>, layout: ListLayout) -> R {
         padding: true,
         trailing_comma: TrailingComma::WhenBroken,
         layout,
+        // The type of a pattern parameter breaks with the pattern.
+        shared: node.kind() == k::TS_TYPE_LITERAL
+            && node
+                .parent()
+                .and_then(|a| a.parent())
+                .is_some_and(|p| crate::format::object::pattern_with_type_literal(&p)),
         ..ListStyle::default()
     };
     shapes::delimited_list(cx, node, &style)

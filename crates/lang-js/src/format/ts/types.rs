@@ -389,6 +389,33 @@ fn intersection(node: &SyntaxNode, cx: &FormatCtx<'_>) -> R {
 
 /// `<T>(a: A) => R`, `abstract new () => R`.
 fn function_type(node: &SyntaxNode, cx: &FormatCtx<'_>) -> R {
+    // With a `this` parameter the parentheses and parameters are children of the type itself.
+    let ks = kids(cx, node);
+    if let (Some(open), Some(close)) = (
+        ks.iter().position(|e| is_tok(e, "(")),
+        ks.iter().rposition(|e| is_tok(e, ")")),
+    ) && open < close
+    {
+        let mut head = Vec::new();
+        for e in &ks[..open] {
+            head.push(elem(cx, e)?);
+            if !matches!(e, SyntaxElement::Node(n) if n.kind() == k::TS_TYPE_PARAMETER_DECLARATION)
+            {
+                head.push(lit(" "));
+            }
+        }
+        let mut signature = vec![decl::parameters_in(cx, &ks[open..=close], Some(false))?];
+        for e in &ks[close + 1..] {
+            match e {
+                SyntaxElement::Node(n) if n.kind() == k::TS_TYPE_ANNOTATION => {
+                    signature.push(lit(" "));
+                    signature.push(cx.format(n)?);
+                }
+                e => signature.push(elem(cx, e)?),
+            }
+        }
+        return Ok(concat(vec![concat(head), group(concat(signature))]));
+    }
     let mut head = Vec::new();
     let mut signature = Vec::new();
     for e in kids(cx, node) {

@@ -123,6 +123,22 @@ fn is_factory(name: &str) -> bool {
 
 /// `a.b().c()` printed as a chain: the call `call_node` is the last link.
 pub(crate) fn member_chain(cx: &FormatCtx<'_>, call_node: &SyntaxNode, call: &Call) -> R {
+    // The comments in front of the chain belong to the whole expression: their line breaks must
+    // not make the chain expand.
+    let first = cx
+        .first_token(call_node)
+        .filter(|t| !comments::leading_comments(cx.grammar, t).is_empty());
+    if let Some(t) = &first {
+        cx.hold_leading(t);
+    }
+    let chain = member_chain_inner(cx, call_node, call)?;
+    Ok(match &first {
+        Some(t) => concat(vec![cx.held_leading(t), chain]),
+        None => chain,
+    })
+}
+
+fn member_chain_inner(cx: &FormatCtx<'_>, call_node: &SyntaxNode, call: &Call) -> R {
     let mut parts: Vec<Part> = Vec::new();
     let call_doc = |n: &SyntaxNode, c: &Call| -> R {
         let mut v = Vec::new();
