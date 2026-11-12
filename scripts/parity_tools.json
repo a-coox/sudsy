@@ -56,6 +56,8 @@
       "fixtures": [
         {"dir": "tests/conformance/corpus/html", "suffixes": [".html", ".htm"], "only": "prettier/tests/format/html/", "ratchet": "prettier-html", "recursive": true},
         {"dir": "tests/conformance/corpus/html", "suffixes": [".html", ".htm"], "only": "prettier/tests/format/vue/", "ratchet": "prettier-vue-html", "recursive": true},
+        {"dir": "tests/conformance/corpus/html", "suffixes": [".vue"], "only": "prettier/tests/format/vue/", "ratchet": "prettier-vue", "recursive": true},
+        {"dir": "tests/conformance/corpus/html", "suffixes": [".vue"], "skip": "prettier/", "prefix": "corpus/", "ratchet": "real-world-vue", "recursive": true},
         {"dir": "tests/conformance/corpus/html", "suffixes": [".html", ".htm"], "skip": "prettier/", "prefix": "corpus/", "ratchet": "real-world", "recursive": true}
       ]
     },

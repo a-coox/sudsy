@@ -12,6 +12,15 @@ pub enum T {
     Text,
     Comment,
     Doctype,
+    /// Vue's `{{ expression }}` (the expression is `value`).
+    Interp,
+}
+
+/// The markup language: Vue and Svelte are HTML plus template syntax.
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub enum Dialect {
+    Html,
+    Vue,
 }
 
 pub struct Attr<'s> {
@@ -161,6 +170,7 @@ struct Builder<'a, 's> {
     d: Tree<'s>,
     comments: Vec<(usize, usize)>,
     mode: Mode,
+    dialect: Dialect,
 }
 
 /// Range of a node's tokens that are not trivia.
@@ -193,7 +203,13 @@ fn sig(g: &Grammar, node: &SyntaxNode) -> (usize, usize) {
     (usize::from(s), usize::from(e))
 }
 
-pub fn build<'s>(g: &Grammar, root: &SyntaxNode, src: &'s str, mode: Mode) -> Tree<'s> {
+pub fn build<'s>(
+    g: &Grammar,
+    root: &SyntaxNode,
+    src: &'s str,
+    mode: Mode,
+    dialect: Dialect,
+) -> Tree<'s> {
     let mut lines = vec![0];
     lines.extend(src.match_indices('\n').map(|(i, _)| i + 1));
     let comments = root
@@ -216,6 +232,7 @@ pub fn build<'s>(g: &Grammar, root: &SyntaxNode, src: &'s str, mode: Mode) -> Tr
         },
         comments,
         mode,
+        dialect,
     };
     b.children(0, root, (0, src.len()));
     b.sensitivity(0);
@@ -273,10 +290,16 @@ impl<'s> Builder<'_, 's> {
                         name: Cow::Borrowed(""),
                         value: None,
                     };
+                    let (a_start, a_end) = sig(self.g, &a);
+                    let name_end = (a.children_with_tokens().filter_map(|e| e.into_token()))
+                        .find(|t| t.kind() == k::EQUALS)
+                        .map_or(a_end, |t| usize::from(t.text_range().start()));
                     for t in a.children_with_tokens().filter_map(|e| e.into_token()) {
-                        if t.kind() == k::ATTR_NAME {
-                            attr.name = Cow::Borrowed(self.slice(&t));
+                        if t.kind() == k::ATTR_NAME && attr.name.is_empty() {
+                            // Vue's `:a.b` and `@click` are several tokens: the name is the source before `=`.
+                            attr.name = Cow::Borrowed(self.d.src[a_start..name_end].trim_end());
                             if known_element
+                                && self.dialect == Dialect::Html
                                 && attr.name.bytes().any(|b| b.is_ascii_uppercase())
                                 && ATTRS.split(' ').any(|a| a.eq_ignore_ascii_case(&attr.name))
                             {
@@ -300,6 +323,7 @@ impl<'s> Builder<'_, 's> {
         n.svg = n.name.eq_ignore_ascii_case("svg")
             || (parent_svg && self.d.n[parent].name != "foreignObject");
         if !n.svg
+            && self.dialect == Dialect::Html
             && n.name.bytes().any(|b| b.is_ascii_uppercase())
             && KNOWN.split(' ').any(|k| k.eq_ignore_ascii_case(&n.name))
         {
@@ -325,6 +349,7 @@ impl<'s> Builder<'_, 's> {
             "inline-block"
         } else {
             match self.mode {
+                _ if self.dialect == Dialect::Vue && n.parent == 0 => "block",
                 Mode::Strict => "inline",
                 Mode::Ignore => "block",
                 Mode::Css => default_display(&n.name),
@@ -337,8 +362,11 @@ impl<'s> Builder<'_, 's> {
         let mut items: Vec<Item> = Vec::new();
         for c in node.children() {
             match c.kind() {
-                k::CHUNK | k::ELEMENT | k::DOCTYPE | k::STRAY_END_TAG => {
+                k::CHUNK | k::ELEMENT | k::DOCTYPE | k::STRAY_END_TAG | k::INTERPOLATION => {
                     let (s, e) = sig(self.g, &c);
+                    if c.kind() == k::CHUNK && self.d.src[s..e].trim_matches(is_ws).is_empty() {
+                        continue;
+                    }
                     items.push(Item {
                         start: s,
                         end: e,
@@ -392,6 +420,14 @@ impl<'s> Builder<'_, 's> {
                     n.parent = parent;
                     self.push(n)
                 }
+                k::INTERPOLATION => {
+                    let mut n = N::new(T::Interp, it.start, it.end);
+                    let inner = &self.d.src[it.start..it.end];
+                    let inner = inner.strip_prefix("{{").unwrap_or(inner);
+                    n.value = Cow::Borrowed(inner.strip_suffix("}}").unwrap_or(inner));
+                    n.parent = parent;
+                    self.push(n)
+                }
                 k::DOCTYPE => {
                     let mut n = N::new(T::Doctype, it.start, it.end);
                     let body = it
@@ -414,7 +450,14 @@ impl<'s> Builder<'_, 's> {
                     {
                         j += 1;
                     }
-                    let (s, e) = (it.start, items[j].end);
+                    // A text may carry the blanks around it (Vue's grammar).
+                    let text = &self.d.src[it.start..items[j].end];
+                    let lead = text.len() - text.trim_start_matches(is_ws).len();
+                    let (s, e) = (
+                        it.start + lead,
+                        items[j].end
+                            - (text.len() - lead - text[lead..].trim_end_matches(is_ws).len()),
+                    );
                     let mut n = N::new(T::Text, s, e);
                     n.value = Cow::Borrowed(&self.d.src[s..e]);
                     n.parent = parent;

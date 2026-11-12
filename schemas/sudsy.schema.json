@@ -99,10 +99,6 @@
               "$ref": "#/definitions/rule",
               "description": "apt-get install without -y."
             },
-            "aria-hidden-body": {
-              "$ref": "#/definitions/rule",
-              "description": "`aria-hidden=\"true\"` on `<body>` removes the whole page from the accessibility tree."
-            },
             "array-type": {
               "$ref": "#/definitions/rule",
               "description": "`Array<T>`, `ReadonlyArray<T>` and `Readonly<T[]>`; write `T[]` and `readonly T[]`."
@@ -280,34 +276,6 @@
                   "type": "object"
                 }
               ]
-            },
-            "attr-case": {
-              "$ref": "#/definitions/rule",
-              "description": "Attribute names are case-insensitive in HTML; lowercase is the convention. Everything inside `<svg>` and `<math>` keeps its case."
-            },
-            "attr-delimiter": {
-              "$ref": "#/definitions/rule",
-              "description": "An attribute name and its value are joined by `=` without whitespace."
-            },
-            "attr-quotes": {
-              "$ref": "#/definitions/rule",
-              "description": "An attribute value is quoted with `\"`; it is quoted with `'` only when it holds a `\"`. Unquoted values are reported too."
-            },
-            "attr-spacing": {
-              "$ref": "#/definitions/rule",
-              "description": "A quoted attribute value is followed by whitespace before the next attribute."
-            },
-            "attribute-allowed-values": {
-              "$ref": "#/definitions/rule",
-              "description": "An attribute that is limited to a list of values (`type` of `<button>`, `method` of `<form>`, ...) has another one."
-            },
-            "attribute-boolean-style": {
-              "$ref": "#/definitions/rule",
-              "description": "A boolean attribute is true when present: `disabled`, not `disabled=\"disabled\"`."
-            },
-            "attribute-empty-style": {
-              "$ref": "#/definitions/rule",
-              "description": "An attribute whose empty value means the same as no value (`hidden`, `crossorigin`) is written without `=\"\"`."
             },
             "backslash-separator": {
               "$ref": "#/definitions/rule",
@@ -607,10 +575,6 @@
               "$ref": "#/definitions/rule",
               "description": "`export`, `local`, `declare`, `readonly` or `typeset` with a command substitution as the value reports the status of the declaration, not of the command."
             },
-            "deprecated": {
-              "$ref": "#/definitions/rule",
-              "description": "An element that HTML5 no longer has (`<center>`, `<font>`, `<marquee>`, ...)."
-            },
             "deprecated-commands": {
               "$ref": "#/definitions/rule",
               "description": "A script uses a workflow command that GitHub has disabled (`::set-output`, `::save-state`, `::set-env`, `::add-path`); write to `$GITHUB_OUTPUT`, `$GITHUB_STATE`, `$GITHUB_ENV` or `$GITHUB_PATH` instead."
@@ -707,14 +671,6 @@
               "$ref": "#/definitions/rule",
               "description": "A property's `<value>` without text (`<value></value>`; `<value />` is left alone, as StyleCop does). Skipped when the comment has `<inheritdoc />`. No fix."
             },
-            "doctype-html": {
-              "$ref": "#/definitions/rule",
-              "description": "A doctype other than `html` puts the browser in quirks or limited-quirks mode."
-            },
-            "doctype-style": {
-              "$ref": "#/definitions/rule",
-              "description": "The doctype keyword is case-insensitive; uppercase is the convention."
-            },
             "document-end": {
               "description": "A document without the `...` end marker (or, with `present: false`, one that has it).",
               "oneOf": [
@@ -766,25 +722,9 @@
               "$ref": "#/definitions/rule",
               "description": "Two FROM instructions name their stage alike."
             },
-            "element-case": {
-              "$ref": "#/definitions/rule",
-              "description": "Element names are case-insensitive in HTML; lowercase is the convention. Everything inside `<svg>` and `<math>` keeps its case. Reported on the name of a start or end tag."
-            },
-            "element-name": {
-              "$ref": "#/definitions/rule",
-              "description": "A custom element name is lowercase letters, digits, `-`, `.` and `_`, and has a `-`, so that it never clashes with an element HTML adds later. Everything inside `<svg>` and `<math>` is left alone."
-            },
-            "element-required-attributes": {
-              "$ref": "#/definitions/rule",
-              "description": "An attribute the element must have (`lang` on `<html>`, `src` on `<img>`, `title` on `<iframe>`, ...)."
-            },
             "empty-catch-block": {
               "$ref": "#/definitions/rule",
               "description": "A `catch` clause whose block has no statement (a comment does not count)."
-            },
-            "empty-heading": {
-              "$ref": "#/definitions/rule",
-              "description": "Screen readers need text in a heading; whitespace is not text. An image with an `alt` or an `<svg>` inside counts as content."
             },
             "empty-list-equality": {
               "$ref": "#/definitions/rule",
@@ -793,10 +733,6 @@
             "empty-section": {
               "$ref": "#/definitions/rule",
               "description": "A `[section]` header with nothing under it, usually left behind by a removed setting. Comments do not count as settings."
-            },
-            "empty-title": {
-              "$ref": "#/definitions/rule",
-              "description": "The `<title>` names the page in the browser tab, search results and screen readers; whitespace is not text."
             },
             "enum-first-value-zero": {
               "$ref": "#/definitions/rule",
@@ -1050,10 +986,6 @@
               "$ref": "#/definitions/rule",
               "description": "A heading is more than one level deeper than the heading before it (an `h4` right after an `h2`). Going back up by any number of levels is fine (markdownlint MD001)."
             },
-            "heading-level": {
-              "$ref": "#/definitions/rule",
-              "description": "Headings do not follow the document outline: the first heading is not an `<h1>`, a level is skipped going down the outline (`<h1>` then `<h3>`), or the page has a second `<h1>`."
-            },
             "import-no-public": {
               "$ref": "#/definitions/rule",
               "description": "`import public` (buf lint IMPORT_NO_PUBLIC)."
@@ -1278,10 +1210,6 @@
             "length-zero-no-unit": {
               "$ref": "#/definitions/rule",
               "description": "A zero length written with a unit (`0px`); other dimensions (`0s`, `0deg`) are left alone, and so is what is inside a function."
-            },
-            "long-title": {
-              "$ref": "#/definitions/rule",
-              "description": "Search engines cut a title off after about 70 characters."
             },
             "max-body-length": {
               "description": "A rule whose recipe has more lines than allowed (checkmake `maxbodylength`). Every physical line counts, a continued command and a tab-indented comment included.",
@@ -1607,10 +1535,6 @@
               "$ref": "#/definitions/rule",
               "description": "A message name that is not PascalCase (buf lint MESSAGE_PASCAL_CASE)."
             },
-            "meta-refresh": {
-              "$ref": "#/definitions/rule",
-              "description": "`<meta http-equiv=\"refresh\" content=\"5\">` reloads or redirects after a delay, which disorients screen reader users and cannot be paused. A delay of 0 is allowed."
-            },
             "min-phony": {
               "description": "A target that must exist and be declared `.PHONY` (checkmake `minphony`). Reported on the `.PHONY` line, or the last rule's when there is none.",
               "oneOf": [
@@ -1648,10 +1572,6 @@
                   "type": "object"
                 }
               ]
-            },
-            "missing-doctype": {
-              "$ref": "#/definitions/rule",
-              "description": "A document without a doctype is rendered in quirks mode."
             },
             "missing-permissions": {
               "$ref": "#/definitions/rule",
@@ -1787,10 +1707,6 @@
               "$ref": "#/definitions/rule",
               "description": "Git cannot re-include a file when a parent directory is excluded: `!a/b` after `a/` has no effect. Exclude the contents (`a/*`) instead. Not reported in `.dockerignore`, where the later pattern wins. Only literal paths are checked."
             },
-            "no-abstract-role": {
-              "$ref": "#/definitions/rule",
-              "description": "Abstract roles (`widget`, `landmark`, `command`, ...) are for the ARIA taxonomy, not for authors."
-            },
             "no-alt-text": {
               "$ref": "#/definitions/rule",
               "description": "An image with empty alternate text, `![](url)` (markdownlint MD045)."
@@ -1810,10 +1726,6 @@
             "no-automatic-variable-assignment": {
               "$ref": "#/definitions/rule",
               "description": "An assignment to, a parameter named like, or a `foreach` variable named like an automatic variable (`$Error`, `$Event`, `$input`, `$PSItem`, `$_`, `$PWD`, `$Host`, `$this`, `$true`, ...). `$null = ...` is fine."
-            },
-            "no-autoplay": {
-              "$ref": "#/definitions/rule",
-              "description": "Autoplaying audio and video annoys users and fails accessibility guidelines; `muted` media is allowed."
             },
             "no-backticks": {
               "$ref": "#/definitions/rule",
@@ -1847,10 +1759,6 @@
               "$ref": "#/definitions/rule",
               "description": "An assignment as the condition of `if`, `while`, `do`, `for` or `?:` that is not in parentheses of its own."
             },
-            "no-conditional-comment": {
-              "$ref": "#/definitions/rule",
-              "description": "An Internet Explorer conditional comment (`<!--[if IE]>`). Only IE 9 and older read them; other browsers see a comment."
-            },
             "no-const-assign": {
               "$ref": "#/definitions/rule",
               "description": "A `const` variable that is assigned to again (the initializer is not)."
@@ -1878,10 +1786,6 @@
             "no-delete-var": {
               "$ref": "#/definitions/rule",
               "description": "`delete` applied to a variable name."
-            },
-            "no-deprecated-attr": {
-              "$ref": "#/definitions/rule",
-              "description": "An attribute that HTML5 no longer has on that element (`align`, `bgcolor`, `border`, ...)."
             },
             "no-descending-specificity": {
               "$ref": "#/definitions/rule",
@@ -1919,10 +1823,6 @@
               "$ref": "#/definitions/rule",
               "description": "Two `case` clauses of one `switch` with the same test."
             },
-            "no-duplicate-class": {
-              "$ref": "#/definitions/rule",
-              "description": "A class name written twice in one `class` attribute."
-            },
             "no-duplicate-doc-text": {
               "$ref": "#/definitions/rule",
               "description": "Two elements of one documentation comment with the same text (a copied and pasted `<param>`, for example). Empty elements and \"The parameter is not used.\" are ignored. No fix."
@@ -1930,10 +1830,6 @@
             "no-duplicate-heading": {
               "$ref": "#/definitions/rule",
               "description": "Two headings have the same text (markdownlint MD024), which makes their anchors ambiguous."
-            },
-            "no-duplicate-id": {
-              "$ref": "#/definitions/rule",
-              "description": "An `id` that an earlier element of the document already has. Ids must be unique: scripts, links and labels find the first element only. Empty ids are left alone."
             },
             "no-duplicate-include": {
               "$ref": "#/definitions/rule",
@@ -2173,18 +2069,6 @@
               "$ref": "#/definitions/rule",
               "description": "A variable in the `global:` scope, other than the special variables PSScriptAnalyzer exempts (`$global:LASTEXITCODE`, `$global:ErrorActionPreference`, `$global:PSDefaultParameterValues`, ...)."
             },
-            "no-implicit-button-type": {
-              "$ref": "#/definitions/rule",
-              "description": "A `<button>` without a `type` is a submit button, which is rarely meant outside a form."
-            },
-            "no-implicit-close": {
-              "$ref": "#/definitions/rule",
-              "description": "An element whose end tag is left out is closed by the next sibling or its parent's end tag (`<li>`, `<p>`, ...). Writing the end tag says where it ends. Void and self-closed elements have none."
-            },
-            "no-implicit-input-type": {
-              "$ref": "#/definitions/rule",
-              "description": "An `<input>` without a `type` is a text field by default; writing the type says so."
-            },
             "no-import-assign": {
               "$ref": "#/definitions/rule",
               "description": "An imported binding that is assigned to, and the members of a namespace import (`import * as ns`) that are assigned to, deleted or passed to `Object.assign` and the like."
@@ -2196,10 +2080,6 @@
             "no-inline-html": {
               "$ref": "#/definitions/rule",
               "description": "Raw HTML in a document (markdownlint MD033). Comments are not reported. Reported once per HTML block, not per tag."
-            },
-            "no-inline-style": {
-              "$ref": "#/definitions/rule",
-              "description": "A `style` attribute is a sign of unstructured CSS. `display` alone is allowed, because scripts toggle it."
             },
             "no-interactive-commands": {
               "$ref": "#/definitions/rule",
@@ -2245,10 +2125,6 @@
               "$ref": "#/definitions/rule",
               "description": "A backtick that is followed by blanks before the end of the line, so it does not continue the line."
             },
-            "no-missing-references": {
-              "$ref": "#/definitions/rule",
-              "description": "An attribute that refers to an `id` (`for`, `aria-labelledby`, `list`, `headers`, `form`, ...) names an id that no element of the document has."
-            },
             "no-missing-space-atx": {
               "$ref": "#/definitions/rule",
               "description": "A paragraph that starts with one to six `#` and no space reads as a heading to people but is plain text to Markdown (markdownlint MD018)."
@@ -2256,10 +2132,6 @@
             "no-misused-new": {
               "$ref": "#/definitions/rule",
               "description": "A class method `new(): C` that returns the class, an interface `new (): I` that returns the interface, and an interface method `constructor()`."
-            },
-            "no-multiple-main": {
-              "$ref": "#/definitions/rule",
-              "description": "A second `<main>` element that is not `hidden`: a page has one main landmark."
             },
             "no-namespace": {
               "$ref": "#/definitions/rule",
@@ -2333,14 +2205,6 @@
               "$ref": "#/definitions/rule",
               "description": "A name declared again in the same scope (`var` twice, a `var` and a parameter, two functions). In TypeScript files declaration merging (interfaces, namespaces, a class with an interface) is allowed. Built-in globals are not checked."
             },
-            "no-redundant-for": {
-              "$ref": "#/definitions/rule",
-              "description": "A `<label>` has a `for` that names a control inside it, which the label already labels."
-            },
-            "no-redundant-role": {
-              "$ref": "#/definitions/rule",
-              "description": "An element with a native role (`<nav>` is `navigation`, `<button>` is `button`) does not need a `role` that says the same."
-            },
             "no-redundant-target-platform": {
               "$ref": "#/definitions/rule",
               "description": "A FROM with `--platform=$TARGETPLATFORM`, which is what it does without the option."
@@ -2381,10 +2245,6 @@
               "$ref": "#/definitions/rule",
               "description": "`a = a`, `a.b = a.b`, `[a, b] = [a, b]`."
             },
-            "no-self-closing": {
-              "$ref": "#/definitions/rule",
-              "description": "`<div />` is a start tag in HTML: the browser ignores the slash and the element stays open. Void elements (see `void-style`), `<svg>` and `<math>` are left alone."
-            },
             "no-shadow": {
               "$ref": "#/definitions/rule",
               "description": "A variable, parameter or function with the name of one declared in a scope around it. A function declared later in the outer scope still counts (it is hoisted), a variable declared later does not, and `var a = function a() {}` is not a shadow. In TypeScript files a type and a value of one name, and the parameters of function types, are left alone."
@@ -2408,10 +2268,6 @@
             "no-sparse-arrays": {
               "$ref": "#/definitions/rule",
               "description": "A hole in an array literal (`[1, , 2]`), reported at its comma."
-            },
-            "no-style-tag": {
-              "$ref": "#/definitions/rule",
-              "description": "A `<style>` element inlines styling that an external stylesheet shares between pages. A `<style>` inside a `<template>` is allowed."
             },
             "no-sudo": {
               "$ref": "#/definitions/rule",
@@ -2467,10 +2323,6 @@
               "$ref": "#/definitions/rule",
               "description": "An alias names an anchor that is not defined earlier in the same document."
             },
-            "no-unknown-elements": {
-              "$ref": "#/definitions/rule",
-              "description": "An element name that HTML does not define, custom elements (`<my-element>`) included. Everything inside `<svg>` and `<math>` is left alone."
-            },
             "no-unneeded-base-prefix": {
               "$ref": "#/definitions/rule",
               "description": "`base.M()` or `base[i]` where the type does not override the member, so `this` binds to the same one. The fix writes `this`."
@@ -2506,10 +2358,6 @@
             "no-useless-escape": {
               "$ref": "#/definitions/rule",
               "description": "A backslash in a string, template or regex that escapes nothing special (`\"\\d\"`, `/\\-/`)."
-            },
-            "no-void-end-tag": {
-              "$ref": "#/definitions/rule",
-              "description": "A void element (`<br>`, `<img>`, ...) has no content and no end tag; the browser ignores `</br>`."
             },
             "no-which": {
               "$ref": "#/definitions/rule",
@@ -2605,18 +2453,6 @@
             "prefer-as-const": {
               "$ref": "#/definitions/rule",
               "description": "A literal type that repeats the literal it is given to (`let a: 'a' = 'a'`, `'a' as 'a'`, `<'a'>'a'`); write `as const`."
-            },
-            "prefer-button": {
-              "$ref": "#/definitions/rule",
-              "description": "A `<button>` can hold markup and is styled with CSS like any element; `<input type=\"button\">` cannot."
-            },
-            "prefer-tbody": {
-              "$ref": "#/definitions/rule",
-              "description": "A `<tr>` directly in `<table>` is moved into an implied `<tbody>` by the browser; write it."
-            },
-            "presentation-role-style": {
-              "$ref": "#/definitions/rule",
-              "description": "`none` and `presentation` are synonyms; `none` is the one ARIA 1.2 prefers."
             },
             "printf-variable-format": {
               "$ref": "#/definitions/rule",
@@ -2904,10 +2740,6 @@
             "remove-unused-usings": {
               "$ref": "#/definitions/rule",
               "description": "A `using` directive that nothing in the file needs (the compiler's hidden CS8019, IDE0005 in the SDK analyzers). Not reported in a file that has compiler errors or `#if` regions, because unresolved or inactive code could be the one using it."
-            },
-            "require-sri": {
-              "$ref": "#/definitions/rule",
-              "description": "A `<script src>` or `<link rel=\"stylesheet\" href>` without `integrity` runs or applies a file that changed on its server (a CDN) without the page noticing."
             },
             "require-yield": {
               "$ref": "#/definitions/rule",
@@ -4384,10 +4216,6 @@
                 }
               ]
             },
-            "valid-id": {
-              "$ref": "#/definitions/rule",
-              "description": "An `id` that is empty, has whitespace, begins with a digit or has other characters is valid HTML5 but breaks CSS selectors and some scripts."
-            },
             "valid-typeof": {
               "$ref": "#/definitions/rule",
               "description": "`typeof x` compared with a string that is not a type name, or with `undefined`."
@@ -4425,10 +4253,6 @@
                   "type": "object"
                 }
               ]
-            },
-            "void-style": {
-              "$ref": "#/definitions/rule",
-              "description": "A void element (`<br>`, `<img>`, ...) has no end tag and needs no `/`; write `<br>`, not `<br/>`."
             },
             "wget-progress": {
               "$ref": "#/definitions/rule",
@@ -5168,8 +4992,6 @@
           "preset:editorconfig/default",
           "preset:gitignore/default",
           "preset:hcl/tflint-recommended",
-          "preset:html/html-validate-recommended",
-          "preset:html/html-validate-standard",
           "preset:ini/default",
           "preset:js/eslint-recommended",
           "preset:js/typescript-eslint-recommended",
@@ -6031,6 +5853,7 @@
           "shell",
           "toml",
           "xml",
+          "vue",
           "csharp"
         ]
       },
@@ -8383,6 +8206,114 @@
             },
             "type": "object"
           },
+          "vue": {
+            "additionalProperties": false,
+            "properties": {
+              "format": {
+                "additionalProperties": false,
+                "properties": {
+                  "bracket_same_line": {
+                    "default": false,
+                    "description": "Put the `>` of a multi-line start tag at the end of the last attribute's line.",
+                    "type": "boolean"
+                  },
+                  "embedded_language_formatting": {
+                    "default": "auto",
+                    "description": "Format the code of `<script>` and `<style>` and of `style`, `srcset` and event-handler attributes with the formatter of its language (`auto`, Prettier's `embeddedLanguageFormatting`), or keep it as written (`off`). Code that does not parse, or of a language that is not installed, is kept either way.",
+                    "enum": [
+                      "auto",
+                      "off"
+                    ],
+                    "type": "string"
+                  },
+                  "end_of_line": {
+                    "default": "auto",
+                    "description": "Line break style of the output: `lf`, `crlf`, or `auto` to keep the file's first              line break.",
+                    "enum": [
+                      "auto",
+                      "lf",
+                      "crlf"
+                    ],
+                    "type": "string"
+                  },
+                  "final_newline": {
+                    "default": true,
+                    "description": "End the file with a newline.",
+                    "type": "boolean"
+                  },
+                  "indent_script_and_style": {
+                    "default": false,
+                    "description": "Indent the content of the root `<script>` and `<style>` blocks of a `.vue` file by one level.",
+                    "type": "boolean"
+                  },
+                  "indent_size": {
+                    "default": 2,
+                    "description": "Columns per indentation level (also the width of a tab).",
+                    "maximum": 16,
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  "indent_style": {
+                    "default": "space",
+                    "description": "Indent with spaces or tabs.",
+                    "enum": [
+                      "space",
+                      "tab"
+                    ],
+                    "type": "string"
+                  },
+                  "line_width": {
+                    "default": 80,
+                    "description": "Preferred maximum line width in columns.",
+                    "maximum": 1000,
+                    "minimum": 20,
+                    "type": "integer"
+                  },
+                  "single_attribute_per_line": {
+                    "default": false,
+                    "description": "Put every attribute of a tag that has several on its own line.",
+                    "type": "boolean"
+                  },
+                  "whitespace_sensitivity": {
+                    "default": "css",
+                    "description": "Whether whitespace between inline elements and text is significant: `css` follows each element's CSS display, `strict` treats every element as inline, `ignore` as block.",
+                    "enum": [
+                      "css",
+                      "strict",
+                      "ignore"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              },
+              "lint": {
+                "$ref": "#/definitions/lint"
+              },
+              "semantics": {
+                "additionalProperties": false,
+                "description": "Facts about methods that the flow analyses use.",
+                "properties": {
+                  "does_not_return": {
+                    "description": "Qualified method names without parameter lists; every overload is covered.",
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "pure": {
+                    "description": "Qualified method names without parameter lists; every overload is covered.",
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  }
+                },
+                "type": "object"
+              }
+            },
+            "type": "object"
+          },
           "xml": {
             "additionalProperties": false,
             "properties": {
@@ -9012,6 +8943,114 @@
               "enum": [
                 "never",
                 "multiline"
+              ],
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "lint": {
+          "$ref": "#/definitions/lint"
+        },
+        "semantics": {
+          "additionalProperties": false,
+          "description": "Facts about methods that the flow analyses use.",
+          "properties": {
+            "does_not_return": {
+              "description": "Qualified method names without parameter lists; every overload is covered.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "pure": {
+              "description": "Qualified method names without parameter lists; every overload is covered.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          "type": "object"
+        }
+      },
+      "type": "object"
+    },
+    "vue": {
+      "additionalProperties": false,
+      "properties": {
+        "format": {
+          "additionalProperties": false,
+          "properties": {
+            "bracket_same_line": {
+              "default": false,
+              "description": "Put the `>` of a multi-line start tag at the end of the last attribute's line.",
+              "type": "boolean"
+            },
+            "embedded_language_formatting": {
+              "default": "auto",
+              "description": "Format the code of `<script>` and `<style>` and of `style`, `srcset` and event-handler attributes with the formatter of its language (`auto`, Prettier's `embeddedLanguageFormatting`), or keep it as written (`off`). Code that does not parse, or of a language that is not installed, is kept either way.",
+              "enum": [
+                "auto",
+                "off"
+              ],
+              "type": "string"
+            },
+            "end_of_line": {
+              "default": "auto",
+              "description": "Line break style of the output: `lf`, `crlf`, or `auto` to keep the file's first              line break.",
+              "enum": [
+                "auto",
+                "lf",
+                "crlf"
+              ],
+              "type": "string"
+            },
+            "final_newline": {
+              "default": true,
+              "description": "End the file with a newline.",
+              "type": "boolean"
+            },
+            "indent_script_and_style": {
+              "default": false,
+              "description": "Indent the content of the root `<script>` and `<style>` blocks of a `.vue` file by one level.",
+              "type": "boolean"
+            },
+            "indent_size": {
+              "default": 2,
+              "description": "Columns per indentation level (also the width of a tab).",
+              "maximum": 16,
+              "minimum": 1,
+              "type": "integer"
+            },
+            "indent_style": {
+              "default": "space",
+              "description": "Indent with spaces or tabs.",
+              "enum": [
+                "space",
+                "tab"
+              ],
+              "type": "string"
+            },
+            "line_width": {
+              "default": 80,
+              "description": "Preferred maximum line width in columns.",
+              "maximum": 1000,
+              "minimum": 20,
+              "type": "integer"
+            },
+            "single_attribute_per_line": {
+              "default": false,
+              "description": "Put every attribute of a tag that has several on its own line.",
+              "type": "boolean"
+            },
+            "whitespace_sensitivity": {
+              "default": "css",
+              "description": "Whether whitespace between inline elements and text is significant: `css` follows each element's CSS display, `strict` treats every element as inline, `ignore` as block.",
+              "enum": [
+                "css",
+                "strict",
+                "ignore"
               ],
               "type": "string"
             }

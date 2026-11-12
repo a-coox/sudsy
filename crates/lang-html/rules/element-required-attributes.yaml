@@ -1,9 +1,0 @@
-id: element-required-attributes
-family: meta
-params: { check: required-attr }
-message: "<{name}> needs the attribute `{attr}`"
-description: >-
-  An attribute the element must have (`lang` on `<html>`, `src` on `<img>`, `title` on `<iframe>`, ...).
-example: '<img>   <img src="a.png">'
-severity: off
-category: correctness

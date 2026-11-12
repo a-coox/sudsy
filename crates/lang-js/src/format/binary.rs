@@ -87,6 +87,7 @@ pub(crate) fn format(node: &SyntaxNode, cx: &FormatCtx<'_>) -> Result<Option<Doc
     let inside_parens = match pk {
         Some(k::IF_STATEMENT | k::WHILE_STATEMENT | k::SWITCH_STATEMENT) => first_of_parent,
         Some(k::DO_WHILE_STATEMENT) => last_of_parent,
+        Some(k::ARRAY_EXPRESSION) => super::embed::is_root(cx, node),
         _ => false,
     };
     let mut parts = parts(node, cx, inside_parens)?;

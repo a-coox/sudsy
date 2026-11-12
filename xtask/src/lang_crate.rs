@@ -118,6 +118,12 @@ fn cargo_toml(krate: &str, v: &Value) -> String {
     deps.push(format!(
         "{grammar} = {{ workspace = true, optional = true }}"
     ));
+    let extra = list(v, "extra-grammars");
+    deps.extend(
+        extra
+            .iter()
+            .map(|g| format!("{g} = {{ workspace = true, optional = true }}")),
+    );
     deps.sort();
     let mut out = format!(
         "# Generated from lang.yaml by `cargo xtask codegen`.\n[package]\nname = \"{krate}\"\nedition.workspace = true\nlicense.workspace = true\nversion.workspace = true\npublish.workspace = true\nbuild = \"../../build/lang-crate.rs\"\n\n[dependencies]\n{}\n",
@@ -131,7 +137,12 @@ fn cargo_toml(krate: &str, v: &Value) -> String {
         );
     }
     out + &format!(
-        "\n[build-dependencies]\ncore-syntax.workspace = true\n\n[features]\n# The grammar is linked in; without it the language loads from its language pack.\ndefault = [\"static-grammars\"]\nstatic-grammars = [\"dep:{grammar}\"]\n\n[lints]\nworkspace = true\n"
+        "\n[build-dependencies]\ncore-syntax.workspace = true\n\n[features]\n# The grammar is linked in; without it the language loads from its language pack.\ndefault = [\"static-grammars\"]\nstatic-grammars = [{}]\n\n[lints]\nworkspace = true\n",
+        std::iter::once(grammar)
+            .chain(extra.iter().map(String::as_str))
+            .map(|g| format!("\"dep:{g}\""))
+            .collect::<Vec<_>>()
+            .join(", ")
     )
 }
 

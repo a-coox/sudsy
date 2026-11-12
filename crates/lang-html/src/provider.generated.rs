@@ -6,7 +6,7 @@ core_syntax::include_generated!();
 
 #[rustfmt::skip]
 pub fn provider() -> TreeSitterProvider {
-    TreeSitterProvider::new(Spec { crate_name: env!("CARGO_PKG_NAME"), language: || core_packs::language!("html", tree_sitter_html::LANGUAGE), grammar: grammars::HTML, mapping: &MAPPING, extensions: &["html", "htm"], file_names: &[], schema: option_schema(), formatter: &HtmlFormatter, hooks: &hooks::HtmlHooks, rules: rules::RULES, pattern_files: provider_api::pattern_files!(), families: rules::FAMILIES, validate: None })
+    TreeSitterProvider::new(Spec { crate_name: env!("CARGO_PKG_NAME"), language: || core_packs::language!("html", tree_sitter_html::LANGUAGE), grammar: grammars::HTML, mapping: &MAPPING, extensions: &["html", "htm"], file_names: &[], schema: option_schema(), formatter: &HtmlFormatter, hooks: &core_rules::DEFAULT_HOOKS, rules: rules::RULES, pattern_files: provider_api::pattern_files!(), families: &[], validate: None })
 }
 
 pub const MAPPING: Mapping = Mapping {
@@ -50,5 +50,7 @@ pub const MAPPING: Mapping = Mapping {
         (">", "Gt"),
         ("/>", "SlashGt"),
         ("=", "Equals"),
+        ("{{", "LBraceBrace"),
+        ("}}", "RBraceBrace"),
     ],
 };

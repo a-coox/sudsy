@@ -3,7 +3,7 @@
 //! (`Opts::embed`); this module lays the lines out. Code that does not parse stays as written.
 
 use super::{P, dedent, s, trim_preserve_indentation, unescape_quotes};
-use crate::format::model::N;
+use crate::format::model::{Dialect, N};
 use core_format::EmbedMode;
 use core_format::context::verbatim_text;
 use core_format::doc::{self, Doc};
@@ -20,7 +20,7 @@ fn script_language(n: &N) -> Option<&'static str> {
         return match lang {
             "ts" => Some("ts"),
             "tsx" => Some("tsx"),
-            "js" | "jsx" => Some("js"),
+            "" | "js" | "jsx" => Some("js"),
             _ => None,
         };
     }
@@ -100,7 +100,8 @@ impl P<'_> {
             "style" => style_language(p)?,
             _ => return None,
         };
-        let width = (self.o.width).saturating_sub((self.depth(n.parent) + 1) * self.o.tab);
+        let levels = self.depth(n.parent) + usize::from(!self.unindented(n.parent));
+        let width = (self.o.width).saturating_sub(levels * self.o.tab);
         let code = dedent(trim_preserve_indentation(&n.value));
         let out = embed(language, EmbedMode::Program, &code, width, false)?;
         (!out.is_empty()).then(|| lines(&out))
@@ -142,6 +143,11 @@ impl P<'_> {
         }
         if lower == "srcset" && matches!(self.n(id).name.as_ref(), "img" | "source") {
             return srcset(name, &value);
+        }
+        if self.o.dialect == Dialect::Vue
+            && let Some(d) = self.vue_attribute(id, name, &lower, &value)
+        {
+            return Some(d);
         }
         let embed = self.o.embed?;
         let indent = (self.depth(id) + 1) * self.o.tab;
@@ -191,6 +197,166 @@ impl P<'_> {
         }
         Some(expand(name, lines(&out)))
     }
+}
+
+impl P<'_> {
+    /// The language of the expressions of a Vue file: TypeScript when its script is.
+    fn expression_language(&self) -> &'static str {
+        let ts = self.t.n[0].kids.iter().any(|&c| {
+            let n = self.n(c);
+            n.name == "script" && matches!(attr(n, "lang"), Some("ts" | "tsx"))
+        });
+        if ts { "ts" } else { "js" }
+    }
+
+    /// `{{ expression }}`: the expression on the line when it fits, else on lines of its own.
+    pub(super) fn interpolation(&self, id: usize) -> Doc {
+        let n = self.n(id);
+        let code = n.value.trim();
+        let width = self
+            .o
+            .width
+            .saturating_sub((self.depth(id) + 1) * self.o.tab);
+        let out = self.o.embed.and_then(|e| {
+            e(
+                self.expression_language(),
+                EmbedMode::Expression,
+                code,
+                width,
+                false,
+            )
+        });
+        let borrowed = n.next.is_some_and(|x| self.borrow_prev_close_end(x));
+        doc::concat(vec![
+            s(self.open_start(id)),
+            doc::indent(doc::concat(vec![
+                doc::line(),
+                lines(out.as_deref().unwrap_or(code)),
+            ])),
+            if borrowed { s(" ") } else { doc::line() },
+            s(self.close_end(id)),
+        ])
+    }
+
+    /// A Vue directive (`:a`, `@a`, `#a`, `v-*`) whose value is an expression.
+    fn vue_attribute(&self, id: usize, name: &str, lower: &str, value: &str) -> Option<Doc> {
+        let embed = self.o.embed?;
+        let key = lower.split([':', '.', '[']).next().unwrap_or("");
+        let language = self.expression_language();
+        let indent = (self.depth(id) + 1) * self.o.tab;
+        if !(lower.starts_with([':', '@', '#', '.'])
+            || key.starts_with("v-")
+            || key == "slot-scope")
+        {
+            return None;
+        }
+        // The formatted value for a width, and whether it is statements.
+        let run = |width: usize| -> Option<(String, bool)> {
+            let expr = |code: &str| embed(language, EmbedMode::Expression, code, width, true);
+            if key == "v-for" {
+                return v_for(value, expr).map(|o| (o, false));
+            }
+            if lower.starts_with('@') || key == "v-on" {
+                let one = value.trim_end().trim_end_matches(';');
+                return expr(one).map(|o| (o, false)).or_else(|| {
+                    embed(language, EmbedMode::Program, value, width, true).map(|o| (o, true))
+                });
+            }
+            expr(value).map(|o| (o, false))
+        };
+        let fix = |o: String| o.replace('"', "&quot;");
+        let (flat, statements) = run(self.o.width.saturating_sub(indent + name.len() + 2))?;
+        // A string or template literal stays on the line however long it is.
+        let quote = flat
+            .chars()
+            .next()
+            .filter(|c| matches!(c, '\'' | '"' | '`'));
+        let literal = quote.is_some_and(|q| {
+            flat.len() > 1 && flat.ends_with(q) && !flat[1..flat.len() - 1].contains(q)
+        });
+        if literal {
+            return Some(doc::concat(vec![
+                s(format!("{name}=\"")),
+                lines(&fix(flat)),
+                s("\""),
+            ]));
+        }
+        if !flat.contains('\n') {
+            return Some(expand(name, s(fix(flat))));
+        }
+        let first = flat.lines().next().unwrap_or("");
+        let hug = !statements
+            && (flat.starts_with(['{', '['])
+                || flat.starts_with("function")
+                || (first.contains("=>") && first.ends_with('{')));
+        if hug {
+            return Some(doc::concat(vec![
+                s(format!("{name}=\"")),
+                lines(&fix(flat)),
+                s("\""),
+            ]));
+        }
+        let (broken, _) = run(self.o.width.saturating_sub(indent + self.o.tab))?;
+        Some(expand(name, lines(&fix(broken))))
+    }
+}
+
+impl P<'_> {
+    /// A root block of a Vue file that is not markup: formatted by its `lang` or `type`, else kept.
+    pub(super) fn custom_block_doc(&self, id: usize) -> Doc {
+        let n = self.n(id);
+        let raw = verbatim_text(&self.t.src[n.start..n.end]);
+        let language = match (attr(n, "lang"), attr(n, "type")) {
+            (Some("json"), _) | (None, Some("application/json")) => "json",
+            (Some("yaml" | "yml"), _) => "yaml",
+            (Some("graphql" | "gql"), _) => "graphql",
+            (Some("md" | "markdown"), _) => "markdown",
+            (Some("js" | "javascript"), _) => "js",
+            (Some("ts" | "typescript"), _) => "ts",
+            _ => return raw,
+        };
+        let (Some(embed), Some(close), true) = (self.o.embed, n.close_start, n.name != "template")
+        else {
+            return raw;
+        };
+        let code = dedent(trim_preserve_indentation(&self.t.src[n.tag_end..close]));
+        match embed(language, EmbedMode::Program, &code, self.o.width, false) {
+            Some(out) if !out.is_empty() => doc::concat(vec![
+                verbatim_text(&self.t.src[n.start..n.tag_end]),
+                doc::hardline(),
+                lines(&out),
+                doc::hardline(),
+                s(format!("</{}>", n.name)),
+            ]),
+            _ => raw,
+        }
+    }
+}
+
+/// `item in items`, `(item, index) of list`: the loop variables as written (parenthesized when
+/// there are several) and the collection formatted by `expr`.
+fn v_for(value: &str, expr: impl Fn(&str) -> Option<String>) -> Option<String> {
+    let (at, kw) = [" in ", " of "]
+        .iter()
+        .filter_map(|k| value.find(k).map(|i| (i, *k)))
+        .min()?;
+    let left = value[..at].trim();
+    let inner = left
+        .strip_prefix('(')
+        .and_then(|l| l.strip_suffix(')'))
+        .unwrap_or(left);
+    let left = if inner.contains(['{', '[']) {
+        left.to_string()
+    } else {
+        let names: Vec<&str> = inner.split(',').map(str::trim).collect();
+        if left.starts_with('(') || names.len() > 1 {
+            format!("({})", names.join(", "))
+        } else {
+            names[0].to_string()
+        }
+    };
+    let right = value[at + kw.len()..].trim();
+    Some(format!("{left}{kw}{}", expr(right)?))
 }
 
 /// `a.png 1x, b.png 2x`: the candidates one per line, descriptors aligned, when too wide.

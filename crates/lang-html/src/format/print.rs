@@ -1,7 +1,7 @@
 //! Prettier's printer-html: elements, tags with borrowed markers, children with the whitespace
 //! model, text as a fill of words, attributes.
 
-use super::model::{N, T, Tree, is_ws, pre_like};
+use super::model::{Dialect, N, T, Tree, is_ws, pre_like};
 use core_format::EmbedMode;
 use core_format::context::verbatim_text;
 use core_format::doc::{self, Doc, GroupId};
@@ -13,6 +13,9 @@ mod embed;
 pub type Embed<'a> = &'a dyn Fn(&str, EmbedMode, &str, usize, bool) -> Option<String>;
 
 pub struct Opts<'a> {
+    pub dialect: Dialect,
+    /// Vue and Svelte: the content of `<script>` and `<style>` is indented.
+    pub indent_blocks: bool,
     pub embed: Option<Embed<'a>>,
     pub width: usize,
     pub tab: usize,
@@ -91,6 +94,12 @@ impl P<'_> {
         matches!(self.n(id).t, T::Text | T::Comment)
     }
 
+    /// Does the last descendant of `id` count as text? (An interpolation's content does.)
+    fn ends_in_text(&self, id: usize) -> bool {
+        let last = self.last_descendant(id);
+        self.text_like(last) || self.n(last).t == T::Interp
+    }
+
     fn last_descendant(&self, id: usize) -> usize {
         match self.n(id).kids.last() {
             Some(&c) => self.last_descendant(c),
@@ -127,15 +136,12 @@ impl P<'_> {
             return false;
         };
         let c = self.n(l);
-        c.trail_ss
-            && !c.trail_sp
-            && !self.text_like(self.last_descendant(l))
-            && !pre_like(self.t, id)
+        c.trail_ss && !c.trail_sp && !self.ends_in_text(l) && !pre_like(self.t, id)
     }
 
     fn borrow_parent_close_start(&self, id: usize) -> bool {
         let n = self.n(id);
-        n.next.is_none() && !n.trail_sp && n.trail_ss && self.text_like(self.last_descendant(id))
+        n.next.is_none() && !n.trail_sp && n.trail_ss && self.ends_in_text(id)
     }
 
     fn borrow_next_open_start(&self, id: usize) -> bool {
@@ -167,6 +173,7 @@ impl P<'_> {
                 "<!DOCTYPE"
             }
             .into(),
+            T::Interp => "{{".into(),
             _ => format!("<{}", n.name),
         }
     }
@@ -183,7 +190,9 @@ impl P<'_> {
     }
 
     fn close_end_marker(&self, id: usize) -> &'static str {
-        if self.should_not_print_closing(id) {
+        if self.n(id).t == T::Interp {
+            "}}"
+        } else if self.should_not_print_closing(id) {
             ""
         } else if self.n(id).t == T::Element && self.n(id).self_closing {
             "/>"
@@ -439,6 +448,9 @@ impl P<'_> {
                 s(self.close_suffix(id)),
             ]);
         }
+        if self.custom_block(id) {
+            return self.custom_block_doc(id);
+        }
         match self.n(id).t {
             T::Element => self.element(id),
             T::Text => self.text(id),
@@ -464,6 +476,7 @@ impl P<'_> {
                     s(self.close_end(id)),
                 ])
             }
+            T::Interp => self.interpolation(id),
             T::Root => doc::nil(),
         }
     }
@@ -672,6 +685,28 @@ impl P<'_> {
         doc::concat(vec![s(self.open_start(id)), self.attributes(id), s(tail)])
     }
 
+    /// A root block of a Vue file other than `template`, `script` and `style`.
+    fn custom_block(&self, id: usize) -> bool {
+        let n = self.n(id);
+        self.o.dialect == Dialect::Vue
+            && n.t == T::Element
+            && n.parent == 0
+            && (!matches!(n.name.as_ref(), "template" | "script" | "style")
+                || (n.name == "template"
+                    && n.attrs
+                        .iter()
+                        .any(|a| a.name == "lang" && a.value != Some("html"))))
+    }
+
+    /// The content of a root `<script>` or `<style>` of a Vue file starts at the margin.
+    fn unindented(&self, id: usize) -> bool {
+        let n = self.n(id);
+        self.o.dialect == Dialect::Vue
+            && !self.o.indent_blocks
+            && n.parent == 0
+            && matches!(n.name.as_ref(), "script" | "style")
+    }
+
     fn depth(&self, id: usize) -> usize {
         let mut d = 0;
         let mut p = self.n(id).parent;
@@ -707,9 +742,10 @@ impl P<'_> {
                 self.closing_tag(id),
             ]);
         }
+        let attrs = doc::new_group_id();
         let elem = |inner: Doc| {
             doc::group(doc::concat(vec![
-                doc::group(self.opening_tag(id)),
+                doc::group_with_id(attrs, self.opening_tag(id)),
                 inner,
                 self.closing_tag(id),
             ]))
@@ -722,7 +758,16 @@ impl P<'_> {
             });
         };
         let (f, l) = (self.n(first), self.n(last));
-        let before = if f.lead_sp && f.lead_ss {
+        // `<span>{{ expression }}</span>`: the interpolation hugs the tags unless the attributes break.
+        let hug = n.kids.len() == 1
+            && f.t == T::Interp
+            && f.lead_ss
+            && !f.lead_sp
+            && l.trail_ss
+            && !l.trail_sp;
+        let before = if hug {
+            doc::if_break_in(attrs, doc::softline(), doc::nil())
+        } else if f.lead_sp && f.lead_ss {
             doc::line()
         } else if f.t == T::Text && n.ws_sens && n.indent_sens {
             doc::if_break(s("\n"), doc::nil())
@@ -739,6 +784,8 @@ impl P<'_> {
             } else {
                 doc::nil()
             }
+        } else if hug {
+            doc::if_break_in(attrs, doc::softline(), doc::nil())
         } else if l.trail_sp && l.trail_ss {
             doc::line()
         } else if (l.t == T::Text && n.ws_sens && n.indent_sens)
@@ -754,7 +801,13 @@ impl P<'_> {
             } else {
                 doc::nil()
             },
-            doc::indent(doc::concat(vec![before, self.children(id)])),
+            if self.unindented(id) {
+                doc::concat(vec![before, self.children(id)])
+            } else if hug {
+                doc::indent_if_break(attrs, doc::concat(vec![before, self.children(id)]))
+            } else {
+                doc::indent(doc::concat(vec![before, self.children(id)]))
+            },
             after,
         ]))
     }

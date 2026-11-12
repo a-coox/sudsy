@@ -1,9 +1,0 @@
-id: attr-spacing
-message: separate attributes with whitespace
-description: A quoted attribute value is followed by whitespace before the next attribute.
-example: '<a href="x"class="y">   <a href="x" class="y">'
-severity: off
-category: style
-rule:
-  kind: StartTag
-  regex: '=\s*(?:"[^"]*"|''[^'']*'')[^\s/>]'

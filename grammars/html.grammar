@@ -24,6 +24,9 @@ token LtSlash "</" #punctuation
 token Gt ">" #punctuation #restyle #tag-end
 token SlashGt "/>" #punctuation #restyle #tag-end
 token Equals "=" #punctuation
+// Vue's `{{ expression }}`.
+token LBraceBrace "{{" #punctuation
+token RBraceBrace "}}" #punctuation
 
 // `doctype` as written (any case) and what follows it up to `>`.
 token DoctypeKw #restyle
@@ -44,6 +47,7 @@ token Unknown #error
 
 node Document = items:#content* Eof
 node Doctype #content = LtBang DoctypeKw DoctypeBody Gt
+node Interpolation #content = LBraceBrace Chunk? RBraceBrace
 node Chunk #content = value:#chunk
 node Element #content = start:#start-tag content:#content* end:EndTag?
 // `>` or `/>`: `<br>` and `<br />` are the same node.

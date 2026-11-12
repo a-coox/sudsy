@@ -30,9 +30,9 @@ One line per upstream rule or option under `entries:`, `<id>: <status>` or `<id>
 | eslint-plugin-jsonc | 44 | 36 | 6 | 0 | 0 | 2 | 0 | 0 |
 | graphql-eslint | 35 | 4 | 6 | 0 | 0 | 0 | 25 | 0 |
 | hadolint | 71 | 38 | 10 | 0 | 0 | 1 | 22 | 0 |
-| html-eslint | 66 | 11 | 9 | 46 | 0 | 0 | 0 | 46 |
-| html-validate | 90 | 27 | 21 | 35 | 0 | 1 | 6 | 35 |
-| htmlhint | 42 | 9 | 6 | 27 | 0 | 0 | 0 | 27 |
+| html-eslint | 66 | 0 | 0 | 66 | 0 | 0 | 0 | 66 |
+| html-validate | 90 | 0 | 0 | 90 | 0 | 0 | 0 | 90 |
+| htmlhint | 42 | 0 | 0 | 42 | 0 | 0 | 0 | 42 |
 | markdownlint | 53 | 25 | 16 | 0 | 0 | 0 | 12 | 0 |
 | prettier | 57 | 36 | 7 | 3 | 0 | 10 | 1 | 3 |
 | psscriptanalyzer | 75 | 12 | 8 | 0 | 0 | 1 | 54 | 0 |

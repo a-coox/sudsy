@@ -9,6 +9,16 @@ use core_syntax::SyntaxNode;
 /// The `embed_mode` option the host's engine sets (`EmbedMode::name`).
 pub(crate) const EXPRESSION: &str = "expression";
 
+/// Is `node` the expression of an embedded expression (the only element of the `[ ]`)? It stands
+/// where a root expression does: no parentheses for an assignment, no indent of a binary's operands.
+pub(crate) fn is_root(cx: &FormatCtx<'_>, node: &SyntaxNode) -> bool {
+    node.parent().is_some_and(|a| {
+        a.kind() == k::ARRAY_EXPRESSION
+            && a.parent().is_some_and(|s| s.kind() == k::EXPRESSION_STATEMENT)
+            && matches!(cx.options.get("embed_mode"), Some(core_config::OptionValue::String(m)) if m == EXPRESSION)
+    })
+}
+
 pub(crate) fn format(
     node: &SyntaxNode,
     cx: &FormatCtx<'_>,
@@ -29,5 +39,5 @@ pub(crate) fn format(
         return Err(shape_error("expression"));
     };
     let doc: R = cx.format(&expr);
-    doc.map(Some)
+    doc.map(|d| Some(core_format::doc::group(d)))
 }

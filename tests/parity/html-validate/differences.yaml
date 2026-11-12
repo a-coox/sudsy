@@ -1,8 +1,2 @@
-differences:
-  script-self-closed: "gap  `<script />` does not parse (the element swallows the rest of the file): the parser's `syntax-error` is the only finding, html-validate also reports `no-self-closing` and `require-sri`"
-  id-pattern-values: "gap  `attribute-allowed-values` does not check values that the metadata gives as a pattern (`id`), only listed values; `valid-id` reports an invalid id"
-files:
-  syntax-error/script-self-closed html-validate:no-self-closing 3: script-self-closed
-  syntax-error/script-self-closed html-validate:require-sri 3: script-self-closed
-  references/ids html-validate:attribute-allowed-values 4: id-pattern-values
-  references/ids html-validate:attribute-allowed-values 6: id-pattern-values
+differences: {}
+files: {}

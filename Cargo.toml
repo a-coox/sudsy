@@ -59,6 +59,8 @@ tree-sitter-bash = { path = "grammars/tree-sitter-bash" }
 tree-sitter-toml-ng = "0.7"
 tree-sitter-xml = "0.7"
 # /generated
+# The grammar of the Vue provider of lang-html (no language pack of their own).
+tree-sitter-vue = { path = "grammars/tree-sitter-vue" }
 
 core-config = { path = "crates/core-config" }
 core-patterns = { path = "crates/core-patterns" }

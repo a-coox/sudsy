@@ -1,9 +1,0 @@
-id: presentation-role-style
-message: write `role="none"` instead of `role="presentation"`
-description: '`none` and `presentation` are synonyms; `none` is the one ARIA 1.2 prefers.'
-example: '<p role="presentation">   <p role="none">'
-severity: off
-category: style
-rule:
-  kind: Attribute
-  regex: '(?is)^role\s*=\s*["'']?\s*presentation\s*["'']?$'

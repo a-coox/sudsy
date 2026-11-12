@@ -186,13 +186,19 @@ a{color:red}
 }
 
 #[test]
-fn html_fences_are_formatted_and_linted() {
-    let md = "```html\n<DIV><p>a</p></DIV>\n```\n";
-    assert_eq!(
-        formatted(&db(""), "a.md", md),
-        "```html\n<div><p>a</p></div>\n```\n"
-    );
-    let on = "html:\n  lint:\n    rules:\n      deprecated: error\n";
-    let linted = found(&db(on), "a.md", "```html\n<center>a</center>\n```\n");
-    assert_eq!(linted, [("deprecated".into(), "cent".into())]);
+fn vue_templates_scripts_and_custom_blocks_are_formatted_by_their_language() {
+    let mut providers: Vec<Box<dyn LanguageProvider>> = vec![Box::new(lang_html::vue_provider())];
+    providers.extend([
+        Box::new(lang_js::JsProvider::new()) as Box<dyn LanguageProvider>,
+        Box::new(lang_json::JsonProvider::new()),
+    ]);
+    let mut db = Database::new(providers);
+    db.set_config(ConfigChain::parse(
+        "vue:\n  format:\n    indent_script_and_style: false\n",
+    ));
+    let vue = "<template><Foo :a=\"{b:1}\" @click=\"x=1\" v-for=\"(a,i) in l\">{{a|b}} {{ a+b }}</Foo></template>\n<script>\nlet a={}\n</script>\n<i18n lang=\"json\">{\"a\":1}</i18n>\n";
+    let want = "<template>\n  <Foo :a=\"{ b: 1 }\" @click=\"x = 1\" v-for=\"(a, i) in l\"\n    >{{ a | b }} {{ a + b }}</Foo\n  >\n</template>\n<script>\nlet a = {};\n</script>\n<i18n lang=\"json\">\n{ \"a\": 1 }\n</i18n>\n";
+    let once = formatted(&db, "a.vue", vue);
+    assert_eq!(once, want);
+    assert_eq!(formatted(&db, "a.vue", &once), once);
 }

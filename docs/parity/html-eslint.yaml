@@ -13,56 +13,56 @@ entries:
   head-order: planned
   id-naming-convention: planned
   indent: planned
-  lowercase: rule element-case | the case of attribute names is `attr-case`
+  lowercase: planned
   max-element-depth: planned
-  no-abstract-roles: rule no-abstract-role
+  no-abstract-roles: planned
   no-accesskey-attrs: planned
-  no-aria-hidden-body: rule aria-hidden-body
+  no-aria-hidden-body: planned
   no-aria-hidden-on-focusable: planned
-  no-duplicate-attrs: rule no-duplicate-keys
-  no-duplicate-class: rule no-duplicate-class
-  no-duplicate-id: rule no-duplicate-id
+  no-duplicate-attrs: planned
+  no-duplicate-class: planned
+  no-duplicate-id: planned
   no-duplicate-in-head: planned
-  no-empty-headings: rule empty-heading
+  no-empty-headings: planned
   no-extra-spacing-attrs: planned
   no-extra-spacing-tags: planned
   no-extra-spacing-text: planned
   no-heading-inside-button: planned
   no-ineffective-attrs: planned
-  no-inline-styles: rule no-inline-style | a style that sets only display is allowed
-  no-invalid-attr-value: rule attribute-allowed-values | the values html-validate lists for an attribute; `id` and other pattern values are not checked
+  no-inline-styles: planned
+  no-invalid-attr-value: planned
   no-invalid-entity: planned
   no-invalid-role: planned
   no-multiple-empty-lines: planned
-  no-multiple-h1: rule heading-level | also reports the other heading rules of `heading-level`
+  no-multiple-h1: planned
   no-nested-interactive: planned
   no-non-scalable-viewport: planned
-  no-obsolete-attrs: rule no-deprecated-attr
-  no-obsolete-tags: rule deprecated
+  no-obsolete-attrs: planned
+  no-obsolete-tags: planned
   no-positive-tabindex: planned
-  no-redundant-role: rule no-redundant-role
+  no-redundant-role: planned
   no-restricted-attr-values: planned
   no-restricted-attrs: planned
   no-restricted-tags: planned
   no-script-style-type: planned
-  no-skip-heading-levels: rule heading-level | also reports a first heading that is not an h1 and a second h1
+  no-skip-heading-levels: planned
   no-target-blank: planned
   no-trailing-spaces: planned
   no-whitespace-only-children: planned
   prefer-https: planned
-  quotes: rule attr-quotes | a single-quoted value that holds a double quote is allowed; unquoted values are reported
+  quotes: planned
   require-attrs: planned
-  require-button-type: rule no-implicit-button-type
-  require-closing-tags: rule no-implicit-close | implied end tags only; the self-closing options are `void-style` and `no-self-closing`
+  require-button-type: planned
+  require-closing-tags: planned
   require-content: planned
   require-details-summary: planned
-  require-doctype: rule missing-doctype
+  require-doctype: planned
   require-explicit-size: planned
   require-form-method: planned
-  require-frame-title: rule element-required-attributes | reports `<embed>` as well as frames
+  require-frame-title: planned
   require-img-alt: planned
   require-input-label: planned
-  require-lang: rule element-required-attributes | also requires the attributes of other elements that html-validate requires (`src` of `<img>`)
+  require-lang: planned
   require-li-container: planned
   require-meta-charset: planned
   require-meta-description: planned

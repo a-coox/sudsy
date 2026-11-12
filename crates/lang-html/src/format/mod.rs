@@ -9,12 +9,44 @@ use crate::generated::kind as k;
 use core_config::shared;
 use core_format::{Doc, FormatCtx, FormatError, NodeFormatter};
 use core_syntax::{SyntaxElement, SyntaxNode};
-use model::Mode;
+use model::{Dialect, Mode};
 use std::borrow::Cow;
 
 include!("../schema.generated.rs");
 
+/// Vue and Svelte: indent the content of `<script>` and `<style>`.
+pub const INDENT_SCRIPT_AND_STYLE: &str = "indent_script_and_style";
+
 pub struct HtmlFormatter;
+
+/// The formatter of one markup language: HTML, Vue or Svelte.
+pub struct MarkupFormatter {
+    pub dialect: Dialect,
+}
+
+pub static VUE_FORMATTER: MarkupFormatter = MarkupFormatter {
+    dialect: Dialect::Vue,
+};
+
+impl NodeFormatter for HtmlFormatter {
+    fn value<'a>(&self, item: &'a SyntaxElement) -> Cow<'a, str> {
+        MarkupFormatter {
+            dialect: Dialect::Html,
+        }
+        .value(item)
+    }
+
+    fn format_node(
+        &self,
+        node: &SyntaxNode,
+        cx: &FormatCtx<'_>,
+    ) -> Result<Option<Doc>, FormatError> {
+        MarkupFormatter {
+            dialect: Dialect::Html,
+        }
+        .format_node(node, cx)
+    }
+}
 
 /// Blanks collapsed.
 fn norm(t: &str) -> String {
@@ -29,8 +61,26 @@ fn embedded_attribute(value: &core_syntax::SyntaxToken) -> bool {
     });
     name.is_some_and(|n| {
         let n = n.text().to_ascii_lowercase();
-        matches!(n.as_str(), "style" | "srcset" | "allow") || (n.len() > 2 && n.starts_with("on"))
+        matches!(n.as_str(), "style" | "srcset" | "allow")
+            || (n.len() > 2 && n.starts_with("on"))
+            || n.starts_with([':', '@', '#'])
+            || n.starts_with("v-")
     })
+}
+
+/// The text directly in a root block of a file (a Vue custom block may be formatted).
+fn in_root_block(text: &core_syntax::SyntaxToken) -> bool {
+    text.parent()
+        .and_then(|c| c.parent())
+        .and_then(|e| e.parent())
+        .is_some_and(|d| d.kind() == k::DOCUMENT)
+}
+
+/// The expression of a `{{ }}`.
+fn in_interpolation(text: &core_syntax::SyntaxToken) -> bool {
+    text.parent()
+        .and_then(|c| c.parent())
+        .is_some_and(|i| i.kind() == k::INTERPOLATION)
 }
 
 /// The text of a `<script>` or `<style>`.
@@ -46,7 +96,7 @@ fn in_script_or_style(text: &core_syntax::SyntaxToken) -> bool {
         .is_some_and(|n| matches!(n.text().to_ascii_lowercase().as_str(), "script" | "style"))
 }
 
-impl NodeFormatter for HtmlFormatter {
+impl NodeFormatter for MarkupFormatter {
     /// What the formatter rewrites: tag names and the doctype in lowercase, the quotes of an
     /// attribute value, the blanks of a text, the form of the tag's closing `>`.
     fn value<'a>(&self, item: &'a SyntaxElement) -> Cow<'a, str> {
@@ -58,7 +108,13 @@ impl NodeFormatter for HtmlFormatter {
             k::TAG_NAME | k::ATTR_NAME | k::DOCTYPE_KW => Cow::Owned(text.to_ascii_lowercase()),
             // Code the formatter may rewrite is checked by its own language's formatter.
             k::ATTR_VALUE if embedded_attribute(t) => Cow::Borrowed(""),
-            k::TEXT | k::RAW_TEXT if in_script_or_style(t) => Cow::Borrowed(""),
+            k::TEXT | k::RAW_TEXT
+                if in_script_or_style(t)
+                    || in_interpolation(t)
+                    || (self.dialect == Dialect::Vue && in_root_block(t)) =>
+            {
+                Cow::Borrowed("")
+            }
             k::ATTR_VALUE => Cow::Owned(norm(
                 &text
                     .trim_matches(['"', '\''])
@@ -86,12 +142,17 @@ impl NodeFormatter for HtmlFormatter {
             _ => Mode::Css,
         };
         let src = node.text().to_string();
-        let tree = model::build(cx.grammar, node, &src, mode);
+        let tree = model::build(cx.grammar, node, &src, mode, self.dialect);
         let embed = |l: &str, m, c: &str, w, q| cx.embed(l, m, c, w, q);
         let auto = cx.options.str(EMBEDDED_LANGUAGE_FORMATTING) == "auto";
         Ok(Some(print::block(
             &tree,
             print::Opts {
+                dialect: self.dialect,
+                indent_blocks: cx
+                    .options
+                    .get(INDENT_SCRIPT_AND_STYLE)
+                    .is_some_and(|v| *v == core_config::OptionValue::Bool(true)),
                 embed: auto.then_some(&embed),
                 width: cx.options.int("line_width") as usize,
                 tab: cx.options.int("indent_size") as usize,

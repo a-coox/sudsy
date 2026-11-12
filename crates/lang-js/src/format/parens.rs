@@ -353,6 +353,7 @@ pub(crate) fn needs_parens(cx: &FormatCtx<'_>, node: &SyntaxNode) -> Need {
                 .next()
                 .is_some_and(|l| l.kind() == k::OBJECT_ASSIGNMENT_TARGET)),
             k::FOR_STATEMENT | k::ASSIGNMENT_EXPRESSION => Need::No,
+            k::ARRAY_EXPRESSION if super::embed::is_root(cx, node) => Need::No,
             k::SEQUENCE_EXPRESSION if p.parent().is_some_and(|g| g.kind() == k::FOR_STATEMENT) => {
                 Need::No
             }

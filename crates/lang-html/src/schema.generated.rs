@@ -22,7 +22,5 @@ pub fn option_schema() -> core_config::OptionSchema {
         core_config::OptionDef::boolean("single_attribute_per_line", false, "Put every attribute of a tag that has several on its own line."),
     ])
     .with_presets(vec![
-        core_config::Preset::new("html/html-validate-standard", include_str!("../presets/html-validate-standard.yaml")),
-        core_config::Preset::new("html/html-validate-recommended", include_str!("../presets/html-validate-recommended.yaml")),
     ])
 }

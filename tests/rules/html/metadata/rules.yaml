@@ -1,8 +1,0 @@
-no-unknown-elements: warn
-deprecated: warn
-no-deprecated-attr: warn
-element-required-attributes: warn
-attribute-boolean-style: warn
-attribute-empty-style: warn
-attribute-allowed-values: warn
-element-name: warn

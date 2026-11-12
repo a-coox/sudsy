@@ -1,9 +1,0 @@
-id: no-void-end-tag
-message: "`<$NAME>` is a void element and has no end tag"
-description: A void element (`<br>`, `<img>`, ...) has no content and no end tag; the browser ignores `</br>`.
-example: '<br></br>   <br>'
-severity: off
-category: correctness
-rule:
-  kind: EndTag
-  regex: '(?i)^</(?<NAME>area|base|br|col|embed|hr|img|input|link|meta|param|source|track|wbr)\b'
