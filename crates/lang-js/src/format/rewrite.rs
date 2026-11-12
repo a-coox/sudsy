@@ -43,7 +43,7 @@ pub(crate) fn rewrite(
         // `) // c` then `{` on the next line becomes `) { // c`: the comment moves inside the block.
         if matches!(
             node.kind(),
-            k::BLOCK_STATEMENT | k::FUNCTION_BODY | k::CLASS_BODY
+            k::BLOCK_STATEMENT | k::FUNCTION_BODY | k::CLASS_BODY | k::TS_INTERFACE_BODY
         ) && let Some(open) = first_token(grammar, &node)
             && open.kind() == k::L_BRACE
             && comments::trailing_comments(grammar, &open).is_empty()
@@ -58,7 +58,13 @@ pub(crate) fn rewrite(
                 && between.iter().any(|t| t.kind() == k::LINE_COMMENT)
                 && between.iter().all(|t| t.kind() != k::BLOCK_COMMENT)
             {
-                inserts.push((usize::from(prev.text_range().end()), Some(" {")));
+                let brace = if node.kind() == k::TS_INTERFACE_BODY {
+                    " {
+"
+                } else {
+                    " {"
+                };
+                inserts.push((usize::from(prev.text_range().end()), Some(brace)));
                 // The line break after the old `{` goes too, or a blank line would follow.
                 if let Some(next) = open.next_token().filter(|t| t.kind() == k::NEWLINE) {
                     let at = usize::from(next.text_range().start());
@@ -95,6 +101,22 @@ pub(crate) fn rewrite(
         {
             node.children_with_tokens()
                 .filter_map(|e| e.into_token())
+                .filter(|t| matches!(t.kind(), k::L_PAREN | k::R_PAREN))
+                .for_each(&mut cut);
+        }
+        // `(x!) = y` is `x! = y`: the parentheses of an assignment target stay only where the
+        // printer adds them back (a cast).
+        if node.kind() == k::ASSIGNMENT_EXPRESSION
+            && node.first_child().is_some_and(|t| {
+                !matches!(
+                    t.kind(),
+                    k::TS_AS_EXPRESSION | k::TS_SATISFIES_EXPRESSION | k::TS_TYPE_ASSERTION
+                )
+            })
+        {
+            node.children_with_tokens()
+                .filter_map(|e| e.into_token())
+                .take_while(|t| t.kind() != k::OPERATOR)
                 .filter(|t| matches!(t.kind(), k::L_PAREN | k::R_PAREN))
                 .for_each(&mut cut);
         }

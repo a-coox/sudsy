@@ -64,4 +64,4 @@ See [../performance/numbers.md](../performance/numbers.md) (parse and format thr
 ## Conformance
 `bench/inputs/js` (real files from MUI, Vue and Excalidraw, one file of each of `.js .jsx .ts .tsx`) and a probe file per extension with the syntax of 2022-2025 (`using`, `accessor`, `satisfies`, import attributes, decorators, class static blocks, `#x in o`, variance annotations, template literal types, enums, `declare module`, JSX namespaces and fragments, hashbang, ...) are checked on every test run (`crates/lang-js/tests/js.rs`): they parse without errors, print back byte for byte, satisfy the trivia attachment rule, contain no `Unknown` token, and format with all the shared checks.
 
-`scripts/parity.sh format prettier-js` compares with Prettier 3.9.10 on the same corpus: 992 of 1,595 comparable Prettier-test files and 2,190 of 2,456 real-world files are identical (ratchets in `tests/parity/prettier-js/differences.yaml`).
+`scripts/parity.sh format prettier-js` compares with Prettier 3.9.10 on the same corpus: 1,003 of 1,595 comparable Prettier-test files and 2,190 of 2,456 real-world files are identical (ratchets in `tests/parity/prettier-js/differences.yaml`).

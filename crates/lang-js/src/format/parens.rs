@@ -79,6 +79,7 @@ pub(crate) fn wrap(node: &SyntaxNode, cx: &FormatCtx<'_>, doc: Doc) -> Doc {
             | k::JSX_FRAGMENT
             | k::TS_AS_EXPRESSION
             | k::TS_SATISFIES_EXPRESSION
+            | k::TS_TYPE_ASSERTION
     );
     let held = node
         .parent()
@@ -336,6 +337,7 @@ pub(crate) fn needs_parens(cx: &FormatCtx<'_>, node: &SyntaxNode) -> Need {
                 | k::TS_AS_EXPRESSION
                 | k::TS_SATISFIES_EXPRESSION
                 | k::TS_NON_NULL_EXPRESSION
+                | k::TS_INSTANTIATION_EXPRESSION
                 | k::BINARY_EXPRESSION => Need::Yes,
                 _ if member_p => yes(is_object),
                 k::CALL_EXPRESSION | k::NEW_EXPRESSION => yes(is_callee),
@@ -403,7 +405,7 @@ pub(crate) fn needs_parens(cx: &FormatCtx<'_>, node: &SyntaxNode) -> Need {
                 .children()
                 .next()
                 .is_some_and(|c| c.kind() == k::DECORATOR);
-            yes(decorated || (pk == k::NEW_EXPRESSION && first))
+            yes((decorated && !declaration_position(pk)) || (pk == k::NEW_EXPRESSION && first))
         }
         k::OBJECT_EXPRESSION => Need::No,
         k::CHAIN_EXPRESSION => match pk {
@@ -422,7 +424,10 @@ pub(crate) fn needs_parens(cx: &FormatCtx<'_>, node: &SyntaxNode) -> Need {
             yes(pk == k::NEW_EXPRESSION && first && has_call_in_object_chain(node))
         }
         k::JSX_ELEMENT | k::JSX_FRAGMENT => {
-            yes(is_callee || (first && pk == k::BINARY_EXPRESSION && operator_text(cx, &p) == "<"))
+            // oxc does not read `<></>.x`, so a member object keeps its parentheses.
+            yes(is_callee
+                || is_object
+                || (first && pk == k::BINARY_EXPRESSION && operator_text(cx, &p) == "<"))
         }
         k::IDENTIFIER_REFERENCE
         | k::THIS_EXPRESSION
