@@ -30,7 +30,7 @@ mapping:
   UnionType: union_type_definition union_type_extension
   EnumType: enum_type_definition enum_type_extension
   InputType: input_object_type_definition input_object_type_extension
-  DirectiveDef: directive_definition
+  DirectiveDef: directive_definition directive_extension
   FieldsDef: fields_definition
   FieldDef: field_definition
   ArgsDef: arguments_definition

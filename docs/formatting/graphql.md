@@ -5,7 +5,7 @@ a fork of tree-sitter-graphql 0.3 (joowani's maintained fork of bkegley's gramma
 
 Files: `*.graphql`, `*.gql`. Tree-sitter reports syntax errors ("syntax error", "missing X"); a file with one is not formatted.
 
-Grammar gap: `extend directive`. `# prettier-ignore` and `# sudsy-ignore` keep the next definition or field as written. An empty selection set is invalid and refused (Prettier rejects it too).
+`extend directive @a @b` and directives on a directive definition are in the forked grammar. `# prettier-ignore` and `# sudsy-ignore` keep the next definition or field as written. An empty selection set is invalid and refused (Prettier rejects it too).
 
 ## Formatting
 Layout follows Prettier's GraphQL printer (`scripts/parity.sh format prettier` compares them): two-space indentation, one definition, field, enum value or argument definition per line, blank lines kept (at most one), comments kept; commas dropped.

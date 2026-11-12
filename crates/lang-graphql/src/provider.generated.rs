@@ -20,6 +20,7 @@ pub const MAPPING: Mapping = Mapping {
         ("arguments_definition", "ArgsDef"),
         ("boolean_value", "Bool"),
         ("directive_definition", "DirectiveDef"),
+        ("directive_extension", "DirectiveDef"),
         ("source_file", "Document"),
         ("enum_type_definition", "EnumType"),
         ("enum_type_extension", "EnumType"),

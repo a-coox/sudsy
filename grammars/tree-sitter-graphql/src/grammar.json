@@ -213,6 +213,35 @@
         {
           "type": "SYMBOL",
           "name": "input_object_type_extension"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "directive_extension"
+        }
+      ]
+    },
+    "directive_extension": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "extend"
+        },
+        {
+          "type": "STRING",
+          "value": "directive"
+        },
+        {
+          "type": "STRING",
+          "value": "@"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "name"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "directives"
         }
       ]
     },

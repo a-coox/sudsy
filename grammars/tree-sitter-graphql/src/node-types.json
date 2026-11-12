@@ -172,6 +172,25 @@
     }
   },
   {
+    "type": "directive_extension",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "directives",
+          "named": true
+        },
+        {
+          "type": "name",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "directive_location",
     "named": true,
     "fields": {},
@@ -1150,6 +1169,10 @@
       "multiple": false,
       "required": true,
       "types": [
+        {
+          "type": "directive_extension",
+          "named": true
+        },
         {
           "type": "enum_type_extension",
           "named": true

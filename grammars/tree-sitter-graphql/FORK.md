@@ -11,4 +11,5 @@ Changes to `grammar.js` (valid GraphQL the upstream grammar rejected):
 - `operation_definition`, `fragment_definition`, `variable_definition`: optional `description`.
 - `fragment_definition`: optional `variable_definitions`; `fragment_spread`: optional `arguments` (fragment arguments).
 - `directive_definition`: optional `directives` after the arguments.
+- `directive_extension`: `extend directive @a @b` (a `type_extension` alternative).
 - `source_file`: optional `document` (an empty or comment-only file).

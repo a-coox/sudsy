@@ -47,8 +47,11 @@ export default grammar({
         $.interface_type_extension,
         $.union_type_extension,
         $.enum_type_extension,
-        $.input_object_type_extension
+        $.input_object_type_extension,
+        $.directive_extension
       ),
+    directive_extension: ($) =>
+      seq("extend", "directive", "@", $.name, $.directives),
     scalar_type_extension: ($) => seq("extend", "scalar", $.name, $.directives),
     object_type_extension: ($) =>
       prec.right(

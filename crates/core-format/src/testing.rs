@@ -24,7 +24,7 @@ pub trait Subject {
     }
 }
 
-/// The comments of a tree in order. Structured trivia (doc comments, directives) count as one,
+/// The comments of a tree, sorted (a formatter may move a comment). Structured trivia (doc comments, directives) count as one,
 /// compared line by line without indentation because the printer re-indents them.
 fn comments(subject: &dyn Subject, tree: &SyntaxNode) -> Vec<String> {
     let verbatim = subject.keeps_verbatim_trivia();
@@ -53,6 +53,7 @@ fn comments(subject: &dyn Subject, tree: &SyntaxNode) -> Vec<String> {
             }
         }
     }
+    out.sort();
     out
 }
 

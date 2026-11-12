@@ -8,7 +8,6 @@ differences:
   html-after-table: gap  an HTML block right after a table gets a blank line in front; Prettier keeps it on the next line (both parse it as HTML)
   graphql-comment-position: gap  comments between the interfaces and the `{` stay in front of the `{` where Prettier moves them into the body
   invalid-graphql: "choice  the file is not valid GraphQL (Prettier's range markers, an empty selection set): Sudsy rejects it"
-  extend-directive: "choice  `extend directive` is not in the GraphQL spec: the grammar rejects it"
 files:
   runtime-docs/coding-guidelines/adding-api-guidelines.md: code-span-backticks
   runtime-docs/coding-guidelines/coding-style.md: code-span-backticks
@@ -21,7 +20,6 @@ files:
   docs/formatting/csharp.md: html-after-table
   graphql/prettier/tests/format/graphql/interface/separator-detection.graphql: graphql-comment-position
   graphql/prettier/tests/format/graphql/range/issue2296.graphql: invalid-graphql
-  graphql/prettier/tests/format/graphql/directive-decl/directives-on-directive-definitions.graphql: extend-directive
   graphql/prettier/tests/format/graphql/selection-set/empty-1.graphql: invalid-graphql
   graphql/prettier/tests/format/graphql/selection-set/empty-2.graphql: invalid-graphql
   graphql/prettier/tests/format/graphql/selection-set/empty-3.graphql: invalid-graphql
