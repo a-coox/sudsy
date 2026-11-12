@@ -2,18 +2,27 @@
 //! model, text as a fill of words, attributes.
 
 use super::model::{N, T, Tree, is_ws, pre_like};
+use core_format::EmbedMode;
 use core_format::context::verbatim_text;
 use core_format::doc::{self, Doc, GroupId};
 
-pub struct Opts {
+mod embed;
+
+/// Formats code of another language: language, mode, code, width, single quotes (see
+/// `core_format::Embedder`); `None` when embedded formatting is off.
+pub type Embed<'a> = &'a dyn Fn(&str, EmbedMode, &str, usize, bool) -> Option<String>;
+
+pub struct Opts<'a> {
+    pub embed: Option<Embed<'a>>,
+    pub width: usize,
     pub tab: usize,
     pub bracket_same_line: bool,
     pub single_attribute_per_line: bool,
 }
 
 pub struct P<'a> {
-    pub t: &'a Tree,
-    pub o: Opts,
+    pub t: &'a Tree<'a>,
+    pub o: Opts<'a>,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -74,7 +83,7 @@ fn unescape_quotes(v: &str) -> String {
 }
 
 impl P<'_> {
-    fn n(&self, id: usize) -> &N {
+    fn n(&self, id: usize) -> &N<'_> {
         &self.t.n[id]
     }
 
@@ -334,7 +343,7 @@ impl P<'_> {
         let n = self.n(id);
         n.t == T::Element
             && !n.kids.is_empty()
-            && (matches!(n.name.as_str(), "html" | "head" | "ul" | "ol" | "select")
+            && (matches!(n.name.as_ref(), "html" | "head" | "ul" | "ol" | "select")
                 || (n.display.starts_with("table") && n.display != "table-cell"))
     }
 
@@ -345,7 +354,7 @@ impl P<'_> {
         }
         if n.t == T::Element
             && !n.kids.is_empty()
-            && (matches!(n.name.as_str(), "body" | "script" | "style")
+            && (matches!(n.name.as_ref(), "body" | "script" | "style")
                 || n.kids
                     .iter()
                     .any(|&c| self.n(c).kids.iter().any(|&g| self.n(g).t != T::Text)))
@@ -545,6 +554,9 @@ impl P<'_> {
         let n = self.n(id);
         let p = self.n(n.parent);
         let (prefix, suffix) = (self.open_prefix(id), self.close_suffix(id));
+        if let Some(code) = self.embedded_content(id) {
+            return code;
+        }
         if p.ws_sens {
             if p.indent_sens {
                 return doc::concat(vec![s(prefix), verbatim_text(&n.value), s(suffix)]);
@@ -577,10 +589,13 @@ impl P<'_> {
         doc::fill(parts)
     }
 
-    fn attribute(&self, name: &str, value: &Option<String>) -> Doc {
+    fn attribute(&self, id: usize, name: &str, value: &Option<&str>) -> Doc {
         let Some(v) = value else {
             return s(name);
         };
+        if let Some(d) = self.embedded_attribute(id, name, v) {
+            return d;
+        }
         let v = if name.eq_ignore_ascii_case("class") && !v.contains("{{") && !v.trim().is_empty() {
             v.split(is_ws)
                 .filter(|w| !w.is_empty())
@@ -620,7 +635,7 @@ impl P<'_> {
         let printed: Vec<Doc> = n
             .attrs
             .iter()
-            .map(|a| self.attribute(&a.name, &a.value))
+            .map(|a| self.attribute(id, &a.name, &a.value))
             .collect();
         let mut parts = vec![doc::indent(doc::concat(vec![
             if force_not_to_break {
@@ -753,7 +768,7 @@ fn ends_with_indent(v: &str, width: usize) -> bool {
     })
 }
 
-pub fn block(t: &Tree, o: Opts) -> Doc {
+pub fn block(t: &Tree<'_>, o: Opts<'_>) -> Doc {
     let p = P { t, o };
     doc::group(p.children(0))
 }

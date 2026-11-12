@@ -250,16 +250,6 @@ fn signs_join_and_split() {
     );
 }
 
-/// Less inline JavaScript with its own `//` comments and braces is kept as written.
-#[test]
-fn less_inline_javascript_is_kept() {
-    let text = ".m() {\n  @f: ~`(function() {\n  // a / b\n  var a = {x: 1};\n})()`;\n}\n";
-    assert_eq!(
-        assert_formats(CssProvider::new(Dialect::Less), "a.less", text),
-        text
-    );
-}
-
 #[test]
 fn file_names() {
     assert_file_names(

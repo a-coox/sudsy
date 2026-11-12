@@ -29,6 +29,8 @@ Safety check (debug builds, tests and the corpus profile; `safety.rs`): after th
 
 Known gaps: with `semi: false` Prettier also writes the protecting `;` before the first statement of a file or block when it starts with `(`, `[` or a backtick, and Sudsy does not (the `;` would be an empty statement of its own, which the safety check reads as a change; no parity run covers the option); `trailing_commas` es5/none is not yet applied to TypeScript lists (type parameters, enums, interfaces, ...); comments between a property and its comma are printed after the comma; several comments on one line and comments in unions, heritage lists and between `return` and its argument are not placed as Prettier does. 52 corpus files are not idempotent on a second format: 2 real-world files (a member chain with an object argument, which Prettier itself reformats on its own output) and 50 of Prettier's own tests (mostly line comments after `{` of an empty block, which stay on the line of the `{` the first time).
 
+- **Embedded expression:** a host (HTML) can hand over one expression (`SourceFile::language_version` `expression`, option `embed_mode`): it is parsed as the only element of `[ ]` and printed without the brackets (`format/embed.rs`).
+
 ## Options
 <!-- generated:options -->
 | Option | Values | Default | Description |

@@ -13,6 +13,43 @@ use std::borrow::Cow;
 use std::collections::HashMap;
 use std::sync::Mutex;
 
+/// What an embedded region holds (see [`Embedder`]).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum EmbedMode {
+    /// A whole file of the language.
+    Program,
+    /// One expression (a Vue directive, `{{ }}`, a Svelte `{...}`).
+    Expression,
+    /// A list of declarations (`style=""`).
+    Declarations,
+}
+
+impl EmbedMode {
+    /// The name the other language's provider reads in its `embed_mode` option.
+    pub fn name(self) -> &'static str {
+        match self {
+            EmbedMode::Program => "program",
+            EmbedMode::Expression => "expression",
+            EmbedMode::Declarations => "declarations",
+        }
+    }
+}
+
+/// Formats code of another language for a host formatter (`<script>` in HTML): the engine
+/// parses `code` with the provider of `language`, formats it for `width` columns and returns the
+/// text without a final line break, or `None` when the code does not parse or the language is
+/// unknown. `single_quotes`: the host's own quote is `"` (an attribute value), so strings prefer `'`.
+pub trait Embedder {
+    fn format(
+        &self,
+        language: &str,
+        mode: EmbedMode,
+        code: &str,
+        width: usize,
+        single_quotes: bool,
+    ) -> Option<String>;
+}
+
 /// A provider's formatting code. Nodes it does not handle fall back to the shared shape of their
 /// grammar tag (`#block`, `#delimited-list`, `#key-value`), and else to their children
 /// concatenated.
@@ -116,6 +153,7 @@ pub struct FormatCtx<'a> {
     cache: std::sync::OnceLock<Box<dyn std::any::Any + Send + Sync>>,
     /// Documents of nodes formatted for a layout, by node and flags (see [`FormatCtx::layout`]).
     layouts: Mutex<HashMap<(TextRange, u32, u32), Doc>>,
+    embedder: Option<&'a dyn Embedder>,
 }
 
 impl<'a> FormatCtx<'a> {
@@ -136,7 +174,27 @@ impl<'a> FormatCtx<'a> {
             held: Mutex::new(Vec::new()),
             cache: std::sync::OnceLock::new(),
             layouts: Mutex::new(HashMap::new()),
+            embedder: None,
         }
+    }
+
+    /// The engine's formatter of other languages' code, when the host runs under one.
+    pub fn with_embedder(mut self, embedder: Option<&'a dyn Embedder>) -> Self {
+        self.embedder = embedder;
+        self
+    }
+
+    /// `code` of `language` formatted for `width` columns (see [`Embedder`]).
+    pub fn embed(
+        &self,
+        language: &str,
+        mode: EmbedMode,
+        code: &str,
+        width: usize,
+        single_quotes: bool,
+    ) -> Option<String> {
+        self.embedder?
+            .format(language, mode, code, width, single_quotes)
     }
 
     /// Data the provider derives from the options once per run instead of once per node. A

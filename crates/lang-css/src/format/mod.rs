@@ -95,6 +95,7 @@ impl NodeFormatter for CssFormatter {
             single: cx.options.bool(SINGLE_QUOTE),
         };
         Ok(Some(match node.kind() {
+            k::STYLESHEET if pr.declarations_only() => pr.declarations(node)?,
             k::STYLESHEET => document(cx, node, cx.options.max_blank_lines(), None)?,
             k::RULE => pr.rule(node)?,
             k::AT_RULE => pr.at_rule(node)?,
@@ -148,6 +149,21 @@ fn semicolon(node: &SyntaxNode) -> Option<SyntaxToken> {
 }
 
 impl Pr<'_, '_> {
+    /// Is the text a list of declarations a host hands over (`style=""`, see `parse`)?
+    fn declarations_only(&self) -> bool {
+        matches!(self.cx.options.get("embed_mode"), Some(core_config::OptionValue::String(m)) if m == "declarations")
+    }
+
+    /// The declarations of the rule `parse` wrapped them in, one per line, without the braces.
+    fn declarations(&self, root: &SyntaxNode) -> Result<Doc, FormatError> {
+        let block = root
+            .descendants()
+            .find(|n| n.kind() == k::BLOCK)
+            .ok_or_else(|| FormatError::Shape("declarations".into()))?;
+        let stmts: Vec<SyntaxNode> = block.children().collect();
+        statement_sequence(self.cx, &stmts, self.cx.options.max_blank_lines())
+    }
+
     /// `{`, the statements one per line and indented, `}`.
     fn block(&self, block: &SyntaxNode) -> Result<Doc, FormatError> {
         let cx = self.cx;
@@ -322,7 +338,7 @@ impl Pr<'_, '_> {
         if let Some(p) = &prelude {
             if variable && block.is_some() && pitems.len() == 1 {
                 parts.push(doc::lit(":"));
-            } else if variable && pitems.iter().any(|i| i.is_delim("`")) {
+            } else if variable && !has_comments(p) && pitems.iter().any(|i| i.is_delim("`")) {
                 // Less inline JavaScript is kept as written.
                 let raw = value::raw_text(p);
                 parts.push(doc::lit(": "));

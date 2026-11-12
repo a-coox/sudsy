@@ -9,6 +9,10 @@ options:
   - indent_style
   - final_newline: true
   - end_of_line
+  - embedded_language_formatting:
+      values: ["auto", "off"]
+      default: "auto"
+      doc: "Format the code of `<script>` and `<style>` and of `style`, `srcset` and event-handler attributes with the formatter of its language (`auto`, Prettier's `embeddedLanguageFormatting`), or keep it as written (`off`). Code that does not parse, or of a language that is not installed, is kept either way."
   - whitespace_sensitivity:
       values: ["css", "strict", "ignore"]
       default: "css"

@@ -82,7 +82,17 @@ impl LanguageProvider for JsProvider {
     }
 
     fn parse(&self, file: &SourceFile) -> Result<ParseResult, ProviderError> {
-        Ok(parse(&file.text, source_type(&file.id)))
+        // An embedded expression (`EmbedMode::Expression`) is the only element of an array.
+        let text = match file.language_version.as_deref() {
+            Some("expression") => &format!(
+                "[
+{}
+]",
+                file.text
+            ),
+            _ => &file.text,
+        };
+        Ok(parse(text, source_type(&file.id)))
     }
 
     fn formatter(&self) -> &dyn NodeFormatter {

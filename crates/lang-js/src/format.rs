@@ -11,6 +11,7 @@ mod call;
 mod chain;
 mod class;
 mod decl;
+mod embed;
 mod jsx;
 mod literal;
 mod object;
@@ -51,6 +52,7 @@ fn last_significant(cx: &FormatCtx<'_>, node: &SyntaxNode) -> Option<core_syntax
 type Module = fn(&SyntaxNode, &FormatCtx<'_>) -> Result<Option<Doc>, FormatError>;
 
 const MODULES: &[Module] = &[
+    embed::format,
     stmt::format,
     decl::format,
     class::format,

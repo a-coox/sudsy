@@ -20,6 +20,8 @@ Prettier's output (printer-postcss) is the reference; defaults equal Prettier's.
 - **Kept as written:** Less inline JavaScript (`@v: ~`...``), a Less lookup after blanks in a mixin guard, the blanks of a multi-line `#{ }` in a selector become one space. A line comment after the last token of a selector or before a `{` puts the `{` on its own line; block comments on one line before a statement stay on it.
 - **Not laid out yet:** a Less statement with a `{ }` argument (`.m({...})`, `each(@l, {...})`) is kept as written, as are mixin guards and long `:extend()` lists; `@nest` and `@custom-selector` selectors, a front matter block, `1.` style numbers, comments between a selector and its `{` on the same line, and `if()` with `;` arguments; signs that Prettier joins or splits (`+ 20px` is `+20px`, `- 2deg` is `-2deg`, `$a +2` is `$a + 2`), attribute values that get quotes around an interpolation (`[lang=#{$l}]`); they change the token structure, which the safety check does not allow. Braces inside a value (`{"a":1}`) get `: ` after a colon and no blanks inside.
 
+- **Embedded declaration list:** a host (HTML `style=""`) can hand over declarations (`language_version` `declarations`, option `embed_mode`): they are parsed as the block of a rule and printed one per line, without the braces.
+
 ## Options
 <!-- generated:options -->
 | Option | Values | Default | Description |

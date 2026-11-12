@@ -1,5 +1,5 @@
 differences:
-  embedded-code: gap  `<script>`, `<style>` and `style`, `srcset`, `sizes` and event-handler attribute values are not formatted as JavaScript or CSS (kept as written, `<script>` and `<style>` content re-indented)
+  embedded-code: gap  embedded code the JS and CSS formatters print differently from Prettier (directive quotes, `<!--` comments, line breaks of call chains and templates), `<html:script>` and `<style type="text/less">`, which Sudsy reads as other languages
   front-matter: gap  front matter blocks are not understood
   glued-inline-unit: gap  text, an inline element and text written without blanks between (`a"<b>x</b>".`) are not kept together on one line when they are too wide; the element's tags break inside
   conditional-comments: gap  IE conditional comments are comments, not parsed as markup
@@ -7,9 +7,8 @@ differences:
   project-options: gap  real-world pages run under Prettier's defaults (`--no-config`), not their own Prettier options
 files:
   prettier-html: embedded-code, front-matter, glued-inline-unit, conditional-comments, syntax-errors
-  prettier-vue-html: embedded-code, syntax-errors
   real-world: embedded-code, glued-inline-unit, project-options
 ratchet:
-  prettier-html: 90
-  prettier-vue-html: 3
-  real-world: 140
+  prettier-html: 118
+  prettier-vue-html: 10
+  real-world: 197

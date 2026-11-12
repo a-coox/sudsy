@@ -20,7 +20,7 @@ use crate::inputs::{ConfigFile, File};
 use core_config::{ConfigChain, FileInput, ResolvedOptions};
 use core_syntax::{GreenNode, SyntaxNode};
 use provider_api::{
-    LanguageProvider, ParseError, ParseResult, SourceFile, format_parsed, resolve_dialect,
+    LanguageProvider, ParseError, ParseResult, SourceFile, format_parsed_with, resolve_dialect,
     select_provider_index,
 };
 
@@ -189,8 +189,16 @@ pub fn format(db: &dyn Db, file: File) -> Result<String, Failure> {
         tree: parsed.root(),
         errors: parsed.errors.clone(),
     };
-    let text = format_parsed(provider, &source, &result, &options.resolved, directives)
-        .map_err(|e| Failure::new(Stage::Format, &e))?;
+    let engine = crate::embedded::Engine { db, file };
+    let text = format_parsed_with(
+        provider,
+        &source,
+        &result,
+        &options.resolved,
+        directives,
+        Some(&engine),
+    )
+    .map_err(|e| Failure::new(Stage::Format, &e))?;
     Ok(format_embedded(
         db,
         file,

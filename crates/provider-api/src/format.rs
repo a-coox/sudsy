@@ -2,7 +2,9 @@
 
 use crate::provider::{LanguageProvider, ParseError, ParseResult, ProviderError, SourceFile};
 use core_config::ResolvedOptions;
-use core_format::{DirectiveTable, FormatCtx, FormatError, Variants, format_tree, safety};
+use core_format::{
+    DirectiveTable, Embedder, FormatCtx, FormatError, Variants, format_tree, safety,
+};
 use core_syntax::SyntaxNode;
 use std::path::Path;
 
@@ -66,6 +68,19 @@ pub fn format_parsed(
     options: &ResolvedOptions,
     directives: &DirectiveTable,
 ) -> Result<String, FileFormatError> {
+    format_parsed_with(provider, file, parsed, options, directives, None)
+}
+
+/// [`format_parsed`] for a host whose formatter embeds code of other languages through
+/// `embedder`.
+pub fn format_parsed_with(
+    provider: &dyn LanguageProvider,
+    file: &SourceFile,
+    parsed: &ParseResult,
+    options: &ResolvedOptions,
+    directives: &DirectiveTable,
+    embedder: Option<&dyn Embedder>,
+) -> Result<String, FileFormatError> {
     if !parsed.errors.is_empty() {
         return Err(syntax_error(&file.text, &parsed.errors));
     }
@@ -90,9 +105,9 @@ pub fn format_parsed(
             ))
             .into());
         }
-        return format_checked(provider, &again, &reparsed, options, directives);
+        return format_checked(provider, &again, &reparsed, options, directives, embedder);
     }
-    format_checked(provider, file, parsed, options, directives)
+    format_checked(provider, file, parsed, options, directives, embedder)
 }
 
 /// Formats a tree that has no syntax errors and checks the output against it. Code that the
@@ -104,9 +119,11 @@ fn format_checked(
     parsed: &ParseResult,
     options: &ResolvedOptions,
     directives: &DirectiveTable,
+    embedder: Option<&dyn Embedder>,
 ) -> Result<String, FileFormatError> {
     let grammar = provider.grammar();
-    let cx = FormatCtx::new(grammar, options, directives, provider.formatter());
+    let cx =
+        FormatCtx::new(grammar, options, directives, provider.formatter()).with_embedder(embedder);
     let output = format_tree(&parsed.tree, &cx)?;
     let check = |symbols: &[String], tree: &SyntaxNode, text: &str| {
         let reparse = |text: &str| {

@@ -3,6 +3,7 @@
 
 use crate::generated::kind as k;
 use core_syntax::{Grammar, SyntaxKind, SyntaxNode, SyntaxToken};
+use std::borrow::Cow;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum T {
@@ -13,29 +14,29 @@ pub enum T {
     Doctype,
 }
 
-pub struct Attr {
-    pub name: String,
+pub struct Attr<'s> {
+    pub name: Cow<'s, str>,
     /// Between the quotes (or the bare value); `None` for a boolean attribute.
-    pub value: Option<String>,
+    pub value: Option<&'s str>,
 }
 
-pub struct N {
+pub struct N<'s> {
     pub t: T,
     /// Element name, lowercase when it is a known HTML element.
-    pub name: String,
+    pub name: Cow<'s, str>,
     /// Source range of the node without surrounding whitespace.
     pub start: usize,
     pub end: usize,
     /// Element: end of the start tag, and start of the end tag when there is one.
     pub tag_end: usize,
     pub close_start: Option<usize>,
-    pub attrs: Vec<Attr>,
+    pub attrs: Vec<Attr<'s>>,
     pub kids: Vec<usize>,
     pub parent: usize,
     pub prev: Option<usize>,
     pub next: Option<usize>,
     /// Text: the source text; comment: between `<!--` and `-->`; doctype: the body.
-    pub value: String,
+    pub value: Cow<'s, str>,
     pub self_closing: bool,
     pub display: &'static str,
     pub lead_sp: bool,
@@ -49,11 +50,11 @@ pub struct N {
     pub svg: bool,
 }
 
-impl N {
-    fn new(t: T, start: usize, end: usize) -> N {
+impl N<'_> {
+    fn new(t: T, start: usize, end: usize) -> N<'static> {
         N {
             t,
-            name: String::new(),
+            name: Cow::Borrowed(""),
             start,
             end,
             tag_end: end,
@@ -63,7 +64,7 @@ impl N {
             parent: 0,
             prev: None,
             next: None,
-            value: String::new(),
+            value: Cow::Borrowed(""),
             self_closing: false,
             display: "inline",
             lead_sp: false,
@@ -142,9 +143,9 @@ pub fn is_ws(c: char) -> bool {
     matches!(c, ' ' | '\t' | '\n' | '\r' | '\x0c')
 }
 
-pub struct Tree {
-    pub src: String,
-    pub n: Vec<N>,
+pub struct Tree<'s> {
+    pub src: &'s str,
+    pub n: Vec<N<'s>>,
     lines: Vec<usize>,
 }
 
@@ -155,9 +156,9 @@ struct Item {
     node: Option<SyntaxNode>,
 }
 
-struct Builder<'a> {
+struct Builder<'a, 's> {
     g: &'a Grammar,
-    d: Tree,
+    d: Tree<'s>,
     comments: Vec<(usize, usize)>,
     mode: Mode,
 }
@@ -192,7 +193,7 @@ fn sig(g: &Grammar, node: &SyntaxNode) -> (usize, usize) {
     (usize::from(s), usize::from(e))
 }
 
-pub fn build(g: &Grammar, root: &SyntaxNode, src: &str, mode: Mode) -> Tree {
+pub fn build<'s>(g: &Grammar, root: &SyntaxNode, src: &'s str, mode: Mode) -> Tree<'s> {
     let mut lines = vec![0];
     lines.extend(src.match_indices('\n').map(|(i, _)| i + 1));
     let comments = root
@@ -209,7 +210,7 @@ pub fn build(g: &Grammar, root: &SyntaxNode, src: &str, mode: Mode) -> Tree {
     let mut b = Builder {
         g,
         d: Tree {
-            src: src.to_string(),
+            src,
             n: vec![N::new(T::Root, 0, src.len())],
             lines,
         },
@@ -221,16 +222,22 @@ pub fn build(g: &Grammar, root: &SyntaxNode, src: &str, mode: Mode) -> Tree {
     b.d
 }
 
-impl Tree {
+impl Tree<'_> {
     pub fn line(&self, off: usize) -> usize {
         self.lines.partition_point(|&l| l <= off)
     }
 }
 
-impl Builder<'_> {
-    fn push(&mut self, n: N) -> usize {
+impl<'s> Builder<'_, 's> {
+    fn push(&mut self, n: N<'s>) -> usize {
         self.d.n.push(n);
         self.d.n.len() - 1
+    }
+
+    /// The source text of a token of the tree being built.
+    fn slice(&self, t: &SyntaxToken) -> &'s str {
+        let r = t.text_range();
+        &self.d.src[usize::from(r.start())..usize::from(r.end())]
     }
 
     fn element(&mut self, node: &SyntaxNode, parent: usize, prev_comment: Option<&str>) -> usize {
@@ -258,28 +265,30 @@ impl Builder<'_> {
         for t in tag.children_with_tokens() {
             match t {
                 rowan::NodeOrToken::Token(t) if t.kind() == k::TAG_NAME => {
-                    n.name = t.text().to_string();
+                    n.name = Cow::Borrowed(self.slice(&t));
                 }
                 rowan::NodeOrToken::Token(t) if t.kind() == k::SLASH_GT => self_closing = true,
                 rowan::NodeOrToken::Node(a) if a.kind() == k::ATTRIBUTE => {
                     let mut attr = Attr {
-                        name: String::new(),
+                        name: Cow::Borrowed(""),
                         value: None,
                     };
                     for t in a.children_with_tokens().filter_map(|e| e.into_token()) {
                         if t.kind() == k::ATTR_NAME {
-                            attr.name = t.text().to_string();
-                            let lower = attr.name.to_ascii_lowercase();
-                            if known_element && ATTRS.split(' ').any(|a| a == lower) {
-                                attr.name = lower;
+                            attr.name = Cow::Borrowed(self.slice(&t));
+                            if known_element
+                                && attr.name.bytes().any(|b| b.is_ascii_uppercase())
+                                && ATTRS.split(' ').any(|a| a.eq_ignore_ascii_case(&attr.name))
+                            {
+                                attr.name = Cow::Owned(attr.name.to_ascii_lowercase());
                             }
                         } else if t.kind() == k::ATTR_VALUE {
-                            let v = t.text();
+                            let v = self.slice(&t);
                             let inner = match v.as_bytes().first() {
                                 Some(b'"' | b'\'') if v.len() >= 2 => &v[1..v.len() - 1],
                                 _ => v,
                             };
-                            attr.value = Some(inner.to_string());
+                            attr.value = Some(inner);
                         }
                     }
                     n.attrs.push(attr);
@@ -288,10 +297,13 @@ impl Builder<'_> {
             }
         }
         let parent_svg = self.d.n[parent].svg;
-        let lower = n.name.to_ascii_lowercase();
-        n.svg = lower == "svg" || (parent_svg && self.d.n[parent].name != "foreignObject");
-        if !n.svg && KNOWN.split(' ').any(|k| k == lower) {
-            n.name = lower;
+        n.svg = n.name.eq_ignore_ascii_case("svg")
+            || (parent_svg && self.d.n[parent].name != "foreignObject");
+        if !n.svg
+            && n.name.bytes().any(|b| b.is_ascii_uppercase())
+            && KNOWN.split(' ').any(|k| k.eq_ignore_ascii_case(&n.name))
+        {
+            n.name = Cow::Owned(n.name.to_ascii_lowercase());
         }
         n.self_closing = self_closing || (!n.svg && is_void(&n.name));
         n.parent = parent;
@@ -367,18 +379,16 @@ impl Builder<'_> {
             let it = &items[i];
             let id = match it.kind {
                 k::ELEMENT => {
-                    let comment = (i > 0 && items[i - 1].kind == k::COMMENT)
-                        .then(|| self.d.src[items[i - 1].start..items[i - 1].end].to_string());
-                    let inner = comment
-                        .as_deref()
+                    let inner = (i > 0 && items[i - 1].kind == k::COMMENT)
+                        .then(|| &self.d.src[items[i - 1].start..items[i - 1].end])
                         .and_then(|c| c.strip_prefix("<!--")?.strip_suffix("-->"));
                     self.element(it.node.as_ref().expect("element"), parent, inner)
                 }
                 k::COMMENT => {
                     let raw = &self.d.src[it.start..it.end];
                     let mut n = N::new(T::Comment, it.start, it.end);
-                    n.value = raw.strip_prefix("<!--").unwrap_or(raw).to_string();
-                    n.value = n.value.strip_suffix("-->").unwrap_or(&n.value).to_string();
+                    let raw = raw.strip_prefix("<!--").unwrap_or(raw);
+                    n.value = Cow::Borrowed(raw.strip_suffix("-->").unwrap_or(raw));
                     n.parent = parent;
                     self.push(n)
                 }
@@ -391,9 +401,8 @@ impl Builder<'_> {
                         .children_with_tokens()
                         .filter_map(|e| e.into_token())
                         .find(|t| t.kind() == k::DOCTYPE_BODY)
-                        .map(|t| t.text().trim().to_string())
-                        .unwrap_or_default();
-                    n.value = body;
+                        .map_or("", |t| self.slice(&t).trim());
+                    n.value = Cow::Borrowed(body);
                     n.parent = parent;
                     self.push(n)
                 }
@@ -407,7 +416,7 @@ impl Builder<'_> {
                     }
                     let (s, e) = (it.start, items[j].end);
                     let mut n = N::new(T::Text, s, e);
-                    n.value = self.d.src[s..e].to_string();
+                    n.value = Cow::Borrowed(&self.d.src[s..e]);
                     n.parent = parent;
                     i = j;
                     self.push(n)
@@ -440,7 +449,7 @@ impl Builder<'_> {
             let n = &mut self.d.n[t];
             n.start = s;
             n.end = region.1;
-            n.value = self.d.src[s..region.1].to_string();
+            n.value = Cow::Borrowed(&self.d.src[s..region.1]);
             self.d.n[parent].kids = vec![t];
             return;
         }
@@ -528,7 +537,7 @@ impl Builder<'_> {
         })();
         if r && n.prev.is_none()
             && p.t == T::Element
-            && matches!(p.name.as_str(), "pre" | "textarea" | "listing")
+            && matches!(p.name.as_ref(), "pre" | "textarea" | "listing")
         {
             return false;
         }

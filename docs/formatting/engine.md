@@ -23,6 +23,7 @@ Options declared by more than one language, generated from the option schemas; p
 | `comment_spacing` | int 1-10 | yaml `1`, github-actions `1` |
 | `document_end` | `preserve`, `always`, `never` | yaml `preserve`, github-actions `preserve` |
 | `document_start` | `preserve`, `always`, `never` | yaml `preserve`, github-actions `preserve` |
+| `embedded_language_formatting` | `auto`, `off` | html `auto`, markdown `auto` |
 | `end_of_line` | `auto`, `lf`, `crlf` | json `auto`, js `auto`, css `auto`, scss `auto`, less `auto`, yaml `auto`, github-actions `auto`, dockerfile `auto`, editorconfig `auto`, gitignore `auto`, graphql `auto`, hcl `auto`, html `auto`, ini `auto`, makefile `auto`, markdown `auto`, powershell `auto`, protobuf `auto`, shell `auto`, toml `auto`, xml `auto`, csharp `auto` |
 | `final_newline` | bool | json `true`, js `true`, css `true`, scss `true`, less `true`, yaml `true`, github-actions `true`, dockerfile `true`, editorconfig `true`, gitignore `true`, graphql `true`, hcl `true`, html `true`, ini `true`, makefile `true`, markdown `true`, powershell `true`, protobuf `true`, shell `true`, toml `true`, xml `true`, csharp `true` |
 | `indent_size` | int 1-16 | json `2`, js `2`, css `2`, scss `2`, less `2`, yaml `2`, github-actions `2`, dockerfile `4`, graphql `2`, hcl `2`, html `2`, makefile `2`, markdown `2`, powershell `4`, protobuf `2`, shell `4`, toml `2`, xml `2`, csharp `4` |

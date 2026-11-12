@@ -104,7 +104,19 @@ impl LanguageProvider for CssProvider {
     }
 
     fn parse(&self, file: &SourceFile) -> Result<ParseResult, ProviderError> {
-        Ok(parse_result(&file.text, self.dialect))
+        // A host's declaration list (`EmbedMode::Declarations`) is the block of a rule.
+        Ok(match file.language_version.as_deref() {
+            Some("declarations") => parse_result(
+                &format!(
+                    "a{{
+{}
+}}",
+                    file.text
+                ),
+                self.dialect,
+            ),
+            _ => parse_result(&file.text, self.dialect),
+        })
     }
 
     fn formatter(&self) -> &dyn NodeFormatter {

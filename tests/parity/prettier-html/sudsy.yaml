@@ -1,3 +1,4 @@
-# The Sudsy side of the comparison with `prettier --no-config`: Prettier always writes LF while Sudsy keeps the file's line ending.
+# The Sudsy side of the comparison with `prettier --no-config`: Prettier always writes LF while Sudsy keeps the file's line ending. The embedded languages follow Prettier's choices.
+extends: [preset:json/prettier-compat, preset:markdown/prettier-compat]
 format:
   end_of_line: lf

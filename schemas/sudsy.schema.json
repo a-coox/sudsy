@@ -5414,6 +5414,15 @@
               "description": "Put the `>` of a multi-line start tag at the end of the last attribute's line.",
               "type": "boolean"
             },
+            "embedded_language_formatting": {
+              "default": "auto",
+              "description": "Format the code of `<script>` and `<style>` and of `style`, `srcset` and event-handler attributes with the formatter of its language (`auto`, Prettier's `embeddedLanguageFormatting`), or keep it as written (`off`). Code that does not parse, or of a language that is not installed, is kept either way.",
+              "enum": [
+                "auto",
+                "off"
+              ],
+              "type": "string"
+            },
             "end_of_line": {
               "default": "auto",
               "description": "Line break style of the output: `lf`, `crlf`, or `auto` to keep the file's first              line break.",
@@ -7138,6 +7147,15 @@
                     "default": false,
                     "description": "Put the `>` of a multi-line start tag at the end of the last attribute's line.",
                     "type": "boolean"
+                  },
+                  "embedded_language_formatting": {
+                    "default": "auto",
+                    "description": "Format the code of `<script>` and `<style>` and of `style`, `srcset` and event-handler attributes with the formatter of its language (`auto`, Prettier's `embeddedLanguageFormatting`), or keep it as written (`off`). Code that does not parse, or of a language that is not installed, is kept either way.",
+                    "enum": [
+                      "auto",
+                      "off"
+                    ],
+                    "type": "string"
                   },
                   "end_of_line": {
                     "default": "auto",

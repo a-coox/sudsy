@@ -18,7 +18,8 @@ Prettier's printer-html is the reference (`format/model.rs` builds the nodes and
 - **Attributes:** values are double-quoted unless they hold more `"` than `'`; `class` values have their blanks collapsed; they fill the line or, when the tag is too wide, go one per line (`single_attribute_per_line`) with the `>` on its own line or at the end of the last attribute (`bracket_same_line`).
 - **Comments:** stay where they are; a comment with blanks around it is on a line of its own. `<!-- prettier-ignore -->` and `<!-- sudsy-ignore -->` keep the next node as written.
 - **Safety check:** the formatter rewrites the case of tag and attribute names and the doctype, the quotes of attribute values, the blanks of text and the form of the closing `>`; those tokens are `#restyle` and `HtmlFormatter::value` compares them without these changes. An end tag is `#transparent`: written or removed freely.
-- **Not done yet:** embedded code (`<script>`, `<style>`, `style`, `srcset` and event-handler attributes), front matter, IE conditional comments as markup, and keeping text, an inline element and text written without blanks together on one line (see the parity gaps).
+- **Embedded code** (`format/print/embed.rs`): the content of `<script>` (JS by `type` or `lang`; TS for `lang="ts"` or `application/x-typescript`; JSON for `*json`, `*importmap`, `speculationrules`; Markdown, HTML; other types are kept) and `<style>` (CSS, SCSS or Less by `lang`) is dedented, formatted by that language's formatter for the width left after the indentation, and indented again. Lines inside a template literal keep their indentation. Attribute values: `style` is a declaration list (`style="color: red; margin: 0"`, one declaration per line with a final `;` when it does not fit), event handlers (`on*`) an expression, else statements; `srcset` of `img` and `source` is a list of candidates (aligned when broken); `allow` of `iframe` a list of directives. Code that does not parse, or whose language is not installed, stays as written; `embedded_language_formatting: off` keeps all as written. The host reaches the other formatters through `FormatCtx::embed` ([../architecture/adding-a-language.md](../architecture/adding-a-language.md)). The safety check leaves these values to the formatter of their language.
+- **Not done yet:** front matter, IE conditional comments as markup, and keeping text, an inline element and text written without blanks together on one line (see the parity gaps).
 
 ## Options
 <!-- generated:options -->
@@ -29,6 +30,7 @@ Prettier's printer-html is the reference (`format/model.rs` builds the nodes and
 | `indent_style` | `space`, `tab` | `space` | Indent with spaces or tabs. |
 | `final_newline` | bool | `true` | End the file with a newline. |
 | `end_of_line` | `auto`, `lf`, `crlf` | `auto` | Line break style of the output: `lf`, `crlf`, or `auto` to keep the file's first line break. |
+| `embedded_language_formatting` | `auto`, `off` | `auto` | Format the code of `<script>` and `<style>` and of `style`, `srcset` and event-handler attributes with the formatter of its language (`auto`, Prettier's `embeddedLanguageFormatting`), or keep it as written (`off`). Code that does not parse, or of a language that is not installed, is kept either way. |
 | `whitespace_sensitivity` | `css`, `strict`, `ignore` | `css` | Whether whitespace between inline elements and text is significant: `css` follows each element's CSS display, `strict` treats every element as inline, `ignore` as block. |
 | `bracket_same_line` | bool | `false` | Put the `>` of a multi-line start tag at the end of the last attribute's line. |
 | `single_attribute_per_line` | bool | `false` | Put every attribute of a tag that has several on its own line. |
@@ -44,7 +46,7 @@ Prettier's printer-html is the reference (`format/model.rs` builds the nodes and
 | mdn/learning-area (`.html`) | 154 | 0 |
 
 ## Parity
-`scripts/parity.sh format prettier-html` compares with Prettier 3.9.10 ([../development/parity.md](../development/parity.md)); the gaps are named in `tests/parity/prettier-html/differences.yaml`. Files identical to Prettier's output: `prettier-html` 90 of 144 that Prettier formats, `prettier-vue-html` 3 of 10, `real-world` 140 of 233. Lint parity targets are the catalogs `html-validate`, `htmlhint` and `html-eslint` in `docs/parity/`; no rule is implemented yet.
+`scripts/parity.sh format prettier-html` compares with Prettier 3.9.10 ([../development/parity.md](../development/parity.md)); the gaps are named in `tests/parity/prettier-html/differences.yaml`. Files identical to Prettier's output: `prettier-html` 118 of 144 that Prettier formats, `prettier-vue-html` 10 of 10, `real-world` 197 of 233. Lint parity targets are the catalogs `html-validate`, `htmlhint` and `html-eslint` in `docs/parity/`; no rule is implemented yet.
 
 ## Licenses
 `bench/inputs/html`: the five `bootstrap-*` pages are Bootstrap 5.3.3's `js/tests/visual` (MIT, Copyright 2011-2024 The Bootstrap Authors); `mdn-accessibility-assessment.html` is from mdn/learning-area (CC0 1.0). tree-sitter-html is MIT ([LICENSE](../../grammars/tree-sitter-html/LICENSE)).

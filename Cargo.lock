@@ -441,6 +441,7 @@ dependencies = [
  "core-syntax",
  "lang-css",
  "lang-dockerfile",
+ "lang-html",
  "lang-js",
  "lang-json",
  "lang-markdown",

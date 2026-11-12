@@ -21,6 +21,31 @@ fn norm(t: &str) -> String {
     t.split_whitespace().collect::<Vec<_>>().join(" ")
 }
 
+/// The value of a `style`, `srcset` or event-handler attribute.
+fn embedded_attribute(value: &core_syntax::SyntaxToken) -> bool {
+    let name = value.parent().and_then(|p| {
+        p.children_with_tokens()
+            .find_map(|e| e.into_token().filter(|t| t.kind() == k::ATTR_NAME))
+    });
+    name.is_some_and(|n| {
+        let n = n.text().to_ascii_lowercase();
+        matches!(n.as_str(), "style" | "srcset" | "allow") || (n.len() > 2 && n.starts_with("on"))
+    })
+}
+
+/// The text of a `<script>` or `<style>`.
+fn in_script_or_style(text: &core_syntax::SyntaxToken) -> bool {
+    let element = text.parent().and_then(|c| c.parent());
+    element
+        .and_then(|e| e.first_child())
+        .and_then(|start| {
+            start
+                .children_with_tokens()
+                .find_map(|e| e.into_token().filter(|t| t.kind() == k::TAG_NAME))
+        })
+        .is_some_and(|n| matches!(n.text().to_ascii_lowercase().as_str(), "script" | "style"))
+}
+
 impl NodeFormatter for HtmlFormatter {
     /// What the formatter rewrites: tag names and the doctype in lowercase, the quotes of an
     /// attribute value, the blanks of a text, the form of the tag's closing `>`.
@@ -31,6 +56,9 @@ impl NodeFormatter for HtmlFormatter {
         let text = t.text();
         match t.kind() {
             k::TAG_NAME | k::ATTR_NAME | k::DOCTYPE_KW => Cow::Owned(text.to_ascii_lowercase()),
+            // Code the formatter may rewrite is checked by its own language's formatter.
+            k::ATTR_VALUE if embedded_attribute(t) => Cow::Borrowed(""),
+            k::TEXT | k::RAW_TEXT if in_script_or_style(t) => Cow::Borrowed(""),
             k::ATTR_VALUE => Cow::Owned(norm(
                 &text
                     .trim_matches(['"', '\''])
@@ -57,10 +85,15 @@ impl NodeFormatter for HtmlFormatter {
             "ignore" => Mode::Ignore,
             _ => Mode::Css,
         };
-        let tree = model::build(cx.grammar, node, &node.text().to_string(), mode);
+        let src = node.text().to_string();
+        let tree = model::build(cx.grammar, node, &src, mode);
+        let embed = |l: &str, m, c: &str, w, q| cx.embed(l, m, c, w, q);
+        let auto = cx.options.str(EMBEDDED_LANGUAGE_FORMATTING) == "auto";
         Ok(Some(print::block(
             &tree,
             print::Opts {
+                embed: auto.then_some(&embed),
+                width: cx.options.int("line_width") as usize,
                 tab: cx.options.int("indent_size") as usize,
                 bracket_same_line: cx.options.bool(BRACKET_SAME_LINE),
                 single_attribute_per_line: cx.options.bool(SINGLE_ATTRIBUTE_PER_LINE),

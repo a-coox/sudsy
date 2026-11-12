@@ -6,7 +6,7 @@ use crate::failure::{Failure, Stage};
 use crate::inputs::{ExtensionSet, File};
 use crate::queries::{config, source_file};
 use core_config::{FileInput, OptionValue, ResolvedOptions};
-use core_format::DirectiveTable;
+use core_format::{DirectiveTable, EmbedMode, Embedder};
 use core_rules::engine::ActiveRule;
 use core_rules::{Diagnostic, Edit, FileContext, LineIndex, activate, run_file};
 use core_syntax::SyntaxNode;
@@ -197,6 +197,21 @@ fn regions_agree(
 /// The formatted code, if its language is known and it parses; `None` also when nothing changes.
 fn format_code(db: &dyn Db, file: File, language: &str, code: &str) -> Option<String> {
     let code = code.replace("\r\n", "\n");
+    let out = format_with(db, file, language, EmbedMode::Program, &code, None, false)?;
+    (!out.is_empty() && out != code.trim_end_matches('\n')).then_some(out)
+}
+
+/// `code` formatted by the provider of `language` (`width` overrides its `line_width`), without
+/// the final line break.
+fn format_with(
+    db: &dyn Db,
+    file: File,
+    language: &str,
+    mode: EmbedMode,
+    code: &str,
+    width: Option<usize>,
+    single_quotes: bool,
+) -> Option<String> {
     let (provider, dialect) = lookup(db, language)?;
     let input = FileInput::language(provider.language())
         .with_base(provider.config_base())
@@ -206,11 +221,55 @@ fn format_code(db: &dyn Db, file: File, language: &str, code: &str) -> Option<St
         .ok()?
         .options;
     let language_version = resolve_dialect(&mut options, dialect);
-    let mut source = SourceFile::new(format!("embedded.{language}"), 1, code.clone());
-    source.language_version = language_version;
+    if let Some(w) = width {
+        options.set("line_width", OptionValue::Int(w.max(20) as i64));
+    }
+    if single_quotes {
+        if options.get("quote_style").is_some() {
+            options.set("quote_style", OptionValue::String("single".into()));
+        }
+        if options.get("single_quote").is_some() {
+            options.set("single_quote", OptionValue::Bool(true));
+        }
+    }
+    let mut source = SourceFile::new(format!("embedded.{language}"), 1, code.to_string());
+    source.language_version = if mode == EmbedMode::Program {
+        language_version
+    } else {
+        // The provider's parse and layout read the mode: the code is not a whole file.
+        options.set("embed_mode", OptionValue::String(mode.name().into()));
+        Some(mode.name().into())
+    };
     let out = format_file(provider, &source, &options, &DirectiveTable::default()).ok()?;
-    let out = out.trim_end_matches('\n');
-    (!out.is_empty() && out != code.trim_end_matches('\n')).then(|| out.to_string())
+    Some(out.trim_end_matches('\n').to_string())
+}
+
+/// The embedder a host formatter runs under: other languages' code, formatted by their
+/// providers with the config of the file.
+pub(crate) struct Engine<'a> {
+    pub db: &'a dyn Db,
+    pub file: File,
+}
+
+impl Embedder for Engine<'_> {
+    fn format(
+        &self,
+        language: &str,
+        mode: EmbedMode,
+        code: &str,
+        width: usize,
+        single_quotes: bool,
+    ) -> Option<String> {
+        format_with(
+            self.db,
+            self.file,
+            language,
+            mode,
+            code,
+            Some(width),
+            single_quotes,
+        )
+    }
 }
 
 #[cfg(test)]

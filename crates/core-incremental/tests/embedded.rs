@@ -8,6 +8,7 @@ use std::path::PathBuf;
 
 fn db(config: &str) -> Database {
     let providers: Vec<Box<dyn LanguageProvider>> = vec![
+        Box::new(lang_html::provider()),
         Box::new(lang_json::JsonProvider::new()),
         Box::new(lang_js::JsProvider::new()),
         Box::new(lang_css::CssProvider::new(lang_css::Dialect::Css)),
@@ -144,4 +145,42 @@ fn js_ts_and_css_fences_are_formatted_and_linted() {
     let on = "js:\n  lint:\n    rules:\n      no-debugger: error\n";
     let linted = found(&db(on), "a.md", "```ts\ndebugger;\n```\n");
     assert_eq!(linted, [("no-debugger".into(), "debu".into())]);
+}
+
+#[test]
+fn html_script_style_and_attributes_are_formatted_by_their_language_unless_off() {
+    let html = "<div style=\"color:red;margin:0\" onclick=\"f( 1,2 )\"></div>
+<script>
+const a = {b:1}
+</script>
+<style>
+a{color:red}
+</style>
+<script type=\"text/x\">  a  </script>
+<script>if (</script>
+";
+    let want = "<div style=\"color: red; margin: 0\" onclick=\"f(1, 2)\"></div>
+<script>
+  const a = { b: 1 };
+</script>
+<style>
+  a {
+    color: red;
+  }
+</style>
+<script type=\"text/x\">
+  a
+</script>
+<script>
+  if (
+</script>
+";
+    let once = formatted(&db(""), "a.html", html);
+    assert_eq!(once, want);
+    assert_eq!(formatted(&db(""), "a.html", &once), once);
+    let off = "html:
+  format:
+    embedded_language_formatting: off
+";
+    assert!(formatted(&db(off), "a.html", html).contains("const a = {b:1}"));
 }
