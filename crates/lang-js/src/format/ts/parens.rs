@@ -3,7 +3,6 @@
 //! formatting (`NodeFormatter::rewrite_source`), as the safety check compares the nodes.
 
 use crate::generated::kind as k;
-use core_format::comments;
 use core_syntax::{Grammar, SyntaxKind, SyntaxNode, SyntaxToken};
 
 const PLAIN: &[SyntaxKind] = &[
@@ -55,11 +54,8 @@ pub(crate) fn redundant(node: &SyntaxNode, grammar: &Grammar) -> Vec<SyntaxToken
             .collect(),
         _ => Vec::new(),
     };
-    let comment_free = tokens.iter().all(|t| {
-        comments::leading_comments(grammar, t).is_empty()
-            && comments::trailing_comments(grammar, t).is_empty()
-    });
-    if comment_free { tokens } else { Vec::new() }
+    // The comments next to a token that goes stay in the text and lead what follows.
+    tokens
 }
 
 fn parens_redundant(node: &SyntaxNode) -> bool {

@@ -85,14 +85,26 @@ pub fn format_parsed_with(
         return Err(syntax_error(&file.text, &parsed.errors));
     }
     let grammar = provider.grammar();
-    let rewritten = provider
-        .formatter()
-        .rewrite_source(&parsed.tree, &file.text, grammar, options);
-    if let Some(text) = rewritten.filter(|t| *t != file.text) {
+    // A rewrite can unlock the next (`((T))` loses one pair of parentheses per round): repeat
+    // until the text is stable, so that formatting the output changes nothing more.
+    let mut current: Option<(SourceFile, ParseResult)> = None;
+    for _ in 0..4 {
+        let (text, tree) = match &current {
+            Some((f, p)) => (&f.text, &p.tree),
+            None => (&file.text, &parsed.tree),
+        };
+        let Some(next) = provider
+            .formatter()
+            .rewrite_source(tree, text, grammar, options)
+            .filter(|t| t != text)
+        else {
+            break;
+        };
+        let prev_version = current.as_ref().map_or(file.version, |(f, _)| f.version);
         let again = SourceFile {
             id: file.id.clone(),
-            version: file.version + 1,
-            text,
+            version: prev_version + 1,
+            text: next,
             had_bom: file.had_bom,
             language_version: file.language_version.clone(),
             preprocessor_symbols: file.preprocessor_symbols.clone(),
@@ -105,7 +117,10 @@ pub fn format_parsed_with(
             ))
             .into());
         }
-        return format_checked(provider, &again, &reparsed, options, directives, embedder);
+        current = Some((again, reparsed));
+    }
+    if let Some((again, reparsed)) = &current {
+        return format_checked(provider, again, reparsed, options, directives, embedder);
     }
     format_checked(provider, file, parsed, options, directives, embedder)
 }

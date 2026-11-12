@@ -140,7 +140,7 @@ pub(crate) fn member_chain(cx: &FormatCtx<'_>, call_node: &SyntaxNode, call: &Ca
 
 fn member_chain_inner(cx: &FormatCtx<'_>, call_node: &SyntaxNode, call: &Call) -> R {
     let mut parts: Vec<Part> = Vec::new();
-    let call_doc = |n: &SyntaxNode, c: &Call| -> R {
+    let call_doc = |n: &SyntaxNode, c: &Call| -> Result<(Doc, bool), FormatError> {
         let mut v = Vec::new();
         if let Some(o) = &c.optional {
             v.push(cx.token(o));
@@ -176,16 +176,19 @@ fn member_chain_inner(cx: &FormatCtx<'_>, call_node: &SyntaxNode, call: &Call) -
             .is_some_and(|t| {
                 t.kind() == k::DOT && comments::blank_lines_before(cx.grammar, &t) > 0
             });
-        if blank && n != call_node {
+        let blank = blank && n != call_node;
+        if blank {
             v.push(hardline());
         }
-        Ok(concat(v))
+        // A blank line after a link expands the chain, like a comment does.
+        Ok((concat(v), blank))
     };
+    let (doc, blank) = call_doc(call_node, call)?;
     parts.push(Part {
         node: call_node.clone(),
         link: Link::Call,
-        doc: call_doc(call_node, call)?,
-        commented: false,
+        doc,
+        commented: blank,
     });
     let mut cur_raw = call.callee.clone();
     loop {
@@ -204,11 +207,12 @@ fn member_chain_inner(cx: &FormatCtx<'_>, call_node: &SyntaxNode, call: &Call) -
                 if !(is_member(callee_kind) || callee_kind == k::CALL_EXPRESSION) {
                     break;
                 }
+                let (doc, blank) = call_doc(&cur, &c)?;
                 parts.push(Part {
                     node: cur.clone(),
                     link: Link::Call,
-                    doc: call_doc(&cur, &c)?,
-                    commented: false,
+                    doc,
+                    commented: blank,
                 });
                 cur_raw = c.callee;
             }
