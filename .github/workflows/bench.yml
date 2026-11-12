@@ -1,0 +1,81 @@
+name: bench
+
+# Tier 1 of scripts/bench.sh (deterministic instruction and allocation counts) of one commit
+# against a baseline commit; fails on a regression. scripts/finish.sh dispatches it for a snapshot
+# of the working tree (branch bench/<slot>) and finds the run by its title (`bench <token>`);
+# ci.yml calls it for Dependabot PRs. The artifact `bench-result` holds the output and the line
+# bench.sh appended to bench/history.jsonl.
+on:
+  workflow_dispatch:
+    inputs:
+      ref: { description: "commit to bench (default: the triggering ref)", type: string, required: false, default: "" }
+      base: { description: "baseline commit", type: string, required: true }
+      args: { description: "extra bench.sh arguments", type: string, required: false, default: "" }
+      token: { description: "unique id, shown in the run title", type: string, required: false, default: "" }
+      head: { description: "commit the snapshot was taken from (history line)", type: string, required: false, default: "" }
+      dirty: { description: "1 when the bench commit has uncommitted changes on head", type: string, required: false, default: "0" }
+  workflow_call:
+    inputs:
+      ref: { description: "commit to bench (default: the triggering ref)", type: string, required: false, default: "" }
+      base: { description: "baseline commit", type: string, required: true }
+      args: { description: "extra bench.sh arguments", type: string, required: false, default: "" }
+      token: { description: "unique id, shown in the run title", type: string, required: false, default: "" }
+      head: { description: "commit the snapshot was taken from (history line)", type: string, required: false, default: "" }
+      dirty: { description: "1 when the bench commit has uncommitted changes on head", type: string, required: false, default: "0" }
+
+run-name: bench ${{ inputs.token }}
+
+concurrency:
+  group: bench-${{ inputs.token || github.run_id }}
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  bench:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ inputs.ref }}
+          fetch-depth: 0
+      - uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec # stable
+        with:
+          targets: wasm32-wasip2
+      - uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6
+        with:
+          dotnet-version: 10.0.x
+      # The bench builds both sides in its own target directories; cache them too.
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2
+        with:
+          cache-directories: |
+            target/bench/cand
+            target/bench/base
+          save-if: ${{ github.event_name != 'pull_request' }}
+      - run: sudo apt-get update && sudo apt-get install -y valgrind
+      - name: Benchmark against the base
+        env:
+          BASE: ${{ inputs.base }}
+          ARGS: ${{ inputs.args }}
+          BENCH_HEAD: ${{ inputs.head }}
+          BENCH_DIRTY: ${{ inputs.dirty }}
+        run: |
+          n=$(wc -l < bench/history.jsonl)
+          set +e
+          # shellcheck disable=SC2086
+          bash scripts/bench.sh --base "$BASE" $ARGS 2>&1 | tee bench-output.txt
+          rc=${PIPESTATUS[0]}
+          tail -n +$((n + 1)) bench/history.jsonl > bench-line.jsonl
+          exit $rc
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        if: always()
+        with:
+          name: bench-result
+          path: |
+            bench-output.txt
+            bench-line.jsonl
+          retention-days: 3
