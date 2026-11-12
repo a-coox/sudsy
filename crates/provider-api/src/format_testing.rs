@@ -53,13 +53,22 @@ impl Subject for Formatting {
     }
 
     fn rewritten(&self, input: &str) -> String {
-        let Ok(tree) = self.parse(input) else {
-            return input.to_string();
-        };
-        let formatter = self.provider.formatter();
-        formatter
-            .rewrite_source(&tree, input, self.grammar(), &self.resolved())
-            .unwrap_or_else(|| input.to_string())
+        let mut text = input.to_string();
+        for _ in 0..4 {
+            let Ok(tree) = self.parse(&text) else {
+                break;
+            };
+            match self
+                .provider
+                .formatter()
+                .rewrite_source(&tree, &text, self.grammar(), &self.resolved())
+                .filter(|t| *t != text)
+            {
+                Some(next) => text = next,
+                None => break,
+            }
+        }
+        text
     }
 }
 

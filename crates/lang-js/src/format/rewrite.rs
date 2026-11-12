@@ -27,9 +27,7 @@ pub(crate) fn rewrite(
     let mut edits: Vec<Edit> = Vec::new();
     // Comments in front of a cut token lead what follows it; ones after it would move.
     let mut cut = |tok: SyntaxToken| {
-        if comments::trailing_comments(grammar, &tok).is_empty() {
-            edits.push((usize::from(tok.text_range().start()), None));
-        }
+        edits.push((usize::from(tok.text_range().start()), None));
     };
     let semicolons = |node: &SyntaxNode| {
         node.children_with_tokens()

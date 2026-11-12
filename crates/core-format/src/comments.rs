@@ -227,12 +227,21 @@ fn trailing_cut(run: &[SyntaxElement]) -> usize {
 
 /// Does the run between `prev` and the next token belong to that next token as a whole? So it
 /// does when `prev` is tagged `#glue` (`(`, `,`: a comment after it leads what follows) and the
-/// run holds no line break, which puts the next token on the line of `prev`.
+/// run starts with a block comment on the line of `prev`.
 fn glued(g: &Grammar, prev: &SyntaxToken, run: &[SyntaxElement]) -> bool {
-    g.has_tag(prev.kind(), "glue")
-        && run
-            .iter()
-            .all(|e| !matches!(e, SyntaxElement::Token(t) if count_breaks(t.text()) > 0))
+    if !g.has_tag(prev.kind(), "glue") {
+        return false;
+    }
+    for e in run {
+        match e {
+            SyntaxElement::Token(t) if g.has_tag(t.kind(), "comment") => {
+                return t.text().starts_with("/*");
+            }
+            SyntaxElement::Token(t) if count_breaks(t.text()) > 0 => return false,
+            _ => {}
+        }
+    }
+    false
 }
 
 /// Trivia owned by `tok` that follows it on its line.

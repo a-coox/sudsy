@@ -469,7 +469,19 @@ fn empty_with_comments(cx: &FormatCtx<'_>, open: &SyntaxToken, close: &SyntaxTok
         .iter()
         .any(|c| c.kind != core_format::comments::CommentKind::Block || c.breaks_after > 0);
     if !own_lines {
-        return concat(vec![cx.token(open), cx.token(close)]);
+        // `{/* c */}`: inline comments sit tight between the brackets.
+        let inner = core_format::comments::trailing_comments(cx.grammar, open)
+            .into_iter()
+            .chain(inside)
+            .map(|c| core_format::context::comment_doc(&c))
+            .collect::<Vec<_>>();
+        return concat(vec![
+            cx.leading_comments_doc(open),
+            cx.token_text(open),
+            core_format::doc::join(&lit(" "), inner),
+            cx.token_text(close),
+            cx.trailing_comments_doc(close),
+        ]);
     }
     concat(vec![
         cx.token(open),
