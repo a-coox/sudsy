@@ -15,7 +15,6 @@ params: { check: duplicate-custom-properties }
 message: "the custom property `{name}` is declared again"
 description: A custom property declared twice in one block (names are case sensitive); the repeat is reported.
 example: "a { --x: 1; --x: 2 }   # the second --x is reported"
-severity: off
 category: suspicious
 ---
 id: no-duplicate-selectors
@@ -33,7 +32,6 @@ params: { check: duplicate-keyframe-selectors }
 message: "the keyframe selector `{name}` is already used"
 description: The same selector twice in one `@keyframes` rule (compared in lowercase).
 example: "@keyframes k { from {} FROM {} }   # reported"
-severity: off
 category: suspicious
 ---
 id: no-duplicate-at-import-rules
@@ -60,5 +58,4 @@ params: { check: shorthand-overrides }
 message: "the shorthand overrides `{name}`, declared before it"
 description: A shorthand property declared after one of its longhands in the same block.
 example: "a { margin-top: 1px; margin: 0 }   # reported"
-severity: off
 category: suspicious

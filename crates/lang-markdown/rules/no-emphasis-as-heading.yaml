@@ -4,7 +4,7 @@ description: >-
   A one-line paragraph that is only emphasized text without closing punctuation (markdownlint
   MD036); use a heading.
 example: '**Overview**   # ## Overview'
-severity: warn
+severity: off
 category: style
 rule:
   kind: Inline

@@ -2,7 +2,6 @@ id: no-debugger
 message: "Unexpected 'debugger' statement."
 description: A `debugger` statement.
 example: "debugger;   # reported"
-severity: off
 category: suspicious
 rule: { kind: DebuggerStatement }
 ---
@@ -10,7 +9,7 @@ id: no-with
 message: "Unexpected use of 'with' statement."
 description: A `with` statement.
 example: "with (a) { b }   # reported"
-severity: off
+severity: error
 category: suspicious
 rule: { kind: WithStatement }
 ---
@@ -18,7 +17,7 @@ id: no-delete-var
 message: "Variables should not be deleted."
 description: "`delete` applied to a variable name."
 example: "delete x;   # reported"
-severity: off
+severity: error
 category: suspicious
 rule:
   kind: UnaryExpression
@@ -32,7 +31,7 @@ id: no-octal
 message: "Octal literals should not be used."
 description: A number that starts with `0` and another digit (`017`, `08`).
 example: "var n = 017;   # reported"
-severity: off
+severity: error
 category: suspicious
 rule: { kind: NumericLiteral, regex: '^0[0-9]' }
 ---
@@ -40,7 +39,6 @@ id: no-empty-pattern
 message: "Unexpected empty pattern."
 description: A destructuring pattern with nothing in it (`{}`, `[]`).
 example: "var {} = x;   # reported"
-severity: off
 category: suspicious
 rule:
   any:
@@ -53,7 +51,6 @@ id: no-sparse-arrays
 message: "Unexpected comma in middle of array."
 description: A hole in an array literal (`[1, , 2]`), reported at its comma.
 example: "var a = [1, , 2];   # the second comma is reported"
-severity: off
 category: suspicious
 rule: { kind: Elision, parent: { kind: ArrayExpression } }
 ---
@@ -73,7 +70,6 @@ id: no-async-promise-executor
 message: "Promise executor functions should not be async."
 description: "`new Promise(async ...)`: an error thrown in the executor is lost."
 example: "new Promise(async (resolve) => resolve());   # reported"
-severity: off
 category: suspicious
 rule:
   any:
@@ -87,7 +83,7 @@ id: no-unsafe-negation
 message: "Unexpected negating the left operand of an `in` or `instanceof` operator."
 description: "`!a in b` and `!a instanceof B` negate `a`, not the test."
 example: "if (!a in b) {}   # reported"
-severity: off
+severity: error
 category: suspicious
 rule:
   any:
@@ -98,7 +94,6 @@ id: no-compare-neg-zero
 message: "Do not compare against -0."
 description: "`x === -0` is true for `0` too; use `Object.is(x, -0)`."
 example: "if (x === -0) {}   # reported"
-severity: off
 category: suspicious
 rule:
   kind: BinaryExpression
@@ -124,7 +119,7 @@ id: no-shadow-restricted-names
 message: "Shadowing of a restricted global name."
 description: "A variable, function, parameter or class named `NaN`, `Infinity`, `undefined`, `eval` or `arguments` (`var undefined;` without a value is left alone)."
 example: "var NaN;   # reported"
-severity: off
+severity: error
 category: suspicious
 rule:
   kind: BindingIdentifier

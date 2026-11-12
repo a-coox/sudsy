@@ -4,7 +4,7 @@ description: >-
   Raw HTML in a document (markdownlint MD033). Comments are not reported. Reported once per HTML
   block, not per tag.
 example: '<b>bold</b>   # **bold**'
-severity: warn
+severity: off
 category: style
 rule:
   kind: Html

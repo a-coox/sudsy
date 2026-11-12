@@ -85,7 +85,7 @@ rule! {
     pub UntaggedBaseImage {
         id: "untagged-base-image",
         category: Suspicious,
-        default: Warn,
+        default: Off,
         description: "A FROM image with neither a tag nor a digest, which builds on whatever `latest` is. \
                   `scratch`, a variable and an earlier stage's name are fine.",
         example: "FROM alpine   # FROM alpine:3.20",

@@ -4,7 +4,7 @@ description: >-
   A heading that ends with `.`, `,`, `;`, `:` or `!` (or the full-width forms) reads as a
   sentence, not a title (markdownlint MD026). `?` is allowed.
 example: '# Introduction.   # Introduction'
-severity: warn
+severity: off
 category: style
 rule:
   kind: Heading

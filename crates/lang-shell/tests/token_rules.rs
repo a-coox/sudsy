@@ -16,7 +16,14 @@ fn reports_the_matching_tokens_of_a_node() {
     let ext = pattern_rules(&p, RULE);
     // `cat` is the skipped name, `$a` is excluded by not-regex, `cz` has no `$` in its command.
     let text = "cat $a cx cy\ncat cz\n";
-    let found = lint_with(&p, &ext, "a.sh", text, "t/words: warn");
+    let found = lint_with(
+        &p,
+        &ext,
+        "a.sh",
+        text,
+        "t/words: warn
+quote-variable: off",
+    );
     let words: Vec<&str> = found
         .iter()
         .map(|d| &text[usize::from(d.range.start())..usize::from(d.range.end())])

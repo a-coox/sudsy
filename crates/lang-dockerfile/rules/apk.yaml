@@ -5,7 +5,7 @@ message: 'pin the versions in apk add: pkg=version'
 description: >-
   An apk add package without a version.
 example: 'RUN apk add curl'
-severity: warn
+severity: off
 category: suspicious
 ---
 id: apk-no-cache

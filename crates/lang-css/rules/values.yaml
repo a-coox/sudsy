@@ -42,7 +42,6 @@ params: { check: nth-unmatchable }
 message: "`:nth-*({name})` matches nothing"
 description: "An `:nth-child()` and the like whose `An+B` can never match (`0`, `0n`, `-n`, `-2n-1`)."
 example: "a:nth-child(0n+0) {}   # reported"
-severity: off
 category: correctness
 ---
 id: no-descending-specificity
@@ -60,7 +59,6 @@ params: { check: declaration-position }
 message: "a declaration is not valid here"
 description: A declaration at the top of a file, or in an at-rule such as `@media` that is not inside a rule.
 example: "color: red;   # reported"
-severity: off
 category: correctness
 ---
 id: custom-property-no-missing-var-function

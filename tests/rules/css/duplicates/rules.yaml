@@ -5,3 +5,4 @@ no-duplicate-selectors: warn
 keyframe-block-no-duplicate-selectors: warn
 no-duplicate-at-import-rules: warn
 no-invalid-position-at-import-rule: warn
+property-no-unknown: off

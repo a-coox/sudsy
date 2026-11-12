@@ -3,7 +3,7 @@ message: the link text does not describe the destination
 description: >-
   Link text that is `click here`, `here`, `link` or `more` (markdownlint MD059).
 example: '[here](https://example.com/guide)   # [the guide](https://example.com/guide)'
-severity: warn
+severity: off
 category: style
 rule:
   kind: Link

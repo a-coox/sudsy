@@ -4,7 +4,7 @@ description: >-
   A URL that is neither a link nor an autolink (markdownlint MD034), found when it follows a
   space or starts the paragraph. Reported on the paragraph.
 example: 'See https://example.com   # See <https://example.com>'
-severity: warn
+severity: off
 category: style
 rule:
   kind: Inline

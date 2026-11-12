@@ -5,7 +5,7 @@ message: 'do not use sudo; run as root during the build or use a tool like gosu'
 description: >-
   A RUN that calls sudo.
 example: 'RUN sudo make install'
-severity: error
+severity: off
 category: correctness
 ---
 id: use-workdir-not-cd
@@ -15,7 +15,7 @@ message: 'use WORKDIR to switch to a directory, not cd in RUN'
 description: >-
   A RUN that calls cd.
 example: 'RUN cd /app && make'
-severity: warn
+severity: off
 category: style
 ---
 id: no-interactive-commands
@@ -35,7 +35,7 @@ message: 'apt is an end-user tool; use apt-get or apt-cache'
 description: >-
   A RUN that calls apt.
 example: 'RUN apt install curl'
-severity: warn
+severity: off
 category: suspicious
 ---
 id: no-shell-symlink
@@ -45,7 +45,7 @@ message: 'use SHELL to change the default shell, not a symlink to /bin/sh'
 description: >-
   A RUN that links /bin/sh.
 example: 'RUN ln -sf /bin/bash /bin/sh'
-severity: warn
+severity: off
 category: suspicious
 ---
 id: wget-progress

@@ -3,7 +3,7 @@ message: 'WORKDIR should be an absolute path'
 description: >-
   A WORKDIR whose path is not absolute (a leading `/`, a drive letter or a variable).
 example: 'WORKDIR app'
-severity: error
+severity: off
 category: correctness
 rule:
   kind: Instruction
@@ -15,7 +15,7 @@ message: 'pin the base image to a release tag, not latest'
 description: >-
   A FROM image tagged `latest` (without a digest).
 example: 'FROM alpine:latest'
-severity: warn
+severity: off
 category: suspicious
 rule:
   kind: Instruction
@@ -49,7 +49,7 @@ message: 'do not set --platform on FROM'
 description: >-
   A FROM with a fixed `--platform`; a variable such as `$BUILDPLATFORM` is fine.
 example: 'FROM --platform=linux/amd64 alpine:3'
-severity: warn
+severity: off
 category: suspicious
 rule:
   kind: Instruction
@@ -61,7 +61,7 @@ message: 'the target platform is the default platform of FROM; drop the option'
 description: >-
   A FROM with `--platform=$TARGETPLATFORM`, which is what it does without the option.
 example: 'FROM --platform=$TARGETPLATFORM alpine:3'
-severity: warn
+severity: off
 category: cleanup
 rule:
   kind: Instruction
@@ -95,7 +95,6 @@ message: 'MAINTAINER is deprecated; use LABEL maintainer=...'
 description: >-
   A MAINTAINER instruction.
 example: 'MAINTAINER a@b.c'
-severity: error
 category: cleanup
 rule:
   kind: Instruction
@@ -106,7 +105,7 @@ message: 'do not copy an entire filesystem from another stage'
 description: >-
   A `COPY --from` with `/` as a source and as the target.
 example: 'COPY --from=build / /'
-severity: warn
+severity: off
 category: suspicious
 rule:
   kind: Instruction
@@ -118,7 +117,7 @@ description: >-
   An ADD with no URL and no archive (`.tar`, `.gz`, `.tgz`, `.xz` and the like) among its arguments,
   which ADD would extract or download.
 example: 'ADD app.js /app/'
-severity: error
+severity: off
 category: suspicious
 rule:
   kind: Instruction

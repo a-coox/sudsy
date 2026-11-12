@@ -2,7 +2,7 @@ id: empty-section
 message: the section has no settings
 description: A `[section]` header with nothing under it, usually left behind by a removed setting. Comments do not count as settings.
 example: "[core]\n[user]   # reported: no settings\nname = x"
-severity: warn
+severity: off
 category: suspicious
 rule:
   kind: Section

@@ -1,4 +1,4 @@
-//! Opt-in rules on plain values: `no-empty-values`, `float-style` and `no-octal-values`.
+//! Rules on plain values: `no-empty-values`, `float-style` (opt-in) and `no-octal-values`.
 
 use crate::generated::{BlockMappingEntry, BlockSequenceEntry, FlowPair, Scalar, kind};
 use crate::rules::has_tag;

@@ -2,3 +2,4 @@ unique-targets:
   level: warn
   options:
     ignore: [d]
+phony-declared: warn

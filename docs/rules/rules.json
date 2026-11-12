@@ -810,7 +810,7 @@
     },
     {
       "category": "suspicious",
-      "default_level": "off",
+      "default_level": "error",
       "description": "A getter that does not return a value on every path, or has a `return;`.",
       "example": {
         "config": null,
@@ -853,7 +853,7 @@
     },
     {
       "category": "suspicious",
-      "default_level": "off",
+      "default_level": "warn",
       "description": "`new Promise(async ...)`: an error thrown in the executor is lost.",
       "example": {
         "config": null,
@@ -929,7 +929,7 @@
     },
     {
       "category": "suspicious",
-      "default_level": "off",
+      "default_level": "error",
       "description": "A class declared by name that is assigned to.",
       "example": {
         "config": null,
@@ -967,7 +967,7 @@
     },
     {
       "category": "suspicious",
-      "default_level": "off",
+      "default_level": "warn",
       "description": "`x === -0` is true for `0` too; use `Object.is(x, -0)`.",
       "example": {
         "config": null,
@@ -1048,7 +1048,7 @@
     },
     {
       "category": "suspicious",
-      "default_level": "off",
+      "default_level": "error",
       "description": "A `const` variable that is assigned to again (the initializer is not).",
       "example": {
         "config": null,
@@ -1101,7 +1101,7 @@
     },
     {
       "category": "suspicious",
-      "default_level": "off",
+      "default_level": "warn",
       "description": "A `debugger` statement.",
       "example": {
         "config": null,
@@ -1129,7 +1129,7 @@
     },
     {
       "category": "suspicious",
-      "default_level": "off",
+      "default_level": "error",
       "description": "`delete` applied to a variable name.",
       "example": {
         "config": null,
@@ -1162,7 +1162,7 @@
     },
     {
       "category": "suspicious",
-      "default_level": "off",
+      "default_level": "error",
       "description": "A class member declared twice (a getter and a setter may share one, a static and an instance member may not clash).",
       "example": {
         "config": null,
@@ -1200,7 +1200,7 @@
     },
     {
       "category": "suspicious",
-      "default_level": "off",
+      "default_level": "warn",
       "description": "An `else if` condition that an earlier condition of the chain already covers.",
       "example": {
         "config": null,
@@ -1243,7 +1243,7 @@
     },
     {
       "category": "suspicious",
-      "default_level": "off",
+      "default_level": "warn",
       "description": "A key that appears twice in one object literal (a getter and a setter may share one).",
       "example": {
         "config": null,
@@ -1301,7 +1301,7 @@
     },
     {
       "category": "suspicious",
-      "default_level": "off",
+      "default_level": "warn",
       "description": "Two `case` clauses of one `switch` with the same test.",
       "example": {
         "config": null,
@@ -1382,7 +1382,7 @@
     },
     {
       "category": "suspicious",
-      "default_level": "off",
+      "default_level": "warn",
       "description": "`[]` in a regex literal, which matches nothing.",
       "example": {
         "config": null,
@@ -1453,7 +1453,7 @@
     },
     {
       "category": "suspicious",
-      "default_level": "off",
+      "default_level": "warn",
       "description": "A destructuring pattern with nothing in it (`{}`, `[]`).",
       "example": {
         "config": null,
@@ -1635,7 +1635,7 @@
     },
     {
       "category": "suspicious",
-      "default_level": "off",
+      "default_level": "warn",
       "description": "A function declared by name that is assigned to.",
       "example": {
         "config": null,
@@ -1668,7 +1668,7 @@
     },
     {
       "category": "suspicious",
-      "default_level": "off",
+      "default_level": "error",
       "description": "An imported binding that is assigned to, and the members of a namespace import (`import * as ns`) that are assigned to, deleted or passed to `Object.assign` and the like.",
       "example": {
         "config": null,
@@ -1752,7 +1752,7 @@
     },
     {
       "category": "suspicious",
-      "default_level": "off",
+      "default_level": "warn",
       "description": "A no-break space, zero-width space or other unusual whitespace character outside a string.",
       "example": {
         "config": null,
@@ -1800,7 +1800,7 @@
     },
     {
       "category": "suspicious",
-      "default_level": "off",
+      "default_level": "warn",
       "description": "A number literal that the double it becomes cannot represent exactly.",
       "example": {
         "config": null,
@@ -1843,7 +1843,7 @@
     },
     {
       "category": "suspicious",
-      "default_level": "off",
+      "default_level": "error",
       "description": "A class method `new(): C` that returns the class, an interface `new (): I` that returns the interface, and an interface method `constructor()`.",
       "example": {
         "config": null,
@@ -1975,7 +1975,7 @@
     },
     {
       "category": "suspicious",
-      "default_level": "off",
+      "default_level": "error",
       "description": "A number that starts with `0` and another digit (`017`, `08`).",
       "example": {
         "config": null,
@@ -2089,7 +2089,7 @@
     },
     {
       "category": "suspicious",
-      "default_level": "off",
+      "default_level": "warn",
       "description": "Two or more spaces in a regex literal or in the string of `new RegExp(...)`, outside a character class.",
       "example": {
         "config": null,
@@ -2165,7 +2165,7 @@
     },
     {
       "category": "suspicious",
-      "default_level": "off",
+      "default_level": "warn",
       "description": "`a = a`, `a.b = a.b`, `[a, b] = [a, b]`.",
       "example": {
         "config": null,
@@ -2304,7 +2304,7 @@
     },
     {
       "category": "suspicious",
-      "default_level": "off",
+      "default_level": "error",
       "description": "A variable, function, parameter or class named `NaN`, `Infinity`, `undefined`, `eval` or `arguments` (`var undefined;` without a value is left alone).",
       "example": {
         "config": null,
@@ -2347,7 +2347,7 @@
     },
     {
       "category": "suspicious",
-      "default_level": "off",
+      "default_level": "warn",
       "description": "A hole in an array literal (`[1, , 2]`), reported at its comma.",
       "example": {
         "config": null,
@@ -2468,7 +2468,7 @@
     },
     {
       "category": "suspicious",
-      "default_level": "off",
+      "default_level": "warn",
       "description": "A statement after `return`, `throw`, `break`, `continue`, an `if`/`else` or `try` that always jumps, or a loop that never ends. Function declarations and `var` without a value are not reported.",
       "example": {
         "config": null,
@@ -2541,7 +2541,7 @@
     },
     {
       "category": "suspicious",
-      "default_level": "off",
+      "default_level": "warn",
       "description": "`return`, `throw`, and a `break` or `continue` that leaves the block, in a `finally` block: they override the `try`'s own outcome.",
       "example": {
         "config": null,
@@ -2584,7 +2584,7 @@
     },
     {
       "category": "suspicious",
-      "default_level": "off",
+      "default_level": "error",
       "description": "`!a in b` and `!a instanceof B` negate `a`, not the test.",
       "example": {
         "config": null,
@@ -2763,7 +2763,7 @@
     },
     {
       "category": "suspicious",
-      "default_level": "off",
+      "default_level": "error",
       "description": "A `with` statement.",
       "example": {
         "config": null,
@@ -2839,7 +2839,7 @@
     },
     {
       "category": "suspicious",
-      "default_level": "off",
+      "default_level": "error",
       "description": "A generator function with a body and no `yield`.",
       "example": {
         "config": null,
@@ -2915,7 +2915,7 @@
     },
     {
       "category": "suspicious",
-      "default_level": "off",
+      "default_level": "error",
       "description": "A comparison with `NaN`, or `NaN` as the discriminant or a case test of a `switch`; use `Number.isNaN`.",
       "example": {
         "config": null,
@@ -2963,7 +2963,7 @@
     },
     {
       "category": "suspicious",
-      "default_level": "off",
+      "default_level": "error",
       "description": "`typeof x` compared with a string that is not a type name, or with `undefined`.",
       "example": {
         "config": null,
@@ -3666,7 +3666,7 @@
     },
     {
       "category": "suspicious",
-      "default_level": "off",
+      "default_level": "warn",
       "description": "A custom property declared twice in one block (names are case sensitive); the repeat is reported.",
       "example": {
         "config": null,
@@ -3749,7 +3749,7 @@
     },
     {
       "category": "suspicious",
-      "default_level": "off",
+      "default_level": "warn",
       "description": "A shorthand property declared after one of its longhands in the same block.",
       "example": {
         "config": null,
@@ -4145,7 +4145,7 @@
     },
     {
       "category": "correctness",
-      "default_level": "off",
+      "default_level": "warn",
       "description": "A `linear-gradient()` that starts with a side (`top`) instead of `to top` or an angle.",
       "example": {
         "config": null,
@@ -4353,7 +4353,7 @@
     },
     {
       "category": "suspicious",
-      "default_level": "off",
+      "default_level": "warn",
       "description": "The same selector twice in one `@keyframes` rule (compared in lowercase).",
       "example": {
         "config": null,
@@ -4391,7 +4391,7 @@
     },
     {
       "category": "correctness",
-      "default_level": "off",
+      "default_level": "warn",
       "description": "`!important` in a declaration of a `@keyframes` rule: the declaration is ignored.",
       "example": {
         "config": null,
@@ -5065,7 +5065,7 @@
     },
     {
       "category": "correctness",
-      "default_level": "off",
+      "default_level": "warn",
       "description": "A rule or declaration that starts with `//`: CSS has no line comments, so the text swallows the statement.",
       "example": {
         "config": null,
@@ -5141,7 +5141,7 @@
     },
     {
       "category": "correctness",
-      "default_level": "off",
+      "default_level": "warn",
       "description": "A declaration at the top of a file, or in an at-rule such as `@media` that is not inside a rule.",
       "example": {
         "config": null,
@@ -5381,7 +5381,7 @@
     },
     {
       "category": "correctness",
-      "default_level": "off",
+      "default_level": "warn",
       "description": "A property that no CSS specification lists. Vendor-prefixed and custom properties, descriptors of `@font-face` and the like, and names with interpolation or SCSS and Less variables are left out.",
       "example": {
         "config": null,
@@ -5476,7 +5476,7 @@
     },
     {
       "category": "correctness",
-      "default_level": "off",
+      "default_level": "warn",
       "description": "An `:nth-child()` and the like whose `An+B` can never match (`0`, `0n`, `-n`, `-2n-1`).",
       "example": {
         "config": null,
@@ -7500,7 +7500,7 @@
     },
     {
       "category": "suspicious",
-      "default_level": "off",
+      "default_level": "warn",
       "description": "An anchor name is defined again in the same document; an alias refers to the latest definition above it, which is easy to misread.",
       "example": {
         "config": null,
@@ -7522,7 +7522,9 @@
         "yaml"
       ],
       "options": [],
-      "presets": [],
+      "presets": [
+        "yaml/yamllint"
+      ],
       "upstream": [
         {
           "id": "anchors.forbid-duplicated-anchors",
@@ -7675,7 +7677,7 @@
     },
     {
       "category": "suspicious",
-      "default_level": "off",
+      "default_level": "warn",
       "description": "A plain `0755` (octal to YAML 1.1 parsers, decimal 755 to YAML 1.2) or `0o755` (octal to YAML 1.2, a string to YAML 1.1). Quoted and tagged scalars are not checked. No fix: the intended value is not known.",
       "example": {
         "config": null,
@@ -7710,7 +7712,9 @@
           "type": "bool"
         }
       ],
-      "presets": [],
+      "presets": [
+        "yaml/yamllint"
+      ],
       "upstream": [
         {
           "id": "octal-values",
@@ -8005,7 +8009,7 @@
     },
     {
       "category": "suspicious",
-      "default_level": "warn",
+      "default_level": "off",
       "description": "An apk add package without a version.",
       "example": {
         "config": null,
@@ -8086,7 +8090,7 @@
     },
     {
       "category": "suspicious",
-      "default_level": "warn",
+      "default_level": "off",
       "description": "An apt-get install package without a version.",
       "example": {
         "config": null,
@@ -8213,7 +8217,7 @@
     },
     {
       "category": "suspicious",
-      "default_level": "error",
+      "default_level": "off",
       "description": "An ADD with no URL and no archive (`.tar`, `.gz`, `.tgz`, `.xz` and the like) among its arguments, which ADD would extract or download.",
       "example": {
         "config": null,
@@ -8269,7 +8273,7 @@
     },
     {
       "category": "performance",
-      "default_level": "warn",
+      "default_level": "off",
       "description": "dnf install with no dnf clean all after it.",
       "example": {
         "config": null,
@@ -8419,7 +8423,7 @@
     },
     {
       "category": "suspicious",
-      "default_level": "warn",
+      "default_level": "off",
       "description": "A gem install gem without a version.",
       "example": {
         "config": null,
@@ -8447,7 +8451,7 @@
     },
     {
       "category": "suspicious",
-      "default_level": "warn",
+      "default_level": "off",
       "description": "A go install or get package without a version (or at latest).",
       "example": {
         "config": null,
@@ -8546,7 +8550,7 @@
     },
     {
       "category": "suspicious",
-      "default_level": "warn",
+      "default_level": "off",
       "description": "A RUN that calls apt.",
       "example": {
         "config": null,
@@ -8574,7 +8578,7 @@
     },
     {
       "category": "suspicious",
-      "default_level": "warn",
+      "default_level": "off",
       "description": "A `COPY --from` with `/` as a source and as the target.",
       "example": {
         "config": null,
@@ -8602,7 +8606,7 @@
     },
     {
       "category": "suspicious",
-      "default_level": "warn",
+      "default_level": "off",
       "description": "A FROM with a fixed `--platform`; a variable such as `$BUILDPLATFORM` is fine.",
       "example": {
         "config": null,
@@ -8658,7 +8662,7 @@
     },
     {
       "category": "suspicious",
-      "default_level": "warn",
+      "default_level": "off",
       "description": "A FROM image tagged `latest` (without a digest).",
       "example": {
         "config": null,
@@ -8686,7 +8690,7 @@
     },
     {
       "category": "cleanup",
-      "default_level": "error",
+      "default_level": "warn",
       "description": "A MAINTAINER instruction.",
       "example": {
         "config": null,
@@ -8742,7 +8746,7 @@
     },
     {
       "category": "cleanup",
-      "default_level": "warn",
+      "default_level": "off",
       "description": "A FROM with `--platform=$TARGETPLATFORM`, which is what it does without the option.",
       "example": {
         "config": null,
@@ -8841,7 +8845,7 @@
     },
     {
       "category": "suspicious",
-      "default_level": "warn",
+      "default_level": "off",
       "description": "A RUN that links /bin/sh.",
       "example": {
         "config": null,
@@ -8869,7 +8873,7 @@
     },
     {
       "category": "correctness",
-      "default_level": "error",
+      "default_level": "off",
       "description": "A RUN that calls sudo.",
       "example": {
         "config": null,
@@ -8917,7 +8921,7 @@
     },
     {
       "category": "suspicious",
-      "default_level": "warn",
+      "default_level": "off",
       "description": "An npm install package without a version.",
       "example": {
         "config": null,
@@ -8973,7 +8977,7 @@
     },
     {
       "category": "suspicious",
-      "default_level": "warn",
+      "default_level": "off",
       "description": "A pip install package without a version.",
       "example": {
         "config": null,
@@ -9006,7 +9010,7 @@
     },
     {
       "category": "suspicious",
-      "default_level": "warn",
+      "default_level": "off",
       "description": "A yum or dnf install package without a version.",
       "example": {
         "config": null,
@@ -9072,7 +9076,7 @@
     },
     {
       "category": "suspicious",
-      "default_level": "error",
+      "default_level": "warn",
       "description": "A second ENTRYPOINT in one stage.",
       "example": {
         "config": null,
@@ -9100,7 +9104,7 @@
     },
     {
       "category": "suspicious",
-      "default_level": "error",
+      "default_level": "warn",
       "description": "A second HEALTHCHECK in one stage.",
       "example": {
         "config": null,
@@ -9128,7 +9132,7 @@
     },
     {
       "category": "suspicious",
-      "default_level": "warn",
+      "default_level": "off",
       "description": "A FROM image with neither a tag nor a digest, which builds on whatever `latest` is. `scratch`, a variable and an earlier stage's name are fine.",
       "example": {
         "config": null,
@@ -9156,7 +9160,7 @@
     },
     {
       "category": "style",
-      "default_level": "warn",
+      "default_level": "off",
       "description": "A RUN that calls cd.",
       "example": {
         "config": null,
@@ -9217,7 +9221,7 @@
     },
     {
       "category": "correctness",
-      "default_level": "error",
+      "default_level": "off",
       "description": "A WORKDIR whose path is not absolute (a leading `/`, a drive letter or a variable).",
       "example": {
         "config": null,
@@ -9245,7 +9249,7 @@
     },
     {
       "category": "performance",
-      "default_level": "warn",
+      "default_level": "off",
       "description": "yum install with no yum clean all after it.",
       "example": {
         "config": null,
@@ -9301,7 +9305,7 @@
     },
     {
       "category": "performance",
-      "default_level": "warn",
+      "default_level": "off",
       "description": "zypper install with no zypper clean after it.",
       "example": {
         "config": null,
@@ -9334,7 +9338,7 @@
     },
     {
       "category": "suspicious",
-      "default_level": "warn",
+      "default_level": "off",
       "description": "A zypper dist-upgrade.",
       "example": {
         "config": null,
@@ -9362,7 +9366,7 @@
     },
     {
       "category": "suspicious",
-      "default_level": "warn",
+      "default_level": "off",
       "description": "A zypper install package without a version.",
       "example": {
         "config": null,
@@ -9666,7 +9670,7 @@
     },
     {
       "category": "suspicious",
-      "default_level": "warn",
+      "default_level": "off",
       "description": "The same pattern appears twice with no opposite pattern (`!x` for `x`) in between, so the second one changes nothing.",
       "example": {
         "config": null,
@@ -9697,7 +9701,7 @@
     },
     {
       "category": "suspicious",
-      "default_level": "warn",
+      "default_level": "off",
       "description": "A name pattern such as `foo` already matches files and directories called `foo` at every level, so a later `foo/` or `/foo` adds nothing (no `!` pattern in between).",
       "example": {
         "config": null,
@@ -9723,7 +9727,7 @@
     },
     {
       "category": "style",
-      "default_level": "warn",
+      "default_level": "off",
       "description": "A name does not follow the style set for what it names: operations, fragments, variables, fields, arguments, types, enum values and directives. `PascalCase` and `camelCase` allow letters and digits only, `snake_case` and `UPPER_CASE` forbid the other case; leading underscores are ignored. No fix: renaming changes the schema or the queries that use it. Equivalent: graphql-eslint naming-convention (styles only, no prefix or suffix lists).",
       "example": {
         "config": null,
@@ -9895,7 +9899,7 @@
     },
     {
       "category": "suspicious",
-      "default_level": "warn",
+      "default_level": "off",
       "description": "An operation without a name (`{ a }`, `query { a }`), which tools that log, trace or cache by operation name cannot tell apart. Equivalent - graphql-eslint no-anonymous-operations.",
       "example": {
         "config": null,
@@ -9931,7 +9935,7 @@
     },
     {
       "category": "style",
-      "default_level": "warn",
+      "default_level": "off",
       "description": "A field of an object or interface type starts with the name of the type (`type User { userId: ID }`); the type already says it (case ignored). No fix: renaming a field changes the schema.",
       "example": {
         "config": null,
@@ -10641,7 +10645,7 @@
     },
     {
       "category": "correctness",
-      "default_level": "off",
+      "default_level": "warn",
       "description": "An attribute that is limited to a list of values (`type` of `<button>`, `method` of `<form>`, ...) has another one.",
       "example": {
         "config": null,
@@ -10776,7 +10780,7 @@
     },
     {
       "category": "correctness",
-      "default_level": "off",
+      "default_level": "warn",
       "description": "An element that HTML5 no longer has (`<center>`, `<font>`, `<marquee>`, ...).",
       "example": {
         "config": null,
@@ -10806,7 +10810,7 @@
     },
     {
       "category": "correctness",
-      "default_level": "off",
+      "default_level": "warn",
       "description": "A doctype other than `html` puts the browser in quirks or limited-quirks mode.",
       "example": {
         "config": null,
@@ -11001,7 +11005,7 @@
     },
     {
       "category": "correctness",
-      "default_level": "off",
+      "default_level": "warn",
       "description": "The `<title>` names the page in the browser tab, search results and screen readers; whitespace is not text.",
       "example": {
         "config": null,
@@ -11167,7 +11171,7 @@
     },
     {
       "category": "correctness",
-      "default_level": "off",
+      "default_level": "warn",
       "description": "A `<map>` whose `name` an earlier `<map>` already has: `usemap` finds the first.",
       "example": {
         "config": null,
@@ -11320,7 +11324,7 @@
     },
     {
       "category": "correctness",
-      "default_level": "off",
+      "default_level": "warn",
       "description": "Abstract roles (`widget`, `landmark`, `command`, ...) are for the ARIA taxonomy, not for authors.",
       "example": {
         "config": null,
@@ -11410,7 +11414,7 @@
     },
     {
       "category": "correctness",
-      "default_level": "off",
+      "default_level": "warn",
       "description": "An attribute that HTML5 no longer has on that element (`align`, `bgcolor`, `border`, ...).",
       "example": {
         "config": null,
@@ -11470,7 +11474,7 @@
     },
     {
       "category": "correctness",
-      "default_level": "off",
+      "default_level": "warn",
       "description": "An `id` that an earlier element of the document already has. Ids must be unique: scripts, links and labels find the first element only. Empty ids are left alone.",
       "example": {
         "config": null,
@@ -11620,7 +11624,7 @@
     },
     {
       "category": "correctness",
-      "default_level": "off",
+      "default_level": "warn",
       "description": "An attribute that refers to an `id` (`for`, `aria-labelledby`, `list`, `headers`, `form`, ...) names an id that no element of the document has.",
       "example": {
         "config": null,
@@ -11648,12 +11652,14 @@
         "vue"
       ],
       "options": [],
-      "presets": [],
+      "presets": [
+        "html/html-validate-standard"
+      ],
       "upstream": []
     },
     {
       "category": "correctness",
-      "default_level": "off",
+      "default_level": "warn",
       "description": "A second `<main>` element that is not `hidden`: a page has one main landmark.",
       "example": {
         "config": null,
@@ -11879,7 +11885,7 @@
     },
     {
       "category": "correctness",
-      "default_level": "off",
+      "default_level": "warn",
       "description": "A void element (`<br>`, `<img>`, ...) has no content and no end tag; the browser ignores `</br>`.",
       "example": {
         "config": null,
@@ -12195,7 +12201,7 @@
     },
     {
       "category": "correctness",
-      "default_level": "off",
+      "default_level": "warn",
       "description": "A named character reference in text (`&name;`) that HTML does not define. Numeric references and references in attribute values are not checked.",
       "example": {
         "config": null,
@@ -12295,7 +12301,7 @@
     },
     {
       "category": "suspicious",
-      "default_level": "warn",
+      "default_level": "off",
       "description": "A `[section]` header with nothing under it, usually left behind by a removed setting. Comments do not count as settings.",
       "example": {
         "config": null,
@@ -12400,7 +12406,7 @@
     },
     {
       "category": "suspicious",
-      "default_level": "warn",
+      "default_level": "off",
       "description": "A target with no recipe that is not declared `.PHONY` (checkmake `phonydeclared`); targets that start with a `.` are special and skipped.",
       "example": {
         "config": null,
@@ -12486,7 +12492,7 @@
     },
     {
       "category": "suspicious",
-      "default_level": "warn",
+      "default_level": "off",
       "description": "A target defined by more than one rule, which merges prerequisites and overrides recipes (checkmake `uniquetargets`). Double-colon rules, `.PHONY` and the targets of `ignore` are skipped.",
       "example": {
         "config": null,
@@ -12526,7 +12532,7 @@
     },
     {
       "category": "style",
-      "default_level": "warn",
+      "default_level": "off",
       "description": "A fenced code block in which every line starts with `$ ` shows commands without their output, which makes copying them awkward (markdownlint MD014).",
       "example": {
         "config": null,
@@ -12552,7 +12558,7 @@
     },
     {
       "category": "style",
-      "default_level": "warn",
+      "default_level": "off",
       "description": "Link text that is `click here`, `here`, `link` or `more` (markdownlint MD059).",
       "example": {
         "config": null,
@@ -12583,7 +12589,7 @@
     },
     {
       "category": "style",
-      "default_level": "warn",
+      "default_level": "off",
       "description": "A fenced code block without an info string (markdownlint MD040); name the language, or `text`.",
       "example": {
         "config": null,
@@ -12609,7 +12615,7 @@
     },
     {
       "category": "style",
-      "default_level": "warn",
+      "default_level": "off",
       "description": "A heading is more than one level deeper than the heading before it (an `h4` right after an `h2`). Going back up by any number of levels is fine (markdownlint MD001).",
       "example": {
         "config": null,
@@ -12640,7 +12646,7 @@
     },
     {
       "category": "style",
-      "default_level": "warn",
+      "default_level": "off",
       "description": "An image with empty alternate text, `![](url)` (markdownlint MD045).",
       "example": {
         "config": null,
@@ -12666,7 +12672,7 @@
     },
     {
       "category": "style",
-      "default_level": "warn",
+      "default_level": "off",
       "description": "A URL that is neither a link nor an autolink (markdownlint MD034), found when it follows a space or starts the paragraph. Reported on the paragraph.",
       "example": {
         "config": null,
@@ -12692,7 +12698,7 @@
     },
     {
       "category": "style",
-      "default_level": "warn",
+      "default_level": "off",
       "description": "Two headings have the same text (markdownlint MD024), which makes their anchors ambiguous.",
       "example": {
         "config": null,
@@ -12723,7 +12729,7 @@
     },
     {
       "category": "style",
-      "default_level": "warn",
+      "default_level": "off",
       "description": "A one-line paragraph that is only emphasized text without closing punctuation (markdownlint MD036); use a heading.",
       "example": {
         "config": null,
@@ -12785,7 +12791,7 @@
     },
     {
       "category": "style",
-      "default_level": "warn",
+      "default_level": "off",
       "description": "Raw HTML in a document (markdownlint MD033). Comments are not reported. Reported once per HTML block, not per tag.",
       "example": {
         "config": null,
@@ -12878,7 +12884,7 @@
     },
     {
       "category": "style",
-      "default_level": "warn",
+      "default_level": "off",
       "description": "A code span that starts or ends with a space (markdownlint MD038). A span with a space on both sides of a backtick-led or backtick-ended content is allowed.",
       "example": {
         "config": null,
@@ -12909,7 +12915,7 @@
     },
     {
       "category": "style",
-      "default_level": "warn",
+      "default_level": "off",
       "description": "Link text that starts or ends with a space (markdownlint MD039).",
       "example": {
         "config": null,
@@ -12940,7 +12946,7 @@
     },
     {
       "category": "style",
-      "default_level": "warn",
+      "default_level": "off",
       "description": "A heading that ends with `.`, `,`, `;`, `:` or `!` (or the full-width forms) reads as a sentence, not a title (markdownlint MD026). `?` is allowed.",
       "example": {
         "config": null,
@@ -12976,7 +12982,7 @@
     },
     {
       "category": "style",
-      "default_level": "warn",
+      "default_level": "off",
       "description": "A document has more than one top-level heading (markdownlint MD025). The second and later `h1` are reported.",
       "example": {
         "config": null,
@@ -13007,7 +13013,7 @@
     },
     {
       "category": "style",
-      "default_level": "warn",
+      "default_level": "off",
       "description": "A function named `Verb-Noun` whose verb is not in the list `Get-Verb` returns. Names without a dash are not checked.",
       "example": {
         "config": null,
@@ -13040,7 +13046,7 @@
     },
     {
       "category": "suspicious",
-      "default_level": "warn",
+      "default_level": "off",
       "description": "A `catch` clause whose block has no statement (a comment does not count).",
       "example": {
         "config": null,
@@ -13116,7 +13122,7 @@
     },
     {
       "category": "style",
-      "default_level": "warn",
+      "default_level": "off",
       "description": "A command written with one of the default aliases of Windows PowerShell and PowerShell 7 (`gci`, `ls`, `%`, `?`, `iex`, ...). The table is the one of a Windows host; PSScriptAnalyzer reads the aliases of the host it runs on.",
       "example": {
         "config": null,
@@ -13207,7 +13213,7 @@
     },
     {
       "category": "suspicious",
-      "default_level": "warn",
+      "default_level": "off",
       "description": "A variable in the `global:` scope, other than the special variables PSScriptAnalyzer exempts (`$global:LASTEXITCODE`, `$global:ErrorActionPreference`, `$global:PSDefaultParameterValues`, ...).",
       "example": {
         "config": null,
@@ -13413,7 +13419,7 @@
     },
     {
       "category": "suspicious",
-      "default_level": "warn",
+      "default_level": "off",
       "description": "A call of `Write-Host`.",
       "example": {
         "config": null,
@@ -14178,7 +14184,7 @@
     },
     {
       "category": "suspicious",
-      "default_level": "warn",
+      "default_level": "off",
       "description": "`export`, `local`, `declare`, `readonly` or `typeset` with a command substitution as the value reports the status of the declaration, not of the command.",
       "example": {
         "config": null,
@@ -14640,7 +14646,7 @@
     },
     {
       "category": "suspicious",
-      "default_level": "off",
+      "default_level": "warn",
       "description": "An unquoted `$var` or `${var}` in a command's arguments is split into words and globbed. Does not know which variables hold only a number or a single word.",
       "example": {
         "config": null,
@@ -14940,7 +14946,7 @@
     },
     {
       "category": "suspicious",
-      "default_level": "warn",
+      "default_level": "off",
       "description": "A `PackageReference` (or `PackageVersion`) whose `Version` contains `*` restores a different package as new versions appear. Reported on the attribute; no fix, because the version to pin is a decision.",
       "example": {
         "config": null,

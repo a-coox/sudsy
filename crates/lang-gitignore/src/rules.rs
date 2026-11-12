@@ -51,7 +51,7 @@ rule! {
     pub NoDuplicatePattern {
         id: "no-duplicate-pattern",
         category: Suspicious,
-        default: Warn,
+        default: Off,
         description: "The same pattern appears twice with no opposite pattern (`!x` for `x`) in \
                   between, so the second one changes nothing.",
         example: "*.log\nbuild/\n*.log   # reported: already listed above",
@@ -81,7 +81,7 @@ rule! {
     pub RedundantPattern {
         id: "redundant-pattern",
         category: Suspicious,
-        default: Warn,
+        default: Off,
         description: "A name pattern such as `foo` already matches files and directories called \
                   `foo` at every level, so a later `foo/` or `/foo` adds nothing (no `!` pattern \
                   in between).",

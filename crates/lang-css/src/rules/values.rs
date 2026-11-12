@@ -63,6 +63,9 @@ fn has_declaration(node: &SyntaxNode) -> bool {
 /// Declarations are valid in a rule, in an at-rule that holds them, and below a nesting-capable
 /// at-rule only inside a rule.
 pub fn declaration_position(c: &Check, decl: &SyntaxNode, ctx: &mut RuleContext<'_>) {
+    if model::property(decl).is_none() {
+        return; // a SCSS or Less variable is valid anywhere
+    }
     const NESTING: &[&str] = &[
         "media",
         "supports",

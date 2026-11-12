@@ -4,7 +4,7 @@ description: >-
   A fenced code block in which every line starts with `$ ` shows commands without their output,
   which makes copying them awkward (markdownlint MD014).
 example: 'a code block with the lines   $ npm install   $ npm test'
-severity: warn
+severity: off
 category: style
 rule:
   kind: FencedCode

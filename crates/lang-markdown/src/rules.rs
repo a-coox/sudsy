@@ -34,7 +34,7 @@ rule! {
     pub HeadingIncrement {
         id: "heading-increment",
         category: Style,
-        default: Warn,
+        default: Off,
         description: "A heading is more than one level deeper than the heading before it (an `h4` \
                   right after an `h2`). Going back up by any number of levels is fine \
                   (markdownlint MD001).",
@@ -59,7 +59,7 @@ rule! {
     pub NoDuplicateHeading {
         id: "no-duplicate-heading",
         category: Style,
-        default: Warn,
+        default: Off,
         description: "Two headings have the same text (markdownlint MD024), which makes their \
                   anchors ambiguous.",
         example: "## Usage\n\n## Usage   // reported",
@@ -78,7 +78,7 @@ rule! {
     pub SingleTitle {
         id: "single-title",
         category: Style,
-        default: Warn,
+        default: Off,
         description: "A document has more than one top-level heading (markdownlint MD025). The \
                   second and later `h1` are reported.",
         example: "# One\n\n# Two   // reported",

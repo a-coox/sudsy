@@ -13,7 +13,6 @@ params: { check: linear-gradient-direction }
 message: "`{name}` is not a standard direction: write `to {name}`"
 description: "A `linear-gradient()` that starts with a side (`top`) instead of `to top` or an angle."
 example: "a { background: linear-gradient(top, red, blue) }   # reported"
-severity: off
 category: correctness
 ---
 id: font-family-no-missing-generic-family-keyword

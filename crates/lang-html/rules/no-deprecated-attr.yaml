@@ -5,5 +5,4 @@ message: "the attribute `{attr}` is deprecated on <{name}>"
 description: >-
   An attribute that HTML5 no longer has on that element (`align`, `bgcolor`, `border`, ...).
 example: '<div align="center">   <div class="center">'
-severity: off
 category: correctness

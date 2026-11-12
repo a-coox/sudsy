@@ -1,0 +1,2 @@
+phony-declared: warn
+unique-targets: warn

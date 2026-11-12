@@ -76,7 +76,7 @@ rule! {
     pub NoDuplicateAnchors {
         id: "no-duplicate-anchors",
         category: Suspicious,
-        default: Off,
+        default: Warn,
         description: "An anchor name is defined again in the same document; an alias refers to the \
                   latest definition above it, which is easy to misread.",
         example: "- &a 1\n- &a 2   # reported at the second `&a`",

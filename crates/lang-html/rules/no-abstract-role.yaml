@@ -2,7 +2,6 @@ id: no-abstract-role
 message: abstract ARIA roles must not be used
 description: Abstract roles (`widget`, `landmark`, `command`, ...) are for the ARIA taxonomy, not for authors.
 example: '<div role="widget">   <div role="button">'
-severity: off
 category: correctness
 rule:
   kind: Attribute

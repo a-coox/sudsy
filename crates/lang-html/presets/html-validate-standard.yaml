@@ -1,4 +1,5 @@
 # The rules of html-validate:standard that Sudsy has, at html-validate's severity (error).
+# Rules Sudsy turns on by default that the preset does not have stay off.
 html:
   lint:
     rules:
@@ -13,6 +14,7 @@ html:
       map-dup-name: error
       multiple-labeled-controls: error
       no-abstract-role: error
+      no-missing-references: off
       no-deprecated-attr: error
       no-duplicate-id: error
       no-duplicate-keys: error

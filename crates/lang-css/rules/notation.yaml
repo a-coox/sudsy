@@ -30,7 +30,6 @@ id: no-invalid-double-slash-comments
 message: "`//` does not start a comment in CSS"
 description: "A rule or declaration that starts with `//`: CSS has no line comments, so the text swallows the statement."
 example: "// note\na { color: red }   # reported"
-severity: off
 category: correctness
 rule:
   any:
