@@ -167,7 +167,12 @@ fn ternary(node: &SyntaxNode, cx: &FormatCtx<'_>) -> R {
             lit(" "),
             paren(true),
             // A line comment after `?` ends the line: the branch starts on the next one.
-            align(2, concat(vec![comment_break(cx, q), cons_doc])),
+            // A conditional in the branch indents its own branches once.
+            if cons_cond {
+                concat(vec![comment_break(cx, q), cons_doc])
+            } else {
+                align(2, concat(vec![comment_break(cx, q), cons_doc]))
+            },
             paren(false),
             line(),
             cx.token(colon),

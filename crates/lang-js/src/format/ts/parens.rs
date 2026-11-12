@@ -74,7 +74,9 @@ fn parens_redundant(node: &SyntaxNode) -> bool {
         | k::TS_TUPLE_TYPE
         | k::TS_NAMED_TUPLE_MEMBER
         | k::TS_REST_TYPE
-        | k::TS_MAPPED_TYPE => true,
+        | k::TS_MAPPED_TYPE
+        | k::TS_AS_EXPRESSION
+        | k::TS_SATISFIES_EXPRESSION => true,
         // A branch, not the checked or extended type.
         k::TS_CONDITIONAL_TYPE => parent.children().take(2).all(|c| c != *node),
         k::TS_TYPE_ANNOTATION => parent.parent().is_some_and(|p| {

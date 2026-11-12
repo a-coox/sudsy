@@ -302,8 +302,18 @@ impl<'a> FormatCtx<'a> {
         if leading.is_empty() && trailing.is_empty() {
             return self.token_text(tok);
         }
+        // Inline comments in front of a closing token (tag `#close`) sit tight against it.
+        let lead = if self.grammar.has_tag(tok.kind(), "close")
+            && leading
+                .iter()
+                .all(|c| c.kind == CommentKind::Block && c.breaks_after == 0)
+        {
+            doc::concat(leading.iter().map(comment_doc).collect())
+        } else {
+            leading_comments_doc(&leading)
+        };
         doc::concat(vec![
-            leading_comments_doc(&leading),
+            lead,
             self.token_text(tok),
             trailing_comments_doc(&self.comment_style, &trailing),
         ])
@@ -455,12 +465,17 @@ pub fn comment_doc(c: &Comment) -> Doc {
 
 /// The lines of `text` with their indentation replaced by the current one.
 fn lines_doc(text: &str) -> Doc {
-    let mut parts = Vec::new();
+    let mut parts = Vec::with_capacity(2 * text.lines().count());
     for (i, line) in text.lines().enumerate() {
+        let line = line.trim_start();
         if i > 0 {
             parts.push(doc::hardline());
+            if line.starts_with('*') {
+                parts.push(doc::text(format!(" {line}")));
+                continue;
+            }
         }
-        parts.push(doc::snippet(line.trim_start()));
+        parts.push(doc::snippet(line));
     }
     doc::concat(parts)
 }

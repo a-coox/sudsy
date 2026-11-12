@@ -156,11 +156,35 @@ fn if_statement(node: &SyntaxNode, cx: &FormatCtx<'_>) -> R {
         } else {
             hardline()
         });
+        // A blank line before the comment in front of `else` stays.
+        if let Some(t) = token_of(els)
+            && !core_format::comments::leading_comments(cx.grammar, t).is_empty()
+            && blank_before_first_comment(cx, t)
+        {
+            parts.extend([hardline(), hardline()]);
+        }
         parts.push(elem(cx, els)?);
         let printed = cx.format(alt)?;
         parts.push(group(clause(alt, printed, alt.kind() == k::IF_STATEMENT)));
     }
     Ok(concat(parts))
+}
+
+/// Do two line breaks come before the first comment in front of `tok`?
+fn blank_before_first_comment(cx: &FormatCtx<'_>, tok: &core_syntax::SyntaxToken) -> bool {
+    let mut run = Vec::new();
+    let mut cur = tok.prev_token();
+    while let Some(t) = cur.filter(|t| cx.grammar.is_trivia(t.kind())) {
+        cur = t.prev_token();
+        run.push(t);
+    }
+    let breaks = run
+        .iter()
+        .rev()
+        .take_while(|t| !cx.grammar.has_tag(t.kind(), "comment"))
+        .map(|t| core_format::comments::count_breaks(t.text()))
+        .sum::<usize>();
+    breaks > 1
 }
 
 /// `while (test) body` and `with (object) body`; `soft` lets the parenthesis content break.

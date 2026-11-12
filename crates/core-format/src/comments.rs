@@ -192,20 +192,20 @@ fn is_trivia_element(g: &Grammar, e: &SyntaxElement) -> bool {
     is_trivia(g, e.kind())
 }
 
-/// The trivia run directly before `tok` and whether a non-trivia token precedes it.
-fn run_before(g: &Grammar, tok: &SyntaxToken) -> (Vec<SyntaxElement>, bool) {
+/// The trivia run directly before `tok` and the non-trivia element that precedes it.
+fn run_before(g: &Grammar, tok: &SyntaxToken) -> (Vec<SyntaxElement>, Option<SyntaxElement>) {
     let mut run = Vec::new();
     let mut cur = before_element(g, &SyntaxElement::Token(tok.clone()));
     while let Some(e) = cur {
         if !is_trivia_element(g, &e) {
             run.reverse();
-            return (run, true);
+            return (run, Some(e));
         }
         cur = before_element(g, &e);
         run.push(e);
     }
     run.reverse();
-    (run, false)
+    (run, None)
 }
 
 fn run_after(g: &Grammar, tok: &SyntaxToken) -> Vec<SyntaxElement> {
@@ -225,19 +225,51 @@ fn trailing_cut(run: &[SyntaxElement]) -> usize {
     run.iter().position(ends_line).map_or(run.len(), |i| i + 1)
 }
 
+/// Does the run between `prev` and the next token belong to that next token as a whole? So it
+/// does when `prev` is tagged `#glue` (`(`, `,`: a comment after it leads what follows) and the
+/// run holds no line break, which puts the next token on the line of `prev`.
+fn glued(g: &Grammar, prev: &SyntaxToken, run: &[SyntaxElement]) -> bool {
+    g.has_tag(prev.kind(), "glue")
+        && run
+            .iter()
+            .all(|e| !matches!(e, SyntaxElement::Token(t) if count_breaks(t.text()) > 0))
+}
+
 /// Trivia owned by `tok` that follows it on its line.
 pub fn trailing_trivia(g: &Grammar, tok: &SyntaxToken) -> Vec<SyntaxElement> {
     let mut run = run_after(g, tok);
+    if glued(g, tok, &run) {
+        return Vec::new();
+    }
     run.truncate(trailing_cut(&run));
     run
 }
 
 /// Trivia owned by `tok` that precedes it (own-line comments, indentation, blank lines).
 pub fn leading_trivia(g: &Grammar, tok: &SyntaxToken) -> Vec<SyntaxElement> {
-    let (mut run, has_prev) = run_before(g, tok);
-    let cut = if has_prev { trailing_cut(&run) } else { 0 };
+    let (mut run, prev) = run_before(g, tok);
+    let cut = match prev {
+        Some(SyntaxElement::Token(prev)) if glued(g, &prev, &run) => 0,
+        Some(_) => trailing_cut(&run),
+        None => 0,
+    };
     run.drain(..cut);
     run
+}
+
+/// A block comment of several lines that each start with `*` (after blanks) is re-indented as a
+/// whole: tag `#indentable`.
+fn indentable(text: &str) -> bool {
+    let mut lines = text.lines();
+    lines.next();
+    let mut any = false;
+    for l in lines {
+        if !l.trim_start().starts_with('*') {
+            return false;
+        }
+        any = true;
+    }
+    any
 }
 
 fn kind_of(g: &Grammar, e: &SyntaxElement) -> Option<CommentKind> {
@@ -253,6 +285,9 @@ fn kind_of(g: &Grammar, e: &SyntaxElement) -> Option<CommentKind> {
         return None;
     }
     let text = element_text(e);
+    if g.has_tag(kind, "indentable") && indentable(&text) {
+        return Some(CommentKind::Lines);
+    }
     let is_line = g
         .comments
         .line
@@ -605,7 +640,7 @@ pub fn blank_lines_before(g: &Grammar, tok: &SyntaxToken) -> usize {
             0
         };
     }
-    let (_, has_prev) = run_before(g, tok);
+    let has_prev = run_before(g, tok).1.is_some();
     if !has_prev {
         return 0;
     }
@@ -618,7 +653,7 @@ pub fn blank_lines_before(g: &Grammar, tok: &SyntaxToken) -> usize {
 
 /// Does no non-trivia token come before `tok`?
 pub fn starts_file(g: &Grammar, tok: &SyntaxToken) -> bool {
-    !run_before(g, tok).1
+    run_before(g, tok).1.is_none()
 }
 
 /// Is there a line break in the trivia between `tok` and the next non-trivia token?

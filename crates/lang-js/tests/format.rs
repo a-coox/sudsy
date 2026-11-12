@@ -265,3 +265,38 @@ fn comments_of_commas_and_stacked_line_comments_are_kept() {
         "export {\n  a, // one\n  b, // two\n};\nconst x = [\n  1,\n  // hole\n  ,\n  2,\n];\nf(\n  a, // c1\n  // c2\n  b,\n);\n"
     );
 }
+
+#[test]
+fn glued_comments_jsdoc_templates_and_unions() {
+    // Each expectation was checked with Prettier 3 under its defaults.
+    let u = "Aaaaaaaaaaaaaaaa | Bbbbbbbbbbbbbbbb | Cccccccccccccccc | Dddddddddddddddd";
+    assert_eq!(
+        fmt(&format!(
+            "f(/* a */ b, /* c */ d);
+g(/* e */ );
+class A {{
+	/**
+	 * Doc
+	 */
+	m() {{}}
+}}
+x = `a ${{ b( c ) }} d`;
+type T = {u};
+"
+        )),
+        format!(
+            "f(/* a */ b, /* c */ d);
+g(/* e */);
+class A {{
+  /**
+   * Doc
+   */
+  m() {{}}
+}}
+x = `a ${{b(c)}} d`;
+type T =
+  {u};
+"
+        )
+    );
+}

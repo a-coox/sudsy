@@ -449,7 +449,8 @@ pub(crate) fn is_simple_call_argument(cx: &FormatCtx<'_>, n: &SyntaxNode, depth:
     let n = un(n);
     let simple = |c: &SyntaxNode| is_simple_call_argument(cx, c, depth + 1);
     match n.kind() {
-        k::REG_EXP_LITERAL => true,
+        // A pattern of up to five characters.
+        k::REG_EXP_LITERAL => n.text().to_string().rfind('/').is_some_and(|end| end <= 6),
         kind if is_literal(kind) => true,
         k::IDENTIFIER_REFERENCE
         | k::THIS_EXPRESSION

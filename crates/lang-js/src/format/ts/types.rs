@@ -293,7 +293,8 @@ fn union(node: &SyntaxNode, cx: &FormatCtx<'_>) -> R {
                 | k::TS_TUPLE_TYPE
         )
     );
-    let start = if indented { line() } else { Doc::Nil };
+    let parenthesized = parent == Some(k::TS_PARENTHESIZED_TYPE);
+    let start = if parenthesized { line() } else { Doc::Nil };
     let mut code = Vec::new();
     for (i, (op, m)) in members.iter().enumerate() {
         let d = align(2, cx.format(m)?);
@@ -315,10 +316,11 @@ fn union(node: &SyntaxNode, cx: &FormatCtx<'_>) -> R {
         code.push(d);
     }
     let code = concat(code);
-    Ok(if parent == Some(k::TS_PARENTHESIZED_TYPE) {
+    Ok(if parenthesized {
         group(concat(vec![indent(code), softline()]))
     } else if indented {
-        group(indent(code))
+        // Too long for its line: all members on the next line, else one `| member` per line.
+        group(indent(concat(vec![softline(), group(code)])))
     } else {
         group(code)
     })

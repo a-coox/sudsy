@@ -17,17 +17,17 @@ suppress ignore "prettier-ignore"
 token Whitespace #trivia #whitespace
 token Newline #trivia #newline
 token LineComment #trivia #comment
-token BlockComment #trivia #comment
+token BlockComment #trivia #comment #indentable
 
-token LParen "(" #punctuation
-token RParen ")" #punctuation
+token LParen "(" #punctuation #glue
+token RParen ")" #punctuation #close
 token LBrace "{" #punctuation
 token RBrace "}" #punctuation
-token LBracket "[" #punctuation
-token RBracket "]" #punctuation
+token LBracket "[" #punctuation #glue
+token RBracket "]" #punctuation #close
 token LAngle "<" #punctuation
 token RAngle ">" #punctuation
-token Comma "," #punctuation #separator
+token Comma "," #punctuation #separator #glue
 token Semicolon ";" #punctuation #separator
 token Colon ":" #punctuation
 token Dot "." #punctuation

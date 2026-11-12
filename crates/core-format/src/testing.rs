@@ -43,7 +43,7 @@ fn comments(subject: &dyn Subject, tree: &SyntaxNode) -> Vec<String> {
             };
             // The printer writes LF only, even inside block comments.
             let text = text.replace("\r\n", "\n");
-            out.push(if structured {
+            out.push(if structured || g.has_tag(e.kind(), "indentable") {
                 text.lines().map(str::trim).collect::<Vec<_>>().join("\n")
             } else {
                 text.trim_end().to_string()

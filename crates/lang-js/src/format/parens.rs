@@ -265,12 +265,16 @@ pub(crate) fn needs_parens(cx: &FormatCtx<'_>, node: &SyntaxNode) -> Need {
             }
             match pk {
                 k::TS_AS_EXPRESSION | k::TS_SATISFIES_EXPRESSION => yes(!is_cast(kind)),
-                k::CONDITIONAL_EXPRESSION => {
+                // The branches of a conditional wrap a cast and `??`.
+                k::CONDITIONAL_EXPRESSION if first => {
                     if is_cast(kind) {
                         Need::Keep
                     } else {
                         Need::No
                     }
+                }
+                k::CONDITIONAL_EXPRESSION => {
+                    yes(is_cast(kind) || (kind == k::LOGICAL_EXPRESSION && op == "??"))
                 }
                 k::CALL_EXPRESSION | k::NEW_EXPRESSION => yes(is_callee),
                 k::CLASS => yes(super_class),

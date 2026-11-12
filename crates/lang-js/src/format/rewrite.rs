@@ -62,6 +62,20 @@ pub(crate) fn rewrite(
                     .into_iter()
                     .for_each(&mut cut)
             }
+            // `typeof X[number]` is written `(typeof X)[number]`.
+            k::TS_INDEXED_ACCESS_TYPE
+                if node
+                    .first_child()
+                    .is_some_and(|c| c.kind() == k::TS_TYPE_QUERY) =>
+            {
+                if let (Some(first), Some(last)) = (
+                    node.first_child().and_then(|c| first_token(grammar, &c)),
+                    node.first_child().and_then(|c| last_token(grammar, &c)),
+                ) {
+                    inserts.push((usize::from(first.text_range().start()), Some("(")));
+                    inserts.push((usize::from(last.text_range().end()), Some(")")));
+                }
+            }
             k::NEW_EXPRESSION
                 if !node
                     .children_with_tokens()
