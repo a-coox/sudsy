@@ -29,17 +29,17 @@ token LAngle "<" #punctuation
 token RAngle ">" #punctuation
 token Comma "," #punctuation #separator #glue
 token Semicolon ";" #punctuation #separator
-token Colon ":" #punctuation
+token Colon ":" #punctuation #glue
 token Dot "." #punctuation
 token Dot3 "..." #punctuation
-token Arrow "=>" #punctuation
-token Question "?" #punctuation
+token Arrow "=>" #punctuation #glue
+token Question "?" #punctuation #glue
 token QuestionDot "?." #punctuation
 token At "@" #punctuation
 // `|` inside a union type: its bars come and go with the layout, so the safety check ignores them (a bitwise `|` is an `Operator`).
 token Pipe "|" #punctuation #separator
 // Every other operator: `+`, `===`, `=`, `??=`, `/`, `!`, ...
-token Operator #punctuation
+token Operator #punctuation #glue
 // Reserved words and `true`, `false`, `null`; contextual words (`of`, `type`, `async`, ...) are identifiers.
 token Keyword
 token Identifier

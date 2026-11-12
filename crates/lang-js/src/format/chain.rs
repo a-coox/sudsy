@@ -132,7 +132,18 @@ pub(crate) fn member_chain(cx: &FormatCtx<'_>, call_node: &SyntaxNode, call: &Ca
         if let Some(t) = &c.type_args {
             v.push(cx.format(t)?);
         }
+        // A comment after the `)` of a link goes after the link, not inside its arguments.
+        let held = c
+            .close
+            .as_ref()
+            .filter(|t| n != call_node && comments::has_trailing_comment(cx.grammar, t));
+        if let Some(t) = held {
+            cx.hold_trailing(t);
+        }
         v.push(arguments(cx, n, c)?);
+        if let Some(t) = held {
+            v.push(cx.held_trailing(t));
+        }
         // A blank line after a call in the source stays.
         let blank = cx
             .last_token(n)
@@ -356,7 +367,11 @@ fn print_chain(cx: &FormatCtx<'_>, call_node: &SyntaxNode, parts: Vec<Part>) -> 
             Doc::Nil
         },
     ]);
-    let calls: Vec<&Part> = parts.iter().filter(|p| p.link == Link::Call).collect();
+    // A call at the head (`request(app).get()`) counts as one.
+    let calls: Vec<&Part> = parts
+        .iter()
+        .filter(|p| p.link == Link::Call || p.node.kind() == k::CALL_EXPRESSION)
+        .collect();
     let complex_args = calls.len() > 2
         && calls.iter().any(|p| {
             Call::of(cx, &p.node)

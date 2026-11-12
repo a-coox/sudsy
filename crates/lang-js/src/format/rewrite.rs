@@ -25,10 +25,9 @@ pub(crate) fn rewrite(
     let avoid_parens =
         matches!(options.get("arrow_parens"), Some(OptionValue::String(s)) if s == "avoid");
     let mut edits: Vec<Edit> = Vec::new();
+    // Comments in front of a cut token lead what follows it; ones after it would move.
     let mut cut = |tok: SyntaxToken| {
-        if comments::leading_comments(grammar, &tok).is_empty()
-            && comments::trailing_comments(grammar, &tok).is_empty()
-        {
+        if comments::trailing_comments(grammar, &tok).is_empty() {
             edits.push((usize::from(tok.text_range().start()), None));
         }
     };
@@ -61,6 +60,26 @@ pub(crate) fn rewrite(
                 super::ts::redundant_type_tokens(&node, grammar)
                     .into_iter()
                     .for_each(&mut cut)
+            }
+            // `x()\n// c\n;` is `x();` with the comment after it.
+            k::EXPRESSION_STATEMENT => {
+                let semi = node
+                    .children_with_tokens()
+                    .filter_map(|e| e.into_token())
+                    .find(|t| t.kind() == k::SEMICOLON);
+                if let Some(semi) = semi
+                    && !comments::leading_comments(grammar, &semi).is_empty()
+                    && comments::trailing_comments(grammar, &semi).is_empty()
+                {
+                    let mut prev = semi.prev_token();
+                    while let Some(t) = prev.clone().filter(|t| grammar.is_trivia(t.kind())) {
+                        prev = t.prev_token();
+                    }
+                    if let Some(prev) = prev {
+                        inserts.push((usize::from(prev.text_range().end()), Some(";")));
+                        cut(semi);
+                    }
+                }
             }
             // `typeof X[number]` is written `(typeof X)[number]`.
             k::TS_INDEXED_ACCESS_TYPE

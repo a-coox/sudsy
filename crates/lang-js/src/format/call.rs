@@ -32,14 +32,18 @@ fn call(node: &SyntaxNode, cx: &FormatCtx<'_>) -> R {
         return Ok(super::literal::verbatim(cx, node));
     };
     let callee_u = un(&c.callee);
-    if !is_new && (super::ast::is_member(callee_u.kind())) && !has_comment(cx, &callee_u) {
-        return chain::member_chain(cx, node, &c);
-    }
     let args = &c.args;
     let special = !args.is_empty()
         && ((!is_new && is_common_js_or_amd(cx, node, &c))
             || (args.len() == 1 && template_on_own_line(cx, &un(&args[0].0)))
             || (!is_new && is_test_call(cx, &c)));
+    if !special
+        && !is_new
+        && super::ast::is_member(callee_u.kind())
+        && !has_inner_comment(cx, &callee_u)
+    {
+        return chain::member_chain(cx, node, &c);
+    }
     let mut parts = Vec::new();
     if is_new {
         parts.push(elem_first(cx, node)?);
@@ -84,6 +88,11 @@ fn call(node: &SyntaxNode, cx: &FormatCtx<'_>) -> R {
     } else {
         contents
     })
+}
+
+/// A comment after `n`; the ones in front of its first token belong to the whole expression.
+fn has_inner_comment(cx: &FormatCtx<'_>, n: &SyntaxNode) -> bool {
+    super::ast::has_trailing_comment(cx, n)
 }
 
 fn elem_first(cx: &FormatCtx<'_>, node: &SyntaxNode) -> R {

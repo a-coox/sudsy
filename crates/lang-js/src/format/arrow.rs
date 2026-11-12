@@ -88,7 +88,8 @@ fn signature(cx: &FormatCtx<'_>, node: &SyntaxNode, flags: u32) -> R {
                 // `arrow_parens: avoid` leaves a lone name without parentheses.
                 let mut params = match elems.first() {
                     Some(e) if token_of(e).is_none() => super::util::elem(cx, e)?,
-                    _ => super::decl::parameters(cx, &elems)?,
+                    // Grouped with the return type below, so both break together.
+                    _ => super::decl::parameters_in(cx, &elems, Some(false))?,
                 };
                 if flags & (Flags::EXPAND | Flags::TEST) != 0 {
                     if flags & Flags::EXPAND != 0 && will_break(&params) {
@@ -206,6 +207,13 @@ fn arrow(node: &SyntaxNode, cx: &FormatCtx<'_>, flags: u32) -> R {
         ])
     };
     if !is_chain {
+        // The body breaks on its own: `) => body` stays on the line when only the parameters broke.
+        let own_line = body_u.kind() != k::SEQUENCE_EXPRESSION && !same_line;
+        let body_part = if own_line {
+            group(body_part)
+        } else {
+            body_part
+        };
         return Ok(group(concat(vec![group(sigs.remove(0)), body_part])));
     }
     let assignment = flags & Flags::RHS != 0;

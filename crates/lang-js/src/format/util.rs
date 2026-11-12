@@ -107,7 +107,12 @@ fn gap(cx: &FormatCtx<'_>, a: &SyntaxElement, b: &SyntaxElement) -> Doc {
         return if broken { hardline() } else { lit(" ") };
     }
     let tight_before = match b {
-        SyntaxElement::Token(t) => matches!(t.text(), "," | ";" | ")" | "]" | "?" | "!" | ":"),
+        SyntaxElement::Token(t) => {
+            matches!(t.text(), "," | ";" | ")" | "]" | "?" | "!" | ":")
+                // `m<T>(this: A)`: the parenthesis of a signature with a `this` parameter.
+                || (t.text() == "("
+                    && matches!(a, SyntaxElement::Node(n) if n.kind() == k::TS_TYPE_PARAMETER_DECLARATION))
+        }
         SyntaxElement::Node(n) => match n.kind() {
             k::TS_TYPE_PARAMETER_DECLARATION
             | k::TS_TYPE_PARAMETER_INSTANTIATION

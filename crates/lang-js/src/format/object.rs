@@ -183,8 +183,11 @@ fn object(node: &SyntaxNode, cx: &FormatCtx<'_>) -> R {
     } else {
         trailing_comma(cx, false)
     };
+    // The comments in front of the `{` belong to the whole object, not to its group.
+    let lead = cx.leading_comments_doc(&open);
     let body = concat(vec![
-        cx.token(&open),
+        cx.token_text(&open),
+        cx.trailing_comments_doc(&open),
         indent(concat(vec![edge.clone(), concat(parts)])),
         comma,
         edge,
@@ -202,11 +205,14 @@ fn object(node: &SyntaxNode, cx: &FormatCtx<'_>) -> R {
             (_, Some(k::VARIABLE_DECLARATOR | k::ASSIGNMENT_EXPRESSION)) => !must_break,
             _ => false,
         };
-    Ok(match (shared, must_break) {
-        (true, _) => body,
-        (false, true) => group_broken(body),
-        (false, false) => group(body),
-    })
+    Ok(concat(vec![
+        lead,
+        match (shared, must_break) {
+            (true, _) => body,
+            (false, true) => group_broken(body),
+            (false, false) => group(body),
+        },
+    ]))
 }
 
 /// A lone parameter that is a pattern, kept on the line of the parentheses (Prettier's
@@ -294,16 +300,21 @@ fn array(node: &SyntaxNode, cx: &FormatCtx<'_>) -> R {
                     && e.children().count() > 1
             })
     };
-    Ok(group_with_id(
-        id,
-        concat(vec![
-            cx.token(&open),
-            indent(concat(vec![softline(), body])),
-            softline(),
-            cx.token(&close),
-            if must_break { break_parent() } else { Doc::Nil },
-        ]),
-    ))
+    // The comments in front of the `[` belong to the whole array, not to its group.
+    Ok(concat(vec![
+        cx.leading_comments_doc(&open),
+        group_with_id(
+            id,
+            concat(vec![
+                cx.token_text(&open),
+                cx.trailing_comments_doc(&open),
+                indent(concat(vec![softline(), body])),
+                softline(),
+                cx.token(&close),
+                if must_break { break_parent() } else { Doc::Nil },
+            ]),
+        ),
+    ]))
 }
 
 /// `key: value` laid out as an assignment; a shorthand property or a method is printed as it

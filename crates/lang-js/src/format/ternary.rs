@@ -55,7 +55,11 @@ fn left_side(parent: &SyntaxNode) -> Option<SyntaxNode> {
         | k::TS_NON_NULL_EXPRESSION
         | k::CHAIN_EXPRESSION => parent.first_child(),
         kind if is_member(kind) => parent.first_child(),
-        k::UNARY_EXPRESSION | k::SPREAD_ELEMENT | k::YIELD_EXPRESSION => parent.last_child(),
+        k::UNARY_EXPRESSION
+        | k::SPREAD_ELEMENT
+        | k::YIELD_EXPRESSION
+        | k::RETURN_STATEMENT
+        | k::THROW_STATEMENT => parent.last_child(),
         _ => None,
     }
 }
@@ -164,7 +168,7 @@ fn ternary(node: &SyntaxNode, cx: &FormatCtx<'_>) -> R {
         let branches = concat(vec![
             line(),
             cx.token(q),
-            lit(" "),
+            space_unless_comment(cx, q),
             paren(true),
             // A line comment after `?` ends the line: the branch starts on the next one.
             // A conditional in the branch indents its own branches once.
@@ -176,7 +180,7 @@ fn ternary(node: &SyntaxNode, cx: &FormatCtx<'_>) -> R {
             paren(false),
             line(),
             cx.token(colon),
-            lit(" "),
+            space_unless_comment(cx, colon),
             if is_cond(&alt_u) {
                 concat(vec![comment_break(cx, colon), alt_doc])
             } else {
@@ -219,14 +223,28 @@ fn ternary(node: &SyntaxNode, cx: &FormatCtx<'_>) -> R {
     } else {
         body
     };
-    Ok(if is_parent_test || extra_indent {
+    // `(a ? b : c) as T`: the parentheses break around the conditional.
+    let cast_operand = p.as_ref().is_some_and(|p| {
+        matches!(p.kind(), k::TS_AS_EXPRESSION | k::TS_SATISFIES_EXPRESSION)
+            && p.first_child().as_ref() == Some(&held)
+    });
+    Ok(if cast_operand || is_parent_test || extra_indent {
         group(concat(vec![
-            indent(concat(vec![line(), result])),
+            indent(concat(vec![softline(), result])),
             softline(),
         ]))
     } else {
         result
     })
+}
+
+/// The space after `?` or `:`, none when a line comment follows (it brings its own).
+fn space_unless_comment(cx: &FormatCtx<'_>, tok: &core_syntax::SyntaxToken) -> Doc {
+    if comment_break(cx, tok).is_nil() {
+        lit(" ")
+    } else {
+        Doc::Nil
+    }
 }
 
 fn comment_break(cx: &FormatCtx<'_>, tok: &core_syntax::SyntaxToken) -> Doc {

@@ -27,6 +27,9 @@ fn tight(a: &SyntaxElement, b: &SyntaxElement) -> bool {
     let before = match b {
         SyntaxElement::Token(t) => {
             matches!(t.text(), "," | ")" | "]" | "." | "?" | "!" | ":" | ";")
+                // `m<T>(this: A)`: the parenthesis of a signature with a `this` parameter.
+                || (t.text() == "("
+                    && matches!(a, SyntaxElement::Node(n) if n.kind() == k::TS_TYPE_PARAMETER_DECLARATION))
         }
         SyntaxElement::Node(n) => match n.kind() {
             k::TS_TYPE_ANNOTATION => true,

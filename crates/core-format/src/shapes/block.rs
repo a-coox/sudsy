@@ -116,6 +116,13 @@ fn block_of(
     inner.push(dangling_comments(&dangling, blank_before));
     let first_hardline = if c.slots.is_empty() {
         Doc::Nil
+    } else if !moved.is_empty()
+        && cx
+            .first_token(&c.slots[0].node)
+            .is_some_and(|t| comments::blank_lines_before(g, &t) > 0)
+    {
+        // A blank line after the comment that moved inside stays.
+        doc::concat(vec![doc::hardline(), doc::hardline()])
     } else {
         doc::hardline()
     };

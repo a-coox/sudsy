@@ -18,7 +18,8 @@ pub(super) fn format(node: &SyntaxNode, cx: &FormatCtx<'_>) -> Result<Option<Doc
         k::TS_TYPE_PARAMETER_INSTANTIATION | k::TS_TYPE_PARAMETER_DECLARATION => {
             type_params(node, cx, None)?
         }
-        k::TS_TYPE_PARAMETER | k::TS_TYPE_PREDICATE => words(cx, &kids(cx, node), false)?,
+        k::TS_TYPE_PARAMETER => type_parameter(node, cx)?,
+        k::TS_TYPE_PREDICATE => words(cx, &kids(cx, node), false)?,
         k::TS_AS_EXPRESSION | k::TS_SATISFIES_EXPRESSION => cast(node, cx)?,
         k::TS_INFER_TYPE | k::TS_TYPE_QUERY | k::TS_TYPE_OPERATOR | k::TS_THIS_PARAMETER => {
             words(cx, &kids(cx, node), true)?
@@ -247,6 +248,25 @@ fn named_tuple_member(node: &SyntaxNode, cx: &FormatCtx<'_>) -> R {
     Ok(concat(parts))
 }
 
+/// `T extends C = D`: a default that does not fit moves to the next line, indented.
+fn type_parameter(node: &SyntaxNode, cx: &FormatCtx<'_>) -> R {
+    let ks = kids(cx, node);
+    let Some(eq) = ks.iter().position(|e| is_tok(e, "=")) else {
+        return words(cx, &ks, false);
+    };
+    let Some(default) = ks.get(eq + 1) else {
+        return words(cx, &ks, false);
+    };
+    let id = core_format::doc::new_group_id();
+    Ok(concat(vec![
+        words(cx, &ks[..eq], false)?,
+        lit(" "),
+        elem(cx, &ks[eq])?,
+        core_format::doc::group_with_id(id, indent(line())),
+        core_format::doc::indent_if_break(id, elem(cx, default)?),
+    ]))
+}
+
 /// The members of a union or intersection, each with the operator token in front of it.
 fn operands(cx: &FormatCtx<'_>, node: &SyntaxNode) -> Vec<(Option<SyntaxToken>, SyntaxNode)> {
     let mut out = Vec::new();
@@ -414,7 +434,12 @@ fn conditional(node: &SyntaxNode, cx: &FormatCtx<'_>) -> R {
             line(),
             tok("?"),
             lit(" "),
-            align(2, cx.format(yes)?),
+            // A conditional in this branch indents its own branches once.
+            if yes.kind() == k::TS_CONDITIONAL_TYPE {
+                cx.format(yes)?
+            } else {
+                align(2, cx.format(yes)?)
+            },
             line(),
             tok(":"),
             lit(" "),

@@ -274,7 +274,13 @@ fn for_statement(node: &SyntaxNode, cx: &FormatCtx<'_>) -> R {
         let head = concat(vec![kw, lit(" "), open, s1, s2, close, body]);
         return Ok(concat(vec![lead, group(head)]));
     }
-    let inner = concat(vec![init, s1, line(), test, s2, line(), update]);
+    // No space after the last `;` when there is no update.
+    let update = if update.is_nil() {
+        Doc::Nil
+    } else {
+        concat(vec![line(), update])
+    };
+    let inner = concat(vec![init, s1, line(), test, s2, update]);
     Ok(concat(vec![
         lead,
         group(concat(vec![
