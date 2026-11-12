@@ -1,6 +1,6 @@
 # Design: HTML, Vue, Svelte (wave 3c)
 
-Plan for the markup family after JS and CSS. Each step moves what it builds into `docs/formatting/html.md`; this note is deleted when the last step lands. Line counts are estimates. The parser section is decided by step 0's measurements.
+Plan for the markup family after JS and CSS. Each step moves what it builds into `docs/formatting/html.md`; this note is deleted when the last step lands. Line counts are estimates.
 
 Goal: replace Prettier (with prettier-plugin-svelte) for `.html`, `.htm`, `.vue` and `.svelte`, and replace the most-used markup linters, with migration from their configs. Script and style code inside markup is formatted and linted by the existing `js` and `css` providers.
 
@@ -25,20 +25,26 @@ Vue is the largest audience, Angular templates the second, Svelte the third. Pla
 4. **Angular templates:** not in the roadmap's list. With 4.7M weekly downloads they rank above Svelte. Decision 6 asks to add them after Svelte. They are `.html` files, so they need either a file pattern (Prettier uses an `overrides` entry for `*.component.html`) or a config switch.
 5. Out of scope: Astro, Handlebars/Glimmer, LWC, Razor (its own roadmap item, with the C# worker).
 
-## 2. Parser (step 0 measures, then decides)
-Candidates:
-- **tree-sitter-html 0.23** (maintained, tree-sitter org) with the community grammars tree-sitter-vue and tree-sitter-svelte-ng.
-- **A hand-written lossless lexer and parser in `lang-html`,** as for CSS. This is the shape of Prettier's own parser, angular-html-parser: the WHATWG tokenizer states, then a tree built from the source as written. It does not use the spec's tree construction, which moves nodes (foster parenting, adoption agency) and so cannot be lossless. It adds the implied end tags of `<p>`, `<li>`, `<td>`, `<option>` etc., raw-text elements (`script`, `style`, `textarea`, `title`), and dialect tokens (`{{ }}`, Svelte `{#...}`, Angular `@if {}`).
-- **html5ever's tokenizer:** reported for completeness. It gives line numbers, not byte spans, so it is unlikely to fit a lossless tree.
+## 2. Parser: tree-sitter, three forked grammars (measured)
 
-Step 0 measures each candidate on Prettier's `tests/format/{html,vue}`, prettier-plugin-svelte's tests, and a pinned real-world corpus (Bootstrap docs, MDN samples, vuejs/core and element-plus SFCs, the SvelteKit and Svelte docs sites). It records:
-- parse success (no error nodes);
-- losslessness;
-- speed;
-- binary size;
-- the size of the fork any grammar would need.
+Measured by the step 0 spike. The corpus: Prettier 3.9.10's `tests/format/{html,vue}`, prettier-plugin-svelte 3.5.2's tests, Bootstrap 5.3.3 and mdn/learning-area HTML, vuejs/core and element-plus SFCs, and sveltejs/kit and svelte.dev components. Measured on Windows x64, release, one thread. Clean means no ERROR or MISSING node.
 
-Expected outcome, to confirm or overturn: hand-written. The markup grammar is small, the dialects need tokens tree-sitter grammars handle unevenly, and CSS showed the cost of three grammar forks.
+| Grammar on its files | Prettier fixtures clean | Real files clean | MB/s | Binary |
+|---|---|---|---|---|
+| tree-sitter-html 0.23.2 | 135/148 | 233/257: 153/154 of genuine HTML; the rest are Bootstrap's Hugo templates | 5-7 | +127 KB |
+| tree-sitter-vue (tree-sitter-grammars, vendored at ce8011a; not on crates.io) | 76/83, all test-harness markers or deliberately unclosed tags | 201/201 | 8-20 | +137 KB |
+| tree-sitter-svelte-ng 1.0.2 | 75/76: `{@attach}`, Svelte 5.29 | 200/200 | 4-5 | +155 KB |
+
+- **html5ever's tokenizer gives line numbers only, no byte spans.** It decodes references and lowercases names, so it cannot serve a lossless tree.
+- **A hand-written parser was estimated at 1,500-1,900 lines** from the constructs the corpus uses.
+
+Decision: **tree-sitter, with the three grammars vendored and patched** as for bash, make and ini (`grammars/tree-sitter-*`, `FORK.md`). The fixes are about 5 rules plus one scanner edit:
+- html: alias the doctype body so it is a node; CDATA; `textarea`/`title` as RCDATA, since today `<textarea><b>` silently nests a `<b>` element: wrong without an error;
+- svelte: `{@attach}`, and the literal text of a quoted attribute that mixes text and `{expr}`, which is hidden today.
+
+Each grammar maps onto one `grammars/html.grammar` through `core-treesitter` mappings, so the formatter and rules see one tree for the three languages. Whitespace between nodes is the usual gap trivia. Expression bodies (`{{ }}`, directive values, `{...}`) and `<script>`/`<style>` stay raw text and go to `lang-js`/`lang-css` through embedding (section 4).
+
+Trade-off accepted: 4-20 MB/s against the 16-60 MB/s a hand-written parser reaches. Each grammar regeneration also adds a large `parser.c` diff to the history.
 
 ## 3. Languages and options
 Three languages in one crate: `html`, plus `vue` and `svelte` with `html` as config base (`config_base()`). Options, with Prettier's defaults:
@@ -98,13 +104,13 @@ Prettier's printer-html is the reference.
 ## 7. Steps
 | # | Step | Lines | Where | After |
 |---|---|---|---|---|
-| 0 | Parser spike: measure the candidates of section 2, report a table like wave-3b-css's | spike | scratch, no commit | - |
-| 1 | Lexer and parser, `grammars/html.grammar`, `lang-html` with the `html` provider, verbatim formatter, registration, bench input, round-trip over the corpus | 1,200 | `lang-html` | 0 |
+| 0 | Parser spike (done: section 2) | - | - | - |
+| 1 | Vendor and patch tree-sitter-html (doctype alias, CDATA, RCDATA), `grammars/html.grammar` and its mapping, `lang-html` with the `html` provider, verbatim formatter, registration, bench input, round-trip over the corpus | 400 + fork | `grammars/tree-sitter-html`, `lang-html` | 0 |
 | 2 | Parity harness: `prettier-html` format mode, html-validate lint mode, catalogs | 400 + catalogs | `scripts/`, `tests/parity`, `docs/parity` | 1 |
 | 3 | Formatter: elements, attributes, the whitespace model, comments, ignore, options | 2,000 | `lang-html/src/format` | 2 |
 | 4 | Embedding: script and style regions, `Embedded` mode, start column and width; JS expression and CSS declaration-list entry points | 400 | `core-syntax`, `lang-js`, `lang-css`, `lang-html` | 3 |
-| 5 | Vue: SFC blocks, interpolation, directives as embedded expressions, options | 700 | `lang-html` | 4 |
-| 6 | Svelte: blocks, tags, options | 700 | `lang-html` | 4 |
+| 5 | Vue: vendor tree-sitter-vue, its mapping; SFC blocks, interpolation, directives as embedded expressions, options | 600 | `grammars/tree-sitter-vue`, `lang-html` | 4 |
+| 6 | Svelte: vendor and patch tree-sitter-svelte-ng (`{@attach}`, attribute text), its mapping; blocks, tags, options | 600 | `grammars/tree-sitter-svelte`, `lang-html` | 4 |
 | 7 | Lint: html-validate core rules, data table, presets; Vue and Svelte template rules | 1,500 | `lang-html/rules` | 3 |
 | 8 | Migration: `init --from` for html-validate, HTMLHint and html-eslint; Prettier HTML/Vue/Svelte options in the Prettier importer | 300 | `crates/cli/src/init` | 5, 6, 7 |
 | 9 | Markdown: `html` fences (likely already free, as `css` was) and HTML blocks in Markdown kept as written | 20 | `lang-markdown` | 3 |
