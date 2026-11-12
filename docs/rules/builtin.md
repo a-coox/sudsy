@@ -25,58 +25,58 @@ Twenty-four rules read the `///` and `/** */` comment of a declaration (StyleCop
 | `ban-ts-comment` | js | suspicious | off | none | `@ts-ignore`, `@ts-nocheck` before the first statement, and `@ts-expect-error` without a description of at least three characters in a comment (`@ts-check` is allowed). |
 | `consistent-type-definitions` | js | style | off | none | A type alias of an object type literal; write an `interface`. |
 | `consistent-type-imports` | js | style | off | none | An import of a TypeScript file whose names are only used as types is written `import type`, and a type is not imported with `import("a")`. Names that are not used at all are left alone; the separate `import type` fix style is the only one. |
-| `getter-return` | js | suspicious | off | none | A getter that does not return a value on every path, or has a `return;`. |
-| `no-async-promise-executor` | js | suspicious | off | none | `new Promise(async ...)`: an error thrown in the executor is lost. |
+| `getter-return` | js | suspicious | error | none | A getter that does not return a value on every path, or has a `return;`. |
+| `no-async-promise-executor` | js | suspicious | warn | none | `new Promise(async ...)`: an error thrown in the executor is lost. |
 | `no-case-declarations` | js | suspicious | off | none | `let`, `const`, a function or a class declared directly in a `case` clause, where it is visible to the other cases. |
-| `no-class-assign` | js | suspicious | off | none | A class declared by name that is assigned to. |
-| `no-compare-neg-zero` | js | suspicious | off | none | `x === -0` is true for `0` too; use `Object.is(x, -0)`. |
+| `no-class-assign` | js | suspicious | error | none | A class declared by name that is assigned to. |
+| `no-compare-neg-zero` | js | suspicious | warn | none | `x === -0` is true for `0` too; use `Object.is(x, -0)`. |
 | `no-cond-assign` | js | suspicious | off | none | An assignment as the condition of `if`, `while`, `do`, `for` or `?:` that is not in parentheses of its own. |
-| `no-const-assign` | js | suspicious | off | none | A `const` variable that is assigned to again (the initializer is not). |
-| `no-debugger` | js | suspicious | off | none | A `debugger` statement. |
-| `no-delete-var` | js | suspicious | off | none | `delete` applied to a variable name. |
-| `no-dupe-class-members` | js | suspicious | off | none | A class member declared twice (a getter and a setter may share one, a static and an instance member may not clash). |
-| `no-dupe-else-if` | js | suspicious | off | none | An `else if` condition that an earlier condition of the chain already covers. |
-| `no-dupe-keys` | js | suspicious | off | none | A key that appears twice in one object literal (a getter and a setter may share one). |
-| `no-duplicate-case` | js | suspicious | off | none | Two `case` clauses of one `switch` with the same test. |
+| `no-const-assign` | js | suspicious | error | none | A `const` variable that is assigned to again (the initializer is not). |
+| `no-debugger` | js | suspicious | warn | none | A `debugger` statement. |
+| `no-delete-var` | js | suspicious | error | none | `delete` applied to a variable name. |
+| `no-dupe-class-members` | js | suspicious | error | none | A class member declared twice (a getter and a setter may share one, a static and an instance member may not clash). |
+| `no-dupe-else-if` | js | suspicious | warn | none | An `else if` condition that an earlier condition of the chain already covers. |
+| `no-dupe-keys` | js | suspicious | warn | none | A key that appears twice in one object literal (a getter and a setter may share one). |
+| `no-duplicate-case` | js | suspicious | warn | none | Two `case` clauses of one `switch` with the same test. |
 | `no-empty` | js | suspicious | off | none | A block with no statement and no comment, or a `switch` with no case. |
-| `no-empty-character-class` | js | suspicious | off | none | `[]` in a regex literal, which matches nothing. |
+| `no-empty-character-class` | js | suspicious | warn | none | `[]` in a regex literal, which matches nothing. |
 | `no-empty-object-type` | js | suspicious | off | none | The type `{}` (not in an intersection) and an interface with no members and at most one `extends`. |
-| `no-empty-pattern` | js | suspicious | off | none | A destructuring pattern with nothing in it (`{}`, `[]`). |
+| `no-empty-pattern` | js | suspicious | warn | none | A destructuring pattern with nothing in it (`{}`, `[]`). |
 | `no-explicit-any` | js | suspicious | off | none | The `any` type. |
 | `no-extra-boolean-cast` | js | suspicious | off | none | `!!x` or `Boolean(x)` where the value is used as a boolean anyway (a condition, `!`, `Boolean(...)`). |
 | `no-extra-non-null-assertion` | js | suspicious | off | none | `a!!`, and `a!` right before `?.` (`a!?.b`, `a!?.()`). |
-| `no-func-assign` | js | suspicious | off | none | A function declared by name that is assigned to. |
-| `no-import-assign` | js | suspicious | off | none | An imported binding that is assigned to, and the members of a namespace import (`import * as ns`) that are assigned to, deleted or passed to `Object.assign` and the like. |
+| `no-func-assign` | js | suspicious | warn | none | A function declared by name that is assigned to. |
+| `no-import-assign` | js | suspicious | error | none | An imported binding that is assigned to, and the members of a namespace import (`import * as ns`) that are assigned to, deleted or passed to `Object.assign` and the like. |
 | `no-inferrable-types` | js | style | off | none | A type annotation of a variable, parameter or property that its initial value already gives (`const a: number = 5`; not `readonly` or optional properties). |
-| `no-irregular-whitespace` | js | suspicious | off | none | A no-break space, zero-width space or other unusual whitespace character outside a string. |
-| `no-loss-of-precision` | js | suspicious | off | none | A number literal that the double it becomes cannot represent exactly. |
-| `no-misused-new` | js | suspicious | off | none | A class method `new(): C` that returns the class, an interface `new (): I` that returns the interface, and an interface method `constructor()`. |
+| `no-irregular-whitespace` | js | suspicious | warn | none | A no-break space, zero-width space or other unusual whitespace character outside a string. |
+| `no-loss-of-precision` | js | suspicious | warn | none | A number literal that the double it becomes cannot represent exactly. |
+| `no-misused-new` | js | suspicious | error | none | A class method `new(): C` that returns the class, an interface `new (): I` that returns the interface, and an interface method `constructor()`. |
 | `no-namespace` | js | style | off | none | A `namespace` or `module Name` declaration (not `declare module "x"` or `declare global`), except in a `.d.ts` file. |
 | `no-non-null-assertion` | js | suspicious | off | none | A non-null assertion `a!`. |
-| `no-octal` | js | suspicious | off | none | A number that starts with `0` and another digit (`017`, `08`). |
+| `no-octal` | js | suspicious | error | none | A number that starts with `0` and another digit (`017`, `08`). |
 | `no-prototype-builtins` | js | suspicious | off | none | `obj.hasOwnProperty(k)`, `isPrototypeOf` and `propertyIsEnumerable` called on an object that may not inherit them; use `Object.prototype.hasOwnProperty.call(obj, k)`. |
 | `no-redeclare` | js | suspicious | off | none | A name declared again in the same scope (`var` twice, a `var` and a parameter, two functions). In TypeScript files declaration merging (interfaces, namespaces, a class with an interface) is allowed. Built-in globals are not checked. |
-| `no-regex-spaces` | js | suspicious | off | none | Two or more spaces in a regex literal or in the string of `new RegExp(...)`, outside a character class. |
+| `no-regex-spaces` | js | suspicious | warn | none | Two or more spaces in a regex literal or in the string of `new RegExp(...)`, outside a character class. |
 | `no-require-imports` | js | style | off | none | `require(...)` of the global `require` (not one the file declares itself) and `import x = require(...)`. |
-| `no-self-assign` | js | suspicious | off | none | `a = a`, `a.b = a.b`, `[a, b] = [a, b]`. |
+| `no-self-assign` | js | suspicious | warn | none | `a = a`, `a.b = a.b`, `[a, b] = [a, b]`. |
 | `no-shadow` | js | suspicious | off | none | A variable, parameter or function with the name of one declared in a scope around it. A function declared later in the outer scope still counts (it is hoisted), a variable declared later does not, and `var a = function a() {}` is not a shadow. In TypeScript files a type and a value of one name, and the parameters of function types, are left alone. |
-| `no-shadow-restricted-names` | js | suspicious | off | none | A variable, function, parameter or class named `NaN`, `Infinity`, `undefined`, `eval` or `arguments` (`var undefined;` without a value is left alone). |
-| `no-sparse-arrays` | js | suspicious | off | none | A hole in an array literal (`[1, , 2]`), reported at its comma. |
+| `no-shadow-restricted-names` | js | suspicious | error | none | A variable, function, parameter or class named `NaN`, `Infinity`, `undefined`, `eval` or `arguments` (`var undefined;` without a value is left alone). |
+| `no-sparse-arrays` | js | suspicious | warn | none | A hole in an array literal (`[1, , 2]`), reported at its comma. |
 | `no-this-alias` | js | style | off | none | `const self = this` and `self = this` (destructuring `this` is allowed). |
 | `no-undef` | js | suspicious | off | none | A name that no scope declares, that is not a global of ES2026 (or, in a `.cjs` file, `require`, `module`, `exports` and `global`) and that is not in the `globals` option. `typeof x` and JSX tags are left alone. Options: `globals` (default `[]`): Names the environment declares (ESLint's `languageOptions.globals`), such as `window` or `console`. |
-| `no-unreachable` | js | suspicious | off | none | A statement after `return`, `throw`, `break`, `continue`, an `if`/`else` or `try` that always jumps, or a loop that never ends. Function declarations and `var` without a value are not reported. |
-| `no-unsafe-finally` | js | suspicious | off | none | `return`, `throw`, and a `break` or `continue` that leaves the block, in a `finally` block: they override the `try`'s own outcome. |
-| `no-unsafe-negation` | js | suspicious | off | none | `!a in b` and `!a instanceof B` negate `a`, not the test. |
+| `no-unreachable` | js | suspicious | warn | none | A statement after `return`, `throw`, `break`, `continue`, an `if`/`else` or `try` that always jumps, or a loop that never ends. Function declarations and `var` without a value are not reported. |
+| `no-unsafe-finally` | js | suspicious | warn | none | `return`, `throw`, and a `break` or `continue` that leaves the block, in a `finally` block: they override the `try`'s own outcome. |
+| `no-unsafe-negation` | js | suspicious | error | none | `!a in b` and `!a instanceof B` negate `a`, not the test. |
 | `no-unused-vars` | js | suspicious | off | none | A variable, function, class, import, caught error or parameter that is never read. Parameters count only when no later parameter is read, `a = a + 1` and `a++` as statements are no read, exported names and the parameters of setters are used. In TypeScript files types, interfaces and enums count the same, and a name that only appears in `typeof` of a type is not read. |
 | `no-use-before-define` | js | suspicious | off | none | A reference that comes before the declaration of what it names in the source (function declarations included), or runs while the variable is being initialized. References in types are left alone. |
 | `no-useless-catch` | js | suspicious | off | none | A `catch` that only rethrows its error. |
 | `no-useless-escape` | js | suspicious | off | none | A backslash in a string, template or regex that escapes nothing special (`"\d"`, `/\-/`). |
-| `no-with` | js | suspicious | off | none | A `with` statement. |
+| `no-with` | js | suspicious | error | none | A `with` statement. |
 | `prefer-as-const` | js | style | off | none | A literal type that repeats the literal it is given to (`let a: 'a' = 'a'`, `'a' as 'a'`, `<'a'>'a'`); write `as const`. |
-| `require-yield` | js | suspicious | off | none | A generator function with a body and no `yield`. |
+| `require-yield` | js | suspicious | error | none | A generator function with a body and no `yield`. |
 | `triple-slash-reference` | js | style | off | none | A `/// <reference path="x" />` before the first statement, and a `/// <reference types="x" />` for a module the file imports. |
-| `use-isnan` | js | suspicious | off | none | A comparison with `NaN`, or `NaN` as the discriminant or a case test of a `switch`; use `Number.isNaN`. |
-| `valid-typeof` | js | suspicious | off | none | `typeof x` compared with a string that is not a type name, or with `undefined`. |
+| `use-isnan` | js | suspicious | error | none | A comparison with `NaN`, or `NaN` as the discriminant or a case test of a `switch`; use `Number.isNaN`. |
+| `valid-typeof` | js | suspicious | error | none | `typeof x` compared with a string that is not a type name, or with `undefined`. |
 | `at-rule-allowed-list` | css, less, scss | style | off | none | An at-rule (vendor prefix left out) that is not in the `list` option. An empty list allows everything. Options: `list` (default `[]`): The allowed at-rules, without `@`: names, or `/regex/`. Equivalent: stylelint at-rule-allowed-list. |
 | `at-rule-disallowed-list` | css, less, scss | style | off | none | An at-rule (vendor prefix left out) that is in the `list` option. Options: `list` (default `[]`): The disallowed at-rules, without `@`: names, or `/regex/`. Equivalent: stylelint at-rule-disallowed-list. |
 | `at-rule-no-deprecated` | css, less, scss | suspicious | off | none | A deprecated at-rule (`@document`, `@nest`, `@viewport`). Options: `ignore` (default `[]`): Names left out: names, or `/regex/`. Equivalent: stylelint at-rule-no-deprecated. |
@@ -92,9 +92,9 @@ Twenty-four rules read the `///` and `/** */` comment of a declaration (StyleCop
 | `custom-media-pattern` | css, less, scss | style | off | none | A `@custom-media` name, without its `--`, that does not match the `pattern` option (a regex). An empty pattern allows everything. Options: `pattern` (default `""`): The regex a custom media name, without its `--`, must match. Equivalent: stylelint custom-media-pattern. |
 | `custom-property-no-missing-var-function` | css, less, scss | correctness | off | none | A custom property that the file declares, used in a value without `var()`. Properties that take names (`transition`, `will-change`, ...) are left out. Equivalent: stylelint custom-property-no-missing-var-function. |
 | `custom-property-pattern` | css, less, scss | style | off | none | A custom property, as declared, used in `var()` or named by `@property`, whose name without the `--` does not match the `pattern` option (a regex). An empty pattern allows everything. Options: `pattern` (default `""`): The regex a custom property name, without its `--`, must match. Equivalent: stylelint custom-property-pattern. |
-| `declaration-block-no-duplicate-custom-properties` | css, less, scss | suspicious | off | none | A custom property declared twice in one block (names are case sensitive); the repeat is reported. Equivalent: stylelint declaration-block-no-duplicate-custom-properties. |
+| `declaration-block-no-duplicate-custom-properties` | css, less, scss | suspicious | warn | none | A custom property declared twice in one block (names are case sensitive); the repeat is reported. Equivalent: stylelint declaration-block-no-duplicate-custom-properties. |
 | `declaration-block-no-duplicate-properties` | css, less, scss | suspicious | off | none | A property declared twice in one block; the earlier declaration is reported (the later one when only the earlier is `!important`). `src` and custom properties are left out. Options: `ignore_consecutive_different_values` (default `false`): Leave a repeat right after the same property with another value alone (`display: -webkit-box; display: flex`). Equivalent: stylelint declaration-block-no-duplicate-properties. |
-| `declaration-block-no-shorthand-property-overrides` | css, less, scss | suspicious | off | none | A shorthand property declared after one of its longhands in the same block. Equivalent: stylelint declaration-block-no-shorthand-property-overrides. |
+| `declaration-block-no-shorthand-property-overrides` | css, less, scss | suspicious | warn | none | A shorthand property declared after one of its longhands in the same block. Equivalent: stylelint declaration-block-no-shorthand-property-overrides. |
 | `declaration-block-single-line-max-declarations` | css, less, scss | style | off | none | A block written on one line with more declarations than the `max` option. Options: `max` (default `1`): The most declarations a single-line block may have. Equivalent: stylelint declaration-block-single-line-max-declarations (partial). |
 | `declaration-no-important` | css, less, scss | style | off | none | A declaration that ends in `!important`. Equivalent: stylelint declaration-no-important. |
 | `font-family-name-quotes` | css, less, scss | style | off | none | A quoted font family name that is also valid without quotes (`always-where-required`). Equivalent: stylelint font-family-name-quotes (partial). |
@@ -103,13 +103,13 @@ Twenty-four rules read the `///` and `/** */` comment of a declaration (StyleCop
 | `function-allowed-list` | css, less, scss | style | off | none | A function that is not in the `list` option. An empty list allows everything. Options: `list` (default `[]`): The allowed functions: names, or `/regex/`. Equivalent: stylelint function-allowed-list. |
 | `function-calc-no-unspaced-operator` | css, less, scss | correctness | off | none | `+` and `-` in `calc()` need whitespace on both sides, or the expression is invalid. Equivalent: stylelint function-calc-no-unspaced-operator. |
 | `function-disallowed-list` | css, less, scss | style | off | none | A function that is in the `list` option. Options: `list` (default `[]`): The disallowed functions: names, or `/regex/`. Equivalent: stylelint function-disallowed-list. |
-| `function-linear-gradient-no-nonstandard-direction` | css, less, scss | correctness | off | none | A `linear-gradient()` that starts with a side (`top`) instead of `to top` or an angle. Equivalent: stylelint function-linear-gradient-no-nonstandard-direction. |
+| `function-linear-gradient-no-nonstandard-direction` | css, less, scss | correctness | warn | none | A `linear-gradient()` that starts with a side (`top`) instead of `to top` or an angle. Equivalent: stylelint function-linear-gradient-no-nonstandard-direction. |
 | `function-name-case` | css, less, scss | style | off | none | A function name with capitals (`translateX` and the like keep theirs). Equivalent: stylelint function-name-case. |
 | `function-no-unknown` | css, less, scss | correctness | off | none | A function in a declaration value that no CSS specification lists. Not checked in SCSS and Less, whose built-in functions are not in the table. Options: `ignore` (default `[]`): Names left out: names, or `/regex/`. Equivalent: stylelint function-no-unknown (partial), stylelint-scss scss/function-no-unknown (partial). |
 | `function-url-quotes` | css, less, scss | style | off | none | An unquoted `url(...)`: quote its argument. Equivalent: stylelint function-url-quotes (partial). |
 | `import-notation` | css, less, scss | style | off | none | An `@import` of `url(...)`: write the string. Equivalent: stylelint import-notation. |
-| `keyframe-block-no-duplicate-selectors` | css, less, scss | suspicious | off | none | The same selector twice in one `@keyframes` rule (compared in lowercase). Equivalent: stylelint keyframe-block-no-duplicate-selectors. |
-| `keyframe-declaration-no-important` | css, less, scss | correctness | off | none | `!important` in a declaration of a `@keyframes` rule: the declaration is ignored. Equivalent: stylelint keyframe-declaration-no-important. |
+| `keyframe-block-no-duplicate-selectors` | css, less, scss | suspicious | warn | none | The same selector twice in one `@keyframes` rule (compared in lowercase). Equivalent: stylelint keyframe-block-no-duplicate-selectors. |
+| `keyframe-declaration-no-important` | css, less, scss | correctness | warn | none | `!important` in a declaration of a `@keyframes` rule: the declaration is ignored. Equivalent: stylelint keyframe-declaration-no-important. |
 | `keyframe-selector-notation` | css, less, scss | style | off | none | `from` and `to` in a `@keyframes` that also uses percentages (a block with nothing but keywords is left alone). Equivalent: stylelint keyframe-selector-notation. |
 | `keyframes-name-pattern` | css, less, scss | style | off | none | A `@keyframes` name that does not match the `pattern` option (a regex). An empty pattern allows everything. Options: `pattern` (default `""`): The regex a keyframes name must match. Equivalent: stylelint keyframes-name-pattern. |
 | `layer-name-pattern` | css, less, scss | style | off | none | A `@layer` name that does not match the `pattern` option (a regex). An empty pattern allows everything. Options: `pattern` (default `""`): The regex a layer name must match. Equivalent: stylelint layer-name-pattern. |
@@ -125,16 +125,16 @@ Twenty-four rules read the `///` and `/** */` comment of a declaration (StyleCop
 | `no-duplicate-at-import-rules` | css, less, scss | suspicious | off | none | The same `@import` (url and media list) twice in one file. Equivalent: stylelint no-duplicate-at-import-rules. |
 | `no-duplicate-selectors` | css, less, scss | suspicious | off | none | The same selector list (in any order) on two rules in one block or file. Equivalent: stylelint no-duplicate-selectors. |
 | `no-empty-source` | css, less, scss | suspicious | off | none | A file with nothing but whitespace (a file with only comments is not empty). Equivalent: stylelint no-empty-source. |
-| `no-invalid-double-slash-comments` | css, less, scss | correctness | off | none | A rule or declaration that starts with `//`: CSS has no line comments, so the text swallows the statement. Equivalent: stylelint no-invalid-double-slash-comments. |
+| `no-invalid-double-slash-comments` | css, less, scss | correctness | warn | none | A rule or declaration that starts with `//`: CSS has no line comments, so the text swallows the statement. Equivalent: stylelint no-invalid-double-slash-comments. |
 | `no-invalid-position-at-import-rule` | css, less, scss | correctness | off | none | An `@import` after a rule that is not `@charset`, `@layer` or another `@import`: the browser ignores it. Equivalent: stylelint no-invalid-position-at-import-rule. |
-| `no-invalid-position-declaration` | css, less, scss | correctness | off | none | A declaration at the top of a file, or in an at-rule such as `@media` that is not inside a rule. Equivalent: stylelint no-invalid-position-declaration. |
+| `no-invalid-position-declaration` | css, less, scss | correctness | warn | none | A declaration at the top of a file, or in an at-rule such as `@media` that is not inside a rule. Equivalent: stylelint no-invalid-position-declaration. |
 | `number-max-precision` | css, less, scss | style | off | none | A number with more decimal places than the `max` option. Options: `max` (default `4`): The most decimal places a number may have. Equivalent: stylelint number-max-precision. |
 | `property-allowed-list` | css, less, scss | style | off | none | A property that is not in the `list` option (names, or `/regex/`). Custom properties are left out; an empty list allows everything. Options: `list` (default `[]`): The allowed properties: names, or `/regex/`. Equivalent: stylelint property-allowed-list. |
 | `property-disallowed-list` | css, less, scss | style | off | none | A property that is in the `list` option (names, or `/regex/`). Custom properties are left out. Options: `list` (default `[]`): The disallowed properties: names, or `/regex/`. Equivalent: stylelint property-disallowed-list. |
 | `property-no-deprecated` | css, less, scss | suspicious | off | none | A deprecated property (`clip`, `word-wrap`, `grid-gap`, the `box-*` of the old flexbox, ...). Options: `ignore` (default `[]`): Names left out: names, or `/regex/`. Equivalent: stylelint property-no-deprecated (partial). |
-| `property-no-unknown` | css, less, scss | correctness | off | none | A property that no CSS specification lists. Vendor-prefixed and custom properties, descriptors of `@font-face` and the like, and names with interpolation or SCSS and Less variables are left out. Options: `ignore` (default `[]`): Names left out: names, or `/regex/`. Equivalent: stylelint property-no-unknown, stylelint-scss scss/property-no-unknown. |
+| `property-no-unknown` | css, less, scss | correctness | warn | none | A property that no CSS specification lists. Vendor-prefixed and custom properties, descriptors of `@font-face` and the like, and names with interpolation or SCSS and Less variables are left out. Options: `ignore` (default `[]`): Names left out: names, or `/regex/`. Equivalent: stylelint property-no-unknown, stylelint-scss scss/property-no-unknown. |
 | `property-no-vendor-prefix` | css, less, scss | style | off | none | A vendor-prefixed property that autoprefixer knows the standard property of. Options: `ignore` (default `[]`): Names left out: names, or `/regex/`. Equivalent: stylelint property-no-vendor-prefix (partial). |
-| `selector-anb-no-unmatchable` | css, less, scss | correctness | off | none | An `:nth-child()` and the like whose `An+B` can never match (`0`, `0n`, `-n`, `-2n-1`). Equivalent: stylelint selector-anb-no-unmatchable. |
+| `selector-anb-no-unmatchable` | css, less, scss | correctness | warn | none | An `:nth-child()` and the like whose `An+B` can never match (`0`, `0n`, `-n`, `-2n-1`). Equivalent: stylelint selector-anb-no-unmatchable. |
 | `selector-attribute-name-disallowed-list` | css, less, scss | style | off | none | An attribute selector whose name is in the `list` option. Options: `list` (default `[]`): The disallowed attribute names: names, or `/regex/`. Equivalent: stylelint selector-attribute-name-disallowed-list. |
 | `selector-attribute-operator-allowed-list` | css, less, scss | style | off | none | An attribute selector operator that is not in the `list` option. An empty list allows everything. Options: `list` (default `[]`): The allowed operators (`=`, `~=`, `\|=`, `^=`, `$=`, `*=`). Equivalent: stylelint selector-attribute-operator-allowed-list. |
 | `selector-attribute-operator-disallowed-list` | css, less, scss | style | off | none | An attribute selector operator that is in the `list` option. Options: `list` (default `[]`): The disallowed operators (`=`, `~=`, `\|=`, `^=`, `$=`, `*=`). Equivalent: stylelint selector-attribute-operator-disallowed-list. |
@@ -180,62 +180,62 @@ Twenty-four rules read the `///` and `/** */` comment of a declaration (StyleCop
 | `invalid-job-id` | github-actions | correctness | error | none | A job id must start with a letter or `_` and contain only letters, digits, `-` and `_`. |
 | `invalid-runs-on` | github-actions | suspicious | warn | none | A `runs-on` label that is not one of the known runner labels. A job that also has `self-hosted` is not checked; `${{ matrix.name }}` stands for the matrix's values, other expressions are skipped. Options: `labels` (default `["ubuntu-slim", "ubuntu-latest(-(4\|8\|16)-cores)?", "ubuntu-(24\|22)\.04(-arm)?", "windows-latest(-8-cores)?", "windows-2025(-vs2026)?", "windows-2022", "windows-11-arm", "macos-latest(-(xlarge\|large))?", "macos-(26\|15)(-(intel\|xlarge\|large))?", "macos-14(-(xlarge\|large))?", "self-hosted", "linux", "macos", "windows", "x64", "arm", "arm64"]`): Regular expressions; a label is valid when one matches all of it, ignoring case. |
 | `missing-permissions` | github-actions | suspicious | off | none | A job without `permissions`, in a workflow without top-level `permissions`: it gets the repository's default token permissions, often write access. |
-| `no-duplicate-anchors` | github-actions, yaml | suspicious | off | none | An anchor name is defined again in the same document; an alias refers to the latest definition above it, which is easy to misread. Equivalent: yamllint anchors.forbid-duplicated-anchors. |
+| `no-duplicate-anchors` | github-actions, yaml | suspicious | warn | none | An anchor name is defined again in the same document; an alias refers to the latest definition above it, which is easy to misread. Equivalent: yamllint anchors.forbid-duplicated-anchors. |
 | `no-empty-values` | github-actions, yaml | style | off | none | A mapping key or sequence entry without a value (an implicit null). Values with an anchor or tag are not empty. Reported at the `:` or `-`. Options: `block_mappings` (default `true`): Check block mappings; `flow_mappings` (default `true`): Check flow mappings (`{a: }`); `block_sequences` (default `true`): Check block sequences. Equivalent: yamllint empty-values, yamllint empty-values.forbid-in-block-mappings / flow-mappings / block-sequences. |
 | `no-flow-mappings` | github-actions, yaml | style | off | none | A flow mapping (`{a: 1}`); write a block mapping instead. Options: `allow_empty` (default `false`): Do not report empty collections (`{}`, `[]`). Equivalent: yamllint braces.forbid. |
 | `no-flow-sequences` | github-actions, yaml | style | off | none | A flow sequence (`[a, b]`); write a block sequence instead. Options: `allow_empty` (default `false`): Do not report empty collections (`{}`, `[]`). Equivalent: yamllint brackets.forbid. |
-| `no-octal-values` | github-actions, yaml | suspicious | off | none | A plain `0755` (octal to YAML 1.1 parsers, decimal 755 to YAML 1.2) or `0o755` (octal to YAML 1.2, a string to YAML 1.1). Quoted and tagged scalars are not checked. No fix: the intended value is not known. Options: `implicit` (default `true`): Report `0755`; `explicit` (default `true`): Report `0o755`. Equivalent: yamllint octal-values, yamllint octal-values.forbid-implicit-octal / forbid-explicit-octal. |
+| `no-octal-values` | github-actions, yaml | suspicious | warn | none | A plain `0755` (octal to YAML 1.1 parsers, decimal 755 to YAML 1.2) or `0o755` (octal to YAML 1.2, a string to YAML 1.1). Quoted and tagged scalars are not checked. No fix: the intended value is not known. Options: `implicit` (default `true`): Report `0755`; `explicit` (default `true`): Report `0o755`. Equivalent: yamllint octal-values, yamllint octal-values.forbid-implicit-octal / forbid-explicit-octal. |
 | `no-undefined-alias` | github-actions, yaml | correctness | error | none | An alias names an anchor that is not defined earlier in the same document. Equivalent: yamllint anchors, yamllint anchors.forbid-undeclared-aliases. |
 | `no-unused-anchors` | github-actions, yaml | cleanup | off | safe | An anchor that no alias refers to. The fix removes the anchor, which changes nothing about the data. Equivalent: yamllint anchors.forbid-unused-anchors. |
 | `quoted-strings` | github-actions, yaml | style | off | unsafe | Which strings are quoted. Plain scalars that are not strings (`12`, `true`, `null`, dates, ...), block scalars and scalars tagged `!!` are never checked. `required: always` wants quotes on every string, `only_when_needed` reports quotes that change nothing (unless `extra_allowed` matches) and plain strings that `extra_required` matches, `optional` only the latter. Fixes: quoting a plain string and switching the quote type keep the value; removing quotes is unsafe because YAML 1.2 parsers read some strings (`1e3`) as numbers. Options: `quote_type` (default `"any"`; one of `any`, `single`, `double`, `consistent`): The quotes to use. `consistent`: the first quoted string of the file decides; `required` (default `"always"`; one of `always`, `optional`, `only_when_needed`): `always`: every string is quoted. `optional`: quotes are free, but must be of `quote_type`. `only_when_needed`: quotes only where the string would otherwise read as something else; `extra_required` (default `[]`): Regular expressions; a string they match (searched in the value) must be quoted even with `optional` or `only_when_needed`; `extra_allowed` (default `[]`): Regular expressions; a string they match may be quoted with `only_when_needed`; `allow_quoted_quotes` (default `false`): Accept the other quote type when the string contains the wanted quote; `check_keys` (default `false`): Check mapping keys too. Equivalent: yamllint quoted-strings, yamllint quoted-strings.quote-type, yamllint quoted-strings.required, yamllint quoted-strings.extra-required / extra-allowed, yamllint quoted-strings.allow-quoted-quotes, yamllint quoted-strings.check-keys. |
 | `script-injection` | github-actions | correctness | warn | none | An expression in a `run` script reads text that an attacker can choose (an issue or pull request title, a branch name, a commit message): it is pasted into the script before the shell runs, so it can inject commands. Pass it through an environment variable (`env:`) and read `"$VAR"` instead. |
 | `unknown-needs` | github-actions | correctness | error | none | `needs` names a job that the workflow does not define. |
 | `apk-no-cache` | dockerfile | performance | off | none | apk add without --no-cache. |
-| `apk-pin-versions` | dockerfile | suspicious | warn | none | An apk add package without a version. |
+| `apk-pin-versions` | dockerfile | suspicious | off | none | An apk add package without a version. |
 | `apt-get-no-recommends` | dockerfile | performance | off | none | apt-get install that installs recommended packages. |
-| `apt-get-pin-versions` | dockerfile | suspicious | warn | none | An apt-get install package without a version. |
+| `apt-get-pin-versions` | dockerfile | suspicious | off | none | An apt-get install package without a version. |
 | `apt-get-yes` | dockerfile | correctness | warn | none | apt-get install without -y. |
 | `copy-from-own-stage` | dockerfile | correctness | error | none | A `COPY --from` that names the stage it is in. |
 | `copy-from-unknown-stage` | dockerfile | correctness | warn | none | A `COPY --from` that names no earlier stage: not a stage name, not the index of an earlier stage, and not an image (no `:`). |
-| `copy-instead-of-add` | dockerfile | suspicious | error | none | An ADD with no URL and no archive (`.tar`, `.gz`, `.tgz`, `.xz` and the like) among its arguments, which ADD would extract or download. |
+| `copy-instead-of-add` | dockerfile | suspicious | off | none | An ADD with no URL and no archive (`.tar`, `.gz`, `.tgz`, `.xz` and the like) among its arguments, which ADD would extract or download. |
 | `copy-many-needs-directory` | dockerfile | correctness | error | none | A COPY with more than one source whose last argument does not end with `/`. |
-| `dnf-clean` | dockerfile | performance | warn | none | dnf install with no dnf clean all after it. |
+| `dnf-clean` | dockerfile | performance | off | none | dnf install with no dnf clean all after it. |
 | `dnf-yes` | dockerfile | correctness | warn | none | dnf install without -y. |
 | `duplicate-stage-name` | dockerfile | correctness | error | none | Two FROM instructions name their stage alike. |
 | `expose-port-range` | dockerfile | correctness | error | none | An EXPOSE with a port above 65535. |
 | `from-first` | dockerfile | correctness | error | none | An instruction other than ARG before the first FROM. |
-| `gem-pin-versions` | dockerfile | suspicious | warn | none | A gem install gem without a version. |
-| `go-pin-versions` | dockerfile | suspicious | warn | none | A go install or get package without a version (or at latest). |
+| `gem-pin-versions` | dockerfile | suspicious | off | none | A gem install gem without a version. |
+| `go-pin-versions` | dockerfile | suspicious | off | none | A go install or get package without a version (or at latest). |
 | `json-cmd-entrypoint` | dockerfile | suspicious | warn | none | A CMD, ENTRYPOINT or HEALTHCHECK CMD in shell form, which runs under `sh -c` and does not get signals. |
 | `last-user-not-root` | dockerfile | correctness | warn | none | A stage whose last USER is root (`root`, `0`, `root:group`, `0:group`). |
-| `no-apt` | dockerfile | suspicious | warn | none | A RUN that calls apt. |
-| `no-copy-whole-stage` | dockerfile | suspicious | warn | none | A `COPY --from` with `/` as a source and as the target. |
-| `no-from-platform` | dockerfile | suspicious | warn | none | A FROM with a fixed `--platform`; a variable such as `$BUILDPLATFORM` is fine. |
+| `no-apt` | dockerfile | suspicious | off | none | A RUN that calls apt. |
+| `no-copy-whole-stage` | dockerfile | suspicious | off | none | A `COPY --from` with `/` as a source and as the target. |
+| `no-from-platform` | dockerfile | suspicious | off | none | A FROM with a fixed `--platform`; a variable such as `$BUILDPLATFORM` is fine. |
 | `no-interactive-commands` | dockerfile | suspicious | off | none | A RUN that calls ssh, vim, shutdown, service, ps, free, top, kill or mount. |
-| `no-latest-tag` | dockerfile | suspicious | warn | none | A FROM image tagged `latest` (without a digest). |
-| `no-maintainer` | dockerfile | cleanup | error | none | A MAINTAINER instruction. |
+| `no-latest-tag` | dockerfile | suspicious | off | none | A FROM image tagged `latest` (without a digest). |
+| `no-maintainer` | dockerfile | cleanup | warn | none | A MAINTAINER instruction. |
 | `no-nested-onbuild` | dockerfile | correctness | error | none | An ONBUILD whose instruction is ONBUILD, FROM or MAINTAINER. |
-| `no-redundant-target-platform` | dockerfile | cleanup | warn | none | A FROM with `--platform=$TARGETPLATFORM`, which is what it does without the option. |
+| `no-redundant-target-platform` | dockerfile | cleanup | off | none | A FROM with `--platform=$TARGETPLATFORM`, which is what it does without the option. |
 | `no-reserved-stage-name` | dockerfile | suspicious | warn | none | A stage named `scratch` or `context`. |
 | `no-secret-in-env` | dockerfile | suspicious | warn | none | An ARG or ENV whose name contains `api_key`, `client_key`, `password`, `private`, `secret`, `token` or `username`, or is a well-known credential variable. Build secrets belong in `--mount=type=secret`. |
-| `no-shell-symlink` | dockerfile | suspicious | warn | none | A RUN that links /bin/sh. |
-| `no-sudo` | dockerfile | correctness | error | none | A RUN that calls sudo. |
-| `npm-pin-versions` | dockerfile | suspicious | warn | none | An npm install package without a version. |
+| `no-shell-symlink` | dockerfile | suspicious | off | none | A RUN that links /bin/sh. |
+| `no-sudo` | dockerfile | correctness | off | none | A RUN that calls sudo. |
+| `npm-pin-versions` | dockerfile | suspicious | off | none | An npm install package without a version. |
 | `numeric-user-id` | dockerfile | suspicious | off | none | A USER that is a name rather than a numeric id (a variable is accepted). |
-| `pip-pin-versions` | dockerfile | suspicious | warn | none | A pip install package without a version. |
-| `rpm-pin-versions` | dockerfile | suspicious | warn | none | A yum or dnf install package without a version. |
+| `pip-pin-versions` | dockerfile | suspicious | off | none | A pip install package without a version. |
+| `rpm-pin-versions` | dockerfile | suspicious | off | none | A yum or dnf install package without a version. |
 | `single-cmd` | dockerfile | suspicious | warn | none | A second CMD in one stage. |
-| `single-entrypoint` | dockerfile | suspicious | error | none | A second ENTRYPOINT in one stage. |
-| `single-healthcheck` | dockerfile | suspicious | error | none | A second HEALTHCHECK in one stage. |
-| `untagged-base-image` | dockerfile | suspicious | warn | none | A FROM image with neither a tag nor a digest, which builds on whatever `latest` is. `scratch`, a variable and an earlier stage's name are fine. |
-| `use-workdir-not-cd` | dockerfile | style | warn | none | A RUN that calls cd. |
+| `single-entrypoint` | dockerfile | suspicious | warn | none | A second ENTRYPOINT in one stage. |
+| `single-healthcheck` | dockerfile | suspicious | warn | none | A second HEALTHCHECK in one stage. |
+| `untagged-base-image` | dockerfile | suspicious | off | none | A FROM image with neither a tag nor a digest, which builds on whatever `latest` is. `scratch`, a variable and an earlier stage's name are fine. |
+| `use-workdir-not-cd` | dockerfile | style | off | none | A RUN that calls cd. |
 | `wget-progress` | dockerfile | style | off | none | A wget call with no progress, quiet or log-file flag. |
-| `workdir-absolute` | dockerfile | correctness | error | none | A WORKDIR whose path is not absolute (a leading `/`, a drive letter or a variable). |
-| `yum-clean` | dockerfile | performance | warn | none | yum install with no yum clean all after it. |
+| `workdir-absolute` | dockerfile | correctness | off | none | A WORKDIR whose path is not absolute (a leading `/`, a drive letter or a variable). |
+| `yum-clean` | dockerfile | performance | off | none | yum install with no yum clean all after it. |
 | `yum-yes` | dockerfile | correctness | warn | none | yum install without -y. |
-| `zypper-clean` | dockerfile | performance | warn | none | zypper install with no zypper clean after it. |
-| `zypper-no-dist-upgrade` | dockerfile | suspicious | warn | none | A zypper dist-upgrade. |
-| `zypper-pin-versions` | dockerfile | suspicious | warn | none | A zypper install package without a version. |
+| `zypper-clean` | dockerfile | performance | off | none | zypper install with no zypper clean after it. |
+| `zypper-no-dist-upgrade` | dockerfile | suspicious | off | none | A zypper dist-upgrade. |
+| `zypper-pin-versions` | dockerfile | suspicious | off | none | A zypper install package without a version. |
 | `zypper-yes` | dockerfile | correctness | warn | none | zypper install without -y. |
 | `invalid-property-value` | editorconfig | correctness | warn | none | A known EditorConfig or .NET property has a value it does not accept (`indent_style = tabs`, `dotnet_diagnostic.CA1000.severity = high`). Values are case-insensitive, `unset` is always valid, and .NET code-style options may end in `:silent`, `:suggestion`, `:warning` or `:error`; formatting options do not (Roslyn parses them with `bool.TryParse`, EditorConfigValueSerializer.cs). A trailing `# comment` is ignored, as Roslyn does. Unknown properties are not checked. |
 | `root-in-section` | editorconfig | correctness | warn | none | The `root` property stops the search for parent `.editorconfig` files, but only as a preamble pair (before the first `[section]`); inside a section editors ignore it. No fix: moving it into the preamble is the author's call. |
@@ -243,11 +243,11 @@ Twenty-four rules read the `///` and `/** */` comment of a declaration (StyleCop
 | `backslash-separator` | gitignore | correctness | warn | none | `build\out` is the pattern `buildout`: the backslash escapes `o`. Windows-style separators never match what was meant. Reported for a backslash before a letter, digit, `_` or `-` (`\.` and `\#` are ordinary escapes). No fix. |
 | `inline-comment` | gitignore | correctness | warn | none | Gitignore-syntax files have no end-of-line comments: `*.log # logs` is the pattern `*.log # logs`, a file name with spaces and a `#`. No fix: put the comment on its own line. |
 | `negation-of-excluded-parent` | gitignore | correctness | warn | none | Git cannot re-include a file when a parent directory is excluded: `!a/b` after `a/` has no effect. Exclude the contents (`a/*`) instead. Not reported in `.dockerignore`, where the later pattern wins. Only literal paths are checked. |
-| `no-duplicate-pattern` | gitignore | suspicious | warn | none | The same pattern appears twice with no opposite pattern (`!x` for `x`) in between, so the second one changes nothing. |
-| `redundant-pattern` | gitignore | suspicious | warn | none | A name pattern such as `foo` already matches files and directories called `foo` at every level, so a later `foo/` or `/foo` adds nothing (no `!` pattern in between). |
-| `naming-convention` | graphql, hcl | style | warn | none | A name does not follow the style set for what it names: operations, fragments, variables, fields, arguments, types, enum values and directives. `PascalCase` and `camelCase` allow letters and digits only, `snake_case` and `UPPER_CASE` forbid the other case; leading underscores are ignored. No fix: renaming changes the schema or the queries that use it. Equivalent: graphql-eslint naming-convention (styles only, no prefix or suffix lists). Options: `operations` (default `"PascalCase"`; one of `PascalCase`, `camelCase`, `snake_case`, `UPPER_CASE`, `off`): Style of operation names: `PascalCase`, `camelCase`, `snake_case`, `UPPER_CASE` or `off`; `fragments` (default `"PascalCase"`; one of `PascalCase`, `camelCase`, `snake_case`, `UPPER_CASE`, `off`): Style of fragment names: `PascalCase`, `camelCase`, `snake_case`, `UPPER_CASE` or `off`; `variables` (default `"camelCase"`; one of `PascalCase`, `camelCase`, `snake_case`, `UPPER_CASE`, `off`): Style of variable names: `PascalCase`, `camelCase`, `snake_case`, `UPPER_CASE` or `off`; `fields` (default `"camelCase"`; one of `PascalCase`, `camelCase`, `snake_case`, `UPPER_CASE`, `off`): Style of field and input field names in definitions: `PascalCase`, `camelCase`, `snake_case`, `UPPER_CASE` or `off`; `arguments` (default `"camelCase"`; one of `PascalCase`, `camelCase`, `snake_case`, `UPPER_CASE`, `off`): Style of argument names in definitions: `PascalCase`, `camelCase`, `snake_case`, `UPPER_CASE` or `off`; `types` (default `"PascalCase"`; one of `PascalCase`, `camelCase`, `snake_case`, `UPPER_CASE`, `off`): Style of type names: `PascalCase`, `camelCase`, `snake_case`, `UPPER_CASE` or `off`; `enum_values` (default `"UPPER_CASE"`; one of `PascalCase`, `camelCase`, `snake_case`, `UPPER_CASE`, `off`): Style of enum values: `PascalCase`, `camelCase`, `snake_case`, `UPPER_CASE` or `off`; `directives` (default `"camelCase"`; one of `PascalCase`, `camelCase`, `snake_case`, `UPPER_CASE`, `off`): Style of directive names: `PascalCase`, `camelCase`, `snake_case`, `UPPER_CASE` or `off`. |
-| `no-anonymous-operations` | graphql | suspicious | warn | none | An operation without a name (`{ a }`, `query { a }`), which tools that log, trace or cache by operation name cannot tell apart. Equivalent - graphql-eslint no-anonymous-operations. |
-| `no-typename-prefix` | graphql | style | warn | none | A field of an object or interface type starts with the name of the type (`type User { userId: ID }`); the type already says it (case ignored). No fix: renaming a field changes the schema. |
+| `no-duplicate-pattern` | gitignore | suspicious | off | none | The same pattern appears twice with no opposite pattern (`!x` for `x`) in between, so the second one changes nothing. |
+| `redundant-pattern` | gitignore | suspicious | off | none | A name pattern such as `foo` already matches files and directories called `foo` at every level, so a later `foo/` or `/foo` adds nothing (no `!` pattern in between). |
+| `naming-convention` | graphql, hcl | style | off | none | A name does not follow the style set for what it names: operations, fragments, variables, fields, arguments, types, enum values and directives. `PascalCase` and `camelCase` allow letters and digits only, `snake_case` and `UPPER_CASE` forbid the other case; leading underscores are ignored. No fix: renaming changes the schema or the queries that use it. Equivalent: graphql-eslint naming-convention (styles only, no prefix or suffix lists). Options: `operations` (default `"PascalCase"`; one of `PascalCase`, `camelCase`, `snake_case`, `UPPER_CASE`, `off`): Style of operation names: `PascalCase`, `camelCase`, `snake_case`, `UPPER_CASE` or `off`; `fragments` (default `"PascalCase"`; one of `PascalCase`, `camelCase`, `snake_case`, `UPPER_CASE`, `off`): Style of fragment names: `PascalCase`, `camelCase`, `snake_case`, `UPPER_CASE` or `off`; `variables` (default `"camelCase"`; one of `PascalCase`, `camelCase`, `snake_case`, `UPPER_CASE`, `off`): Style of variable names: `PascalCase`, `camelCase`, `snake_case`, `UPPER_CASE` or `off`; `fields` (default `"camelCase"`; one of `PascalCase`, `camelCase`, `snake_case`, `UPPER_CASE`, `off`): Style of field and input field names in definitions: `PascalCase`, `camelCase`, `snake_case`, `UPPER_CASE` or `off`; `arguments` (default `"camelCase"`; one of `PascalCase`, `camelCase`, `snake_case`, `UPPER_CASE`, `off`): Style of argument names in definitions: `PascalCase`, `camelCase`, `snake_case`, `UPPER_CASE` or `off`; `types` (default `"PascalCase"`; one of `PascalCase`, `camelCase`, `snake_case`, `UPPER_CASE`, `off`): Style of type names: `PascalCase`, `camelCase`, `snake_case`, `UPPER_CASE` or `off`; `enum_values` (default `"UPPER_CASE"`; one of `PascalCase`, `camelCase`, `snake_case`, `UPPER_CASE`, `off`): Style of enum values: `PascalCase`, `camelCase`, `snake_case`, `UPPER_CASE` or `off`; `directives` (default `"camelCase"`; one of `PascalCase`, `camelCase`, `snake_case`, `UPPER_CASE`, `off`): Style of directive names: `PascalCase`, `camelCase`, `snake_case`, `UPPER_CASE` or `off`. |
+| `no-anonymous-operations` | graphql | suspicious | off | none | An operation without a name (`{ a }`, `query { a }`), which tools that log, trace or cache by operation name cannot tell apart. Equivalent - graphql-eslint no-anonymous-operations. |
+| `no-typename-prefix` | graphql | style | off | none | A field of an object or interface type starts with the name of the type (`type User { userId: ID }`); the type already says it (case ignored). No fix: renaming a field changes the schema. |
 | `selection-set-depth` | graphql | suspicious | off | none | An operation or fragment nests selection sets deeper than allowed, which makes a query expensive to execute. Fragments that are spread are not followed. Options: `max_depth` (default `7`): The deepest allowed nesting; the operation's own selection set is level 1. |
 | `unique-fragment-name` | graphql | correctness | error | none | Two fragments of a document have the same name; a spread cannot tell which one it means. Checked within the file. |
 | `unique-operation-name` | graphql | correctness | error | none | Two operations of a document have the same name; a server cannot tell which to run and tools that key on the name (caches, persisted queries) collide. Checked within the file. |
@@ -269,46 +269,46 @@ Twenty-four rules read the `///` and `/** */` comment of a declaration (StyleCop
 | `attr-pattern` | html, svelte, vue | style | off | none | An attribute name that does not match the `pattern` option (a regex; by default letters, digits, `-` and `:`, in either case). Options: `pattern` (default `"(?i)^[a-z0-9:-]+$"`): The regex the value must match. |
 | `attr-quotes` | html, svelte, vue | style | off | none | An attribute value is quoted with `"`; it is quoted with `'` only when it holds a `"`. Unquoted values are reported too. |
 | `attr-spacing` | html, svelte, vue | style | off | none | A quoted attribute value is followed by whitespace before the next attribute. |
-| `attribute-allowed-values` | html, svelte, vue | correctness | off | none | An attribute that is limited to a list of values (`type` of `<button>`, `method` of `<form>`, ...) has another one. |
+| `attribute-allowed-values` | html, svelte, vue | correctness | warn | none | An attribute that is limited to a list of values (`type` of `<button>`, `method` of `<form>`, ...) has another one. |
 | `attribute-boolean-style` | html, svelte, vue | style | off | none | A boolean attribute is true when present: `disabled`, not `disabled="disabled"`. |
 | `attribute-empty-style` | html, svelte, vue | style | off | none | An attribute whose empty value means the same as no value (`hidden`, `crossorigin`) is written without `=""`. |
 | `class-pattern` | html, svelte, vue | style | off | none | A class name that does not match the `pattern` option (a regex; by default kebab-case). Options: `pattern` (default `"^[a-z][a-z0-9]*(-[a-z0-9]+)*$"`): The regex the value must match. |
-| `deprecated` | html, svelte, vue | correctness | off | none | An element that HTML5 no longer has (`<center>`, `<font>`, `<marquee>`, ...). |
-| `doctype-html` | html, svelte, vue | correctness | off | none | A doctype other than `html` puts the browser in quirks or limited-quirks mode. |
+| `deprecated` | html, svelte, vue | correctness | warn | none | An element that HTML5 no longer has (`<center>`, `<font>`, `<marquee>`, ...). |
+| `doctype-html` | html, svelte, vue | correctness | warn | none | A doctype other than `html` puts the browser in quirks or limited-quirks mode. |
 | `doctype-style` | html, svelte, vue | style | off | none | The doctype keyword is case-insensitive; uppercase is the convention. |
 | `element-case` | html, svelte, vue | style | off | none | Element names are case-insensitive in HTML; lowercase is the convention. Everything inside `<svg>` and `<math>` keeps its case. Reported on the name of a start or end tag. |
 | `element-name` | html, svelte, vue | correctness | off | none | A custom element name is lowercase letters, digits, `-`, `.` and `_`, and has a `-`, so that it never clashes with an element HTML adds later. Everything inside `<svg>` and `<math>` is left alone. |
 | `element-required-attributes` | html, svelte, vue | correctness | off | none | An attribute the element must have (`lang` on `<html>`, `src` on `<img>`, `title` on `<iframe>`, ...). |
 | `empty-heading` | html, svelte, vue | correctness | off | none | Screen readers need text in a heading; whitespace is not text. An image with an `alt` or an `<svg>` inside counts as content. |
-| `empty-title` | html, svelte, vue | correctness | off | none | The `<title>` names the page in the browser tab, search results and screen readers; whitespace is not text. |
+| `empty-title` | html, svelte, vue | correctness | warn | none | The `<title>` names the page in the browser tab, search results and screen readers; whitespace is not text. |
 | `heading-level` | html, svelte, vue | correctness | off | none | Headings do not follow the document outline: the first heading is not an `<h1>`, a level is skipped going down the outline (`<h1>` then `<h3>`), or the page has a second `<h1>`. |
 | `id-pattern` | html, svelte, vue | style | off | none | An `id` that does not match the `pattern` option (a regex; by default kebab-case: lowercase letters and digits in words joined by `-`, beginning with a letter). Options: `pattern` (default `"^[a-z][a-z0-9]*(-[a-z0-9]+)*$"`): The regex the value must match. |
 | `input-missing-label` | html, svelte, vue | correctness | off | none | An `<input>` (not hidden or a button), `<select>` or `<textarea>` that no `<label>` names: it is not inside one, no `<label for>` points at its `id`, and it has no `aria-label` or `aria-labelledby`. |
 | `long-title` | html, svelte, vue | style | off | none | Search engines cut a title off after about 70 characters. |
-| `map-dup-name` | html, svelte, vue | correctness | off | none | A `<map>` whose `name` an earlier `<map>` already has: `usemap` finds the first. |
+| `map-dup-name` | html, svelte, vue | correctness | warn | none | A `<map>` whose `name` an earlier `<map>` already has: `usemap` finds the first. |
 | `meta-refresh` | html, svelte, vue | correctness | off | none | `<meta http-equiv="refresh" content="5">` reloads or redirects after a delay, which disorients screen reader users and cannot be paused. A delay of 0 is allowed. |
 | `missing-doctype` | html, svelte, vue | correctness | off | none | A document without a doctype is rendered in quirks mode. |
 | `multiple-labeled-controls` | html, svelte, vue | correctness | off | none | A `<label>` without `for` that holds more than one control: it labels only the first. |
 | `name-pattern` | html, svelte, vue | style | off | none | The `name` of a form control that does not match the `pattern` option (a regex; by default camelCase, with a trailing `[]` allowed). Options: `pattern` (default `"^[a-z][a-zA-Z0-9]*(\[\])?$"`): The regex the value must match. |
-| `no-abstract-role` | html, svelte, vue | correctness | off | none | Abstract roles (`widget`, `landmark`, `command`, ...) are for the ARIA taxonomy, not for authors. |
+| `no-abstract-role` | html, svelte, vue | correctness | warn | none | Abstract roles (`widget`, `landmark`, `command`, ...) are for the ARIA taxonomy, not for authors. |
 | `no-autoplay` | html, svelte, vue | suspicious | off | none | Autoplaying audio and video annoys users and fails accessibility guidelines; `muted` media is allowed. |
 | `no-conditional-comment` | html, svelte, vue | suspicious | off | none | An Internet Explorer conditional comment (`<!--[if IE]>`). Only IE 9 and older read them; other browsers see a comment. |
-| `no-deprecated-attr` | html, svelte, vue | correctness | off | none | An attribute that HTML5 no longer has on that element (`align`, `bgcolor`, `border`, ...). |
+| `no-deprecated-attr` | html, svelte, vue | correctness | warn | none | An attribute that HTML5 no longer has on that element (`align`, `bgcolor`, `border`, ...). |
 | `no-duplicate-class` | html, svelte, vue | suspicious | off | none | A class name written twice in one `class` attribute. |
-| `no-duplicate-id` | html, svelte, vue | correctness | off | none | An `id` that an earlier element of the document already has. Ids must be unique: scripts, links and labels find the first element only. Empty ids are left alone. |
+| `no-duplicate-id` | html, svelte, vue | correctness | warn | none | An `id` that an earlier element of the document already has. Ids must be unique: scripts, links and labels find the first element only. Empty ids are left alone. |
 | `no-implicit-button-type` | html, svelte, vue | suspicious | off | none | A `<button>` without a `type` is a submit button, which is rarely meant outside a form. |
 | `no-implicit-close` | html, svelte, vue | style | off | none | An element whose end tag is left out is closed by the next sibling or its parent's end tag (`<li>`, `<p>`, ...). Writing the end tag says where it ends. Void and self-closed elements have none. |
 | `no-implicit-input-type` | html, svelte, vue | style | off | none | An `<input>` without a `type` is a text field by default; writing the type says so. |
 | `no-inline-style` | html, svelte, vue | style | off | none | A `style` attribute is a sign of unstructured CSS. `display` alone is allowed, because scripts toggle it. |
-| `no-missing-references` | html, svelte, vue | correctness | off | none | An attribute that refers to an `id` (`for`, `aria-labelledby`, `list`, `headers`, `form`, ...) names an id that no element of the document has. |
-| `no-multiple-main` | html, svelte, vue | correctness | off | none | A second `<main>` element that is not `hidden`: a page has one main landmark. |
+| `no-missing-references` | html, svelte, vue | correctness | warn | none | An attribute that refers to an `id` (`for`, `aria-labelledby`, `list`, `headers`, `form`, ...) names an id that no element of the document has. |
+| `no-multiple-main` | html, svelte, vue | correctness | warn | none | A second `<main>` element that is not `hidden`: a page has one main landmark. |
 | `no-redundant-for` | html, svelte, vue | style | off | none | A `<label>` has a `for` that names a control inside it, which the label already labels. |
 | `no-redundant-role` | html, svelte, vue | style | off | none | An element with a native role (`<nav>` is `navigation`, `<button>` is `button`) does not need a `role` that says the same. |
 | `no-self-closing` | html, svelte, vue | correctness | off | none | `<div />` is a start tag in HTML: the browser ignores the slash and the element stays open. Void elements (see `void-style`), `<svg>` and `<math>` are left alone. |
 | `no-style-tag` | html, svelte, vue | style | off | none | A `<style>` element inlines styling that an external stylesheet shares between pages. A `<style>` inside a `<template>` is allowed. |
 | `no-trailing-whitespace` | html, svelte, vue | style | off | none | Spaces or tabs at the end of a line. |
 | `no-unknown-elements` | html, svelte, vue | suspicious | off | none | An element name that HTML does not define, custom elements (`<my-element>`) included. Everything inside `<svg>` and `<math>` is left alone. |
-| `no-void-end-tag` | html, svelte, vue | correctness | off | none | A void element (`<br>`, `<img>`, ...) has no content and no end tag; the browser ignores `</br>`. |
+| `no-void-end-tag` | html, svelte, vue | correctness | warn | none | A void element (`<br>`, `<img>`, ...) has no content and no end tag; the browser ignores `</br>`. |
 | `prefer-button` | html, svelte, vue | style | off | none | A `<button>` can hold markup and is styled with CSS like any element; `<input type="button">` cannot. |
 | `prefer-native-element` | html, svelte, vue | style | off | none | A `role` that a native element already has (`main`, `navigation`, `button`, `list`, ...) on an element that is not that one needs scripting and styling the native element comes with. |
 | `prefer-tbody` | html, svelte, vue | style | off | none | A `<tr>` directly in `<table>` is moved into an implied `<tbody>` by the browser; write it. |
@@ -317,43 +317,43 @@ Twenty-four rules read the `///` and `/** */` comment of a declaration (StyleCop
 | `svg-focusable` | html, svelte, vue | suspicious | off | none | Internet Explorer 11 and old Edge make every `<svg>` focusable unless it says `focusable="false"`. |
 | `text-content` | html, svelte, vue | correctness | off | none | A `<button>` with no text, no image with an `alt`, no `<svg>` and no `aria-label` or `aria-labelledby` has no name; a `title` does not count. |
 | `unique-landmark` | html, svelte, vue | correctness | off | none | Landmarks of one kind (`<nav>`, `<aside>`, or an element with the same landmark `role`) that a screen reader user cannot tell apart: with several of them, each needs an `aria-label` or `aria-labelledby` that no other has. |
-| `unrecognized-char-ref` | html, svelte, vue | correctness | off | none | A named character reference in text (`&name;`) that HTML does not define. Numeric references and references in attribute values are not checked. |
+| `unrecognized-char-ref` | html, svelte, vue | correctness | warn | none | A named character reference in text (`&name;`) that HTML does not define. Numeric references and references in attribute values are not checked. |
 | `valid-id` | html, svelte, vue | suspicious | off | none | An `id` that is empty, has whitespace, begins with a digit or has other characters is valid HTML5 but breaks CSS selectors and some scripts. |
 | `void-style` | html, svelte, vue | style | off | none | A void element (`<br>`, `<img>`, ...) has no end tag and needs no `/`; write `<br>`, not `<br/>`. |
-| `empty-section` | ini | suspicious | warn | none | A `[section]` header with nothing under it, usually left behind by a removed setting. Comments do not count as settings. |
+| `empty-section` | ini | suspicious | off | none | A `[section]` header with nothing under it, usually left behind by a removed setting. Comments do not count as settings. |
 | `max-body-length` | makefile | cleanup | off | none | A rule whose recipe has more lines than allowed (checkmake `maxbodylength`). Every physical line counts, a continued command and a tab-indented comment included. Options: `max` (default `5`): The most lines a recipe may have. |
 | `min-phony` | makefile | suspicious | off | none | A target that must exist and be declared `.PHONY` (checkmake `minphony`). Reported on the `.PHONY` line, or the last rule's when there is none. Options: `required` (default `["all", "clean", "test"]`): The targets every Makefile must declare `.PHONY`. |
-| `phony-declared` | makefile | suspicious | warn | none | A target with no recipe that is not declared `.PHONY` (checkmake `phonydeclared`); targets that start with a `.` are special and skipped. |
+| `phony-declared` | makefile | suspicious | off | none | A target with no recipe that is not declared `.PHONY` (checkmake `phonydeclared`); targets that start with a `.` are special and skipped. |
 | `timestamp-expanded` | makefile | suspicious | warn | none | A variable whose value runs `date` and that is not simply expanded (`:=`, `::=`): every use runs `date` again and the values differ within one build (checkmake `timestampexpanded`). |
-| `unique-targets` | makefile | suspicious | warn | none | A target defined by more than one rule, which merges prerequisites and overrides recipes (checkmake `uniquetargets`). Double-colon rules, `.PHONY` and the targets of `ignore` are skipped. Options: `ignore` (default `[]`): Targets that may be defined more than once. |
-| `commands-show-output` | markdown | style | warn | none | A fenced code block in which every line starts with `$ ` shows commands without their output, which makes copying them awkward (markdownlint MD014). |
-| `descriptive-link-text` | markdown | style | warn | none | Link text that is `click here`, `here`, `link` or `more` (markdownlint MD059). |
-| `fenced-code-language` | markdown | style | warn | none | A fenced code block without an info string (markdownlint MD040); name the language, or `text`. |
-| `heading-increment` | markdown | style | warn | none | A heading is more than one level deeper than the heading before it (an `h4` right after an `h2`). Going back up by any number of levels is fine (markdownlint MD001). |
-| `no-alt-text` | markdown | style | warn | none | An image with empty alternate text, `![](url)` (markdownlint MD045). |
-| `no-bare-urls` | markdown | style | warn | none | A URL that is neither a link nor an autolink (markdownlint MD034), found when it follows a space or starts the paragraph. Reported on the paragraph. |
-| `no-duplicate-heading` | markdown | style | warn | none | Two headings have the same text (markdownlint MD024), which makes their anchors ambiguous. |
-| `no-emphasis-as-heading` | markdown | style | warn | none | A one-line paragraph that is only emphasized text without closing punctuation (markdownlint MD036); use a heading. |
+| `unique-targets` | makefile | suspicious | off | none | A target defined by more than one rule, which merges prerequisites and overrides recipes (checkmake `uniquetargets`). Double-colon rules, `.PHONY` and the targets of `ignore` are skipped. Options: `ignore` (default `[]`): Targets that may be defined more than once. |
+| `commands-show-output` | markdown | style | off | none | A fenced code block in which every line starts with `$ ` shows commands without their output, which makes copying them awkward (markdownlint MD014). |
+| `descriptive-link-text` | markdown | style | off | none | Link text that is `click here`, `here`, `link` or `more` (markdownlint MD059). |
+| `fenced-code-language` | markdown | style | off | none | A fenced code block without an info string (markdownlint MD040); name the language, or `text`. |
+| `heading-increment` | markdown | style | off | none | A heading is more than one level deeper than the heading before it (an `h4` right after an `h2`). Going back up by any number of levels is fine (markdownlint MD001). |
+| `no-alt-text` | markdown | style | off | none | An image with empty alternate text, `![](url)` (markdownlint MD045). |
+| `no-bare-urls` | markdown | style | off | none | A URL that is neither a link nor an autolink (markdownlint MD034), found when it follows a space or starts the paragraph. Reported on the paragraph. |
+| `no-duplicate-heading` | markdown | style | off | none | Two headings have the same text (markdownlint MD024), which makes their anchors ambiguous. |
+| `no-emphasis-as-heading` | markdown | style | off | none | A one-line paragraph that is only emphasized text without closing punctuation (markdownlint MD036); use a heading. |
 | `no-empty-links` | markdown | correctness | warn | none | A link whose destination is empty or only `#` (markdownlint MD042). |
-| `no-inline-html` | markdown | style | warn | none | Raw HTML in a document (markdownlint MD033). Comments are not reported. Reported once per HTML block, not per tag. |
+| `no-inline-html` | markdown | style | off | none | Raw HTML in a document (markdownlint MD033). Comments are not reported. Reported once per HTML block, not per tag. |
 | `no-missing-space-atx` | markdown | correctness | warn | none | A paragraph that starts with one to six `#` and no space reads as a heading to people but is plain text to Markdown (markdownlint MD018). |
 | `no-reversed-links` | markdown | correctness | warn | none | Link syntax written the wrong way round, `(text)[url]` (markdownlint MD011), at the start of a paragraph or after a blank. Reported on the paragraph; no fix, because `(text)[url]` may be meant literally. |
-| `no-space-in-code` | markdown | style | warn | none | A code span that starts or ends with a space (markdownlint MD038). A span with a space on both sides of a backtick-led or backtick-ended content is allowed. |
-| `no-space-in-links` | markdown | style | warn | none | Link text that starts or ends with a space (markdownlint MD039). |
-| `no-trailing-punctuation` | markdown | style | warn | none | A heading that ends with `.`, `,`, `;`, `:` or `!` (or the full-width forms) reads as a sentence, not a title (markdownlint MD026). `?` is allowed. |
-| `single-title` | markdown | style | warn | none | A document has more than one top-level heading (markdownlint MD025). The second and later `h1` are reported. |
-| `approved-verbs` | powershell | style | warn | none | A function named `Verb-Noun` whose verb is not in the list `Get-Verb` returns. Names without a dash are not checked. |
-| `empty-catch-block` | powershell | suspicious | warn | none | A `catch` clause whose block has no statement (a comment does not count). |
+| `no-space-in-code` | markdown | style | off | none | A code span that starts or ends with a space (markdownlint MD038). A span with a space on both sides of a backtick-led or backtick-ended content is allowed. |
+| `no-space-in-links` | markdown | style | off | none | Link text that starts or ends with a space (markdownlint MD039). |
+| `no-trailing-punctuation` | markdown | style | off | none | A heading that ends with `.`, `,`, `;`, `:` or `!` (or the full-width forms) reads as a sentence, not a title (markdownlint MD026). `?` is allowed. |
+| `single-title` | markdown | style | off | none | A document has more than one top-level heading (markdownlint MD025). The second and later `h1` are reported. |
+| `approved-verbs` | powershell | style | off | none | A function named `Verb-Noun` whose verb is not in the list `Get-Verb` returns. Names without a dash are not checked. |
+| `empty-catch-block` | powershell | suspicious | off | none | A `catch` clause whose block has no statement (a comment does not count). |
 | `no-automatic-variable-assignment` | powershell | correctness | warn | none | An assignment to, a parameter named like, or a `foreach` variable named like an automatic variable (`$Error`, `$Event`, `$input`, `$PSItem`, `$_`, `$PWD`, `$Host`, `$this`, `$true`, ...). `$null = ...` is fine. |
-| `no-cmdlet-aliases` | powershell | style | warn | none | A command written with one of the default aliases of Windows PowerShell and PowerShell 7 (`gci`, `ls`, `%`, `?`, `iex`, ...). The table is the one of a Windows host; PSScriptAnalyzer reads the aliases of the host it runs on. |
+| `no-cmdlet-aliases` | powershell | style | off | none | A command written with one of the default aliases of Windows PowerShell and PowerShell 7 (`gci`, `ls`, `%`, `?`, `iex`, ...). The table is the one of a Windows host; PSScriptAnalyzer reads the aliases of the host it runs on. |
 | `no-default-true-switch` | powershell | suspicious | warn | none | A `[switch]` parameter with the default value `$true`. |
-| `no-global-vars` | powershell | suspicious | warn | none | A variable in the `global:` scope, other than the special variables PSScriptAnalyzer exempts (`$global:LASTEXITCODE`, `$global:ErrorActionPreference`, `$global:PSDefaultParameterValues`, ...). |
+| `no-global-vars` | powershell | suspicious | off | none | A variable in the `global:` scope, other than the special variables PSScriptAnalyzer exempts (`$global:LASTEXITCODE`, `$global:ErrorActionPreference`, `$global:PSDefaultParameterValues`, ...). |
 | `no-invoke-expression` | powershell | suspicious | warn | none | A call of `Invoke-Expression` or its alias `iex`. |
 | `no-misleading-backtick` | powershell | correctness | warn | none | A backtick that is followed by blanks before the end of the line, so it does not continue the line. |
 | `no-plain-text-password` | powershell | suspicious | warn | none | A `[string]` parameter whose name contains `password`, `passphrase` or `cred`. |
 | `no-plain-text-secure-string` | powershell | suspicious | error | none | A call of `ConvertTo-SecureString` with `-AsPlainText`. |
 | `no-wmi-cmdlets` | powershell | suspicious | warn | none | A call of `Get-WmiObject`, `Invoke-WmiMethod`, `Register-WmiEvent`, `Remove-WmiObject` or `Set-WmiInstance`. |
-| `no-write-host` | powershell | suspicious | warn | none | A call of `Write-Host`. |
+| `no-write-host` | powershell | suspicious | off | none | A call of `Write-Host`. |
 | `null-comparison-side` | powershell | correctness | warn | none | A `-eq`, `-ne` (or case variant) comparison with `$null` on the right. |
 | `enum-first-value-zero` | protobuf | correctness | off | none | The first value of an enum is not 0 (buf lint ENUM_FIRST_VALUE_ZERO). |
 | `enum-no-allow-alias` | protobuf | suspicious | off | none | `option allow_alias = true;` in an enum (buf lint ENUM_NO_ALLOW_ALIAS). |
@@ -378,7 +378,7 @@ Twenty-four rules read the `///` and `/** */` comment of a declaration (StyleCop
 | `syntax-specified` | protobuf | style | off | none | A file without `syntax = ...;` or `edition = ...;`, which makes it proto2 (buf lint SYNTAX_SPECIFIED). |
 | `and-or-is-not-if-else` | shell | suspicious | off | none | A list `a && b \|\| c` of three commands, unless `c` is `echo`, `printf`, `true`, `:`, `return` or `exit`. |
 | `cd-without-exit` | shell | suspicious | warn | none | `cd`, `pushd` or `popd` whose failure is not handled (`cd dir \|\| exit`). Not reported with `set -e`, for `cd ..` or `cd /`, or for `popd -n`. |
-| `declare-and-assign-separately` | shell | suspicious | warn | none | `export`, `local`, `declare`, `readonly` or `typeset` with a command substitution as the value reports the status of the declaration, not of the command. |
+| `declare-and-assign-separately` | shell | suspicious | off | none | `export`, `local`, `declare`, `readonly` or `typeset` with a command substitution as the value reports the status of the declaration, not of the command. |
 | `find-xargs-print0` | shell | suspicious | warn | none | A pipeline from `find` into `xargs` without `-print0`/`-0`. |
 | `grep-count` | shell | style | off | none | A pipeline from `grep` into `wc -l`. |
 | `iterate-find-output` | shell | suspicious | warn | none | A `for` loop over the output of `find`. |
@@ -392,7 +392,7 @@ Twenty-four rules read the `///` and `/** */` comment of a declaration (StyleCop
 | `quote-at-expansion` | shell | correctness | error | none | An unquoted `$@` or `${array[@]}` in a command's arguments. |
 | `quote-command-substitution` | shell | suspicious | warn | none | An unquoted `$(...)` or backtick substitution in a command's arguments is split into words and globbed. |
 | `quote-star-expansion` | shell | suspicious | warn | none | An unquoted `$*` or `${array[*]}` in a command's arguments. |
-| `quote-variable` | shell | suspicious | off | none | An unquoted `$var` or `${var}` in a command's arguments is split into words and globbed. Does not know which variables hold only a number or a single word. |
+| `quote-variable` | shell | suspicious | warn | none | An unquoted `$var` or `${var}` in a command's arguments is split into words and globbed. Does not know which variables hold only a number or a single word. |
 | `read-without-raw` | shell | suspicious | off | none | A `read` without the `-r` flag. |
 | `test-and-or` | shell | suspicious | warn | none | A `[ ]` test that joins conditions with `-a` or `-o`. |
 | `test-exit-status` | shell | style | off | none | A test that compares `$?` with a number. |
@@ -401,7 +401,7 @@ Twenty-four rules read the `///` and `/** */` comment of a declaration (StyleCop
 | `useless-cat` | shell | style | off | none | A pipeline that starts with `cat file`. |
 | `useless-echo` | shell | style | off | none | An `echo` whose only argument is a command substitution. |
 | `no-duplicate-include` | xml | correctness | warn | none | An element of a project file (`PackageReference`, `ProjectReference`, `Compile`, ...) has the same `Include` as an earlier element of the same name in the same parent. The duplicate is a restore warning or a build error. |
-| `no-floating-package-version` | xml | suspicious | warn | none | A `PackageReference` (or `PackageVersion`) whose `Version` contains `*` restores a different package as new versions appear. Reported on the attribute; no fix, because the version to pin is a decision. |
+| `no-floating-package-version` | xml | suspicious | off | none | A `PackageReference` (or `PackageVersion`) whose `Version` contains `*` restores a different package as new versions appear. Reported on the attribute; no fix, because the version to pin is a decision. |
 | `accessor-order` | csharp | style | off | safe | `get` goes before `set` or `init`, and `add` before `remove`. The fix swaps the two accessors (not offered when a comment stands between or in them). Equivalent: StyleCop SA1212, StyleCop SA1213. |
 | `async-suffix` | csharp | style | warn | none | An async method returning Task or ValueTask has a name that does not end in `Async`. Overrides, explicit interface implementations and `Main` are left alone (their names are not the method's to choose). Renaming needs the binding layer, so there is no fix. Equivalent: Roslynator RCS1046. |
 | `constant-on-right` | csharp | style | off | safe | A comparison with the constant on the left: `null == x` is `x == null`, `1 < x` is `x > 1`. Without the type layer a constant is a literal, `nameof`, `int.MaxValue`-style member or an expression of those; a named constant on the left is not recognised. Equivalent: StyleCop SA1131. |
