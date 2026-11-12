@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<title>x</title>
+<nav role="navigation"></nav>
+//   ^^^^^^^^^^^^^^^^^ no-redundant-role
+<button role="button">x</button>
+//      ^^^^^^^^^^^^^ no-redundant-role
+<a href="x" role="link">x</a>
+//          ^^^^^^^^^^^ no-redundant-role
+<a role="link">x</a>
+<ul role="list"></ul>
+//  ^^^^^^^^^^^ no-redundant-role
+<div role="navigation"></div>
+<p role="presentation"></p>
+// ^^^^^^^^^^^^^^^^^^^ presentation-role-style
+<p role="none"></p>

@@ -1,0 +1,10 @@
+id: no-autoplay
+message: "`autoplay` starts media without the user asking for it"
+description: Autoplaying audio and video annoys users and fails accessibility guidelines; `muted` media is allowed.
+example: '<video autoplay></video>   <video controls></video>'
+severity: off
+category: suspicious
+rule:
+  kind: Attribute
+  regex: '(?i)^autoplay\b'
+  parent: { kind: StartTag, regex: '(?i)^<(audio|video)\b', not-has: { kind: Attribute, regex: '(?i)^muted\b' } }

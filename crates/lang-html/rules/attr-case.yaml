@@ -1,0 +1,12 @@
+id: attr-case
+message: attribute names are lowercase
+description: >-
+  Attribute names are case-insensitive in HTML; lowercase is the convention. Everything inside
+  `<svg>` and `<math>` keeps its case.
+example: '<p CLASS="a">   <p class="a">'
+severity: off
+category: style
+rule:
+  kind: Attribute
+  not-inside: { kind: Element, regex: '(?i)^<(svg|math)\b' }
+token: { kind: [AttrName], regex: '[A-Z]' }

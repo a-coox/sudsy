@@ -8,82 +8,82 @@ scope: "html-validate's built-in rules (the `html-validate:recommended`, `standa
 entries:
   allowed-links: planned
   area-alt: planned
-  aria-hidden-body: planned
+  aria-hidden-body: rule aria-hidden-body
   aria-label-misuse: planned
-  attr-case: planned
-  attr-delimiter: planned
+  attr-case: rule attr-case | lowercase only, without the style and ignoreForeign options
+  attr-delimiter: rule attr-delimiter
   attr-pattern: planned
-  attr-quotes: planned
-  attr-spacing: planned
-  attribute-allowed-values: planned
-  attribute-boolean-style: planned
-  attribute-empty-style: planned
+  attr-quotes: rule attr-quotes | the auto style only, without the style and unquoted options
+  attr-spacing: rule attr-spacing
+  attribute-allowed-values: rule attribute-allowed-values | values given as a pattern in the metadata (`id`) are not checked
+  attribute-boolean-style: rule attribute-boolean-style | the omit style only, without the style option
+  attribute-empty-style: rule attribute-empty-style | the omit style only, without the style option
   attribute-misuse: planned
   autocomplete-password: planned
   class-pattern: planned
   close-attr: planned
-  close-order: planned
-  deprecated: planned
+  close-order: rule syntax-error | a stray end tag is the parser's error; an unclosed element before a mismatched end tag is not named
+  deprecated: rule deprecated
   deprecated-class: planned
   deprecated-rule: planned
-  doctype-html: planned
-  doctype-style: planned
-  element-case: planned
-  element-name: planned
-  element-permitted-content: planned
-  element-permitted-occurrences: planned
-  element-permitted-order: planned
-  element-permitted-parent: planned
-  element-required-ancestor: planned
-  element-required-attributes: planned
-  element-required-content: planned
-  empty-heading: planned
-  empty-title: planned
+  doctype-html: rule doctype-html
+  doctype-style: rule doctype-style | uppercase only, without the style option
+  element-case: rule element-case | lowercase only, without the style and ignoreForeign options
+  element-name: rule element-name
+  element-permitted-content: deferred | needs the content model (permitted content, parents, order, required descendants) of every element, which the generated table does not hold
+  element-permitted-occurrences: deferred | needs the content model (permitted content, parents, order, required descendants) of every element, which the generated table does not hold
+  element-permitted-order: deferred | needs the content model (permitted content, parents, order, required descendants) of every element, which the generated table does not hold
+  element-permitted-parent: deferred | needs the content model (permitted content, parents, order, required descendants) of every element, which the generated table does not hold
+  element-required-ancestor: deferred | needs the content model (permitted content, parents, order, required descendants) of every element, which the generated table does not hold
+  element-required-attributes: rule element-required-attributes
+  element-required-content: deferred | needs the content model (permitted content, parents, order, required descendants) of every element, which the generated table does not hold
+  empty-heading: rule empty-heading
+  empty-title: rule empty-title
   form-dup-name: planned
-  heading-level: planned
+  heading-level: rule heading-level | a sectioning root (`<dialog>`, `<section>` with its own outline) does not reset the levels; no allowMultipleH1 and minInitialRank options
   hidden-focusable: planned
   id-pattern: planned
   input-attributes: planned
   input-missing-label: planned
-  long-title: planned
+  long-title: rule long-title | the length is fixed at 70, no maxlength option
   map-dup-name: planned
   map-id-name: planned
-  meta-refresh: planned
-  missing-doctype: planned
+  meta-refresh: rule meta-refresh | a delay is any content that starts with a nonzero digit; no allowLongDelay option
+  missing-doctype: rule missing-doctype
   multiple-labeled-controls: planned
   name-pattern: planned
-  no-abstract-role: planned
-  no-autoplay: planned
-  no-conditional-comment: planned
-  no-deprecated-attr: planned
-  no-dup-attr: planned
-  no-dup-class: planned
-  no-dup-id: planned
-  no-implicit-button-type: planned
-  no-implicit-close: planned
-  no-implicit-input-type: planned
-  no-inline-style: planned
-  no-missing-references: planned
-  no-multiple-main: planned
-  no-raw-characters: planned
+  no-abstract-role: rule no-abstract-role
+  no-autoplay: rule no-autoplay
+  no-conditional-comment: rule no-conditional-comment
+  no-deprecated-attr: rule no-deprecated-attr
+  no-dup-attr: rule no-duplicate-keys
+  no-dup-class: rule no-duplicate-class
+  no-dup-id: rule no-duplicate-id | ids are not scoped per <template>; no include and exclude options
+  no-implicit-button-type: rule no-implicit-button-type
+  no-implicit-close: rule no-implicit-close
+  no-implicit-input-type: rule no-implicit-input-type
+  no-inline-style: rule no-inline-style | a style that sets only display is allowed; the allowedProperties and allowVariables options are not available
+  no-missing-references: rule no-missing-references | no include and exclude options
+  no-multiple-main: rule no-multiple-main
+  no-raw-characters: rule syntax-error | a raw character is the parser's error; the relaxed option is not available
   no-redundant-aria-label: planned
-  no-redundant-for: planned
-  no-redundant-role: planned
-  no-self-closing: planned
-  no-style-tag: planned
+  no-redundant-for: rule no-redundant-for
+  no-redundant-role: rule no-redundant-role | the roles of 19 elements that always have the role; the conditional implicit roles (`<img>`, `<input>` by type, `<select>`, `<li>`, `<section>`) are not checked
+  no-self-closing: rule no-self-closing
+  no-style-tag: rule no-style-tag
   no-trailing-whitespace: planned
   no-unknown-attributes: planned
-  no-unknown-elements: planned
+  no-unknown-elements: rule no-unknown-elements | no include and exclude options
   no-unused-disable: planned
   no-utf8-bom: planned
-  parser-error: planned
-  prefer-button: planned
+  parser-error: wontfix the id html-validate gives its syntax errors, which Sudsy reports as `syntax-error`
+  prefer-button: rule prefer-button
   prefer-native-element: planned
-  prefer-tbody: planned
-  presentation-role-style: planned
+  prefer-tbody: rule prefer-tbody
+  presentation-role-style: rule presentation-role-style
   require-csp-nonce: planned
-  require-sri: planned
-  script-element: planned
+  require-sri: rule require-sri | no target, include and exclude options
+  script-element: rule syntax-error | an unclosed script is the parser's error
   script-type: planned
   svg-focusable: planned
   tel-non-breaking: planned
@@ -92,7 +92,7 @@ entries:
   unrecognized-char-ref: planned
   valid-autocomplete: planned
   valid-for: planned
-  valid-id: planned
+  valid-id: rule valid-id | the strict form only, without the relaxed option
   void: planned
-  void-content: planned
-  void-style: planned
+  void-content: rule no-void-end-tag
+  void-style: rule void-style | the omit style only, without the style option

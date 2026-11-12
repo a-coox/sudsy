@@ -1,0 +1,9 @@
+id: no-abstract-role
+message: abstract ARIA roles must not be used
+description: Abstract roles (`widget`, `landmark`, `command`, ...) are for the ARIA taxonomy, not for authors.
+example: '<div role="widget">   <div role="button">'
+severity: off
+category: correctness
+rule:
+  kind: Attribute
+  regex: '(?is)^role\s*=\s*["'']?\s*(?:command|composite|input|landmark|range|roletype|section|sectionhead|select|structure|widget|window)\b'

@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<title>x</title>
+<p id="1a"></p>
+// ^^^^^^^ valid-id
+<p id="a b"></p>
+// ^^^^^^^^ valid-id
+<p id="a-b_c"></p>
+<p id=""></p>
+// ^^^^^ valid-id
+<label for="x"><input type="text" id="x"></label>
+//     ^^^ no-redundant-for
+<label for="y">y</label><input type="text" id="y">
+<label for="missing">z</label>
+//          ^^^^^^^ no-missing-references
+<p aria-labelledby="y nothere"></p>
+//                    ^^^^^^^ no-missing-references

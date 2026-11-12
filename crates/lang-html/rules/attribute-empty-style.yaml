@@ -1,0 +1,9 @@
+id: attribute-empty-style
+family: meta
+params: { check: empty-style }
+message: "write `{attr}` without a value"
+description: >-
+  An attribute whose empty value means the same as no value (`hidden`, `crossorigin`) is written without `=""`.
+example: '<p hidden="">   <p hidden>'
+severity: off
+category: style

@@ -1,0 +1,9 @@
+id: attr-delimiter
+message: write an attribute and its value as `name=value`, with no space around the `=`
+description: An attribute name and its value are joined by `=` without whitespace.
+example: '<p id = "a">   <p id="a">'
+severity: off
+category: style
+rule:
+  kind: Attribute
+  regex: '^[^\s=]+(?:\s+=|=\s)'

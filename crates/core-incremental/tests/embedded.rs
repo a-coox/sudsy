@@ -184,3 +184,15 @@ a{color:red}
 ";
     assert!(formatted(&db(off), "a.html", html).contains("const a = {b:1}"));
 }
+
+#[test]
+fn html_fences_are_formatted_and_linted() {
+    let md = "```html\n<DIV><p>a</p></DIV>\n```\n";
+    assert_eq!(
+        formatted(&db(""), "a.md", md),
+        "```html\n<div><p>a</p></div>\n```\n"
+    );
+    let on = "html:\n  lint:\n    rules:\n      deprecated: error\n";
+    let linted = found(&db(on), "a.md", "```html\n<center>a</center>\n```\n");
+    assert_eq!(linted, [("deprecated".into(), "cent".into())]);
+}

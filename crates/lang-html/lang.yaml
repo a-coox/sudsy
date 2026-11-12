@@ -2,6 +2,9 @@ grammar-crate: tree-sitter-html
 grammar-path: grammars/tree-sitter-html
 extensions: [html, htm]
 formatter: HtmlFormatter
+hooks: hooks::HtmlHooks
+families: rules::FAMILIES
+presets: [html-validate-standard, html-validate-recommended]
 deps: [rowan]
 options:
   - line_width: 80

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><title>x</title></head>
+<body>
+<P CLASS="a" id = "b" title='c' data-x=d>x</P>
+ ^ element-case
+// ^^^^^ attr-case
+//           ^^^^^^^^ attr-delimiter
+//                    ^^^^^^^^^ attr-quotes
+//                              ^^^^^^^^ attr-quotes
+//                                          ^ element-case
+<a href="x"class="y">t</a>
+^^^^^^^^^^^^^^^^^^^^^ attr-spacing
+<p title='say "hi"' style="color: red">ok</p>
+//                  ^^^^^^^^^^^^^^^^^^ no-inline-style
+<p style="display: none">ok</p>
+<br/>
+^^^^^ void-style
+<br>
+<div />
+^^^^^^^ no-self-closing
+<svg viewBox="0 0 1 1"><linearGradient gradientUnits="x"></linearGradient></svg>
+</body>
+</html>

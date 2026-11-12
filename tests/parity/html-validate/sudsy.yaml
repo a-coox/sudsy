@@ -1,1 +1,49 @@
-# The Sudsy side of the comparison: the rules that the catalog maps (none yet).
+# The Sudsy side of the comparison: the rules that the catalog maps.
+html:
+  lint:
+    rules:
+      aria-hidden-body: warn
+      attr-case: warn
+      attr-delimiter: warn
+      attr-quotes: warn
+      attr-spacing: warn
+      attribute-allowed-values: warn
+      attribute-boolean-style: warn
+      attribute-empty-style: warn
+      deprecated: warn
+      doctype-html: warn
+      doctype-style: warn
+      element-case: warn
+      element-name: warn
+      element-required-attributes: warn
+      empty-heading: warn
+      empty-title: warn
+      heading-level: warn
+      long-title: warn
+      meta-refresh: warn
+      missing-doctype: warn
+      no-abstract-role: warn
+      no-autoplay: warn
+      no-conditional-comment: warn
+      no-deprecated-attr: warn
+      no-duplicate-class: warn
+      no-duplicate-id: warn
+      no-duplicate-keys: warn
+      no-implicit-button-type: warn
+      no-implicit-close: warn
+      no-implicit-input-type: warn
+      no-inline-style: warn
+      no-missing-references: warn
+      no-multiple-main: warn
+      no-redundant-for: warn
+      no-redundant-role: warn
+      no-self-closing: warn
+      no-style-tag: warn
+      no-unknown-elements: warn
+      no-void-end-tag: warn
+      prefer-button: warn
+      prefer-tbody: warn
+      presentation-role-style: warn
+      require-sri: warn
+      valid-id: warn
+      void-style: warn

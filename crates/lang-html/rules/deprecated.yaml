@@ -1,0 +1,9 @@
+id: deprecated
+family: meta
+params: { check: deprecated-element }
+message: "<{name}> is deprecated"
+description: >-
+  An element that HTML5 no longer has (`<center>`, `<font>`, `<marquee>`, ...).
+example: '<center>   <div style="text-align: center">'
+severity: off
+category: correctness

@@ -1,0 +1,11 @@
+id: no-implicit-button-type
+message: a <button> needs a `type`; a button without one submits its form
+description: A `<button>` without a `type` is a submit button, which is rarely meant outside a form.
+example: '<button>Go</button>   <button type="button">Go</button>'
+severity: off
+category: suspicious
+rule:
+  kind: StartTag
+  regex: '(?i)^<button\b'
+  not-has: { kind: Attribute, regex: '(?i)^type\b' }
+report-on: first-token

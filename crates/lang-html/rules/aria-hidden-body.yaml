@@ -1,0 +1,11 @@
+id: aria-hidden-body
+message: "`aria-hidden` must not be used on <body>: it hides the page from assistive technology"
+description: '`aria-hidden="true"` on `<body>` removes the whole page from the accessibility tree.'
+example: '<body aria-hidden="true">   <body>'
+severity: off
+category: correctness
+rule:
+  kind: StartTag
+  regex: '(?i)^<body\b'
+  has: { kind: Attribute, regex: '(?is)^aria-hidden\s*=\s*["'']?\s*true\b' }
+report-on: first-token

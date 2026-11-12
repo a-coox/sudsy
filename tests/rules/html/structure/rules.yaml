@@ -1,0 +1,4 @@
+prefer-tbody: warn
+no-multiple-main: warn
+no-duplicate-id: warn
+no-duplicate-class: warn
