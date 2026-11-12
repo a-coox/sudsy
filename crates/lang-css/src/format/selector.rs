@@ -61,7 +61,12 @@ impl Pr<'_, '_> {
                 },
                 // `#{...}` and `@{...}`: as written.
                 Item::Grp(g) if g.open.kind() == k::INTERP_OPEN => {
-                    parts.push(doc::text(value::raw_text(&g.node)));
+                    let raw = value::raw_text(&g.node);
+                    parts.push(doc::text(if raw.contains('\n') {
+                        raw.split_whitespace().collect::<Vec<_>>().join(" ")
+                    } else {
+                        raw
+                    }));
                 }
                 Item::Grp(g) if g.open.kind() == k::L_BRACKET => parts.push(self.attribute(g)?),
                 _ => return None,

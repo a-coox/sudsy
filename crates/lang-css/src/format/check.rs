@@ -31,6 +31,27 @@ pub(super) fn value(node: &SyntaxNode) -> String {
         if matches!(kind, k::COMMA | k::SEMICOLON) && ends {
             continue;
         }
+        // `50.` is `50`: a dot right after a number, alone or before `...`.
+        let adjacent_dots = toks[i..]
+            .windows(2)
+            .take_while(|w| {
+                w[0].text() == "."
+                    && w[1].text() == "."
+                    && w[1].text_range().start() == w[0].text_range().end()
+            })
+            .count();
+        let run = if t.text() == "." {
+            adjacent_dots + 1
+        } else {
+            0
+        };
+        if matches!(run, 1 | 4)
+            && i > 0
+            && matches!(toks[i - 1].kind(), k::NUMBER | k::DIMENSION | k::PERCENTAGE)
+            && toks[i - 1].text_range().end() == t.text_range().start()
+        {
+            continue;
+        }
         let text = normalized(t);
         let operator = |k2: SyntaxKind| k2 == k::DELIM;
         let after_operand = matches!(prev, Some((k::R_PAREN | k::VARIABLE | k::AT_KEYWORD, _)));

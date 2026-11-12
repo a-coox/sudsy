@@ -399,6 +399,17 @@ impl Pr<'_, '_> {
         let mut out = String::new();
         let mut end = None;
         for it in items {
+            // Less `@a   [b]`: a lookup after blanks is kept as written.
+            if let (Some(e), Item::Grp(g)) = (end, it)
+                && e != it.start()
+                && self.dialect == Dialect::Less
+                && g.open.kind() == k::L_BRACKET
+            {
+                out.push_str(&" ".repeat(usize::from(it.start() - e)));
+                out.push_str(&raw_text(&g.node));
+                end = Some(it.end());
+                continue;
+            }
             if end.is_some_and(|e| e != it.start()) {
                 out.push(' ');
             }
@@ -646,7 +657,8 @@ impl Pr<'_, '_> {
         };
         // `#{$a}/2px` is `#{$a}/ 2px` and `2px/#{$a}` is `2px /#{$a}`.
         let tight_interp_slash = |j: usize| {
-            j >= 1
+            !st.url
+                && j >= 1
                 && j + 1 < items.len()
                 && items[j].is_delim("/")
                 && !gap(j - 1, j)
@@ -670,10 +682,22 @@ impl Pr<'_, '_> {
                     .is_some_and(|n| n.is_delim(".") && !gap(j, j + 1))
                     || j > 0 && items[j - 1].is_delim("."))
         };
+        // `50.` is `50`: a dot right after a number, alone or before `...`, is part of the number.
+        let number_dot = |j: usize| {
+            let run = items[j..]
+                .iter()
+                .enumerate()
+                .take_while(|(n, d)| d.is_delim(".") && (*n == 0 || !gap(j + n - 1, j + n)))
+                .count();
+            j > 0 && number(&items[j - 1]) && !gap(j - 1, j) && matches!(run, 1 | 4)
+        };
         let grid = st.grid && !st.group;
         let mut broke = false;
         let mut colon_at: Option<(usize, doc::GroupId)> = None;
         for (i, it) in items.iter().enumerate() {
+            if number_dot(i) {
+                continue;
+            }
             if i > 0 {
                 let prev = &items[i - 1];
                 // A word right after a parenthesis (`url(a)print`) is a new word.

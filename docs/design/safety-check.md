@@ -5,7 +5,7 @@ The generic check (`core-format/src/safety.rs`) compares nodes and tokens. Langu
 
 This design moves that work into the generic check:
 1. **Comments are compared by the core for every language:** the comment texts, each trimmed at the end, as a multiset. A formatter may move a comment, but may not drop, duplicate or edit one. Today only CSS and JS check this. In other languages a lost comment passes the check, and release builds never run the check.
-2. **`#restyle` items are compared by value in the core.** `NodeFormatter` gains `fn value(&self, item: SyntaxElementRef) -> Cow<str>`, called for each `#restyle` item of both trees. The default is the text. The core compares the count, the kinds and the values in order. Each language's normalization stays where it is (`text::number`, `block_lines`, `same_value`, ...); only the collecting and comparing moves into the core.
+2. **`#restyle` items are compared by value in the core.** `NodeFormatter` gains `fn value<'a>(&self, item: &'a SyntaxElement) -> Cow<'a, str>`, called for each `#restyle` item of both trees. The default is the text. The core compares the count and the values in order; the position is compared with the tree. The kind is not compared: YAML quote styles and CSS `[a=x]` to `[a="x"]` change it. This is safe only because a language whose kinds carry meaning (YAML, where scalar style changes the type) keeps its data-model `extra_check`; a language that needs the kind compared puts it in its `value`. Each language's normalization stays where it is (`text::number`, `block_lines`, `same_value`, ...); only the collecting and comparing moves into the core.
 3. **`#restyle` may tag a node.** The node's subtree is then not compared token by token: its `value` is compared instead, and it must stay where it is. This is how CSS joins and splits signs (`+ 20px` / `+20px`, `$a +2` / `$a + 2`): `lang-css` tags its math-expression node and gives a value in which a unary sign is attached to its operand and a binary operator is spaced. Whether a sign is unary is decided by the CSS code from the operator's left neighbour, not by whitespace, so `1px -2px` (a list) and `1px - 2px` (a subtraction) keep different values.
 4. **`#optional` tags tokens the formatter may add or remove, for the check only:** CSS `;` and `,`, JS `;`. `#separator` keeps its meaning for shapes and rules.
 5. **`extra_check` stays for checks that are not per item:** the YAML data model, Markdown block structure, JSX text. Every other hook is deleted.
@@ -23,6 +23,3 @@ This design moves that work into the generic check:
 ## Decisions
 1. **Comments are compared as a multiset (order ignored), as JS step 9 does.** What has to be caught is a lost, duplicated or edited comment. A comment moved past another comment, which JS relocations can do, is not a loss.
 2. **No per-language comparison of whole trees through `extra_check`.** The hook stays only for checks that are not per item.
-
-## Not checked
-- Whether every language's comment kinds are known to `core-format` (`CommentKind`): step 1 starts by listing them.

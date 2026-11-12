@@ -154,7 +154,7 @@ impl Pr<'_, '_> {
         let no_tokens = || FormatError::Shape("block without braces".into());
         let open = cx.first_token(block).ok_or_else(no_tokens)?;
         let close = cx.last_token(block).ok_or_else(no_tokens)?;
-        let head = doc::concat(vec![self.lead(&open), doc::lit("{")]);
+        let head = doc::concat(vec![self.lead(&open, false), doc::lit("{")]);
         let tail = doc::concat(vec![doc::lit("}"), cx.trailing_comments_doc(&close)]);
         let stmts: Vec<SyntaxNode> = block.children().collect();
         // A comment after `{` on its line is the first thing in the block.
@@ -191,13 +191,20 @@ impl Pr<'_, '_> {
         )
     }
 
-    /// The comments before a statement, each on its own line.
-    fn lead(&self, tok: &SyntaxToken) -> Doc {
+    /// The comments before a statement, each on its own line; `blank`: a blank line after the
+    /// last one stays (not before a `{`).
+    fn lead(&self, tok: &SyntaxToken, blank: bool) -> Doc {
         let mut parts = Vec::new();
-        for c in comments::leading_comments(self.cx.grammar, tok) {
-            parts.push(comment_doc(&c));
+        let all = comments::leading_comments(self.cx.grammar, tok);
+        for (i, c) in all.iter().enumerate() {
+            parts.push(comment_doc(c));
+            // Block comments on one line stay on it.
+            if i + 1 < all.len() && c.kind == comments::CommentKind::Block && c.breaks_after == 0 {
+                parts.push(doc::lit(" "));
+                continue;
+            }
             parts.push(doc::hardline());
-            if c.breaks_after >= 2 {
+            if c.breaks_after >= 2 && (blank || i + 1 < all.len()) {
                 parts.push(doc::hardline());
             }
         }
@@ -215,7 +222,7 @@ impl Pr<'_, '_> {
         };
         match (body, cx.first_token(node), cx.last_token(node)) {
             (Some(body), Some(first), Some(last)) => doc::concat(vec![
-                self.lead(&first),
+                self.lead(&first, true),
                 body,
                 cx.trailing_comments_doc(&last),
             ]),
@@ -255,7 +262,17 @@ impl Pr<'_, '_> {
                 .cx
                 .first_token(&block)
                 .is_some_and(|o| !comments::leading_comments(self.cx.grammar, &o).is_empty());
-            parts.push(if lead { doc::hardline() } else { doc::lit(" ") });
+            // A line comment after the last token of the prelude would swallow the `{`.
+            let line_comment = self.cx.last_token(&prelude).is_some_and(|t| {
+                comments::trailing_comments(self.cx.grammar, &t)
+                    .iter()
+                    .any(|c| c.kind == comments::CommentKind::Line)
+            });
+            parts.push(if lead || line_comment {
+                doc::hardline()
+            } else {
+                doc::lit(" ")
+            });
         }
         parts.push(self.block(&block)?);
         Ok(doc::concat(parts))
@@ -294,7 +311,7 @@ impl Pr<'_, '_> {
         let call = !css
             && matches!(pitems.first(), Some(Item::Grp(g)) if g.open.text_range().start() == kw.text_range().end());
         let mut parts = vec![
-            self.lead(&kw),
+            self.lead(&kw, true),
             if variable || call {
                 doc::text(kw.text())
             } else {
@@ -305,6 +322,11 @@ impl Pr<'_, '_> {
         if let Some(p) = &prelude {
             if variable && block.is_some() && pitems.len() == 1 {
                 parts.push(doc::lit(":"));
+            } else if variable && !has_comments(p) && pitems.iter().any(|i| i.is_delim("`")) {
+                // Less inline JavaScript is kept as written.
+                let raw = value::raw_text(p);
+                parts.push(doc::lit(": "));
+                parts.push(doc::text(raw[1..].trim_start()));
             } else if variable && !has_comments(p) {
                 parts.push(doc::lit(":"));
                 let st = St {
@@ -351,7 +373,11 @@ impl Pr<'_, '_> {
                         params.into_iter().chain([end]).collect(),
                     )));
                 } else {
-                    parts.push(doc::lit(" "));
+                    // Comments before the `{` go on their own lines.
+                    let lead = cx
+                        .first_token(&block)
+                        .is_some_and(|o| !comments::leading_comments(cx.grammar, &o).is_empty());
+                    parts.push(if lead { doc::hardline() } else { doc::lit(" ") });
                 }
                 parts.push(self.block(&block)?);
                 // A Less detached ruleset (`@name: { }`) ends with `;`.
@@ -458,7 +484,7 @@ impl Pr<'_, '_> {
                 return cx.verbatim_node(node);
             };
             return doc::concat(vec![
-                self.lead(&first),
+                self.lead(&first, true),
                 doc::text(name.clone()),
                 colon.map_or(doc::lit(":"), doc::text),
                 doc::lit(" "),
@@ -479,7 +505,7 @@ impl Pr<'_, '_> {
                 .map(|t| t.text().to_string())
                 .collect();
             return doc::concat(vec![
-                self.lead(&first),
+                self.lead(&first, true),
                 doc::text(format!("{name}:{blanks};")),
                 semicolon(node).map_or(Doc::Nil, |semi| self.trail(&semi)),
             ]);
@@ -511,7 +537,7 @@ impl Pr<'_, '_> {
                 .map_or(vitems.len(), |p| p + 1),
         };
         let mut parts = vec![
-            self.lead(&first),
+            self.lead(&first, true),
             doc::text(name.clone()),
             colon.map_or(doc::lit(":"), doc::text),
             self.declaration_value(&vitems[..keep], st, ";"),
@@ -551,7 +577,7 @@ impl Pr<'_, '_> {
             ),
             None => head.trim_end().to_string(),
         };
-        let mut parts = vec![self.lead(&first), doc::text(head)];
+        let mut parts = vec![self.lead(&first, true), doc::text(head)];
         let rest = lines
             .filter(|l| !l.trim().is_empty())
             .map(|l| doc::concat(vec![doc::hardline(), doc::text(l.trim())]))
@@ -595,7 +621,11 @@ impl Pr<'_, '_> {
     /// A stray `;` with comments: they stay around it.
     fn empty(&self, node: &SyntaxNode) -> Doc {
         match self.cx.first_token(node) {
-            Some(semi) => doc::concat(vec![self.lead(&semi), doc::lit(";"), self.trail(&semi)]),
+            Some(semi) => doc::concat(vec![
+                self.lead(&semi, true),
+                doc::lit(";"),
+                self.trail(&semi),
+            ]),
             None => Doc::Nil,
         }
     }
