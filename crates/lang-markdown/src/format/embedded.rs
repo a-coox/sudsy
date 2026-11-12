@@ -6,6 +6,9 @@ use crate::generated::kind as k;
 use core_syntax::embedded::size;
 use core_syntax::{Embedded, SyntaxNode, SyntaxNodeExt, TextRange};
 
+/// Info-string names that are not a language name or file extension of the provider.
+const ALIASES: [(&str, &str); 2] = [("javascript", "js"), ("typescript", "ts")];
+
 pub fn find(root: &SyntaxNode, text: &str) -> Vec<Embedded> {
     // The tree walk below allocates a red node per node; a file with no fence marker skips it.
     if !text.contains("```") && !text.contains("~~~") {
@@ -19,7 +22,11 @@ pub fn find(root: &SyntaxNode, text: &str) -> Vec<Embedded> {
         let language = info
             .as_ref()
             .and_then(|t| t.text().split_whitespace().next())
-            .map(|w| w.trim_matches(['{', '}', '.']).to_lowercase());
+            .map(|w| w.trim_matches(['{', '}', '.']).to_lowercase())
+            .map(|w| match ALIASES.iter().find(|a| a.0 == w) {
+                Some(a) => a.1.to_string(),
+                None => w,
+            });
         let (lines, closed) = render.fence_lines(&n);
         let (Some(language), Some(first), Some(last), true) =
             (language, lines.first(), lines.last(), closed)

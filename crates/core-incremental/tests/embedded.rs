@@ -9,6 +9,9 @@ use std::path::PathBuf;
 fn db(config: &str) -> Database {
     let providers: Vec<Box<dyn LanguageProvider>> = vec![
         Box::new(lang_json::JsonProvider::new()),
+        Box::new(lang_js::JsProvider::new()),
+        Box::new(lang_css::CssProvider::new(lang_css::Dialect::Css)),
+        Box::new(lang_css::CssProvider::new(lang_css::Dialect::Scss)),
         Box::new(lang_yaml::YamlProvider::new()),
         Box::new(lang_markdown::provider()),
         Box::new(lang_dockerfile::provider()),
@@ -131,4 +134,14 @@ fn fences_are_formatted_by_their_language_unless_off() {
         formatted(&db(off), "a.md", &formatted(&db(off), "a.md", md))
     );
     assert!(formatted(&db(off), "a.md", md).contains("{\"a\":1,\"b\":[1,2]}"));
+}
+
+#[test]
+fn js_ts_and_css_fences_are_formatted_and_linted() {
+    let md = "```javascript\nlet a={b:1}\n```\n\n```tsx\nconst x:number=1\n```\n\n```scss\na{b:c}\n```\n";
+    let want = "```javascript\nlet a = { b: 1 };\n```\n\n```tsx\nconst x: number = 1;\n```\n\n```scss\na {\n  b: c;\n}\n```\n";
+    assert_eq!(formatted(&db(""), "a.md", md), want);
+    let on = "js:\n  lint:\n    rules:\n      no-debugger: error\n";
+    let linted = found(&db(on), "a.md", "```ts\ndebugger;\n```\n");
+    assert_eq!(linted, [("no-debugger".into(), "debu".into())]);
 }

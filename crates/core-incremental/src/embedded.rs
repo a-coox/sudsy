@@ -206,7 +206,7 @@ fn format_code(db: &dyn Db, file: File, language: &str, code: &str) -> Option<St
         .ok()?
         .options;
     let language_version = resolve_dialect(&mut options, dialect);
-    let mut source = SourceFile::new("embedded", 1, code.clone());
+    let mut source = SourceFile::new(format!("embedded.{language}"), 1, code.clone());
     source.language_version = language_version;
     let out = format_file(provider, &source, &options, &DirectiveTable::default()).ok()?;
     let out = out.trim_end_matches('\n');

@@ -54,8 +54,8 @@ entries:
   bracketSameLine: option js.format.bracket_same_line
   singleAttributePerLine: "planned | js.format.single_attribute_per_line"
   experimentalTernaries, experimentalOperatorPosition: "wontfix not planned; Prettier marks them experimental"
-  "js: formatting": "planned | docs/design/wave-3b-js.md steps 4-10; the parser and a verbatim formatter come first"
-  "js: // prettier-ignore": "planned | docs/design/wave-3b-js.md step 9"
+  "js: formatting": formatter
+  "js: // prettier-ignore": formatter
   "js: embedded CSS/GraphQL/HTML/Markdown in templates": "deferred | formatted by those languages' own formatters later"
   "js: Flow syntax": "wontfix not supported by the parser; reported as a syntax error"
   printWidth (css): option css.format.line_width
@@ -63,6 +63,6 @@ entries:
   useTabs (css): option css.format.indent_style
   endOfLine (css): option css.format.end_of_line
   singleQuote (css): option css.format.single_quote
-  "css: formatting (css, scss, less)": "planned | docs/design/wave-3b-css.md steps 3-4; the parser and a verbatim formatter come first"
-  "css: /* prettier-ignore */": "planned | docs/design/wave-3b-css.md step 3"
+  "css: formatting (css, scss, less)": formatter
+  "css: /* prettier-ignore */": formatter
   "css: Sass indented syntax": "wontfix Prettier does not format it either"

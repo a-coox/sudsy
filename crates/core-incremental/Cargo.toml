@@ -16,6 +16,8 @@ salsa.workspace = true
 
 [dev-dependencies]
 lang-dockerfile = { workspace = true, features = ["static-grammars"] }
+lang-css.workspace = true
+lang-js.workspace = true
 lang-json.workspace = true
 lang-markdown = { workspace = true, features = ["static-grammars"] }
 lang-shell = { workspace = true, features = ["static-grammars"] }
