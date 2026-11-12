@@ -5,7 +5,7 @@
 use anyhow::{Result, bail};
 use serde::Deserialize;
 use std::collections::BTreeMap;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 #[derive(Deserialize)]
 struct Differences {
@@ -14,7 +14,7 @@ struct Differences {
     differences: BTreeMap<String, String>,
 }
 
-pub fn generate() -> Result<Vec<(PathBuf, String)>> {
+pub fn generate(done: &[(PathBuf, String)]) -> Result<Vec<(PathBuf, String)>> {
     let root = xtask::repo_root();
     let docs: Vec<_> = std::fs::read_dir(root.join("docs/formatting"))?
         .map(|f| f.map(|f| f.path()))
@@ -73,7 +73,12 @@ pub fn generate() -> Result<Vec<(PathBuf, String)>> {
                 .iter()
                 .map(|(n, b)| (n.as_str(), b.clone()))
                 .collect();
-            crate::docs::splice(&rel, &blocks)
+            // Another generator may have changed the file already.
+            let text = match done.iter().find(|(p, _)| p.as_path() == Path::new(&rel)) {
+                Some((_, text)) => text.clone(),
+                None => std::fs::read_to_string(root.join(&rel))?,
+            };
+            crate::docs::splice_text(&rel, text, &blocks)
         })
         .collect()
 }

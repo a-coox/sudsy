@@ -81,7 +81,11 @@ pub fn generate(providers: &[Box<dyn LanguageProvider>]) -> Result<Vec<(PathBuf,
         "docs/development/parity.md",
         &[("parity-tools", parity_tools()?)],
     )?);
-    out.extend(crate::differences::generate()?);
+    // The differences blocks go into the text the other generators made of the same file.
+    for (path, text) in crate::differences::generate(&out)? {
+        out.retain(|(p, _)| *p != path);
+        out.push((path, text));
+    }
     Ok(out)
 }
 
@@ -144,7 +148,16 @@ fn parity_tools() -> Result<String> {
 /// The file with the body of each named block replaced.
 pub(crate) fn splice(rel: &str, blocks: &[(&str, String)]) -> Result<(PathBuf, String)> {
     let path = xtask::repo_root().join(rel);
-    let mut text = std::fs::read_to_string(&path).with_context(|| format!("reading {rel}"))?;
+    let text = std::fs::read_to_string(&path).with_context(|| format!("reading {rel}"))?;
+    splice_text(rel, text, blocks)
+}
+
+/// [`splice`] into `text`, the file's content so far.
+pub(crate) fn splice_text(
+    rel: &str,
+    mut text: String,
+    blocks: &[(&str, String)],
+) -> Result<(PathBuf, String)> {
     for (name, body) in blocks {
         let start = format!("<!-- generated:{name} -->");
         let from = text
