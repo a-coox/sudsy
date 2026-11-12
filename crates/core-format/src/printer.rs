@@ -199,6 +199,21 @@ struct Printer<'a> {
     measure: Measure<'a>,
 }
 
+static HARD_LINE: Doc = Doc::HardLine;
+
+/// Does the pending suffix end in text that starts with `//`?
+fn ends_in_line_comment(d: &Doc) -> bool {
+    match d {
+        Doc::Text(t) => t.starts_with("//"),
+        Doc::Concat(ps) => ps
+            .iter()
+            .rev()
+            .find(|p| !matches!(p, Doc::Nil | Doc::BreakParent))
+            .is_some_and(ends_in_line_comment),
+        _ => false,
+    }
+}
+
 impl<'a> Printer<'a> {
     fn run(&mut self, root: &'a Doc) {
         let mut cmds = vec![Cmd {
@@ -374,11 +389,34 @@ impl<'a> Printer<'a> {
                 mode,
                 item: Item::Fill(parts),
             }),
-            Doc::LineSuffix(d) => self.suffixes.push(Cmd {
-                indent,
-                mode,
-                item: Item::Doc(d),
-            }),
+            Doc::LineSuffix(d) => {
+                // A second comment on a line that ends in a `//` comment goes on a line of its
+                // own, or it would become part of the first.
+                let after_line_comment = self
+                    .suffixes
+                    .last()
+                    .is_some_and(|c| matches!(c.item, Item::Doc(p) if ends_in_line_comment(p)));
+                let mut parts: &'a [Doc] = std::slice::from_ref(&**d);
+                if after_line_comment {
+                    self.suffixes.push(Cmd {
+                        indent,
+                        mode,
+                        item: Item::Doc(&HARD_LINE),
+                    });
+                    if let Doc::Concat(ps) = &**d
+                        && matches!(ps.first(), Some(Doc::Text(t)) if t.as_ref() == " ")
+                    {
+                        parts = &ps[1..];
+                    }
+                }
+                for part in parts {
+                    self.suffixes.push(Cmd {
+                        indent,
+                        mode,
+                        item: Item::Doc(part),
+                    });
+                }
+            }
             Doc::Line | Doc::SoftLine | Doc::HardLine => {
                 if mode == Mode::Flat && !matches!(doc, Doc::HardLine) {
                     if matches!(doc, Doc::Line) {

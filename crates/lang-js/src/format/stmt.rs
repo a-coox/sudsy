@@ -13,8 +13,8 @@ use core_syntax::{SyntaxElement, SyntaxNode};
 pub(crate) fn format(node: &SyntaxNode, cx: &FormatCtx<'_>) -> Result<Option<Doc>, FormatError> {
     let doc = match node.kind() {
         k::PROGRAM => program(node, cx)?,
-        k::BLOCK_STATEMENT => shapes::block(cx, node, &block_style(node))?,
-        k::FUNCTION_BODY => shapes::block(cx, node, &BlockStyle::default())?,
+        k::BLOCK_STATEMENT => shapes::block_open_inside(cx, node, &block_style(node))?,
+        k::FUNCTION_BODY => shapes::block_open_inside(cx, node, &BlockStyle::default())?,
         k::EXPRESSION_STATEMENT => expression_statement(node, cx)?,
         k::EMPTY_STATEMENT => empty_statement(node, cx)?,
         k::IF_STATEMENT => if_statement(node, cx)?,
@@ -26,9 +26,7 @@ pub(crate) fn format(node: &SyntaxNode, cx: &FormatCtx<'_>) -> Result<Option<Doc
         k::SWITCH_STATEMENT => switch(node, cx)?,
         k::SWITCH_CASE => switch_case(node, cx)?,
         k::TRY_STATEMENT | k::CATCH_CLAUSE => inline(cx, &kids(cx, node))?,
-        k::BREAK_STATEMENT | k::CONTINUE_STATEMENT | k::DEBUGGER_STATEMENT => {
-            concat(vec![inline(cx, &kids(cx, node))?, semi(cx, node)])
-        }
+        k::BREAK_STATEMENT | k::CONTINUE_STATEMENT | k::DEBUGGER_STATEMENT => jump(node, cx)?,
         k::LABELED_STATEMENT => labeled(node, cx)?,
         _ => return Ok(None),
     };
@@ -77,7 +75,27 @@ fn expression_statement(node: &SyntaxNode, cx: &FormatCtx<'_>) -> R {
     let expr = node_at(&kids, 0)?;
     let mut parts = Vec::new();
     // Without `;` at the end of the previous statement, a line starting like this would continue it.
+    let in_list = node.parent().is_some_and(|p| {
+        matches!(
+            p.kind(),
+            k::PROGRAM
+                | k::BLOCK_STATEMENT
+                | k::FUNCTION_BODY
+                | k::STATIC_BLOCK
+                | k::SWITCH_CASE
+                | k::TS_MODULE_BLOCK
+        )
+    });
     if !style(cx).semi
+        && in_list
+        // After `{` or `case x:` nothing is continued (and the `;` would be an empty statement).
+        && node.prev_sibling().is_some_and(|p| {
+            let name = cx.grammar.name(p.kind());
+            name.ends_with("Statement") || name.ends_with("Declaration")
+        })
+        && cx
+            .first_token(expr)
+            .is_some_and(|t| !matches!(t.text(), "++" | "--"))
         && super::parens::first_char(cx, expr)
             .is_some_and(|c| matches!(c, '(' | '[' | '`' | '+' | '-' | '/' | '<'))
     {
@@ -88,6 +106,24 @@ fn expression_statement(node: &SyntaxNode, cx: &FormatCtx<'_>) -> R {
     parts.push(semi(cx, node));
     parts.push(super::util::reattach_asi(cx, asi));
     Ok(concat(parts))
+}
+
+/// `break label;`: a comment before the `;` goes after it.
+fn jump(node: &SyntaxNode, cx: &FormatCtx<'_>) -> R {
+    let elems: Vec<_> = kids(cx, node)
+        .into_iter()
+        .filter(|e| !is_tok(e, ";"))
+        .collect();
+    let last = elems.last().and_then(|e| match e {
+        SyntaxElement::Token(t) => Some(t.clone()),
+        SyntaxElement::Node(n) => cx.last_token(n),
+    });
+    if let Some(t) = &last {
+        cx.detach_trailing(t);
+    }
+    let words = inline(cx, &elems)?;
+    let end = last.map_or(Doc::Nil, |t| cx.reattach_trailing(&t));
+    Ok(concat(vec![words, semi(cx, node), end]))
 }
 
 /// `if (test) body else body`.
@@ -110,7 +146,12 @@ fn if_statement(node: &SyntaxNode, cx: &FormatCtx<'_>) -> R {
     if let [els, alt] = rest
         && let Some(alt) = node_of(alt)
     {
-        parts.push(if body.kind() == k::BLOCK_STATEMENT {
+        let line_comment = cx.last_token(body).is_some_and(|t| {
+            core_format::comments::trailing_comments(cx.grammar, &t)
+                .iter()
+                .any(|c| c.kind == core_format::comments::CommentKind::Line)
+        });
+        parts.push(if body.kind() == k::BLOCK_STATEMENT && !line_comment {
             lit(" ")
         } else {
             hardline()

@@ -248,8 +248,8 @@
           "value": "text"
         },
         {
-          "type": "PATTERN",
-          "value": "\\r?\\n"
+          "type": "SYMBOL",
+          "name": "_comment_end"
         }
       ]
     },
@@ -286,6 +286,10 @@
     {
       "type": "SYMBOL",
       "name": "_indent"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "_comment_end"
     }
   ],
   "inline": [],

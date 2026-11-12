@@ -11,7 +11,7 @@ module.exports = grammar({
   ],
 
   // src/scanner.c: an indented line after `name =` (a continuation) or before a setting (`_indent`).
-  externals: $ => [$._continuation_text, $._indent],
+  externals: $ => [$._continuation_text, $._indent, $._comment_end],
 
   rules: {
     document: $ => seq(
@@ -55,7 +55,7 @@ module.exports = grammar({
 
     _continuation: $ => seq(alias($._continuation_text, $.continuation), /\r?\n/),
 
-    comment: $ => seq(/[;#]/, alias(/[^\r\n]*/, $.text), /\r?\n/),
+    comment: $ => seq(/[;#]/, alias(/[^\r\n]*/, $.text), $._comment_end),
 
     _blank: () => field('blank', /\r?\n/),
   }

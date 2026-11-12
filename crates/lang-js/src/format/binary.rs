@@ -193,7 +193,18 @@ fn parts(
         && should_flatten(&op, &super::ast::operator_text(cx, &left_u))
         && clean(&left)
     {
-        parts(&left_u, cx, inside_parens)?
+        // The comment after the nested chain goes after its last operand (see `JsFormatter`).
+        let last = cx
+            .last_token(&left_u)
+            .filter(|t| core_format::comments::has_trailing_comment(cx.grammar, t));
+        if let Some(t) = &last {
+            cx.detach_trailing(t);
+        }
+        let mut nested = parts(&left_u, cx, inside_parens)?;
+        if let Some(t) = &last {
+            nested.push(cx.reattach_trailing(t));
+        }
+        nested
     } else {
         vec![group(cx.format(&left)?)]
     };

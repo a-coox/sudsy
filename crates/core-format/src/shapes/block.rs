@@ -2,7 +2,7 @@ use super::{
     BlankRule, Rendered, Slot, container, container_between, dangling_comments, gap, render_slots,
 };
 use crate::FormatCtx;
-use crate::comments;
+use crate::comments::{self, Comment};
 use crate::doc::{self, Doc};
 use crate::error::FormatError;
 use core_syntax::{SyntaxNode, SyntaxToken};
@@ -40,7 +40,16 @@ pub fn block(
     node: &SyntaxNode,
     style: &BlockStyle,
 ) -> Result<Doc, FormatError> {
-    block_of(cx, container(cx, node)?, style)
+    block_of(cx, container(cx, node)?, style, false)
+}
+
+/// [`block`] where comments after the opening delimiter move inside, to lines of their own.
+pub fn block_open_inside(
+    cx: &FormatCtx<'_>,
+    node: &SyntaxNode,
+    style: &BlockStyle,
+) -> Result<Doc, FormatError> {
+    block_of(cx, container(cx, node)?, style, true)
 }
 
 /// [`block`] for the delimiters `open` and `close` among the children of `node`.
@@ -51,22 +60,40 @@ pub fn block_between(
     close: &SyntaxToken,
     style: &BlockStyle,
 ) -> Result<Doc, FormatError> {
-    block_of(cx, container_between(cx, node, Some((open, close)))?, style)
+    block_of(
+        cx,
+        container_between(cx, node, Some((open, close)))?,
+        style,
+        false,
+    )
 }
 
 fn block_of(
     cx: &FormatCtx<'_>,
     c: super::Container,
     style: &BlockStyle,
+    open_inside: bool,
 ) -> Result<Doc, FormatError> {
     let g = cx.grammar;
     let dangling = comments::leading_comments(g, &c.close);
-    let opening = cx.token(&c.open);
+    let moved: Vec<Comment> = if open_inside {
+        comments::trailing_comments(g, &c.open)
+    } else {
+        Vec::new()
+    };
+    let opening = if moved.is_empty() {
+        cx.token(&c.open)
+    } else {
+        doc::concat(vec![
+            cx.leading_comments_doc(&c.open),
+            cx.token_text(&c.open),
+        ])
+    };
     let closing = doc::concat(vec![
         cx.token_text(&c.close),
         cx.trailing_comments_doc(&c.close),
     ]);
-    if c.slots.is_empty() && dangling.is_empty() {
+    if c.slots.is_empty() && dangling.is_empty() && moved.is_empty() {
         return Ok(doc::concat(vec![
             opening,
             if style.expand_empty {
@@ -94,7 +121,11 @@ fn block_of(
     };
     Ok(doc::concat(vec![
         opening,
-        doc::indent(doc::concat(vec![first_hardline, doc::concat(inner)])),
+        doc::indent(doc::concat(vec![
+            dangling_comments(&moved, false),
+            first_hardline,
+            doc::concat(inner),
+        ])),
         doc::hardline(),
         closing,
     ]))

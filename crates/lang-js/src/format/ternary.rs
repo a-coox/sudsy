@@ -173,9 +173,9 @@ fn ternary(node: &SyntaxNode, cx: &FormatCtx<'_>) -> R {
             cx.token(colon),
             lit(" "),
             if is_cond(&alt_u) {
-                alt_doc
+                concat(vec![comment_break(cx, colon), alt_doc])
             } else {
-                align(2, alt_doc)
+                align(2, concat(vec![comment_break(cx, colon), alt_doc]))
             },
         ]);
         out.push(if !same_parent || is_alt_of_parent || is_parent_test {

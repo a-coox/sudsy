@@ -24,7 +24,7 @@ mod unary;
 mod util;
 
 use core_config::shared;
-use core_format::{Doc, FormatCtx, FormatError, NodeFormatter};
+use core_format::{Doc, FormatCtx, FormatError, NodeFormatter, comments};
 use core_syntax::SyntaxNode;
 
 pub(crate) use literal::same_value;
@@ -32,6 +32,20 @@ pub(crate) use literal::same_value;
 include!("schema.generated.rs");
 
 pub struct JsFormatter;
+
+/// The last token of `node` that is not trivia (JS has no structured trivia, so this is
+/// `FormatCtx::last_token` without its ancestor checks, which cost on every node).
+fn last_significant(cx: &FormatCtx<'_>, node: &SyntaxNode) -> Option<core_syntax::SyntaxToken> {
+    let start = node.text_range().start();
+    let mut t = node.last_token();
+    while let Some(x) = t {
+        if !cx.grammar.is_trivia(x.kind()) {
+            return Some(x);
+        }
+        t = x.prev_token().filter(|p| p.text_range().start() >= start);
+    }
+    None
+}
 
 type Module = fn(&SyntaxNode, &FormatCtx<'_>) -> Result<Option<Doc>, FormatError>;
 
@@ -60,12 +74,33 @@ impl NodeFormatter for JsFormatter {
         node: &SyntaxNode,
         cx: &FormatCtx<'_>,
     ) -> Result<Option<Doc>, FormatError> {
+        // A trailing comment belongs to the largest node that ends at its token (Prettier's
+        // attachment), so it goes after that node's layout and its line break reaches only the
+        // groups around the node, not those inside it.
+        let hoisted = comments::comment_at_end(cx.grammar, node)
+            .then(|| last_significant(cx, node))
+            .flatten()
+            .filter(|last| {
+                comments::has_trailing_comment(cx.grammar, last)
+                    && node
+                        .parent()
+                        .is_some_and(|p| cx.last_token(&p).is_some_and(|l| l != *last))
+            });
+        if let Some(last) = &hoisted {
+            cx.hold_trailing(last);
+        }
+        let mut doc = None;
         for module in MODULES {
-            if let Some(doc) = module(node, cx)? {
-                return Ok(Some(parens::wrap(node, cx, doc)));
+            if let Some(d) = module(node, cx)? {
+                doc = Some(d);
+                break;
             }
         }
-        Ok(Some(parens::wrap(node, cx, literal::verbatim(cx, node))))
+        let doc = parens::wrap(node, cx, doc.unwrap_or_else(|| literal::verbatim(cx, node)));
+        Ok(Some(match &hoisted {
+            Some(last) => core_format::doc::concat(vec![doc, cx.held_trailing(last)]),
+            None => doc,
+        }))
     }
 
     fn rewrite_source(

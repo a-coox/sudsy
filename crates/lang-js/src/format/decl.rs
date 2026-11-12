@@ -262,8 +262,16 @@ pub(crate) fn parameters_in(
         .iter()
         .map(|n| cx.format(n))
         .collect::<Result<Vec<_>, _>>()?;
-    if docs.is_empty() || hugs {
-        return Ok(concat(vec![cx.token(open), concat(docs), cx.token(close)]));
+    if docs.is_empty() {
+        return Ok(super::util::empty_pair(cx, open, close));
+    }
+    if hugs {
+        return Ok(concat(vec![
+            cx.token(open),
+            concat(docs),
+            concat(commas),
+            cx.token(close),
+        ]));
     }
     // Several parameters, one a parameter property (`private a: A`): one per line.
     let property = items.len() > 1
@@ -313,7 +321,20 @@ fn module_declaration(node: &SyntaxNode, cx: &FormatCtx<'_>) -> R {
     };
     // A blank line in front of a specifier stays when the list breaks.
     let mut specifiers = Vec::new();
-    for n in kids[open + 1..close].iter().filter_map(node_of) {
+    for e in &kids[open + 1..close] {
+        // The comments of a comma stay after the specifier before it.
+        if let SyntaxElement::Token(t) = e {
+            if let Some(prev) = specifiers.last_mut() {
+                let with = concat(vec![
+                    std::mem::replace(prev, Doc::Nil),
+                    cx.leading_comments_doc(t),
+                    cx.trailing_comments_doc(t),
+                ]);
+                *prev = with;
+            }
+            continue;
+        }
+        let Some(n) = node_of(e) else { continue };
         let blank = !specifiers.is_empty()
             && cx
                 .first_token(n)

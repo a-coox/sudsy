@@ -1,6 +1,6 @@
 #include "tree_sitter/parser.h"
 
-enum { CONTINUATION_TEXT, INDENT };
+enum { CONTINUATION_TEXT, INDENT, COMMENT_END };
 
 void *tree_sitter_ini_external_scanner_create(void) { return NULL; }
 void tree_sitter_ini_external_scanner_destroy(void *p) { (void)p; }
@@ -11,6 +11,14 @@ void tree_sitter_ini_external_scanner_deserialize(void *p, const char *b, unsign
 // allows one (the rest of the line is its token), else the indentation of a setting.
 bool tree_sitter_ini_external_scanner_scan(void *p, TSLexer *lexer, const bool *valid) {
   (void)p;
+  // The end of a comment: its line break, or the end of the file when there is none.
+  if (valid[COMMENT_END]) {
+    if (lexer->lookahead == '\r') lexer->advance(lexer, false);
+    if (lexer->lookahead == '\n') lexer->advance(lexer, false);
+    else if (lexer->lookahead != 0) return false;
+    lexer->result_symbol = COMMENT_END;
+    return true;
+  }
   if (!(valid[CONTINUATION_TEXT] || valid[INDENT]) || lexer->get_column(lexer) != 0) return false;
   bool blank = false;
   while (lexer->lookahead == ' ' || lexer->lookahead == '\t') {

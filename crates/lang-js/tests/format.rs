@@ -222,3 +222,46 @@ fn object_options() {
         "a = {\"x\": 1, \"y-z\": 2};\nb = {x: 1, y: 2};\nf = x => x;\ng = async x => x;\nh = ({x}) => x;\nk = [\n  aaaaaaaaaaaaaaaaaaaaaaaaaaaa,\n  bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb,\n  cccccccccccccccccccccccc\n];\n"
     );
 }
+
+#[test]
+fn comment_placement_matches_prettier() {
+    // Each expectation was checked with Prettier 3 under its defaults.
+    assert_eq!(
+        fmt(
+            "function a() {\n  return (\n    // c\n    x\n  );\n}\nif (a) {\n  b;\n} // t\nelse {\n  c;\n}\nfunction f() { // o\n  d();\n}\nfor (;;) {\n  continue /* c */;\n}\nclass C {\n  m() {} /* D */\n}\nconst fn = (/* e */) => 1;\n"
+        ),
+        "function a() {\n  return (\n    // c\n    x\n  );\n}\nif (a) {\n  b;\n} // t\nelse {\n  c;\n}\nfunction f() {\n  // o\n  d();\n}\nfor (;;) {\n  continue; /* c */\n}\nclass C {\n  m() {} /* D */\n}\nconst fn = (/* e */) => 1;\n"
+    );
+    assert_eq!(
+        fmt(
+            "interface I {\n  a: X | undefined // else\n  b: Y\n}\ntype Q<\n  A, // first\n  B\n> = A;\n"
+        ),
+        "interface I {\n  a: X | undefined; // else\n  b: Y;\n}\ntype Q<\n  A, // first\n  B,\n> = A;\n"
+    );
+}
+
+#[test]
+fn ignore_and_asi_without_semicolons() {
+    assert_eq!(
+        fmt("type V = {\n  // prettier-ignore\n  a:   string;\n  b:   number;\n};\n"),
+        "type V = {\n  // prettier-ignore\n  a:   string;\n  b: number;\n};\n"
+    );
+    let semi_off = vec![("semi", OptionValue::Bool(false))];
+    assert_eq!(
+        fmt_with(
+            semi_off,
+            "interface I { a: 1; b(): void }\nif (a) (b)()\nelse [c].map(d)\nx\n++y\n"
+        ),
+        "interface I {\n  a: 1\n  b(): void\n}\nif (a) b()\nelse [c].map(d)\nx\n++y\n"
+    );
+}
+
+#[test]
+fn comments_of_commas_and_stacked_line_comments_are_kept() {
+    assert_eq!(
+        fmt(
+            "export { a, // one\n  b, // two\n};\nconst x = [1,\n  // hole\n  ,\n  2];\nf(a, // c1\n  // c2\n  b);\n"
+        ),
+        "export {\n  a, // one\n  b, // two\n};\nconst x = [\n  1,\n  // hole\n  ,\n  2,\n];\nf(\n  a, // c1\n  // c2\n  b,\n);\n"
+    );
+}

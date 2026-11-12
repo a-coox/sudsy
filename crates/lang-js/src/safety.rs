@@ -32,10 +32,29 @@ pub(crate) fn check(before: &SyntaxNode, after: &SyntaxNode) -> Result<(), Strin
             return Err(format!("the literal `{}` became `{}`", x.text(), y.text()));
         }
     }
+    let (mut c, mut d) = (comments(before), comments(after));
+    c.sort();
+    d.sort();
+    if let Some(i) = (0..c.len().max(d.len())).find(|&i| c.get(i) != d.get(i)) {
+        return Err(format!(
+            "comment {i} changed from {:?} to {:?}",
+            c.get(i),
+            d.get(i)
+        ));
+    }
     if jsx_texts(before) != jsx_texts(after) {
         return Err("the text of a JSX element changed".into());
     }
     Ok(())
+}
+
+/// The comments, without whitespace (a block comment is re-indented).
+fn comments(tree: &SyntaxNode) -> Vec<String> {
+    tree.descendants_with_tokens()
+        .filter_map(|e| e.into_token())
+        .filter(|t| matches!(t.kind(), k::LINE_COMMENT | k::BLOCK_COMMENT))
+        .map(|t| t.text().split_whitespace().collect())
+        .collect()
 }
 
 fn in_attribute(t: &SyntaxToken) -> bool {

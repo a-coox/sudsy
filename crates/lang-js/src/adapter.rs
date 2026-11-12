@@ -66,6 +66,12 @@ pub fn parse(src: &str, source_type: SourceType) -> ParseResult {
         (vec![whole], Vec::new())
     } else {
         let mut collector = Collector::new(grammars::JS.get());
+        collector.comment_starts = parsed
+            .program
+            .comments
+            .iter()
+            .map(|c| c.span.start)
+            .collect();
         collector.visit_program(&parsed.program);
         let tokens = (parsed.tokens.iter())
             .filter(|t| t.end() > t.start())
@@ -157,6 +163,8 @@ struct Collector {
     made: Vec<bool>,
     /// Starts of the `{" "}` children of elements and of their strings (see `enter_node`).
     jsx_space: std::collections::HashSet<u32>,
+    /// Where the comments start: a `{" "}` with a comment inside is an expression like any other.
+    comment_starts: Vec<u32>,
 }
 
 impl Collector {
@@ -167,6 +175,7 @@ impl Collector {
             nodes: Vec::new(),
             made: Vec::new(),
             jsx_space: std::collections::HashSet::new(),
+            comment_starts: Vec::new(),
         }
     }
 
@@ -175,6 +184,10 @@ impl Collector {
             if let JSXChild::ExpressionContainer(c) = child
                 && let JSXExpression::StringLiteral(s) = &c.expression
                 && s.value == " "
+                && !self
+                    .comment_starts
+                    .iter()
+                    .any(|&p| p > c.span.start && p < c.span.end)
             {
                 self.jsx_space.extend([c.span.start, s.span.start]);
             }

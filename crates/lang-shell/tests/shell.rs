@@ -99,7 +99,8 @@ fn a_trailing_comment_in_a_condition_is_stable() {
 }
 
 /// Forked-grammar cases: two assignments and a command on the next line are two statements,
-/// `for x do`, a word ending in `$`, a quoted string in a case pattern.
+/// `for x do`, a word ending in `$`, a quoted string in a case pattern, a here-string after a
+/// redirect.
 #[test]
 fn bash_the_upstream_grammar_rejects() {
     assert_eq!(

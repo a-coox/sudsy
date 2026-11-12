@@ -10,7 +10,7 @@ use core_syntax::SyntaxNode;
 pub(crate) fn format(node: &SyntaxNode, cx: &FormatCtx<'_>) -> Result<Option<Doc>, FormatError> {
     let doc = match node.kind() {
         k::CLASS => class(node, cx)?,
-        k::CLASS_BODY => shapes::block(cx, node, &BlockStyle::default())?,
+        k::CLASS_BODY => shapes::block_open_inside(cx, node, &BlockStyle::default())?,
         k::METHOD_DEFINITION => inline(cx, &kids(cx, node))?,
         k::PROPERTY_DEFINITION | k::ACCESSOR_PROPERTY => property(node, cx)?,
         k::STATIC_BLOCK => static_block(node, cx)?,

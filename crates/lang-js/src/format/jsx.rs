@@ -31,11 +31,33 @@ pub(crate) fn format(node: &SyntaxNode, cx: &FormatCtx<'_>) -> Result<Option<Doc
 
 /// `{...expr}`.
 fn spread(node: &SyntaxNode, cx: &FormatCtx<'_>) -> R {
+    let elems = kids(cx, node);
     let mut parts = Vec::new();
-    for e in kids(cx, node) {
-        parts.push(super::util::elem(cx, &e)?);
+    for e in &elems[1..elems.len().saturating_sub(1)] {
+        parts.push(super::util::elem(cx, e)?);
     }
-    Ok(concat(parts))
+    let commented = elems[1..elems.len().saturating_sub(1)]
+        .iter()
+        .any(|e| match e {
+            core_syntax::SyntaxElement::Node(n) => super::ast::has_comment(cx, n),
+            core_syntax::SyntaxElement::Token(t) => super::ast::token_comments(cx, t),
+        });
+    let (open, close) = (
+        super::util::elem(cx, &elems[0])?,
+        super::util::elem(cx, &elems[elems.len() - 1])?,
+    );
+    let inner = concat(parts);
+    // Comments inside the braces go on lines of their own.
+    Ok(if commented {
+        group(concat(vec![
+            open,
+            indent(concat(vec![softline(), inner])),
+            softline(),
+            close,
+        ]))
+    } else {
+        concat(vec![open, inner, close])
+    })
 }
 
 /// `{expr}`: hugged when the expression is a kind that breaks inside its own delimiters.

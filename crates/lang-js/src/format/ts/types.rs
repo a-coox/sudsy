@@ -137,6 +137,28 @@ pub(super) fn type_params(node: &SyntaxNode, cx: &FormatCtx<'_>, id: Option<Grou
         .iter()
         .map(|n| cx.format(n))
         .collect::<Result<Vec<_>, _>>()?;
+    // Each comma keeps the comments after it (also a trailing comma's).
+    let commas: Vec<Doc> = ks
+        .iter()
+        .filter_map(token_of)
+        .filter(|t| t.text() == ",")
+        .map(|t| cx.trailing_comments_doc(t))
+        .collect();
+    let joined = |gap: Doc, docs: Vec<Doc>| {
+        let mut parts = Vec::new();
+        let last = docs.len().saturating_sub(1);
+        for (i, d) in docs.into_iter().enumerate() {
+            parts.push(d);
+            if i < last {
+                parts.push(lit(","));
+                parts.push(commas.get(i).cloned().unwrap_or(Doc::Nil));
+                parts.push(gap.clone());
+            } else {
+                parts.push(commas.get(i).cloned().unwrap_or(Doc::Nil));
+            }
+        }
+        concat(parts)
+    };
     // `<T,>(x) => x` in TSX: the comma tells a type parameter from a JSX tag.
     if items.len() == 1
         && node
@@ -152,7 +174,7 @@ pub(super) fn type_params(node: &SyntaxNode, cx: &FormatCtx<'_>, id: Option<Grou
     if docs.is_empty() || (items.len() == 1 && should_hug(&items[0])) {
         return Ok(concat(vec![
             cx.token(open),
-            doc::join(&lit(", "), docs),
+            joined(lit(" "), docs),
             cx.token(close),
         ]));
     }
@@ -163,10 +185,7 @@ pub(super) fn type_params(node: &SyntaxNode, cx: &FormatCtx<'_>, id: Option<Grou
     };
     let body = concat(vec![
         cx.token(open),
-        indent(concat(vec![
-            softline(),
-            doc::join(&concat(vec![lit(","), line()]), docs),
-        ])),
+        indent(concat(vec![softline(), joined(line(), docs)])),
         comma,
         softline(),
         cx.token(close),

@@ -42,6 +42,11 @@ fn formats_sections_settings_and_comments() {
 fn comments_at_the_end_are_kept() {
     assert_eq!(fmt("[a]\nb=1\n\n# end\n"), "[a]\nb = 1\n\n# end\n");
     assert_eq!(fmt("[a]\n# only\n"), "[a]\n# only\n");
+    assert_eq!(fmt("[a]\n# only"), "[a]\n# only\n");
+    assert_eq!(fmt("[a]\nb=1\n# tail"), "[a]\nb = 1\n# tail\n");
+    assert_eq!(fmt("\n\n# only\n"), "# only\n");
+    assert_eq!(fmt("# only"), "# only\n");
+    assert_eq!(fmt(""), "");
 }
 
 #[test]

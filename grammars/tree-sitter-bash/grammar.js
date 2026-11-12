@@ -186,6 +186,7 @@ module.exports = grammar({
           repeat1(choice(
             $.file_redirect,
             $.heredoc_redirect,
+            $.herestring_redirect,
           )),
         )),
       ),
