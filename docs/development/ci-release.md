@@ -1,7 +1,7 @@
 # CI and release
 
 ## CI (`.github/workflows/ci.yml`, reusable via `workflow_call`)
-Runs on pushes to main, pull requests, dispatch and from the release workflow. A run for a push to main is never cancelled; other refs cancel their previous run. `scripts/ci-changes.sh` (job `changes`) skips the gates for changes that only touch root prose files, the license, bench history or `site/` (generated docs live in `docs/`, so those always run) and runs `package` only when `editors/vscode/`, `workers/csharp/`, `crates/lang-csharp/src/` or the workflows change (always on dispatch and tags). `scripts/gate.sh` stays the local pre-merge check.
+Runs on pushes to main, pull requests, dispatch and from the release workflow. A run for a push to main is never cancelled; other refs cancel their previous run. `scripts/ci-changes.sh` (job `changes`) skips the gates for changes that only touch root prose files, the license, bench history or `site/` (generated docs live in `docs/`, so those always run) and runs `package` only when `editors/vscode/`, `workers/csharp/`, `crates/lang-csharp/src/` or the workflows change (always on dispatch and tags). `scripts/gate.sh` stays the local pre-merge check. The Rust version is pinned in `rust-toolchain.toml` (CI and local builds both use it); a new stable is adopted in its own PR once CI passes on it.
 
 `main` has a ruleset requiring the `CI ok` job (green when every job that ran passed); repository admins bypass it, so agents push directly. Auto-merge and branch deletion on merge are on.
 | Job | Does |
