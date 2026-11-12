@@ -1,0 +1,3 @@
+# The Sudsy side of the comparison with `prettier --no-config`: Prettier always writes LF while Sudsy keeps the file's line ending.
+format:
+  end_of_line: lf

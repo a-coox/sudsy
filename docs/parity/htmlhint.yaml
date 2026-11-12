@@ -1,0 +1,50 @@
+tool: "htmlhint"
+version: "1.9.2"
+languages: ["html"]
+sources:
+  - "https://github.com/htmlhint/HTMLHint/tree/v1.9.2/src/core/rules"
+  - "https://htmlhint.com/rules/"
+scope: "HTMLHint's core rules"
+entries:
+  alt-require: planned
+  attr-lowercase: planned
+  attr-no-duplication: planned
+  attr-no-unnecessary-whitespace: planned
+  attr-sorted: planned
+  attr-unsafe-chars: planned
+  attr-value-double-quotes: planned
+  attr-value-no-duplication: planned
+  attr-value-not-empty: planned
+  attr-value-single-quotes: planned
+  attr-whitespace: planned
+  button-type-require: planned
+  doctype-first: planned
+  doctype-html5: planned
+  empty-tag-not-self-closed: planned
+  form-method-require: planned
+  frame-title-require: planned
+  h1-require: planned
+  head-script-disabled: planned
+  href-abs-or-rel: planned
+  html-lang-require: planned
+  id-class-ad-disabled: planned
+  id-class-value: planned
+  id-unique: planned
+  inline-script-disabled: planned
+  inline-style-disabled: planned
+  input-requires-label: planned
+  link-rel-canonical-require: planned
+  main-require: planned
+  meta-charset-require: planned
+  meta-description-require: planned
+  meta-viewport-require: planned
+  script-disabled: planned
+  space-tab-mixed-disabled: planned
+  src-not-empty: planned
+  style-disabled: planned
+  tag-no-obsolete: planned
+  tag-pair: planned
+  tag-self-close: planned
+  tagname-lowercase: planned
+  tags-check: planned
+  title-require: planned

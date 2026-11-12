@@ -44,6 +44,21 @@
         {"dir": "tests/conformance/corpus/css", "suffixes": [".css", ".scss", ".less"], "skip": "prettier/", "prefix": "corpus/", "ratchet": "real-world", "recursive": true}
       ]
     },
+    "prettier-html": {
+      "catalog": "prettier",
+      "install": {"npm": "prettier"},
+      "fetch": ["tests/conformance/fetch-html-corpus.sh"],
+      "command": ["node", "{prefix}/node_modules/prettier/bin/prettier.cjs", "--no-config", "--no-editorconfig", "{file}"],
+      "input": "arg",
+      "tool_may_reject": true,
+      "parallel": true,
+      "quiet": true,
+      "fixtures": [
+        {"dir": "tests/conformance/corpus/html", "suffixes": [".html", ".htm"], "only": "prettier/tests/format/html/", "ratchet": "prettier-html", "recursive": true},
+        {"dir": "tests/conformance/corpus/html", "suffixes": [".html", ".htm"], "only": "prettier/tests/format/vue/", "ratchet": "prettier-vue-html", "recursive": true},
+        {"dir": "tests/conformance/corpus/html", "suffixes": [".html", ".htm"], "skip": "prettier/", "prefix": "corpus/", "ratchet": "real-world", "recursive": true}
+      ]
+    },
     "biome": {
       "catalog": "biome",
       "install": {"npm": "@biomejs/biome"},
@@ -186,6 +201,7 @@
     "stylelint": {"catalog": "stylelint", "install": {"npm": "stylelint"}},
     "stylelint-scss": {"catalog": "stylelint-scss", "install": {"npm": "stylelint-scss", "with": ["stylelint@17.16.0", "postcss-scss@4.0.9"]}},
     "stylelint-less": {"catalog": "stylelint-less", "install": {"npm": "stylelint-less", "with": ["stylelint@17.16.0", "postcss-less@7.0.1"]}},
+    "html-validate": {"catalog": "html-validate", "install": {"npm": "html-validate"}},
     "markdownlint": {"catalog": "markdownlint", "install": {"npm": "markdownlint-cli2"}},
     "hadolint": {
       "catalog": "hadolint",

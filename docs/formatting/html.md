@@ -30,5 +30,8 @@ The formatter prints the document as written (final newline and line endings by 
 | Bootstrap 5.3.3 `js/tests` and `site` | 103 | 23: Hugo templates (`{{ ... }}` inside tags) and the `site/content/docs/5.3/examples` pages with front matter and `{{< >}}` shortcodes; the 13 JS test pages and 37 of the 48 layouts parse |
 | mdn/learning-area (`.html`) | 154 | 0 |
 
+## Parity
+`scripts/parity.sh format prettier-html` compares with Prettier 3.9.10 ([../development/parity.md](../development/parity.md)). Files identical to Prettier's output, which the as-written formatter reaches only for files Prettier leaves alone: `prettier-html` 25 of 148 formatted by Prettier, `prettier-vue-html` 0 of 10, `real-world` 11 of 233 (the rest are rejected by Prettier or differ). Lint parity targets are the catalogs `html-validate`, `htmlhint` and `html-eslint` in `docs/parity/`; no rule is implemented yet.
+
 ## Licenses
 `bench/inputs/html`: the five `bootstrap-*` pages are Bootstrap 5.3.3's `js/tests/visual` (MIT, Copyright 2011-2024 The Bootstrap Authors); `mdn-accessibility-assessment.html` is from mdn/learning-area (CC0 1.0). tree-sitter-html is MIT ([LICENSE](../../grammars/tree-sitter-html/LICENSE)).

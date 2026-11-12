@@ -1,0 +1,74 @@
+tool: "html-eslint"
+version: "0.68.0"
+languages: ["html"]
+sources:
+  - "https://github.com/yeonjuan/html-eslint/tree/v0.68.0/docs/rules"
+  - "https://html-eslint.org/docs/rules"
+scope: "@html-eslint/eslint-plugin's rules for HTML files"
+entries:
+  attrs-newline: planned
+  class-spacing: planned
+  css-no-empty-blocks: planned
+  element-newline: planned
+  head-order: planned
+  id-naming-convention: planned
+  indent: planned
+  lowercase: planned
+  max-element-depth: planned
+  no-abstract-roles: planned
+  no-accesskey-attrs: planned
+  no-aria-hidden-body: planned
+  no-aria-hidden-on-focusable: planned
+  no-duplicate-attrs: planned
+  no-duplicate-class: planned
+  no-duplicate-id: planned
+  no-duplicate-in-head: planned
+  no-empty-headings: planned
+  no-extra-spacing-attrs: planned
+  no-extra-spacing-tags: planned
+  no-extra-spacing-text: planned
+  no-heading-inside-button: planned
+  no-ineffective-attrs: planned
+  no-inline-styles: planned
+  no-invalid-attr-value: planned
+  no-invalid-entity: planned
+  no-invalid-role: planned
+  no-multiple-empty-lines: planned
+  no-multiple-h1: planned
+  no-nested-interactive: planned
+  no-non-scalable-viewport: planned
+  no-obsolete-attrs: planned
+  no-obsolete-tags: planned
+  no-positive-tabindex: planned
+  no-redundant-role: planned
+  no-restricted-attr-values: planned
+  no-restricted-attrs: planned
+  no-restricted-tags: planned
+  no-script-style-type: planned
+  no-skip-heading-levels: planned
+  no-target-blank: planned
+  no-trailing-spaces: planned
+  no-whitespace-only-children: planned
+  prefer-https: planned
+  quotes: planned
+  require-attrs: planned
+  require-button-type: planned
+  require-closing-tags: planned
+  require-content: planned
+  require-details-summary: planned
+  require-doctype: planned
+  require-explicit-size: planned
+  require-form-method: planned
+  require-frame-title: planned
+  require-img-alt: planned
+  require-input-label: planned
+  require-lang: planned
+  require-li-container: planned
+  require-meta-charset: planned
+  require-meta-description: planned
+  require-meta-viewport: planned
+  require-open-graph-protocol: planned
+  require-title: planned
+  sort-attrs: planned
+  svg-require-viewbox: planned
+  use-baseline: planned

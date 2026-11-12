@@ -1,0 +1,11 @@
+differences:
+  not-formatted: gap  the formatter prints files as written, so only files Prettier leaves unchanged are identical
+  project-options: gap  real-world pages run under Prettier's defaults (`--no-config`), not their own Prettier options
+files:
+  prettier-html: not-formatted
+  prettier-vue-html: not-formatted
+  real-world: not-formatted, project-options
+ratchet:
+  prettier-html: 25
+  prettier-vue-html: 0
+  real-world: 11

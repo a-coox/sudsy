@@ -127,7 +127,7 @@ def markdownlint(install, folder):
 
 
 def rule_fixtures(tool, sudsy, version, prefix, exe):
-    """Runs the tool (hadolint, shellcheck, checkmake, stylelint) and `sudsy lint` on the rule fixtures of its language
+    """Runs the tool (hadolint, shellcheck, checkmake, stylelint, html-validate) and `sudsy lint` on the rule fixtures of its language
     (tests/rules/<lang>/<folder>/*<suffix>, annotations removed) and compares `(rule, line)` of the
     catalog's rules: upstream codes the catalog does not map are left out.
     `tests/parity/<tool>/differences.yaml` lists known differences under the key
@@ -152,6 +152,9 @@ def rule_fixtures(tool, sudsy, version, prefix, exe):
         **{t: (lang, "." + lang, ["node", f"{prefix}/node_modules/stylelint/bin/stylelint.mjs", "--config", "stylelint.config.mjs", "-f", "json"],
                lambda d: (d["rule"], d["line"]), lambda out: [w for r in json.loads(out) for w in r["warnings"]])
            for t, lang in (("stylelint", "css"), ("stylelint-scss", "scss"), ("stylelint-less", "less"))},
+        # one report per file: a list of messages with the rule id and line; the config is written below
+        "html-validate": ("html", ".html", ["node", f"{prefix}/node_modules/html-validate/bin/html-validate.js", "-c", "htmlvalidate.json", "-f", "json"],
+                          lambda d: (d["ruleId"], d["line"]), lambda out: [m for r in json.loads(out) for m in r["messages"]]),
         "checkmake": ("makefile", ".mk", [exe, "--format", '{"rule":"{{.Rule}}","line":{{.LineNumber}}}'],
                       lambda d: (d["rule"], d["line"]),
                       lambda out: [json.loads(l) for l in out.splitlines() if l.startswith("{")]),
@@ -172,6 +175,8 @@ def rule_fixtures(tool, sudsy, version, prefix, exe):
             'import tseslint from "typescript-eslint";\n'
             f'export default [{{ linterOptions: {{ noInlineConfig: true }}, files: ["**/*.ts", "**/*.tsx"], languageOptions: {{ parser: tseslint.parser }}, plugins: {{ "@typescript-eslint": tseslint.plugin }}, rules: {rules} }}];\n',
             encoding="utf-8")
+    if tool == "html-validate":
+        (work / "htmlvalidate.json").write_text(json.dumps({"root": True, "rules": {r: "error" for r in mapping}}), encoding="utf-8")
     if tool.startswith("stylelint"):
         plugin = {"stylelint-scss": 'plugins: ["stylelint-scss"], customSyntax: "postcss-scss", ', "stylelint-less": 'plugins: ["stylelint-less"], customSyntax: "postcss-less", '}.get(tool, "")
         # every mapped rule runs with `true`, or with its options from `rules.json` (which `sudsy.yaml` mirrors)
@@ -419,7 +424,7 @@ def main():
         return stylecop(sudsy, version)
     if tool == "psscriptanalyzer":
         return psscriptanalyzer(sudsy, version, prefix)
-    if tool in ("hadolint", "shellcheck", "checkmake", "actionlint", "buf", "eslint", "typescript-eslint", "stylelint", "stylelint-scss", "stylelint-less"):
+    if tool in ("hadolint", "shellcheck", "checkmake", "actionlint", "buf", "eslint", "typescript-eslint", "stylelint", "stylelint-scss", "stylelint-less", "html-validate"):
         exe = parity_format.tools()["format"][config["install"]] if isinstance(config["install"], str) else config
         return rule_fixtures(tool, sudsy, version, prefix, str(parity_format.executable(prefix, exe["install"].get("exe", ""))))
     mapping = rule_map(tool)
