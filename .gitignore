@@ -10,4 +10,6 @@ tests/conformance/corpus/
 # dotnet build logs written to the tests' temp dir (.cargo/config.toml); the dir itself must stay unignored
 .cargo/tmp/*.log
 .cargo/tmp/VBCSCompiler/
+# rust-analyzer's proc-macro server inherits the [env] TEMP above
+.cargo/tmp/proc-macro-srv*/
 __pycache__/
