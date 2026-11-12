@@ -77,6 +77,14 @@ impl Render<'_> {
         out
     }
 
+    /// A row with more cells than the header (an unescaped `|` in a code span splits a cell): the
+    /// extra cells would make the aligned table another table, so it stays as written.
+    pub(super) fn ragged(&self, n: &SyntaxNode) -> bool {
+        let mut rows = n.children().filter(|r| r.kind() == k::TABLE_ROW);
+        let head = rows.next().map_or(0, |r| cell_count(&r));
+        rows.any(|r| cell_count(&r) > head)
+    }
+
     /// The cells of a table row; an empty cell has no node, and the outer pipes are optional.
     pub(super) fn row(&self, r: &SyntaxNode) -> Vec<String> {
         let mut cells: Vec<Option<String>> = vec![None];
@@ -107,4 +115,23 @@ impl Render<'_> {
         }
         cells.into_iter().map(Option::unwrap_or_default).collect()
     }
+}
+
+/// The length of `Render::row` without building the cells.
+fn cell_count(r: &SyntaxNode) -> usize {
+    let (mut n, mut first, mut last_pipe) = (1, true, false);
+    for e in r.children_with_tokens() {
+        match e.kind() {
+            k::PIPE => {
+                if first {
+                    n = 0;
+                }
+                n += 1;
+                (first, last_pipe) = (false, true);
+            }
+            k::CELL => (first, last_pipe) = (false, false),
+            _ => {}
+        }
+    }
+    n - usize::from(last_pipe)
 }

@@ -21,6 +21,7 @@ impl Render<'_> {
                 if (n.kind() == k::BLOCK_QUOTE || n.kind() == k::LIST)
                     && significant(n).any(|t| t.kind() == k::INDENTED_CODE))
             || top && matches!(e, SyntaxElement::Node(n) if self.irregular(n))
+            || matches!(e, SyntaxElement::Node(n) if n.kind() == k::TABLE && self.ragged(n))
     }
 
     /// Indentation the renderer would remove or add although it carries meaning: an indented
