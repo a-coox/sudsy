@@ -338,7 +338,7 @@ impl Pr<'_, '_> {
         if let Some(p) = &prelude {
             if variable && block.is_some() && pitems.len() == 1 {
                 parts.push(doc::lit(":"));
-            } else if variable && !has_comments(p) && pitems.iter().any(|i| i.is_delim("`")) {
+            } else if variable && pitems.iter().any(|i| i.is_delim("`")) {
                 // Less inline JavaScript is kept as written.
                 let raw = value::raw_text(p);
                 parts.push(doc::lit(": "));

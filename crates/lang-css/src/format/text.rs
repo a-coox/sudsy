@@ -68,6 +68,14 @@ pub fn percentage(s: &str) -> String {
 /// one that has its quote already is kept as written.
 pub fn string(raw: &str, single_quote: bool) -> String {
     let body = &raw[1..raw.len() - 1];
+    // A string whose SCSS interpolation holds quotes keeps the quote it has.
+    if body
+        .split("#{")
+        .skip(1)
+        .any(|s| s.split('}').next().is_some_and(|i| i.contains(['"', '\''])))
+    {
+        return raw.to_string();
+    }
     let (pref, alt) = if single_quote {
         ('\'', '"')
     } else {
@@ -85,7 +93,20 @@ pub fn string(raw: &str, single_quote: bool) -> String {
     let mut out = String::with_capacity(raw.len());
     out.push(quote);
     let mut chars = body.chars();
+    let (mut depth, mut prev) = (0, ' ');
     while let Some(c) = chars.next() {
+        // An SCSS `#{ }` is copied as written.
+        let inside = depth > 0 || (c == '{' && prev == '#');
+        prev = c;
+        if inside {
+            match c {
+                '{' => depth += 1,
+                '}' => depth -= 1,
+                _ => {}
+            }
+            out.push(c);
+            continue;
+        }
         match c {
             '\\' => match chars.next() {
                 Some(e) if e == other => out.push(e),

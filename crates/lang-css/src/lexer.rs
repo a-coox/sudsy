@@ -267,6 +267,27 @@ impl Lexer<'_> {
                     self.pos += 1;
                     return k::STRING;
                 }
+                // SCSS `#{ }` inside a string nests: its own strings do not end this one.
+                b'#' if self.dialect == Dialect::Scss && self.at(1) == b'{' => {
+                    self.pos += 2;
+                    let mut depth = 1;
+                    while depth > 0 && self.pos < self.src.len() {
+                        match self.at(0) {
+                            b'{' => depth += 1,
+                            b'}' => depth -= 1,
+                            b'"' | b'\'' => {
+                                let q = self.at(0);
+                                if self.string(q) == k::UNKNOWN {
+                                    return k::UNKNOWN;
+                                }
+                                continue;
+                            }
+                            b'\n' | b'\r' => break,
+                            _ => {}
+                        }
+                        self.pos += 1;
+                    }
+                }
                 b'\n' | b'\r' => break,
                 _ => self.pos += 1,
             }
