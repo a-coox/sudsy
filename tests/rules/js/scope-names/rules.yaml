@@ -1,0 +1,3 @@
+no-undef: warn
+no-redeclare: warn
+no-use-before-define: warn

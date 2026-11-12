@@ -1,0 +1,4 @@
+no-const-assign: warn
+no-class-assign: warn
+no-func-assign: warn
+no-import-assign: warn

@@ -5,8 +5,12 @@
 mod dupes;
 mod escapes;
 mod flow;
+mod imports;
 mod misc;
+mod scope;
+mod shadow;
 mod ts;
+mod unused;
 
 use crate::generated::kind as k;
 use core_rules::tree::significant_range;
@@ -122,6 +126,25 @@ const CHECKS: &[Entry] = &[
         "loss-of-precision",
         &[k::NUMERIC_LITERAL],
         escapes::loss_of_precision,
+    ),
+    ("undef", &[k::PROGRAM], scope::undef),
+    ("const-assign", &[k::PROGRAM], scope::const_assign),
+    ("class-assign", &[k::PROGRAM], scope::class_assign),
+    ("func-assign", &[k::PROGRAM], scope::func_assign),
+    ("import-assign", &[k::PROGRAM], scope::import_assign),
+    ("redeclare", &[k::PROGRAM], scope::redeclare),
+    ("use-before-define", &[k::PROGRAM], scope::use_before_define),
+    ("shadow", &[k::PROGRAM], shadow::shadow),
+    ("unused-vars", &[k::PROGRAM], unused::unused_vars),
+    (
+        "require-imports",
+        &[k::CALL_EXPRESSION, k::TS_EXTERNAL_MODULE_REFERENCE],
+        imports::require_imports,
+    ),
+    (
+        "type-imports",
+        &[k::PROGRAM, k::TS_IMPORT_TYPE],
+        imports::type_imports,
     ),
     ("ban-ts-comment", &[k::PROGRAM], ts::ban_ts_comment),
     (

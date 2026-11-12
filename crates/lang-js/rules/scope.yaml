@@ -1,0 +1,100 @@
+id: no-undef
+family: check
+params: { check: undef }
+message: "'{name}' is not defined."
+description: A name that no scope declares, that is not a global of ES2026 (or, in a `.cjs` file, `require`, `module`, `exports` and `global`) and that is not in the `globals` option. `typeof x` and JSX tags are left alone.
+example: "foo();   # reported"
+severity: off
+category: suspicious
+options:
+  - { name: globals, type: list, default: [], description: "Names the environment declares (ESLint's `languageOptions.globals`), such as `window` or `console`." }
+---
+id: no-const-assign
+family: check
+params: { check: const-assign }
+message: "'{name}' is constant."
+description: A `const` variable that is assigned to again (the initializer is not).
+example: "const a = 1; a = 2;   # the second a is reported"
+severity: off
+category: suspicious
+---
+id: no-class-assign
+family: check
+params: { check: class-assign }
+message: "'{name}' is a class."
+description: A class declared by name that is assigned to.
+example: "class A {} A = 0;   # the second A is reported"
+severity: off
+category: suspicious
+---
+id: no-func-assign
+family: check
+params: { check: func-assign }
+message: "'{name}' is a function."
+description: A function declared by name that is assigned to.
+example: "function f() {} f = 0;   # the second f is reported"
+severity: off
+category: suspicious
+---
+id: no-import-assign
+family: check
+params: { check: import-assign }
+message: "'{name}' is read-only."
+description: An imported binding that is assigned to, and the members of a namespace import (`import * as ns`) that are assigned to, deleted or passed to `Object.assign` and the like.
+example: "import a from 'a'; a = 1;   # reported"
+severity: off
+category: suspicious
+---
+id: no-redeclare
+family: check
+params: { check: redeclare }
+message: "'{name}' is already defined."
+description: A name declared again in the same scope (`var` twice, a `var` and a parameter, two functions). In TypeScript files declaration merging (interfaces, namespaces, a class with an interface) is allowed. Built-in globals are not checked.
+example: "var a = 1; var a = 2;   # the second a is reported"
+severity: off
+category: suspicious
+---
+id: no-use-before-define
+family: check
+params: { check: use-before-define }
+message: "'{name}' was used before it was defined."
+description: A reference that comes before the declaration of what it names in the source (function declarations included), or runs while the variable is being initialized. References in types are left alone.
+example: "a(); function a() {}   # the first a is reported"
+severity: off
+category: suspicious
+---
+id: no-shadow
+family: check
+params: { check: shadow }
+message: "'{name}' is already declared in the upper scope on line {line}."
+description: A variable, parameter or function with the name of one declared in a scope around it. A function declared later in the outer scope still counts (it is hoisted), a variable declared later does not, and `var a = function a() {}` is not a shadow. In TypeScript files a type and a value of one name, and the parameters of function types, are left alone.
+example: "var a = 1; function f() { var a = 2; }   # the inner a is reported"
+severity: off
+category: suspicious
+---
+id: no-unused-vars
+family: check
+params: { check: unused-vars }
+message: "'{name}' is {action}."
+description: "A variable, function, class, import, caught error or parameter that is never read. Parameters count only when no later parameter is read, `a = a + 1` and `a++` as statements are no read, exported names and the parameters of setters are used. In TypeScript files types, interfaces and enums count the same, and a name that only appears in `typeof` of a type is not read."
+example: "const a = 1;   # reported"
+severity: off
+category: suspicious
+---
+id: no-require-imports
+family: check
+params: { check: require-imports }
+message: "A `require()` style import is forbidden."
+description: "`require(...)` of the global `require` (not one the file declares itself) and `import x = require(...)`."
+example: "const a = require('a');   # reported"
+severity: off
+category: style
+---
+id: consistent-type-imports
+family: check
+params: { check: type-imports }
+message: "Imports {name} are only used as type."
+description: "An import of a TypeScript file whose names are only used as types is written `import type`, and a type is not imported with `import(\"a\")`. Names that are not used at all are left alone; the separate `import type` fix style is the only one."
+example: "import { T } from 't'; let a: T;   # the import is reported"
+severity: off
+category: style

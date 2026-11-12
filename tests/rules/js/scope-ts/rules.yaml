@@ -1,0 +1,3 @@
+no-redeclare: warn
+no-shadow: warn
+no-use-before-define: warn

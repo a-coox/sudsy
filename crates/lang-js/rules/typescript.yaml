@@ -44,17 +44,6 @@ rule:
       - { parent: { kind: TSNamespaceDeclaration } }
       - { path: '(?i)\.d\.(?:[cm]?ts|.*\.ts)$' }
 ---
-id: no-require-imports
-message: "A `require()` style import is forbidden."
-description: "`require(...)` and `import x = require(...)`; a `require` declared in the file is still reported."
-example: "const a = require('a');   # reported"
-severity: off
-category: style
-rule:
-  any:
-    - { pattern: 'require($$$A)' }
-    - { kind: TSExternalModuleReference }
----
 id: no-this-alias
 message: "Unexpected aliasing of 'this' to local variable."
 description: "`const self = this` and `self = this` (destructuring `this` is allowed)."

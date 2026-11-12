@@ -6,5 +6,9 @@ js:
       adjacent-overload-signatures: error
       array-type: error
       consistent-type-definitions: error
+      consistent-type-imports: error
       no-inferrable-types: error
       no-non-null-assertion: error
+      no-redeclare: error
+      no-shadow: error
+      no-use-before-define: error

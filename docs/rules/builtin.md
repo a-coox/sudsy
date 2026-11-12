@@ -24,11 +24,14 @@ Twenty-four rules read the `///` and `/** */` comment of a declaration (StyleCop
 | `array-type` | js | style | off | none | `Array<T>`, `ReadonlyArray<T>` and `Readonly<T[]>`; write `T[]` and `readonly T[]`. |
 | `ban-ts-comment` | js | suspicious | off | none | `@ts-ignore`, `@ts-nocheck` before the first statement, and `@ts-expect-error` without a description of at least three characters in a comment (`@ts-check` is allowed). |
 | `consistent-type-definitions` | js | style | off | none | A type alias of an object type literal; write an `interface`. |
+| `consistent-type-imports` | js | style | off | none | An import of a TypeScript file whose names are only used as types is written `import type`, and a type is not imported with `import("a")`. Names that are not used at all are left alone; the separate `import type` fix style is the only one. |
 | `getter-return` | js | suspicious | off | none | A getter that does not return a value on every path, or has a `return;`. |
 | `no-async-promise-executor` | js | suspicious | off | none | `new Promise(async ...)`: an error thrown in the executor is lost. |
 | `no-case-declarations` | js | suspicious | off | none | `let`, `const`, a function or a class declared directly in a `case` clause, where it is visible to the other cases. |
+| `no-class-assign` | js | suspicious | off | none | A class declared by name that is assigned to. |
 | `no-compare-neg-zero` | js | suspicious | off | none | `x === -0` is true for `0` too; use `Object.is(x, -0)`. |
 | `no-cond-assign` | js | suspicious | off | none | An assignment as the condition of `if`, `while`, `do`, `for` or `?:` that is not in parentheses of its own. |
+| `no-const-assign` | js | suspicious | off | none | A `const` variable that is assigned to again (the initializer is not). |
 | `no-debugger` | js | suspicious | off | none | A `debugger` statement. |
 | `no-delete-var` | js | suspicious | off | none | `delete` applied to a variable name. |
 | `no-dupe-class-members` | js | suspicious | off | none | A class member declared twice (a getter and a setter may share one, a static and an instance member may not clash). |
@@ -42,6 +45,8 @@ Twenty-four rules read the `///` and `/** */` comment of a declaration (StyleCop
 | `no-explicit-any` | js | suspicious | off | none | The `any` type. |
 | `no-extra-boolean-cast` | js | suspicious | off | none | `!!x` or `Boolean(x)` where the value is used as a boolean anyway (a condition, `!`, `Boolean(...)`). |
 | `no-extra-non-null-assertion` | js | suspicious | off | none | `a!!`, and `a!` right before `?.` (`a!?.b`, `a!?.()`). |
+| `no-func-assign` | js | suspicious | off | none | A function declared by name that is assigned to. |
+| `no-import-assign` | js | suspicious | off | none | An imported binding that is assigned to, and the members of a namespace import (`import * as ns`) that are assigned to, deleted or passed to `Object.assign` and the like. |
 | `no-inferrable-types` | js | style | off | none | A type annotation of a variable, parameter or property that its initial value already gives (`const a: number = 5`; not `readonly` or optional properties). |
 | `no-irregular-whitespace` | js | suspicious | off | none | A no-break space, zero-width space or other unusual whitespace character outside a string. |
 | `no-loss-of-precision` | js | suspicious | off | none | A number literal that the double it becomes cannot represent exactly. |
@@ -50,15 +55,20 @@ Twenty-four rules read the `///` and `/** */` comment of a declaration (StyleCop
 | `no-non-null-assertion` | js | suspicious | off | none | A non-null assertion `a!`. |
 | `no-octal` | js | suspicious | off | none | A number that starts with `0` and another digit (`017`, `08`). |
 | `no-prototype-builtins` | js | suspicious | off | none | `obj.hasOwnProperty(k)`, `isPrototypeOf` and `propertyIsEnumerable` called on an object that may not inherit them; use `Object.prototype.hasOwnProperty.call(obj, k)`. |
+| `no-redeclare` | js | suspicious | off | none | A name declared again in the same scope (`var` twice, a `var` and a parameter, two functions). In TypeScript files declaration merging (interfaces, namespaces, a class with an interface) is allowed. Built-in globals are not checked. |
 | `no-regex-spaces` | js | suspicious | off | none | Two or more spaces in a regex literal or in the string of `new RegExp(...)`, outside a character class. |
-| `no-require-imports` | js | style | off | none | `require(...)` and `import x = require(...)`; a `require` declared in the file is still reported. |
+| `no-require-imports` | js | style | off | none | `require(...)` of the global `require` (not one the file declares itself) and `import x = require(...)`. |
 | `no-self-assign` | js | suspicious | off | none | `a = a`, `a.b = a.b`, `[a, b] = [a, b]`. |
+| `no-shadow` | js | suspicious | off | none | A variable, parameter or function with the name of one declared in a scope around it. A function declared later in the outer scope still counts (it is hoisted), a variable declared later does not, and `var a = function a() {}` is not a shadow. In TypeScript files a type and a value of one name, and the parameters of function types, are left alone. |
 | `no-shadow-restricted-names` | js | suspicious | off | none | A variable, function, parameter or class named `NaN`, `Infinity`, `undefined`, `eval` or `arguments` (`var undefined;` without a value is left alone). |
 | `no-sparse-arrays` | js | suspicious | off | none | A hole in an array literal (`[1, , 2]`), reported at its comma. |
 | `no-this-alias` | js | style | off | none | `const self = this` and `self = this` (destructuring `this` is allowed). |
+| `no-undef` | js | suspicious | off | none | A name that no scope declares, that is not a global of ES2026 (or, in a `.cjs` file, `require`, `module`, `exports` and `global`) and that is not in the `globals` option. `typeof x` and JSX tags are left alone. Options: `globals` (default `[]`): Names the environment declares (ESLint's `languageOptions.globals`), such as `window` or `console`. |
 | `no-unreachable` | js | suspicious | off | none | A statement after `return`, `throw`, `break`, `continue`, an `if`/`else` or `try` that always jumps, or a loop that never ends. Function declarations and `var` without a value are not reported. |
 | `no-unsafe-finally` | js | suspicious | off | none | `return`, `throw`, and a `break` or `continue` that leaves the block, in a `finally` block: they override the `try`'s own outcome. |
 | `no-unsafe-negation` | js | suspicious | off | none | `!a in b` and `!a instanceof B` negate `a`, not the test. |
+| `no-unused-vars` | js | suspicious | off | none | A variable, function, class, import, caught error or parameter that is never read. Parameters count only when no later parameter is read, `a = a + 1` and `a++` as statements are no read, exported names and the parameters of setters are used. In TypeScript files types, interfaces and enums count the same, and a name that only appears in `typeof` of a type is not read. |
+| `no-use-before-define` | js | suspicious | off | none | A reference that comes before the declaration of what it names in the source (function declarations included), or runs while the variable is being initialized. References in types are left alone. |
 | `no-useless-catch` | js | suspicious | off | none | A `catch` that only rethrows its error. |
 | `no-useless-escape` | js | suspicious | off | none | A backslash in a string, template or regex that escapes nothing special (`"\d"`, `/\-/`). |
 | `no-with` | js | suspicious | off | none | A `with` statement. |

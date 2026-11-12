@@ -87,10 +87,12 @@ entries:
   no-caller: planned
   no-case-declarations: rule no-case-declarations
   no-catch-shadow: wontfix deprecated upstream
+  no-class-assign: rule no-class-assign
   no-compare-neg-zero: rule no-compare-neg-zero
   no-cond-assign: rule no-cond-assign | only the default `except-parens` mode
   no-confusing-arrow: wontfix deprecated formatting rule with no formatter equivalent
   no-console: planned
+  no-const-assign: rule no-const-assign
   no-constant-binary-expression: planned
   no-constant-condition: planned
   no-constructor-return: planned
@@ -118,7 +120,9 @@ entries:
   no-extra-parens: formatter
   no-extra-semi: formatter
   no-floating-decimal: formatter
+  no-func-assign: rule no-func-assign
   no-implicit-coercion: planned
+  no-import-assign: rule no-import-assign
   no-inline-comments: planned
   no-inner-declarations: planned
   no-invalid-regexp: planned
@@ -157,6 +161,7 @@ entries:
   no-promise-executor-return: planned
   no-proto: planned
   no-prototype-builtins: rule no-prototype-builtins
+  no-redeclare: rule no-redeclare | the `builtinGlobals` option and `/*global*/` comments are not supported (the files are modules, whose top scope is not the global scope)
   no-regex-spaces: rule no-regex-spaces
   no-restricted-exports: planned
   no-restricted-imports: planned
@@ -170,6 +175,7 @@ entries:
   no-self-compare: planned
   no-sequences: planned
   no-setter-return: planned
+  no-shadow: "rule no-shadow | the options keep their defaults (`builtinGlobals` off, `hoist` functions, `allow` empty, `ignoreOnInitialization` off)"
   no-shadow-restricted-names: rule no-shadow-restricted-names | without scope analysis `var undefined;` is accepted whatever is assigned to it later
   no-spaced-func: formatter
   no-sparse-arrays: rule no-sparse-arrays
@@ -180,6 +186,7 @@ entries:
   no-throw-literal: planned
   no-trailing-spaces: formatter
   no-unassigned-vars: planned
+  no-undef: rule no-undef | the `typeof` option keeps its default; `languageOptions.globals` is the rule's `globals` option, and `/*global*/` comments are not read; JSX tags are not references
   no-undefined: planned
   no-underscore-dangle: planned
   no-unexpected-multiline: planned
@@ -188,6 +195,8 @@ entries:
   no-unsafe-negation: rule no-unsafe-negation | the `enforceForOrderingRelations` option is not supported
   no-unsafe-optional-chaining: planned
   no-unused-expressions: planned
+  no-unused-vars: rule no-unused-vars | the options keep their defaults; `/*exported*/` and `/*global*/` comments are not read; a JSX tag counts as a use
+  no-use-before-define: rule no-use-before-define | the options keep their defaults; JSX tags are not references
   no-useless-backreference: planned
   no-useless-call: planned
   no-useless-catch: rule no-useless-catch
@@ -268,5 +277,5 @@ entries:
   no-unreachable-loop: planned
   no-useless-return: planned
 deferred:
-  - gap: "needs scope analysis (oxc_semantic), docs/design/wave-3b-js.md step 14"
-    ids: [block-scoped-var, no-class-assign, no-const-assign, no-eval, no-extend-native, no-extra-bind, no-func-assign, no-global-assign, no-implicit-globals, no-implied-eval, no-import-assign, no-invalid-this, no-labels, no-lone-blocks, no-loop-func, no-new-native-nonconstructor, no-new-wrappers, no-obj-calls, no-redeclare, no-restricted-globals, no-shadow, no-undef, no-undef-init, no-unmodified-loop-condition, no-unused-labels, no-unused-private-class-members, no-unused-vars, no-use-before-define, no-useless-assignment, prefer-const, require-atomic-updates]
+  - gap: "needs scope analysis (oxc_semantic), not part of docs/design/wave-3b-js.md step 15"
+    ids: [block-scoped-var, no-eval, no-extend-native, no-extra-bind, no-global-assign, no-implicit-globals, no-implied-eval, no-invalid-this, no-labels, no-lone-blocks, no-loop-func, no-new-native-nonconstructor, no-new-wrappers, no-obj-calls, no-restricted-globals, no-undef-init, no-unmodified-loop-condition, no-unused-labels, no-unused-private-class-members, no-useless-assignment, prefer-const, require-atomic-updates]

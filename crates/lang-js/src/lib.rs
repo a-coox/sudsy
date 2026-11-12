@@ -7,6 +7,7 @@ mod adapter;
 mod format;
 mod rules;
 mod safety;
+mod semantic;
 
 pub use adapter::{parse, source_type};
 pub use format::{JsFormatter, option_schema};

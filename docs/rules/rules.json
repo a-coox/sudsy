@@ -617,23 +617,23 @@
       "example": {
         "config": null,
         "fixed": null,
-        "input": "namespace N.M {}\ndeclare module \"x\" {}\ndeclare global {}\ndeclare namespace Q {}\nconst a = require(\"a\"), b = a.require(\"b\");\nimport c = require(\"c\");\nconst self = this, { x } = this;\ny = this;\nclass K { new(): K; new(): number; new() {} }\ninterface I { new (): I; new (): number; constructor(): void }\nfunction f(): void;\nfunction g(): void {}\nfunction f(x: number): void;\nfunction f(x?: number) {}\nclass O { m(): void; n(): void; m(x: number): void; static m(): void; static m(x: number): void; }\ninterface P { (): void; a(): void; (x: number): void }\n",
+        "input": "namespace N.M {}\ndeclare module \"x\" {}\ndeclare global {}\ndeclare namespace Q {}\nconst a = require(\"a\"), b = a.require(\"b\");\nimport c = require(\"c\");\nfunction local(require: (id: string) => void) { require(\"d\"); }\nconst self = this, { x } = this;\ny = this;\nclass K { new(): K; new(): number; new() {} }\ninterface I { new (): I; new (): number; constructor(): void }\nfunction f(): void;\nfunction g(): void {}\nfunction f(x: number): void;\nfunction f(x?: number) {}\nclass O { m(): void; n(): void; m(x: number): void; static m(): void; static m(x: number): void; }\ninterface P { (): void; a(): void; (x: number): void }\n",
         "language": "js",
         "spans": [
           {
             "column": 1,
             "length": 28,
-            "line": 13
+            "line": 14
           },
           {
             "column": 33,
             "length": 19,
-            "line": 15
+            "line": 16
           },
           {
             "column": 36,
             "length": 17,
-            "line": 16
+            "line": 17
           }
         ]
       },
@@ -749,6 +749,57 @@
       },
       "fix": null,
       "id": "consistent-type-definitions",
+      "languages": [
+        "js"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "style",
+      "default_level": "off",
+      "description": "An import of a TypeScript file whose names are only used as types is written `import type`, and a type is not imported with `import(\"a\")`. Names that are not used at all are left alone; the separate `import type` fix style is the only one.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "import { A, B } from \"a\";\nimport C, { D } from \"c\";\nimport * as NS from \"ns\";\nimport E from \"e\";\nimport type { T } from \"t\";\nimport { type U, V } from \"u\";\nimport { W, Y } from \"w\";\nimport { X } from \"x\";\nimport Z from \"z\";\nexport { X };\nlet a: A, b: B, c: C, d: D, ns: NS.Thing, w: W = 1, q: typeof E, t: T, u: U, y: Y;\nconst v = V, z = Z;\ntype I = import(\"m\").I;\n",
+        "language": "js",
+        "spans": [
+          {
+            "column": 1,
+            "length": 25,
+            "line": 1
+          },
+          {
+            "column": 1,
+            "length": 25,
+            "line": 2
+          },
+          {
+            "column": 1,
+            "length": 25,
+            "line": 3
+          },
+          {
+            "column": 1,
+            "length": 18,
+            "line": 4
+          },
+          {
+            "column": 1,
+            "length": 25,
+            "line": 7
+          },
+          {
+            "column": 10,
+            "length": 13,
+            "line": 13
+          }
+        ]
+      },
+      "fix": null,
+      "id": "consistent-type-imports",
       "languages": [
         "js"
       ],
@@ -878,6 +929,44 @@
     {
       "category": "suspicious",
       "default_level": "off",
+      "description": "A class declared by name that is assigned to.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "import d, { n as m } from \"m\";\nimport * as ns from \"ns\";\nconst c = 1; c = 2; c += 1; c++; [c] = [1]; ({ c } = {}); for (c of []) {}\nclass K { static f() { K = 1; } } K = 2; (class L { f() { L = 1; } });\nfunction g() {} g = 3; (function h() { h = 1; });\nd = 1; m++; ns = 1; ns.x = 1; delete ns.y; ns.a.b = 1; [ns.z] = []; Object.assign(ns, {}); Object.keys(ns);\nconst o = { c }; const [q] = [c]; var v = 1; v = 2; let l = 1; l = 2;\n",
+        "language": "js",
+        "spans": [
+          {
+            "column": 24,
+            "length": 1,
+            "line": 4
+          },
+          {
+            "column": 35,
+            "length": 1,
+            "line": 4
+          },
+          {
+            "column": 59,
+            "length": 1,
+            "line": 4
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-class-assign",
+      "languages": [
+        "js"
+      ],
+      "options": [],
+      "presets": [
+        "js/eslint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
       "description": "`x === -0` is true for `0` too; use `Object.is(x, -0)`.",
       "example": {
         "config": null,
@@ -947,6 +1036,59 @@
       },
       "fix": null,
       "id": "no-cond-assign",
+      "languages": [
+        "js"
+      ],
+      "options": [],
+      "presets": [
+        "js/eslint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "A `const` variable that is assigned to again (the initializer is not).",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "import d, { n as m } from \"m\";\nimport * as ns from \"ns\";\nconst c = 1; c = 2; c += 1; c++; [c] = [1]; ({ c } = {}); for (c of []) {}\nclass K { static f() { K = 1; } } K = 2; (class L { f() { L = 1; } });\nfunction g() {} g = 3; (function h() { h = 1; });\nd = 1; m++; ns = 1; ns.x = 1; delete ns.y; ns.a.b = 1; [ns.z] = []; Object.assign(ns, {}); Object.keys(ns);\nconst o = { c }; const [q] = [c]; var v = 1; v = 2; let l = 1; l = 2;\n",
+        "language": "js",
+        "spans": [
+          {
+            "column": 14,
+            "length": 1,
+            "line": 3
+          },
+          {
+            "column": 21,
+            "length": 1,
+            "line": 3
+          },
+          {
+            "column": 29,
+            "length": 1,
+            "line": 3
+          },
+          {
+            "column": 35,
+            "length": 1,
+            "line": 3
+          },
+          {
+            "column": 48,
+            "length": 1,
+            "line": 3
+          },
+          {
+            "column": 64,
+            "length": 1,
+            "line": 3
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-const-assign",
       "languages": [
         "js"
       ],
@@ -1491,6 +1633,97 @@
       "upstream": []
     },
     {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "A function declared by name that is assigned to.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "import d, { n as m } from \"m\";\nimport * as ns from \"ns\";\nconst c = 1; c = 2; c += 1; c++; [c] = [1]; ({ c } = {}); for (c of []) {}\nclass K { static f() { K = 1; } } K = 2; (class L { f() { L = 1; } });\nfunction g() {} g = 3; (function h() { h = 1; });\nd = 1; m++; ns = 1; ns.x = 1; delete ns.y; ns.a.b = 1; [ns.z] = []; Object.assign(ns, {}); Object.keys(ns);\nconst o = { c }; const [q] = [c]; var v = 1; v = 2; let l = 1; l = 2;\n",
+        "language": "js",
+        "spans": [
+          {
+            "column": 17,
+            "length": 1,
+            "line": 5
+          },
+          {
+            "column": 40,
+            "length": 1,
+            "line": 5
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-func-assign",
+      "languages": [
+        "js"
+      ],
+      "options": [],
+      "presets": [
+        "js/eslint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "An imported binding that is assigned to, and the members of a namespace import (`import * as ns`) that are assigned to, deleted or passed to `Object.assign` and the like.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "import d, { n as m } from \"m\";\nimport * as ns from \"ns\";\nconst c = 1; c = 2; c += 1; c++; [c] = [1]; ({ c } = {}); for (c of []) {}\nclass K { static f() { K = 1; } } K = 2; (class L { f() { L = 1; } });\nfunction g() {} g = 3; (function h() { h = 1; });\nd = 1; m++; ns = 1; ns.x = 1; delete ns.y; ns.a.b = 1; [ns.z] = []; Object.assign(ns, {}); Object.keys(ns);\nconst o = { c }; const [q] = [c]; var v = 1; v = 2; let l = 1; l = 2;\n",
+        "language": "js",
+        "spans": [
+          {
+            "column": 1,
+            "length": 1,
+            "line": 6
+          },
+          {
+            "column": 8,
+            "length": 1,
+            "line": 6
+          },
+          {
+            "column": 13,
+            "length": 1,
+            "line": 6
+          },
+          {
+            "column": 21,
+            "length": 1,
+            "line": 6
+          },
+          {
+            "column": 31,
+            "length": 1,
+            "line": 6
+          },
+          {
+            "column": 56,
+            "length": 1,
+            "line": 6
+          },
+          {
+            "column": 69,
+            "length": 1,
+            "line": 6
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-import-assign",
+      "languages": [
+        "js"
+      ],
+      "options": [],
+      "presets": [
+        "js/eslint-recommended"
+      ],
+      "upstream": []
+    },
+    {
       "category": "style",
       "default_level": "off",
       "description": "A type annotation of a variable, parameter or property that its initial value already gives (`const a: number = 5`; not `readonly` or optional properties).",
@@ -1614,23 +1847,23 @@
       "example": {
         "config": null,
         "fixed": null,
-        "input": "namespace N.M {}\ndeclare module \"x\" {}\ndeclare global {}\ndeclare namespace Q {}\nconst a = require(\"a\"), b = a.require(\"b\");\nimport c = require(\"c\");\nconst self = this, { x } = this;\ny = this;\nclass K { new(): K; new(): number; new() {} }\ninterface I { new (): I; new (): number; constructor(): void }\nfunction f(): void;\nfunction g(): void {}\nfunction f(x: number): void;\nfunction f(x?: number) {}\nclass O { m(): void; n(): void; m(x: number): void; static m(): void; static m(x: number): void; }\ninterface P { (): void; a(): void; (x: number): void }\n",
+        "input": "namespace N.M {}\ndeclare module \"x\" {}\ndeclare global {}\ndeclare namespace Q {}\nconst a = require(\"a\"), b = a.require(\"b\");\nimport c = require(\"c\");\nfunction local(require: (id: string) => void) { require(\"d\"); }\nconst self = this, { x } = this;\ny = this;\nclass K { new(): K; new(): number; new() {} }\ninterface I { new (): I; new (): number; constructor(): void }\nfunction f(): void;\nfunction g(): void {}\nfunction f(x: number): void;\nfunction f(x?: number) {}\nclass O { m(): void; n(): void; m(x: number): void; static m(): void; static m(x: number): void; }\ninterface P { (): void; a(): void; (x: number): void }\n",
         "language": "js",
         "spans": [
           {
             "column": 11,
             "length": 9,
-            "line": 9
+            "line": 10
           },
           {
             "column": 15,
             "length": 10,
-            "line": 10
+            "line": 11
           },
           {
             "column": 42,
             "length": 19,
-            "line": 10
+            "line": 11
           }
         ]
       },
@@ -1652,7 +1885,7 @@
       "example": {
         "config": null,
         "fixed": null,
-        "input": "namespace N.M {}\ndeclare module \"x\" {}\ndeclare global {}\ndeclare namespace Q {}\nconst a = require(\"a\"), b = a.require(\"b\");\nimport c = require(\"c\");\nconst self = this, { x } = this;\ny = this;\nclass K { new(): K; new(): number; new() {} }\ninterface I { new (): I; new (): number; constructor(): void }\nfunction f(): void;\nfunction g(): void {}\nfunction f(x: number): void;\nfunction f(x?: number) {}\nclass O { m(): void; n(): void; m(x: number): void; static m(): void; static m(x: number): void; }\ninterface P { (): void; a(): void; (x: number): void }\n",
+        "input": "namespace N.M {}\ndeclare module \"x\" {}\ndeclare global {}\ndeclare namespace Q {}\nconst a = require(\"a\"), b = a.require(\"b\");\nimport c = require(\"c\");\nfunction local(require: (id: string) => void) { require(\"d\"); }\nconst self = this, { x } = this;\ny = this;\nclass K { new(): K; new(): number; new() {} }\ninterface I { new (): I; new (): number; constructor(): void }\nfunction f(): void;\nfunction g(): void {}\nfunction f(x: number): void;\nfunction f(x?: number) {}\nclass O { m(): void; n(): void; m(x: number): void; static m(): void; static m(x: number): void; }\ninterface P { (): void; a(): void; (x: number): void }\n",
         "language": "js",
         "spans": [
           {
@@ -1813,6 +2046,49 @@
     {
       "category": "suspicious",
       "default_level": "off",
+      "description": "A name declared again in the same scope (`var` twice, a `var` and a parameter, two functions). In TypeScript files declaration merging (interfaces, namespaces, a class with an interface) is allowed. Built-in globals are not checked.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "use(undefinedThing, typeof maybe, typeof maybe.x, arguments);\nfunction f(a, a2) { var a; return arguments; }\nvar x = 1; var x = 2; function x() {}\nfunction f2() {} function f2() {}\ntry {} catch (e) { var e; }\nbefore(); function before() {} before2(); var before2 = 1;\nconst s = s + 1; let t = () => t; class C { static p = C; q = C; } class D extends D {}\nfor (var i of i) {} const { u = u } = {};\nPromise.all([globalThis, hasOwnProperty]);\n",
+        "language": "js",
+        "spans": [
+          {
+            "column": 25,
+            "length": 1,
+            "line": 2
+          },
+          {
+            "column": 16,
+            "length": 1,
+            "line": 3
+          },
+          {
+            "column": 32,
+            "length": 1,
+            "line": 3
+          },
+          {
+            "column": 27,
+            "length": 2,
+            "line": 4
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-redeclare",
+      "languages": [
+        "js"
+      ],
+      "options": [],
+      "presets": [
+        "js/eslint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
       "description": "Two or more spaces in a regex literal or in the string of `new RegExp(...)`, outside a character class.",
       "example": {
         "config": null,
@@ -1856,11 +2132,11 @@
     {
       "category": "style",
       "default_level": "off",
-      "description": "`require(...)` and `import x = require(...)`; a `require` declared in the file is still reported.",
+      "description": "`require(...)` of the global `require` (not one the file declares itself) and `import x = require(...)`.",
       "example": {
         "config": null,
         "fixed": null,
-        "input": "namespace N.M {}\ndeclare module \"x\" {}\ndeclare global {}\ndeclare namespace Q {}\nconst a = require(\"a\"), b = a.require(\"b\");\nimport c = require(\"c\");\nconst self = this, { x } = this;\ny = this;\nclass K { new(): K; new(): number; new() {} }\ninterface I { new (): I; new (): number; constructor(): void }\nfunction f(): void;\nfunction g(): void {}\nfunction f(x: number): void;\nfunction f(x?: number) {}\nclass O { m(): void; n(): void; m(x: number): void; static m(): void; static m(x: number): void; }\ninterface P { (): void; a(): void; (x: number): void }\n",
+        "input": "namespace N.M {}\ndeclare module \"x\" {}\ndeclare global {}\ndeclare namespace Q {}\nconst a = require(\"a\"), b = a.require(\"b\");\nimport c = require(\"c\");\nfunction local(require: (id: string) => void) { require(\"d\"); }\nconst self = this, { x } = this;\ny = this;\nclass K { new(): K; new(): number; new() {} }\ninterface I { new (): I; new (): number; constructor(): void }\nfunction f(): void;\nfunction g(): void {}\nfunction f(x: number): void;\nfunction f(x?: number) {}\nclass O { m(): void; n(): void; m(x: number): void; static m(): void; static m(x: number): void; }\ninterface P { (): void; a(): void; (x: number): void }\n",
         "language": "js",
         "spans": [
           {
@@ -1972,6 +2248,62 @@
     {
       "category": "suspicious",
       "default_level": "off",
+      "description": "A variable, parameter or function with the name of one declared in a scope around it. A function declared later in the outer scope still counts (it is hoisted), a variable declared later does not, and `var a = function a() {}` is not a shadow. In TypeScript files a type and a value of one name, and the parameters of function types, are left alone.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "var a = 1; let b = 2;\nfunction f(a) { let b = 3; { const a = 4; } }\nvar c = function c() {}; var d = function (d) {};\nfunction outer() { var e = 1; function inner() { var e = 2; } }\nfunction hoist() { var h = 1; } function h() {}\nconst t = () => { const late = 1; }; const late = 2;\nclass K { m() { var K = 1; } }\n",
+        "language": "js",
+        "spans": [
+          {
+            "column": 12,
+            "length": 1,
+            "line": 2
+          },
+          {
+            "column": 21,
+            "length": 1,
+            "line": 2
+          },
+          {
+            "column": 36,
+            "length": 1,
+            "line": 2
+          },
+          {
+            "column": 44,
+            "length": 1,
+            "line": 3
+          },
+          {
+            "column": 54,
+            "length": 1,
+            "line": 4
+          },
+          {
+            "column": 24,
+            "length": 1,
+            "line": 5
+          },
+          {
+            "column": 21,
+            "length": 1,
+            "line": 7
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-shadow",
+      "languages": [
+        "js"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
       "description": "A variable, function, parameter or class named `NaN`, `Infinity`, `undefined`, `eval` or `arguments` (`var undefined;` without a value is left alone).",
       "example": {
         "config": null,
@@ -2057,18 +2389,18 @@
       "example": {
         "config": null,
         "fixed": null,
-        "input": "namespace N.M {}\ndeclare module \"x\" {}\ndeclare global {}\ndeclare namespace Q {}\nconst a = require(\"a\"), b = a.require(\"b\");\nimport c = require(\"c\");\nconst self = this, { x } = this;\ny = this;\nclass K { new(): K; new(): number; new() {} }\ninterface I { new (): I; new (): number; constructor(): void }\nfunction f(): void;\nfunction g(): void {}\nfunction f(x: number): void;\nfunction f(x?: number) {}\nclass O { m(): void; n(): void; m(x: number): void; static m(): void; static m(x: number): void; }\ninterface P { (): void; a(): void; (x: number): void }\n",
+        "input": "namespace N.M {}\ndeclare module \"x\" {}\ndeclare global {}\ndeclare namespace Q {}\nconst a = require(\"a\"), b = a.require(\"b\");\nimport c = require(\"c\");\nfunction local(require: (id: string) => void) { require(\"d\"); }\nconst self = this, { x } = this;\ny = this;\nclass K { new(): K; new(): number; new() {} }\ninterface I { new (): I; new (): number; constructor(): void }\nfunction f(): void;\nfunction g(): void {}\nfunction f(x: number): void;\nfunction f(x?: number) {}\nclass O { m(): void; n(): void; m(x: number): void; static m(): void; static m(x: number): void; }\ninterface P { (): void; a(): void; (x: number): void }\n",
         "language": "js",
         "spans": [
           {
             "column": 7,
             "length": 4,
-            "line": 7
+            "line": 8
           },
           {
             "column": 1,
             "length": 1,
-            "line": 8
+            "line": 9
           }
         ]
       },
@@ -2080,6 +2412,56 @@
       "options": [],
       "presets": [
         "js/typescript-eslint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "A name that no scope declares, that is not a global of ES2026 (or, in a `.cjs` file, `require`, `module`, `exports` and `global`) and that is not in the `globals` option. `typeof x` and JSX tags are left alone.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "use(undefinedThing, typeof maybe, typeof maybe.x, arguments);\nfunction f(a, a2) { var a; return arguments; }\nvar x = 1; var x = 2; function x() {}\nfunction f2() {} function f2() {}\ntry {} catch (e) { var e; }\nbefore(); function before() {} before2(); var before2 = 1;\nconst s = s + 1; let t = () => t; class C { static p = C; q = C; } class D extends D {}\nfor (var i of i) {} const { u = u } = {};\nPromise.all([globalThis, hasOwnProperty]);\n",
+        "language": "js",
+        "spans": [
+          {
+            "column": 1,
+            "length": 3,
+            "line": 1
+          },
+          {
+            "column": 5,
+            "length": 14,
+            "line": 1
+          },
+          {
+            "column": 42,
+            "length": 5,
+            "line": 1
+          },
+          {
+            "column": 51,
+            "length": 9,
+            "line": 1
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-undef",
+      "languages": [
+        "js"
+      ],
+      "options": [
+        {
+          "default": [],
+          "description": "Names the environment declares (ESLint's `languageOptions.globals`), such as `window` or `console`.",
+          "name": "globals",
+          "type": "list"
+        }
+      ],
+      "presets": [
+        "js/eslint-recommended"
       ],
       "upstream": []
     },
@@ -2230,6 +2612,91 @@
       "presets": [
         "js/eslint-recommended"
       ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "A variable, function, class, import, caught error or parameter that is never read. Parameters count only when no later parameter is read, `a = a + 1` and `a++` as statements are no read, exported names and the parameters of setters are used. In TypeScript files types, interfaces and enums count the same, and a name that only appears in `typeof` of a type is not read.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "import React, { useState } from \"react\";\nimport type { FC } from \"react\";\nexport const A: FC = () => <div />;\ntype Mapped = { [K in \"a\"]: 1 };\nnamespace B.C {}\ndeclare module \"m\" { interface Ambient {} var ambient: number; }\n",
+        "language": "js",
+        "spans": [
+          {
+            "column": 17,
+            "length": 8,
+            "line": 1
+          },
+          {
+            "column": 6,
+            "length": 6,
+            "line": 4
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-unused-vars",
+      "languages": [
+        "js"
+      ],
+      "options": [],
+      "presets": [
+        "js/eslint-recommended",
+        "js/typescript-eslint-recommended"
+      ],
+      "upstream": []
+    },
+    {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "A reference that comes before the declaration of what it names in the source (function declarations included), or runs while the variable is being initialized. References in types are left alone.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "use(undefinedThing, typeof maybe, typeof maybe.x, arguments);\nfunction f(a, a2) { var a; return arguments; }\nvar x = 1; var x = 2; function x() {}\nfunction f2() {} function f2() {}\ntry {} catch (e) { var e; }\nbefore(); function before() {} before2(); var before2 = 1;\nconst s = s + 1; let t = () => t; class C { static p = C; q = C; } class D extends D {}\nfor (var i of i) {} const { u = u } = {};\nPromise.all([globalThis, hasOwnProperty]);\n",
+        "language": "js",
+        "spans": [
+          {
+            "column": 1,
+            "length": 6,
+            "line": 6
+          },
+          {
+            "column": 32,
+            "length": 7,
+            "line": 6
+          },
+          {
+            "column": 11,
+            "length": 1,
+            "line": 7
+          },
+          {
+            "column": 84,
+            "length": 1,
+            "line": 7
+          },
+          {
+            "column": 15,
+            "length": 1,
+            "line": 8
+          },
+          {
+            "column": 33,
+            "length": 1,
+            "line": 8
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-use-before-define",
+      "languages": [
+        "js"
+      ],
+      "options": [],
+      "presets": [],
       "upstream": []
     },
     {

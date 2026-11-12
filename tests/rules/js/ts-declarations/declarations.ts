@@ -8,6 +8,7 @@ const a = require("a"), b = a.require("b");
 //        ^^^^^^^^^^^^ no-require-imports
 import c = require("c");
 //         ^^^^^^^^^^^^ no-require-imports
+function local(require: (id: string) => void) { require("d"); }
 const self = this, { x } = this;
 //    ^^^^ no-this-alias
 y = this;

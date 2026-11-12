@@ -360,6 +360,10 @@
               "$ref": "#/definitions/rule",
               "description": "A type alias of an object type literal; write an `interface`."
             },
+            "consistent-type-imports": {
+              "$ref": "#/definitions/rule",
+              "description": "An import of a TypeScript file whose names are only used as types is written `import type`, and a type is not imported with `import(\"a\")`. Names that are not used at all are left alone; the separate `import type` fix style is the only one."
+            },
             "constant-on-right": {
               "$ref": "#/definitions/rule",
               "description": "A comparison with the constant on the left: `null == x` is `x == null`, `1 < x` is `x > 1`. Without the type layer a constant is a literal, `nameof`, `int.MaxValue`-style member or an expression of those; a named constant on the left is not recognised."
@@ -1735,6 +1739,10 @@
               "$ref": "#/definitions/rule",
               "description": "`let`, `const`, a function or a class declared directly in a `case` clause, where it is visible to the other cases."
             },
+            "no-class-assign": {
+              "$ref": "#/definitions/rule",
+              "description": "A class declared by name that is assigned to."
+            },
             "no-cmdlet-aliases": {
               "$ref": "#/definitions/rule",
               "description": "A command written with one of the default aliases of Windows PowerShell and PowerShell 7 (`gci`, `ls`, `%`, `?`, `iex`, ...). The table is the one of a Windows host; PSScriptAnalyzer reads the aliases of the host it runs on."
@@ -1750,6 +1758,10 @@
             "no-cond-assign": {
               "$ref": "#/definitions/rule",
               "description": "An assignment as the condition of `if`, `while`, `do`, `for` or `?:` that is not in parentheses of its own."
+            },
+            "no-const-assign": {
+              "$ref": "#/definitions/rule",
+              "description": "A `const` variable that is assigned to again (the initializer is not)."
             },
             "no-copy-whole-stage": {
               "$ref": "#/definitions/rule",
@@ -2049,9 +2061,17 @@
               "$ref": "#/definitions/rule",
               "description": "A FROM with a fixed `--platform`; a variable such as `$BUILDPLATFORM` is fine."
             },
+            "no-func-assign": {
+              "$ref": "#/definitions/rule",
+              "description": "A function declared by name that is assigned to."
+            },
             "no-global-vars": {
               "$ref": "#/definitions/rule",
               "description": "A variable in the `global:` scope, other than the special variables PSScriptAnalyzer exempts (`$global:LASTEXITCODE`, `$global:ErrorActionPreference`, `$global:PSDefaultParameterValues`, ...)."
+            },
+            "no-import-assign": {
+              "$ref": "#/definitions/rule",
+              "description": "An imported binding that is assigned to, and the members of a namespace import (`import * as ns`) that are assigned to, deleted or passed to `Object.assign` and the like."
             },
             "no-inferrable-types": {
               "$ref": "#/definitions/rule",
@@ -2181,6 +2201,10 @@
               "$ref": "#/definitions/rule",
               "description": "A pipeline from `ps` into `grep`."
             },
+            "no-redeclare": {
+              "$ref": "#/definitions/rule",
+              "description": "A name declared again in the same scope (`var` twice, a `var` and a parameter, two functions). In TypeScript files declaration merging (interfaces, namespaces, a class with an interface) is allowed. Built-in globals are not checked."
+            },
             "no-redundant-target-platform": {
               "$ref": "#/definitions/rule",
               "description": "A FROM with `--platform=$TARGETPLATFORM`, which is what it does without the option."
@@ -2199,7 +2223,7 @@
             },
             "no-require-imports": {
               "$ref": "#/definitions/rule",
-              "description": "`require(...)` and `import x = require(...)`; a `require` declared in the file is still reported."
+              "description": "`require(...)` of the global `require` (not one the file declares itself) and `import x = require(...)`."
             },
             "no-reserved-stage-name": {
               "$ref": "#/definitions/rule",
@@ -2220,6 +2244,10 @@
             "no-self-assign": {
               "$ref": "#/definitions/rule",
               "description": "`a = a`, `a.b = a.b`, `[a, b] = [a, b]`."
+            },
+            "no-shadow": {
+              "$ref": "#/definitions/rule",
+              "description": "A variable, parameter or function with the name of one declared in a scope around it. A function declared later in the outer scope still counts (it is hoisted), a variable declared later does not, and `var a = function a() {}` is not a shadow. In TypeScript files a type and a value of one name, and the parameters of function types, are left alone."
             },
             "no-shadow-restricted-names": {
               "$ref": "#/definitions/rule",
@@ -2257,6 +2285,40 @@
               "$ref": "#/definitions/rule",
               "description": "A field of an object or interface type starts with the name of the type (`type User { userId: ID }`); the type already says it (case ignored). No fix: renaming a field changes the schema."
             },
+            "no-undef": {
+              "description": "A name that no scope declares, that is not a global of ES2026 (or, in a `.cjs` file, `require`, `module`, `exports` and `global`) and that is not in the `globals` option. `typeof x` and JSX tags are left alone.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "globals": {
+                          "default": [],
+                          "description": "Names the environment declares (ESLint's `languageOptions.globals`), such as `window` or `console`.",
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
             "no-undefined-alias": {
               "$ref": "#/definitions/rule",
               "description": "An alias names an anchor that is not defined earlier in the same document."
@@ -2280,6 +2342,14 @@
             "no-unused-anchors": {
               "$ref": "#/definitions/rule",
               "description": "An anchor that no alias refers to. The fix removes the anchor, which changes nothing about the data."
+            },
+            "no-unused-vars": {
+              "$ref": "#/definitions/rule",
+              "description": "A variable, function, class, import, caught error or parameter that is never read. Parameters count only when no later parameter is read, `a = a + 1` and `a++` as statements are no read, exported names and the parameters of setters are used. In TypeScript files types, interfaces and enums count the same, and a name that only appears in `typeof` of a type is not read."
+            },
+            "no-use-before-define": {
+              "$ref": "#/definitions/rule",
+              "description": "A reference that comes before the declaration of what it names in the source (function declarations included), or runs while the variable is being initialized. References in types are left alone."
             },
             "no-useless-catch": {
               "$ref": "#/definitions/rule",

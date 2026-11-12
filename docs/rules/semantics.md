@@ -1,7 +1,7 @@
 # Semantic analysis
 
 ## Capability layers (`core-semantics`)
-Providers declare layers, rules require them; JSON and YAML declare none.
+Providers declare layers, rules require them; JSON and YAML declare none. JavaScript and TypeScript declare none either: their scope rules (`no-undef`, `no-unused-vars`, ...) read oxc's `Semantic` in process, which `lang-js` builds on the first of them that runs on a file and shares between them ([../formatting/js.md](../formatting/js.md#scope-layer)); the layers below describe what a provider answers across a process boundary (C#).
 
 | Layer | Answered in C# by |
 |---|---|

@@ -10,5 +10,6 @@ js:
       no-namespace: error
       no-require-imports: error
       no-this-alias: error
+      no-unused-vars: error
       prefer-as-const: error
       triple-slash-reference: error
