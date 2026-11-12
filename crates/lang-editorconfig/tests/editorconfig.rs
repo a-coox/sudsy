@@ -39,6 +39,10 @@ fn keeps_comments_at_the_end_of_the_file() {
         "[*]\na = 1\n\n# tail\n; last\n"
     );
     assert_eq!(fmt("# only"), "# only\n");
+    assert_eq!(fmt("\n\n# only\n"), "# only\n");
+    assert_eq!(fmt("[*]\n# only"), "[*]\n# only\n");
+    assert_eq!(fmt("[*]\na=1\n# tail\n"), "[*]\na = 1\n# tail\n");
+    assert_eq!(fmt(""), "");
 }
 
 #[test]
