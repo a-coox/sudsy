@@ -1,0 +1,222 @@
+// Python (.py .pyi .pyw), parsed by ruff_python_parser (crates/lang-python/src/adapter.rs).
+// Node kinds are ruff's `NodeKind` names, one node per AST node, plus `Parenthesized` (a pair of parentheses and the expression in it); tokens are ruff's `TokenKind` names. Logical and non-logical newlines, indents and dedents are `Newline` / `Whitespace` trivia.
+// Format: see crates/core-syntax/src/grammar/mod.rs.
+
+language python 20 "Python"
+comments line "#"
+suppress disable-next-line "sudsy-disable-next-line"
+suppress disable-line "sudsy-disable-line"
+suppress disable "sudsy-disable"
+suppress enable "sudsy-enable"
+suppress disable-file "sudsy-disable-file"
+suppress ignore "sudsy-ignore"
+suppress ignore-start "sudsy-ignore-start"
+suppress ignore-end "sudsy-ignore-end"
+
+token Whitespace #trivia #whitespace
+token Newline #trivia #newline
+// A backslash that ends a line.
+token Continuation #trivia #whitespace
+token Comment #trivia #comment
+
+token Question "?" #punctuation
+token Exclamation "!" #punctuation
+token Lpar "(" #punctuation #glue
+token Rpar ")" #punctuation #close
+token Lsqb "[" #punctuation #glue
+token Rsqb "]" #punctuation #close
+token Colon ":" #punctuation #glue
+token Comma "," #punctuation #separator #glue
+token Semi ";" #punctuation #separator
+token Plus "+" #punctuation
+token Minus "-" #punctuation
+token Star "*" #punctuation
+token Slash "/" #punctuation
+token Vbar "|" #punctuation
+token Amper "&" #punctuation
+token Less "<" #punctuation
+token Greater ">" #punctuation
+token Equal "=" #punctuation
+token Dot "." #punctuation
+token Percent "%" #punctuation
+token Lbrace "{" #punctuation
+token Rbrace "}" #punctuation
+token EqEqual "==" #punctuation
+token NotEqual "!=" #punctuation
+token LessEqual "<=" #punctuation
+token GreaterEqual ">=" #punctuation
+token Tilde "~" #punctuation
+token CircumFlex "^" #punctuation
+token LeftShift "<<" #punctuation
+token RightShift ">>" #punctuation
+token DoubleStar "**" #punctuation
+token DoubleStarEqual "**=" #punctuation
+token PlusEqual "+=" #punctuation
+token MinusEqual "-=" #punctuation
+token StarEqual "*=" #punctuation
+token SlashEqual "/=" #punctuation
+token PercentEqual "%=" #punctuation
+token AmperEqual "&=" #punctuation
+token VbarEqual "|=" #punctuation
+token CircumflexEqual "^=" #punctuation
+token LeftShiftEqual "<<=" #punctuation
+token RightShiftEqual ">>=" #punctuation
+token DoubleSlash "//" #punctuation
+token DoubleSlashEqual "//=" #punctuation
+token ColonEqual ":=" #punctuation
+token At "@" #punctuation
+token AtEqual "@=" #punctuation
+token Rarrow "->" #punctuation
+token Ellipsis "..." #punctuation
+
+// Reserved words; `Case`, `Lazy`, `Match` and `Type` are soft keywords and also appear as names.
+token And "and" #keyword
+token As "as" #keyword
+token Assert "assert" #keyword
+token Async "async" #keyword
+token Await "await" #keyword
+token Break "break" #keyword
+token Class "class" #keyword
+token Continue "continue" #keyword
+token Def "def" #keyword
+token Del "del" #keyword
+token Elif "elif" #keyword
+token Else "else" #keyword
+token Except "except" #keyword
+token False "False" #keyword
+token Finally "finally" #keyword
+token For "for" #keyword
+token From "from" #keyword
+token Global "global" #keyword
+token If "if" #keyword
+token Import "import" #keyword
+token In "in" #keyword
+token Is "is" #keyword
+token Lambda "lambda" #keyword
+token None "None" #keyword
+token Nonlocal "nonlocal" #keyword
+token Not "not" #keyword
+token Or "or" #keyword
+token Pass "pass" #keyword
+token Raise "raise" #keyword
+token Return "return" #keyword
+token True "True" #keyword
+token Try "try" #keyword
+token While "while" #keyword
+token With "with" #keyword
+token Yield "yield" #keyword
+token Case "case" #keyword
+token Lazy "lazy" #keyword
+token Match "match" #keyword
+token Type "type" #keyword
+
+token Name
+token Int #literal #restyle
+token Float #literal #restyle
+token Complex #literal #restyle
+token String #literal #string #restyle
+// An f-string's or t-string's start (prefix and opening quote), end (closing quote) and the literal text between its replacement fields.
+token FStringStart #string
+token FStringMiddle #string
+token FStringEnd #string
+token TStringStart #string
+token TStringMiddle #string
+token TStringEnd #string
+
+// Zero-width end-of-file token; it carries the leading trivia of the file's tail.
+token EndOfFile
+// Text the lexer could not classify.
+token Unknown #error
+
+node ModModule = EndOfFile
+node Parenthesized #transparent
+node StmtFunctionDef
+node StmtClassDef
+node StmtReturn
+node StmtDelete
+node StmtTypeAlias
+node StmtAssign
+node StmtAugAssign
+node StmtAnnAssign
+node StmtFor
+node StmtWhile
+node StmtIf
+node StmtWith
+node StmtMatch
+node StmtRaise
+node StmtTry
+node StmtAssert
+node StmtImport
+node StmtImportFrom
+node StmtGlobal
+node StmtNonlocal
+node StmtExpr
+node StmtPass
+node StmtBreak
+node StmtContinue
+node ExprBoolOp
+node ExprNamed
+node ExprBinOp
+node ExprUnaryOp
+node ExprLambda
+node ExprIf
+node ExprDict
+node ExprSet
+node ExprListComp
+node ExprSetComp
+node ExprDictComp
+node ExprGenerator
+node ExprAwait
+node ExprYield
+node ExprYieldFrom
+node ExprCompare
+node ExprCall
+node ExprFString
+node ExprTString
+node ExprStringLiteral
+node ExprBytesLiteral
+node ExprNumberLiteral
+node ExprBooleanLiteral
+node ExprNoneLiteral
+node ExprEllipsisLiteral
+node ExprAttribute
+node ExprSubscript
+node ExprStarred
+node ExprName
+node ExprList
+node ExprTuple
+node ExprSlice
+node ExceptHandlerExceptHandler
+node InterpolatedElement
+node InterpolatedStringLiteralElement
+node PatternMatchValue
+node PatternMatchSingleton
+node PatternMatchSequence
+node PatternMatchMapping
+node PatternMatchClass
+node PatternMatchStar
+node PatternMatchAs
+node PatternMatchOr
+node TypeParamTypeVar
+node TypeParamTypeVarTuple
+node TypeParamParamSpec
+node InterpolatedStringFormatSpec
+node PatternArguments
+node PatternKeyword
+node Comprehension
+node Arguments
+node Parameters
+node Parameter
+node ParameterWithDefault
+node Keyword
+node Alias
+node WithItem
+node MatchCase
+node Decorator
+node ElifElseClause
+node TypeParams
+node FString
+node TString
+node StringLiteral
+node BytesLiteral
+node Identifier

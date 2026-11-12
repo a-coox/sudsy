@@ -266,11 +266,14 @@ pub fn select_provider_index(
 /// Fixes the dialect of a file for parsing and formatting. A provider whose schema has a
 /// `dialect` option gets the option's value, or the matcher's dialect when it is `auto`; the
 /// effective dialect is written back to `options` so formatting code can read it. Returns the
-/// value for [`SourceFile::language_version`].
+/// value for [`SourceFile::language_version`]; a `target_version` option (Python) is that value.
 pub fn resolve_dialect(
     options: &mut ResolvedOptions,
     matcher_dialect: Option<String>,
 ) -> Option<String> {
+    if let Some(core_config::OptionValue::String(v)) = options.get("target_version") {
+        return Some(v.clone());
+    }
     let chosen = match options.get("dialect")? {
         core_config::OptionValue::String(s) if s != "auto" => Some(s.clone()),
         _ => matcher_dialect,

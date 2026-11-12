@@ -6267,6 +6267,7 @@
         "enum": [
           "json",
           "js",
+          "python",
           "css",
           "scss",
           "less",
@@ -8374,6 +8375,118 @@
             },
             "type": "object"
           },
+          "python": {
+            "additionalProperties": false,
+            "properties": {
+              "format": {
+                "additionalProperties": false,
+                "properties": {
+                  "docstring_code": {
+                    "default": false,
+                    "description": "Format the code of doctest examples (`>>>`) in docstrings.",
+                    "type": "boolean"
+                  },
+                  "end_of_line": {
+                    "default": "auto",
+                    "description": "Line break style of the output: `lf`, `crlf`, or `auto` to keep the file's first              line break.",
+                    "enum": [
+                      "auto",
+                      "lf",
+                      "crlf"
+                    ],
+                    "type": "string"
+                  },
+                  "final_newline": {
+                    "default": true,
+                    "description": "End the file with a newline.",
+                    "type": "boolean"
+                  },
+                  "indent_size": {
+                    "default": 4,
+                    "description": "Columns per indentation level (also the width of a tab).",
+                    "maximum": 16,
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  "indent_style": {
+                    "default": "space",
+                    "description": "Indent with spaces or tabs.",
+                    "enum": [
+                      "space",
+                      "tab"
+                    ],
+                    "type": "string"
+                  },
+                  "line_width": {
+                    "default": 88,
+                    "description": "Preferred maximum line width in columns.",
+                    "maximum": 1000,
+                    "minimum": 20,
+                    "type": "integer"
+                  },
+                  "magic_trailing_comma": {
+                    "default": "respect",
+                    "description": "`respect` keeps a collection, call or parameter list that has a trailing comma expanded one item per line; `ignore` joins it when it fits and removes the comma.",
+                    "enum": [
+                      "respect",
+                      "ignore"
+                    ],
+                    "type": "string"
+                  },
+                  "quote_style": {
+                    "default": "double",
+                    "description": "Quotes of strings (and of f-string and t-string literals): `double` or `single` rewrite a string to that quote unless the other one needs fewer escapes, `preserve` keeps what the source has.",
+                    "enum": [
+                      "double",
+                      "single",
+                      "preserve"
+                    ],
+                    "type": "string"
+                  },
+                  "target_version": {
+                    "default": "3.14",
+                    "description": "The Python version whose syntax the file must follow: newer syntax is a syntax error (`lazy import` needs 3.15).",
+                    "enum": [
+                      "3.9",
+                      "3.10",
+                      "3.11",
+                      "3.12",
+                      "3.13",
+                      "3.14",
+                      "3.15"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              },
+              "lint": {
+                "$ref": "#/definitions/lint"
+              },
+              "semantics": {
+                "additionalProperties": false,
+                "description": "Facts about methods that the flow analyses use.",
+                "properties": {
+                  "does_not_return": {
+                    "description": "Qualified method names without parameter lists; every overload is covered.",
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "pure": {
+                    "description": "Qualified method names without parameter lists; every overload is covered.",
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  }
+                },
+                "type": "object"
+              }
+            },
+            "type": "object"
+          },
           "scss": {
             "additionalProperties": false,
             "properties": {
@@ -9219,6 +9332,118 @@
               "enum": [
                 "space",
                 "tab"
+              ],
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "lint": {
+          "$ref": "#/definitions/lint"
+        },
+        "semantics": {
+          "additionalProperties": false,
+          "description": "Facts about methods that the flow analyses use.",
+          "properties": {
+            "does_not_return": {
+              "description": "Qualified method names without parameter lists; every overload is covered.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "pure": {
+              "description": "Qualified method names without parameter lists; every overload is covered.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          "type": "object"
+        }
+      },
+      "type": "object"
+    },
+    "python": {
+      "additionalProperties": false,
+      "properties": {
+        "format": {
+          "additionalProperties": false,
+          "properties": {
+            "docstring_code": {
+              "default": false,
+              "description": "Format the code of doctest examples (`>>>`) in docstrings.",
+              "type": "boolean"
+            },
+            "end_of_line": {
+              "default": "auto",
+              "description": "Line break style of the output: `lf`, `crlf`, or `auto` to keep the file's first              line break.",
+              "enum": [
+                "auto",
+                "lf",
+                "crlf"
+              ],
+              "type": "string"
+            },
+            "final_newline": {
+              "default": true,
+              "description": "End the file with a newline.",
+              "type": "boolean"
+            },
+            "indent_size": {
+              "default": 4,
+              "description": "Columns per indentation level (also the width of a tab).",
+              "maximum": 16,
+              "minimum": 1,
+              "type": "integer"
+            },
+            "indent_style": {
+              "default": "space",
+              "description": "Indent with spaces or tabs.",
+              "enum": [
+                "space",
+                "tab"
+              ],
+              "type": "string"
+            },
+            "line_width": {
+              "default": 88,
+              "description": "Preferred maximum line width in columns.",
+              "maximum": 1000,
+              "minimum": 20,
+              "type": "integer"
+            },
+            "magic_trailing_comma": {
+              "default": "respect",
+              "description": "`respect` keeps a collection, call or parameter list that has a trailing comma expanded one item per line; `ignore` joins it when it fits and removes the comma.",
+              "enum": [
+                "respect",
+                "ignore"
+              ],
+              "type": "string"
+            },
+            "quote_style": {
+              "default": "double",
+              "description": "Quotes of strings (and of f-string and t-string literals): `double` or `single` rewrite a string to that quote unless the other one needs fewer escapes, `preserve` keeps what the source has.",
+              "enum": [
+                "double",
+                "single",
+                "preserve"
+              ],
+              "type": "string"
+            },
+            "target_version": {
+              "default": "3.14",
+              "description": "The Python version whose syntax the file must follow: newer syntax is a syntax error (`lazy import` needs 3.15).",
+              "enum": [
+                "3.9",
+                "3.10",
+                "3.11",
+                "3.12",
+                "3.13",
+                "3.14",
+                "3.15"
               ],
               "type": "string"
             }
