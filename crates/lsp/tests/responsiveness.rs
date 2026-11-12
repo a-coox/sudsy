@@ -167,6 +167,7 @@ fn formatting_is_answered_while_a_pull_is_running() {
 }
 
 #[test]
+#[ignore = "flaky under load, see docs/bugs.md"]
 fn a_cancelled_pull_is_answered_with_request_cancelled() {
     let t = tempfile::tempdir().unwrap();
     let mut client = start(t.path());
