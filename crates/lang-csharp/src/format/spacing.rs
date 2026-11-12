@@ -102,8 +102,5 @@ pub fn space(prev: &SyntaxToken, next: &SyntaxToken, parent: SyntaxKind) -> bool
         }
         _ => {}
     }
-    if p == ")" && parent == k::CAST_EXPRESSION {
-        return false;
-    }
-    true
+    !(p == ")" && parent == k::CAST_EXPRESSION)
 }
