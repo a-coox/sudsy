@@ -15,7 +15,6 @@ core-patterns.workspace = true
 core-plugins.workspace = true
 core-rules.workspace = true
 core-syntax.workspace = true
-core-workspace.workspace = true
 lang-csharp.workspace = true
 lang-json.workspace = true
 lang-yaml.workspace = true

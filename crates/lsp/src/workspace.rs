@@ -59,7 +59,7 @@ impl Workspace {
     fn open_semantic_workspace(&self, project: &Project) {
         let roots = [self.root.clone()];
         let found = core_workspace::discover_files(&roots, &project.filter()).unwrap_or_default();
-        self.db.open_workspace(&roots, &found);
+        self.db.open_project(&roots, &found);
     }
 
     /// Reads the config and the `.editorconfig` values again, for every open document. Returns
@@ -78,7 +78,7 @@ impl Workspace {
                 let roots = [self.root.clone()];
                 let all = core_workspace::Filter::none();
                 let found = core_workspace::discover_files(&roots, &all).unwrap_or_default();
-                self.db.open_workspace(&roots, &found);
+                self.db.open_project(&roots, &found);
                 self.project = None;
                 self.db.set_config(Err(ConfigError::new(e.0.clone())));
                 self.db.set_extensions(Default::default());

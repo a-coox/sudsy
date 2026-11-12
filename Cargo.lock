@@ -2343,7 +2343,6 @@ dependencies = [
  "core-plugins",
  "core-rules",
  "core-syntax",
- "core-workspace",
  "lang-csharp",
  "lang-json",
  "lang-yaml",

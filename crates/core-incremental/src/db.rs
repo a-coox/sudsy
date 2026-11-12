@@ -75,11 +75,18 @@ impl Database {
         }
     }
 
-    /// Tells the providers with a semantic model which files make up the project, and so are part
-    /// of every file's binding: `found`, the files discovered under `roots` (so without what the
-    /// ignore files and `exclude` leave out), those the provider handles, and the files named in
-    /// `roots` (a project or solution file).
-    pub fn open_workspace(&self, roots: &[std::path::PathBuf], found: &[std::path::PathBuf]) {
+    /// Tells the providers with a semantic model which directories, projects or solutions make up
+    /// the project; their files are part of every file's binding.
+    pub fn open_workspace(&self, paths: &[std::path::PathBuf]) {
+        for provider in self.providers.iter() {
+            provider.open_workspace(paths);
+        }
+    }
+
+    /// [`Database::open_workspace`] for the files a walk found: `found`, the files discovered
+    /// under `roots` (so without what the ignore files and `exclude` leave out), those the
+    /// provider handles, and the files named in `roots` (a project or solution file).
+    pub fn open_project(&self, roots: &[std::path::PathBuf], found: &[std::path::PathBuf]) {
         for provider in self.providers.iter() {
             let matchers = provider.file_matchers();
             let paths: std::collections::BTreeSet<&std::path::PathBuf> = roots

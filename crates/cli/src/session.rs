@@ -37,7 +37,7 @@ impl Session {
         };
         let filter = project.filter();
         let found = core_workspace::discover_files(&roots, &filter)?;
-        db.open_workspace(&roots, &found);
+        db.open_project(&roots, &found);
         let paths = core_workspace::discover_files(args, &filter)?
             .into_iter()
             .filter(|path| db.supports(path))

@@ -110,7 +110,7 @@ checksum = "a6ef517f0926dd24a1582492c791b6a4818a4d94e789a334894aa15b0d12f55c"
 
 [[package]]
 name = "core-config"
-version = "0.1.0"
+version = "0.1.0-rc.1"
 dependencies = [
  "globset",
  "serde",
@@ -121,14 +121,14 @@ dependencies = [
 
 [[package]]
 name = "core-flow"
-version = "0.1.0"
+version = "0.1.0-rc.1"
 dependencies = [
  "serde",
 ]
 
 [[package]]
 name = "core-format"
-version = "0.1.0"
+version = "0.1.0-rc.1"
 dependencies = [
  "core-config",
  "core-syntax",
@@ -140,7 +140,7 @@ dependencies = [
 
 [[package]]
 name = "core-patterns"
-version = "0.1.0"
+version = "0.1.0-rc.1"
 dependencies = [
  "core-config",
  "core-format",
@@ -154,7 +154,7 @@ dependencies = [
 
 [[package]]
 name = "core-rules"
-version = "0.1.0"
+version = "0.1.0-rc.1"
 dependencies = [
  "core-config",
  "core-format",
@@ -166,7 +166,7 @@ dependencies = [
 
 [[package]]
 name = "core-semantics"
-version = "0.1.0"
+version = "0.1.0-rc.1"
 dependencies = [
  "core-flow",
  "serde",
@@ -174,7 +174,7 @@ dependencies = [
 
 [[package]]
 name = "core-syntax"
-version = "0.1.0"
+version = "0.1.0-rc.1"
 dependencies = [
  "rowan",
  "serde",
@@ -344,7 +344,7 @@ checksum = "8f42a60cbdf9a97f5d2305f08a87dc4e09308d1276d28c869c684d7777685682"
 
 [[package]]
 name = "lang-csharp"
-version = "0.1.0"
+version = "0.1.0-rc.1"
 dependencies = [
  "core-config",
  "core-flow",
@@ -357,7 +357,7 @@ dependencies = [
 
 [[package]]
 name = "lang-json"
-version = "0.1.0"
+version = "0.1.0-rc.1"
 dependencies = [
  "core-config",
  "core-format",
@@ -368,7 +368,7 @@ dependencies = [
 
 [[package]]
 name = "lang-yaml"
-version = "0.1.0"
+version = "0.1.0-rc.1"
 dependencies = [
  "core-config",
  "core-format",
@@ -446,7 +446,7 @@ dependencies = [
 
 [[package]]
 name = "plugin-sdk"
-version = "0.1.0"
+version = "0.1.0-rc.1"
 dependencies = [
  "core-config",
  "core-flow",
@@ -484,7 +484,7 @@ dependencies = [
 
 [[package]]
 name = "provider-api"
-version = "0.1.0"
+version = "0.1.0-rc.1"
 dependencies = [
  "core-config",
  "core-flow",
