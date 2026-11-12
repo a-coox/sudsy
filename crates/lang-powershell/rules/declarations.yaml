@@ -18,7 +18,7 @@ id: empty-catch-block
 message: the catch block is empty; handle the error or write why it is ignored
 description: A `catch` clause whose block has no statement (a comment does not count).
 example: 'try { f } catch { }'
-severity: warn
+severity: off
 category: suspicious
 rule:
   kind: CatchClause
@@ -28,7 +28,7 @@ id: approved-verbs
 message: the verb of the function name is not an approved PowerShell verb (see Get-Verb)
 description: A function named `Verb-Noun` whose verb is not in the list `Get-Verb` returns. Names without a dash are not checked.
 example: 'function Fetch-Data { }'
-severity: warn
+severity: off
 category: style
 rule: { kind: Function }
 token:
@@ -40,7 +40,7 @@ id: no-global-vars
 message: avoid the global scope; pass the value as a parameter or use the script or module scope
 description: A variable in the `global:` scope, other than the special variables PSScriptAnalyzer exempts (`$global:LASTEXITCODE`, `$global:ErrorActionPreference`, `$global:PSDefaultParameterValues`, ...).
 example: '$global:count = 1'
-severity: warn
+severity: off
 category: suspicious
 rule:
   any: [{ kind: Program }, { kind: Command }, { kind: AssignStmt }, { kind: Binary }, { kind: Unary }, { kind: HashEntry }, { kind: ParamDecl }, { kind: Block }, { kind: ScriptBlock }, { kind: Function }, { kind: CatchClause }, { kind: Foreach }]

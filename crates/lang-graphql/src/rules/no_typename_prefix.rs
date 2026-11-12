@@ -6,7 +6,7 @@ rule! {
     pub NoTypenamePrefix {
         id: "no-typename-prefix",
         category: Style,
-        default: Warn,
+        default: Off,
         description: "A field of an object or interface type starts with the name of the type \
                   (`type User { userId: ID }`); the type already says it (case ignored). No fix: \
                   renaming a field changes the schema.",

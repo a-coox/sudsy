@@ -15,7 +15,6 @@ message: 'only the last ENTRYPOINT of a stage takes effect'
 description: >-
   A second ENTRYPOINT in one stage.
 example: 'ENTRYPOINT a   ENTRYPOINT b'
-severity: error
 category: suspicious
 ---
 id: single-healthcheck
@@ -25,5 +24,4 @@ message: 'only the last HEALTHCHECK of a stage takes effect'
 description: >-
   A second HEALTHCHECK in one stage.
 example: 'HEALTHCHECK CMD a   HEALTHCHECK CMD b'
-severity: error
 category: suspicious

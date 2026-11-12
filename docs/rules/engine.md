@@ -30,7 +30,7 @@ A rule can also ask for layout: `Rule::layout_role()` is `None` (default), `Also
 A rule is skipped (never failed) when the provider does not answer a required layer or the depth does not allow it. Depth `fast`: syntax only (no layers); `standard` (default): all layers except `project`; `deep`: all. Rules with `uses` degrade: `unreachable-code` reports the statement after a jump at `fast` and adds constant conditions and non-returning calls at `standard`, one rule with one code path per mode. `--analysis` overrides the config key.
 
 ## Levels and config
-- `off`, `warn`, `error`. `RuleMeta::default_level` applies when config is silent: `error` for `no-duplicate-keys`, `warn` for correctness-ish rules, `off` for style choices and anything noisy on existing repos.
+- `off`, `warn`, `error`. `RuleMeta::default_level` applies when config is silent: `error` for `no-duplicate-keys`, `warn` for likely bugs, code that does not do what it says, broken output, security problems and deprecated syntax (`error` where the code cannot work), `off` for style, naming, ordering, opinions and anything noisy on real code ([../config/sudsy-yaml.md](../config/sudsy-yaml.md#zero-config)).
 - Unknown rule ids are config errors with position and suggestion (`validate_rule_ids`, covers pattern ids). A rule named in the wrong language's section is ignored there. Invalid options are errors when the rule is activated, naming rule and source.
 - A file with syntax errors reports `syntax-error` errors and no rule runs.
 

@@ -40,6 +40,7 @@ fn commands_are_shell_without_make_syntax() {
         found(text),
         [
             ("cd-without-exit".into(), "cd /".into()),
+            ("quote-variable".into(), "$HOM".into()),
             ("cd-without-exit".into(), "cd /".into())
         ]
     );

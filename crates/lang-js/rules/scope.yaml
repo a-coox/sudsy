@@ -15,7 +15,7 @@ params: { check: const-assign }
 message: "'{name}' is constant."
 description: A `const` variable that is assigned to again (the initializer is not).
 example: "const a = 1; a = 2;   # the second a is reported"
-severity: off
+severity: error
 category: suspicious
 ---
 id: no-class-assign
@@ -24,7 +24,7 @@ params: { check: class-assign }
 message: "'{name}' is a class."
 description: A class declared by name that is assigned to.
 example: "class A {} A = 0;   # the second A is reported"
-severity: off
+severity: error
 category: suspicious
 ---
 id: no-func-assign
@@ -33,7 +33,6 @@ params: { check: func-assign }
 message: "'{name}' is a function."
 description: A function declared by name that is assigned to.
 example: "function f() {} f = 0;   # the second f is reported"
-severity: off
 category: suspicious
 ---
 id: no-import-assign
@@ -42,7 +41,7 @@ params: { check: import-assign }
 message: "'{name}' is read-only."
 description: An imported binding that is assigned to, and the members of a namespace import (`import * as ns`) that are assigned to, deleted or passed to `Object.assign` and the like.
 example: "import a from 'a'; a = 1;   # reported"
-severity: off
+severity: error
 category: suspicious
 ---
 id: no-redeclare

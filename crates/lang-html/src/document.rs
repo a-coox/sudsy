@@ -28,7 +28,7 @@ rule! {
     NoDuplicateId {
         id: "no-duplicate-id",
         category: Correctness,
-        default: Off,
+        default: Warn,
         description: "An `id` that an earlier element of the document already has. Ids must be \
                   unique: scripts, links and labels find the first element only. Empty ids are \
                   left alone.",
@@ -86,7 +86,7 @@ rule! {
     NoMultipleMain {
         id: "no-multiple-main",
         category: Correctness,
-        default: Off,
+        default: Warn,
         description: "A second `<main>` element that is not `hidden`: a page has one main landmark.",
         example: "<main></main><main></main>   // reported at the second",
     }
@@ -148,7 +148,7 @@ rule! {
     NoMissingReferences {
         id: "no-missing-references",
         category: Correctness,
-        default: Off,
+        default: Warn,
         description: "An attribute that refers to an `id` (`for`, `aria-labelledby`, `list`, `headers`, \
                   `form`, ...) names an id that no element of the document has.",
         example: "<label for=\"x\">   // no element has id=\"x\"",
@@ -381,7 +381,7 @@ rule! {
     MapDupName {
         id: "map-dup-name",
         category: Correctness,
-        default: Off,
+        default: Warn,
         description: "A `<map>` whose `name` an earlier `<map>` already has: `usemap` finds the first.",
         example: "<map name=\"a\"></map><map name=\"a\"></map>   // reported at the second",
     }
@@ -426,7 +426,7 @@ rule! {
     UnrecognizedCharRef {
         id: "unrecognized-char-ref",
         category: Correctness,
-        default: Off,
+        default: Warn,
         description: "A named character reference in text (`&name;`) that HTML does not define. \
                   Numeric references and references in attribute values are not checked.",
         example: "<p>&foo;</p>   <p>&amp;</p>",

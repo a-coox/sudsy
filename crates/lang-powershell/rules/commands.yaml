@@ -2,7 +2,7 @@ id: no-write-host
 message: Write-Host cannot be redirected or captured; use Write-Output, Write-Verbose or Write-Information
 description: A call of `Write-Host`.
 example: 'Write-Host "done"'
-severity: warn
+severity: off
 category: suspicious
 rule: { kind: Command, regex: '(?i)^write-host(\s|$)' }
 report-on: first-token

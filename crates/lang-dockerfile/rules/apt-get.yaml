@@ -25,5 +25,5 @@ message: 'pin the versions in apt-get install: pkg=version'
 description: >-
   An apt-get install package without a version.
 example: 'RUN apt-get install -y curl'
-severity: warn
+severity: off
 category: suspicious

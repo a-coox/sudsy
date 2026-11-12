@@ -96,7 +96,7 @@ rule! {
     pub PhonyDeclared {
         id: "phony-declared",
         category: Suspicious,
-        default: Warn,
+        default: Off,
         description: "A target with no recipe that is not declared `.PHONY` (checkmake \
                   `phonydeclared`); targets that start with a `.` are special and skipped.",
         example: "all: build   # `all` is not in .PHONY",
@@ -181,7 +181,7 @@ rule! {
     pub UniqueTargets {
         id: "unique-targets",
         category: Suspicious,
-        default: Warn,
+        default: Off,
         description: "A target defined by more than one rule, which merges prerequisites and \
                   overrides recipes (checkmake `uniquetargets`). Double-colon rules, `.PHONY` and \
                   the targets of `ignore` are skipped.",

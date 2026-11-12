@@ -15,7 +15,7 @@ message: 'run yum clean all after yum install'
 description: >-
   yum install with no yum clean all after it.
 example: 'RUN yum install -y curl'
-severity: warn
+severity: off
 category: performance
 ---
 id: dnf-yes
@@ -35,7 +35,7 @@ message: 'run dnf clean all after dnf install'
 description: >-
   dnf install with no dnf clean all after it.
 example: 'RUN dnf install -y curl'
-severity: warn
+severity: off
 category: performance
 ---
 id: rpm-pin-versions
@@ -45,7 +45,7 @@ message: 'pin the versions in yum and dnf install: pkg-version'
 description: >-
   A yum or dnf install package without a version.
 example: 'RUN yum install -y curl'
-severity: warn
+severity: off
 category: suspicious
 ---
 id: zypper-yes
@@ -65,7 +65,7 @@ message: 'do not use zypper dist-upgrade'
 description: >-
   A zypper dist-upgrade.
 example: 'RUN zypper dist-upgrade'
-severity: warn
+severity: off
 category: suspicious
 ---
 id: zypper-clean
@@ -75,7 +75,7 @@ message: 'run zypper clean after zypper install'
 description: >-
   zypper install with no zypper clean after it.
 example: 'RUN zypper install -y curl'
-severity: warn
+severity: off
 category: performance
 ---
 id: zypper-pin-versions
@@ -85,5 +85,5 @@ message: 'pin the versions in zypper install: pkg=version'
 description: >-
   A zypper install package without a version.
 example: 'RUN zypper install -y curl'
-severity: warn
+severity: off
 category: suspicious

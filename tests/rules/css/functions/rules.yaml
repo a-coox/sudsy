@@ -3,3 +3,4 @@ function-linear-gradient-no-nonstandard-direction: warn
 function-name-case: warn
 font-family-no-missing-generic-family-keyword: warn
 font-family-no-duplicate-names: warn
+declaration-block-no-shorthand-property-overrides: off

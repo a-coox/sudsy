@@ -2,7 +2,6 @@ id: doctype-html
 message: use the HTML5 doctype, `<!DOCTYPE html>`
 description: A doctype other than `html` puts the browser in quirks or limited-quirks mode.
 example: '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">   <!DOCTYPE html>'
-severity: off
 category: correctness
 rule:
   kind: Doctype

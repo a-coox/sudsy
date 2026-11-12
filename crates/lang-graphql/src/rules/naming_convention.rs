@@ -62,7 +62,7 @@ rule! {
     pub NamingConvention {
         id: "naming-convention",
         category: Style,
-        default: Warn,
+        default: Off,
         description: "A name does not follow the style set for what it names: operations, \
                   fragments, variables, fields, arguments, types, enum values and directives. \
                   `PascalCase` and `camelCase` allow letters and digits only, `snake_case` and \

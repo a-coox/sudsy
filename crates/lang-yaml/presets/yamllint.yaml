@@ -28,3 +28,5 @@ yaml:
         level: off
         options:
           report: misplaced
+      no-duplicate-anchors: off
+      no-octal-values: off

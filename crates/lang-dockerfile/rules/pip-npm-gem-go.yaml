@@ -5,7 +5,7 @@ message: 'pin the versions in pip install: pkg==version'
 description: >-
   A pip install package without a version.
 example: 'RUN pip install flask'
-severity: warn
+severity: off
 category: suspicious
 ---
 id: npm-pin-versions
@@ -15,7 +15,7 @@ message: 'pin the versions in npm install: pkg@version'
 description: >-
   An npm install package without a version.
 example: 'RUN npm install express'
-severity: warn
+severity: off
 category: suspicious
 ---
 id: gem-pin-versions
@@ -25,7 +25,7 @@ message: 'pin the versions in gem install: gem:version'
 description: >-
   A gem install gem without a version.
 example: 'RUN gem install rails'
-severity: warn
+severity: off
 category: suspicious
 ---
 id: go-pin-versions
@@ -35,5 +35,5 @@ message: 'pin the versions in go install: package@version'
 description: >-
   A go install or get package without a version (or at latest).
 example: 'RUN go install example.com/x'
-severity: warn
+severity: off
 category: suspicious

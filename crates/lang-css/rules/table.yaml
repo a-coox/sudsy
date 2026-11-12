@@ -4,7 +4,6 @@ params: { target: property, mode: unknown, data: property }
 message: "unknown property `{name}`"
 description: A property that no CSS specification lists. Vendor-prefixed and custom properties, descriptors of `@font-face` and the like, and names with interpolation or SCSS and Less variables are left out.
 example: "a { colour: red }   # reported"
-severity: off
 category: correctness
 options:
   - { name: ignore, type: list, default: [], description: "Names left out: names, or `/regex/`." }

@@ -3,7 +3,7 @@ message: the link text has spaces inside its brackets
 description: >-
   Link text that starts or ends with a space (markdownlint MD039).
 example: '[ docs ](url)   # [docs](url)'
-severity: warn
+severity: off
 category: style
 rule:
   kind: Link

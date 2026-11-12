@@ -4,7 +4,7 @@ description: >-
   A code span that starts or ends with a space (markdownlint MD038). A span with a space on both
   sides of a backtick-led or backtick-ended content is allowed.
 example: '` code `   # `code`'
-severity: warn
+severity: off
 category: style
 rule:
   kind: Code

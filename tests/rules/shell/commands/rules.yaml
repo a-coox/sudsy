@@ -9,3 +9,4 @@ grep-count: warn
 no-egrep: warn
 no-which: warn
 and-or-is-not-if-else: warn
+quote-variable: off

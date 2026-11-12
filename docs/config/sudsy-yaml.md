@@ -47,3 +47,20 @@ Limits (a repo's config is untrusted input): a file extended along several paths
 
 ## Zero-config
 No `extends`: every language uses Sudsy's defaults (C#: Microsoft's layout); existing `.editorconfig` keys apply ([editorconfig.md](editorconfig.md)).
+
+What lints by default is each rule's own default level (`sudsy rules` and the Default column of [../rules/builtin.md](../rules/builtin.md)), not a preset. The rule is on (`warn`, or `error` where the code cannot work: an assignment to a `const`, `isNaN` comparison, a duplicate stage name) when it catches a likely bug, code that does not do what it says, invalid or broken output, a security problem, or deprecated or removed syntax. Style, naming, ordering, layout the formatter owns, opinions and anything that is mostly noise on real code (each checked against the conformance corpora, by findings per 10k lines and a sample of the findings) are off. So a repository with no config sees few findings, and each one is worth a look; a team that wants a tool's whole rule set extends its preset (`eslint-recommended`, `stylelint-standard`, `shellcheck`, `hadolint`, `html-validate-standard`, ...), which does not depend on these defaults. Per language:
+
+| Language | On by default |
+|---|---|
+| JS, TS | The ESLint recommended rules that are bugs: duplicate keys, cases, class members and else-if conditions; assignments to `const`, imports, classes and functions; unreachable code; unsafe `finally` and negation; `use-isnan`, `valid-typeof`, `getter-return`, `require-yield`, `no-with`, `no-octal`, `no-debugger`, `no-self-assign`, regex and number literal mistakes, `no-misused-new`. Off: `no-undef` (no globals known), `no-unused-vars`, `no-redeclare`, `no-empty`, `no-case-declarations`, `no-cond-assign`, style and typescript-eslint opinions |
+| CSS, SCSS, Less | Duplicate custom properties and keyframe selectors, shorthand overriding a longhand, `!important` in keyframes, unknown properties, `//` comments, declarations outside rules, unmatchable `:nth-*`, non-standard gradient directions. Off: patterns, notation, vendor prefixes, specificity, limits, rules that cannot read SCSS/Less syntax (`color-no-invalid-hex`, `at-rule-no-unknown`, `no-invalid-position-at-import-rule`) |
+| HTML, Vue | Duplicate ids, references to missing ids, abstract roles, `<main>` twice, duplicate `<map>` names, empty `<title>`, deprecated elements and attributes, invalid attribute values, void end tags, unknown character references, doctype. Off: accessibility advice, element names (templates and components), style |
+| YAML | Undefined aliases, duplicate keys, duplicate anchors, octal-looking numbers. Off: truthy words, quoting, flow style, document markers |
+| JSON, TOML | Duplicate keys. Off: `unsafe-numbers` (large ids are common) |
+| Markdown | Empty links, `#Heading` without a space, reversed links. Off: the markdownlint style rules |
+| Shell | ShellCheck's quoting and command-misuse rules (`quote-variable`, `quote-at-expansion`, `cd-without-exit`, `test-and-or`, `iterate-ls-output`, ...). Off: `declare-and-assign-separately` and the style rules |
+| Dockerfile | Invalid stages, `COPY --from` and ports, missing `-y`, `MAINTAINER`, repeated `CMD`/`ENTRYPOINT`/`HEALTHCHECK`, secrets in `ENV`, `USER root` last. Off: version pinning, tags, `ADD`, `sudo`, cache cleaning |
+| PowerShell | Security and bug rules (plain-text passwords, `Invoke-Expression`, WMI cmdlets, misleading backtick, `$null` on the right). Off: aliases, verbs, `Write-Host`, globals, empty catch |
+| GitHub Actions | actionlint's errors and `script-injection`. |
+| GraphQL, HCL, Makefile, XML, INI, EditorConfig, gitignore | Invalid documents or deprecated syntax (`unique-*-name`, `deprecated-interpolation`, `timestamp-expanded`, `no-duplicate-include`, unknown or invalid EditorConfig properties, ignored `.gitignore` patterns). Off: naming, anonymous operations, empty sections, duplicate or redundant patterns |
+| Protobuf | Nothing (buf's rules are style; `enum-first-value-zero` is a proto3 rule). `preset:protobuf/buf-standard` |

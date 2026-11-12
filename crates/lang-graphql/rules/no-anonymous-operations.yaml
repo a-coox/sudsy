@@ -2,7 +2,7 @@ id: no-anonymous-operations
 message: the operation has no name
 description: An operation without a name (`{ a }`, `query { a }`), which tools that log, trace or cache by operation name cannot tell apart. Equivalent - graphql-eslint no-anonymous-operations.
 example: "query {   # reported\n  a\n}"
-severity: warn
+severity: off
 category: suspicious
 rule:
   kind: Operation

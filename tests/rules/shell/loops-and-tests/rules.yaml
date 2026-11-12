@@ -4,3 +4,4 @@ test-negated-empty: warn
 iterate-ls-output: warn
 iterate-find-output: warn
 find-xargs-print0: warn
+quote-variable: off

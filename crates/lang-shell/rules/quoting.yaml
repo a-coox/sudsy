@@ -21,7 +21,6 @@ description: >-
   An unquoted `$var` or `${var}` in a command's arguments is split into words and globbed.
   Does not know which variables hold only a number or a single word.
 example: 'rm $file'
-severity: off
 category: suspicious
 rule: { any: [{ kind: Command }, { kind: Test, not: { regex: '^\[\[' } }] }
 token: { needs: '$', kind: [Word, Concat], regex: '^(?:[^"''`\\(]|\\.|"(?:[^"\\$`]|\\.|\$[A-Za-z_0-9@*#?!$-])*"|''[^'']*'')*?\$(?:[A-Za-z_0-9*]|\{!?[A-Za-z_0-9]+(?:[^\[+:A-Za-z0-9_]|:[^+]|\[[^@]))', skip-first: Word }
@@ -58,7 +57,7 @@ description: >-
   `export`, `local`, `declare`, `readonly` or `typeset` with a command substitution as the
   value reports the status of the declaration, not of the command.
 example: 'local out=$(make)'
-severity: warn
+severity: off
 category: suspicious
 rule:
   kind: Command
