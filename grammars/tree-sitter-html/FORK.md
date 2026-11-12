@@ -8,3 +8,5 @@ Changes:
 - `grammar.js` `doctype`: the text after `doctype` is an aliased `doctype_body` node, not a hidden token.
 - `grammar.js` `cdata` and `src/scanner.c` (`scan_cdata`): `<![CDATA[ ... ]]>` is a `cdata` token (an external, so it can hold `]` and `>`), allowed wherever a node is.
 - `grammar.js` `rcdata_element`, `src/scanner.c` (`RCDATA_START_TAG_NAME`, `scan_raw_text`): `<textarea>` and `<title>` hold one `raw_text` up to their end tag, like `<script>` and `<style>`; upstream parsed their content as markup, so `<textarea><b>x</b></textarea>` nested a `b` element. `<title/>` is no longer accepted.
+- `src/scanner.c` (`scan`): a CDATA section right after a void element (`<br><![CDATA[x]]>`) ends the element first; it was parsed as the element's content.
+- `src/scanner.c` (`scan`): text after a void element (`<br>text`) ends the element first; upstream only did so before a tag, so the text became the element's content.

@@ -5409,6 +5409,11 @@
         "format": {
           "additionalProperties": false,
           "properties": {
+            "bracket_same_line": {
+              "default": false,
+              "description": "Put the `>` of a multi-line start tag at the end of the last attribute's line.",
+              "type": "boolean"
+            },
             "end_of_line": {
               "default": "auto",
               "description": "Line break style of the output: `lf`, `crlf`, or `auto` to keep the file's first              line break.",
@@ -5423,6 +5428,44 @@
               "default": true,
               "description": "End the file with a newline.",
               "type": "boolean"
+            },
+            "indent_size": {
+              "default": 2,
+              "description": "Columns per indentation level (also the width of a tab).",
+              "maximum": 16,
+              "minimum": 1,
+              "type": "integer"
+            },
+            "indent_style": {
+              "default": "space",
+              "description": "Indent with spaces or tabs.",
+              "enum": [
+                "space",
+                "tab"
+              ],
+              "type": "string"
+            },
+            "line_width": {
+              "default": 80,
+              "description": "Preferred maximum line width in columns.",
+              "maximum": 1000,
+              "minimum": 20,
+              "type": "integer"
+            },
+            "single_attribute_per_line": {
+              "default": false,
+              "description": "Put every attribute of a tag that has several on its own line.",
+              "type": "boolean"
+            },
+            "whitespace_sensitivity": {
+              "default": "css",
+              "description": "Whether whitespace between inline elements and text is significant: `css` follows each element's CSS display, `strict` treats every element as inline, `ignore` as block.",
+              "enum": [
+                "css",
+                "strict",
+                "ignore"
+              ],
+              "type": "string"
             }
           },
           "type": "object"
@@ -7091,6 +7134,11 @@
               "format": {
                 "additionalProperties": false,
                 "properties": {
+                  "bracket_same_line": {
+                    "default": false,
+                    "description": "Put the `>` of a multi-line start tag at the end of the last attribute's line.",
+                    "type": "boolean"
+                  },
                   "end_of_line": {
                     "default": "auto",
                     "description": "Line break style of the output: `lf`, `crlf`, or `auto` to keep the file's first              line break.",
@@ -7105,6 +7153,44 @@
                     "default": true,
                     "description": "End the file with a newline.",
                     "type": "boolean"
+                  },
+                  "indent_size": {
+                    "default": 2,
+                    "description": "Columns per indentation level (also the width of a tab).",
+                    "maximum": 16,
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  "indent_style": {
+                    "default": "space",
+                    "description": "Indent with spaces or tabs.",
+                    "enum": [
+                      "space",
+                      "tab"
+                    ],
+                    "type": "string"
+                  },
+                  "line_width": {
+                    "default": 80,
+                    "description": "Preferred maximum line width in columns.",
+                    "maximum": 1000,
+                    "minimum": 20,
+                    "type": "integer"
+                  },
+                  "single_attribute_per_line": {
+                    "default": false,
+                    "description": "Put every attribute of a tag that has several on its own line.",
+                    "type": "boolean"
+                  },
+                  "whitespace_sensitivity": {
+                    "default": "css",
+                    "description": "Whether whitespace between inline elements and text is significant: `css` follows each element's CSS display, `strict` treats every element as inline, `ignore` as block.",
+                    "enum": [
+                      "css",
+                      "strict",
+                      "ignore"
+                    ],
+                    "type": "string"
                   }
                 },
                 "type": "object"

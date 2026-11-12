@@ -15,6 +15,7 @@ core-rules.workspace = true
 core-syntax.workspace = true
 core-treesitter.workspace = true
 provider-api.workspace = true
+rowan.workspace = true
 tree-sitter-html = { workspace = true, optional = true }
 
 [build-dependencies]

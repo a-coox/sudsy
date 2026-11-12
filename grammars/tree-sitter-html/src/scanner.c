@@ -337,6 +337,12 @@ static bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symbols) {
             if (lexer->lookahead == '!') {
                 advance(lexer);
                 if (lexer->lookahead == '[') {
+                    // A CDATA section after a void element does not belong to it.
+                    if (valid_symbols[IMPLICIT_END_TAG] && scanner->tags.size > 0 && tag_is_void(array_back(&scanner->tags))) {
+                        pop_tag(scanner);
+                        lexer->result_symbol = IMPLICIT_END_TAG;
+                        return true;
+                    }
                     return valid_symbols[CDATA] && scan_cdata(lexer);
                 }
                 return scan_comment(lexer);
@@ -364,6 +370,13 @@ static bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symbols) {
                 return valid_symbols[START_TAG_NAME] ? scan_start_tag_name(scanner, lexer)
                                                      : scan_end_tag_name(scanner, lexer);
             }
+    }
+
+    // Text after a void element does not belong to it.
+    if (valid_symbols[IMPLICIT_END_TAG] && scanner->tags.size > 0 && tag_is_void(array_back(&scanner->tags))) {
+        pop_tag(scanner);
+        lexer->result_symbol = IMPLICIT_END_TAG;
+        return true;
     }
 
     return false;

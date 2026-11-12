@@ -1,5 +1,5 @@
 // HTML, parsed by tree-sitter (tree-sitter-html, forked in grammars/tree-sitter-html) and mapped by the mapping of crates/lang-html/lang.yaml.
-// An element is its start tag (`StartTag`, or `EmptyTag` for `<a/>`), its content and its end tag; void
+// An element is its start tag (`StartTag`), its content and its end tag; void
 // elements and elements closed by an implied end tag have no `EndTag`. Text, entities, CDATA sections and
 // the text of `<script>`, `<style>`, `<textarea>` and `<title>` are one `Chunk` each (a token inside).
 // Format: see crates/core-syntax/src/grammar/mod.rs.
@@ -21,23 +21,23 @@ token Comment #trivia #comment
 token LtBang "<!" #punctuation
 token Lt "<" #punctuation
 token LtSlash "</" #punctuation
-token Gt ">" #punctuation
-token SlashGt "/>" #punctuation
+token Gt ">" #punctuation #restyle #tag-end
+token SlashGt "/>" #punctuation #restyle #tag-end
 token Equals "=" #punctuation
 
 // `doctype` as written (any case) and what follows it up to `>`.
-token DoctypeKw
-token DoctypeBody
-token TagName
-token AttrName
+token DoctypeKw #restyle
+token DoctypeBody #restyle
+token TagName #restyle
+token AttrName #restyle
 // Quoted (quotes included) or not.
-token AttrValue
+token AttrValue #restyle
 
-token Text #chunk
+token Text #chunk #restyle
 token Entity #chunk
 token CData #chunk
 // The content of `script`, `style`, `textarea` and `title`: not parsed as markup.
-token RawText #chunk
+token RawText #chunk #restyle
 
 token Eof
 token Unknown #error
@@ -46,9 +46,11 @@ node Document = items:#content* Eof
 node Doctype #content = LtBang DoctypeKw DoctypeBody Gt
 node Chunk #content = value:#chunk
 node Element #content = start:#start-tag content:#content* end:EndTag?
-node StartTag #start-tag #mapping = Lt TagName entries:Attribute* Gt
-node EmptyTag #start-tag #mapping = Lt TagName entries:Attribute* SlashGt
-node EndTag = LtSlash TagName Gt
+// `>` or `/>`: `<br>` and `<br />` are the same node.
+node StartTag #start-tag #mapping = Lt TagName entries:Attribute* #tag-end
+// `#transparent`: the formatter writes the end tag of an element that has none, and an element that is
+// closed implicitly stays so in the safety check.
+node EndTag #transparent = LtSlash TagName Gt
 // An end tag that closes no open element.
 node StrayEndTag #content = LtSlash TagName Gt
 node Attribute #key-value = key:AttrName Equals? value:AttrValue?

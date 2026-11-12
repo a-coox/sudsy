@@ -17,6 +17,7 @@ Options declared by more than one language, generated from the option schemas; p
 |---|---|---|
 | `array_bracket_spacing` | bool | json `false`, yaml `false`, github-actions `false`, toml `false` |
 | `blank_lines_after_key` | `preserve`, `remove` | yaml `preserve`, github-actions `preserve` |
+| `bracket_same_line` | bool | js `false`, html `false` |
 | `bracket_spacing` | bool | json `true`, js `true`, yaml `true`, github-actions `true`, graphql `true`, toml `true` |
 | `collapse` | json: `preserve`, `always`, `never`, `opening_break`; toml: `preserve`, `always`, `never` | json `preserve`, toml `preserve` |
 | `comment_spacing` | int 1-10 | yaml `1`, github-actions `1` |
@@ -24,9 +25,9 @@ Options declared by more than one language, generated from the option schemas; p
 | `document_start` | `preserve`, `always`, `never` | yaml `preserve`, github-actions `preserve` |
 | `end_of_line` | `auto`, `lf`, `crlf` | json `auto`, js `auto`, css `auto`, scss `auto`, less `auto`, yaml `auto`, github-actions `auto`, dockerfile `auto`, editorconfig `auto`, gitignore `auto`, graphql `auto`, hcl `auto`, html `auto`, ini `auto`, makefile `auto`, markdown `auto`, powershell `auto`, protobuf `auto`, shell `auto`, toml `auto`, xml `auto`, csharp `auto` |
 | `final_newline` | bool | json `true`, js `true`, css `true`, scss `true`, less `true`, yaml `true`, github-actions `true`, dockerfile `true`, editorconfig `true`, gitignore `true`, graphql `true`, hcl `true`, html `true`, ini `true`, makefile `true`, markdown `true`, powershell `true`, protobuf `true`, shell `true`, toml `true`, xml `true`, csharp `true` |
-| `indent_size` | int 1-16 | json `2`, js `2`, css `2`, scss `2`, less `2`, yaml `2`, github-actions `2`, dockerfile `4`, graphql `2`, hcl `2`, makefile `2`, markdown `2`, powershell `4`, protobuf `2`, shell `4`, toml `2`, xml `2`, csharp `4` |
-| `indent_style` | `space`, `tab` | json `space`, js `space`, css `space`, scss `space`, less `space`, dockerfile `space`, graphql `space`, makefile `space`, powershell `space`, protobuf `space`, shell `tab`, toml `space`, xml `space`, csharp `space` |
-| `line_width` | int 20-1000 | json `80`, js `80`, css `80`, scss `80`, less `80`, yaml `80`, github-actions `80`, graphql `80`, toml `80`, xml `100`, csharp `120` |
+| `indent_size` | int 1-16 | json `2`, js `2`, css `2`, scss `2`, less `2`, yaml `2`, github-actions `2`, dockerfile `4`, graphql `2`, hcl `2`, html `2`, makefile `2`, markdown `2`, powershell `4`, protobuf `2`, shell `4`, toml `2`, xml `2`, csharp `4` |
+| `indent_style` | `space`, `tab` | json `space`, js `space`, css `space`, scss `space`, less `space`, dockerfile `space`, graphql `space`, html `space`, makefile `space`, powershell `space`, protobuf `space`, shell `tab`, toml `space`, xml `space`, csharp `space` |
+| `line_width` | int 20-1000 | json `80`, js `80`, css `80`, scss `80`, less `80`, yaml `80`, github-actions `80`, graphql `80`, html `80`, toml `80`, xml `100`, csharp `120` |
 | `max_blank_lines` | int 0-10 | css `1`, scss `1`, less `1`, yaml `1`, github-actions `1`, dockerfile `1`, editorconfig `1`, gitignore `1`, ini `1`, makefile `2`, powershell `10`, shell `1`, toml `1`, xml `1` |
 | `quote_style` | js: `double`, `single`; yaml: `preserve`, `single`, `double`, `prefer_double`; github-actions: `preserve`, `single`, `double`, `prefer_double` | js `double`, yaml `preserve`, github-actions `preserve` |
 | `sequence_indent` | `preserve`, `indented`, `flush` | yaml `preserve`, github-actions `preserve` |

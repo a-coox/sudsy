@@ -1576,6 +1576,7 @@ dependencies = [
  "core-syntax",
  "core-treesitter",
  "provider-api",
+ "rowan",
  "tree-sitter-html",
 ]
 

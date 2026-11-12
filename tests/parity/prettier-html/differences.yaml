@@ -1,11 +1,15 @@
 differences:
-  not-formatted: gap  the formatter prints files as written, so only files Prettier leaves unchanged are identical
+  embedded-code: gap  `<script>`, `<style>` and `style`, `srcset`, `sizes` and event-handler attribute values are not formatted as JavaScript or CSS (kept as written, `<script>` and `<style>` content re-indented)
+  front-matter: gap  front matter blocks are not understood
+  glued-inline-unit: gap  text, an inline element and text written without blanks between (`a"<b>x</b>".`) are not kept together on one line when they are too wide; the element's tags break inside
+  conditional-comments: gap  IE conditional comments are comments, not parsed as markup
+  syntax-errors: gap  files the grammar rejects (unclosed tags, `<!- ->` comments, `{{ }}` with `>` in text, cursor markers, `<plaintext>`)
   project-options: gap  real-world pages run under Prettier's defaults (`--no-config`), not their own Prettier options
 files:
-  prettier-html: not-formatted
-  prettier-vue-html: not-formatted
-  real-world: not-formatted, project-options
+  prettier-html: embedded-code, front-matter, glued-inline-unit, conditional-comments, syntax-errors
+  prettier-vue-html: embedded-code, syntax-errors
+  real-world: embedded-code, glued-inline-unit, project-options
 ratchet:
-  prettier-html: 25
-  prettier-vue-html: 0
-  real-world: 11
+  prettier-html: 90
+  prettier-vue-html: 3
+  real-world: 140
