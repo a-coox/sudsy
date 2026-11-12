@@ -21,7 +21,7 @@ Where Sudsy differs from buf by design:
 
 - `empty-statements`: empty statements (`;`) are kept; buf drops them
 <!-- /generated -->
-`cargo test --profile corpus -p lang-protobuf --test protobuf -- --ignored --nocapture conformance` checks every corpus file: parses without errors (322 of 322), round-trips, formats with the same tokens and idempotently.
+`cargo test --profile corpus -p lang-protobuf --test integration -- --ignored --nocapture conformance` checks every corpus file: parses without errors (322 of 322), round-trips, formats with the same tokens and idempotently.
 
 ## Lint
 The rules are `off` by default (buf's lint is strict; Google's own protos fail it); `preset:protobuf/buf-standard` turns on buf's STANDARD category. Most are pattern files in `crates/lang-protobuf/rules/` (casing of messages, enums, services, rpcs, fields, oneofs, enum values and packages; package, syntax, version suffix, `import public`, `required`, service suffix, enum aliases and zero-value suffix), the rpc type names, the enum value prefix, the first enum value and the file name; `src/rules.rs` has none. The grammar has no `#mapping`/`#sequence` nodes, so only the shared comment and line-length rules apply.

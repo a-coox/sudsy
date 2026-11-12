@@ -3,12 +3,10 @@
 //! how many files are identical and which kinds of difference are left.
 //!
 //! Run: `bash tests/conformance/fetch-corpus.sh && bash tests/conformance/csharpier-baseline.sh &&
-//!       cargo test --profile corpus -p lang-csharp --test differential -- --ignored --nocapture`
+//!       cargo test --profile corpus -p lang-csharp --test integration -- --ignored --nocapture differential::`
 //! `SUDSY_DIFF_DIR` is the directory of the baseline script (default `<temp>/sudsy-differential`);
 //! `SUDSY_DIFF_FILTER=<substring>` limits the run to matching paths. Sudsy's output is written to
 //! `<dir>/sudsy/` and the differing hunks to `<dir>/hunks.txt`, grouped by category.
-
-mod common;
 
 use core_config::ResolvedOptions;
 use core_format::DirectiveTable;
@@ -148,10 +146,10 @@ fn csharpier_compat_matches_csharpier_on_the_corpus() {
     );
     let filter = std::env::var("SUDSY_DIFF_FILTER").unwrap_or_default();
     let options = compat_options();
-    let provider = common::shared_provider();
+    let provider = crate::common::shared_provider();
     let directives = DirectiveTable::default();
     let mut paths = Vec::new();
-    common::collect_cs(&input, &mut paths);
+    crate::common::collect_cs(&input, &mut paths);
     paths.sort();
 
     let (mut files, mut identical, mut failed, mut unformatted) = (0, 0, 0, 0);
@@ -172,7 +170,7 @@ fn csharpier_compat_matches_csharpier_on_the_corpus() {
         let entry = by_corpus.entry(corpus).or_default();
         entry.0 += 1;
         let mut file = SourceFile::new(path.to_string_lossy().into_owned(), 1, source_text.clone());
-        file.preprocessor_symbols = common::symbols_for(path);
+        file.preprocessor_symbols = crate::common::symbols_for(path);
         let ours = match format_file(provider, &file, &options, &directives) {
             Ok(text) => text,
             Err(e) => {

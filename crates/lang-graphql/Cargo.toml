@@ -1,6 +1,7 @@
 # Generated from lang.yaml by `cargo xtask codegen`.
 [package]
 name = "lang-graphql"
+autotests = false
 edition.workspace = true
 license.workspace = true
 version.workspace = true
@@ -30,3 +31,7 @@ static-grammars = ["dep:tree-sitter-graphql"]
 
 [lints]
 workspace = true
+
+[[test]]
+name = "integration"
+path = "tests/main.rs"

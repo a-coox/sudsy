@@ -47,7 +47,7 @@ fn sudsy_ignore_keeps_the_next_block() {
 /// builds skip the safety check, so this is the guard against a restyle that changes meaning:
 /// the repo's docs, and (after `tests/conformance/fetch-markdown-corpus.sh`) the CommonMark spec
 /// examples. Run the second under the `corpus` profile:
-/// `cargo test --profile corpus -p lang-markdown --test markdown -- --ignored`.
+/// `cargo test --profile corpus -p lang-markdown --test integration -- --ignored markdown::`.
 fn render(md: &str) -> String {
     let mut html = String::new();
     pulldown_cmark::html::push_html(

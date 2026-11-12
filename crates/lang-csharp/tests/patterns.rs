@@ -1,14 +1,12 @@
 //! Pattern rules on C#: snippets parsed by the real worker, matched against the shared tree.
 
-mod common;
-
 use core_rules::Extensions;
 use lang_csharp::provider;
 use provider_api::OutOfProcessProvider;
 use provider_api::testing::{expect, fix_with, lint_with, pattern_rules};
 
 fn csharp() -> OutOfProcessProvider {
-    provider(&common::worker_dll())
+    provider(&crate::common::worker_dll())
 }
 
 fn rules(source: &str) -> Extensions {

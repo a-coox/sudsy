@@ -1,5 +1,6 @@
 [package]
 name = "lang-github-actions"
+autotests = false
 edition.workspace = true
 license.workspace = true
 version.workspace = true
@@ -21,3 +22,7 @@ lang-powershell = { workspace = true, features = ["static-grammars"] }
 
 [lints]
 workspace = true
+
+[[test]]
+name = "integration"
+path = "tests/main.rs"

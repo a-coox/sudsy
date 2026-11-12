@@ -25,7 +25,7 @@ Where Sudsy differs from terraform by design:
 - `semantic-error`: terraform rejects a file for a semantic error (a repeated plugin name); Sudsy formats it
 - `token-rewrite`: terraform fmt rewrites tokens (it quotes a bare block label, `list` becomes `list(any)`); Sudsy keeps the tokens
 <!-- /generated -->
-`cargo test --profile corpus -p lang-hcl --test hcl -- --ignored --nocapture conformance` checks every corpus file: parses without errors, round-trips, formats with the same tokens and idempotently.
+`cargo test --profile corpus -p lang-hcl --test integration -- --ignored --nocapture conformance` checks every corpus file: parses without errors, round-trips, formats with the same tokens and idempotently.
 
 ## Lint
 The rules are tflint's (tflint-ruleset-terraform) that need no provider and no other file; `preset:hcl/tflint-recommended` turns on the ones that are on in tflint's recommended preset. On by default: `deprecated-interpolation` (with a fix; not in Nomad job files, `.nomad` and `.nomad.hcl`, whose `"${attr.kernel.name}"` the agent fills in at run time), `deprecated-index` (with a fix), `empty-list-equality`, and the shared `no-duplicate-keys` (an argument repeated in a block, a key in an object). Off: `typed-variables`, `documented-variables`, `documented-outputs`, `required-version`, `required-providers`, `naming-convention` (option `format`), `comment-syntax`, `unused-declarations`. `required-version`, `required-providers` and `unused-declarations` read one file: use them on the file that holds the `terraform` block or the whole module. Most are pattern files in `crates/lang-hcl/rules/`; `src/rules.rs` has the ones that build a fix or read several nodes.

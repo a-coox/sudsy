@@ -286,7 +286,7 @@ fn file_names() {
 /// Real-world CSS, SCSS and Less (`bash tests/conformance/fetch-css-corpus.sh` first): every file
 /// parses without errors and formats as itself.
 ///
-/// `cargo test --profile corpus -p lang-css --test css -- --ignored --nocapture conformance`
+/// `cargo test --profile corpus -p lang-css --test integration -- --ignored --nocapture conformance`
 #[test]
 #[ignore = "needs the corpus: bash tests/conformance/fetch-css-corpus.sh"]
 fn conformance() {

@@ -9,7 +9,7 @@ fn fmt(input: &str) -> String {
 /// Every `.ps1` and `.psm1` file of the pinned corpus (`tests/conformance/fetch-powershell-corpus.sh`)
 /// that tree-sitter parses formats with the same tokens (the safety check) and idempotently.
 ///
-/// `cargo test --profile corpus -p lang-powershell --test powershell -- --ignored --nocapture conformance`
+/// `cargo test --profile corpus -p lang-powershell --test integration -- --ignored --nocapture conformance`
 #[test]
 #[ignore]
 fn conformance() {

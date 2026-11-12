@@ -1,8 +1,6 @@
 //! Parser behavior: error recovery, dialects, and properties that hold for any input.
 
-mod common;
-
-use common::{JsonSubject, subject};
+use crate::common::{JsonSubject, subject};
 use core_format::testing::{Subject, check};
 use core_syntax::{SyntaxKind, SyntaxNode, print, trivia};
 use lang_json::JsonProvider;
@@ -220,7 +218,7 @@ fn value() -> impl Strategy<Value = String> {
 proptest! {
     #[test]
     fn generated_documents_format_idempotently_and_keep_their_meaning(text in value()) {
-        for options in [vec![], vec![("collapse", common::s("never"))], vec![("collapse", common::s("always")), ("line_width", core_config::OptionValue::Int(20))]] {
+        for options in [vec![], vec![("collapse", crate::common::s("never"))], vec![("collapse", crate::common::s("always")), ("line_width", core_config::OptionValue::Int(20))]] {
             let s = subject("a.jsonc", &options);
             prop_assert!(check(&s, &text).is_ok(), "{:?}", check(&s, &text));
         }

@@ -1,8 +1,6 @@
 //! C# through the server: one long-lived worker serves a whole editing session.
 
-mod common;
-
-use common::{Client, apply};
+use crate::common::{Client, apply};
 use lsp_types::{Position, Range};
 use provider_api::LanguageProvider;
 use std::path::Path;

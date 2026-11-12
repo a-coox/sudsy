@@ -2,8 +2,6 @@
 //! held to the conformance checks: lossless, trivia attachment, token texts, and (when it parses
 //! without errors) the bodies of the grammar. `error_*.cs` fixtures must report parse errors.
 
-mod common;
-
 use core_syntax::shape::ShapeChecker;
 use core_syntax::{dump_tree, grammars, print, trivia};
 use lang_csharp::provider;
@@ -12,7 +10,7 @@ use std::fmt::Write;
 use std::path::PathBuf;
 
 fn fixtures() -> Vec<(String, PathBuf)> {
-    let dir = common::repo_root().join("tests/fixtures/csharp");
+    let dir = crate::common::repo_root().join("tests/fixtures/csharp");
     let mut out: Vec<(String, PathBuf)> = std::fs::read_dir(&dir)
         .unwrap()
         .map(|e| e.unwrap().path())
@@ -31,7 +29,7 @@ fn check(provider: &impl LanguageProvider, name: &str, text: &str, expect_errors
     assert_eq!(print(&result.tree), text, "{name}: not lossless");
     trivia::check_attachment(&result.tree, |k| grammars::csharp().is_trivia(k))
         .unwrap_or_else(|e| panic!("{name}: {e}"));
-    common::check_token_texts(&result.tree).unwrap_or_else(|e| panic!("{name}: {e}"));
+    crate::common::check_token_texts(&result.tree).unwrap_or_else(|e| panic!("{name}: {e}"));
     assert_eq!(
         !result.errors.is_empty(),
         expect_errors,
@@ -59,7 +57,7 @@ fn check(provider: &impl LanguageProvider, name: &str, text: &str, expect_errors
 
 #[test]
 fn fixture_trees_are_stable() {
-    let provider = provider(&common::worker_dll());
+    let provider = provider(&crate::common::worker_dll());
     let mut settings = insta::Settings::clone_current();
     settings.set_snapshot_path("../../../tests/fixtures/csharp/snapshots");
     settings.set_prepend_module_to_snapshot(false);
@@ -72,7 +70,7 @@ fn fixture_trees_are_stable() {
 
 #[test]
 fn fixtures_hold_with_crlf_line_endings() {
-    let provider = provider(&common::worker_dll());
+    let provider = provider(&crate::common::worker_dll());
     for (name, path) in fixtures() {
         let text = std::fs::read_to_string(&path)
             .unwrap()
@@ -84,7 +82,7 @@ fn fixtures_hold_with_crlf_line_endings() {
 
 #[test]
 fn a_byte_order_mark_is_stripped_before_parsing() {
-    let provider = provider(&common::worker_dll());
+    let provider = provider(&crate::common::worker_dll());
     let source =
         SourceFile::from_bytes("bom.cs", 1, b"\xEF\xBB\xBFclass A { }\n".to_vec()).unwrap();
     assert!(source.had_bom);

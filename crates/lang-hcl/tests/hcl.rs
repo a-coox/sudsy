@@ -9,7 +9,7 @@ fn fmt(input: &str) -> String {
 /// Every HCL file of the pinned corpus (`tests/conformance/fetch-hcl-corpus.sh`) parses, formats
 /// with the same tokens (the safety check) and idempotently.
 ///
-/// `cargo test --profile corpus -p lang-hcl --test hcl -- --ignored --nocapture conformance`
+/// `cargo test --profile corpus -p lang-hcl --test integration -- --ignored --nocapture conformance`
 #[test]
 #[ignore]
 fn conformance() {

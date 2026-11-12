@@ -6,11 +6,9 @@
 //!   and every file we accept must format with all the shared checks.
 //!
 //! Run: `bash tests/conformance/fetch-json-corpus.sh &&
-//! cargo test --profile corpus -p lang-json --test conformance -- --ignored --nocapture`
+//! cargo test --profile corpus -p lang-json --test integration -- --ignored --nocapture conformance::`
 
-mod common;
-
-use common::subject;
+use crate::common::subject;
 use core_format::testing::{Subject, check};
 use core_syntax::{print, trivia};
 use std::path::PathBuf;

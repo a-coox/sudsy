@@ -1,6 +1,6 @@
 //! CommonMark 0.31.2 spec examples (`tests/conformance/fetch-markdown-corpus.sh`): per example,
 //! does our tree print back to the input without parse errors, and does its block and inline
-//! structure equal pulldown-cmark's. Run: `cargo test -p lang-markdown --test commonmark -- --ignored --nocapture`.
+//! structure equal pulldown-cmark's. Run: `cargo test -p lang-markdown --test integration -- --ignored --nocapture commonmark::`.
 
 use core_syntax::SyntaxNode;
 use provider_api::{LanguageProvider, SourceFile};

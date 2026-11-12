@@ -2,9 +2,7 @@
 //! beyond what a tree may have is an error, not a stack overflow. Each shape below overflowed
 //! before the layout recursion and the document drop grew their stack on demand.
 
-mod common;
-
-use common::{fmt, subject};
+use crate::common::{fmt, subject};
 use core_format::testing::Subject;
 
 fn method(body: &str) -> String {

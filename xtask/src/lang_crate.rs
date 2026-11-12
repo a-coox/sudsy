@@ -126,7 +126,7 @@ fn cargo_toml(krate: &str, v: &Value) -> String {
     );
     deps.sort();
     let mut out = format!(
-        "# Generated from lang.yaml by `cargo xtask codegen`.\n[package]\nname = \"{krate}\"\nedition.workspace = true\nlicense.workspace = true\nversion.workspace = true\npublish.workspace = true\nbuild = \"../../build/lang-crate.rs\"\n\n[dependencies]\n{}\n",
+        "# Generated from lang.yaml by `cargo xtask codegen`.\n[package]\nname = \"{krate}\"\nautotests = false\nedition.workspace = true\nlicense.workspace = true\nversion.workspace = true\npublish.workspace = true\nbuild = \"../../build/lang-crate.rs\"\n\n[dependencies]\n{}\n",
         deps.join("\n")
     );
     let dev = list(v, "dev-deps");
@@ -137,7 +137,7 @@ fn cargo_toml(krate: &str, v: &Value) -> String {
         );
     }
     out + &format!(
-        "\n[build-dependencies]\ncore-syntax.workspace = true\n\n[features]\n# The grammar is linked in; without it the language loads from its language pack.\ndefault = [\"static-grammars\"]\nstatic-grammars = [{}]\n\n[lints]\nworkspace = true\n",
+        "\n[build-dependencies]\ncore-syntax.workspace = true\n\n[features]\n# The grammar is linked in; without it the language loads from its language pack.\ndefault = [\"static-grammars\"]\nstatic-grammars = [{}]\n\n[lints]\nworkspace = true\n\n[[test]]\nname = \"integration\"\npath = \"tests/main.rs\"\n",
         std::iter::once(grammar)
             .chain(extra.iter().map(String::as_str))
             .map(|g| format!("\"dep:{g}\""))

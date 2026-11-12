@@ -9,7 +9,7 @@ fn fmt(input: &str) -> String {
 /// Every `.proto` file of the pinned corpus (`tests/conformance/fetch-proto-corpus.sh`) parses,
 /// formats with the same tokens (the safety check) and idempotently.
 ///
-/// `cargo test --profile corpus -p lang-protobuf --test protobuf -- --ignored --nocapture conformance`
+/// `cargo test --profile corpus -p lang-protobuf --test integration -- --ignored --nocapture conformance`
 #[test]
 #[ignore]
 fn conformance() {

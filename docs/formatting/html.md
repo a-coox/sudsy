@@ -51,7 +51,7 @@ Prettier's printer-html is the reference (`format/model.rs` builds the nodes and
 <!-- /generated -->
 
 ## Conformance
-`tests/conformance/fetch-html-corpus.sh` fetches the pinned corpus, and `cargo test --profile corpus -p lang-html --test html -- --ignored --nocapture conformance` checks that every file parses and formats with the shared checks (round trip, meaning, idempotency), or is reported as a syntax error. No file failed the checks; the files the grammar rejects:
+`tests/conformance/fetch-html-corpus.sh` fetches the pinned corpus, and `cargo test --profile corpus -p lang-html --test integration -- --ignored --nocapture conformance` checks that every file parses and formats with the shared checks (round trip, meaning, idempotency), or is reported as a syntax error. No file failed the checks; the files the grammar rejects:
 
 | Group | Files | Syntax errors |
 |---|---|---|

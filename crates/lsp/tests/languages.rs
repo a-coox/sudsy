@@ -1,9 +1,7 @@
 //! A language that is not installed: the server offers to install it and serves the open
 //! documents once the user chose the action (no download happens before).
 
-mod common;
-
-use common::{Client, apply};
+use crate::common::{Client, apply};
 
 fn prompts(client: &Client) -> Vec<serde_json::Value> {
     (client.server_request_params.iter())
@@ -21,7 +19,7 @@ fn a_missing_language_is_offered_once_and_served_after_the_install() {
         let status = std::process::Command::new(std::env::current_exe().unwrap())
             .args([
                 "--exact",
-                "a_missing_language_is_offered_once_and_served_after_the_install",
+                "languages::a_missing_language_is_offered_once_and_served_after_the_install",
             ])
             .env("SUDSY_CACHE_DIR", t.path().join("cache"))
             .status()

@@ -5,7 +5,7 @@ fn fmt(input: &str) -> String {
     assert_formats(lang_ini::provider(), "a.ini", input)
 }
 
-/// `cargo test --profile corpus -p lang-ini --test ini -- --ignored --nocapture conformance`
+/// `cargo test --profile corpus -p lang-ini --test integration -- --ignored --nocapture conformance`
 #[test]
 #[ignore]
 fn conformance() {

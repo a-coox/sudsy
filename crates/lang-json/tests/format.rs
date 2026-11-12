@@ -1,9 +1,7 @@
 //! Formatter snapshots: one case per shape and per option value. Every case also goes through the
 //! shared checks (round-trip, meaning, idempotency, comments kept) via `common::fmt_path`.
 
-mod common;
-
-use common::{fmt, fmt_path, s};
+use crate::common::{fmt, fmt_path, s};
 use core_config::OptionValue;
 
 macro_rules! snap {

@@ -1,6 +1,7 @@
 # Generated from lang.yaml by `cargo xtask codegen`.
 [package]
 name = "lang-shell"
+autotests = false
 edition.workspace = true
 license.workspace = true
 version.workspace = true
@@ -28,3 +29,7 @@ static-grammars = ["dep:tree-sitter-bash"]
 
 [lints]
 workspace = true
+
+[[test]]
+name = "integration"
+path = "tests/main.rs"

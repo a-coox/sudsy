@@ -2,8 +2,6 @@
 //! file-scoped namespaces, records, collection expressions, strings, structured trivia, directives,
 //! error recovery, tags and field accessors.
 
-mod common;
-
 use core_syntax::ast::AstNode;
 use core_syntax::{SyntaxKind, SyntaxNode, grammars, print};
 use lang_csharp::generated::{self as cs, kind};
@@ -11,7 +9,7 @@ use lang_csharp::provider;
 use provider_api::{LanguageProvider, ParseError, SourceFile};
 
 fn parse_with(text: &str, symbols: &[&str]) -> (SyntaxNode, Vec<ParseError>) {
-    let p = provider(&common::worker_dll());
+    let p = provider(&crate::common::worker_dll());
     let mut file = SourceFile::new("m.cs", 1, text);
     file.preprocessor_symbols = symbols.iter().map(|s| s.to_string()).collect();
     let result = p.parse(&file).unwrap();
@@ -264,7 +262,7 @@ fn missing_tokens_are_zero_width_error_nodes() {
 
 #[test]
 fn skipped_tokens_are_error_nodes_holding_the_tokens_and_their_trivia() {
-    let path = common::repo_root().join("tests/fixtures/csharp/error_skipped_tokens.cs");
+    let path = crate::common::repo_root().join("tests/fixtures/csharp/error_skipped_tokens.cs");
     let src = std::fs::read_to_string(path).unwrap();
     let (tree, errors) = parse_with(&src, &[]);
     assert!(!errors.is_empty());

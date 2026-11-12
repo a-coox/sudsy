@@ -207,7 +207,7 @@ pub fn new_rule(root: &Path, language: &str, id: &str, rust: bool) -> Result<Str
     write_new(&case, &starter.text.replace("^ ID", &format!("^ {id}")))?;
     Ok(format!(
         "created {}\ncreated {}\n\
-         next: edit both, `cargo fmt`, `SUDSY_BLESS=1 cargo test -p lang-{language} --test rule_fixtures`, then `cargo xtask codegen`.\n\
+         next: edit both, `cargo fmt`, `SUDSY_BLESS=1 cargo test -p lang-{language} --test integration rule_fixtures`, then `cargo xtask codegen`.\n\
          If another tool has an equivalent, put this on its entry in docs/parity/<tool>.yaml:\n    sudsy: \"rule: {id}\"\n    coverage: \"covered\"",
         created.display(),
         case.display()

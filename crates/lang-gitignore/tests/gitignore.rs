@@ -9,7 +9,7 @@ fn fmt(input: &str) -> String {
 /// (`tests/conformance/fetch-gitignore-corpus.sh`) that tree-sitter parses formats with the same
 /// tokens (the safety check) and idempotently.
 ///
-/// `cargo test --profile corpus -p lang-gitignore --test gitignore -- --ignored --nocapture conformance`
+/// `cargo test --profile corpus -p lang-gitignore --test integration -- --ignored --nocapture conformance`
 #[test]
 #[ignore]
 fn conformance() {

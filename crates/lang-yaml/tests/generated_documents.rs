@@ -1,9 +1,7 @@
 //! Generated documents: random YAML trees rendered in random styles must format with every
 //! check of the shared helper and every option combination.
 
-mod common;
-
-use common::{n, s, subject};
+use crate::common::{n, s, subject};
 use core_config::OptionValue;
 use core_format::testing::check;
 use proptest::prelude::*;

@@ -2,8 +2,6 @@
 //! `tests/data/flow-agreement.cs` has the constructs; the corpus run in
 //! `perf-bench semantic` checks the same on real code.
 
-mod common;
-
 use lang_csharp::provider;
 use provider_api::testing::lint;
 use provider_api::{LanguageProvider, SourceFile};
@@ -13,9 +11,9 @@ const RULES: &str = "unreachable-code:\n  level: warn\n  options:\n    non_retur
 
 #[test]
 fn flow_rules_agree_with_the_compiler_on_the_fixture() {
-    let path = common::repo_root().join("crates/lang-csharp/tests/data/flow-agreement.cs");
+    let path = crate::common::repo_root().join("crates/lang-csharp/tests/data/flow-agreement.cs");
     let text = std::fs::read_to_string(path).unwrap().replace("\r\n", "\n");
-    let provider = provider(&common::worker_dll());
+    let provider = provider(&crate::common::worker_dll());
     let ours: BTreeSet<(String, u32)> = lint(&provider, "flow-agreement.cs", &text, RULES)
         .iter()
         .filter_map(|d| {

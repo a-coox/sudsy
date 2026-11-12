@@ -1,11 +1,9 @@
 //! Formatting over the pinned corpora (see `corpus.rs`): every file must format, pass the safety
 //! check (re-parse, tree comparison) and be idempotent. Failures are listed by category.
 //!
-//! Run: `bash tests/conformance/fetch-corpus.sh && cargo test --profile corpus -p lang-csharp --test format_corpus -- --ignored --nocapture`
+//! Run: `bash tests/conformance/fetch-corpus.sh && cargo test --profile corpus -p lang-csharp --test integration -- --ignored --nocapture format_corpus::`
 //! `SUDSY_CORPUS_FAILURES=<file>` receives every failure; `SUDSY_CORPUS_FILTER=<substring>` limits
 //! the run to matching paths.
-
-mod common;
 
 use core_format::{DirectiveTable, FormatCtx, safety};
 use provider_api::{LanguageProvider, SourceFile, format_file};
@@ -16,7 +14,7 @@ use std::time::{Duration, Instant};
 
 fn source(path: &Path, text: String) -> SourceFile {
     let mut file = SourceFile::new(path.to_string_lossy().into_owned(), 1, text);
-    file.preprocessor_symbols = common::symbols_for(path);
+    file.preprocessor_symbols = crate::common::symbols_for(path);
     file
 }
 
@@ -28,7 +26,7 @@ fn category(message: &str) -> String {
 }
 
 fn check(path: &Path, options: &core_config::ResolvedOptions) -> Result<usize, String> {
-    let provider = common::shared_provider();
+    let provider = crate::common::shared_provider();
     let text = std::fs::read_to_string(path).map_err(|e| format!("read: {e}"))?;
     let size = text.len();
     let directives = DirectiveTable::default();
@@ -97,12 +95,12 @@ fn corpora_pass(options: &core_config::ResolvedOptions) {
     let started = Instant::now();
     let (mut files, mut bytes) = (0usize, 0usize);
     let mut failures: Vec<(String, String)> = Vec::new();
-    for corpus in common::CORPORA {
-        let base = common::corpus_root().join(corpus.name);
+    for corpus in crate::common::CORPORA {
+        let base = crate::common::corpus_root().join(corpus.name);
         assert!(base.exists(), "corpus {} missing", corpus.name);
         let mut paths = Vec::new();
         for dir in corpus.dirs {
-            common::collect_cs(&base.join(dir), &mut paths);
+            crate::common::collect_cs(&base.join(dir), &mut paths);
         }
         paths.sort();
         let (mut ok, mut bad) = (0, 0);
@@ -155,12 +153,12 @@ fn corpora_pass(options: &core_config::ResolvedOptions) {
 #[test]
 #[ignore = "needs the corpora: bash tests/conformance/fetch-corpus.sh"]
 fn corelib_format_throughput() {
-    let provider = common::shared_provider();
+    let provider = crate::common::shared_provider();
     let options = lang_csharp::option_schema().defaults();
     let directives = DirectiveTable::default();
-    let base = common::corpus_root().join("runtime");
+    let base = crate::common::corpus_root().join("runtime");
     let mut paths = Vec::new();
-    common::collect_cs(
+    crate::common::collect_cs(
         &base.join("src/libraries/System.Private.CoreLib/src"),
         &mut paths,
     );

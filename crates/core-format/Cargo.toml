@@ -1,5 +1,6 @@
 [package]
 name = "core-format"
+autotests = false
 edition.workspace = true
 license.workspace = true
 version.workspace = true
@@ -15,3 +16,7 @@ unicode-width.workspace = true
 
 [lints]
 workspace = true
+
+[[test]]
+name = "integration"
+path = "tests/main.rs"

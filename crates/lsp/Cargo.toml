@@ -1,5 +1,6 @@
 [package]
 name = "lsp"
+autotests = false
 edition.workspace = true
 license.workspace = true
 version.workspace = true
@@ -34,3 +35,7 @@ static-grammars = ["languages/static-grammars"]
 
 [lints]
 workspace = true
+
+[[test]]
+name = "integration"
+path = "tests/main.rs"

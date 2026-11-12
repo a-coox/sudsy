@@ -31,4 +31,4 @@ Shared: suppression comments (`# sudsy-disable-next-line <rule>`), `no-empty-com
 Not done: Docker's differing semantics beyond the above (`*.log` matches only the root there); no other tool lints these files, so there is no parity entry.
 
 ## Conformance
-`tests/conformance/fetch-gitignore-corpus.sh` fetches the `.gitignore` and `.dockerignore` files of moby, nvm, rustup, pyenv, asdf, bats-core and the dotnet install scripts at pinned commits (118 files); `cargo test --profile corpus -p lang-gitignore --test gitignore -- --ignored --nocapture conformance` checks that each parses, round-trips, formats with the same tokens and idempotently.
+`tests/conformance/fetch-gitignore-corpus.sh` fetches the `.gitignore` and `.dockerignore` files of moby, nvm, rustup, pyenv, asdf, bats-core and the dotnet install scripts at pinned commits (118 files); `cargo test --profile corpus -p lang-gitignore --test integration -- --ignored --nocapture conformance` checks that each parses, round-trips, formats with the same tokens and idempotently.
