@@ -29,6 +29,9 @@ public sealed class Declaration
     /// has attributes 16, extern or partial 32, returns Task, ValueTask or a task-like type 64,
     /// static 128.</summary>
     [Key(6)] public byte Flags { get; set; }
+    /// <summary>For a private method: the names of the containing type's base classes, comma-separated, nearest first.
+    /// An unresolved base (a referenced assembly the project does not load) is kept by its written name.</summary>
+    [Key(7)] public string Bases { get; set; } = "";
 }
 
 [MessagePackObject]

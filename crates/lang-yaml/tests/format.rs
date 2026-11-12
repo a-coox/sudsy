@@ -320,7 +320,7 @@ fn an_empty_file_stays_empty() {
 
 #[test]
 fn formatted_output_is_a_fixed_point_for_the_config_file_itself() {
-    let sample = "extends:\n- preset:csharp/microsoft\nformat:\n    line_width:   100\nlint:\n  rules:\n      max-line-length: warn\nyaml:\n  lint: {rules: {ambiguous-booleans: warn}}\n";
+    let sample = "extends:\n- preset:csharp/google\nformat:\n    line_width:   100\nlint:\n  rules:\n      max-line-length: warn\nyaml:\n  lint: {rules: {ambiguous-booleans: warn}}\n";
     let once = fmt(sample, &[]);
     assert_eq!(fmt(&once, &[]), once);
 }

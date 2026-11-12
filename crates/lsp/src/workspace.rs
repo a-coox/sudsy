@@ -49,10 +49,17 @@ impl Workspace {
             docs: HashMap::new(),
             background: None,
         };
-        workspace.db.open_workspace(&[workspace.root.clone()]);
         workspace.db.prestart();
         let error = workspace.reload_config();
         (workspace, error)
+    }
+
+    /// Tells the semantic providers which files are the project: those the walk visits, so not
+    /// what `.gitignore` or `exclude` leave out.
+    fn open_semantic_workspace(&self, project: &Project) {
+        let roots = [self.root.clone()];
+        let found = core_workspace::discover_files(&roots, &project.filter()).unwrap_or_default();
+        self.db.open_workspace(&roots, &found);
     }
 
     /// Reads the config and the `.editorconfig` values again, for every open document. Returns
@@ -61,12 +68,17 @@ impl Workspace {
         let loaded = Project::load(&self.root, core_incremental::Db::providers(&self.db));
         let error = match loaded {
             Ok(project) => {
+                self.open_semantic_workspace(&project);
                 self.db.set_config(Ok(project.chain.clone()));
                 self.db.set_extensions(project.extensions.clone());
                 self.project = Some(Arc::new(project));
                 None
             }
             Err(e) => {
+                let roots = [self.root.clone()];
+                let all = core_workspace::Filter::none();
+                let found = core_workspace::discover_files(&roots, &all).unwrap_or_default();
+                self.db.open_workspace(&roots, &found);
                 self.project = None;
                 self.db.set_config(Err(ConfigError::new(e.0.clone())));
                 self.db.set_extensions(Default::default());
@@ -129,7 +141,9 @@ impl Workspace {
     /// Starts tracking a document; false when no provider handles the file or its language is
     /// not installed (the document is then only kept for [`Workspace::activate_installed`]).
     pub fn open(&mut self, path: PathBuf, version: i32, text: String) -> bool {
-        if !self.db.supports(&path) {
+        // A file the config excludes (a package cache, generated code) gets no diagnostics and no
+        // formatting, though the editor opened it.
+        if !self.db.supports(&path) || self.project.as_ref().is_some_and(|p| p.is_excluded(&path)) {
             return false;
         }
         let skipped = self.missing_language(&path).is_some();

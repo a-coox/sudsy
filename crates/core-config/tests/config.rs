@@ -6,8 +6,8 @@ use std::path::Path;
 
 const PLAN_EXAMPLE: &str = r#"
 extends:
-  - preset:csharp/microsoft
-  - preset:yaml/default
+  - preset:csharp/google
+  - preset:yaml/prettier-compat
 
 format:
   line_width: 100
@@ -52,7 +52,7 @@ overrides:
 fn parses_the_structure_from_the_plan() {
     let c = parse_str(PLAN_EXAMPLE).unwrap();
     assert_eq!(c.extends.len(), 2);
-    assert_eq!(c.extends[0].value, "preset:csharp/microsoft");
+    assert_eq!(c.extends[0].value, "preset:csharp/google");
     assert_eq!(c.format["line_width"].value, OptionValue::Int(100));
     assert_eq!(c.lint.rules["max-line-length"].value.level, Level::Warn);
     assert_eq!(c.plugins.wasm[0].value, "rules/team-rules.wasm");

@@ -86,7 +86,7 @@ fn compat_options() -> core_config::ResolvedOptions {
 #[test]
 #[ignore = "needs the corpora: bash tests/conformance/fetch-corpus.sh"]
 fn corpora_format_pass_the_safety_check_and_are_idempotent() {
-    println!("default options (csharp/microsoft):");
+    println!("default options:");
     corpora_pass(&lang_csharp::option_schema().defaults());
     println!("csharp/csharpier-compat:");
     corpora_pass(&compat_options());

@@ -57,6 +57,9 @@ pub struct Declaration {
     pub len: u32,
     pub accessibility: u8,
     pub flags: u8,
+    /// For a private method: the names of the containing type's base classes, comma-separated,
+    /// nearest first (a base the project cannot resolve keeps its written name).
+    pub bases: String,
 }
 
 impl Declaration {

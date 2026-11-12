@@ -40,7 +40,9 @@ fn database(worker: &Path, depth: &str, dir: &Path) -> Result<Database> {
     db.set_config(Ok(ConfigChain::parse(&format!(
         "analysis: {depth}\nlint:\n  rules:\n{RULES}"
     ))?));
-    db.open_workspace(&[dir.to_path_buf()]);
+    let roots = [dir.to_path_buf()];
+    let found = core_workspace::discover_files(&roots, &core_workspace::Filter::none())?;
+    db.open_workspace(&roots, &found);
     Ok(db)
 }
 

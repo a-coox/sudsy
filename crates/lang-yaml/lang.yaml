@@ -30,4 +30,4 @@ options:
       range: [1, 10]
       default: 1
       doc: "Spaces between a value and a comment after it on the same line."
-presets: [default, prettier-compat, yamllint]
+presets: [prettier-compat, yamllint]

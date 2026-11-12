@@ -1,7 +1,7 @@
 grammar-crate: tree-sitter-xml
 grammar-version: "0.7"
 language-const: LANGUAGE_XML
-extensions: [xml, csproj, vbproj, fsproj, props, targets, slnx, config, resx, nuspec, xaml, axaml, manifest, ruleset, proj, projitems, shproj, vcxproj, wixproj, wxs, runsettings, vsixmanifest, pubxml, xsd, xslt, xsl, svg, plist]
+extensions: [xml, csproj, vbproj, fsproj, props, targets, slnx, config, resx, nuspec, xaml, axaml, manifest, ruleset, proj, projitems, shproj, vcxproj, wixproj, wxs, runsettings, vsixmanifest, pubxml, xsd, xslt, xsl, svg, plist, uxml]
 formatter: XmlFormatter
 validate: validate::validate
 deps: [rowan]
@@ -13,7 +13,7 @@ options:
   - final_newline: true
   - end_of_line
   - max_blank_lines: [1, "Largest number of blank lines kept between elements, comments and declarations."]
-presets: [default, csharpier-compat]
+presets: [csharpier-compat]
 mapping:
   wrap: {CharData: Chunk, Reference: Chunk, CData: Chunk, PI: Chunk, XmlDecl: Chunk, Doctype: Chunk}
   same: 'document element STag ETag Attribute Comment Name AttValue CharData PI'

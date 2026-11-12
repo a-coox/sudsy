@@ -127,6 +127,14 @@ public class SemanticTests
     }
 
     [Fact]
+    public void PrivateMethodsNameTheirBaseClasses()
+    {
+        var source = "class B : Missing { } class D : B { void Awake() { } }";
+        var r = Converse(Update(source), Envelope.Encode("Query", new Query { FileId = "t.cs", Version = 1, Items = ["declarations"] }));
+        Assert.Equal("B,Missing", Payload<Answers>(r[1].Frame).Declarations.Single(d => d.Name == "Awake").Bases);
+    }
+
+    [Fact]
     public void UnusedImportsAreWithheldWhileTheFileHasErrors()
     {
         var ok = "using System;\nusing System.Text;\nclass C { object o = new Exception(); }";

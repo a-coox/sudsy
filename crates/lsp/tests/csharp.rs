@@ -132,6 +132,56 @@ fn deep_diagnostics_use_every_file_of_the_project_not_only_the_open_ones() {
 }
 
 #[test]
+fn the_unity_preset_counts_message_methods_of_derived_types_as_used() {
+    let t = tempfile::tempdir().unwrap();
+    std::fs::write(
+        t.path().join("sudsy.yaml"),
+        "analysis: deep
+extends: [preset:csharp/unity]
+",
+    )
+    .unwrap();
+    let text = "class Base : MonoBehaviour { }
+class P : Base { void Update() { } void Lonely() { } }
+class Q { void Update() { } }
+";
+    std::fs::write(t.path().join("A.cs"), text).unwrap();
+    let mut client = Client::start(t.path(), providers(&lang_csharp::testing::built_worker()));
+    let uri = client.open("A.cs", "csharp", text);
+    let found = client.diagnostics(&uri);
+    let mut messages: Vec<_> = found.iter().map(|d| d.message.as_str()).collect();
+    messages.retain(|m| m.contains("never used"));
+    assert_eq!(
+        messages,
+        [
+            "private member `Lonely` is never used",
+            "private member `Update` is never used"
+        ],
+        "{found:?}"
+    );
+}
+
+#[test]
+fn a_document_the_config_excludes_gets_no_diagnostics() {
+    let t = tempfile::tempdir().unwrap();
+    std::fs::write(
+        t.path().join("sudsy.yaml"),
+        "exclude: [\"Library/**\"]
+format:
+  indent_size: 2
+",
+    )
+    .unwrap();
+    std::fs::create_dir(t.path().join("Library")).unwrap();
+    let mut client = Client::start(t.path(), providers(&lang_csharp::testing::built_worker()));
+    let text = "class A { void M() { int a; } }
+";
+    let kept = client.open("Library/A.cs", "csharp", text);
+    assert!(client.diagnostics(&kept).is_empty());
+    assert!(client.format(&kept).is_empty());
+}
+
+#[test]
 fn a_missing_runtime_is_prompted_once_and_the_action_opens_the_download() {
     let t = tempfile::tempdir().unwrap();
     let missing = lang_csharp::provider_with_command(vec!["definitely-not-a-real-program".into()]);

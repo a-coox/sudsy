@@ -11,7 +11,6 @@ pub fn option_schema() -> core_config::OptionSchema {
         core_config::shared::max_blank_lines(1, "Largest number of blank lines kept between elements, comments and declarations."),
     ])
     .with_presets(vec![
-        core_config::Preset::new("xml/default", include_str!("../presets/default.yaml")),
         core_config::Preset::new("xml/csharpier-compat", include_str!("../presets/csharpier-compat.yaml")),
     ])
 }

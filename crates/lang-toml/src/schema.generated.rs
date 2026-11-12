@@ -22,7 +22,6 @@ pub fn option_schema() -> core_config::OptionSchema {
         core_config::OptionDef::boolean("align_comments", false, "Start the trailing comments of consecutive entries in one column (entries with no              blank line or comment line between them); a run with an entry on several lines is not \n             aligned."),
     ])
     .with_presets(vec![
-        core_config::Preset::new("toml/default", include_str!("../presets/default.yaml")),
         core_config::Preset::new("toml/taplo-compat", include_str!("../presets/taplo-compat.yaml")),
     ])
 }

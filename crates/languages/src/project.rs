@@ -1,6 +1,6 @@
 //! The project a front end works on: its root directory and the config chain found from there.
 
-use core_config::{ConfigChain, ConfigError};
+use core_config::{ConfigChain, ConfigError, Loaded};
 use core_rules::Extensions;
 use provider_api::LanguageProvider;
 use std::path::{Path, PathBuf};
@@ -15,19 +15,27 @@ pub struct Project {
     pub chain: ConfigChain,
     /// The pattern and plugin rules the config names.
     pub extensions: Extensions,
+    /// The presets the config names, as configs of their own: their `exclude` applies.
+    preset_files: Vec<Loaded>,
 }
 
 impl Project {
     /// The config's `include` and `exclude` as a file discovery filter.
     pub fn filter(&self) -> core_workspace::Filter {
         let chain = std::sync::Arc::new(self.chain.clone());
+        let presets = std::sync::Arc::new(self.preset_files.clone());
         core_workspace::Filter {
-            exclude: {
+            exclude: std::sync::Arc::new({
                 let chain = chain.clone();
-                std::sync::Arc::new(move |path| chain.is_excluded(path))
-            },
+                move |path| is_excluded(&chain, &presets, path)
+            }),
             include: std::sync::Arc::new(move |path| chain.is_included(path)),
         }
+    }
+
+    /// Does the config's `exclude` (its own or a preset's) leave `path` out?
+    pub fn is_excluded(&self, path: &Path) -> bool {
+        is_excluded(&self.chain, &self.preset_files, path)
     }
 
     /// The config found from `root` (the default config when there is none), checked against the
@@ -42,7 +50,12 @@ impl Project {
             Some(path) => ConfigChain::load(&path).map_err(fail)?,
             None => ConfigChain::default(),
         };
-        chain.validate(&crate::schemas(providers)).map_err(fail)?;
+        let schemas = crate::schemas(providers);
+        chain.validate(&schemas).map_err(fail)?;
+        let mut preset_files = Vec::new();
+        for (language, schema) in &schemas {
+            preset_files.extend(chain.preset_files(language, schema).map_err(fail)?);
+        }
         let extensions = crate::load_extensions(&chain, providers, &root).map_err(fail)?;
         chain
             .validate_rule_ids(|| {
@@ -55,6 +68,7 @@ impl Project {
             root,
             chain,
             extensions,
+            preset_files,
         })
     }
 
@@ -62,6 +76,10 @@ impl Project {
     pub fn show(&self, path: &Path) -> String {
         core_workspace::display_path(path, &self.root)
     }
+}
+
+fn is_excluded(chain: &ConfigChain, presets: &[Loaded], path: &Path) -> bool {
+    chain.is_excluded(path) || presets.iter().any(|p| p.excludes(path))
 }
 
 /// `sudsy.yaml:3:5: message`, with the path printed relative to `root`.

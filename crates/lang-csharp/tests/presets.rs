@@ -1,4 +1,4 @@
-//! Presets: `csharp/microsoft` is the default layout, `csharp/csharpier-compat` reproduces
+//! Presets: `csharp/csharpier-compat` reproduces
 //! CSharpier's. Every case goes through the shared checks of `common::fmt_preset`.
 
 mod common;
@@ -16,15 +16,6 @@ macro_rules! compat {
             insta::assert_snapshot!(format!("{input}\n-----\n{out}"));
         }
     };
-}
-
-#[test]
-fn microsoft_preset_is_the_default_layout() {
-    let input = "class C : B { int X { get { return 1; } } public C(int a) : base(a) { } }";
-    assert_eq!(
-        fmt_preset(input, "csharp/microsoft"),
-        common::fmt(input, &[])
-    );
 }
 
 #[test]
@@ -63,13 +54,7 @@ csharp:
     .unwrap_err();
     assert!(error.message.contains("csharp/csharpier-compat"), "{error}");
     // Every preset of the table in docs/formatting/presets.md resolves.
-    for name in [
-        "microsoft",
-        "dotnet-runtime",
-        "google",
-        "csharpier-compat",
-        "stylecop",
-    ] {
+    for name in ["dotnet-runtime", "google", "csharpier-compat", "stylecop"] {
         resolve(&format!("extends: [\"preset:csharp/{name}\"]\n")).unwrap();
     }
 }

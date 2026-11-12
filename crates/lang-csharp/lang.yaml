@@ -92,6 +92,10 @@ options:
       values: ["same_line", "new_line"]
       default: "same_line"
       doc: "The `: base(...)` or `: this(...)` initializer of a constructor: `same_line` keeps it after the parameter list; `new_line` puts it on its own indented line."
+  - member_attribute_line:
+      values: ["own_line", "keep"]
+      default: "own_line"
+      doc: "An attribute list in front of a member, statement or type: `own_line` puts it on a line of its own; `keep` leaves one that the source writes on the same line as what it annotates there (`[SerializeField] private int speed;`)."
   - parameter_attribute_layout:
       values: ["inline", "hanging"]
       default: "inline"
@@ -165,4 +169,4 @@ options:
   - separate_using_groups:
       default: false
       doc: "With `sort_usings`: one blank line between the System usings and the others (only with `sort_usings_system_first`)."
-presets: [microsoft, dotnet-runtime, google, csharpier-compat, stylecop]
+presets: [dotnet-runtime, google, csharpier-compat, stylecop, unity]

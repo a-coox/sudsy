@@ -18,4 +18,4 @@ options:
       values: ["auto", "json", "jsonc"]
       default: "auto"
       doc: "JSON or JSONC (comments, trailing commas); `auto` decides by file name."
-presets: [biome, default, prettier-compat]
+presets: [biome, prettier-compat]

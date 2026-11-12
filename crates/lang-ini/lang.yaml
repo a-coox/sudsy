@@ -11,7 +11,6 @@ options:
       default: true
       doc: "Write `key = value` rather than `key=value`."
   - max_blank_lines: [1, "Largest number of blank lines kept between settings, sections and comments."]
-presets: [default]
 mapping:
   same: 'document section setting comment continuation'
   SectionHeader: section_name

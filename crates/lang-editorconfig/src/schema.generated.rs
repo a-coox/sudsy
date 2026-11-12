@@ -8,6 +8,5 @@ pub fn option_schema() -> core_config::OptionSchema {
         core_config::shared::max_blank_lines(1, "Largest number of blank lines kept between entries, sections and comments."),
     ])
     .with_presets(vec![
-        core_config::Preset::new("editorconfig/default", include_str!("../presets/default.yaml")),
     ])
 }

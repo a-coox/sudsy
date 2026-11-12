@@ -60,6 +60,47 @@ fn standard_depth_binds_across_files_and_reports_flow_findings() {
 }
 
 #[test]
+fn excluded_files_are_not_part_of_the_semantic_workspace() {
+    let t = tempfile::tempdir().unwrap();
+    fs::create_dir(t.path().join("gen")).unwrap();
+    write(
+        t.path(),
+        "gen/Lib.cs",
+        "public class Widget { }
+",
+    );
+    write(
+        t.path(),
+        "App.cs",
+        "using System.Text;
+class App { Widget w; }
+",
+    );
+    let config = |exclude: &str| {
+        write(
+            t.path(),
+            "sudsy.yaml",
+            &format!(
+                "{exclude}lint:
+  rules:
+    remove-unused-usings: warn
+"
+            ),
+        );
+        stdout(&sudsy(t.path(), &["lint"]))
+    };
+    assert!(config("").contains("unnecessary using"));
+    // `Widget` does not resolve without gen/Lib.cs: the file has errors, so the rule is silent.
+    assert!(
+        !config(
+            "exclude: [\"gen/**\"]
+"
+        )
+        .contains("unnecessary using")
+    );
+}
+
+#[test]
 fn fast_depth_is_syntactic_only() {
     let t = project();
     let out = sudsy(

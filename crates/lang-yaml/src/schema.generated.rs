@@ -30,7 +30,6 @@ pub fn option_schema() -> core_config::OptionSchema {
         core_config::OptionDef::int("comment_spacing", 1, (1, 10), "Spaces between a value and a comment after it on the same line."),
     ])
     .with_presets(vec![
-        core_config::Preset::new("yaml/default", include_str!("../presets/default.yaml")),
         core_config::Preset::new("yaml/prettier-compat", include_str!("../presets/prettier-compat.yaml")),
         core_config::Preset::new("yaml/yamllint", include_str!("../presets/yamllint.yaml")),
     ])

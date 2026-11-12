@@ -2,7 +2,9 @@
 
 use super::range_of;
 use core_rules::rule;
-use core_rules::{Edit, FileContext, ProjectContext, ProjectFacts, RuleContext};
+use core_rules::{
+    Check, Edit, FileContext, Opt, OptionDecl, ProjectContext, ProjectFacts, RuleContext,
+};
 use core_semantics::{Accessibility, DeclarationFlags, DeclarationKind};
 use core_syntax::{TextRange, TextSize};
 use std::collections::BTreeSet;
@@ -85,9 +87,23 @@ rule! {
         default: Warn,
         description: "A private field, method, property or event that no file of the project uses \
                   (`analysis: deep`). Members with attributes, overrides, interface \
-                  implementations, `extern` and `partial` methods are left alone. Overlaps the SDK analyzers IDE0051 (unused private member) and IDE0052 (unread private member).",
+                  implementations, `extern` and `partial` methods are left alone, and so are the private                   methods named in `reflection_methods` of a type derived from one of                   `reflection_base_types` (a framework calls them by reflection; the `csharp/unity`                   preset lists Unity's). Overlaps the SDK analyzers IDE0051 (unused private member) and IDE0052 (unread private member).",
         example: "class A { private int cache; }   // cache is never used",
         requires: [Types, Project],
+        options: [
+            OptionDecl {
+                name: "reflection_base_types",
+                default: Opt::List(&[]),
+                check: Check::Any,
+                description: "Names of base classes whose derived types are called by a framework                           through reflection (with `reflection_methods`). A base is matched by its                           simple name anywhere up the inheritance chain, also when the project                           does not load its assembly.",
+            },
+            OptionDecl {
+                name: "reflection_methods",
+                default: Opt::List(&[]),
+                check: Check::Any,
+                description: "Names of private methods that count as used in a type derived from                           one of `reflection_base_types`.",
+            },
+        ],
     }
 
     fn collect(&self, file: &FileContext<'_>, facts: &mut ProjectFacts) {
@@ -106,7 +122,7 @@ rule! {
                 facts.add(
                     range_of(d.start, d.len),
                     &d.symbol,
-                    format!("{DECLARED}:{}", d.name),
+                    format!("{DECLARED}:{}:{}", d.name, d.bases),
                 );
             }
         }
@@ -121,9 +137,15 @@ rule! {
             .filter(|f| f.value == USED)
             .map(|f| f.key.as_str())
             .collect();
+        let (types, methods) = (
+            ctx.options.list("reflection_base_types"),
+            ctx.options.list("reflection_methods"),
+        );
         for f in facts.of_rule("unused-private-member") {
-            if let Some(name) = f.value.strip_prefix("declared:")
+            if let Some(rest) = f.value.strip_prefix("declared:")
                 && !used.contains(f.key.as_str())
+                && let Some((name, bases)) = rest.split_once(':')
+                && !(methods.contains(&name) && bases.split(',').any(|b| types.contains(&b)))
             {
                 ctx.report(
                     &f.file,

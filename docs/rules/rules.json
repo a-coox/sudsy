@@ -17386,14 +17386,29 @@
     {
       "category": "cleanup",
       "default_level": "warn",
-      "description": "A private field, method, property or event that no file of the project uses (`analysis: deep`). Members with attributes, overrides, interface implementations, `extern` and `partial` methods are left alone. Overlaps the SDK analyzers IDE0051 (unused private member) and IDE0052 (unread private member).",
+      "description": "A private field, method, property or event that no file of the project uses (`analysis: deep`). Members with attributes, overrides, interface implementations, `extern` and `partial` methods are left alone, and so are the private                   methods named in `reflection_methods` of a type derived from one of                   `reflection_base_types` (a framework calls them by reflection; the `csharp/unity`                   preset lists Unity's). Overlaps the SDK analyzers IDE0051 (unused private member) and IDE0052 (unread private member).",
       "fix": null,
       "id": "unused-private-member",
       "languages": [
         "csharp"
       ],
-      "options": [],
-      "presets": [],
+      "options": [
+        {
+          "default": [],
+          "description": "Names of base classes whose derived types are called by a framework                           through reflection (with `reflection_methods`). A base is matched by its                           simple name anywhere up the inheritance chain, also when the project                           does not load its assembly.",
+          "name": "reflection_base_types",
+          "type": "list"
+        },
+        {
+          "default": [],
+          "description": "Names of private methods that count as used in a type derived from                           one of `reflection_base_types`.",
+          "name": "reflection_methods",
+          "type": "list"
+        }
+      ],
+      "presets": [
+        "csharp/unity"
+      ],
       "upstream": [
         {
           "id": "RCS1213",

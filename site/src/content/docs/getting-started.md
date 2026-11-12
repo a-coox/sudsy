@@ -12,7 +12,7 @@ description: Install Sudsy, format and lint a project, and use it in VS Code.
 ## Format and lint
 
 ```sh
-sudsy init --preset csharp/microsoft   # writes a starter sudsy.yaml
+sudsy init --preset csharp/google      # writes a starter sudsy.yaml
 sudsy format                           # format the current directory in place
 sudsy lint                             # report rule violations
 sudsy fix                              # apply fixes, then format

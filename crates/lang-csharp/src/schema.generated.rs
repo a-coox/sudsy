@@ -50,6 +50,8 @@ pub const LAMBDA_ARGUMENT_HUG: &str = "lambda_argument_hug";
 #[allow(dead_code)]
 pub const CONSTRUCTOR_INITIALIZER_LINE: &str = "constructor_initializer_line";
 #[allow(dead_code)]
+pub const MEMBER_ATTRIBUTE_LINE: &str = "member_attribute_line";
+#[allow(dead_code)]
 pub const PARAMETER_ATTRIBUTE_LAYOUT: &str = "parameter_attribute_layout";
 #[allow(dead_code)]
 pub const BASE_LIST_LAYOUT: &str = "base_list_layout";
@@ -123,6 +125,7 @@ pub fn option_schema() -> core_config::OptionSchema {
         core_config::OptionDef::choice("initializer_expand", &["fit", "crowded"], "fit", "Initializers (and anonymous types) that fit on a line: `fit` keeps them on it; `crowded` puts one item per line when there are three or more member assignments, or two or more items one of which creates an object with an initializer."),
         core_config::OptionDef::choice("lambda_argument_hug", &["last", "sole"], "last", "A lambda argument whose body can hang from the call's line: `last` hugs a block lambda that is the last argument; `sole` hugs a lambda (block or expression) only when it is the only argument."),
         core_config::OptionDef::choice("constructor_initializer_line", &["same_line", "new_line"], "same_line", "The `: base(...)` or `: this(...)` initializer of a constructor: `same_line` keeps it after the parameter list; `new_line` puts it on its own indented line."),
+        core_config::OptionDef::choice("member_attribute_line", &["own_line", "keep"], "own_line", "An attribute list in front of a member, statement or type: `own_line` puts it on a line of its own; `keep` leaves one that the source writes on the same line as what it annotates there (`[SerializeField] private int speed;`)."),
         core_config::OptionDef::choice("parameter_attribute_layout", &["inline", "hanging"], "inline", "A parameter with attribute lists: `inline` keeps them in front of the parameter;              `hanging` keeps them there when the parameter fits and otherwise puts the rest of              the parameter on an indented line below them."),
         core_config::OptionDef::choice("base_list_layout", &["inline", "hanging"], "inline", "The base list of a type (`: A, B`): `inline` keeps it on the line of the type name; `hanging` keeps it there when it fits and otherwise starts a line, with one base type per line."),
         core_config::OptionDef::boolean("unbreakable_single_item_lists", false, "Never break a list that holds one simple item: an attribute list with one attribute, a type argument list with one name, an index that is one name or literal."),
@@ -145,10 +148,10 @@ pub fn option_schema() -> core_config::OptionSchema {
         core_config::OptionDef::boolean("separate_using_groups", false, "With `sort_usings`: one blank line between the System usings and the others (only with `sort_usings_system_first`)."),
     ])
     .with_presets(vec![
-        core_config::Preset::new("csharp/microsoft", include_str!("../presets/microsoft.yaml")),
         core_config::Preset::new("csharp/dotnet-runtime", include_str!("../presets/dotnet-runtime.yaml")),
         core_config::Preset::new("csharp/google", include_str!("../presets/google.yaml")),
         core_config::Preset::new("csharp/csharpier-compat", include_str!("../presets/csharpier-compat.yaml")),
         core_config::Preset::new("csharp/stylecop", include_str!("../presets/stylecop.yaml")),
+        core_config::Preset::new("csharp/unity", include_str!("../presets/unity.yaml")),
     ])
 }

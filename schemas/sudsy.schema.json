@@ -4454,8 +4454,46 @@
               "description": "A variable, local value or data source that nothing in the same file refers to (tflint terraform_unused_declarations, within one file: a module that uses its variables in other files needs the rule off or those files in one)."
             },
             "unused-private-member": {
-              "$ref": "#/definitions/rule",
-              "description": "A private field, method, property or event that no file of the project uses (`analysis: deep`). Members with attributes, overrides, interface implementations, `extern` and `partial` methods are left alone. Overlaps the SDK analyzers IDE0051 (unused private member) and IDE0052 (unread private member)."
+              "description": "A private field, method, property or event that no file of the project uses (`analysis: deep`). Members with attributes, overrides, interface implementations, `extern` and `partial` methods are left alone, and so are the private                   methods named in `reflection_methods` of a type derived from one of                   `reflection_base_types` (a framework calls them by reflection; the `csharp/unity`                   preset lists Unity's). Overlaps the SDK analyzers IDE0051 (unused private member) and IDE0052 (unread private member).",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "reflection_base_types": {
+                          "default": [],
+                          "description": "Names of base classes whose derived types are called by a framework                           through reflection (with `reflection_methods`). A base is matched by its                           simple name anywhere up the inheritance chain, also when the project                           does not load its assembly.",
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        },
+                        "reflection_methods": {
+                          "default": [],
+                          "description": "Names of private methods that count as used in a type derived from                           one of `reflection_base_types`.",
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
             },
             "unused-variable": {
               "$ref": "#/definitions/rule",
@@ -4938,6 +4976,15 @@
               "minimum": 20,
               "type": "integer"
             },
+            "member_attribute_line": {
+              "default": "own_line",
+              "description": "An attribute list in front of a member, statement or type: `own_line` puts it on a line of its own; `keep` leaves one that the source writes on the same line as what it annotates there (`[SerializeField] private int speed;`).",
+              "enum": [
+                "own_line",
+                "keep"
+              ],
+              "type": "string"
+            },
             "member_chain_break_on_block": {
               "default": false,
               "description": "Break a member chain one call per line when a call other than the last has an argument with a block body (a lambda), even if the chain would fit.",
@@ -5324,8 +5371,8 @@
           "preset:csharp/csharpier-compat",
           "preset:csharp/dotnet-runtime",
           "preset:csharp/google",
-          "preset:csharp/microsoft",
           "preset:csharp/stylecop",
+          "preset:csharp/unity",
           "preset:css/stylelint-recommended",
           "preset:css/stylelint-recommended",
           "preset:css/stylelint-recommended",
@@ -5333,27 +5380,20 @@
           "preset:css/stylelint-standard",
           "preset:css/stylelint-standard",
           "preset:dockerfile/hadolint",
-          "preset:editorconfig/default",
-          "preset:gitignore/default",
           "preset:hcl/tflint-recommended",
           "preset:html/html-validate-recommended",
           "preset:html/html-validate-standard",
-          "preset:ini/default",
           "preset:js/eslint-recommended",
           "preset:js/typescript-eslint-recommended",
           "preset:json/biome",
-          "preset:json/default",
           "preset:json/prettier-compat",
           "preset:makefile/checkmake",
           "preset:markdown/prettier-compat",
           "preset:powershell/psscriptanalyzer",
           "preset:protobuf/buf-standard",
           "preset:shell/shellcheck",
-          "preset:toml/default",
           "preset:toml/taplo-compat",
           "preset:xml/csharpier-compat",
-          "preset:xml/default",
-          "preset:yaml/default",
           "preset:yaml/prettier-compat",
           "preset:yaml/yamllint"
         ],
@@ -6715,6 +6755,15 @@
                     "maximum": 1000,
                     "minimum": 20,
                     "type": "integer"
+                  },
+                  "member_attribute_line": {
+                    "default": "own_line",
+                    "description": "An attribute list in front of a member, statement or type: `own_line` puts it on a line of its own; `keep` leaves one that the source writes on the same line as what it annotates there (`[SerializeField] private int speed;`).",
+                    "enum": [
+                      "own_line",
+                      "keep"
+                    ],
+                    "type": "string"
                   },
                   "member_chain_break_on_block": {
                     "default": false,

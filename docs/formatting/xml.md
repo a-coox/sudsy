@@ -5,7 +5,7 @@ tree-sitter-xml 0.7 (XML 1.0; the grammar of tree-sitter-grammars, MIT) linked i
 
 Besides tree-sitter's syntax errors, `validate.rs` reports as parse errors what the grammar accepts: an end tag that does not match, a repeated attribute, `--` in a comment, `]]>` in text, an illegal character, a character reference to an illegal character, an entity other than the five predefined ones in a document without a DOCTYPE, a name that does not start with a letter, `_` or `:`, and an XML declaration that does not start the file.
 
-Files: `.xml`, `.csproj`, `.vbproj`, `.fsproj`, `.props`, `.targets`, `.slnx`, `.config`, `.resx`, `.nuspec`, `.xaml`, `.axaml`, `.manifest`, `.ruleset`, `.proj`, `.projitems`, `.shproj`, `.vcxproj`, `.wixproj`, `.wxs`, `.runsettings`, `.vsixmanifest`, `.pubxml`, `.xsd`, `.xsl`, `.xslt`, `.svg`, `.plist`.
+Files: `.xml`, `.csproj`, `.vbproj`, `.fsproj`, `.props`, `.targets`, `.slnx`, `.config`, `.resx`, `.nuspec`, `.xaml`, `.axaml`, `.manifest`, `.ruleset`, `.proj`, `.projitems`, `.shproj`, `.vcxproj`, `.wixproj`, `.wxs`, `.runsettings`, `.vsixmanifest`, `.pubxml`, `.xsd`, `.xsl`, `.xslt`, `.svg`, `.plist`, `.uxml` (Unity UI Toolkit).
 
 ## Formatting
 Whitespace in text is content, so the formatter lays out structure only.
@@ -28,7 +28,7 @@ Whitespace in text is content, so the formatter lays out structure only.
 <!-- /generated -->
 
 ## Presets
-`xml/default` sets nothing. `xml/csharpier-compat` is CSharpier 1.x's XML defaults (100 columns, two spaces, line endings kept); `scripts/parity.sh format csharpier-xml` compares the two on `tests/fixtures/xml` and 372 project files of dotnet/aspnetcore v10.0.0 (`tests/conformance/fetch-xml-projects.sh`).
+`xml/csharpier-compat` is CSharpier 1.x's XML defaults (100 columns, two spaces, line endings kept); `scripts/parity.sh format csharpier-xml` compares the two on `tests/fixtures/xml` and 372 project files of dotnet/aspnetcore v10.0.0 (`tests/conformance/fetch-xml-projects.sh`).
 
 The differences are named in `tests/parity/csharpier-xml/differences.yaml`; where Sudsy differs from CSharpier by design:
 

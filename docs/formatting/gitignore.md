@@ -19,7 +19,7 @@ Files: `.gitignore`, `.dockerignore`, `.npmignore`, `.prettierignore`, `.eslinti
 <!-- /generated -->
 
 ## Presets
-`gitignore/default` sets nothing.
+No presets.
 
 ## Rules
 Shared: suppression comments (`# sudsy-disable-next-line <rule>`), `no-empty-comment`, `comment-space`, `max-line-length`. Language rules (all `warn`):

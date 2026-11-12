@@ -86,7 +86,7 @@ fn every_preset_reproduces_its_samples() {
         "{}",
         all_failures.join("\n=====\n")
     );
-    assert_eq!(presets, 9, "one fixture directory per preset");
+    assert_eq!(presets, 6, "one fixture directory per preset");
     assert!(cases >= 8);
 }
 

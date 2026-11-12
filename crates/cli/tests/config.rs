@@ -210,7 +210,7 @@ fn extends_a_file_in_another_directory() {
     write(
         t.path(),
         "team/base.yaml",
-        "extends: [preset:json/default]\njson:\n  format:\n    collapse: never\n    indent_size: 8\n",
+        "extends: [preset:json/prettier-compat]\njson:\n  format:\n    collapse: never\n    indent_size: 8\n",
     );
     write(
         t.path(),
@@ -280,8 +280,7 @@ fn init_writes_a_starter_config_and_will_not_overwrite() {
     let out = sudsy(t.path(), &["init"]);
     assert_eq!(out.status.code(), Some(0), "{}", stderr(&out));
     let text = read(t.path(), "sudsy.yaml");
-    assert!(text.contains("preset:csharp/microsoft"), "{text}");
-    assert!(text.contains("preset:yaml/default"), "{text}");
+    assert!(text.contains("extends: []"), "{text}");
     // The starter loads.
     write(t.path(), "a.json", JSON);
     assert_eq!(sudsy(t.path(), &["format"]).status.code(), Some(0));

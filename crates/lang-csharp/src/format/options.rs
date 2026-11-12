@@ -1,7 +1,7 @@
 //! The C# format options: `brace_newline`, `trailing_commas` and `member_chain_min_calls` of
 //! docs/formatting/csharp.md, the shared ones, and the layout choices the presets of
 //! the plan's table differ in. Every option has a documented default; the defaults are
-//! `csharp/microsoft`. Presets are config files (`presets/`): they only set these options, and
+//! Microsoft's layout. Presets are config files (`presets/`): they only set these options, and
 //! nothing in the formatter knows which preset is in use.
 
 use crate::generated::kind as k;
@@ -135,6 +135,10 @@ pub fn hug_only_sole_lambda(options: &ResolvedOptions) -> bool {
 
 pub fn hanging_parameter_attributes(options: &ResolvedOptions) -> bool {
     is(options, PARAMETER_ATTRIBUTE_LAYOUT, "hanging")
+}
+
+pub fn keeps_attribute_line(options: &ResolvedOptions) -> bool {
+    is(options, MEMBER_ATTRIBUTE_LINE, "keep")
 }
 
 pub fn constructor_initializer_on_new_line(options: &ResolvedOptions) -> bool {

@@ -47,6 +47,10 @@ impl JsonProvider {
             matchers: vec![
                 matcher(FilePattern::Extension("json".into()), "json"),
                 matcher(FilePattern::Extension("jsonc".into()), "jsonc"),
+                // Unity assembly definitions and input actions are strict JSON.
+                matcher(FilePattern::Extension("asmdef".into()), "json"),
+                matcher(FilePattern::Extension("asmref".into()), "json"),
+                matcher(FilePattern::Extension("inputactions".into()), "json"),
                 matcher(name("tsconfig.json"), "jsonc"),
                 matcher(
                     FilePattern::InDirectory {

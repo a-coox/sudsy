@@ -11,6 +11,5 @@ pub fn option_schema() -> core_config::OptionSchema {
         core_config::shared::max_blank_lines(1, "Largest number of blank lines kept between settings, sections and comments."),
     ])
     .with_presets(vec![
-        core_config::Preset::new("ini/default", include_str!("../presets/default.yaml")),
     ])
 }

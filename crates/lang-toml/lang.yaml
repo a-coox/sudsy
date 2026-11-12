@@ -26,7 +26,7 @@ options:
   - align_comments:
       default: false
       doc: "Start the trailing comments of consecutive entries in one column (entries with no              blank line or comment line between them); a run with an entry on several lines is not \n             aligned."
-presets: [default, taplo-compat]
+presets: [taplo-compat]
 mapping:
   wrap: {BareKey: Key, QuotedKey: Key, String: Literal, Integer: Literal, Float: Literal, Boolean: Literal, DateTime: Literal}
   same: 'document table pair array inline_table comment bare_key quoted_key string integer float boolean'

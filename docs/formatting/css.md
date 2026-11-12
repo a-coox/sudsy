@@ -1,6 +1,6 @@
 # CSS / SCSS / Less (`lang-css`)
 
-Three languages, `css`, `scss` and `less`, in one crate: one grammar (`grammars/css.grammar`), one lexer and parser, three providers. `scss` and `less` use `css` as their config base (`config_base()`): a `css:` section applies to all three and `scss:`/`less:` override it. Extensions `.css`, `.scss`, `.less`. The Sass indented syntax (`.sass`) is not supported. The plan for the rest is [../design/wave-3b-css.md](../design/wave-3b-css.md).
+Three languages, `css`, `scss` and `less`, in one crate: one grammar (`grammars/css.grammar`), one lexer and parser, three providers. `scss` and `less` use `css` as their config base (`config_base()`): a `css:` section applies to all three and `scss:`/`less:` override it. Extensions `.css` (and `.uss`, Unity UI Toolkit), `.scss`, `.less`. The Sass indented syntax (`.sass`) is not supported. The plan for the rest is [../design/wave-3b-css.md](../design/wave-3b-css.md).
 
 ## Parser
 Hand-written lexer and recursive-descent parser, lossless: every byte is in a token and trivia are placed by the shared attachment rule.

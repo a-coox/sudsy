@@ -242,7 +242,7 @@ pub enum Need {
 
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Config {
-    /// Presets (`preset:csharp/microsoft`) or config files (paths relative to this file).
+    /// Presets (`preset:csharp/google`) or config files (paths relative to this file).
     pub extends: Vec<Spanned<String>>,
     /// Files to format and lint (globs relative to this file); everything when empty.
     pub include: Vec<Spanned<String>>,

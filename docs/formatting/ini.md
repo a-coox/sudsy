@@ -23,7 +23,7 @@ Files: extensions `.ini` and `.cfg`, names `.gitconfig` and `.gitmodules`. `.pro
 <!-- /generated -->
 
 ## Presets
-`ini/default` sets nothing.
+No presets.
 
 ## Rules
 Shared: suppression comments, `no-empty-comment`, `comment-space`, `max-line-length`, and `no-duplicate-keys` (repeats in the preamble or one section; compared as written; a `.gitconfig` that repeats a multi-value key such as `fetch` gets an error for each repeat).

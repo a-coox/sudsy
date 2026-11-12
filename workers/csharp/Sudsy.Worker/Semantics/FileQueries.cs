@@ -108,8 +108,20 @@ internal static class FileQueries
                     _ => 0,
                 },
                 Flags = FlagsOf(symbol),
+                Bases = kind == 1 && symbol.DeclaredAccessibility == Accessibility.Private ? BaseNames(symbol.ContainingType) : "",
             });
         }
+    }
+
+    private static string BaseNames(INamedTypeSymbol? type)
+    {
+        var names = new List<string>();
+        for (var b = type?.BaseType; b is not null; b = b.BaseType)
+        {
+            names.Add(b.Name);
+        }
+
+        return string.Join(',', names);
     }
 
     private static byte FlagsOf(ISymbol symbol)

@@ -626,3 +626,16 @@ snap!(
         ("preserve_single_line_statements", OptionValue::Bool(true))
     ]
 );
+
+#[test]
+fn member_attribute_line_keep_leaves_attributes_where_the_source_has_them() {
+    let input = "class C {\n    [SerializeField] int a;\n    [Header(\"h\")]\n    int b;\n}\n";
+    assert_eq!(
+        fmt(input, &[]),
+        "class C\n{\n    [SerializeField]\n    int a;\n    [Header(\"h\")]\n    int b;\n}\n"
+    );
+    assert_eq!(
+        fmt(input, &[("member_attribute_line", s("keep"))]),
+        input.replace("class C {", "class C\n{")
+    );
+}

@@ -110,6 +110,12 @@ impl Loaded {
 
     /// `path` as the globs of this file see it: relative to its directory, `/` separated.
     /// `None` for a path outside the directory.
+    /// Does an `exclude` glob of this config match `path` (absolute)?
+    pub fn excludes(&self, path: &Path) -> bool {
+        self.relative(path)
+            .is_some_and(|relative| self.globs.exclude.is_match(&relative))
+    }
+
     pub(crate) fn relative(&self, path: &Path) -> Option<String> {
         let relative = match &self.dir {
             Some(dir) => path.strip_prefix(dir).ok()?,
@@ -376,7 +382,7 @@ impl ConfigChain {
     /// The presets of `language` the chain names, as configs of their own (a preset is read
     /// like an `extends` file whose text is embedded), each after the presets it extends. They
     /// sit below every file of the chain; their globs are relative to the root config's directory.
-    pub(crate) fn preset_files(
+    pub fn preset_files(
         &self,
         language: &str,
         schema: &OptionSchema,
@@ -403,7 +409,8 @@ impl ConfigChain {
 
     /// Reads preset `name` and the presets it extends into `out`. `stack` holds the presets being
     /// read, to catch cycles. A preset can extend presets only, not files, and cannot set the
-    /// keys that are about the project (`include`, `exclude`, `analysis`, `plugins`).
+    /// keys that are about the project (`include`, `analysis`, `plugins`); its `exclude` is
+    /// read by [`Loaded::excludes`] of the files [`ConfigChain::preset_files`] returns.
     fn read_preset(
         &self,
         name: &str,
@@ -424,12 +431,11 @@ impl ConfigChain {
             .ok_or_else(|| ConfigError::new(format!("unknown preset `{name}`")))?;
         let config = parse_str(preset.text).map_err(in_preset)?;
         if !config.include.is_empty()
-            || !config.exclude.is_empty()
             || config.analysis.is_some()
             || config.plugins != Plugins::default()
         {
             return Err(in_preset(ConfigError::new(
-                "a preset cannot set include, exclude, analysis or plugins",
+                "a preset cannot set include, analysis or plugins",
             )));
         }
         stack.push(name.to_string());

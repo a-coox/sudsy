@@ -1,6 +1,6 @@
 # C# formatting (`lang-csharp`)
 
-Parser is Roslyn in the worker ([csharp-worker.md](../architecture/csharp-worker.md)); formatting, options, presets and rules are Rust. Defaults are the `csharp/microsoft` preset: width 120, indent 4, Allman braces, final newline. `sudsy config print` shows the resolved values.
+Parser is Roslyn in the worker ([csharp-worker.md](../architecture/csharp-worker.md)); formatting, options, presets and rules are Rust. Defaults (no preset): width 120, indent 4, Allman braces, final newline. `sudsy config print` shows the resolved values.
 
 ## Structure (`src/format`)
 `mod.rs` dispatches on kind and grammar tag; nodes with no code are `seq` (children in order, separated by `Sep`). `spacing.rs` (space between two tokens: short exception table, default a space), `braces.rs` (types, namespaces, blocks, switch, enum, accessors), `lists.rs` (delimited lists, lambda hook), `chains.rs` (binary, member, conditional, assignment), `query.rs` (LINQ), `tags.rs` (tag table), `options.rs`. Tag defaults (`#block`, ...) are not used for C#; tags only find kinds.

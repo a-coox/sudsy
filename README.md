@@ -19,7 +19,7 @@ Measured speed against CSharpier, Prettier, Biome and dprint, with the method an
 ## Quick start
 
 ```sh
-sudsy init --preset csharp/microsoft   # writes a starter sudsy.yaml
+sudsy init --preset csharp/google   # writes a starter sudsy.yaml
 sudsy format                           # format the current directory in place
 sudsy lint                             # report rule violations
 sudsy fix                              # apply fixes, then format
@@ -41,22 +41,20 @@ Presets are ordinary config files; writing their options by hand in `sudsy.yaml`
 
 | Preset | Style |
 |---|---|
-| `csharp/microsoft` | The default |
-| `csharp/dotnet-runtime` | Microsoft plus inline accessor bodies |
+| `csharp/dotnet-runtime` | The defaults plus inline accessor bodies |
 | `csharp/google` | 2 spaces, 100 columns, K&R braces |
 | `csharp/csharpier-compat` | CSharpier 1.x layout |
 | `csharp/stylecop` | StyleCop.Analyzers layout (blank lines, `)` placement, empty bodies) and its matching rules |
-| `json/default`, `yaml/default`, `toml/default`, `xml/default` | The defaults |
 | `json/prettier-compat`, `yaml/prettier-compat` | Prettier-like (width 80) |
 | `toml/taplo-compat` | taplo's defaults |
 | `xml/csharpier-compat` | CSharpier 1.x's XML defaults |
 
-Without a `sudsy.yaml`, C# uses `csharp/microsoft`, existing `.editorconfig` keys apply, and every other language uses its defaults. Details: [docs/formatting/presets.md](docs/formatting/presets.md).
+Without `extends` every language uses Sudsy's defaults (C#: Microsoft's layout) and existing `.editorconfig` keys apply; presets exist only where they set something. Details: [docs/formatting/presets.md](docs/formatting/presets.md).
 
 ## Configuration
 
 ```yaml
-extends: [preset:csharp/google, preset:json/default, preset:yaml/default]
+extends: [preset:csharp/google, preset:json/prettier-compat]
 exclude: ["**/Generated/**"]
 analysis: standard            # fast | standard | deep
 csharp:

@@ -5,7 +5,7 @@ use super::flat;
 use super::options::{
     brace_on_new_line, clauses_on_closing_line, constructor_initializer_on_new_line,
     creation_brace_on_new_line, do_while_on_closing_line, expand_empty_bodies, hanging_base_list,
-    label_outdent, nested_brace_on_new_line, space_after_delegate,
+    keeps_attribute_line, label_outdent, nested_brace_on_new_line, space_after_delegate,
     space_after_empty_last_for_clause, space_between_empty_for_clauses,
 };
 use super::spacing;
@@ -282,7 +282,19 @@ fn separator_raw(
     if let SyntaxElement::Node(p) = prev
         && p.kind() == k::ATTRIBUTE_LIST
     {
-        return if inline_attributes(pk) {
+        // `member_attribute_line: keep`: an attribute list the source leaves on its member's line
+        // stays there.
+        let first_of_next = match next {
+            SyntaxElement::Node(n) => cx.first_token(n),
+            SyntaxElement::Token(t) => Some(t.clone()),
+        };
+        let kept = keeps_attribute_line(cx.options)
+            && matches!((cx.last_token(p), first_of_next), (Some(a), Some(b))
+            if !cx.has_line_break(
+                parent,
+                core_syntax::TextRange::new(a.text_range().end(), b.text_range().start()),
+            ));
+        return if inline_attributes(pk) || kept {
             Sep::Space
         } else {
             Sep::Hard

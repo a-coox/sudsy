@@ -46,9 +46,6 @@ pub struct InitArgs {
     write_editorconfig: bool,
 }
 
-/// The preset each language gets when none is named.
-const DEFAULT_PRESETS: [&str; 3] = ["csharp/microsoft", "json/default", "yaml/default"];
-
 pub fn run(args: InitArgs) -> Result<()> {
     let existing = ["sudsy.yaml", "sudsy.yml"]
         .map(PathBuf::from)
@@ -98,12 +95,12 @@ pub fn run(args: InitArgs) -> Result<()> {
 }
 
 fn starter(presets: Vec<String>, known: &[(&str, &str)]) -> Result<String> {
-    let presets: Vec<String> = if presets.is_empty() {
-        DEFAULT_PRESETS.iter().map(|p| (*p).to_string()).collect()
+    let mut text = String::from("# https://github.com/a-coox/sudsy\n");
+    text.push_str(if presets.is_empty() {
+        "extends: []   # e.g. preset:csharp/google\n"
     } else {
-        presets
-    };
-    let mut text = String::from("# https://github.com/a-coox/sudsy\nextends:\n");
+        "extends:\n"
+    });
     for preset in &presets {
         if !known.iter().any(|(name, _)| name == preset) {
             let names: Vec<&str> = known.iter().map(|(n, _)| *n).collect();

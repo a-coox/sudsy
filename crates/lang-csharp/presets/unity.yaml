@@ -1,0 +1,118 @@
+# Unity: the folders Unity generates (the package cache holds thousands of `.cs` files) are left
+# out; its message methods are called by reflection, so a class that derives from one of the base
+# types uses them without any call in the project; attributes such as `[SerializeField]` stay in
+# front of the field; the JSON that Unity writes itself (assembly definitions, input actions) keeps
+# Unity's four-space indent.
+exclude: [Library/**, Temp/**, Logs/**, obj/**, UserSettings/**, Build/**, Builds/**]
+csharp:
+  format:
+    member_attribute_line: keep
+  lint:
+    rules:
+      unused-private-member:
+        level: warn
+        options:
+          reflection_base_types: [MonoBehaviour, ScriptableObject, Editor, EditorWindow, StateMachineBehaviour, AssetPostprocessor]
+          reflection_methods:
+            - Awake
+            - Start
+            - Update
+            - FixedUpdate
+            - LateUpdate
+            - OnEnable
+            - OnDisable
+            - OnDestroy
+            - OnValidate
+            - Reset
+            - OnGUI
+            - OnApplicationFocus
+            - OnApplicationPause
+            - OnApplicationQuit
+            - OnAnimatorIK
+            - OnAnimatorMove
+            - OnAudioFilterRead
+            - OnBecameVisible
+            - OnBecameInvisible
+            - OnCollisionEnter
+            - OnCollisionStay
+            - OnCollisionExit
+            - OnCollisionEnter2D
+            - OnCollisionStay2D
+            - OnCollisionExit2D
+            - OnTriggerEnter
+            - OnTriggerStay
+            - OnTriggerExit
+            - OnTriggerEnter2D
+            - OnTriggerStay2D
+            - OnTriggerExit2D
+            - OnControllerColliderHit
+            - OnDrawGizmos
+            - OnDrawGizmosSelected
+            - OnJointBreak
+            - OnJointBreak2D
+            - OnMouseDown
+            - OnMouseDrag
+            - OnMouseEnter
+            - OnMouseExit
+            - OnMouseOver
+            - OnMouseUp
+            - OnMouseUpAsButton
+            - OnParticleCollision
+            - OnParticleTrigger
+            - OnParticleSystemStopped
+            - OnParticleUpdateJobScheduled
+            - OnPreCull
+            - OnPreRender
+            - OnPostRender
+            - OnRenderImage
+            - OnRenderObject
+            - OnWillRenderObject
+            - OnTransformChildrenChanged
+            - OnTransformParentChanged
+            - OnBeforeTransformParentChanged
+            - OnRectTransformDimensionsChange
+            - OnCanvasGroupChanged
+            - OnCanvasHierarchyChanged
+            - OnDidApplyAnimationProperties
+            - OnInspectorGUI
+            - OnSceneGUI
+            - OnPreviewGUI
+            - OnInteractivePreviewGUI
+            - OnHeaderGUI
+            - HasPreviewGUI
+            - RenderStaticPreview
+            - CreateGUI
+            - OnFocus
+            - OnLostFocus
+            - OnHierarchyChange
+            - OnProjectChange
+            - OnSelectionChange
+            - OnInspectorUpdate
+            - OnStateEnter
+            - OnStateExit
+            - OnStateUpdate
+            - OnStateMove
+            - OnStateIK
+            - OnStateMachineEnter
+            - OnStateMachineExit
+            - OnPreprocessAsset
+            - OnPostprocessAsset
+            - OnPreprocessTexture
+            - OnPostprocessTexture
+            - OnPreprocessModel
+            - OnPostprocessModel
+            - OnPreprocessAnimation
+            - OnPostprocessAnimation
+            - OnPreprocessAudio
+            - OnPostprocessAudio
+            - OnPostprocessMaterial
+            - OnPostprocessMeshHierarchy
+            - OnPostprocessGameObjectWithUserProperties
+            - OnPostprocessSprites
+            - OnPostprocessCubemap
+            - OnAssignMaterialModel
+overrides:
+  - files: ["**/*.asmdef", "**/*.asmref", "**/*.inputactions"]
+    json:
+      format:
+        indent_size: 4

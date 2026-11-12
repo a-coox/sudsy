@@ -63,7 +63,11 @@ impl CssProvider {
     pub fn new(dialect: Dialect) -> Self {
         CssProvider {
             dialect,
-            matchers: vec![FileMatcher::extension(dialect.name())],
+            matchers: [dialect.name()]
+                .into_iter()
+                .chain((dialect == Dialect::Css).then_some("uss")) // Unity UI Toolkit style sheets
+                .map(FileMatcher::extension)
+                .collect(),
             schema: option_schema(),
             formatter: CssFormatter::new(dialect),
         }

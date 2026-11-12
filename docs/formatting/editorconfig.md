@@ -21,7 +21,7 @@ Files: the file name `.editorconfig` (`Spec::file_names`).
 <!-- /generated -->
 
 ## Presets
-`editorconfig/default` sets nothing.
+No presets.
 
 ## Rules
 Shared: suppression comments (`# sudsy-disable-next-line <rule>`), `no-empty-comment`, `comment-space`, `max-line-length`, and the key rules, because the grammar tags `Document` and `Section` as `#mapping` and `Pair` as `#key-value` (`no-duplicate-keys` finds a key repeated in the preamble or in one section; keys compare case-insensitively through the language's `key_name` hook; its default level is `error` as everywhere, though EditorConfig itself lets the later one win).
