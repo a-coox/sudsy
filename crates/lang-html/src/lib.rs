@@ -11,7 +11,7 @@ mod meta;
 mod patterns;
 mod rules;
 
-pub use dialect::{DialectProvider, vue_provider};
+pub use dialect::{DialectProvider, svelte_provider, vue_provider};
 pub use format::{HtmlFormatter, option_schema};
 
 include!("provider.generated.rs");

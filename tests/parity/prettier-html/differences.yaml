@@ -9,14 +9,23 @@ differences:
   vue-patterns: gap  `v-for`, `v-slot`, `slot-scope` and `generic` values with destructuring or TypeScript annotations are not formatted as parameter lists (`v-for` loop variables are only joined), and `script setup="..."` / `style vars="..."` values are kept
   vue-blocks: gap  custom blocks of formats Sudsy does not format, `<template lang>` of other languages, a self-closing `<style />` and several root templates are not as Prettier prints them
   vue-js-layout: gap  JS layout differences in `<script>` and expressions (assignment of a generic call, comments inside expressions, `z && (a && b)` is refused by the JS safety check)
+  svelte-blocks: gap  a block written without blanks around its tags (`{#if a}<p></p>{/if}`) is always broken onto lines, and a `<script>` or `<style>` that is empty or invalid is not kept as written
+  svelte-attributes: gap  mustache tags inside quoted attribute values are not broken up, and long `class:`/`on:` expressions break differently
+  svelte-ignore: gap  `<!-- prettier-ignore-start -->` / `-end` ranges are not kept
+  svelte-syntax: gap  `{@attach}` and `{#each x as { a, b = "" }}` are rejected by the grammar
+  svelte-inline: gap  where the tags of inline elements and mustache tags break in a long line differs from the plugin's printer
 files:
   prettier-html: embedded-code, front-matter, glued-inline-unit, conditional-comments, syntax-errors
   prettier-vue: embedded-code, vue-filters, vue-patterns, vue-blocks, vue-js-layout
   real-world: embedded-code, glued-inline-unit, project-options
   real-world-vue: vue-js-layout
+  prettier-svelte: svelte-blocks, svelte-attributes, svelte-ignore, svelte-syntax, svelte-inline
+  real-world-svelte: svelte-attributes, svelte-inline
 ratchet:
   prettier-html: 118
   prettier-vue: 50
+  prettier-svelte: 51
   prettier-vue-html: 10
   real-world: 198
+  real-world-svelte: 17
   real-world-vue: 8

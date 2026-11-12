@@ -3,7 +3,7 @@
 //! matchers and `vue` / `svelte` config sections on top of `html`.
 
 use crate::MAPPING;
-use crate::format::{VUE_FORMATTER, option_schema};
+use crate::format::{SVELTE_FORMATTER, VUE_FORMATTER, option_schema};
 use core_config::{OptionDef, OptionSchema};
 use core_format::NodeFormatter;
 use core_rules::{Rule, RuleHooks};
@@ -13,8 +13,11 @@ use provider_api::{
     Capabilities, FileMatcher, LanguageProvider, ParseResult, ProviderError, SourceFile,
 };
 
-/// HTML's node table with the nodes of another grammar added.
-fn mapping(extra: &[(&'static str, &'static str)]) -> &'static Mapping {
+/// HTML's node table with the nodes of another grammar added (and the tokens it wraps in nodes).
+fn mapping(
+    extra: &[(&'static str, &'static str)],
+    wrap: &[(&'static str, &'static str)],
+) -> &'static Mapping {
     let mut kinds = MAPPING.kinds.to_vec();
     kinds.extend_from_slice(extra);
     Box::leak(Box::new(Mapping {
@@ -23,7 +26,7 @@ fn mapping(extra: &[(&'static str, &'static str)]) -> &'static Mapping {
         eof: MAPPING.eof,
         unknown: MAPPING.unknown,
         kinds: Box::leak(kinds.into_boxed_slice()),
-        wrap: MAPPING.wrap,
+        wrap: Box::leak([MAPPING.wrap, wrap].concat().into_boxed_slice()),
     }))
 }
 
@@ -75,19 +78,22 @@ macro_rules! spec {
 
 /// `.vue` single-file components.
 pub fn vue_provider() -> DialectProvider {
-    let m = mapping(&[
-        ("template_element", "Element"),
-        ("directive_attribute", "Attribute"),
-        ("directive_name", "AttrName"),
-        ("directive_value", "AttrName"),
-        ("dynamic_directive_value", "AttrName"),
-        ("directive_modifier", "AttrName"),
-        ("\":\"", "AttrName"),
-        ("\".\"", "AttrName"),
-        ("\"@\"", "AttrName"),
-        ("\"#\"", "AttrName"),
-        ("interpolation", "Interpolation"),
-    ]);
+    let m = mapping(
+        &[
+            ("template_element", "Element"),
+            ("directive_attribute", "Attribute"),
+            ("directive_name", "AttrName"),
+            ("directive_value", "AttrName"),
+            ("dynamic_directive_value", "AttrName"),
+            ("directive_modifier", "AttrName"),
+            ("\":\"", "AttrName"),
+            ("\".\"", "AttrName"),
+            ("\"@\"", "AttrName"),
+            ("\"#\"", "AttrName"),
+            ("interpolation", "Interpolation"),
+        ],
+        &[],
+    );
     let options = vec![OptionDef::boolean(
         crate::format::INDENT_SCRIPT_AND_STYLE,
         false,
@@ -95,6 +101,57 @@ pub fn vue_provider() -> DialectProvider {
     )];
     let inner = TreeSitterProvider::new(spec!("vue", tree_sitter_vue, m, &VUE_FORMATTER));
     DialectProvider::new("vue", inner, schema(options))
+}
+
+/// `.svelte` components.
+pub fn svelte_provider() -> DialectProvider {
+    let mut kinds = vec![
+        ("expression", "MustacheText"),
+        ("html_tag", "MustacheText"),
+        ("const_tag", "MustacheText"),
+        ("debug_tag", "MustacheText"),
+        ("render_tag", "MustacheText"),
+    ];
+    kinds.extend(
+        [
+            "if_start",
+            "else_if_start",
+            "else_start",
+            "if_end",
+            "each_start",
+            "each_end",
+            "await_start",
+            "then_start",
+            "catch_start",
+            "await_end",
+            "key_start",
+            "key_end",
+            "snippet_start",
+            "snippet_end",
+        ]
+        .map(|n| (n, "BlockTagText")),
+    );
+    kinds.extend(
+        [
+            "if_statement",
+            "each_statement",
+            "await_statement",
+            "key_statement",
+            "snippet_statement",
+        ]
+        .map(|n| (n, "Block")),
+    );
+    let m = mapping(
+        &kinds,
+        &[("MustacheText", "Mustache"), ("BlockTagText", "BlockTag")],
+    );
+    let options = vec![OptionDef::boolean(
+        crate::format::INDENT_SCRIPT_AND_STYLE,
+        true,
+        "Indent the content of the root `<script>` and `<style>` blocks of a `.svelte` file by one level.",
+    )];
+    let inner = TreeSitterProvider::new(spec!("svelte", tree_sitter_svelte, m, &SVELTE_FORMATTER));
+    DialectProvider::new("svelte", inner, schema(options))
 }
 
 impl LanguageProvider for DialectProvider {

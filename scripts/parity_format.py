@@ -53,7 +53,8 @@ def executable(prefix, name):
 def install(spec, catalog, version, prefix):
     """Installs the tool into prefix unless it is there."""
     if "npm" in spec:
-        if not (prefix / "node_modules" / spec["npm"]).is_dir():
+        wanted = [spec["npm"], *(w.rsplit("@", 1)[0] for w in spec.get("with", []))]
+        if not all((prefix / "node_modules" / w).is_dir() for w in wanted):
             prefix.mkdir(parents=True, exist_ok=True)
             run(["npm", "install", "--silent", "--no-audit", "--no-fund", "--prefix", prefix, *spec.get("with", []), f"{spec['npm']}@{version}"], ROOT)
     elif "pip" in spec:  # a Python tool, run with PYTHONPATH=prefix

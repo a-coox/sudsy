@@ -14,6 +14,12 @@ pub enum T {
     Doctype,
     /// Vue's `{{ expression }}` (the expression is `value`).
     Interp,
+    /// Svelte's `{expression}` (`value` is what is between the braces).
+    Mustache,
+    /// Svelte's `{#if}...{/if}`: its kids are the branches, `value` the end tag.
+    Block,
+    /// The tag (`value`) of a block's branch and the content up to the next tag.
+    Branch,
 }
 
 /// The markup language: Vue and Svelte are HTML plus template syntax.
@@ -21,10 +27,13 @@ pub enum T {
 pub enum Dialect {
     Html,
     Vue,
+    Svelte,
 }
 
 pub struct Attr<'s> {
     pub name: Cow<'s, str>,
+    /// The value is `{expression}` (Svelte).
+    pub braced: bool,
     /// Between the quotes (or the bare value); `None` for a boolean attribute.
     pub value: Option<&'s str>,
 }
@@ -234,7 +243,7 @@ pub fn build<'s>(
         mode,
         dialect,
     };
-    b.children(0, root, (0, src.len()));
+    b.children(0, root.children().collect(), (0, src.len()));
     b.sensitivity(0);
     b.d
 }
@@ -288,8 +297,14 @@ impl<'s> Builder<'_, 's> {
                 rowan::NodeOrToken::Node(a) if a.kind() == k::ATTRIBUTE => {
                     let mut attr = Attr {
                         name: Cow::Borrowed(""),
+                        braced: false,
                         value: None,
                     };
+                    for m in a.children().filter(|c| c.kind() == k::MUSTACHE) {
+                        let (s, e) = sig(self.g, &m);
+                        attr.value = Some(&self.d.src[s..e]);
+                        attr.braced = true;
+                    }
                     let (a_start, a_end) = sig(self.g, &a);
                     let name_end = (a.children_with_tokens().filter_map(|e| e.into_token()))
                         .find(|t| t.kind() == k::EQUALS)
@@ -335,7 +350,46 @@ impl<'s> Builder<'_, 's> {
         self.display(id, prev_comment);
         let n = &self.d.n[id];
         let region = (n.tag_end, n.close_start.unwrap_or(end).max(n.tag_end));
-        self.children(id, node, region);
+        self.children(id, node.children().collect(), region);
+        id
+    }
+
+    /// A Svelte block: one branch per tag, the content up to the next tag in it.
+    fn block(&mut self, node: &SyntaxNode, parent: usize, start: usize, end: usize) -> usize {
+        let mut n = N::new(T::Block, start, end);
+        n.display = "block";
+        n.parent = parent;
+        let id = self.push(n);
+        // (tag range, content nodes)
+        let mut parts: Vec<((usize, usize), Vec<SyntaxNode>)> = Vec::new();
+        for c in node.children() {
+            if c.kind() == k::BLOCK_TAG {
+                parts.push((sig(self.g, &c), Vec::new()));
+            } else if let Some(last) = parts.last_mut() {
+                last.1.push(c);
+            }
+        }
+        let src = self.d.src;
+        if let Some(((s, e), _)) = parts.last()
+            && src[*s..*e].starts_with("{/")
+        {
+            self.d.n[id].value = Cow::Borrowed(&src[*s..*e]);
+            parts.pop();
+        }
+        let mut kids = Vec::new();
+        for (i, ((s, e), nodes)) in parts.iter().enumerate() {
+            let to = parts.get(i + 1).map_or(end, |p| p.0.0);
+            let mut b = N::new(T::Branch, *s, to);
+            b.display = "block";
+            b.parent = id;
+            b.value = Cow::Borrowed(&src[*s..*e]);
+            b.tag_end = *e;
+            let b = self.push(b);
+            self.children(b, nodes.clone(), (*e, to));
+            kids.push(b);
+        }
+        self.d.n[id].kids = kids;
+        self.whitespace(id, (start, end));
         id
     }
 
@@ -350,6 +404,12 @@ impl<'s> Builder<'_, 's> {
         } else {
             match self.mode {
                 _ if self.dialect == Dialect::Vue && n.parent == 0 => "block",
+                _ if self.dialect == Dialect::Svelte
+                    && n.parent == 0
+                    && matches!(n.name.as_ref(), "script" | "style" | "svelte:options") =>
+                {
+                    "block"
+                }
                 Mode::Strict => "inline",
                 Mode::Ignore => "block",
                 Mode::Css => default_display(&n.name),
@@ -358,11 +418,17 @@ impl<'s> Builder<'_, 's> {
         self.d.n[id].display = d;
     }
 
-    fn children(&mut self, parent: usize, node: &SyntaxNode, region: (usize, usize)) {
+    fn children(&mut self, parent: usize, nodes: Vec<SyntaxNode>, region: (usize, usize)) {
         let mut items: Vec<Item> = Vec::new();
-        for c in node.children() {
+        for c in nodes {
             match c.kind() {
-                k::CHUNK | k::ELEMENT | k::DOCTYPE | k::STRAY_END_TAG | k::INTERPOLATION => {
+                k::CHUNK
+                | k::ELEMENT
+                | k::DOCTYPE
+                | k::STRAY_END_TAG
+                | k::INTERPOLATION
+                | k::MUSTACHE
+                | k::BLOCK => {
                     let (s, e) = sig(self.g, &c);
                     if c.kind() == k::CHUNK && self.d.src[s..e].trim_matches(is_ws).is_empty() {
                         continue;
@@ -417,6 +483,16 @@ impl<'s> Builder<'_, 's> {
                     let mut n = N::new(T::Comment, it.start, it.end);
                     let raw = raw.strip_prefix("<!--").unwrap_or(raw);
                     n.value = Cow::Borrowed(raw.strip_suffix("-->").unwrap_or(raw));
+                    n.parent = parent;
+                    self.push(n)
+                }
+                k::BLOCK => self.block(it.node.as_ref().expect("block"), parent, it.start, it.end),
+                k::MUSTACHE => {
+                    let mut n = N::new(T::Mustache, it.start, it.end);
+                    let inner = &self.d.src[it.start..it.end];
+                    let inner = inner.strip_prefix('{').unwrap_or(inner);
+                    n.value = Cow::Borrowed(inner.strip_suffix('}').unwrap_or(inner));
+                    n.display = "inline";
                     n.parent = parent;
                     self.push(n)
                 }

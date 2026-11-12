@@ -97,7 +97,7 @@ impl P<'_> {
     /// Does the last descendant of `id` count as text? (An interpolation's content does.)
     fn ends_in_text(&self, id: usize) -> bool {
         let last = self.last_descendant(id);
-        self.text_like(last) || self.n(last).t == T::Interp
+        self.text_like(last) || matches!(self.n(last).t, T::Interp | T::Mustache)
     }
 
     fn last_descendant(&self, id: usize) -> usize {
@@ -174,6 +174,7 @@ impl P<'_> {
             }
             .into(),
             T::Interp => "{{".into(),
+            T::Mustache => "{".into(),
             _ => format!("<{}", n.name),
         }
     }
@@ -192,6 +193,8 @@ impl P<'_> {
     fn close_end_marker(&self, id: usize) -> &'static str {
         if self.n(id).t == T::Interp {
             "}}"
+        } else if self.n(id).t == T::Mustache {
+            "}"
         } else if self.should_not_print_closing(id) {
             ""
         } else if self.n(id).t == T::Element && self.n(id).self_closing {
@@ -477,6 +480,9 @@ impl P<'_> {
                 ])
             }
             T::Interp => self.interpolation(id),
+            T::Mustache => self.mustache(id),
+            T::Block => self.block_doc(id),
+            T::Branch => doc::nil(),
             T::Root => doc::nil(),
         }
     }
@@ -602,10 +608,15 @@ impl P<'_> {
         doc::fill(parts)
     }
 
-    fn attribute(&self, id: usize, name: &str, value: &Option<&str>) -> Doc {
+    fn attribute(&self, id: usize, name: &str, value: &Option<&str>, braced: bool) -> Doc {
         let Some(v) = value else {
             return s(name);
         };
+        if braced {
+            return self
+                .braced_attribute(id, name, v)
+                .unwrap_or_else(|| doc::concat(vec![s(format!("{name}=")), verbatim_text(v)]));
+        }
         if let Some(d) = self.embedded_attribute(id, name, v) {
             return d;
         }
@@ -648,7 +659,7 @@ impl P<'_> {
         let printed: Vec<Doc> = n
             .attrs
             .iter()
-            .map(|a| self.attribute(id, &a.name, &a.value))
+            .map(|a| self.attribute(id, &a.name, &a.value, a.braced))
             .collect();
         let mut parts = vec![doc::indent(doc::concat(vec![
             if force_not_to_break {
@@ -701,7 +712,7 @@ impl P<'_> {
     /// The content of a root `<script>` or `<style>` of a Vue file starts at the margin.
     fn unindented(&self, id: usize) -> bool {
         let n = self.n(id);
-        self.o.dialect == Dialect::Vue
+        self.o.dialect != Dialect::Html
             && !self.o.indent_blocks
             && n.parent == 0
             && matches!(n.name.as_ref(), "script" | "style")

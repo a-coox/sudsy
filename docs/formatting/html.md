@@ -68,7 +68,19 @@ The rules are named and ordered after html-validate (`docs/parity/html-validate.
 The parser already reports a stray end tag, a raw `&` or `<` in text and a self-closed `<script>` as `syntax-error`, which is the equivalent of html-validate's `close-order`, `close-attr`, `no-raw-characters` and `script-element`. Presets: `html/html-validate-standard` and `html/html-validate-recommended` ([presets.md](presets.md)). All rules are off by default.
 
 ## Parity
-`scripts/parity.sh format prettier-html` compares with Prettier 3.9.10 ([../development/parity.md](../development/parity.md)); the gaps are named in `tests/parity/prettier-html/differences.yaml`. Files identical to Prettier's output: `prettier-html` 118 of 144 that Prettier formats, `prettier-vue-html` 10 of 10, `real-world` 198 of 233; `.vue` files: `prettier-vue` 50 of 80 (Prettier's `tests/format/vue`), `real-world-vue` 8 of 11 (vuejs/core). Lint parity: [Lint](#lint).
+`scripts/parity.sh format prettier-html` compares with Prettier 3.9.10 ([../development/parity.md](../development/parity.md)); the gaps are named in `tests/parity/prettier-html/differences.yaml`. Files identical to Prettier's output: `prettier-html` 118 of 144 that Prettier formats, `prettier-vue-html` 10 of 10, `real-world` 198 of 233; `.vue` files: `prettier-vue` 50 of 80 (Prettier's `tests/format/vue`), `real-world-vue` 8 of 11 (vuejs/core); `.svelte` files: `prettier-svelte` 51 of 76 (prettier-plugin-svelte 3.5.2's samples, run with the plugin), `real-world-svelte` 17 of 24 (sveltejs/realworld). Lint parity: [Lint](#lint).
+
+
+## Svelte
+`.svelte` files are the `svelte` language (same provider shape as Vue; tree-sitter-svelte-ng 1.0.2 vendored unchanged, [FORK.md](../../grammars/tree-sitter-svelte/FORK.md); `{@attach}` and destructuring in `{#each}` are not parsed yet). The formatter follows prettier-plugin-svelte:
+- Case is kept. The root is sorted as the plugin does by default: `<svelte:options>`, scripts, markup, styles (a comment moves with the node below it), one blank line between; `<script>` and `<style>` content is indented (`indent_script_and_style`, default `true`).
+- A block `{#if}` / `{#each}` / `{#await}` / `{#key}` / `{#snippet}` is a `Block` of branches: each tag on its own line with its content indented below; the condition of `if`, `else if` and `key` is formatted as an expression.
+- `{expression}` is formatted (`{@html x}`, `{@const a = b}` hug the braces); attribute values `name={expression}` hug like Vue's, `name={name}` becomes `{name}`, `bind:name={name}` `bind:name`, and `name="{expr}"` `name={expr}`.
+- The root is rewritten before formatting when it needs sorting (`rewrite_source`), as are the attribute shorthands. Not done: blocks and tags written without blanks stay inline, `prettier-ignore-start`/`-end`, mustache tags inside quoted attribute values are not broken.
+
+| Option | Values | Default | Description |
+|---|---|---|---|
+| `indent_script_and_style` | bool | `true` | Indent the content of the root `<script>` and `<style>` blocks of a `.svelte` file by one level. |
 
 ## Licenses
-`bench/inputs/html`: the five `bootstrap-*` pages are Bootstrap 5.3.3's `js/tests/visual` (MIT, Copyright 2011-2024 The Bootstrap Authors); `mdn-accessibility-assessment.html` is from mdn/learning-area (CC0 1.0). tree-sitter-html is MIT ([LICENSE](../../grammars/tree-sitter-html/LICENSE)).
+`bench/inputs/html`: the five `bootstrap-*` pages are Bootstrap 5.3.3's `js/tests/visual` (MIT, Copyright 2011-2024 The Bootstrap Authors); `mdn-accessibility-assessment.html` is from mdn/learning-area (CC0 1.0). `bench/inputs/vue`: three files of vuejs/core's `sfc-playground` (MIT, Copyright 2018-present Yuxi (Evan) You and Vue contributors); `bench/inputs/svelte`: three files of sveltejs/realworld (MIT, Copyright 2020 Svelte contributors). tree-sitter-vue and tree-sitter-svelte-ng are MIT (Amaan Qureshi; [LICENSE](../../grammars/tree-sitter-vue/LICENSE)); tree-sitter-html is MIT ([LICENSE](../../grammars/tree-sitter-html/LICENSE)).

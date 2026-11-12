@@ -1,0 +1,18 @@
+[package]
+name = "tree-sitter-svelte"
+description = "Svelte grammar for tree-sitter (vendored, see FORK.md)"
+version = "0.1.0"
+license = "MIT"
+edition.workspace = true
+publish = false
+autoexamples = false
+build = "bindings/rust/build.rs"
+
+[lib]
+path = "bindings/rust/lib.rs"
+
+[dependencies]
+tree-sitter-language = "0.1.8"
+
+[build-dependencies]
+cc = "1.2"

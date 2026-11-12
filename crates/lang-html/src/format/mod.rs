@@ -24,6 +24,10 @@ pub struct MarkupFormatter {
     pub dialect: Dialect,
 }
 
+pub static SVELTE_FORMATTER: MarkupFormatter = MarkupFormatter {
+    dialect: Dialect::Svelte,
+};
+
 pub static VUE_FORMATTER: MarkupFormatter = MarkupFormatter {
     dialect: Dialect::Vue,
 };
@@ -105,9 +109,12 @@ impl NodeFormatter for MarkupFormatter {
         };
         let text = t.text();
         match t.kind() {
-            k::TAG_NAME | k::ATTR_NAME | k::DOCTYPE_KW => Cow::Owned(text.to_ascii_lowercase()),
+            // Svelte's `{name}` is `name={name}`.
+            k::ATTR_NAME => Cow::Owned(text.trim_matches(['{', '}']).to_ascii_lowercase()),
+            k::TAG_NAME | k::DOCTYPE_KW => Cow::Owned(text.to_ascii_lowercase()),
             // Code the formatter may rewrite is checked by its own language's formatter.
             k::ATTR_VALUE if embedded_attribute(t) => Cow::Borrowed(""),
+            k::MUSTACHE_TEXT | k::BLOCK_TAG_TEXT => Cow::Borrowed(""),
             k::TEXT | k::RAW_TEXT
                 if in_script_or_style(t)
                     || in_interpolation(t)
@@ -126,6 +133,135 @@ impl NodeFormatter for MarkupFormatter {
             k::GT | k::SLASH_GT => Cow::Borrowed(""),
             _ => Cow::Borrowed(text),
         }
+    }
+
+    /// Svelte: `name={name}` is `{name}` (`bind:name={name}` is `bind:name`) and `name="{expr}"`
+    /// is `name={expr}`.
+    fn rewrite_source(
+        &self,
+        tree: &SyntaxNode,
+        text: &str,
+        _grammar: &core_syntax::Grammar,
+        _options: &core_config::ResolvedOptions,
+    ) -> Option<String> {
+        if self.dialect != Dialect::Svelte {
+            return None;
+        }
+        let mut edits: Vec<(std::ops::Range<usize>, String)> = Vec::new();
+        for a in tree.descendants().filter(|n| n.kind() == k::ATTRIBUTE) {
+            let r = a.text_range();
+            // The node carries the blanks around it as trivia.
+            let whole = &text[usize::from(r.start())..usize::from(r.end())];
+            let start = usize::from(r.start()) + (whole.len() - whole.trim_start().len());
+            let end = usize::from(r.start()) + whole.trim_end().len();
+            let Some(eq) = a
+                .children_with_tokens()
+                .filter_map(|e| e.into_token())
+                .find(|t| t.kind() == k::EQUALS)
+            else {
+                continue;
+            };
+            let eq_at = usize::from(eq.text_range().start());
+            let name = text[start..eq_at].trim_end();
+            let value = a
+                .children_with_tokens()
+                .filter_map(|v| match v {
+                    SyntaxElement::Node(n) if n.kind() == k::MUSTACHE => {
+                        let r = n.text_range();
+                        Some((usize::from(r.start())..usize::from(r.end()), false))
+                    }
+                    SyntaxElement::Token(t) if t.kind() == k::ATTR_VALUE => {
+                        let r = t.text_range();
+                        Some((usize::from(r.start())..usize::from(r.end()), true))
+                    }
+                    _ => None,
+                })
+                .last();
+            let Some((range, quoted)) = value else {
+                continue;
+            };
+            let raw = text[range.clone()].trim();
+            let braces = if quoted {
+                // `"{expr}"`: one mustache and nothing else.
+                raw.get(1..raw.len().saturating_sub(1))
+                    .filter(|v| raw.len() > 1 && v.starts_with('{') && v.ends_with('}'))
+                    .filter(|v| v[1..v.len() - 1].find(['{', '}']).is_none())
+            } else {
+                Some(raw)
+            };
+            let Some(braces) = braces else { continue };
+            let inner = braces[1..braces.len() - 1].trim();
+            let last = name.rsplit(':').next().unwrap_or(name);
+            if inner == last {
+                let short = if name.contains(':') {
+                    name.to_string()
+                } else {
+                    format!("{{{name}}}")
+                };
+                edits.push((start..end, short));
+            } else if quoted {
+                edits.push((range, braces.to_string()));
+            }
+        }
+        edits.sort_by_key(|e| e.0.start);
+        // `text[range]` with the edits inside it applied.
+        let piece = |range: std::ops::Range<usize>| {
+            let mut out = text[range.clone()].to_string();
+            for (r, with) in edits.iter().rev() {
+                if r.start >= range.start && r.end <= range.end {
+                    out.replace_range(r.start - range.start..r.end - range.start, with);
+                }
+            }
+            out
+        };
+        // prettier-plugin-svelte's default order of the root: `<svelte:options>`, scripts, markup,
+        // styles. Blocks apart in the source are joined by a line break, different parts by a blank line.
+        let root: Vec<(u8, std::ops::Range<usize>)> = tree
+            .children()
+            .map(|c| {
+                let r = c.text_range();
+                let key = c
+                    .children()
+                    .find(|s| s.kind() == k::START_TAG)
+                    .and_then(|t| {
+                        t.children_with_tokens()
+                            .filter_map(|e| e.into_token())
+                            .find(|t| t.kind() == k::TAG_NAME)
+                    })
+                    .map_or(2, |n| match n.text() {
+                        "svelte:options" => 0,
+                        "script" => 1,
+                        "style" => 3,
+                        _ => 2,
+                    });
+                (key, usize::from(r.start())..usize::from(r.end()))
+            })
+            .collect();
+        if root.windows(2).any(|w| w[0].0 > w[1].0) {
+            let mut order: Vec<usize> = (0..root.len()).collect();
+            order.sort_by_key(|&i| root[i].0);
+            let mut out = String::new();
+            for (n, &i) in order.iter().enumerate() {
+                if n > 0 {
+                    let prev = order[n - 1];
+                    if i == prev + 1 {
+                        out += &text[root[prev].1.end..root[i].1.start];
+                    } else {
+                        out += if root[i].0 == root[prev].0 {
+                            "\n"
+                        } else {
+                            "\n\n"
+                        };
+                    }
+                }
+                out += piece(root[i].1.clone()).trim();
+            }
+            return Some(out + "\n");
+        }
+        if edits.is_empty() {
+            return None;
+        }
+        Some(piece(0..text.len()))
     }
 
     fn format_node(

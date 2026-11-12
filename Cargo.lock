@@ -1581,6 +1581,7 @@ dependencies = [
  "provider-api",
  "rowan",
  "tree-sitter-html",
+ "tree-sitter-svelte",
  "tree-sitter-vue",
 ]
 
@@ -3431,6 +3432,14 @@ name = "tree-sitter-proto"
 version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9c93b6f1ed20de442e900eb636f2176af6063953dfaa9f76bf168dd3b490a3a1"
+dependencies = [
+ "cc",
+ "tree-sitter-language",
+]
+
+[[package]]
+name = "tree-sitter-svelte"
+version = "0.1.0"
 dependencies = [
  "cc",
  "tree-sitter-language",

@@ -214,3 +214,18 @@ fn html_fences_are_formatted_and_linted() {
     let linted = found(&db(on), "a.md", "```html\n<center>a</center>\n```\n");
     assert_eq!(linted, [("deprecated".into(), "cent".into())]);
 }
+
+#[test]
+fn svelte_blocks_tags_and_scripts_are_formatted() {
+    let providers: Vec<Box<dyn LanguageProvider>> = vec![
+        Box::new(lang_html::svelte_provider()),
+        Box::new(lang_js::JsProvider::new()),
+        Box::new(lang_css::CssProvider::new(lang_css::Dialect::Css)),
+    ];
+    let db = Database::new(providers);
+    let svelte = "<style>a{b:c}</style>\n{#if a>1}<p on:click={()=>x++} {y}>{y}</p>{:else}\nno\n{/if}\n<script>\nlet a=1\n</script>\n<input value={value} />\n";
+    let want = "<script>\n  let a = 1;\n</script>\n\n{#if a > 1}\n  <p on:click={() => x++} {y}>{y}</p>\n{:else}\n  no\n{/if}\n<input {value} />\n\n<style>\n  a {\n    b: c;\n  }\n</style>\n";
+    let once = formatted(&db, "a.svelte", svelte);
+    assert_eq!(once, want);
+    assert_eq!(formatted(&db, "a.svelte", &once), once);
+}

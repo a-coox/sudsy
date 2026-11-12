@@ -10405,6 +10405,7 @@
       "id": "area-alt",
       "languages": [
         "html",
+        "svelte",
         "vue"
       ],
       "options": [],
@@ -10434,6 +10435,7 @@
       "id": "aria-hidden-body",
       "languages": [
         "html",
+        "svelte",
         "vue"
       ],
       "options": [],
@@ -10468,6 +10470,7 @@
       "id": "aria-label-misuse",
       "languages": [
         "html",
+        "svelte",
         "vue"
       ],
       "options": [],
@@ -10497,6 +10500,7 @@
       "id": "attr-case",
       "languages": [
         "html",
+        "svelte",
         "vue"
       ],
       "options": [],
@@ -10526,6 +10530,7 @@
       "id": "attr-delimiter",
       "languages": [
         "html",
+        "svelte",
         "vue"
       ],
       "options": [],
@@ -10555,6 +10560,7 @@
       "id": "attr-pattern",
       "languages": [
         "html",
+        "svelte",
         "vue"
       ],
       "options": [
@@ -10594,6 +10600,7 @@
       "id": "attr-quotes",
       "languages": [
         "html",
+        "svelte",
         "vue"
       ],
       "options": [],
@@ -10623,6 +10630,7 @@
       "id": "attr-spacing",
       "languages": [
         "html",
+        "svelte",
         "vue"
       ],
       "options": [],
@@ -10657,6 +10665,7 @@
       "id": "attribute-allowed-values",
       "languages": [
         "html",
+        "svelte",
         "vue"
       ],
       "options": [],
@@ -10686,6 +10695,7 @@
       "id": "attribute-boolean-style",
       "languages": [
         "html",
+        "svelte",
         "vue"
       ],
       "options": [],
@@ -10715,6 +10725,7 @@
       "id": "attribute-empty-style",
       "languages": [
         "html",
+        "svelte",
         "vue"
       ],
       "options": [],
@@ -10749,6 +10760,7 @@
       "id": "class-pattern",
       "languages": [
         "html",
+        "svelte",
         "vue"
       ],
       "options": [
@@ -10783,6 +10795,7 @@
       "id": "deprecated",
       "languages": [
         "html",
+        "svelte",
         "vue"
       ],
       "options": [],
@@ -10812,6 +10825,7 @@
       "id": "doctype-html",
       "languages": [
         "html",
+        "svelte",
         "vue"
       ],
       "options": [],
@@ -10841,6 +10855,7 @@
       "id": "doctype-style",
       "languages": [
         "html",
+        "svelte",
         "vue"
       ],
       "options": [],
@@ -10875,6 +10890,7 @@
       "id": "element-case",
       "languages": [
         "html",
+        "svelte",
         "vue"
       ],
       "options": [],
@@ -10904,6 +10920,7 @@
       "id": "element-name",
       "languages": [
         "html",
+        "svelte",
         "vue"
       ],
       "options": [],
@@ -10943,6 +10960,7 @@
       "id": "element-required-attributes",
       "languages": [
         "html",
+        "svelte",
         "vue"
       ],
       "options": [],
@@ -10972,6 +10990,7 @@
       "id": "empty-heading",
       "languages": [
         "html",
+        "svelte",
         "vue"
       ],
       "options": [],
@@ -11001,6 +11020,7 @@
       "id": "empty-title",
       "languages": [
         "html",
+        "svelte",
         "vue"
       ],
       "options": [],
@@ -11040,6 +11060,7 @@
       "id": "heading-level",
       "languages": [
         "html",
+        "svelte",
         "vue"
       ],
       "options": [],
@@ -11072,6 +11093,7 @@
       "id": "id-pattern",
       "languages": [
         "html",
+        "svelte",
         "vue"
       ],
       "options": [
@@ -11106,6 +11128,7 @@
       "id": "input-missing-label",
       "languages": [
         "html",
+        "svelte",
         "vue"
       ],
       "options": [],
@@ -11133,6 +11156,7 @@
       "id": "long-title",
       "languages": [
         "html",
+        "svelte",
         "vue"
       ],
       "options": [],
@@ -11162,6 +11186,7 @@
       "id": "map-dup-name",
       "languages": [
         "html",
+        "svelte",
         "vue"
       ],
       "options": [],
@@ -11191,6 +11216,7 @@
       "id": "meta-refresh",
       "languages": [
         "html",
+        "svelte",
         "vue"
       ],
       "options": [],
@@ -11220,6 +11246,7 @@
       "id": "missing-doctype",
       "languages": [
         "html",
+        "svelte",
         "vue"
       ],
       "options": [],
@@ -11247,6 +11274,7 @@
       "id": "multiple-labeled-controls",
       "languages": [
         "html",
+        "svelte",
         "vue"
       ],
       "options": [],
@@ -11276,6 +11304,7 @@
       "id": "name-pattern",
       "languages": [
         "html",
+        "svelte",
         "vue"
       ],
       "options": [
@@ -11310,6 +11339,7 @@
       "id": "no-abstract-role",
       "languages": [
         "html",
+        "svelte",
         "vue"
       ],
       "options": [],
@@ -11339,6 +11369,7 @@
       "id": "no-autoplay",
       "languages": [
         "html",
+        "svelte",
         "vue"
       ],
       "options": [],
@@ -11368,6 +11399,7 @@
       "id": "no-conditional-comment",
       "languages": [
         "html",
+        "svelte",
         "vue"
       ],
       "options": [],
@@ -11397,6 +11429,7 @@
       "id": "no-deprecated-attr",
       "languages": [
         "html",
+        "svelte",
         "vue"
       ],
       "options": [],
@@ -11426,6 +11459,7 @@
       "id": "no-duplicate-class",
       "languages": [
         "html",
+        "svelte",
         "vue"
       ],
       "options": [],
@@ -11455,6 +11489,7 @@
       "id": "no-duplicate-id",
       "languages": [
         "html",
+        "svelte",
         "vue"
       ],
       "options": [],
@@ -11484,6 +11519,7 @@
       "id": "no-implicit-button-type",
       "languages": [
         "html",
+        "svelte",
         "vue"
       ],
       "options": [],
@@ -11513,6 +11549,7 @@
       "id": "no-implicit-close",
       "languages": [
         "html",
+        "svelte",
         "vue"
       ],
       "options": [],
@@ -11542,6 +11579,7 @@
       "id": "no-implicit-input-type",
       "languages": [
         "html",
+        "svelte",
         "vue"
       ],
       "options": [],
@@ -11571,6 +11609,7 @@
       "id": "no-inline-style",
       "languages": [
         "html",
+        "svelte",
         "vue"
       ],
       "options": [],
@@ -11605,6 +11644,7 @@
       "id": "no-missing-references",
       "languages": [
         "html",
+        "svelte",
         "vue"
       ],
       "options": [],
@@ -11632,6 +11672,7 @@
       "id": "no-multiple-main",
       "languages": [
         "html",
+        "svelte",
         "vue"
       ],
       "options": [],
@@ -11661,6 +11702,7 @@
       "id": "no-redundant-for",
       "languages": [
         "html",
+        "svelte",
         "vue"
       ],
       "options": [],
@@ -11705,6 +11747,7 @@
       "id": "no-redundant-role",
       "languages": [
         "html",
+        "svelte",
         "vue"
       ],
       "options": [],
@@ -11734,6 +11777,7 @@
       "id": "no-self-closing",
       "languages": [
         "html",
+        "svelte",
         "vue"
       ],
       "options": [],
@@ -11763,6 +11807,7 @@
       "id": "no-style-tag",
       "languages": [
         "html",
+        "svelte",
         "vue"
       ],
       "options": [],
@@ -11790,6 +11835,7 @@
       "id": "no-trailing-whitespace",
       "languages": [
         "html",
+        "svelte",
         "vue"
       ],
       "options": [],
@@ -11824,6 +11870,7 @@
       "id": "no-unknown-elements",
       "languages": [
         "html",
+        "svelte",
         "vue"
       ],
       "options": [],
@@ -11851,6 +11898,7 @@
       "id": "no-void-end-tag",
       "languages": [
         "html",
+        "svelte",
         "vue"
       ],
       "options": [],
@@ -11880,6 +11928,7 @@
       "id": "prefer-button",
       "languages": [
         "html",
+        "svelte",
         "vue"
       ],
       "options": [],
@@ -11924,6 +11973,7 @@
       "id": "prefer-native-element",
       "languages": [
         "html",
+        "svelte",
         "vue"
       ],
       "options": [],
@@ -11953,6 +12003,7 @@
       "id": "prefer-tbody",
       "languages": [
         "html",
+        "svelte",
         "vue"
       ],
       "options": [],
@@ -11982,6 +12033,7 @@
       "id": "presentation-role-style",
       "languages": [
         "html",
+        "svelte",
         "vue"
       ],
       "options": [],
@@ -12026,6 +12078,7 @@
       "id": "require-sri",
       "languages": [
         "html",
+        "svelte",
         "vue"
       ],
       "options": [],
@@ -12053,6 +12106,7 @@
       "id": "svg-focusable",
       "languages": [
         "html",
+        "svelte",
         "vue"
       ],
       "options": [],
@@ -12080,6 +12134,7 @@
       "id": "text-content",
       "languages": [
         "html",
+        "svelte",
         "vue"
       ],
       "options": [],
@@ -12129,6 +12184,7 @@
       "id": "unique-landmark",
       "languages": [
         "html",
+        "svelte",
         "vue"
       ],
       "options": [],
@@ -12158,6 +12214,7 @@
       "id": "unrecognized-char-ref",
       "languages": [
         "html",
+        "svelte",
         "vue"
       ],
       "options": [],
@@ -12197,6 +12254,7 @@
       "id": "valid-id",
       "languages": [
         "html",
+        "svelte",
         "vue"
       ],
       "options": [],
@@ -12226,6 +12284,7 @@
       "id": "void-style",
       "languages": [
         "html",
+        "svelte",
         "vue"
       ],
       "options": [],

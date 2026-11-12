@@ -95,6 +95,7 @@ export const documentSelector = [
   { scheme: "file", pattern: "**/*.plist" },
   { scheme: "file", pattern: "**/*.uxml" },
   { scheme: "file", pattern: "**/*.vue" },
+  { scheme: "file", pattern: "**/*.svelte" },
   { scheme: "file", pattern: "**/*.cs" },
   { scheme: "file", pattern: "**/*.csx" },
 ];

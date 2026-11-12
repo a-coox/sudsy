@@ -80,13 +80,17 @@ fn lines(code: &str) -> Doc {
 /// `name="` body `"`: the body stays on the line when it fits, else it is indented on lines of
 /// its own.
 fn expand(name: &str, body: Doc) -> Doc {
+    expand_with(&format!("{name}=\""), "\"", body)
+}
+
+fn expand_with(open: &str, close: &str, body: Doc) -> Doc {
     doc::concat(vec![
-        s(format!("{name}=\"")),
+        s(open),
         doc::group(doc::concat(vec![
             doc::indent(doc::concat(vec![doc::softline(), body])),
             doc::softline(),
         ])),
-        s("\""),
+        s(close),
     ])
 }
 
@@ -123,7 +127,10 @@ impl P<'_> {
         {
             return Some(s(format!("{name}=\"\"")));
         }
-        if value.trim().is_empty() || value.contains("{{") {
+        if value.trim().is_empty()
+            || value.contains("{{")
+            || (self.o.dialect == Dialect::Svelte && value.contains('{'))
+        {
             return None;
         }
         if iframe_allow {
@@ -243,7 +250,6 @@ impl P<'_> {
         let embed = self.o.embed?;
         let key = lower.split([':', '.', '[']).next().unwrap_or("");
         let language = self.expression_language();
-        let indent = (self.depth(id) + 1) * self.o.tab;
         if !(lower.starts_with([':', '@', '#', '.'])
             || key.starts_with("v-")
             || key == "slot-scope")
@@ -264,9 +270,32 @@ impl P<'_> {
             }
             expr(value).map(|o| (o, false))
         };
-        let fix = |o: String| o.replace('"', "&quot;");
-        let (flat, statements) = run(self.o.width.saturating_sub(indent + name.len() + 2))?;
-        // A string or template literal stays on the line however long it is.
+        self.attr_expression(
+            id,
+            &format!("{name}=\""),
+            "\"",
+            &|o| o.replace('"', "&quot;"),
+            &run,
+        )
+    }
+
+    /// `open` the formatted expression `close`: a string or template literal stays on the line, an
+    /// object, array or function hugs the delimiters, anything else goes on lines of its own when
+    /// it does not fit. `run` formats for a width and says whether the result is statements.
+    fn attr_expression(
+        &self,
+        id: usize,
+        open: &str,
+        close: &str,
+        fix: &dyn Fn(String) -> String,
+        run: &dyn Fn(usize) -> Option<(String, bool)>,
+    ) -> Option<Doc> {
+        let indent = (self.depth(id) + 1) * self.o.tab;
+        let (flat, statements) = run(self
+            .o
+            .width
+            .saturating_sub(indent + open.len() + close.len()))?;
+        let hugged = |flat: String| doc::concat(vec![s(open), lines(&fix(flat)), s(close)]);
         let quote = flat
             .chars()
             .next()
@@ -275,14 +304,10 @@ impl P<'_> {
             flat.len() > 1 && flat.ends_with(q) && !flat[1..flat.len() - 1].contains(q)
         });
         if literal {
-            return Some(doc::concat(vec![
-                s(format!("{name}=\"")),
-                lines(&fix(flat)),
-                s("\""),
-            ]));
+            return Some(hugged(flat));
         }
         if !flat.contains('\n') {
-            return Some(expand(name, s(fix(flat))));
+            return Some(expand_with(open, close, s(fix(flat))));
         }
         let first = flat.lines().next().unwrap_or("");
         let hug = !statements
@@ -290,14 +315,110 @@ impl P<'_> {
                 || flat.starts_with("function")
                 || (first.contains("=>") && first.ends_with('{')));
         if hug {
-            return Some(doc::concat(vec![
-                s(format!("{name}=\"")),
-                lines(&fix(flat)),
-                s("\""),
-            ]));
+            return Some(hugged(flat));
         }
         let (broken, _) = run(self.o.width.saturating_sub(indent + self.o.tab))?;
-        Some(expand(name, lines(&fix(broken))))
+        Some(expand_with(open, close, lines(&fix(broken))))
+    }
+}
+
+impl P<'_> {
+    /// The formatted expression `code` of node `id`, when it parses.
+    fn format_expression(&self, id: usize, code: &str) -> Option<String> {
+        let width = self
+            .o
+            .width
+            .saturating_sub((self.depth(id) + 1) * self.o.tab);
+        let embed = self.o.embed?;
+        embed(
+            self.expression_language(),
+            EmbedMode::Expression,
+            code,
+            width,
+            false,
+        )
+    }
+
+    /// Svelte's `{expression}`, `{@html expression}`.
+    pub(super) fn mustache(&self, id: usize) -> Doc {
+        let inner = self.n(id).value.trim();
+        let (keyword, code) = match inner.strip_prefix('@') {
+            Some(rest) => {
+                let (k, c) = rest.split_once(char::is_whitespace).unwrap_or((rest, ""));
+                (format!("@{k} "), c.trim())
+            }
+            None => (String::new(), inner),
+        };
+        let out = self.format_expression(id, code);
+        if !keyword.is_empty() {
+            // `{@const a = b}` hugs the braces.
+            return doc::concat(vec![
+                s(self.open_start(id) + &keyword),
+                lines(out.as_deref().unwrap_or(code)),
+                s(self.close_end(id)),
+            ]);
+        }
+        doc::concat(vec![
+            s(self.open_start(id) + &keyword),
+            doc::group(doc::concat(vec![
+                doc::indent(doc::concat(vec![
+                    doc::softline(),
+                    lines(out.as_deref().unwrap_or(code)),
+                ])),
+                doc::softline(),
+            ])),
+            s(self.close_end(id)),
+        ])
+    }
+
+    /// `{#if x}`, `{:else}`...: the condition of `if`, `else if` and `key` is formatted.
+    fn branch_tag(&self, id: usize, tag: &str) -> Doc {
+        let inner = tag.trim_start_matches('{').trim_end_matches('}').trim();
+        let formatted = ["#if ", ":else if ", "#key "].iter().find_map(|p| {
+            let out = self.format_expression(id, inner.strip_prefix(p)?.trim())?;
+            Some(doc::concat(vec![s(format!("{{{p}")), lines(&out), s("}")]))
+        });
+        formatted.unwrap_or_else(|| {
+            s(format!(
+                "{{{}}}",
+                inner.split_whitespace().collect::<Vec<_>>().join(" ")
+            ))
+        })
+    }
+
+    /// `{#if}` ... `{/if}`: each branch's tag with its content indented below.
+    pub(super) fn block_doc(&self, id: usize) -> Doc {
+        let n = self.n(id);
+        let mut parts = Vec::new();
+        for (i, &b) in n.kids.iter().enumerate() {
+            if i > 0 {
+                parts.push(doc::hardline());
+            }
+            let branch = self.n(b);
+            parts.push(self.branch_tag(id, &branch.value));
+            if !branch.kids.is_empty() {
+                parts.push(doc::indent(doc::concat(vec![
+                    doc::hardline(),
+                    self.children(b),
+                ])));
+            }
+        }
+        if !n.value.is_empty() {
+            parts.push(doc::hardline());
+            parts.push(s(n.value.trim()));
+        }
+        doc::concat(parts)
+    }
+
+    /// `name={expression}` (Svelte).
+    pub(super) fn braced_attribute(&self, id: usize, name: &str, value: &str) -> Option<Doc> {
+        let embed = self.o.embed?;
+        let code = value.strip_prefix('{')?.strip_suffix('}')?.trim();
+        let language = self.expression_language();
+        let run = |width: usize| {
+            embed(language, EmbedMode::Expression, code, width, false).map(|o| (o, false))
+        };
+        self.attr_expression(id, &format!("{name}={{"), "}", &|o| o, &run)
     }
 }
 

@@ -47,6 +47,13 @@ token Unknown #error
 
 node Document = items:#content* Eof
 node Doctype #content = LtBang DoctypeKw DoctypeBody Gt
+// Svelte: `{expression}` and `{@html x}`, and the tags of its blocks (`{#if x}`, `{:else}`, `{/if}`).
+token MustacheText #restyle
+token BlockTagText #restyle
+node Mustache #content = value:MustacheText
+node BlockTag #content = value:BlockTagText
+// The tags and the content between them, in order.
+node Block #content = items:#content*
 node Interpolation #content = LBraceBrace Chunk? RBraceBrace
 node Chunk #content = value:#chunk
 node Element #content = start:#start-tag content:#content* end:EndTag?

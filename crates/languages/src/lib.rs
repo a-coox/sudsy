@@ -47,6 +47,7 @@ pub fn providers() -> Vec<Box<dyn LanguageProvider>> {
         Box::new(lang_xml::provider()),
         // /generated
         Box::new(lang_html::vue_provider()),
+        Box::new(lang_html::svelte_provider()),
         Box::new(lang_csharp::provider(&worker)),
     ]
 }

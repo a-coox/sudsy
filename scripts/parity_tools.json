@@ -46,9 +46,9 @@
     },
     "prettier-html": {
       "catalog": "prettier",
-      "install": {"npm": "prettier"},
+      "install": {"npm": "prettier", "with": ["prettier-plugin-svelte@3.5.2"]},
       "fetch": ["tests/conformance/fetch-html-corpus.sh"],
-      "command": ["node", "{prefix}/node_modules/prettier/bin/prettier.cjs", "--no-config", "--no-editorconfig", "{file}"],
+      "command": ["node", "{prefix}/node_modules/prettier/bin/prettier.cjs", "--no-config", "--no-editorconfig", "--plugin", "{prefix}/node_modules/prettier-plugin-svelte/plugin.js", "{file}"],
       "input": "arg",
       "tool_may_reject": true,
       "parallel": true,
@@ -58,6 +58,8 @@
         {"dir": "tests/conformance/corpus/html", "suffixes": [".html", ".htm"], "only": "prettier/tests/format/vue/", "ratchet": "prettier-vue-html", "recursive": true},
         {"dir": "tests/conformance/corpus/html", "suffixes": [".vue"], "only": "prettier/tests/format/vue/", "ratchet": "prettier-vue", "recursive": true},
         {"dir": "tests/conformance/corpus/html", "suffixes": [".vue"], "skip": "prettier/", "prefix": "corpus/", "ratchet": "real-world-vue", "recursive": true},
+        {"dir": "tests/conformance/corpus/html", "suffixes": ["input.svelte"], "only": "prettier-plugin-svelte/", "ratchet": "prettier-svelte", "recursive": true},
+        {"dir": "tests/conformance/corpus/html", "suffixes": [".svelte"], "skip": "prettier-plugin-svelte/", "prefix": "corpus/", "ratchet": "real-world-svelte", "recursive": true},
         {"dir": "tests/conformance/corpus/html", "suffixes": [".html", ".htm"], "skip": "prettier/", "prefix": "corpus/", "ratchet": "real-world", "recursive": true}
       ]
     },
