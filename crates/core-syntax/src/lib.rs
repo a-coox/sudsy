@@ -23,10 +23,10 @@ pub mod wire;
 pub use embedded::Embedded;
 pub use grammar::Grammar;
 pub use kind::{LanguageId, SyntaxKind};
-pub use rowan::{GreenNode, TextRange, TextSize};
+pub use rowan::{GreenNode, GreenNodeData, GreenTokenData, TextRange, TextSize};
 pub use tree::{
-    SudsyLang, SyntaxElement, SyntaxNode, SyntaxNodeExt, SyntaxToken, TreeBuilder, code_span,
-    dump_tree, print,
+    GreenElement, SudsyLang, SyntaxElement, SyntaxNode, SyntaxNodeExt, SyntaxToken, TreeBuilder, code_span,
+    dump_tree, green_code_span, print,
 };
 
 /// The typed wrappers the crate's build script generates from its grammar (`build/lang-crate.rs`).

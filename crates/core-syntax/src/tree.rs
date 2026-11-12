@@ -21,6 +21,9 @@ pub type SyntaxNode = rowan::SyntaxNode<SudsyLang>;
 pub type SyntaxToken = rowan::SyntaxToken<SudsyLang>;
 pub type SyntaxElement = rowan::SyntaxElement<SudsyLang>;
 
+/// A child of a green node.
+pub type GreenElement<'a> = rowan::NodeOrToken<&'a rowan::GreenNodeData, &'a rowan::GreenTokenData>;
+
 /// Lookups on a node's direct children.
 pub trait SyntaxNodeExt {
     /// The first child node of `kind`.
@@ -46,15 +49,26 @@ impl SyntaxNodeExt for SyntaxNode {
 /// The span from the first to the last token of `node` that is neither trivia nor empty, `None`
 /// without one. Walks the green tree, so no red element is allocated.
 pub fn code_span(node: &SyntaxNode, grammar: &crate::Grammar) -> Option<rowan::TextRange> {
+    green_code_span(&node.green(), node.text_range().start(), &|k| {
+        grammar.is_trivia(k)
+    })
+}
+
+/// [`code_span`] of a green node that starts at `base`, for any trivia test.
+pub fn green_code_span(
+    green: &rowan::GreenNodeData,
+    base: rowan::TextSize,
+    is_trivia: &dyn Fn(SyntaxKind) -> bool,
+) -> Option<rowan::TextRange> {
     use rowan::{GreenNodeData, NodeOrToken};
     fn edge(
         n: &GreenNodeData,
-        grammar: &crate::Grammar,
+        is_trivia: &dyn Fn(SyntaxKind) -> bool,
         back: bool,
         at: &mut u32,
     ) -> Option<(u32, u32)> {
         let mut visit = |c: NodeOrToken<&GreenNodeData, &rowan::GreenTokenData>| match c {
-            NodeOrToken::Node(n) => edge(n, grammar, back, at),
+            NodeOrToken::Node(n) => edge(n, is_trivia, back, at),
             NodeOrToken::Token(t) => {
                 let len = u32::from(t.text_len());
                 if back {
@@ -64,7 +78,7 @@ pub fn code_span(node: &SyntaxNode, grammar: &crate::Grammar) -> Option<rowan::T
                 if !back {
                     *at += len;
                 }
-                (len != 0 && !grammar.is_trivia(SyntaxKind(t.kind().0))).then_some((start, len))
+                (len != 0 && !is_trivia(SyntaxKind(t.kind().0))).then_some((start, len))
             }
         };
         if back {
@@ -73,11 +87,8 @@ pub fn code_span(node: &SyntaxNode, grammar: &crate::Grammar) -> Option<rowan::T
             n.children().find_map(&mut visit)
         }
     }
-    let green = node.green();
-    let whole = node.text_range();
-    let (first, _) = edge(&green, grammar, false, &mut 0)?;
-    let (last, len) = edge(&green, grammar, true, &mut u32::from(green.text_len()))?;
-    let base = whole.start();
+    let (first, _) = edge(green, is_trivia, false, &mut 0)?;
+    let (last, len) = edge(green, is_trivia, true, &mut u32::from(green.text_len()))?;
     Some(rowan::TextRange::new(
         base + rowan::TextSize::from(first),
         base + rowan::TextSize::from(last + len),

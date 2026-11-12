@@ -26,7 +26,7 @@
 mod parse;
 
 use crate::kind::{LanguageId, SyntaxKind};
-use crate::tree::{SyntaxElement, SyntaxNode};
+use crate::tree::{GreenElement, SyntaxElement, SyntaxNode};
 use std::collections::HashMap;
 
 pub use parse::GrammarError;
@@ -220,6 +220,40 @@ impl Grammar {
         crate::ast::assign(node, body)
             .find(|(i, _)| *i == index)
             .map(|(_, e)| e)
+    }
+
+    /// [`Grammar::slot`] on the green tree: the child of `node` in the item labelled `label`, with
+    /// its offset in `node`. Allocates no red element.
+    pub fn slot_green<'a>(
+        &self,
+        node: &'a rowan::GreenNodeData,
+        label: &str,
+    ) -> Option<(GreenElement<'a>, u32)> {
+        let kind = SyntaxKind(node.kind().0);
+        let def = self.def(kind)?;
+        let index = def
+            .body
+            .iter()
+            .position(|i| i.label.as_deref() == Some(label))?;
+        let body = GrammarBody {
+            grammar: self,
+            kinds: self.bodies.get(kind.index() as usize)?,
+            body: &def.body,
+        };
+        let mut placer = crate::ast::Placer::new(body);
+        let mut at = 0;
+        for child in node.children() {
+            let start = at;
+            let (raw, len) = match child {
+                rowan::NodeOrToken::Node(n) => (n.kind(), n.text_len()),
+                rowan::NodeOrToken::Token(t) => (t.kind(), t.text_len()),
+            };
+            at += u32::from(len);
+            if placer.place(SyntaxKind(raw.0)) == Some(index) {
+                return Some((child, start));
+            }
+        }
+        None
     }
 
     pub fn parse(source: &str) -> Result<Grammar, GrammarError> {

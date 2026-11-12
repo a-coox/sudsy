@@ -123,7 +123,6 @@ pub fn assign<'a, B: Body + Copy + 'a>(
     parent: &SyntaxNode,
     body: B,
 ) -> impl Iterator<Item = (usize, SyntaxElement)> + 'a {
-    let mut current = 0;
     // A leading trivia child is passed over by kind, without materializing it; the rest is a
     // plain walk (a by-kind walk costs more allocations when nothing is skipped).
     let mut next = parent.first_child_or_token_by_kind(&|k| !body.skips(k));
@@ -138,15 +137,31 @@ pub fn assign<'a, B: Body + Copy + 'a>(
         next = element.clone();
         element
     });
-    children.filter_map(move |child| {
-        let kind = child.kind();
+    let mut placer = Placer::new(body);
+    children.filter_map(move |child| Some((placer.place(child.kind())?, child)))
+}
+
+/// The slot walk of [`assign`], one child kind at a time (the red and the green walks share it).
+pub struct Placer<B> {
+    body: B,
+    current: usize,
+}
+
+impl<B: Body> Placer<B> {
+    pub fn new(body: B) -> Self {
+        Placer { body, current: 0 }
+    }
+
+    /// The slot the next child, of `kind`, goes to; `None` for a skipped child or one without a slot.
+    pub fn place(&mut self, kind: SyntaxKind) -> Option<usize> {
+        let body = &self.body;
         if body.skips(kind) {
             return None;
         }
-        let index = (current..body.slots()).find(|&i| body.accepts(i, kind))?;
-        current = if body.many(index) { index } else { index + 1 };
-        Some((index, child))
-    })
+        let index = (self.current..body.slots()).find(|&i| body.accepts(i, kind))?;
+        self.current = if body.many(index) { index } else { index + 1 };
+        Some(index)
+    }
 }
 
 pub mod support {

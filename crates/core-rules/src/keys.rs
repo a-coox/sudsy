@@ -2,12 +2,13 @@
 //! the language's [`RuleHooks`](crate::hooks::RuleHooks): `no-duplicate-keys`, `no-empty-keys` and
 //! `key-name-casing`.
 
+use crate::hooks::{KeyRef, key_name_of};
 use crate::options::{Check, Opt, OptionDecl};
 use crate::rule;
 use crate::rule::RuleContext;
 use crate::sorting;
 use crate::tree::significant_range;
-use core_syntax::{Grammar, SyntaxElement, SyntaxNode, TextRange};
+use core_syntax::{GreenElement, Grammar, SyntaxElement, SyntaxKind, SyntaxNode, TextRange};
 use std::borrow::Cow;
 use std::collections::HashMap;
 
@@ -61,19 +62,43 @@ rule! {
         let merge_key = hooks
             .merge_key()
             .filter(|_| ctx.options.string("merge_keys") == "allow");
-        // Ranges are found only for the keys that are reported (finding one reads the tree), so
-        // the first occurrence is kept as its index and looked up again on a duplicate.
+        // The keys are read from the green tree. Ranges are found only for the keys that are
+        // reported (finding one reads the red tree), so the first occurrence is kept as its index
+        // and looked up again on a duplicate.
         let mut seen = Seen::default();
-        for (index, (_, key)) in entries(node, grammar).enumerate() {
+        let green = node.green();
+        let base: u32 = node.text_range().start().into();
+        let mut at = base;
+        let mut index = 0;
+        for child in green.children() {
+            let start = at;
+            let GreenElement::Node(entry) = child else {
+                at += u32::from(child.text_len());
+                continue;
+            };
+            at += u32::from(entry.text_len());
+            if !grammar.has_tag(SyntaxKind(entry.kind().0), "key-value") {
+                continue;
+            }
+            let Some((key, offset)) = grammar.slot_green(entry, "key") else {
+                continue;
+            };
+            let key = KeyRef {
+                entry,
+                entry_start: start,
+                key,
+                start: start + offset,
+            };
             let name = hooks.key_name(&key, text);
+            index += 1;
             if merge_key == Some(&*name) {
                 continue;
             }
-            if let Some((first, name)) = seen.first(name, index) {
-                let first = entries(node, grammar)
-                    .nth(first)
-                    .map_or_else(|| key_range(&key, grammar), |(_, k)| key_range(&k, grammar));
-                ctx.report(key_range(&key, grammar), format!("duplicate key `{name}`"))
+            if let Some((first, name)) = seen.first(name, index - 1) {
+                let range = |n| entries(node, grammar).nth(n).map(|(_, k)| key_range(&k, grammar));
+                let Some(at) = range(index - 1) else { continue };
+                let first = range(first).unwrap_or(at);
+                ctx.report(at, format!("duplicate key `{name}`"))
                     .related(first, "first defined here");
             }
         }
@@ -129,8 +154,8 @@ rule! {
 
     fn check(&self, node: &SyntaxNode, ctx: &mut RuleContext<'_>) {
         let (grammar, hooks, text) = (ctx.file.grammar, ctx.file.hooks, ctx.file.text);
-        for (_, key) in entries(node, grammar) {
-            if hooks.key_name(&key, text).trim().is_empty() {
+        for (entry, key) in entries(node, grammar) {
+            if key_name_of(hooks, &entry, &key, text).trim().is_empty() {
                 ctx.report(key_range(&key, grammar), "empty key");
             }
         }
@@ -205,13 +230,13 @@ rule! {
         if allowed.is_empty() {
             return;
         }
-        for (_, key) in entries(node, grammar) {
+        for (entry, key) in entries(node, grammar) {
             let parts = hooks.key_parts(&key, text);
             let whole;
             let names: &[Cow<'_, str>] = match &parts {
                 Some(parts) => parts,
                 None => {
-                    whole = [hooks.key_name(&key, text)];
+                    whole = [key_name_of(hooks, &entry, &key, text)];
                     &whole
                 }
             };

@@ -2,18 +2,18 @@
 
 use crate::generated::{Literal, kind};
 use crate::string::string_value;
-use core_rules::{RuleHooks, Scalar};
+use core_rules::{KeyRef, RuleHooks, Scalar};
 use core_syntax::ast::AstNode;
-use core_syntax::{SyntaxElement, SyntaxNode};
+use core_syntax::{GreenElement, SyntaxNode};
 use std::borrow::Cow;
 
 pub struct JsonHooks;
 
 impl RuleHooks for JsonHooks {
-    fn key_name<'a>(&self, key: &SyntaxElement, text: &'a str) -> Cow<'a, str> {
-        match key {
-            SyntaxElement::Token(token) => string_value(&text[token.text_range()]),
-            SyntaxElement::Node(_) => Cow::Borrowed(""),
+    fn key_name<'a>(&self, key: &KeyRef<'_>, text: &'a str) -> Cow<'a, str> {
+        match key.key {
+            GreenElement::Token(_) => string_value(&text[key.range()]),
+            GreenElement::Node(_) => Cow::Borrowed(""),
         }
     }
 

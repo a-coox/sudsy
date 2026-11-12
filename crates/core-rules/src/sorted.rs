@@ -1,6 +1,7 @@
 //! Ordering rules on the shared tags: `sorted-keys` (every `#mapping`) and `sorted-array-values`
 //! (every `#sequence` of only strings or only numbers).
 
+use crate::hooks::key_name_of;
 use crate::hooks::Scalar;
 use crate::keys::{key_range, keyed};
 use crate::options::{Check, Opt, OptionDecl};
@@ -55,7 +56,7 @@ rule! {
         let entries = keyed(node, grammar);
         let names: Vec<_> = entries
             .iter()
-            .map(|(_, k)| hooks.key_name(k, text))
+            .map(|(e, k)| key_name_of(hooks, e, k, text))
             .collect();
         if !ctx
             .options

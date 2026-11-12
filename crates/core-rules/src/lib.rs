@@ -44,7 +44,7 @@ pub use engine::{
 pub use extension::{ALL_LANGUAGES, ExtensionRule, Extensions};
 pub use family::{Family, Params};
 pub use fixes::{Analysis, FixOutcome, fix_loop};
-pub use hooks::{DEFAULT_HOOKS, DefaultHooks, RuleHooks, Scalar};
+pub use hooks::{DEFAULT_HOOKS, DefaultHooks, KeyRef, RuleHooks, Scalar, key_name_of};
 pub use layout::{Attach, LayoutRole, attached, run_layout};
 pub use lines::LineIndex;
 pub use options::{Check, Opt, OptionDecl, RuleOptions};
