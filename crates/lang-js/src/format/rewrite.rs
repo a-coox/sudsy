@@ -38,7 +38,50 @@ pub(crate) fn rewrite(
             .collect::<Vec<_>>()
     };
     let mut inserts: Vec<Edit> = Vec::new();
+    let mut later: Vec<Edit> = Vec::new();
     for node in tree.descendants() {
+        // `) // c` then `{` on the next line becomes `) { // c`: the comment moves inside the block.
+        if matches!(
+            node.kind(),
+            k::BLOCK_STATEMENT | k::FUNCTION_BODY | k::CLASS_BODY
+        ) && let Some(open) = first_token(grammar, &node)
+            && open.kind() == k::L_BRACE
+            && comments::trailing_comments(grammar, &open).is_empty()
+        {
+            let mut between = Vec::new();
+            let mut prev = open.prev_token();
+            while let Some(t) = prev.clone().filter(|t| grammar.is_trivia(t.kind())) {
+                prev = t.prev_token();
+                between.push(t);
+            }
+            if let Some(prev) = prev
+                && between.iter().any(|t| t.kind() == k::LINE_COMMENT)
+                && between.iter().all(|t| t.kind() != k::BLOCK_COMMENT)
+            {
+                inserts.push((usize::from(prev.text_range().end()), Some(" {")));
+                // The line break after the old `{` goes too, or a blank line would follow.
+                if let Some(next) = open.next_token().filter(|t| t.kind() == k::NEWLINE) {
+                    let at = usize::from(next.text_range().start());
+                    let len = if next.text().starts_with("\r\n") {
+                        2
+                    } else {
+                        1
+                    };
+                    (0..len).for_each(|i| later.push((at + i, None)));
+                }
+                cut(open);
+            }
+        }
+        // `interface A { // c` puts the comment on a line of its own inside the body.
+        if matches!(node.kind(), k::TS_INTERFACE_BODY | k::TS_TYPE_LITERAL)
+            && let Some(open) = first_token(grammar, &node)
+            && open.kind() == k::L_BRACE
+            && comments::trailing_comments(grammar, &open)
+                .first()
+                .is_some_and(|c| c.kind == comments::CommentKind::Line)
+        {
+            inserts.push((usize::from(open.text_range().end()), Some("\n")));
+        }
         match node.kind() {
             k::CLASS_BODY => semicolons(&node).into_iter().for_each(&mut cut),
             k::EMPTY_STATEMENT
@@ -151,6 +194,7 @@ pub(crate) fn rewrite(
         }
     }
     edits.extend(inserts);
+    edits.extend(later);
     edits.extend(super::object::key_edits(tree, text, grammar, options));
     if edits.is_empty() {
         return None;

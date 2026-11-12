@@ -127,7 +127,7 @@ fn is_rest(item: &Item) -> bool {
 fn object(node: &SyntaxNode, cx: &FormatCtx<'_>) -> R {
     let (open, items, close) = items(cx, node)?;
     if items.is_empty() {
-        return Ok(concat(vec![cx.token(&open), cx.token(&close)]));
+        return Ok(empty_with_comments(cx, &open, &close));
     }
     let is_pattern = node.kind() != k::OBJECT_EXPRESSION;
     let p = parent(node);
@@ -244,7 +244,7 @@ pub(crate) fn hugs_only_param(param: &SyntaxNode) -> bool {
 fn array(node: &SyntaxNode, cx: &FormatCtx<'_>) -> R {
     let (open, items, close) = items(cx, node)?;
     if items.is_empty() {
-        return Ok(concat(vec![cx.token(&open), cx.token(&close)]));
+        return Ok(empty_with_comments(cx, &open, &close));
     }
     let concise = node.kind() == k::ARRAY_EXPRESSION && super::call::is_concise_array(node);
     let id = new_group_id();
@@ -438,4 +438,22 @@ pub(crate) fn key_edits(
         }
     }
     edits
+}
+
+/// `[]` or `{}`; comments on lines of their own inside go indented between the brackets.
+fn empty_with_comments(cx: &FormatCtx<'_>, open: &SyntaxToken, close: &SyntaxToken) -> Doc {
+    let inside = core_format::comments::leading_comments(cx.grammar, close);
+    let own_lines = inside
+        .iter()
+        .any(|c| c.kind != core_format::comments::CommentKind::Block || c.breaks_after > 0);
+    if !own_lines {
+        return concat(vec![cx.token(open), cx.token(close)]);
+    }
+    concat(vec![
+        cx.token(open),
+        indent(core_format::shapes::dangling_comments(&inside, false)),
+        hardline(),
+        cx.token_text(close),
+        cx.trailing_comments_doc(close),
+    ])
 }

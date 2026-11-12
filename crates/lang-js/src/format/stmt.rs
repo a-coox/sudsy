@@ -138,7 +138,7 @@ fn if_statement(node: &SyntaxNode, cx: &FormatCtx<'_>) -> R {
         kw,
         lit(" "),
         elem(cx, open)?,
-        parenthesized(cx.format(test)?, true),
+        parenthesized(cx.format(test)?, !negated_chain(test)),
         elem(cx, close)?,
         clause(body, cx.format(body)?, false),
     ]));
@@ -201,11 +201,22 @@ fn condition_clause(node: &SyntaxNode, cx: &FormatCtx<'_>, soft: bool) -> R {
             kw,
             lit(" "),
             elem(cx, open)?,
-            parenthesized(cx.format(test)?, soft),
+            parenthesized(cx.format(test)?, soft && !negated_chain(test)),
             elem(cx, close)?,
             clause(body, cx.format(body)?, false),
         ])),
     ]))
+}
+
+/// `!(a && b)`: the test keeps `if (!(` on its line and breaks inside the inner parentheses.
+fn negated_chain(test: &SyntaxNode) -> bool {
+    use super::ast::{is_binaryish, un};
+    let test = un(test);
+    test.kind() == k::UNARY_EXPRESSION
+        && test
+            .last_child()
+            .is_some_and(|a| is_binaryish(un(&a).kind()))
+        && test.text().to_string().trim_start().starts_with('!')
 }
 
 /// The content between parentheses, indented on its own lines when it does not fit.

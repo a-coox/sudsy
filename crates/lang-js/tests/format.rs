@@ -300,3 +300,40 @@ type T =
         )
     );
 }
+
+#[test]
+fn comments_between_head_and_body_and_in_empty_lists() {
+    // Each expectation was checked with Prettier 3 under its defaults.
+    assert_eq!(
+        fmt("if (a) // c
+{
+  b;
+}
+interface I { // d
+  x: number;
+}
+const u = [
+  // none
+];
+if (!(aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa && bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb && cccccccccccccc)) {}
+"),
+        "if (a) {
+  // c
+  b;
+}
+interface I {
+  // d
+  x: number;
+}
+const u = [
+  // none
+];
+if (!(
+  aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa &&
+  bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb &&
+  cccccccccccccc
+)) {
+}
+"
+    );
+}

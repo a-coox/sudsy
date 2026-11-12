@@ -325,6 +325,10 @@ fn is_react_hook(cx: &FormatCtx<'_>, a: &[SyntaxNode]) -> bool {
             .is_some_and(|b| b.kind() == k::FUNCTION_BODY)
         && a[1].kind() == k::ARRAY_EXPRESSION
         && !a.iter().any(|n| has_comment(cx, n))
+        && !a[1]
+            .descendants_with_tokens()
+            .filter_map(|e| e.into_token())
+            .any(|t| super::ast::token_comments(cx, &t))
 }
 
 fn is_function_composition(cx: &FormatCtx<'_>, a: &[SyntaxNode]) -> bool {
@@ -333,8 +337,7 @@ fn is_function_composition(cx: &FormatCtx<'_>, a: &[SyntaxNode]) -> bool {
     }
     let mut count = 0;
     for n in a {
-        let body_block = n.last_child().is_some_and(|b| b.kind() == k::FUNCTION_BODY);
-        if n.kind() == k::FUNCTION || (n.kind() == k::ARROW_FUNCTION_EXPRESSION && body_block) {
+        if is_function(n.kind()) {
             count += 1;
             if count > 1 {
                 return true;
