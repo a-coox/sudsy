@@ -8,6 +8,7 @@ mod dom;
 mod format;
 mod hooks;
 mod meta;
+mod patterns;
 mod rules;
 
 pub use dialect::{DialectProvider, vue_provider};

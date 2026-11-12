@@ -1,0 +1,18 @@
+id: aria-label-misuse
+message: "`aria-label` cannot name this element"
+description: >-
+  `aria-label` names interactive elements, landmarks and elements with a role. A generic element
+  (`<div>`, `<span>`, `<p>`, `<b>`, ...) and an `<a>` without `href` have no role to name.
+example: '<div aria-label="x">   <div role="group" aria-label="x">'
+severity: off
+category: correctness
+rule:
+  kind: Attribute
+  regex: '(?i)^aria-label(ledby)?\b'
+  parent:
+    kind: StartTag
+    not-has: { kind: Attribute, regex: '(?i)^role\b' }
+    any:
+      - regex: '(?i)^<(div|span|p|b|i|u|s|em|strong|small|mark|code|kbd|samp|var|sub|sup|cite|q|dfn|abbr|time|data|bdi|bdo)\b'
+      - regex: '(?i)^<a\b'
+        not-has: { kind: Attribute, regex: '(?i)^href\b' }

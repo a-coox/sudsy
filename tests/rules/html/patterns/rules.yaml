@@ -1,0 +1,4 @@
+id-pattern: warn
+class-pattern: warn
+name-pattern: warn
+attr-pattern: warn

@@ -1,0 +1,15 @@
+id: area-alt
+message: an <area> with an `href` needs a non-empty `alt`, and an `alt` needs an `href`
+description: The `alt` of an `<area>` is the name of the link in the image map; without an `href` it names nothing.
+example: '<area href="a">   <area href="a" alt="A">'
+severity: off
+category: correctness
+rule:
+  kind: StartTag
+  regex: '(?i)^<area\b'
+  any:
+    - has: { kind: Attribute, regex: '(?i)^href\b' }
+      not-has: { kind: Attribute, regex: '(?is)^alt\s*=\s*["'']?[^"''\s]' }
+    - has: { kind: Attribute, regex: '(?i)^alt\b' }
+      not-has: { kind: Attribute, regex: '(?i)^href\b' }
+report-on: first-token

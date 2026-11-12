@@ -25,8 +25,12 @@ html:
       no-redundant-for: error
       no-redundant-role: error
       no-self-closing: error
+      no-trailing-whitespace: error
       prefer-button: error
+      prefer-native-element: error
       prefer-tbody: error
       presentation-role-style: error
+      text-content: error
+      unique-landmark: error
       valid-id: error
       void-style: error

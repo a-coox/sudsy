@@ -1,0 +1,11 @@
+id: name-pattern
+family: attr-pattern
+params: { attribute: name }
+message: "the name `{value}` is not camelCase"
+description: >-
+  The `name` of a form control that does not match the `pattern` option (a regex; by default camelCase, with a trailing `[]` allowed).
+example: '<input name="foo_bar">   <input name="fooBar">'
+severity: off
+category: style
+options:
+  - { name: pattern, type: regex, default: '^[a-z][a-zA-Z0-9]*(\[\])?$', description: The regex the value must match. }

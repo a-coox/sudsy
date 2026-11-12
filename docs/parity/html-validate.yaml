@@ -6,26 +6,26 @@ sources:
   - "https://html-validate.org/rules/"
 scope: "html-validate's built-in rules (the `html-validate:recommended`, `standard` and `document` presets select among them); the Vue and Svelte integrations are other tools"
 entries:
-  allowed-links: planned
-  area-alt: planned
+  allowed-links: planned | needs the link-target rules (allowExternal, allowRelative, allowBase) and a URL parse that the tree does not give
+  area-alt: rule area-alt | each area is checked alone, without the accessible option or the alt of an area with the same target
   aria-hidden-body: rule aria-hidden-body
-  aria-label-misuse: planned
+  aria-label-misuse: rule aria-label-misuse | generic elements and a without href; the strictly-allowed-but-not-recommended cases and allowAnyNamable are not reported
   attr-case: rule attr-case | lowercase only, without the style and ignoreForeign options
   attr-delimiter: rule attr-delimiter
-  attr-pattern: planned
+  attr-pattern: rule attr-pattern
   attr-quotes: rule attr-quotes | the auto style only, without the style and unquoted options
   attr-spacing: rule attr-spacing
   attribute-allowed-values: rule attribute-allowed-values | values given as a pattern in the metadata (`id`) are not checked
   attribute-boolean-style: rule attribute-boolean-style | the omit style only, without the style option
   attribute-empty-style: rule attribute-empty-style | the omit style only, without the style option
-  attribute-misuse: planned
-  autocomplete-password: planned
-  class-pattern: planned
-  close-attr: planned
+  attribute-misuse: planned | needs a table of the contexts in which each attribute is not allowed (type of input, presence of other attributes)
+  autocomplete-password: planned | needs the input type and autocomplete token grammar, shared with valid-autocomplete
+  class-pattern: rule class-pattern
+  close-attr: rule syntax-error | an end tag with attributes is the parser's error
   close-order: rule syntax-error | a stray end tag is the parser's error; an unclosed element before a mismatched end tag is not named
   deprecated: rule deprecated
-  deprecated-class: planned
-  deprecated-rule: planned
+  deprecated-class: planned | needs the class list of frameworks' deprecated classes, which html-validate takes from its own config
+  deprecated-rule: planned | html-validate's own deprecated rule ids; Sudsy rules are not deprecated this way
   doctype-html: rule doctype-html
   doctype-style: rule doctype-style | uppercase only, without the style option
   element-case: rule element-case | lowercase only, without the style and ignoreForeign options
@@ -39,19 +39,19 @@ entries:
   element-required-content: deferred | needs the content model (permitted content, parents, order, required descendants) of every element, which the generated table does not hold
   empty-heading: rule empty-heading
   empty-title: rule empty-title
-  form-dup-name: planned
+  form-dup-name: planned | needs the grouping of radio and checkbox controls by form and name
   heading-level: rule heading-level | a sectioning root (`<dialog>`, `<section>` with its own outline) does not reset the levels; no allowMultipleH1 and minInitialRank options
-  hidden-focusable: planned
-  id-pattern: planned
-  input-attributes: planned
-  input-missing-label: planned
+  hidden-focusable: planned | needs the focusable elements and the hidden state inherited from ancestors
+  id-pattern: rule id-pattern
+  input-attributes: planned | needs the table of attributes allowed for each input type
+  input-missing-label: rule input-missing-label | does not skip what is inside aria-hidden
   long-title: rule long-title | the length is fixed at 70, no maxlength option
-  map-dup-name: planned
-  map-id-name: planned
+  map-dup-name: rule map-dup-name
+  map-id-name: planned | needs a <map> id and name comparison that the metadata does not describe
   meta-refresh: rule meta-refresh | a delay is any content that starts with a nonzero digit; no allowLongDelay option
   missing-doctype: rule missing-doctype
-  multiple-labeled-controls: planned
-  name-pattern: planned
+  multiple-labeled-controls: rule multiple-labeled-controls
+  name-pattern: rule name-pattern
   no-abstract-role: rule no-abstract-role
   no-autoplay: rule no-autoplay
   no-conditional-comment: rule no-conditional-comment
@@ -66,33 +66,33 @@ entries:
   no-missing-references: rule no-missing-references | no include and exclude options
   no-multiple-main: rule no-multiple-main
   no-raw-characters: rule syntax-error | a raw character is the parser's error; the relaxed option is not available
-  no-redundant-aria-label: planned
+  no-redundant-aria-label: planned | needs the accessible text of the element, which compares the label with the content
   no-redundant-for: rule no-redundant-for
   no-redundant-role: rule no-redundant-role | the roles of 19 elements that always have the role; the conditional implicit roles (`<img>`, `<input>` by type, `<select>`, `<li>`, `<section>`) are not checked
   no-self-closing: rule no-self-closing
   no-style-tag: rule no-style-tag
-  no-trailing-whitespace: planned
-  no-unknown-attributes: planned
+  no-trailing-whitespace: rule no-trailing-whitespace | also reported inside pre and raw text
+  no-unknown-attributes: planned | needs the per-element attribute table, which the generated metadata holds only for listed flags
   no-unknown-elements: rule no-unknown-elements | no include and exclude options
-  no-unused-disable: planned
-  no-utf8-bom: planned
+  no-unused-disable: planned | html-validate directive comments; Sudsy reports unused suppressions for every language, not per rule
+  no-utf8-bom: planned | the file reader and the parser take a byte order mark as text, so no rule can see it as a mark
   parser-error: wontfix the id html-validate gives its syntax errors, which Sudsy reports as `syntax-error`
   prefer-button: rule prefer-button
-  prefer-native-element: planned
+  prefer-native-element: rule prefer-native-element | 14 roles with a native element; other roles are not checked
   prefer-tbody: rule prefer-tbody
   presentation-role-style: rule presentation-role-style
-  require-csp-nonce: planned
+  require-csp-nonce: planned | needs the configurable nonce attribute and the elements it applies to
   require-sri: rule require-sri | no target, include and exclude options
   script-element: rule syntax-error | an unclosed script is the parser's error
-  script-type: planned
-  svg-focusable: planned
-  tel-non-breaking: planned
-  text-content: planned
-  unique-landmark: planned
-  unrecognized-char-ref: planned
-  valid-autocomplete: planned
-  valid-for: planned
+  script-type: planned | needs the script type table and MIME parse
+  svg-focusable: rule svg-focusable
+  tel-non-breaking: planned | needs the text of tel links and its whitespace rules
+  text-content: rule text-content | button only
+  unique-landmark: rule unique-landmark | header, footer, section and form landmarks are not checked
+  unrecognized-char-ref: rule unrecognized-char-ref | named references in text only; a missing semicolon, ignoreCase and references in attribute values are not checked
+  valid-autocomplete: planned | needs the autocomplete token grammar (sections, hints, field names by input type)
+  valid-for: planned | needs the label-to-control matching of ids by element type
   valid-id: rule valid-id | the strict form only, without the relaxed option
-  void: planned
+  void: planned | deprecated in html-validate; void-style and no-void-end-tag replace it
   void-content: rule no-void-end-tag
   void-style: rule void-style | the omit style only, without the style option

@@ -1,0 +1,11 @@
+id: svg-focusable
+message: an <svg> needs `focusable="false"` (or `true`) so that old Internet Explorer does not tab into it
+description: Internet Explorer 11 and old Edge make every `<svg>` focusable unless it says `focusable="false"`.
+example: '<svg>   <svg focusable="false">'
+severity: off
+category: suspicious
+rule:
+  kind: StartTag
+  regex: '(?i)^<svg\b'
+  not-has: { kind: Attribute, regex: '(?i)^focusable\b' }
+report-on: first-token

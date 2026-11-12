@@ -1,0 +1,25 @@
+id: prefer-native-element
+message: use the native element instead of this `role`
+description: >-
+  A `role` that a native element already has (`main`, `navigation`, `button`, `list`, ...) on an
+  element that is not that one needs scripting and styling the native element comes with.
+example: '<div role="button">   <button>'
+severity: off
+category: style
+rule:
+  kind: Attribute
+  any:
+    - { regex: '(?is)^role\s*=\s*["'']?\s*main\b', parent: { not: { regex: '(?i)^<(main)\b' } } }
+    - { regex: '(?is)^role\s*=\s*["'']?\s*navigation\b', parent: { not: { regex: '(?i)^<(nav)\b' } } }
+    - { regex: '(?is)^role\s*=\s*["'']?\s*button\b', parent: { not: { regex: '(?i)^<(button)\b' } } }
+    - { regex: '(?is)^role\s*=\s*["'']?\s*article\b', parent: { not: { regex: '(?i)^<(article)\b' } } }
+    - { regex: '(?is)^role\s*=\s*["'']?\s*complementary\b', parent: { not: { regex: '(?i)^<(aside)\b' } } }
+    - { regex: '(?is)^role\s*=\s*["'']?\s*contentinfo\b', parent: { not: { regex: '(?i)^<(footer)\b' } } }
+    - { regex: '(?is)^role\s*=\s*["'']?\s*banner\b', parent: { not: { regex: '(?i)^<(header)\b' } } }
+    - { regex: '(?is)^role\s*=\s*["'']?\s*form\b', parent: { not: { regex: '(?i)^<(form)\b' } } }
+    - { regex: '(?is)^role\s*=\s*["'']?\s*list\b', parent: { not: { regex: '(?i)^<(ul|ol|menu)\b' } } }
+    - { regex: '(?is)^role\s*=\s*["'']?\s*textbox\b', parent: { not: { regex: '(?i)^<(textarea)\b' } } }
+    - { regex: '(?is)^role\s*=\s*["'']?\s*heading\b', parent: { not: { regex: '(?i)^<(h[1-6])\b' } } }
+    - { regex: '(?is)^role\s*=\s*["'']?\s*checkbox\b', parent: { not: { regex: '(?i)^<(input)\b' } } }
+    - { regex: '(?is)^role\s*=\s*["'']?\s*link\b', parent: { not: { regex: '(?i)^<(a)\b' } } }
+    - { regex: '(?is)^role\s*=\s*["'']?\s*region\b', parent: { not: { regex: '(?i)^<(section)\b' } } }

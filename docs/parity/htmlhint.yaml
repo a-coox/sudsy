@@ -32,7 +32,7 @@ entries:
   id-unique: rule no-duplicate-id
   inline-script-disabled: planned
   inline-style-disabled: rule no-inline-style | a style that sets only display is allowed
-  input-requires-label: planned
+  input-requires-label: rule input-missing-label
   link-rel-canonical-require: planned
   main-require: planned
   meta-charset-require: planned

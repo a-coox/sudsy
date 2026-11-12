@@ -1,0 +1,17 @@
+id: text-content
+message: a <button> needs text that assistive technology can read
+description: >-
+  A `<button>` with no text, no image with an `alt`, no `<svg>` and no `aria-label` or
+  `aria-labelledby` has no name; a `title` does not count.
+example: '<button></button>   <button>Save</button>'
+severity: off
+category: correctness
+rule:
+  kind: Element
+  regex: '(?i)^<button\b'
+  not-has:
+    any:
+      - kind: Chunk
+      - { kind: Element, regex: '(?i)^<(img|svg)\b' }
+      - { kind: Attribute, regex: '(?i)^aria-label(ledby)?\b' }
+report-on: first-token

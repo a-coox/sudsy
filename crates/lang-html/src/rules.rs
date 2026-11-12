@@ -5,4 +5,4 @@ use core_rules::{Family, Rule};
 
 pub static RULES: &[&dyn Rule] = crate::document::RULES;
 
-pub static FAMILIES: &[Family] = &[crate::checks::FAMILY];
+pub static FAMILIES: &[Family] = &[crate::checks::FAMILY, crate::patterns::FAMILY];

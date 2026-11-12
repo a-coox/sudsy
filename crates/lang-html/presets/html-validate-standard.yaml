@@ -3,14 +3,19 @@ html:
   lint:
     rules:
       attr-spacing: error
+      area-alt: error
+      aria-label-misuse: error
       attribute-allowed-values: error
       deprecated: error
       doctype-html: error
       element-name: error
       element-required-attributes: error
+      map-dup-name: error
+      multiple-labeled-controls: error
       no-abstract-role: error
       no-deprecated-attr: error
       no-duplicate-id: error
       no-duplicate-keys: error
       no-multiple-main: error
       no-void-end-tag: error
+      unrecognized-char-ref: error

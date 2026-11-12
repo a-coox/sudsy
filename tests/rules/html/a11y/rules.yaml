@@ -1,0 +1,9 @@
+input-missing-label: warn
+multiple-labeled-controls: warn
+unique-landmark: warn
+area-alt: warn
+svg-focusable: warn
+aria-label-misuse: warn
+prefer-native-element: warn
+text-content: warn
+map-dup-name: warn

@@ -2,14 +2,18 @@
 html:
   lint:
     rules:
+      area-alt: warn
       aria-hidden-body: warn
+      aria-label-misuse: warn
       attr-case: warn
       attr-delimiter: warn
+      attr-pattern: warn
       attr-quotes: warn
       attr-spacing: warn
       attribute-allowed-values: warn
       attribute-boolean-style: warn
       attribute-empty-style: warn
+      class-pattern: warn
       deprecated: warn
       doctype-html: warn
       doctype-style: warn
@@ -19,9 +23,14 @@ html:
       empty-heading: warn
       empty-title: warn
       heading-level: warn
+      id-pattern: warn
+      input-missing-label: warn
       long-title: warn
+      map-dup-name: warn
       meta-refresh: warn
       missing-doctype: warn
+      multiple-labeled-controls: warn
+      name-pattern: warn
       no-abstract-role: warn
       no-autoplay: warn
       no-conditional-comment: warn
@@ -39,11 +48,17 @@ html:
       no-redundant-role: warn
       no-self-closing: warn
       no-style-tag: warn
+      no-trailing-whitespace: warn
       no-unknown-elements: warn
       no-void-end-tag: warn
       prefer-button: warn
+      prefer-native-element: warn
       prefer-tbody: warn
       presentation-role-style: warn
       require-sri: warn
+      svg-focusable: warn
+      text-content: warn
+      unique-landmark: warn
+      unrecognized-char-ref: warn
       valid-id: warn
       void-style: warn

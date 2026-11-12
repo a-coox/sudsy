@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><title>x</title></head>
+<body>
+<input type="text" name="a">
+ ^^^^^ input-missing-label
+<label>L <input type="text" name="b"></label>
+<label for="c">C</label><input type="text" id="c">
+<input type="text" aria-label="d">
+<input type="hidden" name="e">
+<label>a <input id="x"> <input id="y"></label>
+ ^^^^^ multiple-labeled-controls
+<map name="m"><area href="x"><area href="y" alt="ok"><area alt="z"></map>
+//            ^ area-alt
+//                                                   ^ area-alt
+<map name="m"></map>
+//         ^ map-dup-name
+<svg><path d=""></path></svg>
+^ svg-focusable
+<svg focusable="false"></svg>
+<nav aria-label="a"></nav><nav aria-label="a"></nav>
+ ^^^ unique-landmark
+//                         ^^^ unique-landmark
+<nav></nav><aside></aside>
+ ^^^ unique-landmark
+<div aria-label="x">y</div>
+//   ^^^^^^^^^^^^^^ aria-label-misuse
+<span role="button" aria-label="x">y</span>
+//    ^^^^^^^^^^^^^ prefer-native-element
+<a aria-label="x">y</a>
+// ^^^^^^^^^^^^^^ aria-label-misuse
+<a href="x" aria-label="x">y</a>
+<div role="main"></div>
+ ^^^ unique-landmark
+//   ^^^^^^^^^^^ prefer-native-element
+<span role="button"></span>
+//    ^^^^^^^^^^^^^ prefer-native-element
+<main role="main"></main>
+ ^^^^ unique-landmark
+<a href="#" role="button">x</a>
+//          ^^^^^^^^^^^^^ prefer-native-element
+<button></button>
+^ text-content
+<button aria-label="x"></button>
+<button><img src="a" alt="x"></button>
+<button><span>x</span></button>
+</body>
+</html>

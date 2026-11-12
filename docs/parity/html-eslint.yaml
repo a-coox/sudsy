@@ -11,7 +11,7 @@ entries:
   css-no-empty-blocks: planned
   element-newline: planned
   head-order: planned
-  id-naming-convention: planned
+  id-naming-convention: rule id-pattern | the convention is the pattern option (a regex), not named styles
   indent: planned
   lowercase: rule element-case | the case of attribute names is `attr-case`
   max-element-depth: planned
@@ -31,7 +31,7 @@ entries:
   no-ineffective-attrs: planned
   no-inline-styles: rule no-inline-style | a style that sets only display is allowed
   no-invalid-attr-value: rule attribute-allowed-values | the values html-validate lists for an attribute; `id` and other pattern values are not checked
-  no-invalid-entity: planned
+  no-invalid-entity: rule unrecognized-char-ref | named references in text only
   no-invalid-role: planned
   no-multiple-empty-lines: planned
   no-multiple-h1: rule heading-level | also reports the other heading rules of `heading-level`
@@ -47,7 +47,7 @@ entries:
   no-script-style-type: planned
   no-skip-heading-levels: rule heading-level | also reports a first heading that is not an h1 and a second h1
   no-target-blank: planned
-  no-trailing-spaces: planned
+  no-trailing-spaces: rule no-trailing-whitespace
   no-whitespace-only-children: planned
   prefer-https: planned
   quotes: rule attr-quotes | a single-quoted value that holds a double quote is allowed; unquoted values are reported
@@ -61,7 +61,7 @@ entries:
   require-form-method: planned
   require-frame-title: rule element-required-attributes | reports `<embed>` as well as frames
   require-img-alt: planned
-  require-input-label: planned
+  require-input-label: rule input-missing-label
   require-lang: rule element-required-attributes | also requires the attributes of other elements that html-validate requires (`src` of `<img>`)
   require-li-container: planned
   require-meta-charset: planned

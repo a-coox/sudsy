@@ -1,0 +1,11 @@
+id: attr-pattern
+family: attr-pattern
+params: { attribute: attr-name }
+message: "the attribute name `{value}` does not match the pattern"
+description: >-
+  An attribute name that does not match the `pattern` option (a regex; by default letters, digits, `-` and `:`, in either case).
+example: '<p a_b="c">   <p a-b="c">'
+severity: off
+category: style
+options:
+  - { name: pattern, type: regex, default: '(?i)^[a-z0-9:-]+$', description: The regex the value must match. }

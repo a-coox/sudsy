@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<title>x</title>
+<p id="fooBar" class="ok fooBar x_y"></p>
+//     ^^^^^^ id-pattern
+//                       ^^^^^^ class-pattern
+//                              ^^^ class-pattern
+<p id="foo-bar"></p>
+<p id="1a"></p>
+//     ^^ id-pattern
+<input name="fooBar">
+<input name="foo_bar">
+//           ^^^^^^^ name-pattern
+<input name="foo[]">
+<p fooBar="x" data-X="y" a_b="c"></p>
+//                       ^^^ attr-pattern

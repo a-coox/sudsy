@@ -99,9 +99,17 @@
               "$ref": "#/definitions/rule",
               "description": "apt-get install without -y."
             },
+            "area-alt": {
+              "$ref": "#/definitions/rule",
+              "description": "The `alt` of an `<area>` is the name of the link in the image map; without an `href` it names nothing."
+            },
             "aria-hidden-body": {
               "$ref": "#/definitions/rule",
               "description": "`aria-hidden=\"true\"` on `<body>` removes the whole page from the accessibility tree."
+            },
+            "aria-label-misuse": {
+              "$ref": "#/definitions/rule",
+              "description": "`aria-label` names interactive elements, landmarks and elements with a role. A generic element (`<div>`, `<span>`, `<p>`, `<b>`, ...) and an `<a>` without `href` have no role to name."
             },
             "array-type": {
               "$ref": "#/definitions/rule",
@@ -289,6 +297,37 @@
               "$ref": "#/definitions/rule",
               "description": "An attribute name and its value are joined by `=` without whitespace."
             },
+            "attr-pattern": {
+              "description": "An attribute name that does not match the `pattern` option (a regex; by default letters, digits, `-` and `:`, in either case).",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "pattern": {
+                          "default": "(?i)^[a-z0-9:-]+$",
+                          "description": "The regex the value must match.",
+                          "type": "string"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
             "attr-quotes": {
               "$ref": "#/definitions/rule",
               "description": "An attribute value is quoted with `\"`; it is quoted with `'` only when it holds a `\"`. Unquoted values are reported too."
@@ -324,6 +363,37 @@
             "cd-without-exit": {
               "$ref": "#/definitions/rule",
               "description": "`cd`, `pushd` or `popd` whose failure is not handled (`cd dir || exit`). Not reported with `set -e`, for `cd ..` or `cd /`, or for `popd -n`."
+            },
+            "class-pattern": {
+              "description": "A class name that does not match the `pattern` option (a regex; by default kebab-case).",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "pattern": {
+                          "default": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+                          "description": "The regex the value must match.",
+                          "type": "string"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
             },
             "color-hex-length": {
               "description": "A hex color that can be written with three or four digits (`#aabbcc` is `#abc`); with the `style` option set to `long`, one that is written short.",
@@ -1054,6 +1124,37 @@
               "$ref": "#/definitions/rule",
               "description": "Headings do not follow the document outline: the first heading is not an `<h1>`, a level is skipped going down the outline (`<h1>` then `<h3>`), or the page has a second `<h1>`."
             },
+            "id-pattern": {
+              "description": "An `id` that does not match the `pattern` option (a regex; by default kebab-case: lowercase letters and digits in words joined by `-`, beginning with a letter).",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "pattern": {
+                          "default": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+                          "description": "The regex the value must match.",
+                          "type": "string"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
             "import-no-public": {
               "$ref": "#/definitions/rule",
               "description": "`import public` (buf lint IMPORT_NO_PUBLIC)."
@@ -1069,6 +1170,10 @@
             "inline-comment": {
               "$ref": "#/definitions/rule",
               "description": "Gitignore-syntax files have no end-of-line comments: `*.log # logs` is the pattern `*.log # logs`, a file name with spaces and a `#`. No fix: put the comment on its own line."
+            },
+            "input-missing-label": {
+              "$ref": "#/definitions/rule",
+              "description": "An `<input>` (not hidden or a button), `<select>` or `<textarea>` that no `<label>` names: it is not inside one, no `<label for>` points at its `id`, and it has no `aria-label` or `aria-labelledby`."
             },
             "invalid-expression": {
               "$ref": "#/definitions/rule",
@@ -1282,6 +1387,10 @@
             "long-title": {
               "$ref": "#/definitions/rule",
               "description": "Search engines cut a title off after about 70 characters."
+            },
+            "map-dup-name": {
+              "$ref": "#/definitions/rule",
+              "description": "A `<map>` whose `name` an earlier `<map>` already has: `usemap` finds the first."
             },
             "max-body-length": {
               "description": "A rule whose recipe has more lines than allowed (checkmake `maxbodylength`). Every physical line counts, a continued command and a tab-indented comment included.",
@@ -1656,6 +1765,41 @@
             "missing-permissions": {
               "$ref": "#/definitions/rule",
               "description": "A job without `permissions`, in a workflow without top-level `permissions`: it gets the repository's default token permissions, often write access."
+            },
+            "multiple-labeled-controls": {
+              "$ref": "#/definitions/rule",
+              "description": "A `<label>` without `for` that holds more than one control: it labels only the first."
+            },
+            "name-pattern": {
+              "description": "The `name` of a form control that does not match the `pattern` option (a regex; by default camelCase, with a trailing `[]` allowed).",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "pattern": {
+                          "default": "^[a-z][a-zA-Z0-9]*(\\[\\])?$",
+                          "description": "The regex the value must match.",
+                          "type": "string"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
             },
             "named-grid-areas-no-invalid": {
               "$ref": "#/definitions/rule",
@@ -2425,6 +2569,10 @@
               "$ref": "#/definitions/rule",
               "description": "A heading that ends with `.`, `,`, `;`, `:` or `!` (or the full-width forms) reads as a sentence, not a title (markdownlint MD026). `?` is allowed."
             },
+            "no-trailing-whitespace": {
+              "$ref": "#/definitions/rule",
+              "description": "Spaces or tabs at the end of a line."
+            },
             "no-typename-prefix": {
               "$ref": "#/definitions/rule",
               "description": "A field of an object or interface type starts with the name of the type (`type User { userId: ID }`); the type already says it (case ignored). No fix: renaming a field changes the schema."
@@ -2609,6 +2757,10 @@
             "prefer-button": {
               "$ref": "#/definitions/rule",
               "description": "A `<button>` can hold markup and is styled with CSS like any element; `<input type=\"button\">` cannot."
+            },
+            "prefer-native-element": {
+              "$ref": "#/definitions/rule",
+              "description": "A `role` that a native element already has (`main`, `navigation`, `button`, `list`, ...) on an element that is not that one needs scripting and styling the native element comes with."
             },
             "prefer-tbody": {
               "$ref": "#/definitions/rule",
@@ -4023,6 +4175,10 @@
               "$ref": "#/definitions/rule",
               "description": "`SuppressMessage` needs a `Justification` that says something: not missing, `null`, empty, blank or `\"<Pending>\"`. Matches the attribute by name. No fix."
             },
+            "svg-focusable": {
+              "$ref": "#/definitions/rule",
+              "description": "Internet Explorer 11 and old Edge make every `<svg>` focusable unless it says `focusable=\"false\"`."
+            },
             "syntax-specified": {
               "$ref": "#/definitions/rule",
               "description": "A file without `syntax = ...;` or `edition = ...;`, which makes it proto2 (buf lint SYNTAX_SPECIFIED)."
@@ -4038,6 +4194,10 @@
             "test-negated-empty": {
               "$ref": "#/definitions/rule",
               "description": "A test that negates `-z` or `-n`."
+            },
+            "text-content": {
+              "$ref": "#/definitions/rule",
+              "description": "A `<button>` with no text, no image with an `alt`, no `<svg>` and no `aria-label` or `aria-labelledby` has no name; a `title` does not count."
             },
             "timestamp-expanded": {
               "$ref": "#/definitions/rule",
@@ -4062,6 +4222,10 @@
             "unique-fragment-name": {
               "$ref": "#/definitions/rule",
               "description": "Two fragments of a document have the same name; a spread cannot tell which one it means. Checked within the file."
+            },
+            "unique-landmark": {
+              "$ref": "#/definitions/rule",
+              "description": "Landmarks of one kind (`<nav>`, `<aside>`, or an element with the same landmark `role`) that a screen reader user cannot tell apart: with several of them, each needs an `aria-label` or `aria-labelledby` that no other has."
             },
             "unique-operation-name": {
               "$ref": "#/definitions/rule",
@@ -4268,6 +4432,10 @@
                   "type": "object"
                 }
               ]
+            },
+            "unrecognized-char-ref": {
+              "$ref": "#/definitions/rule",
+              "description": "A named character reference in text (`&name;`) that HTML does not define. Numeric references and references in attribute values are not checked."
             },
             "unsafe-numbers": {
               "$ref": "#/definitions/rule",

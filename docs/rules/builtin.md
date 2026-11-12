@@ -261,14 +261,18 @@ Twenty-four rules read the `///` and `/** */` comment of a declaration (StyleCop
 | `required-version` | hcl | style | off | none | A `terraform` block with no `required_version` argument (tflint terraform_required_version, in the file that has the block: the rule does not know the other files of the module). |
 | `typed-variables` | hcl | style | off | none | A `variable` block with no `type` argument (tflint terraform_typed_variables). |
 | `unused-declarations` | hcl | suspicious | off | none | A variable, local value or data source that nothing in the same file refers to (tflint terraform_unused_declarations, within one file: a module that uses its variables in other files needs the rule off or those files in one). |
+| `area-alt` | html, vue | correctness | off | none | The `alt` of an `<area>` is the name of the link in the image map; without an `href` it names nothing. |
 | `aria-hidden-body` | html, vue | correctness | off | none | `aria-hidden="true"` on `<body>` removes the whole page from the accessibility tree. |
+| `aria-label-misuse` | html, vue | correctness | off | none | `aria-label` names interactive elements, landmarks and elements with a role. A generic element (`<div>`, `<span>`, `<p>`, `<b>`, ...) and an `<a>` without `href` have no role to name. |
 | `attr-case` | html, vue | style | off | none | Attribute names are case-insensitive in HTML; lowercase is the convention. Everything inside `<svg>` and `<math>` keeps its case. |
 | `attr-delimiter` | html, vue | style | off | none | An attribute name and its value are joined by `=` without whitespace. |
+| `attr-pattern` | html, vue | style | off | none | An attribute name that does not match the `pattern` option (a regex; by default letters, digits, `-` and `:`, in either case). Options: `pattern` (default `"(?i)^[a-z0-9:-]+$"`): The regex the value must match. |
 | `attr-quotes` | html, vue | style | off | none | An attribute value is quoted with `"`; it is quoted with `'` only when it holds a `"`. Unquoted values are reported too. |
 | `attr-spacing` | html, vue | style | off | none | A quoted attribute value is followed by whitespace before the next attribute. |
 | `attribute-allowed-values` | html, vue | correctness | off | none | An attribute that is limited to a list of values (`type` of `<button>`, `method` of `<form>`, ...) has another one. |
 | `attribute-boolean-style` | html, vue | style | off | none | A boolean attribute is true when present: `disabled`, not `disabled="disabled"`. |
 | `attribute-empty-style` | html, vue | style | off | none | An attribute whose empty value means the same as no value (`hidden`, `crossorigin`) is written without `=""`. |
+| `class-pattern` | html, vue | style | off | none | A class name that does not match the `pattern` option (a regex; by default kebab-case). Options: `pattern` (default `"^[a-z][a-z0-9]*(-[a-z0-9]+)*$"`): The regex the value must match. |
 | `deprecated` | html, vue | correctness | off | none | An element that HTML5 no longer has (`<center>`, `<font>`, `<marquee>`, ...). |
 | `doctype-html` | html, vue | correctness | off | none | A doctype other than `html` puts the browser in quirks or limited-quirks mode. |
 | `doctype-style` | html, vue | style | off | none | The doctype keyword is case-insensitive; uppercase is the convention. |
@@ -278,9 +282,14 @@ Twenty-four rules read the `///` and `/** */` comment of a declaration (StyleCop
 | `empty-heading` | html, vue | correctness | off | none | Screen readers need text in a heading; whitespace is not text. An image with an `alt` or an `<svg>` inside counts as content. |
 | `empty-title` | html, vue | correctness | off | none | The `<title>` names the page in the browser tab, search results and screen readers; whitespace is not text. |
 | `heading-level` | html, vue | correctness | off | none | Headings do not follow the document outline: the first heading is not an `<h1>`, a level is skipped going down the outline (`<h1>` then `<h3>`), or the page has a second `<h1>`. |
+| `id-pattern` | html, vue | style | off | none | An `id` that does not match the `pattern` option (a regex; by default kebab-case: lowercase letters and digits in words joined by `-`, beginning with a letter). Options: `pattern` (default `"^[a-z][a-z0-9]*(-[a-z0-9]+)*$"`): The regex the value must match. |
+| `input-missing-label` | html, vue | correctness | off | none | An `<input>` (not hidden or a button), `<select>` or `<textarea>` that no `<label>` names: it is not inside one, no `<label for>` points at its `id`, and it has no `aria-label` or `aria-labelledby`. |
 | `long-title` | html, vue | style | off | none | Search engines cut a title off after about 70 characters. |
+| `map-dup-name` | html, vue | correctness | off | none | A `<map>` whose `name` an earlier `<map>` already has: `usemap` finds the first. |
 | `meta-refresh` | html, vue | correctness | off | none | `<meta http-equiv="refresh" content="5">` reloads or redirects after a delay, which disorients screen reader users and cannot be paused. A delay of 0 is allowed. |
 | `missing-doctype` | html, vue | correctness | off | none | A document without a doctype is rendered in quirks mode. |
+| `multiple-labeled-controls` | html, vue | correctness | off | none | A `<label>` without `for` that holds more than one control: it labels only the first. |
+| `name-pattern` | html, vue | style | off | none | The `name` of a form control that does not match the `pattern` option (a regex; by default camelCase, with a trailing `[]` allowed). Options: `pattern` (default `"^[a-z][a-zA-Z0-9]*(\[\])?$"`): The regex the value must match. |
 | `no-abstract-role` | html, vue | correctness | off | none | Abstract roles (`widget`, `landmark`, `command`, ...) are for the ARIA taxonomy, not for authors. |
 | `no-autoplay` | html, vue | suspicious | off | none | Autoplaying audio and video annoys users and fails accessibility guidelines; `muted` media is allowed. |
 | `no-conditional-comment` | html, vue | suspicious | off | none | An Internet Explorer conditional comment (`<!--[if IE]>`). Only IE 9 and older read them; other browsers see a comment. |
@@ -297,12 +306,18 @@ Twenty-four rules read the `///` and `/** */` comment of a declaration (StyleCop
 | `no-redundant-role` | html, vue | style | off | none | An element with a native role (`<nav>` is `navigation`, `<button>` is `button`) does not need a `role` that says the same. |
 | `no-self-closing` | html, vue | correctness | off | none | `<div />` is a start tag in HTML: the browser ignores the slash and the element stays open. Void elements (see `void-style`), `<svg>` and `<math>` are left alone. |
 | `no-style-tag` | html, vue | style | off | none | A `<style>` element inlines styling that an external stylesheet shares between pages. A `<style>` inside a `<template>` is allowed. |
+| `no-trailing-whitespace` | html, vue | style | off | none | Spaces or tabs at the end of a line. |
 | `no-unknown-elements` | html, vue | suspicious | off | none | An element name that HTML does not define, custom elements (`<my-element>`) included. Everything inside `<svg>` and `<math>` is left alone. |
 | `no-void-end-tag` | html, vue | correctness | off | none | A void element (`<br>`, `<img>`, ...) has no content and no end tag; the browser ignores `</br>`. |
 | `prefer-button` | html, vue | style | off | none | A `<button>` can hold markup and is styled with CSS like any element; `<input type="button">` cannot. |
+| `prefer-native-element` | html, vue | style | off | none | A `role` that a native element already has (`main`, `navigation`, `button`, `list`, ...) on an element that is not that one needs scripting and styling the native element comes with. |
 | `prefer-tbody` | html, vue | style | off | none | A `<tr>` directly in `<table>` is moved into an implied `<tbody>` by the browser; write it. |
 | `presentation-role-style` | html, vue | style | off | none | `none` and `presentation` are synonyms; `none` is the one ARIA 1.2 prefers. |
 | `require-sri` | html, vue | suspicious | off | none | A `<script src>` or `<link rel="stylesheet" href>` without `integrity` runs or applies a file that changed on its server (a CDN) without the page noticing. |
+| `svg-focusable` | html, vue | suspicious | off | none | Internet Explorer 11 and old Edge make every `<svg>` focusable unless it says `focusable="false"`. |
+| `text-content` | html, vue | correctness | off | none | A `<button>` with no text, no image with an `alt`, no `<svg>` and no `aria-label` or `aria-labelledby` has no name; a `title` does not count. |
+| `unique-landmark` | html, vue | correctness | off | none | Landmarks of one kind (`<nav>`, `<aside>`, or an element with the same landmark `role`) that a screen reader user cannot tell apart: with several of them, each needs an `aria-label` or `aria-labelledby` that no other has. |
+| `unrecognized-char-ref` | html, vue | correctness | off | none | A named character reference in text (`&name;`) that HTML does not define. Numeric references and references in attribute values are not checked. |
 | `valid-id` | html, vue | suspicious | off | none | An `id` that is empty, has whitespace, begins with a digit or has other characters is valid HTML5 but breaks CSS selectors and some scripts. |
 | `void-style` | html, vue | style | off | none | A void element (`<br>`, `<img>`, ...) has no end tag and needs no `/`; write `<br>`, not `<br/>`. |
 | `empty-section` | ini | suspicious | warn | none | A `[section]` header with nothing under it, usually left behind by a removed setting. Comments do not count as settings. |

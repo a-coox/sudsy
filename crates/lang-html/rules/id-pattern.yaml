@@ -1,0 +1,11 @@
+id: id-pattern
+family: attr-pattern
+params: { attribute: id }
+message: "the id `{value}` is not kebab-case"
+description: >-
+  An `id` that does not match the `pattern` option (a regex; by default kebab-case: lowercase letters and digits in words joined by `-`, beginning with a letter).
+example: '<p id="fooBar">   <p id="foo-bar">'
+severity: off
+category: style
+options:
+  - { name: pattern, type: regex, default: '^[a-z][a-z0-9]*(-[a-z0-9]+)*$', description: The regex the value must match. }

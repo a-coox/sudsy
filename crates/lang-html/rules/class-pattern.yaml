@@ -1,0 +1,11 @@
+id: class-pattern
+family: attr-pattern
+params: { attribute: class }
+message: "the class `{value}` is not kebab-case"
+description: >-
+  A class name that does not match the `pattern` option (a regex; by default kebab-case).
+example: '<p class="fooBar">   <p class="foo-bar">'
+severity: off
+category: style
+options:
+  - { name: pattern, type: regex, default: '^[a-z][a-z0-9]*(-[a-z0-9]+)*$', description: The regex the value must match. }
