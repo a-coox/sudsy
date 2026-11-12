@@ -22,10 +22,22 @@ done
 [ ${#pkg[@]} -gt 0 ] && gate=("${pkg[@]}")
 # The cheap checks agents most often miss fail before the wait for a seat and the builds.
 cargo fmt --all -- --check >/dev/null || { echo "FINISH FAILED: gate (cargo fmt --all)"; exit 1; }
-. scripts/slot-run.sh; claim_slot; touch_changed; sweep_slot || exit 1; take_seat
+. scripts/slot-run.sh; claim_slot; touch_changed; sweep_slot || exit 1
+start=$(date -u +%FT%TZ); take_seat; waited=$SECONDS
+log=${CARGO_TARGET_DIR:-target}/bench/finish.log; : >"$log" 2>/dev/null
+# Prints the seat wait and run time, and appends them to finish-times.jsonl next to the slots, so the
+# dev loop's cost per seat count can be compared without the harness's files.
+timed() {
+  local ran=$((SECONDS - waited)) langs
+  langs=$(sed -n 's/^languages: \([^ ]*\).*/\1/p' "$log" 2>/dev/null)
+  echo "finish: waited ${waited}s for a seat, ran ${ran}s"
+  [ -n "${CARGO_TARGET_DIR:-}" ] || return 0
+  printf '{"start":"%s","slot":"%s","seats":%s,"wait_s":%s,"run_s":%s,"result":"%s","langs":"%s"}\n' \
+    "$start" "$(basename "$CARGO_TARGET_DIR")" "${SUDSY_FINISH_SEATS:-1}" "$waited" "$ran" "$1" "$langs" \
+    >>"$(dirname "$CARGO_TARGET_DIR")/finish-times.jsonl"
+}
 # codegen --check builds xtask, which the selection needs anyway: inside the seat, before the gate and bench.
-cargo xtask codegen --check || { echo "FINISH FAILED: gate (stale generated files: cargo xtask codegen)"; exit 1; }
-log=${CARGO_TARGET_DIR:-target}/bench/finish.log
+cargo xtask codegen --check || { timed codegen; echo "FINISH FAILED: gate (stale generated files: cargo xtask codegen)"; exit 1; }
 mkdir -p "$(dirname "$log")"
 scripts/bench.sh "${bench[@]}" >"$log" 2>&1 &
 bench=$!
@@ -33,7 +45,7 @@ scripts/gate.sh "${gate[@]}"
 if [ $? != 0 ]; then
   scripts/bench.sh --stop
   wait $bench 2>/dev/null
-  echo "FINISH FAILED: gate (bench stopped)"
+  timed gate; echo "FINISH FAILED: gate (bench stopped)"
   exit 1
 fi
 wait $bench
@@ -41,5 +53,5 @@ status=$?
 echo "== bench"
 cat "$log"
 [ -s "$log" ] || echo "bench.sh exited $status without output"
-[ $status = 0 ] && echo "FINISH OK" || echo "FINISH FAILED: bench"
+if [ $status = 0 ]; then timed ok; echo "FINISH OK"; else timed bench; echo "FINISH FAILED: bench"; fi
 exit $status
