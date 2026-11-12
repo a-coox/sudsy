@@ -5,7 +5,7 @@
 # anyway. Ends in FINISH OK or FINISH FAILED: <gate|bench>; exit 0 only when both pass. Arguments go
 # to bench.sh (--lang FOLDER: measure those folders instead of the selection), except -p CRATE
 # (repeatable), which the gate checks instead of the selection. At most SUDSY_FINISH_SEATS
-# (default 2) finish runs build at once on the machine; the rest wait in line before any build starts.
+# (default 1) finish runs build at once on the machine; the rest wait in line before any build starts.
 set -uo pipefail
 cd "$(dirname "$0")/.."
 # The gate selects against the same base as the bench.

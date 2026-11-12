@@ -74,13 +74,13 @@ sweep_slot() {
   echo "   (slot sweep: $((SECONDS - t))s)"
 }
 
-# Machine-wide queue for finish runs: at most SUDSY_FINISH_SEATS (default 2) build at once. One file
+# Machine-wide queue for finish runs: at most SUDSY_FINISH_SEATS (default 1) build at once. One file
 # per run in <slot parent>/locks, named <start-ns>-<slot>, holding the run's pid; the first N live
 # files hold the seats, so there is no mutex to get stuck. Files of dead pids are reclaimed.
 # Call after claim_slot (which stopped what this slot's earlier run left).
 take_seat() {
   [ -n "${CARGO_TARGET_DIR:-}" ] || return 0
-  local dir seats=${SUDSY_FINISH_SEATS:-2} f n said= ahead
+  local dir seats=${SUDSY_FINISH_SEATS:-1} f n said= ahead
   dir=$(dirname "$CARGO_TARGET_DIR")/locks; mkdir -p "$dir"
   SEAT=$dir/$(date +%s%N)-$(basename "$CARGO_TARGET_DIR"); echo $BASHPID >"$SEAT"
   trap 'rm -f "$SEAT"' EXIT
