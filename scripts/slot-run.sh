@@ -1,4 +1,4 @@
-# Sourced by gate.sh and finish.sh. A slot serves one run at a time, but under Git Bash a cancelled
+# Sourced by gate.sh and bench.sh. A slot serves one run at a time, but under Git Bash a cancelled
 # background run (TaskStop kills only its top process) leaves its shells, cargo and tests running,
 # and they hold the slot's build lock. So a new top-level run stops what an earlier run in the same
 # slot left: every process carrying the slot's run marker (SUDSY_SLOT_RUN, inherited by all a run
@@ -72,27 +72,4 @@ sweep_slot() {
   esac
   touch "$CARGO_TARGET_DIR/.swept"
   echo "   (slot sweep: $((SECONDS - t))s)"
-}
-
-# Machine-wide queue for finish runs: at most SUDSY_FINISH_SEATS (default 1) build at once. One file
-# per run in <slot parent>/locks, named <start-ns>-<slot>, holding the run's pid; the first N live
-# files hold the seats, so there is no mutex to get stuck. Files of dead pids are reclaimed.
-# Call after claim_slot (which stopped what this slot's earlier run left).
-take_seat() {
-  [ -n "${CARGO_TARGET_DIR:-}" ] || return 0
-  local dir seats=${SUDSY_FINISH_SEATS:-1} f n said= ahead
-  dir=$(dirname "$CARGO_TARGET_DIR")/locks; mkdir -p "$dir"
-  SEAT=$dir/$(date +%s%N)-$(basename "$CARGO_TARGET_DIR"); echo $BASHPID >"$SEAT"
-  trap 'rm -f "$SEAT"' EXIT
-  while :; do
-    n=0; ahead=
-    for f in "$dir"/*; do
-      [ "$f" = "$SEAT" ] && break
-      [ -e "/proc/$(cat "$f" 2>/dev/null)" ] || { rm -f "$f"; continue; }
-      n=$((n + 1)); ahead="$ahead $(basename "$f" | cut -d- -f2-)"
-    done
-    [ $n -lt "$seats" ] && return 0
-    [ -n "$said" ] || echo "finish: waiting for a seat ($seats at once), ahead:$ahead"; said=1
-    sleep 3
-  done
 }

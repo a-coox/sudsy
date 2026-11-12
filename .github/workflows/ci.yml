@@ -94,7 +94,7 @@ jobs:
   # Dependabot PRs only: tier 1 of scripts/bench.sh of every language against the PR base.
   bench:
     if: github.event_name == 'pull_request' && github.actor == 'dependabot[bot]'
-    uses: ./.github/workflows/bench.yml
+    uses: ./.github/workflows/finish.yml
     with:
       base: ${{ github.event.pull_request.base.sha }}
       args: --all --no-record

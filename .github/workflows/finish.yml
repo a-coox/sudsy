@@ -37,7 +37,7 @@ permissions:
   contents: read
 
 env:
-  CARGO_TERM_COLOR: always
+  CARGO_TERM_COLOR: never
 
 jobs:
   bench:
@@ -109,7 +109,9 @@ jobs:
       - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2
         with:
           save-if: ${{ github.event_name != 'pull_request' }}
-      - run: curl -LsSf https://get.nextest.rs/linux | tar zxf - -C ~/.cargo/bin
+      - uses: taiki-e/install-action@cfdb7ed4ccc7c7dce37759eae89dc5674b469b39 # v2
+        with:
+          tool: nextest
       - run: cargo xtask codegen --check
       - name: Gate
         env:
@@ -139,7 +141,9 @@ jobs:
       - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2
         with:
           save-if: ${{ github.event_name != 'pull_request' }}
-      - run: curl -LsSf https://get.nextest.rs/windows-tar | tar zxf - -C ~/.cargo/bin
+      - uses: taiki-e/install-action@cfdb7ed4ccc7c7dce37759eae89dc5674b469b39 # v2
+        with:
+          tool: nextest
       - name: Gate
         env:
           GATE_ARGS: ${{ inputs.gate_args }}
