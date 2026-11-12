@@ -8,25 +8,19 @@ use core_config::shared;
 use core_format::shapes::{dangling_comments, statement_sequence};
 use core_format::{Doc, FormatCtx, FormatError, NodeFormatter, comments, context, doc};
 use core_syntax::{SyntaxElement, SyntaxNode, SyntaxNodeExt, SyntaxToken};
+use std::borrow::Cow;
 
 include!("schema.generated.rs");
 
 pub struct XmlFormatter;
 
-/// The inner text of every attribute value: quotes may change, nothing else.
-fn values(tree: &SyntaxNode) -> Vec<String> {
-    tree.descendants_with_tokens()
-        .filter_map(|e| e.into_token())
-        .filter(|t| t.kind() == k::ATT_VALUE)
-        .map(|t| t.text()[1..t.text().len() - 1].to_string())
-        .collect()
-}
-
 impl NodeFormatter for XmlFormatter {
-    fn extra_check(&self, before: &SyntaxNode, after: &SyntaxNode) -> Result<(), String> {
-        (values(before) == values(after))
-            .then_some(())
-            .ok_or_else(|| "an attribute value changed".into())
+    /// The quotes of an attribute value may change, nothing else.
+    fn value<'a>(&self, item: &'a SyntaxElement) -> Cow<'a, str> {
+        match item {
+            SyntaxElement::Token(t) => inner(t).into(),
+            SyntaxElement::Node(n) => n.text().to_string().into(),
+        }
     }
 
     fn format_node(

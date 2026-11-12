@@ -5,29 +5,20 @@ use crate::generated::kind as k;
 use core_config::shared;
 use core_format::shapes::statement_sequence_with;
 use core_format::{Doc, FormatCtx, FormatError, NodeFormatter, doc};
-use core_syntax::SyntaxNode;
 use core_syntax::SyntaxNodeExt;
+use core_syntax::{SyntaxElement, SyntaxNode};
+use std::borrow::Cow;
 
 include!("schema.generated.rs");
 
 pub struct IniFormatter;
 
-/// The values and continuation lines of a tree without the blanks around them (the formatter trims them).
-fn values(tree: &SyntaxNode) -> Vec<String> {
-    tree.descendants_with_tokens()
-        .filter_map(|e| e.into_token())
-        .filter(|t| matches!(t.kind(), k::VALUE | k::CONTINUATION))
-        .map(|t| t.text().trim().to_string())
-        .filter(|v| !v.is_empty())
-        .collect()
-}
-
 impl NodeFormatter for IniFormatter {
-    fn extra_check(&self, before: &SyntaxNode, after: &SyntaxNode) -> Result<(), String> {
-        if values(before) == values(after) {
-            Ok(())
-        } else {
-            Err("a value changed".into())
+    /// The formatter trims the blanks around a value.
+    fn value<'a>(&self, item: &'a SyntaxElement) -> Cow<'a, str> {
+        match item {
+            SyntaxElement::Token(t) => t.text().trim().into(),
+            SyntaxElement::Node(n) => n.text().to_string().into(),
         }
     }
 

@@ -8,27 +8,18 @@ use core_config::shared;
 use core_format::shapes::statement_sequence;
 use core_format::{Doc, FormatCtx, FormatError, NodeFormatter, comments, doc};
 use core_syntax::{SyntaxElement, SyntaxKind, SyntaxNode, SyntaxNodeExt, SyntaxToken, TextRange};
+use std::borrow::Cow;
 
 include!("schema.generated.rs");
 
 pub struct MakefileFormatter;
 
-/// The values of assignments, the recipe prefixes and the keywords without the blanks around them (the formatter trims them).
-fn values(tree: &SyntaxNode) -> Vec<String> {
-    tree.descendants_with_tokens()
-        .filter_map(|e| e.into_token())
-        .filter(|t| matches!(t.kind(), k::VALUE | k::PREFIX | k::KEYWORD))
-        .map(|t| t.text().trim().to_string())
-        .collect()
-}
-
 impl NodeFormatter for MakefileFormatter {
-    fn extra_check(&self, before: &SyntaxNode, after: &SyntaxNode) -> Result<(), String> {
-        let (a, b) = (values(before), values(after));
-        match a.iter().zip(&b).find(|(x, y)| x != y) {
-            None if a.len() == b.len() => Ok(()),
-            None => Err("the number of values changed".into()),
-            Some((x, y)) => Err(format!("value `{x}` became `{y}`")),
+    /// The formatter trims the blanks around values, prefixes and keywords.
+    fn value<'a>(&self, item: &'a SyntaxElement) -> Cow<'a, str> {
+        match item {
+            SyntaxElement::Token(t) => t.text().trim().into(),
+            SyntaxElement::Node(n) => n.text().to_string().into(),
         }
     }
 

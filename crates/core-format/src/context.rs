@@ -9,6 +9,7 @@ use crate::lines::LineBreaks;
 use crate::shapes::{self, BlockStyle, KeyValueStyle, ListStyle};
 use core_config::ResolvedOptions;
 use core_syntax::{Grammar, SyntaxElement, SyntaxNode, SyntaxToken, TextRange, TextSize};
+use std::borrow::Cow;
 use std::collections::HashMap;
 use std::sync::Mutex;
 
@@ -29,6 +30,15 @@ pub trait NodeFormatter: Send + Sync {
     /// output, both already parsed without errors.
     fn extra_check(&self, _before: &SyntaxNode, _after: &SyntaxNode) -> Result<(), String> {
         Ok(())
+    }
+
+    /// What the safety check compares of a `#restyle` token or node of the input and of the
+    /// output: the text without what formatting may change (quotes, case, number spelling, blanks).
+    fn value<'a>(&self, item: &'a SyntaxElement) -> Cow<'a, str> {
+        match item {
+            SyntaxElement::Token(t) => Cow::Borrowed(t.text()),
+            SyntaxElement::Node(n) => Cow::Owned(n.text().to_string()),
+        }
     }
 
     /// Source text to format instead of the input, for an option that reorders code (C# sorts

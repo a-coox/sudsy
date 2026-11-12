@@ -8,6 +8,7 @@ use core_config::shared;
 use core_format::shapes::dangling_comments;
 use core_format::{Doc, FormatCtx, FormatError, NodeFormatter, comments, doc};
 use core_syntax::{SyntaxElement, SyntaxNode, SyntaxToken, TextRange};
+use std::borrow::Cow;
 
 mod arith;
 mod words;
@@ -18,11 +19,10 @@ pub struct ShellFormatter;
 
 impl NodeFormatter for ShellFormatter {
     /// The blanks inside `$(( ))` may change, nothing else but trivia.
-    fn extra_check(&self, before: &SyntaxNode, after: &SyntaxNode) -> Result<(), String> {
-        if restyled(before) == restyled(after) {
-            Ok(())
-        } else {
-            Err("an arithmetic expansion changed".into())
+    fn value<'a>(&self, item: &'a SyntaxElement) -> Cow<'a, str> {
+        match item {
+            SyntaxElement::Token(t) => t.text().split_whitespace().collect::<String>().into(),
+            SyntaxElement::Node(n) => n.text().to_string().into(),
         }
     }
 
@@ -64,15 +64,6 @@ impl NodeFormatter for ShellFormatter {
             _ => return Ok(None),
         }))
     }
-}
-
-/// The arithmetic expansions without blanks, as the formatter writes them.
-fn restyled(tree: &SyntaxNode) -> Vec<String> {
-    (tree.descendants_with_tokens())
-        .filter_map(|e| e.into_token())
-        .filter(|t| t.kind() == k::ARITH)
-        .map(|t| t.text().split_whitespace().collect())
-        .collect()
 }
 
 /// A significant child; `cont` when a line continuation (`\` and a line break) precedes it.

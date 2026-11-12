@@ -11,6 +11,7 @@ use core_format::shapes::{
 };
 use core_format::{Doc, FormatCtx, FormatError, NodeFormatter, doc};
 use core_syntax::{SyntaxElement, SyntaxNode};
+use std::borrow::Cow;
 
 include!("schema.generated.rs");
 
@@ -33,22 +34,12 @@ fn array_style(options: &ResolvedOptions) -> ListStyle {
     }
 }
 
-/// The text of the strings of a tree, with CRLF as LF.
-fn strings(tree: &SyntaxNode) -> Vec<String> {
-    tree.descendants_with_tokens()
-        .filter_map(|e| e.into_token())
-        .filter(|t| t.kind() == k::STRING)
-        .map(|t| t.text().replace("\r\n", "\n"))
-        .collect()
-}
-
 impl NodeFormatter for TomlFormatter {
     /// `end_of_line` rewrites the line breaks inside multi-line strings; nothing else may change.
-    fn extra_check(&self, before: &SyntaxNode, after: &SyntaxNode) -> Result<(), String> {
-        if strings(before) == strings(after) {
-            Ok(())
-        } else {
-            Err("a string changed".into())
+    fn value<'a>(&self, item: &'a SyntaxElement) -> Cow<'a, str> {
+        match item {
+            SyntaxElement::Token(t) => t.text().replace("\r\n", "\n").into(),
+            SyntaxElement::Node(n) => n.text().to_string().into(),
         }
     }
 

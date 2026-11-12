@@ -20,6 +20,7 @@ pub(crate) use embedded::find as find_embedded;
 use core_config::shared;
 use core_format::{Doc, FormatCtx, FormatError, NodeFormatter, doc};
 use core_syntax::{SyntaxElement, SyntaxKind, SyntaxNode, SyntaxToken};
+use std::borrow::Cow;
 use unicode_width::UnicodeWidthStr;
 
 include!("../schema.generated.rs");
@@ -47,6 +48,11 @@ impl NodeFormatter for MarkdownFormatter {
         }
         let out = r.blocks(node, false).join("\n").replace('\r', "");
         Ok(Some(doc::verbatim(out.trim_end_matches('\n'))))
+    }
+
+    /// The data model and the structure are compared by `extra_check`: no per-item value.
+    fn value<'a>(&self, _item: &'a SyntaxElement) -> Cow<'a, str> {
+        Cow::Borrowed("")
     }
 
     fn extra_check(&self, before: &SyntaxNode, after: &SyntaxNode) -> Result<(), String> {

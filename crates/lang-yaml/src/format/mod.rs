@@ -18,7 +18,8 @@ use crate::model;
 use core_config::{ResolvedOptions, shared};
 use core_format::comments::CommentStyle;
 use core_format::{Doc, FormatCtx, FormatError, NodeFormatter};
-use core_syntax::SyntaxNode;
+use core_syntax::{SyntaxElement, SyntaxNode};
+use std::borrow::Cow;
 
 include!("../schema.generated.rs");
 
@@ -124,6 +125,11 @@ impl NodeFormatter for YamlFormatter {
             gap: options.int(COMMENT_SPACING) as usize,
             ..CommentStyle::default()
         }
+    }
+
+    /// The data model and the structure are compared by `extra_check`: no per-item value.
+    fn value<'a>(&self, _item: &'a SyntaxElement) -> Cow<'a, str> {
+        Cow::Borrowed("")
     }
 
     /// The data model must be the same before and after: indentation and quoting can change

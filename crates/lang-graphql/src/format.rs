@@ -7,6 +7,7 @@ use core_config::shared;
 use core_format::shapes::{BlockStyle, block, block_between, dangling_comments, document};
 use core_format::{Doc, FormatCtx, FormatError, NodeFormatter, comments, doc};
 use core_syntax::{SyntaxElement, SyntaxKind, SyntaxNode, SyntaxNodeExt, SyntaxToken};
+use std::borrow::Cow;
 
 include!("schema.generated.rs");
 
@@ -53,33 +54,23 @@ fn block_lines(text: &str) -> Vec<&str> {
         .collect()
 }
 
-/// The values of the strings of a tree (the formatter re-indents block strings).
-fn string_values(tree: &SyntaxNode) -> Vec<Vec<String>> {
-    tree.descendants_with_tokens()
-        .filter_map(|e| e.into_token())
-        .filter(|t| t.kind() == k::STRING)
-        .map(|t| {
-            if t.text().starts_with("\"\"\"") {
-                let lines = block_lines(t.text());
-                // A one-line value is written trimmed.
-                match lines.as_slice() {
-                    [one] => vec![one.trim().to_string()],
-                    _ => lines.into_iter().map(String::from).collect(),
-                }
-            } else {
-                vec![t.text().to_string()]
-            }
-        })
-        .collect()
-}
-
 impl NodeFormatter for GraphqlFormatter {
     /// Only the indentation of block strings may change.
-    fn extra_check(&self, before: &SyntaxNode, after: &SyntaxNode) -> Result<(), String> {
-        if string_values(before) == string_values(after) {
-            Ok(())
-        } else {
-            Err("a string changed".into())
+    fn value<'a>(&self, item: &'a SyntaxElement) -> Cow<'a, str> {
+        match item {
+            SyntaxElement::Token(t) => {
+                if t.text().starts_with("\"\"\"") {
+                    let lines = block_lines(t.text());
+                    // A one-line value is written trimmed.
+                    match lines.as_slice() {
+                        [one] => one.trim().to_string().into(),
+                        _ => lines.join("\n").into(),
+                    }
+                } else {
+                    t.text().into()
+                }
+            }
+            SyntaxElement::Node(n) => n.text().to_string().into(),
         }
     }
 

@@ -6,42 +6,30 @@
 use crate::generated::kind as k;
 use core_config::shared;
 use core_format::{Doc, FormatCtx, FormatError, NodeFormatter, comments, doc};
-use core_syntax::{SyntaxKind, SyntaxNode};
+use core_syntax::{SyntaxElement, SyntaxKind, SyntaxNode};
+use std::borrow::Cow;
 
 include!("schema.generated.rs");
 
 pub struct DockerfileFormatter;
 
-/// The significant tokens of a tree as (kind, text): keywords in upper case, blanks removed
-/// (the formatter re-indents line breaks and collapses blanks), heredocs without CR.
-fn tokens(tree: &SyntaxNode) -> Vec<(SyntaxKind, String)> {
-    tree.descendants_with_tokens()
-        .filter_map(|e| e.into_token())
-        .filter(|t| !matches!(t.kind(), k::WHITESPACE | k::NEWLINE | k::COMMENT))
-        .map(|t| {
-            let text = match t.kind() {
-                k::HEREDOC => t.text().replace('\r', ""),
-                k::KEYWORD => t.text().to_ascii_uppercase(),
+impl NodeFormatter for DockerfileFormatter {
+    /// Only case and blanks may change; heredocs without CR.
+    fn value<'a>(&self, item: &'a SyntaxElement) -> Cow<'a, str> {
+        match item {
+            SyntaxElement::Token(t) => match t.kind() {
+                k::HEREDOC => t.text().replace('\r', "").into(),
+                k::KEYWORD => t.text().to_ascii_uppercase().into(),
                 // The instruction name of a raw instruction is upper-cased as well.
                 k::RAW => t
                     .text()
                     .split_whitespace()
                     .collect::<String>()
-                    .to_ascii_uppercase(),
-                _ => t.text().split_whitespace().collect(),
-            };
-            (t.kind(), text)
-        })
-        .collect()
-}
-
-impl NodeFormatter for DockerfileFormatter {
-    /// Only case and blanks may change.
-    fn extra_check(&self, before: &SyntaxNode, after: &SyntaxNode) -> Result<(), String> {
-        if tokens(before) == tokens(after) {
-            Ok(())
-        } else {
-            Err("an argument changed".into())
+                    .to_ascii_uppercase()
+                    .into(),
+                _ => t.text().split_whitespace().collect::<String>().into(),
+            },
+            SyntaxElement::Node(n) => n.text().to_string().into(),
         }
     }
 

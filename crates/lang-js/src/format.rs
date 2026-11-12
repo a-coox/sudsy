@@ -25,9 +25,10 @@ mod util;
 
 use core_config::shared;
 use core_format::{Doc, FormatCtx, FormatError, NodeFormatter, comments};
-use core_syntax::SyntaxNode;
+use core_syntax::{SyntaxElement, SyntaxNode};
+use std::borrow::Cow;
 
-pub(crate) use literal::same_value;
+pub(crate) use literal::value as literal_value;
 
 include!("schema.generated.rs");
 
@@ -111,6 +112,10 @@ impl NodeFormatter for JsFormatter {
         options: &core_config::ResolvedOptions,
     ) -> Option<String> {
         rewrite::rewrite(tree, text, grammar, options)
+    }
+
+    fn value<'a>(&self, item: &'a SyntaxElement) -> Cow<'a, str> {
+        crate::safety::value(item)
     }
 
     fn extra_check(&self, before: &SyntaxNode, after: &SyntaxNode) -> Result<(), String> {

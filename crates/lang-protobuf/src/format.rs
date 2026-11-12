@@ -8,6 +8,7 @@ use core_config::shared;
 use core_format::shapes::{BlockStyle, block_between, dangling_comments};
 use core_format::{Doc, FormatCtx, FormatError, NodeFormatter, comments, doc};
 use core_syntax::{SyntaxElement, SyntaxNode, SyntaxToken};
+use std::borrow::Cow;
 
 include!("schema.generated.rs");
 
@@ -21,27 +22,12 @@ const BLOCK: BlockStyle = BlockStyle {
     keep_same_line: false,
 };
 
-/// The literals of every string of a tree.
-fn literals(tree: &SyntaxNode) -> Vec<String> {
-    tree.descendants_with_tokens()
-        .filter_map(|e| e.into_token())
-        .filter(|t| t.kind() == k::STRING)
-        .flat_map(|t| {
-            pieces(t.text())
-                .into_iter()
-                .map(String::from)
-                .collect::<Vec<_>>()
-        })
-        .collect()
-}
-
 impl NodeFormatter for ProtoFormatter {
     /// Only the blanks between adjacent string literals may change.
-    fn extra_check(&self, before: &SyntaxNode, after: &SyntaxNode) -> Result<(), String> {
-        if literals(before) == literals(after) {
-            Ok(())
-        } else {
-            Err("a string changed".into())
+    fn value<'a>(&self, item: &'a SyntaxElement) -> Cow<'a, str> {
+        match item {
+            SyntaxElement::Token(t) => pieces(t.text()).join("\n").into(),
+            SyntaxElement::Node(n) => n.text().to_string().into(),
         }
     }
 

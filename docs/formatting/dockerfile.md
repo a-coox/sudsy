@@ -14,7 +14,7 @@ Known gap: the grammar fails on a shell line that starts with `[` right after an
 - A line continuation ends its line with one space before it, and what follows is indented one level (`indent_size`, default 4; `indent_style`); this also re-indents the continued lines of shell text and of multi-line pairs. Lines inside a quote are kept exactly (the blanks are content). Comment lines inside a continuation stay, indented the same. The escape character is the one the line uses, so `# escape=` is honoured.
 - Heredoc bodies and their delimiter line are kept as written (trailing blanks included).
 - Comments and parser directives stay where they are; blank lines between instructions are kept up to `max_blank_lines`.
-- Not changed: the shell code itself (`&&` chains, `;`), legacy `ENV key value`, `MAINTAINER`. The generic safety check plus `DockerfileFormatter::extra_check` allow only case and blanks to change: every token keeps its kind and text with blanks removed (keywords compared case-insensitively).
+- Not changed: the shell code itself (`&&` chains, `;`), legacy `ENV key value`, `MAINTAINER`. The generic safety check plus `DockerfileFormatter::value` allow only case and blanks to change: every token keeps its kind and text with blanks removed (keywords compared case-insensitively).
 
 dockerfmt (reteps/dockerfmt) is the comparable tool; it rewrites shell code with mvdan/sh, converts legacy `ENV` and `MAINTAINER`, and ships Linux and macOS binaries only, so there is no parity entry: its output would differ on nearly every `RUN`, and Sudsy's conservative layout leaves shell code to a later Shell language.
 

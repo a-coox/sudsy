@@ -1,60 +1,29 @@
-//! The meaning check of the output (debug builds and tests). The generic check has already
-//! re-parsed the output with oxc and compared nodes and tokens, leaving out trivia, `;` and the
-//! text of literals (tagged `#restyle`); here the literals of both trees are compared by value:
-//! quotes and quote escapes of strings, the spelling of numbers, the order of regular expression
-//! flags may differ, nothing else. JSX text (`JSXText` is transparent to the generic check) is
-//! compared by its meaning per element: lines trimmed as JSX does, runs of whitespace one space,
-//! `{" "}` a space.
+//! What the safety check reads of literals and JSX text. The generic check compares nodes and
+//! tokens, leaving out trivia, `;` and the text of literals (tagged `#restyle`), and the comments
+//! as a multiset. A literal is compared by its [`value`]: quotes and quote escapes of strings, the
+//! spelling of numbers, the order of regular expression flags may differ, nothing else. JSX text
+//! (`JSXText` is transparent to the generic check) is compared by its meaning per element: lines
+//! trimmed as JSX does, runs of whitespace one space, `{" "}` a space.
 
-use crate::format::same_value;
+use crate::format::literal_value;
 use crate::generated::kind as k;
-use core_syntax::{SyntaxNode, SyntaxToken};
+use core_syntax::{SyntaxElement, SyntaxNode, SyntaxToken};
+use std::borrow::Cow;
+
+/// The value of a literal token: that of an attribute string has no backslash escapes.
+pub(crate) fn value(item: &SyntaxElement) -> Cow<'_, str> {
+    match item {
+        SyntaxElement::Token(t) if in_attribute(t) => attribute_value(t.text()).into(),
+        SyntaxElement::Token(t) => literal_value(t.kind(), t.text()).into(),
+        SyntaxElement::Node(n) => n.text().to_string().into(),
+    }
+}
 
 pub(crate) fn check(before: &SyntaxNode, after: &SyntaxNode) -> Result<(), String> {
-    let literals = |tree: &SyntaxNode| {
-        tree.descendants_with_tokens()
-            .filter_map(|e| e.into_token())
-            .filter(|t| matches!(t.kind(), k::STRING | k::NUMBER | k::BIG_INT | k::REG_EXP))
-            .filter(|t| t.parent().is_some_and(|p| p.kind() != k::JSX_TEXT))
-            .collect::<Vec<_>>()
-    };
-    let (a, b) = (literals(before), literals(after));
-    if a.len() != b.len() {
-        return Err("the output has a different number of literals".into());
-    }
-    for (x, y) in a.iter().zip(&b) {
-        let same = if in_attribute(x) && in_attribute(y) {
-            attribute_value(x.text()) == attribute_value(y.text())
-        } else {
-            x.kind() == y.kind() && same_value(x.kind(), x.text(), y.text())
-        };
-        if !same {
-            return Err(format!("the literal `{}` became `{}`", x.text(), y.text()));
-        }
-    }
-    let (mut c, mut d) = (comments(before), comments(after));
-    c.sort();
-    d.sort();
-    if let Some(i) = (0..c.len().max(d.len())).find(|&i| c.get(i) != d.get(i)) {
-        return Err(format!(
-            "comment {i} changed from {:?} to {:?}",
-            c.get(i),
-            d.get(i)
-        ));
-    }
     if jsx_texts(before) != jsx_texts(after) {
         return Err("the text of a JSX element changed".into());
     }
     Ok(())
-}
-
-/// The comments, without whitespace (a block comment is re-indented).
-fn comments(tree: &SyntaxNode) -> Vec<String> {
-    tree.descendants_with_tokens()
-        .filter_map(|e| e.into_token())
-        .filter(|t| matches!(t.kind(), k::LINE_COMMENT | k::BLOCK_COMMENT))
-        .map(|t| t.text().split_whitespace().collect())
-        .collect()
 }
 
 fn in_attribute(t: &SyntaxToken) -> bool {

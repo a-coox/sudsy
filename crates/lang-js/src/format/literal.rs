@@ -176,13 +176,13 @@ fn regex(raw: &str) -> String {
     format!("{}{}", &raw[..=end], flags.into_iter().collect::<String>())
 }
 
-/// Do two literal tokens of the input and the output have one meaning?
-pub(crate) fn same_value(kind: SyntaxKind, a: &str, b: &str) -> bool {
+/// What a literal token means: the one thing the formatter's restyling keeps.
+pub(crate) fn value(kind: SyntaxKind, raw: &str) -> String {
     match kind {
-        k::STRING => unquoted(a) == unquoted(b),
-        k::NUMBER => canonical_number(a) == canonical_number(b),
-        k::BIG_INT => a.eq_ignore_ascii_case(b),
-        _ => regex(a) == regex(b),
+        k::STRING => unquoted(raw),
+        k::NUMBER => canonical_number(raw),
+        k::BIG_INT => raw.to_ascii_lowercase(),
+        _ => regex(raw),
     }
 }
 
@@ -257,10 +257,10 @@ mod tests {
 
     #[test]
     fn values_are_compared_not_text() {
-        assert!(same_value(k::STRING, "'a\"'", "\"a\\\"\""));
-        assert!(!same_value(k::STRING, "'a'", "'b'"));
-        assert!(same_value(k::NUMBER, "1.50", "1.5"));
-        assert!(!same_value(k::NUMBER, "1.5", "1.6"));
-        assert!(same_value(k::REG_EXP, "/a/gi", "/a/ig"));
+        assert_eq!(value(k::STRING, "'a\"'"), value(k::STRING, "\"a\\\"\""));
+        assert_ne!(value(k::STRING, "'a'"), value(k::STRING, "'b'"));
+        assert_eq!(value(k::NUMBER, "1.50"), value(k::NUMBER, "1.5"));
+        assert_ne!(value(k::NUMBER, "1.5"), value(k::NUMBER, "1.6"));
+        assert_eq!(value(k::REG_EXP, "/a/gi"), value(k::REG_EXP, "/a/ig"));
     }
 }

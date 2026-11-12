@@ -16,7 +16,8 @@ use core_format::context::comment_doc;
 use core_format::doc::{self, Doc};
 use core_format::shapes::{dangling_comments, document, statement_sequence};
 use core_format::{FormatCtx, FormatError, NodeFormatter};
-use core_syntax::{SyntaxKind, SyntaxNode, SyntaxToken, TextRange};
+use core_syntax::{SyntaxElement, SyntaxKind, SyntaxNode, SyntaxToken, TextRange};
+use std::borrow::Cow;
 use value::{Item, St, items, items_with_edges, unhandled_comments};
 
 include!("../schema.generated.rs");
@@ -103,51 +104,29 @@ impl NodeFormatter for CssFormatter {
         }))
     }
 
-    fn extra_check(&self, before: &SyntaxNode, after: &SyntaxNode) -> Result<(), String> {
-        let tokens = |n: &SyntaxNode| -> Vec<SyntaxToken> {
-            n.descendants_with_tokens()
-                .filter_map(|e| e.into_token())
-                .filter(|t| {
-                    !value::is_trivia(t.kind()) && !matches!(t.kind(), k::SEMICOLON | k::COMMA)
-                })
-                .collect()
-        };
-        let comments = |n: &SyntaxNode| -> Vec<String> {
-            n.descendants_with_tokens()
-                .filter_map(|e| e.into_token())
-                .filter(|t| matches!(t.kind(), k::COMMENT | k::LINE_COMMENT))
-                .map(|t| t.text().trim_end().to_string())
-                .collect()
-        };
-        if comments(before) != comments(after) {
-            return Err("a comment was lost or changed".into());
+    fn value<'a>(&self, item: &'a SyntaxElement) -> Cow<'a, str> {
+        match item {
+            SyntaxElement::Token(t) => normalized(t),
+            SyntaxElement::Node(n) => n.text().to_string().into(),
         }
-        for (a, b) in tokens(before).iter().zip(tokens(after)) {
-            let (x, y) = (normalized(a), normalized(&b));
-            let same = x == y || (a.kind() != b.kind() && x.eq_ignore_ascii_case(&y));
-            if !same {
-                return Err(format!("token `{}` became `{}`", a.text(), b.text()));
-            }
-        }
-        Ok(())
     }
 }
 
 /// A token's text without what the formatter rewrites: case of keywords, hex digits and units,
 /// the spelling of numbers, quotes and the space inside `url()`.
-fn normalized(t: &SyntaxToken) -> String {
+fn normalized(t: &SyntaxToken) -> Cow<'_, str> {
     let s = t.text();
     match t.kind() {
-        k::NUMBER => text::number(s),
-        k::PERCENTAGE => text::percentage(s),
-        k::DIMENSION => text::dimension(s).to_ascii_lowercase(),
+        k::NUMBER => text::number(s).into(),
+        k::PERCENTAGE => text::percentage(s).into(),
+        k::DIMENSION => text::dimension(s).to_ascii_lowercase().into(),
         k::STRING => {
             let s = text::string(s, false);
-            s[1..s.len() - 1].to_string()
+            s[1..s.len() - 1].to_string().into()
         }
-        k::URL => text::url(s).to_ascii_lowercase(),
-        k::IDENT | k::HASH | k::AT_KEYWORD => s.to_ascii_lowercase(),
-        _ => s.to_string(),
+        k::URL => text::url(s).to_ascii_lowercase().into(),
+        k::IDENT | k::HASH | k::AT_KEYWORD => s.to_ascii_lowercase().into(),
+        _ => s.into(),
     }
 }
 
