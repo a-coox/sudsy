@@ -230,13 +230,46 @@ unsafe fn free(mut data: ptr::NonNull<NodeData>) {
 /// than the global allocator (a node is not `Send`, so slots stay on the thread that uses them).
 const POOL_MAX: usize = 4096;
 thread_local! {
+    // No destructor, so the hot path is a plain TLS access; [`Guard`] frees the list at thread exit.
+    // The length is kept plus one once the guard is registered; 0 means not registered yet.
     static POOL: Cell<(*mut u8, usize)> = const { Cell::new((ptr::null_mut(), 0)) };
+    static GUARD: Guard = const { Guard };
 }
+struct Guard;
+
+unsafe fn free_slot(slot: *mut u8) {
+    #[cfg(test)]
+    FREED.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+    std::alloc::dealloc(slot, std::alloc::Layout::new::<NodeData>());
+}
+
+/// Slots left on a thread's list are freed when the thread exits.
+impl Drop for Guard {
+    fn drop(&mut self) {
+        let mut head = POOL.get().0;
+        POOL.set((ptr::null_mut(), POOL_MAX)); // full: later slots are freed, not kept
+        while !head.is_null() {
+            unsafe {
+                let next = *(head as *mut *mut u8);
+                free_slot(head);
+                head = next;
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+static FREED: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
 
 fn alloc(data: NodeData) -> *mut NodeData {
     POOL.with(|pool| {
         let (head, len) = pool.get();
         if head.is_null() {
+            // A thread that frees a slot has allocated one: registering here covers the list.
+            if len == 0 {
+                let _ = GUARD.try_with(|_| ());
+                pool.set((ptr::null_mut(), 1));
+            }
             return Box::into_raw(Box::new(data));
         }
         unsafe {
@@ -255,7 +288,7 @@ unsafe fn release(data: ptr::NonNull<NodeData>) {
     POOL.with(|pool| {
         let (head, len) = pool.get();
         if len >= POOL_MAX {
-            std::alloc::dealloc(slot, std::alloc::Layout::new::<NodeData>());
+            free_slot(slot);
         } else {
             *(slot as *mut *mut u8) = head;
             pool.set((slot, len + 1));
@@ -1734,3 +1767,23 @@ impl Iterator for PreorderWithTokens {
     }
 }
 // endregion
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn pool_is_freed_on_thread_exit() {
+        use std::sync::atomic::Ordering::Relaxed;
+        let before = FREED.load(Relaxed);
+        std::thread::spawn(|| {
+            let kind = SyntaxKind(0);
+            let kids = (0..8).map(|_| NodeOrToken::Token(GreenToken::new(kind, "x")));
+            let root = SyntaxNode::new_root(GreenNode::new(kind, kids));
+            root.children_with_tokens().count();
+        })
+        .join()
+        .unwrap();
+        assert!(FREED.load(Relaxed) > before);
+    }
+}
