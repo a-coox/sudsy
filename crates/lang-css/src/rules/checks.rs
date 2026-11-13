@@ -273,19 +273,12 @@ fn import_position(c: &Check, at: &SyntaxNode, ctx: &mut RuleContext<'_>) {
     }
 }
 
-/// The items of a group with whether trivia comes before each.
-fn spaced_items(group: &SyntaxNode) -> Vec<(SyntaxElement, bool)> {
-    let mut out = Vec::new();
-    let mut space = false;
-    for e in group_items_with_trivia(group) {
-        if is_trivia(e.kind()) {
-            space = true;
-        } else {
-            out.push((e, space));
-            space = false;
-        }
-    }
-    out
+/// The items of a group without trivia.
+fn spaced_items(group: &SyntaxNode) -> Vec<SyntaxElement> {
+    group_items_with_trivia(group)
+        .into_iter()
+        .filter(|e| !is_trivia(e.kind()))
+        .collect()
 }
 
 fn group_items_with_trivia(group: &SyntaxNode) -> Vec<SyntaxElement> {
@@ -310,12 +303,21 @@ fn is_operand(e: &SyntaxElement) -> bool {
 
 fn check_calc_group(c: &Check, group: &SyntaxNode, ctx: &mut RuleContext<'_>) {
     let items = spaced_items(group);
-    // The spacing after an item is the spacing before the next.
-    for (i, (e, space_before)) in items.iter().enumerate() {
-        let space_after = items.get(i + 1).is_none_or(|(_, s)| *s);
+    // Whitespace after a function or group belongs to that node, so spacing is read from the text.
+    let spaced = |at: usize, before: bool| {
+        let text = ctx.file.text;
+        let c = if before {
+            text[..at].chars().next_back()
+        } else {
+            text[at..].chars().next()
+        };
+        c.is_none_or(char::is_whitespace)
+    };
+    for (i, e) in items.iter().enumerate() {
         match e {
             SyntaxElement::Token(t) if t.kind() == k::DELIM && matches!(t.text(), "+" | "-") => {
-                if (i > 0 && !space_before) || (i + 1 < items.len() && !space_after) {
+                let (start, end) = (usize::from(t.text_range().start()), usize::from(t.text_range().end()));
+                if (i > 0 && !spaced(start, true)) || (i + 1 < items.len() && !spaced(end, false)) {
                     c.hit(ctx, t.text_range(), t.text());
                 }
             }
@@ -323,7 +325,7 @@ fn check_calc_group(c: &Check, group: &SyntaxNode, ctx: &mut RuleContext<'_>) {
                 if matches!(t.kind(), k::NUMBER | k::DIMENSION | k::PERCENTAGE)
                     && t.text().starts_with(['+', '-'])
                     && i > 0
-                    && is_operand(&items[i - 1].0) =>
+                    && is_operand(&items[i - 1]) =>
             {
                 c.hit(ctx, t.text_range(), &t.text()[..1]);
             }
