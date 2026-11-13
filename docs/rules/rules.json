@@ -15026,7 +15026,7 @@
     },
     {
       "category": "style",
-      "default_level": "warn",
+      "default_level": "off",
       "description": "An async method returning Task or ValueTask has a name that does not end in `Async`. Overrides, explicit interface implementations and `Main` are left alone (their names are not the method's to choose). Renaming needs the binding layer, so there is no fix.",
       "example": {
         "config": null,

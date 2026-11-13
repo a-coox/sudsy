@@ -10,7 +10,7 @@ rule! {
     pub AsyncSuffix {
         id: "async-suffix",
         category: Style,
-        default: Warn,
+        default: Off,
         description: "An async method returning Task or ValueTask has a name that does not end in \
                   `Async`. Overrides, explicit interface implementations and `Main` are left alone \
                   (their names are not the method's to choose). Renaming needs the binding layer, \

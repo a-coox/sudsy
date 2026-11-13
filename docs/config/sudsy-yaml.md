@@ -63,4 +63,5 @@ What lints by default is each rule's own default level (`sudsy rules` and the De
 | PowerShell | Security and bug rules (plain-text passwords, `Invoke-Expression`, WMI cmdlets, misleading backtick, `$null` on the right). Off: aliases, verbs, `Write-Host`, globals, empty catch |
 | GitHub Actions | actionlint's errors and `script-injection`. |
 | GraphQL, HCL, Makefile, XML, INI, EditorConfig, gitignore | Invalid documents or deprecated syntax (`unique-*-name`, `deprecated-interpolation`, `timestamp-expanded`, `no-duplicate-include`, unknown or invalid EditorConfig properties, ignored `.gitignore` patterns). Off: naming, anonymous operations, empty sections, duplicate or redundant patterns |
+| C# | `no-empty-catch`, and at `analysis: deep` `unused-private-member`. Off: `async-suffix` (naming), documentation and layout rules, `unreachable-code`, `unused-variable` (the compiler reports them) |
 | Protobuf | Nothing (buf's rules are style; `enum-first-value-zero` is a proto3 rule). `preset:protobuf/buf-standard` |
