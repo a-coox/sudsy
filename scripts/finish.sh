@@ -85,10 +85,15 @@ fi
 conclusion=$(gh run view "$id" --json conclusion --jq .conclusion)
 out=$gdir/finish-result; rm -rf "$out"
 echo "== bench"
-if gh run download "$id" -n bench-result -D "$out" >/dev/null 2>&1; then
+fetch() { rm -rf "$out"; gh run download "$id" -n bench-result -D "$out" >/dev/null 2>&1; }
+if fetch || { sleep 20; fetch; } || { sleep 60; fetch; }; then
   # The artifact keeps the build output; print the languages and the comparison.
   awk 'NR == 1 || /^languages/ { print } /^metric/ { p = 1 } p' "$out/bench-output.txt"
   cat "$out/bench-line.jsonl" >>bench/history.jsonl 2>/dev/null
+elif [ "$conclusion" = success ]; then
+  # A pass without its history line is not a finished bench: the commit would lack the line.
+  echo "FINISH FAILED: bench (result not downloaded: gh run download $id -n bench-result, then append bench-line.jsonl to bench/history.jsonl)"
+  exit 1
 else
   echo "no bench result: gh run view $id --log-failed"
 fi
