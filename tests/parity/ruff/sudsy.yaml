@@ -1,0 +1,2 @@
+# The Sudsy side of the comparison with `ruff format --isolated` (its defaults): Sudsy's own defaults.
+extends: []

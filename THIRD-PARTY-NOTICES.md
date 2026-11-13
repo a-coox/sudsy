@@ -20,6 +20,8 @@ the copyright line of that project.
 | `bench/inputs/js/mui-*` (`Button.js`, `Autocomplete.js` of v6.1.0) | <https://github.com/mui/material-ui> | Copyright (c) 2014 Call-Em-All |
 | `bench/inputs/js/vue-renderer.ts` (`runtime-core/src/renderer.ts` of v3.5.13) | <https://github.com/vuejs/core> | Copyright (c) 2018-present, Yuxi (Evan) You and Vue contributors |
 | `bench/inputs/js/excalidraw-color-picker.tsx` (v0.18.0) | <https://github.com/excalidraw/excalidraw> | Copyright (c) 2020 Excalidraw |
+| `bench/inputs/py/requests-sessions.py` (v2.34.2) | <https://github.com/psf/requests> | Copyright 2019 Kenneth Reitz (Apache-2.0) |
+| `bench/inputs/py/django-*.py` (5.2.8) | <https://github.com/django/django> | Copyright (c) Django Software Foundation and individual contributors |
 | `tests/fixtures/presets/json-prettier-compat/`, `yaml-prettier-compat/`, and `playbook` in `yaml-default/` (Prettier test inputs and snapshots) | <https://github.com/prettier/prettier> | Copyright © James Long and contributors |
 | `tests/fixtures/presets/csharp-microsoft/` (code blocks of "Common C# code conventions") | <https://github.com/dotnet/docs> (`LICENSE-CODE`) | Copyright (c) Microsoft Corporation |
 

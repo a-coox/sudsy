@@ -108,7 +108,7 @@ def fixtures(config, folder):
             walk = base.rglob("*") if source.get("recursive") else base.iterdir()
             paths = [(p.relative_to(base).as_posix(), p) for p in sorted(walk) if p.is_file() and ".git" not in p.parts]
         for rel, path in paths:
-            if not rel.endswith(suffixes) or path.name == "sudsy.yaml" or rel.startswith(source.get("skip", "\0")) or not rel.startswith(source.get("only", "")):
+            if not rel.endswith(suffixes) or path.name == "sudsy.yaml" or rel.startswith(source.get("skip", "\0")) or not rel.startswith(source.get("only", "")) or ("skip_with" in source and path.with_suffix(source["skip_with"]).exists()):
                 continue
             try:
                 path.read_bytes().decode("utf-8")

@@ -92,6 +92,27 @@
         {"dir": "tests/conformance/corpus/toml-test/tests", "list": "files-toml-1.0.0", "starts": "valid/", "suffixes": [".toml"]}
       ]
     },
+    "ruff": {
+      "catalog": "ruff",
+      "install": {"pip": "ruff"},
+      "fetch": ["tests/conformance/fetch-python-corpus.sh"],
+      "command": ["python", "{root}/scripts/parity_ruff.py", "{prefix}", "format", "--isolated", "--no-cache", "--quiet", "{file}"],
+      "input": "in-place",
+      "tool_may_reject": true,
+      "parallel": true,
+      "quiet": true,
+      "fixtures": [
+        {"dir": "tests/conformance/corpus/python", "suffixes": [".py", ".pyi"], "only": "black/tests/data/", "ratchet": "black-tests", "recursive": true},
+        {"dir": "tests/conformance/corpus/python", "suffixes": [".py", ".pyi"], "only": "ruff/crates/ruff_python_formatter/", "skip_with": ".options.json", "ratchet": "ruff-fixtures", "recursive": true},
+        {"dir": "tests/conformance/corpus/python", "suffixes": [".py", ".pyi"], "only": "django/django/", "ratchet": "real-world", "recursive": true},
+        {"dir": "tests/conformance/corpus/python", "suffixes": [".py", ".pyi"], "only": "requests/src/", "ratchet": "real-world", "recursive": true},
+        {"dir": "tests/conformance/corpus/python", "suffixes": [".py", ".pyi"], "only": "flask/src/", "ratchet": "real-world", "recursive": true},
+        {"dir": "tests/conformance/corpus/python", "suffixes": [".py", ".pyi"], "only": "click/src/", "ratchet": "real-world", "recursive": true},
+        {"dir": "tests/conformance/corpus/python", "suffixes": [".py", ".pyi"], "only": "httpx/httpx/", "ratchet": "real-world", "recursive": true},
+        {"dir": "tests/conformance/corpus/python", "suffixes": [".py", ".pyi"], "only": "pytest/src/", "ratchet": "real-world", "recursive": true},
+        {"dir": "tests/conformance/corpus/python", "suffixes": [".py", ".pyi"], "only": "black/src/", "ratchet": "real-world", "recursive": true}
+      ]
+    },
     "shfmt": {
       "catalog": "shfmt",
       "install": {
