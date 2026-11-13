@@ -56,7 +56,8 @@ fn formatted(db: &Database, path: &str, text: &str) -> String {
 
 #[test]
 fn run_is_linted_as_shell_at_host_positions() {
-    let dockerfile = "dockerfile:\n  lint:\n    rules:\n      use-workdir-not-cd: off\n";
+    let dockerfile =
+        "dockerfile:\n  lint:\n    rules:\n      use-workdir-not-cd: off\n      no-sudo: warn\n";
     let db = db(dockerfile);
     let text = "FROM a:1\nRUN echo hi && \\\n  # why\n  cd /x; make\n";
     assert_eq!(
