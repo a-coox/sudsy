@@ -316,7 +316,10 @@ fn check_calc_group(c: &Check, group: &SyntaxNode, ctx: &mut RuleContext<'_>) {
     for (i, e) in items.iter().enumerate() {
         match e {
             SyntaxElement::Token(t) if t.kind() == k::DELIM && matches!(t.text(), "+" | "-") => {
-                let (start, end) = (usize::from(t.text_range().start()), usize::from(t.text_range().end()));
+                let (start, end) = (
+                    usize::from(t.text_range().start()),
+                    usize::from(t.text_range().end()),
+                );
                 if (i > 0 && !spaced(start, true)) || (i + 1 < items.len() && !spaced(end, false)) {
                     c.hit(ctx, t.text_range(), t.text());
                 }
