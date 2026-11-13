@@ -9,7 +9,7 @@ fn fmt(input: &str) -> String {
 /// The `.editorconfig` files of dotnet/runtime, roslyn and aspnetcore parse without errors, keep
 /// the reader's sections and properties through the formatter, and format idempotently.
 ///
-/// `cargo test --profile corpus -p lang-editorconfig --test editorconfig -- --ignored --nocapture conformance`
+/// `cargo test --profile corpus -p lang-editorconfig --test integration -- --ignored --nocapture conformance`
 #[test]
 #[ignore]
 fn conformance() {

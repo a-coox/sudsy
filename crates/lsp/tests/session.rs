@@ -1,8 +1,6 @@
 //! The server driven by an in-process client: JSON and YAML (no worker involved).
 
-mod common;
-
-use common::{Client, apply, apply_action};
+use crate::common::{Client, apply, apply_action};
 use lsp_types::{CodeActionKind, DiagnosticSeverity, NumberOrString, Position, Range};
 use provider_api::LanguageProvider;
 

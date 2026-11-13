@@ -9,7 +9,7 @@ fn fmt(input: &str) -> String {
 /// Every `.sh` and `.bash` file of the pinned corpus (`tests/conformance/fetch-shell-corpus.sh`)
 /// that tree-sitter parses formats with the same tokens (the safety check) and idempotently.
 ///
-/// `cargo test --profile corpus -p lang-shell --test shell -- --ignored --nocapture conformance`
+/// `cargo test --profile corpus -p lang-shell --test integration -- --ignored --nocapture conformance`
 #[test]
 #[ignore]
 fn conformance() {

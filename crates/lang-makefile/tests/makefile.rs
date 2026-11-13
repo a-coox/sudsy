@@ -9,7 +9,7 @@ fn fmt(input: &str) -> String {
 /// Every Makefile of the pinned corpus (`tests/conformance/fetch-makefile-corpus.sh`) parses,
 /// formats with the same tokens (the safety check) and idempotently.
 ///
-/// `cargo test --profile corpus -p lang-makefile --test makefile -- --ignored --nocapture conformance`
+/// `cargo test --profile corpus -p lang-makefile --test integration -- --ignored --nocapture conformance`
 #[test]
 #[ignore]
 fn conformance() {

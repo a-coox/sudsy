@@ -4,7 +4,7 @@ use provider_api::format_testing::{assert_file_names, assert_formats, check_corp
 /// Every file of the pinned corpus (`tests/conformance/fetch-github-actions-corpus.sh`) that parses
 /// formats with every check.
 ///
-/// `cargo test --profile corpus -p lang-github-actions --test format -- --ignored conformance`
+/// `cargo test --profile corpus -p lang-github-actions --test integration -- --ignored conformance`
 #[test]
 #[ignore]
 fn conformance() {

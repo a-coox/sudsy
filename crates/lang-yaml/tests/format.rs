@@ -2,9 +2,7 @@
 //! goes through the shared checks (round-trip, meaning, idempotency, comments kept) via
 //! `common::fmt`.
 
-mod common;
-
-use common::{fmt, n, s};
+use crate::common::{fmt, n, s};
 use core_config::OptionValue;
 
 macro_rules! snap {

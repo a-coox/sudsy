@@ -1,7 +1,5 @@
 //! The data-model safety check, and the files the formatter refuses.
 
-mod common;
-
 use core_format::NodeFormatter;
 use core_format::testing::Subject;
 use lang_yaml::YamlFormatter;
@@ -47,7 +45,7 @@ fn a_changed_value_type_or_structure_is_found() {
 
 #[test]
 fn files_with_syntax_errors_are_refused_and_left_alone() {
-    let s = common::subject(&[]);
+    let s = crate::common::subject(&[]);
     let err = s.format("a: b: c\n").unwrap_err();
     assert!(err.contains("mapping"), "{err}");
     assert!(s.format("key: [1, 2\n").is_err());
@@ -56,14 +54,14 @@ fn files_with_syntax_errors_are_refused_and_left_alone() {
 
 #[test]
 fn significant_blanks_at_the_end_of_block_scalars_survive() {
-    let s = common::subject(&[]);
+    let s = crate::common::subject(&[]);
     assert_eq!(s.format("a: |\n  x  \n").unwrap(), "a: |\n  x  \n");
     assert_eq!(s.format("a: |+\n  x\n\n\n").unwrap(), "a: |+\n  x\n\n\n");
 }
 
 #[test]
 fn the_deepest_allowed_nesting_formats_without_overflowing_the_stack() {
-    let s = common::subject(&[]);
+    let s = crate::common::subject(&[]);
     let flow = format!(
         "{}x{}\n",
         "[".repeat(lang_yaml::MAX_DEPTH),

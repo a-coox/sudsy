@@ -35,4 +35,4 @@ Language rules:
 No upstream tool lints INI content, so there is no parity entry.
 
 ## Conformance
-`tests/conformance/fetch-ini-corpus.sh` fetches the `.ini` files of ansible's tests, php-src's `php.ini-development` (70 KB), the `tox.ini` and `setup.cfg` of pytest, setuptools and flake8 and a `.gitconfig` at pinned commits; `cargo test --profile corpus -p lang-ini --test ini -- --ignored --nocapture conformance` checks that each parses, round-trips and formats idempotently, and lists the files it cannot parse.
+`tests/conformance/fetch-ini-corpus.sh` fetches the `.ini` files of ansible's tests, php-src's `php.ini-development` (70 KB), the `tox.ini` and `setup.cfg` of pytest, setuptools and flake8 and a `.gitconfig` at pinned commits; `cargo test --profile corpus -p lang-ini --test integration -- --ignored --nocapture conformance` checks that each parses, round-trips and formats idempotently, and lists the files it cannot parse.

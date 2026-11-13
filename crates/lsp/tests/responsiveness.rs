@@ -1,9 +1,7 @@
 //! The message loop stays free while a diagnostics pull is running. A rule that blocks until the test releases it makes
 //! the pull slow without a sleep.
 
-mod common;
-
-use common::Client;
+use crate::common::Client;
 use core_config::Level;
 use core_format::NodeFormatter;
 use core_rules::{Category, FileContext, Rule, RuleContext, RuleMeta};

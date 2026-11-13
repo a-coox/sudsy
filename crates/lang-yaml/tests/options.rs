@@ -2,9 +2,7 @@
 //! (the others at their defaults), formatting must stay idempotent and keep the meaning.
 //! The combinations are generated from `option_schema()`, so a new option is covered at once.
 
-mod common;
-
-use common::subject;
+use crate::common::subject;
 use core_config::OptionValue;
 use core_format::testing::check;
 use lang_yaml::option_schema;
@@ -86,7 +84,7 @@ fn the_schema_declares_what_the_formatter_reads() {
 
 #[test]
 fn line_ending_and_flow_spacing_options() {
-    use common::{fmt, s};
+    use crate::common::{fmt, s};
     let flow = "a: {x: 1, y: [1, 2]}\n";
     assert_eq!(fmt(flow, &[]), "a: { x: 1, y: [1, 2] }\n");
     assert_eq!(

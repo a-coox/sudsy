@@ -2,9 +2,7 @@
 //! (the others at their defaults), formatting must stay idempotent and keep the meaning.
 //! The combinations are generated from `option_schema()`, so a new option is covered at once.
 
-mod common;
-
-use common::subject;
+use crate::common::subject;
 use core_config::OptionValue;
 use core_format::testing::check;
 use lang_json::option_schema;

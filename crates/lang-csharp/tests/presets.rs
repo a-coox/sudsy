@@ -1,9 +1,7 @@
 //! Presets: `csharp/csharpier-compat` reproduces
 //! CSharpier's. Every case goes through the shared checks of `common::fmt_preset`.
 
-mod common;
-
-use common::fmt_preset;
+use crate::common::fmt_preset;
 
 const COMPAT: &str = "csharp/csharpier-compat";
 
@@ -104,9 +102,9 @@ fn nested_hugged_lambdas_do_not_grow_exponentially() {
         input.push_str("});\n");
     }
     input.push_str("} }");
-    common::fmt("class C { }", &[]); // builds and starts the worker outside the timed section
+    crate::common::fmt("class C { }", &[]); // builds and starts the worker outside the timed section
     let started = std::time::Instant::now();
-    let out = common::fmt(&input, &[]);
+    let out = crate::common::fmt(&input, &[]);
     assert!(out.contains("Run(() =>"));
     assert!(started.elapsed().as_secs() < 20, "{:?}", started.elapsed());
 }

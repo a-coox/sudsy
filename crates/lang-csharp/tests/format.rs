@@ -2,9 +2,7 @@
 //! through the shared checks (lossless round-trip, unchanged meaning, idempotency, comments kept)
 //! via `common::fmt`; the snapshot shows the input and the output.
 
-mod common;
-
-use common::{fmt, l, n, s, subject};
+use crate::common::{fmt, l, n, s, subject};
 use core_config::OptionValue;
 use core_format::testing::assert_formats;
 
@@ -359,7 +357,7 @@ fn syntax_errors_are_reported_and_nothing_is_formatted() {
 
 #[test]
 fn every_fixture_formats() {
-    let dir = common::repo_root().join("tests/fixtures/csharp");
+    let dir = crate::common::repo_root().join("tests/fixtures/csharp");
     let mut count = 0;
     for entry in std::fs::read_dir(dir).unwrap() {
         let path = entry.unwrap().path();

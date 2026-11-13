@@ -1,7 +1,5 @@
 //! Contract tests against the real C# worker (needs the .NET SDK; CI has it).
 
-mod common;
-
 use core_syntax::ast::AstNode;
 use core_syntax::{SyntaxKind, grammars, print, trivia};
 use lang_csharp::generated as csharp;
@@ -10,7 +8,7 @@ use provider_api::{LanguageProvider, ProviderError, ProxyError, SourceFile, Work
 use std::ffi::OsString;
 
 fn provider() -> provider_api::OutOfProcessProvider {
-    lang_csharp::provider(&common::worker_dll())
+    lang_csharp::provider(&crate::common::worker_dll())
 }
 
 const SAMPLE: &str = "using System;\n\nnamespace N // ns\n{\n    /// <summary>Doc</summary>\n    public class Greeter\n    {\n        string s = \"h\u{e9}llo \u{1F642}\"; /* c */\n        void M() { }\n    }\n}\n";
@@ -69,7 +67,10 @@ fn language_version_is_honored_and_validated() {
 #[test]
 fn grammar_hash_mismatch_is_refused() {
     let config = WorkerConfig::new(
-        vec!["dotnet".into(), common::worker_dll().into_os_string()],
+        vec![
+            "dotnet".into(),
+            crate::common::worker_dll().into_os_string(),
+        ],
         "stale",
     );
     let p = provider_api::OutOfProcessProvider::new(grammars::CSHARP, vec![], config);

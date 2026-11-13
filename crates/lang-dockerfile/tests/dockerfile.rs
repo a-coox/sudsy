@@ -10,7 +10,7 @@ fn fmt(input: &str) -> String {
 /// parses (but for the grammar gap below), formats with the same instructions and arguments (case
 /// and blanks aside: the safety check) and formats idempotently.
 ///
-/// `cargo test --profile corpus -p lang-dockerfile --test dockerfile -- --ignored --nocapture conformance`
+/// `cargo test --profile corpus -p lang-dockerfile --test integration -- --ignored --nocapture conformance`
 #[test]
 #[ignore]
 fn conformance() {

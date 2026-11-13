@@ -1,8 +1,6 @@
 //! The built-in pattern rules (`crates/lang-csharp/rules/*.yaml`): listed without the worker,
 //! compiled when first used.
 
-mod common;
-
 use lang_csharp::{provider, provider_with_command};
 use provider_api::LanguageProvider;
 
@@ -18,7 +16,7 @@ fn listing_the_rules_does_not_start_the_worker() {
 
 #[test]
 fn every_embedded_pattern_compiles() {
-    let p = provider(&common::worker_dll());
+    let p = provider(&crate::common::worker_dll());
     // `kinds()` compiles a pattern rule; a broken one is unavailable.
     for rule in p.rules() {
         let _ = rule.kinds();
@@ -50,7 +48,7 @@ rule:
     assert!(rule.unavailable().unwrap().contains("needs-worker"));
 }
 
-/// `cargo test -p lang-csharp --release --test builtin_patterns -- --ignored --nocapture`:
+/// `cargo test -p lang-csharp --release --test integration -- --ignored --nocapture builtin_patterns::`:
 /// what building the provider (the embedded files read, no pattern compiled) and compiling
 /// every embedded pattern cost.
 #[test]
@@ -66,7 +64,7 @@ fn measure_startup_cost() {
         "provider with pattern rules: {:?} each",
         start.elapsed() / n
     );
-    let p = provider(&common::worker_dll());
+    let p = provider(&crate::common::worker_dll());
     let start = std::time::Instant::now();
     for rule in p.rules() {
         let _ = rule.kinds();

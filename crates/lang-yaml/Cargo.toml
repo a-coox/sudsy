@@ -1,5 +1,6 @@
 [package]
 name = "lang-yaml"
+autotests = false
 edition.workspace = true
 license.workspace = true
 version.workspace = true
@@ -25,3 +26,7 @@ core-syntax.workspace = true
 
 [lints]
 workspace = true
+
+[[test]]
+name = "integration"
+path = "tests/main.rs"

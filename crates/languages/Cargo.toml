@@ -1,5 +1,6 @@
 [package]
 name = "languages"
+autotests = false
 edition.workspace = true
 license.workspace = true
 version.workspace = true
@@ -49,3 +50,7 @@ static-grammars = ["lang-dockerfile/static-grammars", "lang-editorconfig/static-
 
 [lints]
 workspace = true
+
+[[test]]
+name = "integration"
+path = "tests/main.rs"

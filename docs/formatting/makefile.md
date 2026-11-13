@@ -54,4 +54,4 @@ Where Sudsy differs from checkmake by design:
 <!-- /generated -->
 
 ## Conformance
-`tests/conformance/fetch-makefile-corpus.sh` fetches the Makefiles of redis, git, lua, prometheus, kubernetes (`build/root`) and docker/cli at pinned commits; `cargo test --profile corpus -p lang-makefile --test makefile -- --ignored --nocapture conformance` checks that each file parses (59 files), round-trips, formats with the same tokens (the safety check) and idempotently.
+`tests/conformance/fetch-makefile-corpus.sh` fetches the Makefiles of redis, git, lua, prometheus, kubernetes (`build/root`) and docker/cli at pinned commits; `cargo test --profile corpus -p lang-makefile --test integration -- --ignored --nocapture conformance` checks that each file parses (59 files), round-trips, formats with the same tokens (the safety check) and idempotently.

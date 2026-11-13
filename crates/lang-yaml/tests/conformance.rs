@@ -4,9 +4,7 @@
 //! * Error cases must produce at least one error.
 //!
 //! Run: `bash tests/conformance/fetch-yaml-corpus.sh &&
-//! cargo test --profile corpus -p lang-yaml --test conformance -- --ignored --nocapture`
-
-mod common;
+//! cargo test --profile corpus -p lang-yaml --test integration -- --ignored --nocapture conformance::`
 
 use core_syntax::{print, trivia};
 use lang_yaml::model::{Node, Value, load};
@@ -210,7 +208,7 @@ fn yaml_test_suite_data_model() {
 #[test]
 #[ignore = "needs the corpus: bash tests/conformance/fetch-yaml-corpus.sh"]
 fn yaml_test_suite_formats() {
-    let subject = common::subject(&[]);
+    let subject = crate::common::subject(&[]);
     let (mut formatted, mut total) = (0, 0);
     let mut failures = Vec::new();
     for case in cases().into_iter().filter(|c| !c.error) {
@@ -241,21 +239,21 @@ fn yaml_test_suite_formats_with_every_option_value() {
     }
     sets.push(vec![
         ("indent_size", OptionValue::Int(4)),
-        ("sequence_indent", common::s("indented")),
-        ("quote_style", common::s("single")),
-        ("document_start", common::s("always")),
+        ("sequence_indent", crate::common::s("indented")),
+        ("quote_style", crate::common::s("single")),
+        ("document_start", crate::common::s("always")),
     ]);
     sets.push(vec![
         ("indent_size", OptionValue::Int(1)),
-        ("sequence_indent", common::s("flush")),
-        ("quote_style", common::s("double")),
-        ("document_start", common::s("never")),
+        ("sequence_indent", crate::common::s("flush")),
+        ("quote_style", crate::common::s("double")),
+        ("document_start", crate::common::s("never")),
         ("line_width", OptionValue::Int(20)),
     ]);
     let cases: Vec<Case> = cases().into_iter().filter(|c| !c.error).collect();
     let mut failures = Vec::new();
     for options in &sets {
-        let subject = common::subject(options);
+        let subject = crate::common::subject(options);
         for case in &cases {
             if let Err(e) = core_format::testing::check(&subject, &case.text) {
                 failures.push(format!(

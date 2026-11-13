@@ -2,9 +2,7 @@
 //! `preprocessor_symbol_sets`). Every case goes through the shared checks (round trip, meaning,
 //! idempotency). Comparison with CSharpier: `scripts/parity.sh format csharpier`.
 
-mod common;
-
-use common::{fmt, l, subject};
+use crate::common::{fmt, l, subject};
 use core_config::OptionValue;
 use core_format::testing::assert_formats;
 

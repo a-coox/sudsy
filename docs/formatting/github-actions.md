@@ -54,4 +54,4 @@ Where Sudsy differs from actionlint by design:
 <!-- /generated -->
 
 ## Conformance
-`tests/conformance/fetch-github-actions-corpus.sh` (actionlint's test workflows at v1.7.12, `actions/starter-workflows`), `cargo test --profile corpus -p lang-github-actions --test format -- --ignored conformance`: every file that parses formats with every check.
+`tests/conformance/fetch-github-actions-corpus.sh` (actionlint's test workflows at v1.7.12, `actions/starter-workflows`), `cargo test --profile corpus -p lang-github-actions --test integration -- --ignored conformance`: every file that parses formats with every check.

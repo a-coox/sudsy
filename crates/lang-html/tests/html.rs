@@ -155,7 +155,7 @@ fn file_names() {
 /// formats with the shared checks, or is reported as a syntax error. Prints the counts recorded
 /// in docs/formatting/html.md.
 ///
-/// `cargo test --profile corpus -p lang-html --test html -- --ignored --nocapture conformance`
+/// `cargo test --profile corpus -p lang-html --test integration -- --ignored --nocapture conformance`
 #[test]
 #[ignore = "needs the corpus: bash tests/conformance/fetch-html-corpus.sh"]
 fn conformance() {

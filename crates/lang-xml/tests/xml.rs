@@ -70,7 +70,7 @@ fn collect(dir: &Path, out: &mut Vec<PathBuf>) {
 /// format with all checks, `not-wf` ones should be rejected. Prints the numbers recorded in
 /// docs/formatting/xml.md.
 ///
-/// `cargo test --profile corpus -p lang-xml --test xml -- --ignored --nocapture conformance`
+/// `cargo test --profile corpus -p lang-xml --test integration -- --ignored --nocapture conformance`
 #[test]
 #[ignore]
 fn conformance() {

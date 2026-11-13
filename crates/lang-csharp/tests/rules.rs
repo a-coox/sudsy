@@ -1,14 +1,12 @@
 //! C# rules: expected diagnostics (snapshots) and fix output, through the real worker.
 
-mod common;
-
 use insta::assert_snapshot;
 use lang_csharp::provider;
 use provider_api::OutOfProcessProvider;
 use provider_api::testing::{fix, lint, render};
 
 fn csharp() -> OutOfProcessProvider {
-    provider(&common::worker_dll())
+    provider(&crate::common::worker_dll())
 }
 
 fn report(text: &str, rules: &str) -> String {

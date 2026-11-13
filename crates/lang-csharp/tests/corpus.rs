@@ -2,11 +2,9 @@
 //! about 90 MB): every file parses without errors, round-trips byte for byte, satisfies the trivia
 //! attachment rule, has every token in the tree, and fits the bodies of the grammar.
 //!
-//! Run: `bash tests/conformance/fetch-corpus.sh && cargo test --profile corpus -p lang-csharp --test corpus -- --ignored --nocapture`
+//! Run: `bash tests/conformance/fetch-corpus.sh && cargo test --profile corpus -p lang-csharp --test integration -- --ignored --nocapture corpus::`
 
-mod common;
-
-use common::CORPORA;
+use crate::common::CORPORA;
 
 use core_syntax::shape::ShapeChecker;
 use core_syntax::{grammars, print, trivia};
@@ -33,7 +31,7 @@ fn check_file(
     let mut source =
         SourceFile::from_bytes(path.to_string_lossy(), 1, std::fs::read(path).unwrap())
             .unwrap_or_else(|e| panic!("{e}"));
-    source.preprocessor_symbols = common::symbols_for(path);
+    source.preprocessor_symbols = crate::common::symbols_for(path);
     let result = match provider.parse(&source) {
         Ok(r) => r,
         Err(e) => return fail(format!("parse failed: {e}")),
@@ -47,7 +45,7 @@ fn check_file(
     if let Err(e) = trivia::check_attachment(&result.tree, |k| grammars::csharp().is_trivia(k)) {
         fail(format!("trivia attachment: {e}"));
     }
-    if let Err(e) = common::check_token_texts(&result.tree) {
+    if let Err(e) = crate::common::check_token_texts(&result.tree) {
         fail(format!("token text: {e}"));
     }
     if result.errors.is_empty() {
@@ -64,12 +62,12 @@ fn check_file(
 #[test]
 #[ignore = "needs the corpora: bash tests/conformance/fetch-corpus.sh"]
 fn corpora_parse_round_trip_and_fit_the_grammar() {
-    let provider = lang_csharp::provider(&common::worker_dll());
+    let provider = lang_csharp::provider(&crate::common::worker_dll());
     let shapes = ShapeChecker::new(grammars::csharp());
     let started = Instant::now();
     let mut all = Totals::default();
     for corpus in CORPORA {
-        let base = common::corpus_root().join(corpus.name);
+        let base = crate::common::corpus_root().join(corpus.name);
         assert!(
             base.exists(),
             "corpus {} missing; run tests/conformance/fetch-corpus.sh",
@@ -77,7 +75,7 @@ fn corpora_parse_round_trip_and_fit_the_grammar() {
         );
         let mut files = Vec::new();
         for dir in corpus.dirs {
-            common::collect_cs(&base.join(dir), &mut files);
+            crate::common::collect_cs(&base.join(dir), &mut files);
         }
         files.sort();
         let mut totals = Totals::default();
