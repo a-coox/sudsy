@@ -1812,7 +1812,7 @@ dependencies = [
 
 [[package]]
 name = "lang-python"
-version = "0.1.0"
+version = "0.1.0-rc.1"
 dependencies = [
  "core-config",
  "core-format",
