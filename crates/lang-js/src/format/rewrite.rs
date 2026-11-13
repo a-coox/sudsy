@@ -37,12 +37,12 @@ pub(crate) fn rewrite(
     };
     let mut inserts: Vec<Edit> = Vec::new();
     let mut later: Vec<Edit> = Vec::new();
+    // Text moved from elsewhere: where it goes and what.
+    let mut moved: Vec<(usize, String)> = Vec::new();
     for node in tree.descendants() {
         // `) // c` then `{` on the next line becomes `) { // c`: the comment moves inside the block.
-        if matches!(
-            node.kind(),
-            k::BLOCK_STATEMENT | k::FUNCTION_BODY | k::CLASS_BODY | k::TS_INTERFACE_BODY
-        ) && let Some(open) = first_token(grammar, &node)
+        if matches!(node.kind(), k::BLOCK_STATEMENT | k::FUNCTION_BODY)
+            && let Some(open) = first_token(grammar, &node)
             && open.kind() == k::L_BRACE
             && comments::trailing_comments(grammar, &open).is_empty()
         {
@@ -74,6 +74,40 @@ pub(crate) fn rewrite(
                     (0..len).for_each(|i| later.push((at + i, None)));
                 }
                 cut(open);
+            }
+        }
+        // `class A // c` then `extends B {`: the line comments of the header go on lines of
+        // their own inside the body, so that formatting the output keeps them there.
+        if matches!(node.kind(), k::CLASS_BODY | k::TS_INTERFACE_BODY)
+            && let Some(open) = first_token(grammar, &node)
+            && open.kind() == k::L_BRACE
+            && let Some(decl) = node.parent()
+        {
+            // The node starts with the trivia in front of its first token: those are not header.
+            let Some(start) = first_token(grammar, &decl).map(|t| t.text_range().start()) else {
+                continue;
+            };
+            let mut header = Vec::new();
+            let mut t = open.prev_token();
+            while let Some(tok) = t {
+                if tok.text_range().start() < start {
+                    break;
+                }
+                if tok.kind() == k::LINE_COMMENT && tok.parent().as_ref() == Some(&decl) {
+                    header.push(tok.clone());
+                }
+                t = tok.prev_token();
+            }
+            if !header.is_empty() {
+                header.reverse();
+                let mut text = String::new();
+                for c in &header {
+                    text.push('\n');
+                    text.push_str(c.text().trim_end());
+                    let from = usize::from(c.text_range().start());
+                    (from..usize::from(c.text_range().end())).for_each(|b| later.push((b, None)));
+                }
+                moved.push((usize::from(open.text_range().end()), text));
             }
         }
         // `interface A { // c` puts the comment on a line of its own inside the body.
@@ -236,15 +270,27 @@ pub(crate) fn rewrite(
         return None;
     }
     edits.sort_by_key(|e| (e.0, e.1.is_none()));
+    moved.sort_by_key(|m| m.0);
     let mut out = String::with_capacity(text.len() + 8);
     let mut from = 0;
+    let mut moved = moved.into_iter().peekable();
     for (at, insert) in edits {
-        out.push_str(&text[from..at]);
+        while let Some((to, add)) = moved.next_if(|m| m.0 <= at) {
+            out.push_str(&text[from.min(to)..to]);
+            from = from.max(to);
+            out.push_str(&add);
+        }
+        out.push_str(&text[from.min(at)..at]);
         from = at;
         match insert {
             Some(s) => out.push_str(s),
             None => from = at + 1,
         }
+    }
+    for (to, add) in moved {
+        out.push_str(&text[from.min(to)..to]);
+        from = from.max(to);
+        out.push_str(&add);
     }
     out.push_str(&text[from..]);
     Some(out)

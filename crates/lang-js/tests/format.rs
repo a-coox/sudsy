@@ -348,3 +348,14 @@ fn casts_this_parameters_logical_operands_and_pattern_types() {
         "(a as B) += 1;\nx = (a as B) === c;\ny = a && b && c && d;\ntype F = (this: T, n: number) => R;\ninterface I {\n  m<T>(this: A, b: B): void;\n}\nfunction g({\n  cert,\n  key,\n}: {\n  cert: CryptoFile;\n  key: CryptoFile;\n  kkkkkkkkkkkkkkkkkkkkkkk: string;\n}) {}\n"
     );
 }
+
+#[test]
+fn header_comments_move_into_the_body() {
+    // A stable placement (Prettier keeps them in the header); the check formats the output again.
+    assert_eq!(
+        fmt(
+            "class C2 // a\nextends Base // b\n{\n  m() {}\n}\ninterface A2 // c\nextends B {\n  x: number;\n}\n"
+        ),
+        "class C2 extends Base {\n  // a\n  // b\n  m() {}\n}\ninterface A2 extends B {\n  // c\n  x: number;\n}\n"
+    );
+}
