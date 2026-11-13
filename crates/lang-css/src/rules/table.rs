@@ -123,7 +123,7 @@ fn opaque(piece: &Piece) -> bool {
         || name.starts_with("view-transition-")
 }
 
-fn dialect(ctx: &RuleContext<'_>) -> Option<&'static str> {
+pub(super) fn dialect(ctx: &RuleContext<'_>) -> Option<&'static str> {
     match ctx.file.path.extension()?.to_str()? {
         "scss" => Some("scss"),
         "less" => Some("less"),
@@ -174,6 +174,10 @@ impl Table {
                                 .next()
                                 .is_some_and(|o| o.kind() == k::L_PAREN)
                             && !(unknown && t.text().starts_with('-'))
+                            // `(iv.$tablet - 1px)` is an expression, not a feature
+                            && model::tokens(&g).nth(2).is_none_or(|n| {
+                                matches!(n.text(), ":" | ")" | "<" | ">" | "=")
+                            })
                         {
                             out.push((t.text().to_ascii_lowercase(), t.text_range()));
                         }

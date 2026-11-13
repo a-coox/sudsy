@@ -3123,8 +3123,8 @@
     },
     {
       "category": "correctness",
-      "default_level": "off",
-      "description": "An at-rule that no CSS specification lists. Vendor-prefixed ones are left out; SCSS has its own (`@include`, `@mixin`, ...), and Less at-rules are not checked.",
+      "default_level": "warn",
+      "description": "An at-rule that no CSS specification lists. Vendor-prefixed ones are left out; SCSS has its own (`@include`, `@mixin`, ...), and Less at-rules are not checked. Tailwind's are left out by default.",
       "example": {
         "config": null,
         "fixed": null,
@@ -3147,7 +3147,19 @@
       ],
       "options": [
         {
-          "default": [],
+          "default": [
+            "tailwind",
+            "apply",
+            "theme",
+            "utility",
+            "variant",
+            "custom-variant",
+            "source",
+            "plugin",
+            "config",
+            "reference",
+            "screen"
+          ],
           "description": "Names left out: names, or `/regex/`.",
           "name": "ignore",
           "type": "list"
@@ -3359,7 +3371,7 @@
     },
     {
       "category": "correctness",
-      "default_level": "off",
+      "default_level": "warn",
       "description": "A hex color that does not have 3, 4, 6 or 8 hex digits.",
       "example": {
         "config": null,
@@ -4046,7 +4058,7 @@
     },
     {
       "category": "correctness",
-      "default_level": "off",
+      "default_level": "warn",
       "description": "`+` and `-` in `calc()` need whitespace on both sides, or the expression is invalid.",
       "example": {
         "config": null,
@@ -4733,7 +4745,7 @@
     },
     {
       "category": "correctness",
-      "default_level": "off",
+      "default_level": "warn",
       "description": "A media feature name in `@media` that is not a CSS one. Vendor-prefixed names are left out.",
       "example": {
         "config": null,
@@ -5103,7 +5115,7 @@
     },
     {
       "category": "correctness",
-      "default_level": "off",
+      "default_level": "warn",
       "description": "An `@import` after a rule that is not `@charset`, `@layer` or another `@import`: the browser ignores it.",
       "example": {
         "config": null,

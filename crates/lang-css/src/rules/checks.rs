@@ -253,7 +253,11 @@ fn duplicate_imports(c: &Check, sheet: &SyntaxNode, ctx: &mut RuleContext<'_>) {
 
 /// `@import` comes before everything but `@charset`, `@layer` statements and other imports.
 fn import_position(c: &Check, at: &SyntaxNode, ctx: &mut RuleContext<'_>) {
-    if model::at_name(at) != "import" || at.parent().is_none_or(|p| p.kind() != k::STYLESHEET) {
+    // Sass and Less compile `@import` wherever it stands.
+    if model::at_name(at) != "import"
+        || at.parent().is_none_or(|p| p.kind() != k::STYLESHEET)
+        || super::table::dialect(ctx).is_some()
+    {
         return;
     }
     let mut before = at.prev_sibling();

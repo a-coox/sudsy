@@ -3,7 +3,9 @@ css:
   lint:
     rules:
       at-rule-no-deprecated: error
-      at-rule-no-unknown: error
+      at-rule-no-unknown:
+        level: error
+        options: { ignore: [] }
       block-no-empty: error
       color-no-invalid-hex: error
       comment-no-empty: error

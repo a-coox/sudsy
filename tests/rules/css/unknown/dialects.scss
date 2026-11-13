@@ -1,0 +1,6 @@
+@tailwind base;
+@apply a;
+@media (max-width: (iv.$tablet - 1px)) {}
+@import "a";
+a { color: red }
+@import "b";

@@ -12,12 +12,11 @@ id: at-rule-no-unknown
 family: table
 params: { target: at-rule, mode: unknown, data: at-rule }
 message: "unknown at-rule `@{name}`"
-description: An at-rule that no CSS specification lists. Vendor-prefixed ones are left out; SCSS has its own (`@include`, `@mixin`, ...), and Less at-rules are not checked.
+description: An at-rule that no CSS specification lists. Vendor-prefixed ones are left out; SCSS has its own (`@include`, `@mixin`, ...), and Less at-rules are not checked. Tailwind's are left out by default.
 example: "@foo {}   # reported"
-severity: off
 category: correctness
 options:
-  - { name: ignore, type: list, default: [], description: "Names left out: names, or `/regex/`." }
+  - { name: ignore, type: list, default: [tailwind, apply, theme, utility, variant, custom-variant, source, plugin, config, reference, screen], description: "Names left out: names, or `/regex/`." }
 ---
 id: unit-no-unknown
 family: table
@@ -47,7 +46,6 @@ params: { target: media-feature, mode: unknown, data: media-feature }
 message: "unknown media feature `{name}`"
 description: A media feature name in `@media` that is not a CSS one. Vendor-prefixed names are left out.
 example: "@media (foo: 1) {}   # reported"
-severity: off
 category: correctness
 options:
   - { name: ignore, type: list, default: [], description: "Names left out: names, or `/regex/`." }

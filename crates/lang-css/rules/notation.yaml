@@ -71,10 +71,9 @@ id: color-no-invalid-hex
 message: "the hex color `$0` is not valid"
 description: "A hex color that does not have 3, 4, 6 or 8 hex digits."
 example: "a { color: #ab }   # reported"
-severity: off
 category: correctness
-rule: { kind: Value }
-token: { kind: [Hash], deep: true, not-regex: '^#(?:[0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$' }
+rule: { kind: Value, parent: { kind: Declaration, child: { kind: Property } } }
+token: { kind: [Hash], deep: true, regex: '^#[0-9A-Za-z]+$', not-regex: '^#(?:[0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$' }
 ---
 id: color-no-hex
 message: "do not use the hex color `$0`"

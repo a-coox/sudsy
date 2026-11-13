@@ -4,7 +4,6 @@ params: { check: calc-operators }
 message: "put a space on each side of `{name}`"
 description: "`+` and `-` in `calc()` need whitespace on both sides, or the expression is invalid."
 example: "a { width: calc(1px+2px) }   # reported"
-severity: off
 category: correctness
 ---
 id: function-linear-gradient-no-nonstandard-direction

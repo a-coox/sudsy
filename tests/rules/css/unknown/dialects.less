@@ -1,0 +1,5 @@
+#outer > .inner;
+.a { #outer.mixin(); color: red; }
+@import "a";
+.b { color: blue }
+@import "b";

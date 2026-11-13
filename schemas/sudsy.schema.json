@@ -222,7 +222,7 @@
               ]
             },
             "at-rule-no-unknown": {
-              "description": "An at-rule that no CSS specification lists. Vendor-prefixed ones are left out; SCSS has its own (`@include`, `@mixin`, ...), and Less at-rules are not checked.",
+              "description": "An at-rule that no CSS specification lists. Vendor-prefixed ones are left out; SCSS has its own (`@include`, `@mixin`, ...), and Less at-rules are not checked. Tailwind's are left out by default.",
               "oneOf": [
                 {
                   "$ref": "#/definitions/level"
@@ -237,7 +237,19 @@
                       "additionalProperties": false,
                       "properties": {
                         "ignore": {
-                          "default": [],
+                          "default": [
+                            "tailwind",
+                            "apply",
+                            "theme",
+                            "utility",
+                            "variant",
+                            "custom-variant",
+                            "source",
+                            "plugin",
+                            "config",
+                            "reference",
+                            "screen"
+                          ],
                           "description": "Names left out: names, or `/regex/`.",
                           "items": {
                             "type": "string"

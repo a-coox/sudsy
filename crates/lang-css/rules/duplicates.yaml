@@ -49,7 +49,6 @@ params: { check: import-position }
 message: "@import must come before every other rule except @charset and @layer"
 description: "An `@import` after a rule that is not `@charset`, `@layer` or another `@import`: the browser ignores it."
 example: "a {}\n@import 'a.css';   # reported"
-severity: off
 category: correctness
 ---
 id: declaration-block-no-shorthand-property-overrides
