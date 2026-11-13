@@ -1,0 +1,20 @@
+tool: "ruff"
+version: "0.17.4 (released 2026-11)"
+languages: ["python"]
+sources:
+  - "https://pypi.org/project/ruff/"
+  - "https://docs.astral.sh/ruff/formatter/"
+  - "https://docs.astral.sh/ruff/formatter/black/"
+  - "https://docs.astral.sh/ruff/settings/#format"
+scope: "Formatter (`ruff format`, Black's style); the lint rules are added with the lint step"
+entries:
+  line-length: option python.format.line_width
+  indent-width: option python.format.indent_size
+  indent-style: option python.format.indent_style
+  quote-style: option python.format.quote_style
+  skip-magic-trailing-comma: option python.format.magic_trailing_comma
+  line-ending: option python.format.end_of_line
+  docstring-code-format: option python.format.docstring_code
+  docstring-code-line-length: formatter
+  preview: not planned
+  exclude: formatter

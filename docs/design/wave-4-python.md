@@ -33,7 +33,7 @@ Adapter decisions (the spike's open questions):
 - **Pin:** `=0.0.N` in the root `Cargo.toml`, the version Pyrefly's latest release pins; bumped together with Pyrefly, Dependabot-ignored like oxc. Vendoring is not needed (crates.io).
 - **Target version:** option `target_version` (default the newest stable, `3.14`); ruff's version errors (`lazy import` before 3.15) are syntax errors at that version. The importer reads ruff's `target-version` and `requires-python`.
 - **Parentheses:** the adapter synthesizes a `Parenthesized` node around a parenthesized expression (one per pair, nested for `((x))`), as oxc's `ParenthesizedExpression`; the formatter's `needs_parens` works on it.
-- **Zero-width nodes:** emitted as empty nodes (`lambda:` has an empty `Parameters`), so a kind is present wherever ruff's AST has it; error-recovery placeholders too.
+- **Zero-width nodes:** emitted as empty nodes, so a kind is present wherever ruff's AST has it (error-recovery placeholders; `lambda:` has no `Parameters` node, ruff's field is optional).
 - **Names:** ruff's `NodeKind` and `TokenKind` names; pattern rules use them.
 - **Errors:** ruff's errors cascade; a file reports the first error of each statement. Files with syntax errors are reported, not formatted or linted (standing decision).
 - **Trivia:** comments, `NonLogicalNewline` and indent tokens are trivia; a BOM is leading trivia.

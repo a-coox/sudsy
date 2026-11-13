@@ -5,7 +5,7 @@
 
 `adapter.rs` builds our tree (the shape of `lang-js`'s) from three inputs:
 - the lexer's tokens, one token kind per ruff `TokenKind` (names as ruff's: `Name`, `Lpar`, `If`, `String`, `FStringMiddle`, ...). Comments are `Comment` trivia; logical and non-logical newlines, indents and dedents are `Newline` and `Whitespace` trivia, and a backslash that ends a line is `Continuation`;
-- the AST's node spans, from one `SourceOrderVisitor` walk: each AST node is a node of the tree, named as in ruff (`StmtFunctionDef`, `ExprCall`, `Arguments`, `Parameters`, ...), `ModModule` is the root. A node with no token is an empty node (`lambda:` has an empty `Parameters`);
+- the AST's node spans, from one `SourceOrderVisitor` walk: each AST node is a node of the tree, named as in ruff (`StmtFunctionDef`, `ExprCall`, `Arguments`, `Parameters`, ...), `ModModule` is the root. A node with no token (a name error recovery adds) is an empty node;
 - the text between two tokens, split into trivia tokens and attached by the shared trivia rule. A byte-order mark is leading trivia; text that is none of these is an `Unknown` token and an error.
 
 ruff's expression ranges exclude parentheses, so the adapter makes a `Parenthesized` node (tagged `#transparent`) around each parenthesized expression or pattern, one per pair, nested for `((x))`. The parentheses of a call or of a class's bases belong to `Arguments` and make none.
