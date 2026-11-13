@@ -217,6 +217,29 @@ fn html_fences_are_formatted_and_linted() {
 }
 
 #[test]
+fn html_front_matter_is_formatted_as_yaml() {
+    let mut providers: Vec<Box<dyn LanguageProvider>> = vec![Box::new(lang_html::provider())];
+    providers.push(Box::new(lang_yaml::YamlProvider::new()));
+    let db = Database::new(providers);
+    let html = "---
+title:   'x'
+---
+<p>a</p>
+";
+    let once = formatted(&db, "a.html", html);
+    assert_eq!(
+        once,
+        "---
+title: 'x'
+---
+
+<p>a</p>
+"
+    );
+    assert_eq!(formatted(&db, "a.html", &once), once);
+}
+
+#[test]
 fn svelte_blocks_tags_and_scripts_are_formatted() {
     let providers: Vec<Box<dyn LanguageProvider>> = vec![
         Box::new(lang_html::svelte_provider()),

@@ -1,6 +1,5 @@
 differences:
   embedded-code: gap  embedded code the JS and CSS formatters print differently from Prettier (directive quotes, `<!--` comments, line breaks of call chains and templates), `<html:script>` and `<style type="text/less">`, which Sudsy reads as other languages
-  front-matter: gap  front matter blocks are not understood
   glued-inline-unit: gap  text, an inline element and text written without blanks between (`a"<b>x</b>".`) are not kept together on one line when they are too wide; the element's tags break inside
   conditional-comments: gap  IE conditional comments are comments, not parsed as markup
   syntax-errors: gap  files the grammar rejects (unclosed tags, `<!- ->` comments, `{{ }}` with `>` in text, cursor markers, `<plaintext>`)
@@ -15,17 +14,17 @@ differences:
   svelte-syntax: gap  `{@attach}` and `{#each x as { a, b = "" }}` are rejected by the grammar
   svelte-inline: gap  where the tags of inline elements and mustache tags break in a long line differs from the plugin's printer
 files:
-  prettier-html: embedded-code, front-matter, glued-inline-unit, conditional-comments, syntax-errors
+  prettier-html: embedded-code, glued-inline-unit, conditional-comments, syntax-errors
   prettier-vue: embedded-code, vue-filters, vue-patterns, vue-blocks, vue-js-layout
   real-world: embedded-code, glued-inline-unit, project-options
   real-world-vue: vue-js-layout
   prettier-svelte: svelte-blocks, svelte-attributes, svelte-ignore, svelte-syntax, svelte-inline
   real-world-svelte: svelte-attributes, svelte-inline
 ratchet:
-  prettier-html: 118
-  prettier-vue: 50
+  prettier-html: 126
+  prettier-vue: 51
   prettier-svelte: 51
   prettier-vue-html: 10
-  real-world: 198
+  real-world: 215
   real-world-svelte: 17
   real-world-vue: 8

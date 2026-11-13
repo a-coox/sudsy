@@ -454,6 +454,38 @@ impl P<'_> {
     }
 }
 
+impl P<'_> {
+    /// Front matter: YAML between `---`, TOML between `+++`; formatted, else kept.
+    pub(super) fn front_matter(&self, id: usize) -> Doc {
+        let whole = &*self.n(id).value;
+        let raw = verbatim_text(whole);
+        let (first, rest) = whole.split_once('\n').unwrap_or((whole, ""));
+        let delim = &first[..3];
+        let language = match (delim, first[3..].trim()) {
+            ("---", "") => "yaml",
+            ("+++", "") => "toml",
+            _ => return raw,
+        };
+        let body = &rest[..rest.rfind('\n').map_or(0, |i| i + 1)];
+        let formatted = match (self.o.embed, body.trim().is_empty()) {
+            (_, true) => Some(String::new()),
+            (Some(embed), false) => embed(language, EmbedMode::Program, body, self.o.width, false),
+            _ => None,
+        };
+        match formatted {
+            Some(out) if out.is_empty() => s(format!("{delim}\n{delim}")),
+            Some(out) => doc::concat(vec![
+                s(delim),
+                doc::hardline(),
+                lines(&out),
+                doc::hardline(),
+                s(delim),
+            ]),
+            None => raw,
+        }
+    }
+}
+
 /// `item in items`, `(item, index) of list`: the loop variables as written (parenthesized when
 /// there are several) and the collection formatted by `expr`.
 fn v_for(value: &str, expr: impl Fn(&str) -> Option<String>) -> Option<String> {
