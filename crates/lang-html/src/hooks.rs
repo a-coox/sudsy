@@ -8,6 +8,10 @@ use std::borrow::Cow;
 pub struct HtmlHooks;
 
 impl RuleHooks for HtmlHooks {
+    fn is_name(&self, name: &str) -> bool {
+        !name.starts_with(['{', '<', '}', '%'])
+    }
+
     fn key_name<'a>(&self, key: &SyntaxElement, text: &'a str) -> Cow<'a, str> {
         let range = key.text_range();
         let end = key.parent().map_or(range.end(), |p| p.text_range().end());

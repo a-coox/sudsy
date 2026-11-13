@@ -14,6 +14,12 @@ pub enum Scalar<'a> {
 }
 
 pub trait RuleHooks: Send + Sync {
+    /// Whether a key is a name at all: `no-duplicate-keys` skips the others (HTML: template
+    /// words inside a start tag, `{{ if }}`). The default is every key.
+    fn is_name(&self, _name: &str) -> bool {
+        true
+    }
+
     /// The identity of a key (the `key` item of a `#key-value` entry): the name that is compared,
     /// sorted and checked. `text` is the file's text. The default is the key's text with one pair
     /// of matching quotes stripped.
