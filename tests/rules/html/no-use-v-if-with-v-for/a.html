@@ -1,0 +1,6 @@
+<ul>
+<li v-for="x in xs" v-if="x.on" :key="x.id">a</li>
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ no-use-v-if-with-v-for
+<li v-if="a">b</li>
+<template v-for="x in xs" :key="x.id"><li v-if="x.on">c</li></template>
+</ul>

@@ -1,0 +1,6 @@
+<ul>
+<li v-for="x in xs">a</li>
+^^^^^^^^^^^^^^^^^^^^ v-for-key
+<li v-for="x in xs" :key="x.id">b</li>
+<li v-for="x in xs" v-bind:key="x">c</li>
+</ul>

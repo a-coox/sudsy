@@ -2647,6 +2647,10 @@
               "$ref": "#/definitions/rule",
               "description": "A reference that comes before the declaration of what it names in the source (function declarations included), or runs while the variable is being initialized. References in types are left alone."
             },
+            "no-use-v-if-with-v-for": {
+              "$ref": "#/definitions/rule",
+              "description": "Vue's `no-use-v-if-with-v-for` (eslint-plugin-vue). Filter the list in a computed value, or move the `v-if` to a wrapping `<template>`."
+            },
             "no-useless-catch": {
               "$ref": "#/definitions/rule",
               "description": "A `catch` that only rethrows its error."
@@ -4589,6 +4593,10 @@
                   "type": "object"
                 }
               ]
+            },
+            "v-for-key": {
+              "$ref": "#/definitions/rule",
+              "description": "Vue's `require-v-for-key` (eslint-plugin-vue). A `v-for` without a `:key` (or `v-bind:key`) makes Vue patch the elements in place, which keeps stale state in inputs and components."
             },
             "valid-id": {
               "$ref": "#/definitions/rule",

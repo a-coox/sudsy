@@ -11884,6 +11884,34 @@
       "upstream": []
     },
     {
+      "category": "suspicious",
+      "default_level": "off",
+      "description": "Vue's `no-use-v-if-with-v-for` (eslint-plugin-vue). Filter the list in a computed value, or move the `v-if` to a wrapping `<template>`.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "<ul>\n<li v-for=\"x in xs\" v-if=\"x.on\" :key=\"x.id\">a</li>\n<li v-if=\"a\">b</li>\n<template v-for=\"x in xs\" :key=\"x.id\"><li v-if=\"x.on\">c</li></template>\n</ul>\n",
+        "language": "html",
+        "spans": [
+          {
+            "column": 1,
+            "length": 44,
+            "line": 2
+          }
+        ]
+      },
+      "fix": null,
+      "id": "no-use-v-if-with-v-for",
+      "languages": [
+        "html",
+        "svelte",
+        "vue"
+      ],
+      "options": [],
+      "presets": [],
+      "upstream": []
+    },
+    {
       "category": "correctness",
       "default_level": "warn",
       "description": "A void element (`<br>`, `<img>`, ...) has no content and no end tag; the browser ignores `</br>`.",
@@ -12227,6 +12255,34 @@
       "presets": [
         "html/html-validate-standard"
       ],
+      "upstream": []
+    },
+    {
+      "category": "correctness",
+      "default_level": "off",
+      "description": "Vue's `require-v-for-key` (eslint-plugin-vue). A `v-for` without a `:key` (or `v-bind:key`) makes Vue patch the elements in place, which keeps stale state in inputs and components.",
+      "example": {
+        "config": null,
+        "fixed": null,
+        "input": "<ul>\n<li v-for=\"x in xs\">a</li>\n<li v-for=\"x in xs\" :key=\"x.id\">b</li>\n<li v-for=\"x in xs\" v-bind:key=\"x\">c</li>\n</ul>\n",
+        "language": "html",
+        "spans": [
+          {
+            "column": 1,
+            "length": 20,
+            "line": 2
+          }
+        ]
+      },
+      "fix": null,
+      "id": "v-for-key",
+      "languages": [
+        "html",
+        "svelte",
+        "vue"
+      ],
+      "options": [],
+      "presets": [],
       "upstream": []
     },
     {

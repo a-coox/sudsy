@@ -1,0 +1,11 @@
+id: no-use-v-if-with-v-for
+message: "`v-if` and `v-for` on one element: `v-if` is evaluated first in Vue 3 and cannot read the loop variable"
+description: Vue's `no-use-v-if-with-v-for` (eslint-plugin-vue). Filter the list in a computed value, or move the `v-if` to a wrapping `<template>`.
+example: '<li v-for="x in xs" v-if="x.on">   <template v-for="x in xs"><li v-if="x.on">'
+severity: off
+category: suspicious
+rule:
+  kind: StartTag
+  all:
+    - has: { kind: Attribute, regex: '^v-for[\s=]' }
+    - has: { kind: Attribute, regex: '^v-if[\s=]' }

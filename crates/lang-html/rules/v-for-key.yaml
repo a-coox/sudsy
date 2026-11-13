@@ -1,0 +1,10 @@
+id: v-for-key
+message: a `v-for` needs a `:key`, so that Vue can reuse the elements when the list changes
+description: Vue's `require-v-for-key` (eslint-plugin-vue). A `v-for` without a `:key` (or `v-bind:key`) makes Vue patch the elements in place, which keeps stale state in inputs and components.
+example: '<li v-for="x in xs">   <li v-for="x in xs" :key="x.id">'
+severity: off
+category: correctness
+rule:
+  kind: StartTag
+  has: { kind: Attribute, regex: '^v-for[\s=]' }
+  not: { has: { kind: Attribute, regex: '^(:|v-bind:)key[\s=]' } }

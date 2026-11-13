@@ -308,6 +308,7 @@ Twenty-four rules read the `///` and `/** */` comment of a declaration (StyleCop
 | `no-style-tag` | html, svelte, vue | style | off | none | A `<style>` element inlines styling that an external stylesheet shares between pages. A `<style>` inside a `<template>` is allowed. |
 | `no-trailing-whitespace` | html, svelte, vue | style | off | none | Spaces or tabs at the end of a line. |
 | `no-unknown-elements` | html, svelte, vue | suspicious | off | none | An element name that HTML does not define, custom elements (`<my-element>`) included. Everything inside `<svg>` and `<math>` is left alone. |
+| `no-use-v-if-with-v-for` | html, svelte, vue | suspicious | off | none | Vue's `no-use-v-if-with-v-for` (eslint-plugin-vue). Filter the list in a computed value, or move the `v-if` to a wrapping `<template>`. |
 | `no-void-end-tag` | html, svelte, vue | correctness | warn | none | A void element (`<br>`, `<img>`, ...) has no content and no end tag; the browser ignores `</br>`. |
 | `prefer-button` | html, svelte, vue | style | off | none | A `<button>` can hold markup and is styled with CSS like any element; `<input type="button">` cannot. |
 | `prefer-native-element` | html, svelte, vue | style | off | none | A `role` that a native element already has (`main`, `navigation`, `button`, `list`, ...) on an element that is not that one needs scripting and styling the native element comes with. |
@@ -318,6 +319,7 @@ Twenty-four rules read the `///` and `/** */` comment of a declaration (StyleCop
 | `text-content` | html, svelte, vue | correctness | off | none | A `<button>` with no text, no image with an `alt`, no `<svg>` and no `aria-label` or `aria-labelledby` has no name; a `title` does not count. |
 | `unique-landmark` | html, svelte, vue | correctness | off | none | Landmarks of one kind (`<nav>`, `<aside>`, or an element with the same landmark `role`) that a screen reader user cannot tell apart: with several of them, each needs an `aria-label` or `aria-labelledby` that no other has. |
 | `unrecognized-char-ref` | html, svelte, vue | correctness | warn | none | A named character reference in text (`&name;`) that HTML does not define. Numeric references and references in attribute values are not checked. |
+| `v-for-key` | html, svelte, vue | correctness | off | none | Vue's `require-v-for-key` (eslint-plugin-vue). A `v-for` without a `:key` (or `v-bind:key`) makes Vue patch the elements in place, which keeps stale state in inputs and components. |
 | `valid-id` | html, svelte, vue | suspicious | off | none | An `id` that is empty, has whitespace, begins with a digit or has other characters is valid HTML5 but breaks CSS selectors and some scripts. |
 | `void-style` | html, svelte, vue | style | off | none | A void element (`<br>`, `<img>`, ...) has no end tag and needs no `/`; write `<br>`, not `<br/>`. |
 | `empty-section` | ini | suspicious | off | none | A `[section]` header with nothing under it, usually left behind by a removed setting. Comments do not count as settings. |
