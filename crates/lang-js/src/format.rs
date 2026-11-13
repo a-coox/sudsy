@@ -106,6 +106,10 @@ impl NodeFormatter for JsFormatter {
         }))
     }
 
+    fn rewrite_rounds(&self) -> usize {
+        4
+    }
+
     fn rewrite_source(
         &self,
         tree: &SyntaxNode,

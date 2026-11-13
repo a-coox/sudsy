@@ -81,6 +81,12 @@ pub trait NodeFormatter: Send + Sync {
     /// Source text to format instead of the input, for an option that reorders code (C# sorts
     /// `using` directives): the input tree is parsed from it again, and the safety check compares
     /// the output with that tree. `None` (the default) formats the input as it is.
+    /// How often [`NodeFormatter::rewrite_source`] may run on its own result: a rewrite that
+    /// unlocks the next (`((T))` loses one pair of parentheses per round) needs more than one.
+    fn rewrite_rounds(&self) -> usize {
+        1
+    }
+
     fn rewrite_source(
         &self,
         _tree: &SyntaxNode,

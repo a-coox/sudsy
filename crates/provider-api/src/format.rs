@@ -88,7 +88,7 @@ pub fn format_parsed_with(
     // A rewrite can unlock the next (`((T))` loses one pair of parentheses per round): repeat
     // until the text is stable, so that formatting the output changes nothing more.
     let mut current: Option<(SourceFile, ParseResult)> = None;
-    for _ in 0..4 {
+    for _ in 0..provider.formatter().rewrite_rounds() {
         let (text, tree) = match &current {
             Some((f, p)) => (&f.text, &p.tree),
             None => (&file.text, &parsed.tree),

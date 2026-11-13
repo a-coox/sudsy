@@ -54,7 +54,7 @@ impl Subject for Formatting {
 
     fn rewritten(&self, input: &str) -> String {
         let mut text = input.to_string();
-        for _ in 0..4 {
+        for _ in 0..self.provider.formatter().rewrite_rounds() {
             let Ok(tree) = self.parse(&text) else {
                 break;
             };
