@@ -16,7 +16,7 @@ pub enum Scalar<'a> {
 pub trait RuleHooks: Send + Sync {
     /// Whether a key is a name at all: `no-duplicate-keys` skips the others (HTML: template
     /// words inside a start tag, `{{ if }}`). The default is every key.
-    fn is_name(&self, _name: &str) -> bool {
+    fn is_name(&self, _key: &SyntaxElement, _text: &str) -> bool {
         true
     }
 

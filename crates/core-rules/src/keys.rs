@@ -66,7 +66,7 @@ rule! {
         let mut seen = Seen::default();
         for (index, (_, key)) in entries(node, grammar).enumerate() {
             let name = hooks.key_name(&key, text);
-            if merge_key == Some(&*name) || !hooks.is_name(&name) {
+            if merge_key == Some(&*name) || !hooks.is_name(&key, text) {
                 continue;
             }
             if let Some((first, name)) = seen.first(name, index) {

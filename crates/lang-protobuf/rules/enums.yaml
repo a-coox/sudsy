@@ -31,11 +31,17 @@ rule: { kind: OptionDecl, parent: { kind: EnumBody }, regex: '^option\s+allow_al
 id: enum-first-value-zero
 message: 'the first value of an enum must be 0'
 description: >-
-  The first value of an enum is not 0 (buf lint ENUM_FIRST_VALUE_ZERO).
+  The first value of an enum is not 0 (buf lint ENUM_FIRST_VALUE_ZERO). Proto3 and editions with open enums require it; proto2 files (also those with no `syntax`) are checked only with the `proto2` option.
 example: 'enum E { A = 1; }'
-severity: off
 category: correctness
-rule: { kind: EnumField, nth: 1 }
+options:
+  - { name: proto2, type: bool, default: false, description: "Check proto2 files too, as buf does." }
+rule:
+  kind: EnumField
+  nth: 1
+  any:
+    - { option: proto2 }
+    - { inside: { kind: Document, has: { any: [{ kind: Edition }, { kind: Syntax, regex: 'proto3' }] }, not-has: { kind: OptionDecl, regex: 'enum_type\s*=\s*CLOSED' } } }
 token: { kind: [Int], not-regex: '^(?:0[xX])?0*$' }
 ---
 id: enum-value-prefix

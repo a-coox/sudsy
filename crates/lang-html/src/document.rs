@@ -67,8 +67,11 @@ rule! {
                 };
                 let mut seen = Vec::new();
                 for word in value.split_ascii_whitespace() {
+                    let offset = word.as_ptr() as usize - value.as_ptr() as usize;
+                    if word.starts_with(['{', '}', '%']) || crate::hooks::in_template(&value[..offset]) {
+                        continue;
+                    }
                     if seen.contains(&word) {
-                        let offset = word.as_ptr() as usize - value.as_ptr() as usize;
                         let at = TextRange::at(
                             range.start() + TextSize::try_from(offset).unwrap_or_default(),
                             TextSize::try_from(word.len()).unwrap_or_default(),

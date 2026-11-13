@@ -357,7 +357,7 @@ Twenty-four rules read the `///` and `/** */` comment of a declaration (StyleCop
 | `no-wmi-cmdlets` | powershell | suspicious | warn | none | A call of `Get-WmiObject`, `Invoke-WmiMethod`, `Register-WmiEvent`, `Remove-WmiObject` or `Set-WmiInstance`. |
 | `no-write-host` | powershell | suspicious | off | none | A call of `Write-Host`. |
 | `null-comparison-side` | powershell | correctness | warn | none | A `-eq`, `-ne` (or case variant) comparison with `$null` on the right. |
-| `enum-first-value-zero` | protobuf | correctness | off | none | The first value of an enum is not 0 (buf lint ENUM_FIRST_VALUE_ZERO). |
+| `enum-first-value-zero` | protobuf | correctness | warn | none | The first value of an enum is not 0 (buf lint ENUM_FIRST_VALUE_ZERO). Proto3 and editions with open enums require it; proto2 files (also those with no `syntax`) are checked only with the `proto2` option. Options: `proto2` (default `false`): Check proto2 files too, as buf does. |
 | `enum-no-allow-alias` | protobuf | suspicious | off | none | `option allow_alias = true;` in an enum (buf lint ENUM_NO_ALLOW_ALIAS). |
 | `enum-pascal-case` | protobuf | style | off | none | An enum name that is not PascalCase (buf lint ENUM_PASCAL_CASE). |
 | `enum-value-prefix` | protobuf | style | off | none | An enum value does not start with the enum's name in UPPER_SNAKE_CASE and an underscore (buf lint ENUM_VALUE_PREFIX). |

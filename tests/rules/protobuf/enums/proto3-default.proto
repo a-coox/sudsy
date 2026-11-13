@@ -1,0 +1,5 @@
+syntax = "proto3";
+enum E {
+  A = 1;
+//    ^ enum-first-value-zero
+}

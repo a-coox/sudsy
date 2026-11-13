@@ -1,4 +1,4 @@
-enum-first-value-zero: warn
+enum-first-value-zero: { level: warn, options: { proto2: true } }
 enum-value-prefix: warn
 enum-zero-value-suffix: warn
 enum-no-allow-alias: warn

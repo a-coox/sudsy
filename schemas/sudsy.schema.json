@@ -881,8 +881,35 @@
               "description": "The `<title>` names the page in the browser tab, search results and screen readers; whitespace is not text."
             },
             "enum-first-value-zero": {
-              "$ref": "#/definitions/rule",
-              "description": "The first value of an enum is not 0 (buf lint ENUM_FIRST_VALUE_ZERO)."
+              "description": "The first value of an enum is not 0 (buf lint ENUM_FIRST_VALUE_ZERO). Proto3 and editions with open enums require it; proto2 files (also those with no `syntax`) are checked only with the `proto2` option.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/level"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "$ref": "#/definitions/level"
+                    },
+                    "options": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "proto2": {
+                          "default": false,
+                          "description": "Check proto2 files too, as buf does.",
+                          "type": "boolean"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "level"
+                  ],
+                  "type": "object"
+                }
+              ]
             },
             "enum-no-allow-alias": {
               "$ref": "#/definitions/rule",

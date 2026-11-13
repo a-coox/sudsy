@@ -11461,13 +11461,13 @@
       "example": {
         "config": null,
         "fixed": null,
-        "input": "<!DOCTYPE html>\n<title>x</title>\n<table><tr><td>a</td></tr></table>\n<table><tbody><tr><td>a</td></tr></tbody></table>\n<main></main>\n<main hidden></main>\n<main></main>\n<p id=\"a\"></p>\n<p id=\"a\"></p>\n<p id=\"b\" class=\"x y x\"></p>\n",
+        "input": "<a class=\"a {{ if x }}b{{ end }} {{ if y }}b{{ end }}\">t</a>\n<a class=\"a a\">t</a>\n",
         "language": "html",
         "spans": [
           {
-            "column": 22,
+            "column": 13,
             "length": 1,
-            "line": 10
+            "line": 2
           }
         ]
       },
@@ -13563,8 +13563,8 @@
     },
     {
       "category": "correctness",
-      "default_level": "off",
-      "description": "The first value of an enum is not 0 (buf lint ENUM_FIRST_VALUE_ZERO).",
+      "default_level": "warn",
+      "description": "The first value of an enum is not 0 (buf lint ENUM_FIRST_VALUE_ZERO). Proto3 and editions with open enums require it; proto2 files (also those with no `syntax`) are checked only with the `proto2` option.",
       "example": {
         "config": null,
         "fixed": null,
@@ -13583,7 +13583,14 @@
       "languages": [
         "protobuf"
       ],
-      "options": [],
+      "options": [
+        {
+          "default": false,
+          "description": "Check proto2 files too, as buf does.",
+          "name": "proto2",
+          "type": "bool"
+        }
+      ],
       "presets": [
         "protobuf/buf-standard"
       ],
