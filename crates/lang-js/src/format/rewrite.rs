@@ -153,7 +153,7 @@ pub(crate) fn rewrite(
         }
         // `(x!) = y` is `x! = y`: the parentheses of an assignment target stay only where the
         // printer adds them back (a cast).
-        if node.kind() == k::ASSIGNMENT_EXPRESSION
+        if matches!(node.kind(), k::ASSIGNMENT_EXPRESSION | k::UPDATE_EXPRESSION)
             && node.first_child().is_some_and(|t| {
                 !matches!(
                     t.kind(),
@@ -163,7 +163,7 @@ pub(crate) fn rewrite(
         {
             node.children_with_tokens()
                 .filter_map(|e| e.into_token())
-                .take_while(|t| t.kind() != k::OPERATOR)
+                .take_while(|t| node.kind() == k::UPDATE_EXPRESSION || t.kind() != k::OPERATOR)
                 .filter(|t| matches!(t.kind(), k::L_PAREN | k::R_PAREN))
                 .for_each(&mut cut);
         }
@@ -271,6 +271,11 @@ pub(crate) fn rewrite(
                 if let (Some(first), Some(last)) =
                     (first_token(grammar, &node), last_token(grammar, &node))
                 {
+                    // A line `(a) => 1` would continue the line before it: a statement of its
+                    // own after one without `;` gets one.
+                    if continues_previous_line(grammar, &node) {
+                        inserts.push((usize::from(first.text_range().start()), Some(";")));
+                    }
                     inserts.push((usize::from(first.text_range().start()), Some("(")));
                     inserts.push((usize::from(last.text_range().end()), Some(")")));
                 }
@@ -362,4 +367,24 @@ fn logical_operator(node: &SyntaxNode) -> Option<String> {
         .filter_map(|e| e.into_token())
         .find(|t| t.kind() == k::OPERATOR)
         .map(|t| t.text().to_string())
+}
+
+/// Does `params` (of an arrow) start a statement that follows one without a final `;`?
+fn continues_previous_line(grammar: &Grammar, params: &SyntaxNode) -> bool {
+    let Some(arrow) = params.parent() else {
+        return false;
+    };
+    let Some(stmt) = arrow
+        .parent()
+        .filter(|p| p.kind() == k::EXPRESSION_STATEMENT)
+        .filter(|p| first_token(grammar, p) == first_token(grammar, &arrow))
+    else {
+        return false;
+    };
+    stmt.prev_sibling().is_some_and(|prev| {
+        matches!(
+            prev.kind(),
+            k::EXPRESSION_STATEMENT | k::VARIABLE_DECLARATION
+        ) && last_token(grammar, &prev).is_some_and(|t| t.text() != ";")
+    })
 }

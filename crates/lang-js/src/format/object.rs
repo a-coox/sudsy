@@ -464,16 +464,17 @@ pub(crate) fn key_edits(
 
 /// `[]` or `{}`; comments on lines of their own inside go indented between the brackets.
 fn empty_with_comments(cx: &FormatCtx<'_>, open: &SyntaxToken, close: &SyntaxToken) -> Doc {
-    let inside = core_format::comments::leading_comments(cx.grammar, close);
-    let own_lines = inside
+    use core_format::comments::{self, CommentKind};
+    let mut all = comments::trailing_comments(cx.grammar, open);
+    all.extend(comments::leading_comments(cx.grammar, close));
+    let own_lines = all
         .iter()
-        .any(|c| c.kind != core_format::comments::CommentKind::Block || c.breaks_after > 0);
+        .any(|c| c.kind != CommentKind::Block || c.breaks_after > 0);
     if !own_lines {
         // `{/* c */}`: inline comments sit tight between the brackets.
-        let inner = core_format::comments::trailing_comments(cx.grammar, open)
-            .into_iter()
-            .chain(inside)
-            .map(|c| core_format::context::comment_doc(&c))
+        let inner = all
+            .iter()
+            .map(core_format::context::comment_doc)
             .collect::<Vec<_>>();
         return concat(vec![
             cx.leading_comments_doc(open),
@@ -484,8 +485,9 @@ fn empty_with_comments(cx: &FormatCtx<'_>, open: &SyntaxToken, close: &SyntaxTok
         ]);
     }
     concat(vec![
-        cx.token(open),
-        indent(core_format::shapes::dangling_comments(&inside, false)),
+        cx.leading_comments_doc(open),
+        cx.token_text(open),
+        indent(core_format::shapes::dangling_comments(&all, false)),
         hardline(),
         cx.token_text(close),
         cx.trailing_comments_doc(close),

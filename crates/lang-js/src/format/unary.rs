@@ -6,12 +6,26 @@ use super::util::{R, elem, keyword, kids, node_of, semi, shape_error, token_of};
 use crate::generated::kind as k;
 use core_format::doc::{Doc, concat, group, hardline, if_break, indent, line, lit, softline};
 use core_format::{FormatCtx, FormatError};
-use core_syntax::SyntaxNode;
+use core_syntax::{SyntaxElement, SyntaxNode};
 
 pub(crate) fn format(node: &SyntaxNode, cx: &FormatCtx<'_>) -> Result<Option<Doc>, FormatError> {
     let doc = match node.kind() {
         k::UNARY_EXPRESSION => unary(node, cx)?,
-        k::UPDATE_EXPRESSION | k::SPREAD_ELEMENT => cx.concat_children(node)?,
+        // `(x as T)++`: the parentheses of the operand are tokens of the node; the operand
+        // brings the ones it needs.
+        k::UPDATE_EXPRESSION => {
+            let mut parts = Vec::new();
+            for e in node.children_with_tokens() {
+                match e {
+                    SyntaxElement::Token(t) if matches!(t.kind(), k::L_PAREN | k::R_PAREN) => {}
+                    SyntaxElement::Token(t) if cx.grammar.is_trivia(t.kind()) => {}
+                    SyntaxElement::Token(t) => parts.push(cx.token(&t)),
+                    SyntaxElement::Node(n) => parts.push(cx.format(&n)?),
+                }
+            }
+            core_format::doc::concat(parts)
+        }
+        k::SPREAD_ELEMENT => cx.concat_children(node)?,
         k::AWAIT_EXPRESSION => await_expression(node, cx)?,
         k::YIELD_EXPRESSION => yield_expression(node, cx)?,
         k::SEQUENCE_EXPRESSION => sequence(node, cx)?,
