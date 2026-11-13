@@ -93,7 +93,18 @@ pub(crate) fn rewrite(
                 if tok.text_range().start() < start {
                     break;
                 }
-                if tok.kind() == k::LINE_COMMENT && tok.parent().as_ref() == Some(&decl) {
+                if tok.kind() == k::LINE_COMMENT
+                    && !tok.parent_ancestors().take_while(|a| *a != decl).any(|a| {
+                        matches!(
+                            a.kind(),
+                            k::TS_TYPE_LITERAL
+                                | k::TS_MAPPED_TYPE
+                                | k::OBJECT_EXPRESSION
+                                | k::FUNCTION_BODY
+                                | k::BLOCK_STATEMENT
+                        )
+                    })
+                {
                     header.push(tok.clone());
                 }
                 t = tok.prev_token();
@@ -106,6 +117,10 @@ pub(crate) fn rewrite(
                     text.push_str(c.text().trim_end());
                     let from = usize::from(c.text_range().start());
                     (from..usize::from(c.text_range().end())).for_each(|b| later.push((b, None)));
+                }
+                // An empty body `{}` needs the line break, or the comment would swallow `}`.
+                if !open.next_token().is_some_and(|t| t.kind() == k::NEWLINE) {
+                    text.push('\n');
                 }
                 moved.push((usize::from(open.text_range().end()), text));
             }
