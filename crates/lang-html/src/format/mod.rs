@@ -80,6 +80,12 @@ fn in_root_block(text: &core_syntax::SyntaxToken) -> bool {
         .is_some_and(|d| d.kind() == k::DOCUMENT)
 }
 
+/// The text at the start of the file that is front matter (see `model::front_matter`).
+fn in_front_matter(text: &core_syntax::SyntaxToken) -> bool {
+    text.text_range().start() == 0.into()
+        && (text.text().starts_with("---") || text.text().starts_with("+++"))
+}
+
 /// The expression of a `{{ }}`.
 fn in_interpolation(text: &core_syntax::SyntaxToken) -> bool {
     text.parent()
@@ -116,7 +122,8 @@ impl NodeFormatter for MarkupFormatter {
             k::ATTR_VALUE if embedded_attribute(t) => Cow::Borrowed(""),
             k::MUSTACHE_TEXT | k::BLOCK_TAG_TEXT => Cow::Borrowed(""),
             k::TEXT | k::RAW_TEXT
-                if in_script_or_style(t)
+                if in_front_matter(t)
+                    || in_script_or_style(t)
                     || in_interpolation(t)
                     || (self.dialect == Dialect::Vue && in_root_block(t)) =>
             {

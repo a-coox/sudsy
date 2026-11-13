@@ -346,9 +346,9 @@ impl P<'_> {
     }
 
     fn force_next_empty_line(&self, id: usize) -> bool {
-        self.n(id)
-            .next
-            .is_some_and(|x| self.line_of_end(id) + 1 < self.t.line(self.n(x).start))
+        self.n(id).next.is_some_and(|x| {
+            self.n(id).t == T::Front || self.line_of_end(id) + 1 < self.t.line(self.n(x).start)
+        })
     }
 
     fn force_break_children(&self, id: usize) -> bool {
@@ -480,6 +480,7 @@ impl P<'_> {
                 ])
             }
             T::Interp => self.interpolation(id),
+            T::Front => self.front_matter(id),
             T::Mustache => self.mustache(id),
             T::Block => self.block_doc(id),
             T::Branch => doc::nil(),

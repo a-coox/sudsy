@@ -14,6 +14,8 @@ pub enum T {
     Doctype,
     /// Vue's `{{ expression }}` (the expression is `value`).
     Interp,
+    /// Front matter (`---` YAML `---`) at the start of the file: `value` is the whole block.
+    Front,
     /// Svelte's `{expression}` (`value` is what is between the braces).
     Mustache,
     /// Svelte's `{#if}...{/if}`: its kids are the branches, `value` the end tag.
@@ -460,6 +462,18 @@ impl<'s> Builder<'_, 's> {
         }
         items.extend(extra);
         items.sort_by_key(|i| i.start);
+        let front = if parent == 0 {
+            front_matter(self.d.src)
+        } else {
+            None
+        };
+        if let Some(end) = front {
+            // The front matter is text to the parser: leave it out of the first text.
+            for it in items.iter_mut().filter(|i| i.start < end) {
+                it.start = end.max(it.start);
+            }
+            items.retain(|i| i.start < i.end);
+        }
         let ws_sens = {
             let p = &self.d.n[parent];
             p.t == T::Element && (is_script_like(&p.name) || is_pre_like(&p.name))
@@ -468,6 +482,13 @@ impl<'s> Builder<'_, 's> {
         self.d.n[parent].indent_sens =
             self.d.n[parent].t == T::Element && is_pre_like(&self.d.n[parent].name);
         let mut kids: Vec<usize> = Vec::new();
+        if let Some(end) = front {
+            let mut n = N::new(T::Front, 0, end);
+            n.value = Cow::Borrowed(&self.d.src[..end]);
+            n.display = "block";
+            n.parent = parent;
+            kids.push(self.push(n));
+        }
         let mut i = 0;
         while i < items.len() {
             let it = &items[i];
@@ -695,6 +716,21 @@ impl<'s> Builder<'_, 's> {
         }
         !block_like(n.display)
     }
+}
+
+/// The end of the front matter block of a file (Prettier's regular expression): `---` or `+++`
+/// (with an optional language word) alone on the first line, closed by the same line.
+fn front_matter(src: &str) -> Option<usize> {
+    let delim = ["---", "+++"].into_iter().find(|d| src.starts_with(d))?;
+    let first = src.find('\n')?;
+    let mut at = first + 1;
+    for line in src[at..].split_inclusive('\n') {
+        if line.trim_end() == delim {
+            return Some(at + line.trim_end().len());
+        }
+        at += line.len();
+    }
+    None
 }
 
 /// `display: block` in a comment before an element.
